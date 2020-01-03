@@ -338,14 +338,18 @@ def check_if_project_exists(project_url):
         repo.git.checkout(odoo_version_for_project)
     return project_name_from_url
 
-# check odoo repo
-if not os.path.exists(os.path.join(odoo_dir,".git")):
-    # run_command('mkdir -p %s'%(odoo_dir))
-    git.Git(home_dir).clone("https://github.com/odoo/odoo.git")
-    checkout_git_repo(odoo_dir,odoo_version_for_project)
+def main():
+    # check odoo repo
+    if not os.path.exists(os.path.join(odoo_dir,".git")):
+        # run_command('mkdir -p %s'%(odoo_dir))
+        git.Git(home_dir).clone("https://github.com/odoo/odoo.git")
+        checkout_git_repo(odoo_dir,odoo_version_for_project)
+    
+    check_odoo_venv()
 
-check_odoo_venv()
-
+if __name__ == "__main__":
+    main()
+    
 if not os.path.exists(odoo_projects_dir):
     run_command('mkdir -p %s'%(odoo_projects_dir))
 dependencies_projects_names_list = []
