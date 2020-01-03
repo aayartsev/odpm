@@ -1,0 +1,17 @@
+{%- set mod = name|snake -%}
+{%- set model = "%s.%s"|format(mod, mod) -%}
+<odoo>
+    <template id="{{mod}}_assets_common" inherit_id="web.assets_common">
+        <xpath expr="." position="inside">
+        </xpath>
+    </template>
+    
+    <template id="{{mod}}_assets_backend" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link type="text/css" rel="stylesheet" href="/{{mod}}/static/src/css/new_widget.css"/>
+            <script type="text/javascript" src="/{{mod}}/static/src/js/new_widget.js"/>
+        </xpath>
+    </template>
+</odoo>
+
+

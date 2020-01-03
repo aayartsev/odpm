@@ -1,0 +1,28 @@
+odoo.define('{{mod}}.{{mod}}', function (require) {
+"use strict";
+
+    var config = require('web.config');
+    var core = require('web.core');
+    var session = require('web.session');
+    var rpc = require('web.rpc');
+    var Dialog = require('web.Dialog');
+    
+    var _t = core._t;
+    var qweb = core.qweb;
+    var dialogs = [];
+
+
+    Dialog.include({
+        init: function (parent, options) {
+            this._super.apply(this, arguments);
+        },
+        
+        open: function () {
+            $('.tooltip').remove(); // remove open tooltip if any to prevent them staying when modal is opened
+        },
+    
+    });
+
+});
+
+
