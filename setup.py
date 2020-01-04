@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="odpm",
-    version="0.0.5",
+    version="0.0.7",
     author="Yartsev Alexander",
     author_email="a.yartsev@yartsev.by",
     description="odoo development project mananagement",
@@ -16,6 +16,7 @@ setuptools.setup(
     license="LGPLv3",
     python_requires=">=3",
     install_requires=[],
+    include_package_data=True,
     entry_points={
         'console_scripts': ['odpm = odpm.odpm:main'],
     },

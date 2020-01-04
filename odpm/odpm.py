@@ -14,6 +14,7 @@ import shutil
 import urllib
 from string import Template
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
 home_dir = os.path.expanduser("~") + "/"
 _logger = logging.getLogger(__name__)
 project_config_file = "odpm_project.json"
@@ -403,11 +404,11 @@ if not database_name:
 
 
 odoo_modules_dir = os.path.join(projects_dir,project_name,'odoo_modules')
-if not os.path.exists(odoo_modules_dir):
-    os.makedirs(odoo_modules_dir, exist_ok=True)
+# if not os.path.exists(odoo_modules_dir):
+#     os.makedirs(odoo_modules_dir, exist_ok=True)
 
-run_command('rm -rf %s/%s/odoo_modules/*'%(projects_dir,project_name))
-run_command('ln -s %s/%s/* %s/%s/odoo_modules'%(odoo_projects_dir,project_dir_from_url,projects_dir,project_name))
+run_command('rm -rf %s'%(odoo_modules_dir))
+run_command('ln -s %s %s'%(os.path.join(odoo_projects_dir,project_dir_from_url),odoo_modules_dir))
 
 addons_string = ''
 for project in dependencies_projects_names_list:
@@ -513,14 +514,17 @@ if options.dev_restart:
 
 if options.create_module:
     module_name = options.create_module
-    module_path = os.path.join(odoo_odoo_addons_dir,module_name)
-    
-     
+    # module_path = os.path.join(odoo_modules_dir,module_name)
+    odoo_version = odoo_version_for_project.split('.')[0]
+    current_odoo_version_venv_dir = '%s/venv_odoo_%s'%(odoo_venvs_dir,odoo_version)
+    activate_this = os.path.join(current_odoo_version_venv_dir, 'bin', 'activate_this.py')
+    exec(compile(open(activate_this, "rb").read(), activate_this, 'exec'), dict(__file__=activate_this), {})
     start_odoo_for_template_creating = Template(
-        """${python} ${odoo_bin_path} scaffold -t ${module_template_path} ${module_path}""").substitute({
-            "python":python_version,
+        """python${python_version} ${odoo_bin_path} scaffold -t ${module_template_path} ${module_name} ${module_path}""").substitute({
+            "python_version":python_version,
             "odoo_bin_path":os.path.join(odoo_dir,'odoo-bin'),
-            "module_template_path":os.path.join(project_dir,'templates/default'),
-            "module_path":module_path,
+            "module_template_path":os.path.join(script_dir,'templates/default'),
+            "module_path":odoo_modules_dir,
+            "module_name":module_name,
         })
     run_command(start_odoo_for_template_creating)
