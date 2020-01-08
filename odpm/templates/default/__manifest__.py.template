@@ -30,8 +30,8 @@
         'views/assets.xml',
     ],
     'qweb': [
-        'static/src/xml/new_widget.xml',css
-    ]
+        'static/src/xml/new_widget.xml',
+    ],
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
