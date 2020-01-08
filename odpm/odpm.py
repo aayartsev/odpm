@@ -253,12 +253,13 @@ def get_right_git_url(url):
         if server_name in url:
             current_server = server_name
     
-    params ={
-        "user":urllib.parse.quote(git_servers_params[current_server]["user"]),
-        "password":urllib.parse.quote(git_servers_params[current_server]["password"]),
-        "gitserver":current_server
-    }
+    
     def generate_string_with_template_params(string_to_fill):
+        params = {
+            "user":urllib.parse.quote(git_servers_params[current_server]["user"]),
+            "password":urllib.parse.quote(git_servers_params[current_server]["password"]),
+            "gitserver":current_server
+        }
         return Template(string_to_fill).substitute(params)
     part_of_url =''
     for url_element in url.split("/")[3:]:
@@ -428,8 +429,8 @@ odoo_project_dir = os.path.join(odoo_projects_dir,project_name)
 if dev_project_url:
     project_dir_from_url = check_if_project_exists(dev_project_url)
     odoo_project_dir = os.path.join(odoo_projects_dir,project_dir_from_url)
-    # if not project_name:
-    #     project_name = project_dir_from_url
+    if not project_name:
+        project_name = project_dir_from_url
 
 if not check_dir_content(odoo_project_dir)[4]:
     print(u"There is not odoo module in project. Try to start odpm --init your_project_name")
