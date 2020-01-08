@@ -27,6 +27,7 @@ parser.add_argument('--drop-db', help='db name to drop')
 parser.add_argument('--backup-db', help='db name to backup, working with opiton --arch-path')
 parser.add_argument('--restore-db', help='db name to restore, working with opiton --arch-path')
 parser.add_argument('--arch-path', help='path to database archive, working with options --backup-db and --restore-db')
+# --refresh-venvs
 parser.add_argument('--init', help='init project with current name default params and create default odoo project with default module')
 parser.add_argument('--update', type=bool, nargs='?',const=True, default=False,help='this is option will update all git repos (odoo, depends, dev_project etc...)')
 parser.add_argument('--project-path', help='this is option tell to the programm in wich project context we will work')
@@ -217,8 +218,8 @@ if options.backup_db:
     
 
 
-
-odoo_venv_dir = os.path.join(odoo_venvs_dir,'venv_odoo_'+ odoo_version_for_project.split('.')[0] + "/")
+odoo_version = odoo_version_for_project.split('.')[0]
+odoo_venv_dir = os.path.join(odoo_venvs_dir,'venv_odoo_%s'%(odoo_version))
 python_version= False
 pip_version = False
 if int(odoo_version_for_project.split('.')[0]) <= 10:
@@ -367,7 +368,7 @@ def check_if_project_exists(project_url):
     
 def create_dummy_odoo_module(module_name,module_path):
     odoo_version = odoo_version_for_project.split('.')[0]
-    current_odoo_version_venv_dir = '%s/venv_odoo_%s'%(odoo_venvs_dir,odoo_version)
+    current_odoo_version_venv_dir = os.path.join(odoo_venvs_dir,'venv_odoo_%s'%(odoo_version))
     activate_this = os.path.join(current_odoo_version_venv_dir, 'bin', 'activate_this.py')
     exec(compile(open(activate_this, "rb").read(), activate_this, 'exec'), dict(__file__=activate_this), {})
     start_odoo_for_template_creating = Template(
@@ -552,7 +553,7 @@ if options.restore_db:
         print(u"Для того, чтобы восстановить базу данных, необходимо указать параметр --arch-path 'путь/к/архиву.zip' ")
         exit()
     odoo_version = odoo_version_for_project.split('.')[0]
-    current_odoo_version_venv_dir = '%s/venv_odoo_%s'%(odoo_venvs_dir,odoo_version)
+    current_odoo_version_venv_dir = os.path.join(odoo_venvs_dir,'venv_odoo_%s'%(odoo_version))
     activate_this = os.path.join(current_odoo_version_venv_dir, 'bin', 'activate_this.py')
     exec(compile(open(activate_this, "rb").read(), activate_this, 'exec'), dict(__file__=activate_this), {})
     import odoo

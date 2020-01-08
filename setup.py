@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="odpm",
-    version="0.0.8",
+    version="0.0.13",
     author="Yartsev Alexander",
     author_email="a.yartsev@yartsev.by",
     description="odoo development project mananagement",
