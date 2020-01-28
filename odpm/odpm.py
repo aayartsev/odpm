@@ -576,7 +576,7 @@ if options.restore_db:
             # exit()
         # print(str_line)
     
-    start_odoo_for_restore_db = 'python3 %s/odoo-bin -c %s%s/dev_odoo_config_file.conf -u %s -d %s -i %s --http-port %s'%(odoo_dir,projects_dir,project_name,string_modules_to_update,options.restore_db,string_modules_to_update,"8049")
+    start_odoo_for_restore_db = 'python3 %s/odoo-bin -c %s/%s/dev_odoo_config_file.conf -u %s -d %s -i %s --http-port %s'%(odoo_dir,projects_dir,project_name,string_modules_to_update,options.restore_db,string_modules_to_update,"8049")
     run_command(start_odoo_for_restore_db,output_handler, True)
     exit()
     
