@@ -132,56 +132,56 @@ else:
 
 
 
-# def restore_db(db, dump_file, copy=False):
-#     filestore_dest = home_dir + '/.local/share/Odoo/filestore/' + db
-#     assert isinstance(db, pycompat.string_types)
-#     if odoo.service.db.exp_db_exist(db):
-#         _logger.info('RESTORE DB: %s already exists', db)
-#         raise Exception("Database %s already exists"%(db))
+def restore_db(db, dump_file, copy=False):
+    filestore_dest = home_dir + '/.local/share/Odoo/filestore/' + db
+    assert isinstance(db, pycompat.string_types)
+    if odoo.service.db.exp_db_exist(db):
+        _logger.info('RESTORE DB: %s already exists', db)
+        raise Exception("Database %s already exists"%(db))
 
-#     odoo.service.db._create_empty_database(db)
+    odoo.service.db._create_empty_database(db)
 
-#     filestore_path = None
-#     with odoo.tools.osutil.tempdir() as dump_dir:
-#         if zipfile.is_zipfile(dump_file):
-#             # v8 format
-#             with zipfile.ZipFile(dump_file, 'r') as z:
-#                 # only extract known members!
-#                 filestore = [m for m in z.namelist() if m.startswith('filestore/')]
-#                 z.extractall(dump_dir, ['dump.sql'] + filestore)
+    filestore_path = None
+    with odoo.tools.osutil.tempdir() as dump_dir:
+        if zipfile.is_zipfile(dump_file):
+            # v8 format
+            with zipfile.ZipFile(dump_file, 'r') as z:
+                # only extract known members!
+                filestore = [m for m in z.namelist() if m.startswith('filestore/')]
+                z.extractall(dump_dir, ['dump.sql'] + filestore)
 
-#                 if filestore:
-#                     filestore_path = os.path.join(dump_dir, 'filestore')
+                if filestore:
+                    filestore_path = os.path.join(dump_dir, 'filestore')
 
-#             pg_cmd = 'psql'
-#             pg_args = ['-q', '-f', os.path.join(dump_dir, 'dump.sql')]
+            pg_cmd = 'psql'
+            pg_args = ['-q', '-f', os.path.join(dump_dir, 'dump.sql')]
 
-#         else:
-#             # <= 7.0 format (raw pg_dump output)
-#             pg_cmd = 'pg_restore'
-#             pg_args = ['--no-owner', dump_file]
+        else:
+            # <= 7.0 format (raw pg_dump output)
+            pg_cmd = 'pg_restore'
+            pg_args = ['--no-owner', dump_file]
 
-#         args = []
-#         args.append('--dbname=' + db)
-#         pg_args = args + pg_args
+        args = []
+        args.append('--dbname=' + db)
+        pg_args = args + pg_args
 
-#         if odoo.tools.exec_pg_command(pg_cmd, *pg_args):
-#             raise Exception("Couldn't restore database")
+        if odoo.tools.exec_pg_command(pg_cmd, *pg_args):
+            raise Exception("Couldn't restore database")
 
-#         registry = odoo.modules.registry.Registry.new(db)
-#         cr = registry.cursor()
-#         # env = odoo.api.Environment(cr, SUPERUSER_ID, {})
-#         if filestore_path:
-#             shutil.move(filestore_path, filestore_dest)
+        registry = odoo.modules.registry.Registry.new(db)
+        cr = registry.cursor()
+        # env = odoo.api.Environment(cr, SUPERUSER_ID, {})
+        if filestore_path:
+            shutil.move(filestore_path, filestore_dest)
 
-#         if odoo.tools.config['unaccent']:
-#             try:
-#                 with cr.savepoint():
-#                     cr.execute("CREATE EXTENSION unaccent")
-#             except psycopg2.Error:
-#                 pass
+        if odoo.tools.config['unaccent']:
+            try:
+                with cr.savepoint():
+                    cr.execute("CREATE EXTENSION unaccent")
+            except psycopg2.Error:
+                pass
 
-#     _logger.info('RESTORE DB: %s', db)
+    _logger.info('RESTORE DB: %s', db)
 
 
 # drop_data_base = JSON_CONF['drop_data_base']
