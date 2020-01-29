@@ -383,10 +383,13 @@ def create_dummy_odoo_module(module_name,module_path):
 
 def main():
     # check odoo repo
-    if not os.path.exists(os.path.join(odoo_dir,".git")):
+    if not os.path.exists(os.path.join(odoo_dir,".git")) and not os.path.exists(os.path.join(odoo_dir,"addons")):
         # run_command('mkdir -p %s'%(odoo_dir))
-        git.Git(home_dir).clone("https://github.com/odoo/odoo.git")
-        checkout_git_repo(odoo_dir,odoo_version_for_project)
+        try:
+            git.Git(home_dir).clone("https://github.com/odoo/odoo.git")
+            checkout_git_repo(odoo_dir,odoo_version_for_project)
+        except:
+            print(u"You have to check odoo directory. Try to delete it, if it does not breake your work")
     
     check_odoo_venv()
 
