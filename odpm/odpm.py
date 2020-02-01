@@ -34,6 +34,7 @@ parser.add_argument('--project-path', help='this is option tell to the programm 
 
 parser.add_argument('--dev-restart', type=bool, nargs='?', const=True, default=False, help='this option restarting odoo with your project params')
 parser.add_argument('--create-module', help='this option will create dummy odoo module with frontend files')
+parser.add_argument('--change-password', help='this option will set new password for admin account')
 
 options = parser.parse_args()
 
@@ -593,3 +594,53 @@ if options.dev_restart:
 if options.create_module:
     module_name = options.create_module
     create_dummy_odoo_module(moule_name,project_odoo_modules_dir)
+    
+if options.change_password:
+    password = options.change_password
+    odoo_version = odoo_version_for_project.split('.')[0]
+    int_odoo_version = int(odoo_version)
+    current_odoo_version_venv_dir = os.path.join(odoo_venvs_dir,'venv_odoo_%s'%(odoo_version))
+    activate_this = os.path.join(current_odoo_version_venv_dir, 'bin', 'activate_this.py')
+    exec(compile(open(activate_this, "rb").read(), activate_this, 'exec'), dict(__file__=activate_this), {})
+    import odoo
+    from odoo import SUPERUSER_ID
+    import passlib.context
+    from contextlib import closing
+    import logging
+    _logger = logging.getLogger(__name__)
+    
+    DEFAULT_CRYPT_CONTEXT = passlib.context.CryptContext(
+        ['pbkdf2_sha512', 'plaintext'],
+        deprecated=['plaintext'],
+    )
+    
+    def _crypt_context():
+        """ Passlib CryptContext instance used to encrypt and verify
+        passwords. Can be overridden if technical, legal or political matters
+        require different kdfs than the provided default.
+    
+        Requires a CryptContext as deprecation and upgrade notices are used
+        internally
+        """
+        return DEFAULT_CRYPT_CONTEXT
+    ctx = _crypt_context()
+    encrypted = ctx.encrypt(password)
+    try:
+        db = odoo.sql_db.db_connect(database_name)
+        with closing(db.cursor()) as cr:
+            # test_value = cr.execute('SELECT * FROM res_users')
+            # print(cr.fetchall())
+            if int_odoo_version == 11:
+                cr.execute(
+                    "UPDATE res_users SET password='', password_crypt=%s WHERE id=%s",
+                    (encrypted, 1))
+                cr.commit()
+            if int(odoo_version) > 11:
+                cr.execute(
+                    "UPDATE res_users SET , password=%s WHERE id=%s",
+                    (encrypted, 2))
+                cr.commit()
+
+                
+    except Exception as e:
+        _logger.exception('CREATE DATABASE failed:')
