@@ -585,7 +585,7 @@ if options.restore_db:
     exit()
     
 if options.dev_restart:
-    process=subprocess.Popen(dev_restart_odoo_sh,shell=True,stdout=subprocess.PIPE,stderror=subprocess.PIPE)
+    process=subprocess.Popen(dev_restart_odoo_sh,shell=True,stdout=subprocess.PIPE)
     result=process.communicate()
 
 
