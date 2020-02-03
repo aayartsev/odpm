@@ -585,7 +585,7 @@ if options.restore_db:
     exit()
     
 if options.dev_restart:
-    process=subprocess.Popen(dev_restart_odoo_sh,shell=True,stdout=subprocess.PIPE)
+    process=subprocess.Popen(dev_restart_odoo_sh,shell=True,stdout=subprocess.PIPE,stderror=subprocess.PIPE)
     result=process.communicate()
 
 
@@ -593,7 +593,7 @@ if options.dev_restart:
 
 if options.create_module:
     module_name = options.create_module
-    create_dummy_odoo_module(moule_name,project_odoo_modules_dir)
+    create_dummy_odoo_module(module_name,project_odoo_modules_dir)
     
 if options.change_password:
     password = options.change_password
