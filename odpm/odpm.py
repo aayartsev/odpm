@@ -135,7 +135,12 @@ else:
 
 def restore_db(db, dump_file, copy=False):
     filestore_dest = home_dir + '/.local/share/Odoo/filestore/' + db
-    assert isinstance(db, pycompat.string_types)
+    odoo_version = odoo_version_for_project.split('.')[0]
+    int_odoo_version = int(odoo_version)
+    if int_odoo_version < 13:
+        assert isinstance(db, pycompat.string_types)
+    else:
+        assert isinstance(db, str)
     if odoo.service.db.exp_db_exist(db):
         _logger.info('RESTORE DB: %s already exists', db)
         raise Exception("Database %s already exists"%(db))
@@ -637,7 +642,7 @@ if options.change_password:
                 cr.commit()
             if int(odoo_version) > 11:
                 cr.execute(
-                    "UPDATE res_users SET , password=%s WHERE id=%s",
+                    "UPDATE res_users SET password=%s WHERE id=%s",
                     (encrypted, 2))
                 cr.commit()
 
