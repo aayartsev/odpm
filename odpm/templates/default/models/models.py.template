@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api
 
-# class {{ name|snake }}(models.Model):
+# class {{ name|pascal }}(models.Model):
 #     _name = '{{ name|snake }}.{{ name|snake }}'
 
 #     name = fields.Char()
