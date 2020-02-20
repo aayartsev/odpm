@@ -13,17 +13,17 @@ odoo.define('{{mod}}.{{mod}}', function (require) {
     var qweb = core.qweb;
     var dialogs = [];
 
-
-    Dialog.include({
-        init: function (parent, options) {
-            this._super.apply(this, arguments);
-        },
-        
-        open: function () {
-            $('.tooltip').remove(); // remove open tooltip if any to prevent them staying when modal is opened
-        },
-    
-    });
+    // this code disble dialog buttons ))
+    //Dialog.include({
+    //    init: function (parent, options) {
+    //        this._super.apply(this, arguments);
+    //    },
+    //    
+    //    open: function () {
+    //        $('.tooltip').remove(); // remove open tooltip if any to prevent them staying when modal is opened
+    //    },
+    //
+    //});
 
 });
 

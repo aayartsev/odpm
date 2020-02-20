@@ -376,6 +376,8 @@ def create_dummy_odoo_module(module_name, module_path):
     odoo_version = odoo_version_for_project.split('.')[0]
     current_odoo_version_venv_dir = os.path.join(odoo_venvs_dir, 'venv_odoo_%s' % (odoo_version))
     activate_this = os.path.join(current_odoo_version_venv_dir, 'bin', 'activate_this.py')
+    if not os.path.exists(activate_this):
+        check_odoo_venv()
     exec(compile(open(activate_this, "rb").read(), activate_this, 'exec'), dict(__file__=activate_this), {})
     start_odoo_for_template_creating = Template(
         """python${python_version} ${odoo_bin_path} scaffold -t ${module_template_path} ${module_name} ${module_path}""").substitute({
