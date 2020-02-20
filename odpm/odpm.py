@@ -86,6 +86,9 @@ if 'dependencies_projects_urls' not in JSON_CONF.keys():
 else:
     dependencies_projects_urls = JSON_CONF['dependencies_projects_urls']
 
+dependencies_projects_dirs = JSON_CONF.get('dependencies_projects_dirs',[])
+
+
 if 'dev_project_url' not in JSON_CONF.keys():
     dev_project_url = None
 else:
@@ -294,6 +297,9 @@ def check_dir_content(full_dir_path):
     dir_is_module = False
     dir_is_git_repo = False
     dir_has_module = False
+    dirs_list = False
+    files_list = False
+    # if os.path.exists(full_dir_path):
     recources = get_list_of_modules_in_project(full_dir_path)
     dirs_list = recources[0]
     files_list = recources[1]
@@ -310,12 +316,14 @@ def check_dir_content(full_dir_path):
 
 
 def modify_from_module_to_project(this_project_name):
-    this_project_dir = os.path.join(odoo_projects_dir, this_project_name)
-    temp_project_dir = os.path.join('/tmp', this_project_name)
-    module_dir = os.path.join(this_project_dir, this_project_name)
-    run_command('mv %s /tmp/' % (this_project_dir))
-    run_command('mkdir -p %s' % (module_dir))
-    run_command('mv %s %s/' % (temp_project_dir, this_project_dir))
+    print("test")
+    if type(this_project_name) is str and this_project_name != "":
+        this_project_dir = os.path.join(odoo_projects_dir, this_project_name)
+        temp_project_dir = os.path.join('/tmp', this_project_name)
+        module_dir = os.path.join(this_project_dir, this_project_name)
+        run_command('mv %s /tmp/' % (this_project_dir))
+        run_command('mkdir -p %s' % (module_dir))
+        run_command('mv %s %s/' % (temp_project_dir, this_project_dir))
 
 
 def checkout_git_repo(repo_dir, branch_name):
@@ -414,6 +422,17 @@ for project_url in dependencies_projects_urls:
     project_name_from_url = check_if_project_exists(project_url)
     dependencies_projects_names_list.append(project_name_from_url)
 
+for current_project_dir in dependencies_projects_dirs:
+    if os.path.exists(current_project_dir):
+        current_project_dir = os.path.abspath(current_project_dir)
+        project_content = check_dir_content(current_project_dir)
+        if project_content[2]:
+            project_name_from_dir = current_project_dir.split("/")[-1]
+            modify_from_module_to_project(project_name_from_dir)
+            dependencies_projects_names_list.append(current_project_dir)
+        if project_content[4]:
+            dependencies_projects_names_list.append(current_project_dir)
+
 if options.init:
     project_name = options.init
     odoo_project_dir = os.path.join(odoo_projects_dir, project_name)
@@ -424,6 +443,7 @@ if options.init:
     new_config_file = os.path.join(project_dir, project_config_file)
     new_config = {
         "dependencies_projects_urls": dependencies_projects_urls,
+        "dependencies_projects_dirs": dependencies_projects_dirs,
         "dev_project_url": dev_project_url,
         "odoo_version_for_project": odoo_version_for_project,
         "project_name": project_name,
@@ -564,8 +584,6 @@ if options.restore_db:
     from odoo.tools.misc import str2bool, xlwt, file_open
     from odoo.tools import pycompat
     from odoo import SUPERUSER_ID
-
-    print(options.arch_path)
     restore_db(options.restore_db, options.arch_path, False)
     odoo_pid = None
 
