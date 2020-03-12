@@ -1,0 +1,20 @@
+{
+  "projects_dir": "/home/my_home_dir/projects/",
+  "odoo_projects_dir": "/home/www-data/odoo_projects/",
+  "odoo_dir": "/home/www-data/odoo/",
+  "odoo_venvs_dir": "/home/www-data/odoo_venvs/",
+  "dependencies_projects_urls": [],
+  "dev_project_url": "https://yartsev@bitbucket.org/yartsevco/solid_pos.git",
+  "odoo_version_for_project": "11.0",
+  "project_name": "oodobno",
+  "modules_to_update": [
+    "solid_pos"
+  ],
+  "git_servers_params": {
+    "bitbucket.org": {
+      "user": "your_login",
+      "password": "your_password"
+    }
+  },
+  "database_name": "new_db"
+}
