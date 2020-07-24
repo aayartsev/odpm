@@ -3,13 +3,40 @@
 from odoo import models, fields, api
 
 # class {{ name|pascal }}(models.Model):
+#     """
+#     Class description
+#     """
+
+#    # Private attributes
+#    # ------------------------------------------------------------------------------------------------------------------
 #     _name = '{{ name|snake }}.{{ name|snake }}'
 
-#     name = fields.Char()
+#    # Default methods
+#    # ------------------------------------------------------------------------------------------------------------------
+
+#    # Fields declaration
+#    # ------------------------------------------------------------------------------------------------------------------
+    
+
+#     name = fields.Char(
+#         string="Name of this model record"
+#     )
+#     """ this field is declared for show name of ... """
 #     value = fields.Integer()
 #     value2 = fields.Float(compute="_value_pc", store=True)
 #     description = fields.Text()
 #
+#    # Constraints and onchanges
+#    # ------------------------------------------------------------------------------------------------------------------
+#
+#    # Action methods
+#    # ------------------------------------------------------------------------------------------------------------------
+#
+#    # Business methods
+#    # ------------------------------------------------------------------------------------------------------------------
 #     @api.depends('value')
 #     def _value_pc(self):
 #         self.value2 = float(self.value) / 100
+#
+#    # CRUD methods (and name_get, name_search, ...) overrides
+#    # ------------------------------------------------------------------------------------------------------------------

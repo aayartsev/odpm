@@ -246,6 +246,7 @@ def run_command(command, handler_func=None, stdout=True):
         all_string = all_string + str_line
         if handler_func:
             handler_func(line, current_proc)
+    
     return all_string
 
 
@@ -316,7 +317,6 @@ def check_dir_content(full_dir_path):
 
 
 def modify_from_module_to_project(this_project_name):
-    print("test")
     if type(this_project_name) is str and this_project_name != "":
         this_project_dir = os.path.join(odoo_projects_dir, this_project_name)
         temp_project_dir = os.path.join('/tmp', this_project_name)
@@ -546,29 +546,29 @@ write_new_file(os.path.join(projects_dir, project_name, 'dev_odoo_config_file.co
 dev_restart_odoo_sh = os.path.join(projects_dir, project_name, 'dev_restart_odoo.sh')
 dev_restart_odoo_sh_content = Template(
     """#!/bin/bash
-    pkill -9 -f ${odoo_bin_path}
-    cd ${current_project_dir}
-    source ${odoo_venv_activate}
-    ${odoo_bin_path} -c ${current_project_dir}/dev_odoo_config_file.conf -u ${string_modules_to_update} -d ${database_name} -i ${string_modules_to_update}""").substitute({
-    "current_project_dir": os.path.join(projects_dir, project_name),
-    "odoo_bin_path": os.path.join(odoo_dir, 'odoo-bin'),
-    "odoo_venv_activate": os.path.join(odoo_venv_dir, 'bin/activate'),
-    "string_modules_to_update": string_modules_to_update,
-    "database_name": database_name,
+pkill -9 -f ${odoo_bin_path}
+cd ${current_project_dir}
+source ${odoo_venv_activate}
+${odoo_bin_path} -c ${current_project_dir}/dev_odoo_config_file.conf -u ${string_modules_to_update} -d ${database_name} -i ${string_modules_to_update}""").substitute({
+"current_project_dir": os.path.join(projects_dir, project_name),
+"odoo_bin_path": os.path.join(odoo_dir, 'odoo-bin'),
+"odoo_venv_activate": os.path.join(odoo_venv_dir, 'bin/activate'),
+"string_modules_to_update": string_modules_to_update,
+"database_name": database_name,
 })
 
 write_new_file(dev_restart_odoo_sh, dev_restart_odoo_sh_content)
 run_command('chmod +x %s' % (dev_restart_odoo_sh))
 
 write_new_file(os.path.join(projects_dir, project_name, '.gitignore'),
-               """*.pyc
-               *.zip
+"""*.pyc
+*.zip
 
-               dev_odoo_config_file.conf
-               prod_odoo_config_file.conf
-               dev_restart_odoo.sh
-               prod_restart_odoo.sh
-               """)
+dev_odoo_config_file.conf
+prod_odoo_config_file.conf
+dev_restart_odoo.sh
+prod_restart_odoo.sh
+""")
 
 project_info = check_dir_content(os.path.join(odoo_projects_dir, project_name))
 
