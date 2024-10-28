@@ -17,6 +17,7 @@ from .host_user_env import CreateUserEnvironment
 from .project_dir_manager import ProjectDirManager
 
 from .protocols import CreateProjectEnvironmentProtocol
+from .protocols import SystemCheckerProtocol
 
 from .inside_docker_app.logger import get_module_logger
 
@@ -27,6 +28,7 @@ class OdpmJson(TypedDict):
     distro_version: str
     distro_name: str
     odoo_version: str
+    postgres_version: str
     dependencies: list
     requirements_txt: list
 
@@ -131,6 +133,7 @@ class Config():
         self.python_version = self.config_dict.get("python_version", constants.DEFAULT_PYTHON_VERSION)
         self.distro_version = self.config_dict.get("distro_version", constants.DEFAULT_DISTRO_VERSION)
         self.distro_name = self.config_dict.get("distro_name", constants.DEFAULT_DISTRO_NAME)
+        self.postgres_version = self.config_dict.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION)
         self.distro_version_codename = constants.DISTRO_INFO.get(self.distro_name, {}).get(self.distro_version, "")
         self.dependencies = self.config_dict.get("dependencies", [])
         self.requirements_txt = self.config_dict.get("requirements_txt", [])
@@ -190,7 +193,7 @@ class Config():
         self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
         
 
-
+        self.path_odoo_conf = os.path.join(self.project_dir, constants.ODOO_CONF_NAME)
         self.docker_path_odoo_conf = str(pathlib.PurePosixPath(self.docker_project_dir, constants.ODOO_CONF_NAME))
         self.docker_venv_dir = str(pathlib.PurePosixPath(self.docker_project_dir, "venv"))
         
@@ -221,6 +224,16 @@ class Config():
     def project_env(self, value: CreateProjectEnvironmentProtocol) -> None:
         """Set project_env property."""
         self._project_env = value
+    
+    @property
+    def system_checker(self) -> SystemCheckerProtocol:
+        """Get system_checker property."""
+        return self._system_checker
+
+    @system_checker.setter
+    def system_checker(self, value: SystemCheckerProtocol) -> None:
+        """Set system_checker property."""
+        self._system_checker = value
     
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
         subprojects_data = {}
@@ -310,6 +323,7 @@ class Config():
                 python_version=self.config_json_content.get("python_version", constants.DEFAULT_PYTHON_VERSION),
                 distro_name=self.config_json_content.get("distro_name", constants.DEFAULT_DISTRO_NAME),
                 distro_version=self.config_json_content.get("distro_version", constants.DEFAULT_DISTRO_VERSION),
+                postgres_version=self.config_json_content.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION),
                 odoo_version=self.config_json_content.get("odoo_version", 0.0),
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
@@ -318,20 +332,29 @@ class Config():
         available_versions_str = ", ".join([str(float(version)) for version in available_versions])
         user_odoo_version = self.config_dict.get("odoo_version", None)
         if not user_odoo_version:
-            user_odoo_version = input(translations.get_translation(translations.SET_ODOO_VERSION).format(
-                    ODOO_LATEST_VERSION=constants.ODOO_LATEST_VERSION,
-                    AVAILABEL_ODOO_VERSIONS_ARE = available_versions_str,
-                ))
-        if not user_odoo_version:
-            user_odoo_version = constants.ODOO_LATEST_VERSION
+            while True:
+                user_odoo_version = input(translations.get_translation(translations.SET_ODOO_VERSION).format(
+                        ODOO_LATEST_VERSION=constants.ODOO_LATEST_VERSION,
+                        AVAILABEL_ODOO_VERSIONS_ARE = available_versions_str,
+                    ))
+                try:
+                    if not user_odoo_version:
+                        user_odoo_version = constants.ODOO_LATEST_VERSION
+                    float_version_from_user = float(user_odoo_version)
+                    if str(float_version_from_user) not in available_versions_str:
+                        continue
+                    break
+                except:
+                    continue
 
         _logger.info(translations.get_translation(translations.YOU_SELECT_ODOO_VERSION).format(
-                SELECTED_ODOO_VERSION=user_odoo_version,
-            ))
+            SELECTED_ODOO_VERSION=user_odoo_version,
+        ))
         default_odpm_json_content = OdpmJson(
             python_version=self.config_dict.get("python_version",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["python_version"]),
             distro_version=self.config_dict.get("distro_version",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_version"]),
             distro_name=self.config_dict.get("distro_name",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"]),
+            postgres_version=self.config_dict.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION),
             odoo_version=user_odoo_version,
             dependencies=self.config_dict.get("dependencies", []),
             requirements_txt=self.config_dict.get("requirements_txt", []),

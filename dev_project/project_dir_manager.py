@@ -88,7 +88,31 @@ class ProjectDirManager():
     def rebuild_odoo_config_file_template(self):
         program_odoo_config_file_template_path = os.path.join(self.program_dir_path, constants.PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH)
         project_odoo_config_file_template_path = os.path.join(self.project_path, constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH)
+        if self.check_project_odoo_config_template(project_odoo_config_file_template_path):
+            os.remove(project_odoo_config_file_template_path)
         self.generate_project_template_files(program_odoo_config_file_template_path, project_odoo_config_file_template_path)
+    
+    def check_project_odoo_config_template(self, project_odoo_config_file_template_path):
+        odoo_config_need_to_rebuild = False
+        if os.path.exists(project_odoo_config_file_template_path):
+            with open(project_odoo_config_file_template_path) as f:
+                lines = f.readlines()
+            content = "".join(lines)
+            for searchable_pattern in [
+                    constants.DO_NOT_CHANGE_PARAM,
+                    constants.ADMIN_PASSWD_MESSAGE,
+                    constants.POSTGRES_ODOO_USER_MARKER,
+                    constants.POSTGRES_ODOO_PASS_MARKER,
+                    constants.POSTGRES_ODOO_HOST_MARKER,
+                    constants.POSTGRES_ODOO_PORT_MARKER,
+                    constants.ODOO_PORT_MARKER,
+                ]:
+                if searchable_pattern not in content:
+                    odoo_config_need_to_rebuild = True
+        else:
+            odoo_config_need_to_rebuild = True
+        return odoo_config_need_to_rebuild
+
     
     def rebuild_vscode_settings_json_file_template(self):
         program_vscode_settings_json_file_template = os.path.join(self.program_dir_path, constants.PROGRAM_VSCODE_SETTINGS_TEMPLATE)

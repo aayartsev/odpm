@@ -2,6 +2,7 @@ import subprocess
 import platform
 import json
 import os
+from pathlib import Path
 from typing import NamedTuple
 
 if platform.system() == "Linux":
@@ -13,6 +14,9 @@ from . import translations
 from .host_config import Config
 
 from .inside_docker_app.logger import get_module_logger
+from .inside_docker_app import utils
+
+from .protocols import SystemCheckerProtocol
 
 _logger = get_module_logger(__name__)
 
@@ -20,10 +24,11 @@ class ContainerData(NamedTuple):
     ports: list[int]
     container_id: str
 
-class SystemChecker():
+class SystemChecker(SystemCheckerProtocol):
 
     def __init__(self, config:Config) -> None:
         self.config = config
+        self.config.system_checker = self
         if self.config.check_system:
             self.check_git()
         self.check_file_system()
@@ -139,9 +144,18 @@ class SystemChecker():
         if not "true" in odoo_src_state_string:
             clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
             if clone_odoo and clone_odoo.lower() == "y":
-                self.config.project_env.clone_odoo()
+                self.config.project_env.download_odoo_repository()
             else:
                 _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
                     odoo_src_dir= self.config.user_env.odoo_src_dir
                 ))
                 exit(1)
+    
+    def check_free_space_for_odoo_developing(self):
+        free_space = utils.get_free_space(Path.home())
+        if free_space < constants.FREE_SPACE_FOR_USAGE:
+            _logger.error(translations.get_translation(translations.YOU_NEED_TO_HAVE_FREE_SPACE).format(
+                NECESSARY_FREE_SPACE=constants.FREE_SPACE_FOR_USAGE,
+                DIR_FOR_FREE_SPACE=Path.home(),
+            ))
+            exit(1)

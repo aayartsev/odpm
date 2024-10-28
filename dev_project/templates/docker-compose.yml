@@ -3,7 +3,7 @@ version: "{COMPOSE_FILE_VERSION}"
 
 services:
   {DATABASE_NAME_INSTANCE}:
-    image: postgres:13
+    image: postgres:{POSTGRES_VERSION}
     user: root
     tty: true
     ports:

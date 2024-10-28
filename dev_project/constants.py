@@ -60,6 +60,7 @@ if platform.system() == "Linux":
 POSTGRES_ODOO_USER = CURRENT_USER
 POSTGRES_ODOO_PASS = CURRENT_PASSWORD
 POSTGRES_ODOO_HOST = DATABASE_NAME_INSTANCE
+POSTGRES_ODOO_PORT = POSTGRES_DOCKER_PORT
 
 NO_LOG_PREFIX = "--no-log-prefix"
 DOCKER_COMPOSE_DEFAULT_FILE_VERSION = "3.3"
@@ -71,6 +72,12 @@ DOCKER_COMPOSE_WORKING_MESSAGE = "docker compose version"
 MESSAGE_MARKER = "#MESSAGE#"
 ADMIN_PASSWD_MESSAGE = "#ADMIN_PASSWD_MESSAGE#"
 DO_NOT_CHANGE_PARAM = "#DO_NOT_CHANGE_PARAM#"
+POSTGRES_ODOO_USER_MARKER = "#POSTGRES_ODOO_USER_MARKER#"
+POSTGRES_ODOO_PASS_MARKER = "#POSTGRES_ODOO_PASS_MARKER#"
+POSTGRES_ODOO_HOST_MARKER = "#POSTGRES_ODOO_HOST_MARKER#"
+POSTGRES_ODOO_PORT_MARKER = "#POSTGRES_ODOO_PORT_MARKER#"
+ODOO_PORT_MARKER = "#ODOO_PORT_MARKER#"
+
 ODOO_GIT_LINK = "https://github.com/odoo/odoo.git"
 
 DEFAULT_DEBUGPY = "debugpy==1.6.3"
@@ -83,6 +90,7 @@ DEBUGPY = {
     "3.12": "debugpy==1.7.0",
 }
 
+DEFAULT_POSTGRES_VERSION = "13"
 DEFAULT_PYTHON_VERSION = "3.7"
 DEFAULT_DISTRO_NAME = "debian"
 DEFAULT_DISTRO_VERSION = "11"
@@ -95,12 +103,16 @@ DISTRO_INFO = {
         "22.04": "jammy",
         "20.04": "focal",
     }
-
 }
 
 # git rev-parse --abbrev-ref HEAD
-ODOO_LATEST_VERSION = "17.0"
+ODOO_LATEST_VERSION = "18.0"
 ODOO_VERSION_DEFAULT_ENV = {
+    "18.0": {
+        "python_version": "3.10",
+        "distro_name": "bookworm",
+        "distro_version": "12",
+    },
     "17.0": {
         "python_version": "3.10",
         "distro_name": DEFAULT_DISTRO_NAME,
@@ -171,3 +183,9 @@ DEFAULT_PRE_COMMIT_MAP_FILES = []
 DEFAULT_SQL_QUERIES = []
 DEFAULT_USE_OCA_DEPENDENCIES = False
 DEFAULT_CREATE_MODULE_LINKS = False
+
+# YANDEX DISK LINKS
+YADISK_SHARING_LINK = "https://disk.yandex.ru/d/-5z2VJ_DUo2v2g"
+YADISK_API_ENDPOINT = "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
+
+FREE_SPACE_FOR_USAGE = 20.0

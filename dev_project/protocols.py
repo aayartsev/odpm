@@ -1,4 +1,30 @@
 from typing import Protocol
+import inspect
+
+class SystemCheckerProtocol(Protocol):
+
+    def check_git(self):
+        NotImplementedError(
+                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
+    def get_groups(self):
+        NotImplementedError(
+                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
+    def check_docker(self):
+        NotImplementedError(
+                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
+    def check_running_containers(self):
+        NotImplementedError(
+                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
+    def check_docker_compose(self):
+        NotImplementedError(
+                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
+    def check_file_system(self):
+        NotImplementedError(
+                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
+    def check_free_space_for_odoo_developing(self):
+        NotImplementedError(
+                f"""Define {inspect.stack()[0][3]} in {self.__class__.__name__}""")
+
 
 class CreateProjectEnvironmentProtocol(Protocol):
 
@@ -35,6 +61,11 @@ class CreateProjectEnvironmentProtocol(Protocol):
         NotImplementedError(
                 f"""Define clone_odoo in {self.__class__.__name__}""")
     
+    def download_odoo_repository(self):
+        NotImplementedError(
+                f"""Define download_odoo_repository in {self.__class__.__name__}""")
+    
     def build_image(self):
         NotImplementedError(
                 f"""Define build_image in {self.__class__.__name__}""")
+    

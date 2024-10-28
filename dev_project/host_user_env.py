@@ -100,8 +100,8 @@ class CreateUserEnvironment():
     def get_from_user_backup_dir(self) -> str:
         default_backup_dir = os.path.join(Path.home(), "odoo_backups")
         user_dir = input(translations.get_translation(translations.SET_ODOO_BACKUP_DIR).format(
-                    DEFAULT_ODOO_BACKUP_DIR=default_backup_dir,
-                ))
+            DEFAULT_ODOO_BACKUP_DIR=default_backup_dir,
+        ))
         if not user_dir:
             user_dir = default_backup_dir
         _logger.info(translations.get_translation(translations.YOU_SELECT_ODOO_BACKUPS_DIR).format(

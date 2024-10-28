@@ -23,17 +23,14 @@ class StartStringBuilder():
     def get_start_string(self) -> str:
         # Reading of config file
         odoo_config = configparser.ConfigParser()
-        odoo_config.read(os.path.join(self.config.project_dir, constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH))
+        odoo_config.read(
+            self.config.path_odoo_conf
+        )
         # Build string of all addons directories
         addons_string = ",".join(
             self.config.docker_dirs_with_addons
         )
         odoo_config["options"]["addons_path"] = addons_string
-        odoo_config["options"]["db_password"] = constants.POSTGRES_ODOO_PASS
-        odoo_config["options"]["db_user"] = constants.POSTGRES_ODOO_USER
-        odoo_config["options"]["http_port"] = str(constants.ODOO_DOCKER_PORT)
-        odoo_config["options"]["db_port"] = str(constants.POSTGRES_DOCKER_PORT)
-        odoo_config["options"]["db_host"] = constants.POSTGRES_ODOO_HOST
 
         data_dir = str(pathlib.PurePosixPath(self.config.docker_project_dir, ".local/share/Odoo"))
         odoo_config["options"]["data_dir"] = data_dir

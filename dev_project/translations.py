@@ -64,6 +64,7 @@ CONFIG_JSON_IS_DEPRECATED = """ "config.json" is deprecated. Please read documen
 SET_ODOO_VERSION = """Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"""
 YOU_SELECT_ODOO_VERSION = """You select this odoo version: {SELECTED_ODOO_VERSION}\n"""
 YOU_DO_NOT_SET_DEVELOPING_PROJECT = """You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"""
+YOU_NEED_TO_HAVE_FREE_SPACE = """You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"""
 
 translations = {
     USER_NOT_IN_DOCKER_GROUP: {
@@ -187,6 +188,9 @@ translations = {
     },
     YOU_DO_NOT_SET_DEVELOPING_PROJECT: {
         "ru_RU": """Вы не указали разрабатываемый проект. Вы можете указать это при использовании --init команды. Например: '--init file:///home/user/projects/your_directory_for_project' или напрямую из git репозитория --init https://github.com/aayartsev/odoo_demo_project.git'. Вы так же можете указать это в файле user_settings.json в ключе 'developing_project'"""
+    },
+    YOU_NEED_TO_HAVE_FREE_SPACE:{
+        "ru_RU": """В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} свободного места""",
     },
 }
 
