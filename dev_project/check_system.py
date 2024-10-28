@@ -111,13 +111,13 @@ class SystemChecker(SystemCheckerProtocol):
 
     def check_docker_compose(self) -> None:
         self.config.no_log_prefix = True
-        process_result = subprocess.run(["docker-compose",  "version"], capture_output=True)
+        process_result = subprocess.run(["docker", "compose",  "version"], capture_output=True)
         output_string = process_result.stdout.decode("utf-8")
         output_string = output_string.lower().replace("-"," ")
         if constants.DOCKER_COMPOSE_WORKING_MESSAGE not in output_string:
             _logger.error(translations.get_translation(translations.CAN_NOT_GET_DOCKER_COMPOSE_INFO))
             exit(1)
-        up_help_result = subprocess.run(["docker-compose",  "up", "--help"], capture_output=True)
+        up_help_result = subprocess.run(["docker", "compose",  "up", "--help"], capture_output=True)
         up_help_string = up_help_result.stdout.decode("utf-8")
         output_string = output_string.lower().replace("-"," ")
         if constants.NO_LOG_PREFIX not in up_help_string:
