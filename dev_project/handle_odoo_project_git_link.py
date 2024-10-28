@@ -57,6 +57,8 @@ class HandleOdooProjectLink():
         if self.link_type in [constants.GITLINK_TYPE_HTTP, constants.GITLINK_TYPE_GIT, constants.GITLINK_TYPE_SSH]:
             self.get_dir_to_clone()
             self.check_project()
+        if self.link_type in [constants.GITLINK_TYPE_FILE]:
+            self.is_cloned = True
         self.get_project_type()
         self.inside_docker_path = self.project_data.name
         if self.project_type == constants.TYPE_PROJECT_MODULE:
