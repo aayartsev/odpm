@@ -59,13 +59,11 @@ class StartStringBuilder():
         if db_name:
             start_python_command +=  f" {cli_params.D_PARAM} {db_name}"
 
-        if self.args.i:
-            if self.config.init_modules:
-                start_python_command += f""" {cli_params.I_PARAM} {self.config.init_modules}"""
+        if self.args.i and self.config.init_modules:
+            start_python_command += f""" {cli_params.I_PARAM} {self.config.init_modules}"""
 
-        if self.args.u:
-            if self.config.update_modules:
-                start_python_command += f""" {cli_params.U_PARAM} {self.config.update_modules}"""
+        if self.args.u and self.config.update_modules:
+            start_python_command += f""" {cli_params.U_PARAM} {self.config.update_modules}"""
 
         if self.args.test:
             start_python_command += f" --test-enable --stop-after-init"
