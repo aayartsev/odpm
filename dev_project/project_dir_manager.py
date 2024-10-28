@@ -109,8 +109,6 @@ class ProjectDirManager():
                 ]:
                 if searchable_pattern not in content:
                     odoo_config_need_to_rebuild = True
-        else:
-            odoo_config_need_to_rebuild = True
         return odoo_config_need_to_rebuild
 
     
