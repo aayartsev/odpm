@@ -1,6 +1,7 @@
 import sys
 import os
 import venv
+import platform
 import shutil
 
 from pip._internal.operations.freeze import freeze
@@ -52,15 +53,39 @@ class VirtualenvChecker():
         for package in self.requirements_txt:
             if package not in list_of_packages:
                 os.system(f"""python3 -m pip install {package}""")
+    
+    def evaluate_text_condition(self, condition_of_installation_text):
+        res = eval(condition_of_installation_text, {
+            "sys_platform": platform.system(),
+            "python_version": self.python_version,
+        })
+        return res
 
     
     def recreate_venv(self):
         delete_files_in_directory(self.docker_venv_dir)
         self.create_venv()
         self.set_venv()
-        exit_code = os.system(f"""python3 -m pip install -r {self.odoo_requirements_path}""")
-        if os.WEXITSTATUS(exit_code) != 0:
-            self.package_installation_error(f"""Installation of odoo requirements.txt was failed """)
+        packages_to_install = ["wheel"]
+        with open(self.odoo_requirements_path, "r") as file:
+            for line in file.readlines():
+                # if "==" in line:
+                data = line.split(";")
+                if len(data) == 1:
+                    package = data[0].split("#")[0]
+                    if package:
+                        packages_to_install.append(package)
+                    continue
+                package_version, condition_of_installation_text = data
+                condition_of_installation = self.evaluate_text_condition(condition_of_installation_text)
+                if condition_of_installation:
+                    packages_to_install.append(package_version)
+        for package in packages_to_install:
+            if "gevent" in package:
+                package = f"{package} --no-build-isolation"
+            exit_code = os.system(f"""python3 -m pip install {package}""")
+            if os.WEXITSTATUS(exit_code) != 0:
+                self.package_installation_error(f"""Installation of package {package} was failed """)
 
         for package in self.requirements_txt:
             exit_code = os.system(f"""python3 -m pip install {package}""")
