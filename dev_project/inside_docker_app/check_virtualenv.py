@@ -8,6 +8,7 @@ import shutil
 _DIGITS = re.compile(r'\d+\.\d+')
 
 from pip._internal.operations.freeze import freeze
+from pip._vendor.packaging.markers import default_environment, Marker
 
 from utils import delete_files_in_directory
 from logger import get_module_logger
@@ -63,55 +64,12 @@ class VirtualenvChecker():
             if not package_is_installed:
                 os.system(f"""python3 -m pip install {package_to_install}""")
 
-    def in_venv(self):
-        if hasattr(sys, 'real_prefix'):
-            # virtualenv venvs
-            result = True
-        else:
-            # PEP 405 venvs
-            result = sys.prefix != getattr(sys, 'base_prefix', sys.prefix)
-        return result
-    
-    def default_context(self):
-        def format_full_version(info):
-            version = '%s.%s.%s' % (info.major, info.minor, info.micro)
-            kind = info.releaselevel
-            if kind != 'final':
-                version += kind[0] + str(info.serial)
-            return version
-
-        if hasattr(sys, 'implementation'):
-            implementation_version = format_full_version(sys.implementation.version)
-            implementation_name = sys.implementation.name
-        else:
-            implementation_version = '0'
-            implementation_name = ''
-
-        ppv = platform.python_version()
-        m = _DIGITS.match(ppv)
-        pv = m.group(0)
-        result = {
-            'implementation_name': implementation_name,
-            'implementation_version': implementation_version,
-            'os_name': os.name,
-            'platform_machine': platform.machine(),
-            'platform_python_implementation': platform.python_implementation(),
-            'platform_release': platform.release(),
-            'platform_system': platform.system(),
-            'platform_version': platform.version(),
-            'platform_in_venv': str(self.in_venv()),
-            'python_full_version': ppv,
-            'python_version': pv,
-            'sys_platform': sys.platform,
-        }
-        return result
-    
     def evaluate_text_condition(self, condition_of_installation_text):
-        params = self.default_context()
-        res = eval(condition_of_installation_text, params)
+        marker = Marker(condition_of_installation_text)
+        params = default_environment()
+        res = marker.evaluate(params)
         return res
 
-    
     def recreate_venv(self):
         delete_files_in_directory(self.docker_venv_dir)
         self.create_venv()
@@ -129,12 +87,14 @@ class VirtualenvChecker():
                         packages_to_install.append(package)
                     continue
                 package_version, condition_of_installation_text = data
+                condition_of_installation_text = condition_of_installation_text.split("#")[0]
                 condition_of_installation = self.evaluate_text_condition(condition_of_installation_text)
                 if condition_of_installation:
                     packages_to_install.append(package_version)
         for package in packages_to_install:
             if "gevent" in package:
                 package = f"{package} --no-build-isolation"
+            package = package.replace("<", "=").replace( ">", "=")
             exit_code = os.system(f"""python3 -m pip install {package}""")
             if os.WEXITSTATUS(exit_code) != 0:
                 self.package_installation_error(f"""Installation of package {package} was failed """)

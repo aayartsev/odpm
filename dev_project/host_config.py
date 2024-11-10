@@ -343,6 +343,7 @@ class Config():
                     float_version_from_user = float(user_odoo_version)
                     if str(float_version_from_user) not in available_versions_str:
                         continue
+                    user_odoo_version = str(float_version_from_user)
                     break
                 except:
                     continue
