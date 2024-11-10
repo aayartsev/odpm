@@ -2,7 +2,10 @@ import sys
 import os
 import venv
 import platform
+import re
 import shutil
+
+_DIGITS = re.compile(r'\d+\.\d+')
 
 from pip._internal.operations.freeze import freeze
 
@@ -49,16 +52,63 @@ class VirtualenvChecker():
 
 
     def check_packages_for_install(self) -> None:
-        list_of_packages = [pkg for pkg in freeze()]
-        for package in self.requirements_txt:
-            if package not in list_of_packages:
-                os.system(f"""python3 -m pip install {package}""")
+        list_of_installed_packages = [pkg for pkg in freeze()]
+        for package_to_install in self.requirements_txt:
+            package_is_installed = False
+            for installed_package in list_of_installed_packages:
+                if "==" not in package_to_install and package_to_install in installed_package:
+                    package_is_installed = True
+                if "==" in package_to_install and package_to_install in installed_package:
+                    package_is_installed = True
+            if not package_is_installed:
+                os.system(f"""python3 -m pip install {package_to_install}""")
+
+    def in_venv(self):
+        if hasattr(sys, 'real_prefix'):
+            # virtualenv venvs
+            result = True
+        else:
+            # PEP 405 venvs
+            result = sys.prefix != getattr(sys, 'base_prefix', sys.prefix)
+        return result
+    
+    def default_context(self):
+        def format_full_version(info):
+            version = '%s.%s.%s' % (info.major, info.minor, info.micro)
+            kind = info.releaselevel
+            if kind != 'final':
+                version += kind[0] + str(info.serial)
+            return version
+
+        if hasattr(sys, 'implementation'):
+            implementation_version = format_full_version(sys.implementation.version)
+            implementation_name = sys.implementation.name
+        else:
+            implementation_version = '0'
+            implementation_name = ''
+
+        ppv = platform.python_version()
+        m = _DIGITS.match(ppv)
+        pv = m.group(0)
+        result = {
+            'implementation_name': implementation_name,
+            'implementation_version': implementation_version,
+            'os_name': os.name,
+            'platform_machine': platform.machine(),
+            'platform_python_implementation': platform.python_implementation(),
+            'platform_release': platform.release(),
+            'platform_system': platform.system(),
+            'platform_version': platform.version(),
+            'platform_in_venv': str(self.in_venv()),
+            'python_full_version': ppv,
+            'python_version': pv,
+            'sys_platform': sys.platform,
+        }
+        return result
     
     def evaluate_text_condition(self, condition_of_installation_text):
-        res = eval(condition_of_installation_text, {
-            "sys_platform": platform.system(),
-            "python_version": self.python_version,
-        })
+        params = self.default_context()
+        res = eval(condition_of_installation_text, params)
         return res
 
     
@@ -66,10 +116,12 @@ class VirtualenvChecker():
         delete_files_in_directory(self.docker_venv_dir)
         self.create_venv()
         self.set_venv()
+        exit_code = os.system(f"""python3 -m pip install --upgrade pip""")
+        if os.WEXITSTATUS(exit_code) != 0:
+            self.package_installation_error(f"""Upgrade of pip was failed """)
         packages_to_install = ["wheel"]
         with open(self.odoo_requirements_path, "r") as file:
             for line in file.readlines():
-                # if "==" in line:
                 data = line.split(";")
                 if len(data) == 1:
                     package = data[0].split("#")[0]
