@@ -5,8 +5,6 @@ import platform
 import re
 import shutil
 
-_DIGITS = re.compile(r'\d+\.\d+')
-
 from pip._internal.operations.freeze import freeze
 from pip._vendor.packaging.markers import default_environment, Marker
 
