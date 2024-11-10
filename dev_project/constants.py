@@ -110,7 +110,7 @@ ODOO_LATEST_VERSION = "18.0"
 ODOO_VERSION_DEFAULT_ENV = {
     "18.0": {
         "python_version": "3.10",
-        "distro_name": "bookworm",
+        "distro_name": DEFAULT_DISTRO_NAME,
         "distro_version": "12",
     },
     "17.0": {
