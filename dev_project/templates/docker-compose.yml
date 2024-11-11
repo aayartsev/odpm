@@ -1,5 +1,4 @@
 # #MESSAGE#
-version: "{COMPOSE_FILE_VERSION}"
 
 services:
   {DATABASE_NAME_INSTANCE}:
