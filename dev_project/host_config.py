@@ -214,6 +214,7 @@ class Config():
         ]
         if self.create_module_links and os.path.exists(self.repo_odpm_json):
             self.list_for_symlinks.append(self.repo_odpm_json)
+        self.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
     
     @property
     def project_env(self) -> CreateProjectEnvironmentProtocol:

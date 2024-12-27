@@ -111,17 +111,24 @@ class SystemChecker(SystemCheckerProtocol):
 
     def check_docker_compose(self) -> None:
         self.config.no_log_prefix = True
-        process_result = subprocess.run(["docker", "compose",  "version"], capture_output=True)
-        output_string = process_result.stdout.decode("utf-8")
-        output_string = output_string.lower().replace("-"," ")
-        if constants.DOCKER_COMPOSE_WORKING_MESSAGE not in output_string:
+        docker_compose_working_message_in_output_string = False
+        for command in constants.LIST_OF_DOCKER_COMPOSE_COMMANDS:
+            up_help_command_list = [*command.split(" "), "up", "--help"]
+            up_help_result = subprocess.run(up_help_command_list, capture_output=True)
+            up_help_string = up_help_result.stdout.decode("utf-8")
+            if constants.NO_LOG_PREFIX not in up_help_string:
+                self.config.no_log_prefix = False
+            version_command_list = [*command.split(" "), "version" ]
+            process_result = subprocess.run(version_command_list, capture_output=True)
+            output_string = process_result.stdout.decode("utf-8")
+            output_string = output_string.lower().replace("-"," ")
+            if constants.DOCKER_COMPOSE_WORKING_MESSAGE in output_string:
+                docker_compose_working_message_in_output_string = True
+                self.config.docker_compose_command = command
+                break
+        if not docker_compose_working_message_in_output_string:
             _logger.error(translations.get_translation(translations.CAN_NOT_GET_DOCKER_COMPOSE_INFO))
             exit(1)
-        up_help_result = subprocess.run(["docker", "compose",  "up", "--help"], capture_output=True)
-        up_help_string = up_help_result.stdout.decode("utf-8")
-        output_string = output_string.lower().replace("-"," ")
-        if constants.NO_LOG_PREFIX not in up_help_string:
-            self.config.no_log_prefix = False
     
     def check_file_system(self) -> None:
         for dir_path in [

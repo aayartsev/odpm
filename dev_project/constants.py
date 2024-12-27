@@ -189,3 +189,6 @@ YADISK_SHARING_LINK = "https://disk.yandex.ru/d/FbMn-ySeNYGAoQ"
 YADISK_API_ENDPOINT = "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
 
 FREE_SPACE_FOR_USAGE = 20.0
+
+DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
+LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]

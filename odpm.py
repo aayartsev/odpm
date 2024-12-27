@@ -46,9 +46,9 @@ def main() -> None:
 
     try:
         if config.no_log_prefix:
-            os.system(f"""docker compose up --no-log-prefix --abort-on-container-exit --force-recreate""")
+            os.system(f"""{config.docker_compose_command} up --no-log-prefix --abort-on-container-exit --force-recreate""")
         else:
-            os.system(f"""docker compose up --abort-on-container-exit --force-recreate""")
+            os.system(f"""{config.docker_compose_command} up --abort-on-container-exit --force-recreate""")
     except KeyboardInterrupt:
         _logger.info("Control+C pressed")
         sys.exit()
