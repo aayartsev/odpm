@@ -28,8 +28,7 @@ class Translator(object):
 
 _ = Translator() #.gettext_locale.gettext
 
-current_locale = locale.getdefaultlocale()[0] or ""
-
+current_locale = locale.getlocale()
 USER_NOT_IN_DOCKER_GROUP = """You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"""
 IS_GIT_INSTALLED = "Did you install git?"
 CAN_NOT_CONNECT_DOCKER = "Cannot connect to the Docker daemon. Is the docker daemon running?"
@@ -195,7 +194,13 @@ translations = {
 }
 
 def get_translation(string_to_translate):
-    translated_string = translations.get(string_to_translate, {}).get(current_locale[0], "")
+    translated_result = translations.get(string_to_translate)
+    if not translated_result:
+        return string_to_translate
+    locale_key = current_locale[0]
+    if locale_key is None:
+        locale_key = ""
+    translated_string = translated_result.get(locale_key)
     if not translated_string:
-        translated_string = string_to_translate
+        return string_to_translate
     return translated_string
