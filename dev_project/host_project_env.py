@@ -30,6 +30,10 @@ class MappedSources(NamedTuple):
     local: str
     remote: str
 
+class SymlinksSources(NamedTuple):
+    source_path: str
+    link_path: str
+
 class DebuggerPathRecord(TypedDict):
     localRoot: str
     remoteRoot: str
@@ -261,8 +265,8 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         newest_version = sorted(list_of_versions)[-1]
         return newest_version
 
-    
     def update_links(self) -> None:
+        
         def delete_old_links(dir_to_clean, current_links):
             os.chdir(dir_to_clean)
             for item in os.listdir():
@@ -274,6 +278,10 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 dep_dir_name = os.path.basename(dep_for_link)
                 try:
                     os.symlink(dep_for_link, os.path.join(dir_to_create, dep_dir_name))
+                    self.config.symlinks_sources.append(SymlinksSources(
+                    source_path=dep_for_link,
+                    link_path=os.path.join(dep_for_link, os.path.join(dir_to_create, dep_dir_name))
+                ))
                 except FileExistsError:
                     pass
         if not os.path.exists(self.config.dependencies_dir) and self.config.dependencies_dirs:
@@ -313,28 +321,15 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
 
     
     def update_vscode_debugger_launcher(self) -> None:
-
         def get_list_of_mapped_sources() -> None:
-            list_for_links = [
-                self.user_env.odoo_src_dir,
-                self.config.developing_project_dir_path,
-            ]
+            list_for_links = [symlink_item for symlink_item in self.config.symlinks_sources]
             for linking_dir in list_for_links:
-                dir_name_to_link = os.path.basename(linking_dir)
+                dir_name_to_link = os.path.basename(linking_dir.link_path)
                 for mapped_folder in self.mapped_folders:
-                    mapped_dir_name = os.path.basename(mapped_folder.docker)
-                    if dir_name_to_link == mapped_dir_name:
+                    mapped_dir_name = os.path.basename(mapped_folder.local)
+                    if dir_name_to_link == mapped_dir_name and linking_dir.source_path not in [self.user_env.backups]:
                         self.config.debugger_path_mappings.append(DebuggerPathRecord(
-                            localRoot=os.path.join(self.config.project_dir, dir_name_to_link), 
-                            remoteRoot=mapped_folder.docker,
-                        ))
-            for linking_dir in self.config.dependencies_dirs:
-                dir_name_to_link = os.path.basename(linking_dir)
-                for mapped_folder in self.mapped_folders:
-                    mapped_dir_name = os.path.basename(mapped_folder.docker)
-                    if dir_name_to_link == mapped_dir_name:
-                        self.config.debugger_path_mappings.append(DebuggerPathRecord(
-                            localRoot=os.path.join(self.config.dependencies_dir, dir_name_to_link), 
+                            localRoot=linking_dir.link_path, 
                             remoteRoot=mapped_folder.docker,
                         ))
 
@@ -391,6 +386,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         download_file(link_to_download=link_to_download, filepath_to_save=filepath_to_save)
         un_zip_file_to_directory(dir_for_odoo_src, filepath_to_save)
         os.chdir(self.user_env.odoo_src_dir)
+        subprocess.run(["git", "stash"])
         subprocess.run(["git", "pull"])
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)

@@ -274,7 +274,7 @@ class HandleOdooProjectLink():
         if not self.path_to_ssh_key:
             clone_results = subprocess.run(["git", "clone", self.gitlink], capture_output=False)
         else:
-            clone_results = subprocess.run(["git", "clone", self.gitlink, "--config", f'core.sshCommand="ssh -i {self.path_to_ssh_key}"' ], capture_output=False)
+            clone_results = subprocess.run(f"""git clone {self.gitlink} --config core.sshCommand="ssh -i {self.path_to_ssh_key}" """, capture_output=False, shell=True)
         if clone_results.stderr: 
             clone_results_error_string = clone_results.stderr.decode("utf-8").strip()
             _logger.warning(clone_results_error_string)

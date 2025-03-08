@@ -162,7 +162,7 @@ class Config():
         self.dependencies_projects = []
         # prepare list of mapped dirs for building config file for debugger usage
         self.debugger_path_mappings = []
-
+        self.symlinks_sources = []
         # set processor architecture
         self.arch = self.config_dict.get("arch", constants.ARCH)
         if self.arch == "auto":
@@ -201,7 +201,7 @@ class Config():
         self.docker_temp_tests_dir = str(pathlib.PurePosixPath("/tmp", "odoo_tests"))
         self.venv_dir = os.path.join(self.project_dir, "venv")
         self.docker_home = os.path.join(self.project_dir, "docker_home")
-        self.dependencies_dir = os.path.join(self.project_dir, "dependencies")
+        self.dependencies_dir = os.path.join(self.project_dir, constants.DEPENDENCIES_DIR)
         self.odoo_tests_dir = os.path.join(self.project_dir, "odoo_tests")
         self.compose_file_version = constants.DOCKER_COMPOSE_DEFAULT_FILE_VERSION
         self.odoo_config_data = {}
