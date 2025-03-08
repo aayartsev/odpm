@@ -14,11 +14,7 @@ RUN getent group $USER_GID 2>&1 > /dev/null || groupadd --gid $USER_GID $USER_NA
     && apt-get update \
     && apt-get install -y sudo \
     && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
-    && chmod 0440 /etc/sudoers.d/$USER_NAME\
-    && mkdir /home/$USER_NAME/.ssh\
-    && chown $USER_NAME:$USER_GID /home/$USER_NAME/.ssh\
-    && mkdir -p /home/$USER_NAME/.vscode-server\
-    && chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/.vscode-server
+    && chmod 0440 /etc/sudoers.d/$USER_NAME
  
 # install dependecies 
 RUN apt-get update && apt-get -y install git postgresql-client node-less npm ssh \
