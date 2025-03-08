@@ -9,7 +9,7 @@ ARG USER_NAME={CURRENT_USER}
 ARG PASSWORD={CURRENT_PASSWORD}
 
 # Prepare internal user
-RUN groupadd --gid $USER_GID $USER_NAME \
+RUN getent group $USER_GID 2>&1 > /dev/null || groupadd --gid $USER_GID $USER_NAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USER_NAME -p $(openssl passwd -crypt $PASSWORD) \
     && apt-get update \
     && apt-get install -y sudo \
