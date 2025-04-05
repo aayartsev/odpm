@@ -12,11 +12,7 @@ arg_parser = argparse.ArgumentParser(
 
 arg_parser.add_argument(
     cli_params.INIT_PARAM,
-    help="Use this param to initiate dir as odpm project",
-    nargs="?",
-    default=None,
-    const=True,
-    type=str,
+    help="""Use this param to initiate dir as odpm project. You need to set link to developing project. Example for git '--init git@github.com:aayartsev/odoo_demo_project.git' or '--init file:///your/path/to/odoo_demo_project-17/name_of_development_project_directory' for local folder""",
 )
 
 arg_parser.add_argument(
@@ -125,6 +121,26 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     cli_params.SQL_EXECUTE_PARAM,
     help="""Will execute sql queries that are written in "sql_queries" """,
+)
+
+
+### SCAFFOLD SUBPARSER ###
+scaffold_subparser = arg_parser.add_subparsers(help='Scaffold help')
+
+parser_scaffold = scaffold_subparser.add_parser(
+    cli_params.SCAFFOLD_SUBPARSER_PARAM,
+    help="""Will create module from default template. Use it without any other parameters"""
+)
+parser_scaffold.add_argument(
+    cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM, 
+    type=str, 
+    help="""The name of the module to create, may munged in various manners to generate programmatic names (e.g. module directory name, model names, …)"""
+)
+
+parser_scaffold.add_argument(
+    cli_params.SCAFFOLD_SUBPARSER_T_PARAM,
+    cli_params.SCAFFOLD_SUBPARSER_TEMPLATE_NAME_PARAM, 
+    help="""The name of template directory, files are passed through jinja2 then copied to the destination directory"""
 )
 
 args = arg_parser.parse_args()

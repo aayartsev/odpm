@@ -1,6 +1,6 @@
 # #MESSAGE#
 FROM python:{PYTHON_VERSION}-{DISTRO_VERSION_CODENAME}
-  
+
 # Переменные проекта
 ARG USER_UID={CURRENT_USER_UID}
 ARG USER_GID={CURRENT_USER_GID}
@@ -15,7 +15,7 @@ RUN getent group $USER_GID 2>&1 > /dev/null || groupadd --gid $USER_GID $USER_NA
     && apt-get install -y sudo \
     && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
     && chmod 0440 /etc/sudoers.d/$USER_NAME
- 
+
 # install dependecies 
 RUN apt-get update && apt-get -y install git postgresql-client node-less npm ssh \
     libxml2-dev libxslt1-dev libldap2-dev\  
