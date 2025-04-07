@@ -69,13 +69,18 @@ class StartStringBuilder():
             start_python_command += f" --test-enable --stop-after-init"
             if self.args.screencasts:
                 start_python_command += f""" {cli_params.SCREENCASTS_PARAM} {self.config.docker_temp_tests_dir}"""
-                
 
         if translate_lang:
             start_python_command += f" --language {translate_lang} --load-language {translate_lang} --i18n-overwrite"
 
         if dev_mode:
             start_python_command += f" --dev {dev_mode}"
+        
+        if cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM in self.args:
+            start_python_command = f"""python3 -u -m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} {self.config.docker_odoo_dir}/odoo-bin """
+            start_python_command += f"""scaffold {self.args.scaffold_module_name} {self.config.docker_odoo_project_dir_path}"""
+            if self.args.scaffold_template_name:
+                start_python_command += f""" -t {self.args.scaffold_template_name}"""
 
         start_main = " && ".join([
             f"""cd {self.config.docker_project_dir}""",

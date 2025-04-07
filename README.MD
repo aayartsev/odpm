@@ -1,4 +1,4 @@
-[![ru](https://img.shields.io/badge/lang-ru-green.svg)](https://github.com/aayartsev/odoo_dev_project/blob/3.0-beta/README-RU.MD)
+[![ru](https://img.shields.io/badge/lang-ru-green.svg)](https://github.com/aayartsev/odoo_dev_project/blob/3.0/README-RU.MD)
 
 # Odoo Developers Project Manager
 
@@ -18,7 +18,7 @@ If you are new, i recommend using this project in conjunction with the training 
 
 ## Prepare
 You need to download and install the following programs:
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) for Linux and MacOS users
 - [git](https://git-scm.com/)
 - [python3](https://www.python.org/)
 - [Visual Studio Code](https://code.visualstudio.com/)
@@ -26,7 +26,8 @@ You need to download and install the following programs:
 
 ## How to start work
 
-Create a folder where your new project will be located. At the end of the project name, I add the odoo version number through a hyphen. For example, `odoo_demo_project-17`. This is due to the fact that the difference between versions is quite significant and I consider the same modules for different versions as different projects for development, despite the fact that they can be in the same repository. Your project environment will be located in this directory in the future. You need to initiate a new one using the `--init` command option, where we can specify a link to the git repository(o link to local directory) and using the `--branch` option, we specify the specific branch we want to switch the project under development to:
+Create a folder where your new project environment will be located. At the end of the folder name, I add the odoo version number through a hyphen. For example, `odoo_demo_project-17`. This is due to the fact that the difference between versions is significant, and I consider the same modules for different versions as different development projects. Each version of Odoo requires its own environment. Even though the code of the same project can be located in the same repository.To get the utility to start creating an environment, you need to navigate to the directory you created earlier, for example `odoo_demo_project-17`, and then initialize it using the `--init` parameter command. As a parameter for the `--init` command, we can specify a link to a git repository (or a local directory). Also, by adding the `--branch` parameter, you can specify a specific branch to which you want to switch the repository of the project being developed. If the `--branch` parameter is not specified, the default branch will be selected:
+
 
 Launch `VSCode` then threw menu File - Open Folder, open our folder `odoo_demo_project-17`.
 
@@ -42,13 +43,13 @@ If you do not wish to contact the `git` repository for any reason, you can easil
 python3 /path/to/cloned/odoo_dev_project/odpm.py --init file:///your/path/to/odoo_demo_project-17/name_of_development_directory
 ```
 
-The system will try to prepare your computer:
-1. The system will ask questions about which parameters should be saved to a file `.env`
-1. If you are deploying a project from scratch, the system will ask you to specify the odoo version and make initial settings based on this information
+The utility will try to prepare your computer:
+1. The utility will ask questions about which parameters should be saved to a file `.env`
+1. If you are deploying a project from scratch, the utility will ask you to specify the odoo version and make initial settings based on this information
 1. The cloning process of the main odoo repository will be started. This takes a very significant time of 40 minutes or more, so be patient
-1. The repository under development will be cloned
+1. The repository of the developed project will be cloned, or the directory of the local file system will be connected if a path to the file system was specified.
 1. A `Dockerfile` will be automatically generated for the specified `python` and `debian` version.
-1. After that, the automatic build of the `Docker image` will start
+1. After this, the automatic build of the `Docker image` will start if it has not been built before.
 1. The `docker-compose.yml` file will be automatically generated
 1. Configuration files will be generated for VS Code for the debugger to work correctly
 1. `docker-compose up` will start automatically
@@ -83,7 +84,7 @@ The system will try to create a `.odpm` directory in the user's home directory o
 - `POSTGRES_PORT` - the port on which the PostgreSQL DBMS will be launched by default at the address 127.0.0.1
 - `DEBUGGER_PORT` - the port on which the debugger will run by default at the address 127.0.0.1
 
-Example for Linux:
+Example:
 ```conf
 BACKUP_DIR=/home/user/odoo_backups
 ODOO_SRC_DIR=/home/user/odoo
@@ -158,4 +159,6 @@ Supported distributions and versions:
 - `--start-precommit` - will start pre-commit for your project inside container, specified in parameter `developing_project` from file `user_settings.json`.
 - `--build-image` - will build Docker image for your odoo version
 - `--set-admin-pass` - when you specify the value of this parameter, the administrator account will have its password and login changed to those specified in the `db_default_admin_login` and `db_default_admin_password` parameters in the `user_settings.json` configuration file. Be sure to specify the name of the database for which you want to change the password and use the `-d database_name` parameter.
-- `--sql-execute` - wen this parameter is used, the SQL scripts specified in the `sql_queries` parameter of the `user_settings.json` configuration file will be executed. Each script is a separate string that is an element of the list. You must specify the name of the database for which you want to change the password and use the parameter `-d database_name`.
+- `--sql-execute` - wen this parameter is used, the SQL scripts specified in the `sql_queries` parameter of the `user_settings.json` configuration file will be executed. Each script is a separate string that is an element of the list.You must specify the name of the database for which you want to change the password and use the parameter `-d database_name`.
+- `scaffold my_module_name` - The additional command `scaffold` creates a module with the specified name in the project being developed. In this case, `my_module_name`.
+    - `-t` - The name of the directory where the templates for generating the module are located in the directory with the specified name. The templates are written using [jinja2](https://jinja.palletsprojects.com/en/stable/)

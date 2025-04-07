@@ -1,6 +1,6 @@
 # #MESSAGE#
 FROM python:{PYTHON_VERSION}-{DISTRO_VERSION_CODENAME}
-  
+
 # Переменные проекта
 ARG USER_UID={CURRENT_USER_UID}
 ARG USER_GID={CURRENT_USER_GID}
@@ -9,17 +9,13 @@ ARG USER_NAME={CURRENT_USER}
 ARG PASSWORD={CURRENT_PASSWORD}
 
 # Prepare internal user
-RUN groupadd --gid $USER_GID $USER_NAME \
+RUN getent group $USER_GID 2>&1 > /dev/null || groupadd --gid $USER_GID $USER_NAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USER_NAME -p $(openssl passwd -crypt $PASSWORD) \
     && apt-get update \
     && apt-get install -y sudo \
     && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
-    && chmod 0440 /etc/sudoers.d/$USER_NAME\
-    && mkdir /home/$USER_NAME/.ssh\
-    && chown $USER_NAME:$USER_NAME /home/$USER_NAME/.ssh\
-    && mkdir -p /home/$USER_NAME/.vscode-server\
-    && chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/.vscode-server
- 
+    && chmod 0440 /etc/sudoers.d/$USER_NAME
+
 # install dependecies 
 RUN apt-get update && apt-get -y install git postgresql-client node-less npm ssh \
     libxml2-dev libxslt1-dev libldap2-dev\  

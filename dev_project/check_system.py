@@ -84,9 +84,9 @@ class SystemChecker(SystemCheckerProtocol):
             port_items =  data_port_string.split(",")
             for port_item in port_items:
                 port_item = port_item.strip()
-                host_port = port_item.split("->")
-                if len(host_port) >= 2:
-                    host_port = host_port[1].split("/")[0]
+                port_map = port_item.split("->")
+                if len(port_map) >= 2:
+                    host_port = port_map[0].split(":")[-1]
                 else:
                     host_port = 0
                 busy_ports.append(int(host_port))
