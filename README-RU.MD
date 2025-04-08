@@ -35,7 +35,7 @@
 
 При самом первом запуске ранее описанной команды:
 ```bash
-python3 /путь/к/клонированному/odoo_dev_project/odpm.py --init git@github.com:aayartsev/odoo_demo_project.git --branch 17.0-test_odpm_json
+python3 /путь/к/клонированному/odoo_dev_project/odpm.py --init https://github.com/aayartsev/odoo_demo_project.git --branch 17.0-test_odpm_json
 ```
 Если вы не хотите связываться с `git` репозиторием по какой-либо причине, то вы можете создать локальный проект для разработки, просто указав нужный каталог место е
 
