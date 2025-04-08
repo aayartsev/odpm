@@ -35,7 +35,7 @@ Now we cat enable Terminal threw menu Terminal - New Terminal. Then in it you ca
 
 At the very first launch of the previously described command:
 ```bash
-python3 /path/to/cloned/odoo_dev_project/odpm.py --init git@github.com:aayartsev/odoo_demo_project.git --branch 17.0-test_odpm_json
+python3 /path/to/cloned/odoo_dev_project/odpm.py --init https://github.com/aayartsev/odoo_demo_project.git --branch 17.0-test_odpm_json
 ```
 If you do not wish to contact the `git` repository for any reason, you can easily create a local development environment by simply specifying a desired directory location.
 
