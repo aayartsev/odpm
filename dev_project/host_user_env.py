@@ -21,6 +21,7 @@ class EnvData(TypedDict):
     ODOO_PORT: int
     POSTGRES_PORT: int
     DEBUGGER_PORT: int
+    GEVENT_PORT: int
 
 class CreateUserEnvironment():
 
@@ -52,6 +53,7 @@ class CreateUserEnvironment():
         self.debugger_port = int(parser["env"].get("DEBUGGER_PORT", str(constants.DEBUGGER_DEFAULT_PORT)))
         self.odoo_port = int(parser["env"].get("ODOO_PORT", str(constants.ODOO_DEFAULT_PORT)))
         self.postgres_port = int(parser["env"].get("POSTGRES_PORT", str(constants.POSTGRES_DEFAULT_PORT)))
+        self.gevent_port = int(parser["env"].get("GEVENT_PORT", str(constants.GEVENT_DEFAULT_PORT)))
         path_to_ssh_key = parser["env"].get("PATH_TO_SSH_KEY", "")
         if isinstance(path_to_ssh_key, str) and platform.system() == "Windows":
             path_to_ssh_key = path_to_ssh_key.replace("\\","\\\\")
@@ -66,6 +68,7 @@ class CreateUserEnvironment():
             ODOO_PORT=self.get_from_user_odoo_port(),
             POSTGRES_PORT=self.get_from_user_postgres_port(),
             DEBUGGER_PORT=self.get_from_user_debugger_port(),
+            GEVENT_PORT=self.get_from_user_gevent_port(),
         )
         with open(local_env_file, 'w') as env_file:
             for key_name, value in new_env_data.items():
@@ -152,5 +155,17 @@ class CreateUserEnvironment():
             port = default_port
         _logger.info(translations.get_translation(translations.YOU_SELECT_DEBUGGER_PORT).format(
                 SELECTED_DEBUGGER_PORT=default_port,
+            ))
+        return int(port)
+
+    def get_from_user_gevent_port(self) -> int:
+        default_port = constants.GEVENT_DEFAULT_PORT
+        port = input(translations.get_translation(translations.SET_GEVENT_PORT).format(
+                    DEFAULT_GEVENT_PORT=default_port,
+                ))
+        if not port:
+            port = default_port
+        _logger.info(translations.get_translation(translations.YOU_SELECT_GEVENT_PORT).format(
+                SELECTED_GEVENT_PORT=default_port,
             ))
         return int(port)

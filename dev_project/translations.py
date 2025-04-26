@@ -43,6 +43,7 @@ THIS_IS_NOT_PROJECT_DIRECTORY = """This is not {PROJECT_NAME} directory. If you 
 ALREADY_INITED_PROJECT = """This dir is already {PROJECT_NAME} project"""
 CHECK_CONFIG_FILE = """Check your '{CONFIG_FILE_NAME}' file, we can not parse it."""
 PRE_COMMIT_FILE_WAS_NOT_FOUND = """Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"""
+
 SET_ODOO_SRC_DIR = """Set odoo sources directory, You can leave default {DEFAULT_ODOO_SRC_DIR} or write your own. Press 'Enter' to leave default value:"""
 SET_ODOO_PROJECTS_SRC_DIR = """Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"""
 SET_ODOO_BACKUP_DIR = """Set directory for odoo creating/restoring backups, You can leave default {DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default value:"""
@@ -50,6 +51,8 @@ SET_SSH_KEY_PATH = """Set path to your SSH key for GitHub. How to create it you 
 SET_ODOO_PORT = "Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave default value:\n"
 SET_POSTGRES_PORT = "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
 SET_DEBUGGER_PORT = "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
+SET_GEVENT_PORT = "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n"
+YOU_SELECT_GEVENT_PORT = "You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n"
 YOU_SELECT_ODOO_DIR = "You select this odoo sources dir: {SELECTED_ODOO_DIR}\n"
 YOU_SELECT_ODOO_PROJECTS_DIR = "You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n"
 YOU_SELECT_ODOO_BACKUPS_DIR = "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
@@ -83,9 +86,9 @@ translations = {
     },
     CHECK_ODOO_REPO: {
         "ru_RU": "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} "
-                 "не является git репозиторием или репозиторий поврежден"
-                 "Пожалуйста исправьте повреждения или клонируйте репозиторий заново: "
-                 "git clone https://github.com/odoo/odoo.git"
+                "не является git репозиторием или репозиторий поврежден"
+                "Пожалуйста исправьте повреждения или клонируйте репозиторий заново: "
+                "git clone https://github.com/odoo/odoo.git"
     },
     MESSAGE_FOR_TEMPLATES: {
         "ru_RU": "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
@@ -98,11 +101,11 @@ translations = {
     },
     ADMIN_PASSWD_MESSAGE:{
         "ru_RU": """Не изменяйте данный параметр, его значение будет взято из"""
-                 """ параметра "db_manager_password" файла конфигурации config.json"""
+                """ параметра "db_manager_password" файла конфигурации config.json"""
     },
     THIS_IS_NOT_PROJECT_DIRECTORY: {
         "ru_RU": "Данный каталог не является odpm проектом. Если вы хотите создать"
-                 " новый проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
+                " новый проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
     },
     ALREADY_INITED_PROJECT: {
         "ru_RU": """Данный каталог уже является {PROJECT_NAME} проектом"""
@@ -115,39 +118,47 @@ translations = {
     },
     SET_ODOO_SRC_DIR: {
         "ru_RU": "Укажите каталог хранения исходных текстов odoo, Вы можете оставить "
-                 "значение по умолчанию {DEFAULT_ODOO_SRC_DIR} или написать ваше собственное. "
-                 "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+                "значение по умолчанию {DEFAULT_ODOO_SRC_DIR} или написать ваше собственное. "
+                "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
     },
     SET_ODOO_PROJECTS_SRC_DIR: {
         "ru_RU": "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить "
-                 "значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. "
-                 "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+                "значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. "
+                "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
     },
     SET_ODOO_BACKUP_DIR:{
         "ru_RU": "Укажите каталог создания/восстановления бэкапов odoo, Вы можете оставить "
-                 "значение по умолчанию {DEFAULT_ODOO_BACKUP_DIR} или написать ваше собственное. "
-                 "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+                "значение по умолчанию {DEFAULT_ODOO_BACKUP_DIR} или написать ваше собственное. "
+                "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
     },
     SET_SSH_KEY_PATH: {
         "ru_RU": "Укажите путь к SSH ключу для GitHub. Как его создать, вы можете прочитать здесь:"
-                 " https://docs.github.com/en/authentication/connecting-to-github-with-ssh/"
-                 "generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Вы можете оставить значение"
-                 " пустым, нажав 'Enter'. Программа попытается использовать системный ssh ключ для GitHub:\n"
+                " https://docs.github.com/en/authentication/connecting-to-github-with-ssh/"
+                "generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Вы можете оставить значение"
+                " пустым, нажав 'Enter'. Программа попытается использовать системный ssh ключ для GitHub:\n"
     },
     SET_ODOO_PORT: {
         "ru_RU": "Укажите порт, который будет слушать odoo. Можете оставить значение по умолчанию"
-                 " {DEFAULT_ODOO_PORT} или укажите свой собственный. "
-                 "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+                " {DEFAULT_ODOO_PORT} или укажите свой собственный. "
+                "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
     },
     SET_POSTGRES_PORT: {
         "ru_RU": "Укажите порт, который будет слушать сервер PostgreSQL. Можете оставить значение по умолчанию"
-                 " {DEFAULT_POSTGRES_PORT} или укажите свой собственный. "
-                 "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+                " {DEFAULT_POSTGRES_PORT} или укажите свой собственный. "
+                "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
     },
     SET_DEBUGGER_PORT: {
         "ru_RU": "Укажите порт, который будет слушать сервер Отладчик. Можете оставить значение по умолчанию"
-                 " {DEFAULT_DEBUGGER_PORT} или укажите свой собственный. "
-                 "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+                " {DEFAULT_DEBUGGER_PORT} или укажите свой собственный. "
+                "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+    },
+    SET_GEVENT_PORT: {
+        "ru_RU": "Укажите порт, который будет слушать сервер Gevent Websocket. Можете оставить значение по умолчанию"
+                " {DEFAULT_GEVENT_PORT} или укажите свой собственный. "
+                "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+    },
+    YOU_SELECT_GEVENT_PORT: {
+        "ru_RU": "Вы выбрали следующий порт, который будет слушать Odoo Gevent Websocket System: {SELECTED_GEVENT_PORT}\n"
     },
     YOU_SELECT_ODOO_DIR:{
         "ru_RU": "Вы выбрали следующий каталог для хранения исходных текстов odoo: {SELECTED_ODOO_DIR}\n"
