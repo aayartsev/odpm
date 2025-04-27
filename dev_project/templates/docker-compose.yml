@@ -11,6 +11,8 @@ services:
       - POSTGRES_PASSWORD={POSTGRES_ODOO_PASS}
       - POSTGRES_USER={POSTGRES_ODOO_USER}
       - POSTGRES_DB=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
   odoo:
     image: {ODOO_IMAGE}
@@ -28,3 +30,11 @@ services:
     volumes: {MAPPED_VOLUMES}
 
     command: {START_STRING}
+
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: {POSTGRES_DATA_LOCAL_STORAGE}

@@ -69,3 +69,7 @@ class CreateProjectEnvironmentProtocol(Protocol):
         NotImplementedError(
                 f"""Define build_image in {self.__class__.__name__}""")
     
+    def download_odoo_nightly_build(self):
+        NotImplementedError(
+                f"""Define download_odoo_nightly_build in {self.__class__.__name__}""")
+    

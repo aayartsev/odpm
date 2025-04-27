@@ -53,6 +53,10 @@ SET_POSTGRES_PORT = "Set PostgreSQL database server port which it will listen. Y
 SET_DEBUGGER_PORT = "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
 SET_GEVENT_PORT = "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n"
 YOU_SELECT_GEVENT_PORT = "You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n"
+
+SELECT_ODPM_SCENARIO = "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
+YOU_SELECT_ODPM_SCENARIO = "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
+
 YOU_SELECT_ODOO_DIR = "You select this odoo sources dir: {SELECTED_ODOO_DIR}\n"
 YOU_SELECT_ODOO_PROJECTS_DIR = "You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n"
 YOU_SELECT_ODOO_BACKUPS_DIR = "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
@@ -202,6 +206,12 @@ translations = {
     YOU_NEED_TO_HAVE_FREE_SPACE:{
         "ru_RU": """В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} свободного места""",
     },
+    SELECT_ODPM_SCENARIO:{
+        "ru_RU": "Пожалуйта выберите ценарий использования odpm из указанного списка {LIST_OF_SCENARIOS}\n Нажпите 'Enter' чтобы оставить значение по уполчнию:\n"
+    },
+    YOU_SELECT_ODPM_SCENARIO:{
+        "ru_RU": "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
+    }
 }
 
 def get_translation(string_to_translate):

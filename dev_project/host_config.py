@@ -92,8 +92,10 @@ class Config():
         self.config_home_dir = self.pd_manager.home_config_dir
         self.no_log_prefix = False
         self.user_env = user_env
+        
         if self.pd_manager.init and isinstance(self.pd_manager.init, str):
             self.clone_project()
+        self.postgres_data_local_storage = self.get_postgres_data_local_storage_path()
         # check current config.json file
         self.config_json_content = {}
         self.check_for_config()
@@ -235,6 +237,12 @@ class Config():
     def system_checker(self, value: SystemCheckerProtocol) -> None:
         """Set system_checker property."""
         self._system_checker = value
+    
+    def get_postgres_data_local_storage_path(self) -> str:
+        postgres_data_local_storage_path = os.path.join(self.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR)
+        if not os.path.exists(postgres_data_local_storage_path):
+            os.mkdir(postgres_data_local_storage_path)
+        return postgres_data_local_storage_path
     
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
         subprojects_data = {}

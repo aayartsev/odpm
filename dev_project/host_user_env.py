@@ -22,6 +22,7 @@ class EnvData(TypedDict):
     POSTGRES_PORT: int
     DEBUGGER_PORT: int
     GEVENT_PORT: int
+    ODPM_SCENARIO: str
 
 class CreateUserEnvironment():
 
@@ -55,6 +56,7 @@ class CreateUserEnvironment():
         self.postgres_port = int(parser["env"].get("POSTGRES_PORT", str(constants.POSTGRES_DEFAULT_PORT)))
         self.gevent_port = int(parser["env"].get("GEVENT_PORT", str(constants.GEVENT_DEFAULT_PORT)))
         path_to_ssh_key = parser["env"].get("PATH_TO_SSH_KEY", "")
+        self.odpm_scenario = parser["env"].get("ODPM_SCENARIO", constants.DEFAULT_ODPM_SCENARIO)
         if isinstance(path_to_ssh_key, str) and platform.system() == "Windows":
             path_to_ssh_key = path_to_ssh_key.replace("\\","\\\\")
         self.path_to_ssh_key = path_to_ssh_key
@@ -69,6 +71,7 @@ class CreateUserEnvironment():
             POSTGRES_PORT=self.get_from_user_postgres_port(),
             DEBUGGER_PORT=self.get_from_user_debugger_port(),
             GEVENT_PORT=self.get_from_user_gevent_port(),
+            ODPM_SCENARIO=self.get_from_user_odpm_scenario(),
         )
         with open(local_env_file, 'w') as env_file:
             for key_name, value in new_env_data.items():
@@ -169,3 +172,23 @@ class CreateUserEnvironment():
                 SELECTED_GEVENT_PORT=default_port,
             ))
         return int(port)
+
+    def get_from_user_odpm_scenario(self) -> str:
+        default_odpm_scenario = constants.DEFAULT_ODPM_SCENARIO
+        list_of_scenarios = "\n"
+        for scenario in constants.ODPM_SCENARIOS.items():
+            list_of_scenarios += f"{scenario[0]} - {scenario[1]}\n"
+        odpm_scenario_key = input(translations.get_translation(translations.SELECT_ODPM_SCENARIO).format(
+            LIST_OF_SCENARIOS=list_of_scenarios,
+        ))
+        
+        if not odpm_scenario_key:
+            selected_scenario = default_odpm_scenario
+        else:
+            odpm_scenario_key = int(odpm_scenario_key)
+            selected_scenario = constants.ODPM_SCENARIOS.get(odpm_scenario_key)
+        _logger.info(translations.get_translation(translations.YOU_SELECT_ODPM_SCENARIO).format(
+            SELECTED_ODPM_SCENARIO=selected_scenario,
+        ))
+        print("selected_scenario", selected_scenario)
+        return str(selected_scenario)

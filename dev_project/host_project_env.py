@@ -195,6 +195,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             COMPOSE_FILE_VERSION=self.config.compose_file_version,
             DATABASE_NAME_INSTANCE=constants.DATABASE_NAME_INSTANCE,
             POSTGRES_VERSION=self.config.postgres_version,
+            POSTGRES_DATA_LOCAL_STORAGE=self.config.postgres_data_local_storage
         )
         content = content.replace(translations.get_translation(translations.MESSAGE_FOR_TEMPLATES), translations.get_translation(translations.DO_NOT_CHANGE_FILE))
         dockerfile_compose_path = os.path.join(self.config.project_dir, "docker-compose.yml")
@@ -390,6 +391,20 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         os.chdir(self.user_env.odoo_src_dir)
         subprocess.run(["git", "stash"])
         subprocess.run(["git", "pull"])
+        if os.path.exists(filepath_to_save):
+            os.remove(filepath_to_save)
+    
+    def download_odoo_nightly_build(self):
+        print("download_odoo_nightly_build")
+        self.config.system_checker.check_free_space_for_odoo_developing()
+        dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
+        os.chdir(dir_for_odoo_src)
+        delete_files_in_directory(self.user_env.odoo_src_dir)
+        odoo_version = self.config.odoo_version
+        link_to_download = f"https://nightly.odoo.com/{odoo_version}/nightly/src/odoo_{odoo_version}.latest.zip"
+        filepath_to_save = os.path.join(Path.home(), "odoo.zip.download")
+        download_file(link_to_download=link_to_download, filepath_to_save=filepath_to_save)
+        un_zip_file_to_directory(dir_for_odoo_src, filepath_to_save)
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)
     
