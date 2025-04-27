@@ -63,14 +63,19 @@ def download_file(link_to_download, filepath_to_save):
                 f.write(chunk)
     print()
 
-def un_zip_file_to_directory(destination_dir, zip_file):
+def un_zip_file_to_directory(destination_dir, zip_file, rename_first_part_of_path=""):
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
         entries = zip_ref.infolist()
         total_entries = entries
         full_size = sum([entry.file_size for entry in total_entries])
         offset = 0
         for entry in total_entries:
-            full_file_path = os.path.join(destination_dir, entry.filename)
+            new_filename = entry.filename
+            if rename_first_part_of_path:
+                filename_parts = entry.filename.split(os.sep)
+                new_filename = os.sep.join(filename_parts[1:])
+                new_filename = os.path.join(rename_first_part_of_path, new_filename)
+            full_file_path = os.path.join(destination_dir, new_filename)
             if entry.is_dir():
                 if not os.path.exists(full_file_path):
                     os.makedirs(full_file_path)

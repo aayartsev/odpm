@@ -191,8 +191,10 @@ class Config():
                 self.docker_dirs_with_addons.append(self.docker_odoo_project_dir_path)
         odoo_addons_modules_data = self.check_project_for_subprojects(os.path.join(self.user_env.odoo_src_dir, "addons"))
         self.catalogs_of_modules_data.extend(odoo_addons_modules_data)
-        self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
         self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
+        if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
+            self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
+            
         
 
         self.path_odoo_conf = os.path.join(self.project_dir, constants.ODOO_CONF_NAME)

@@ -395,7 +395,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             os.remove(filepath_to_save)
     
     def download_odoo_nightly_build(self):
-        print("download_odoo_nightly_build")
         self.config.system_checker.check_free_space_for_odoo_developing()
         dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
         os.chdir(dir_for_odoo_src)
@@ -403,8 +402,19 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         odoo_version = self.config.odoo_version
         link_to_download = f"https://nightly.odoo.com/{odoo_version}/nightly/src/odoo_{odoo_version}.latest.zip"
         filepath_to_save = os.path.join(Path.home(), "odoo.zip.download")
-        download_file(link_to_download=link_to_download, filepath_to_save=filepath_to_save)
-        un_zip_file_to_directory(dir_for_odoo_src, filepath_to_save)
+        download_file(
+            link_to_download=link_to_download,
+            filepath_to_save=filepath_to_save,
+        )
+        un_zip_file_to_directory(
+            dir_for_odoo_src,
+            filepath_to_save,
+            rename_first_part_of_path="odoo",
+        )
+        os.replace(
+            os.path.join(self.user_env.odoo_src_dir, "setup", "odoo"), 
+            os.path.join(self.user_env.odoo_src_dir, "odoo-bin"), 
+        )
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)
     

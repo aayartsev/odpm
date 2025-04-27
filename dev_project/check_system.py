@@ -161,14 +161,15 @@ class SystemChecker(SystemCheckerProtocol):
                     ))
                     exit(1)
         if self.config.user_env.odpm_scenario == constants.SERVER_SCENARIO:
-            clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
-            if clone_odoo and clone_odoo.lower() == "y":
-                self.config.project_env.download_odoo_nightly_build()
-            else:
-                _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
-                    odoo_src_dir= self.config.user_env.odoo_src_dir
-                ))
-                exit(1)
+            if not os.path.exists(os.path.join(self.config.user_env.odoo_src_dir, "odoo-bin")):
+                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+                if clone_odoo and clone_odoo.lower() == "y":
+                    self.config.project_env.download_odoo_nightly_build()
+                else:
+                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
+                        odoo_src_dir= self.config.user_env.odoo_src_dir
+                    ))
+                    exit(1)
 
     
     def check_free_space_for_odoo_developing(self):
