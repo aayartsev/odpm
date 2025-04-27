@@ -83,6 +83,7 @@ python3 /путь/к/клонированному/odoo_dev_project/odpm.py -d te
 - `ODOO_PORT` - порт на котором по умолчанию будет запускаться odoo на адресе 127.0.0.1
 - `POSTGRES_PORT` - порт на котором по умолчанию будет запускаться СУБД PostgreSQL на адресе 127.0.0.1
 - `DEBUGGER_PORT` - порт на котором по умолчанию будет запускаться отладчик на адресе 127.0.0.1
+- `GEVENT_PORT` - который будет слушать Websocket Gevent System на адресе 127.0.0.1
 
 Пример:
 ```conf
@@ -93,6 +94,7 @@ PATH_TO_SSH_KEY=/home/user/.ssh/my_ssh_key
 ODOO_PORT=8069
 POSTGRES_PORT=5432
 DEBUGGER_PORT=5678
+GEVENT_PORT=8072
 ```
 
 ## Параметры user_settings.json:

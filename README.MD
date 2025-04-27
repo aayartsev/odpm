@@ -83,6 +83,7 @@ The system will try to create a `.odpm` directory in the user's home directory o
 - `ODOO_PORT` - the port on which odoo will be launched by default at the address 127.0.0.1
 - `POSTGRES_PORT` - the port on which the PostgreSQL DBMS will be launched by default at the address 127.0.0.1
 - `DEBUGGER_PORT` - the port on which the debugger will run by default at the address 127.0.0.1
+- `GEVENT_PORT` - the port on which the Websocket Gevent System will listen by default at the address 127.0.0.1
 
 Example:
 ```conf
@@ -93,6 +94,7 @@ PATH_TO_SSH_KEY=/home/user/.ssh/my_ssh_key
 ODOO_PORT=8069
 POSTGRES_PORT=5432
 DEBUGGER_PORT=5678
+GEVENT_PORT=8072
 ```
 
 ## Parameters in user_settings.json:
