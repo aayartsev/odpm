@@ -395,7 +395,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             os.remove(filepath_to_save)
     
     def download_odoo_nightly_build(self):
-        self.config.system_checker.check_free_space_for_odoo_developing()
+        self.config.system_checker.check_free_space_for_odoo_developing(free_space_size=2.0)
         dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
         os.chdir(dir_for_odoo_src)
         delete_files_in_directory(self.user_env.odoo_src_dir)

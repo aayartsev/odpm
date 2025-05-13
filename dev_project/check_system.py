@@ -147,7 +147,6 @@ class SystemChecker(SystemCheckerProtocol):
             os.mkdir(self.config.user_env.odoo_src_dir)
         os.chdir(self.config.user_env.odoo_src_dir)
         # todo сделать переключатель
-        print("self.config.user_env.odpm_scenario", self.config.user_env.odpm_scenario)
         if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
             odoo_src_state_bytes = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
             odoo_src_state_string = odoo_src_state_bytes.stdout.decode("utf-8")
@@ -172,11 +171,11 @@ class SystemChecker(SystemCheckerProtocol):
                     exit(1)
 
     
-    def check_free_space_for_odoo_developing(self):
+    def check_free_space_for_odoo_developing(self, free_space_size:float=constants.FREE_SPACE_FOR_USAGE):
         free_space = utils.get_free_space(Path.home())
-        if free_space < constants.FREE_SPACE_FOR_USAGE:
+        if free_space < free_space_size:
             _logger.error(translations.get_translation(translations.YOU_NEED_TO_HAVE_FREE_SPACE).format(
-                NECESSARY_FREE_SPACE=constants.FREE_SPACE_FOR_USAGE,
+                NECESSARY_FREE_SPACE=free_space_size,
                 DIR_FOR_FREE_SPACE=Path.home(),
             ))
             exit(1)
