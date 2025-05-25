@@ -3,6 +3,7 @@ import os
 import configparser
 import datetime
 from contextlib import closing, contextmanager
+import io
 
 from logger import get_module_logger
 import cli_params
@@ -26,7 +27,9 @@ class OdooChecker():
         self.db_default_admin_login = config["db_creation_data"]["db_default_admin_login"]
         self.db_create_demo = config["db_creation_data"]["create_demo"]
         self.db_manager_password = config.get("db_manager_password", False)
-        self.sql_queries = config.get("sql_queries", False)
+        self.sql_queries = config.get("sql_queries", [])
+        self.modules_to_update = config.get("modules_to_update", [])
+        self.docker_dirs_with_addons = config.get("docker_dirs_with_addons", False)
 
         sys.path.append(self.odoo_dir)
 
@@ -65,7 +68,8 @@ class OdooChecker():
         self.db_backup = self.args_dict.get(cli_params.DB_BACKUP_PARAM.replace("-", "_").strip("_"), False)
         self.set_admin_pass = self.args_dict.get(cli_params.SET_ADMIN_PASS_PARAM.replace("-", "_").strip("_"), False)
         self.sql_execute = self.args_dict.get(cli_params.SQL_EXECUTE_PARAM.replace("-", "_").strip("_"), False)
-
+        self.export_po_files_lang = self.args_dict.get(cli_params.EXPORT_PO_FILES.replace("-", "_").strip("_"), False)
+        
         self.all_backup_file_path = os.path.join(self.odoo_dir, "../backups/")
         
         if self.get_db_list or self.db_name:
@@ -92,7 +96,35 @@ class OdooChecker():
                 # Execute sql queries
                 if self.sql_execute and self.sql_queries and self.db_name:
                     self.execute_sql_queries()
+                if self.export_po_files_lang:
+                    self.export_po_files_to_modules()
     
+    def export_po_files_to_modules(self):
+        db = self.odoo.sql_db.db_connect(self.db_name)
+        for module_name in self.modules_to_update:
+            module_path = ""
+            for addons_dir in self.docker_dirs_with_addons:
+                module_path = os.path.join(addons_dir, module_name)
+                if os.path.exists(module_path):
+                    break
+            i18n_path = os.path.join(module_path,"i18n")
+            if not os.path.exists(i18n_path):
+                os.mkdir(i18n_path)
+            for file_ext in ["po", "pot"]:
+                with closing(io.BytesIO()) as buf:
+                    with closing(db.cursor()) as cr:
+                        lang = self.export_po_files_lang
+                        file_name = self.export_po_files_lang.split("_")[0]
+                        if file_ext == "pot":
+                            lang = False
+                            file_name = module_name
+                        self.odoo.tools.trans_export(lang, [module_name], buf, "po", cr)
+                        content = buf.getvalue()
+                        full_file_path = os.path.join(i18n_path, f"{file_name}.{file_ext}")
+                        with open(full_file_path, "wb") as file_to_write:
+                            file_to_write.write(content)
+            _logger.info(f"PO file with translation at {self.export_po_files_lang} language for module {module_name} was created")
+
     def create_config_file(self):
         odoo_conf = configparser.ConfigParser()
         for section in self.odoo_config_data:

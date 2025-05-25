@@ -68,6 +68,8 @@ class ConfigToJson(TypedDict):
     python_version: str
     arch: str
     sql_queries: list
+    modules_to_update: list
+    docker_dirs_with_addons: list
 
 @dataclass
 class SubProject:
@@ -179,13 +181,14 @@ class Config():
         # prepare of mapped dirs for odoo addons
         self.catalogs_of_modules_data = []
         self.docker_dirs_with_addons = []
+        self.list_of_developing_project_subprojects_data = []
         self.docker_extra_addons = str(pathlib.PurePosixPath(self.docker_project_dir, "extra-addons"))
         if self.developing_project:
             self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name))
-            list_of_subprojects_data = self.check_project_for_subprojects(self.developing_project.project_path)
-            if list_of_subprojects_data:
-                self.catalogs_of_modules_data.extend(list_of_subprojects_data)
-                for subproject in list_of_subprojects_data:
+            self.list_of_developing_project_subprojects_data = self.check_project_for_subprojects(self.developing_project.project_path)
+            if self.list_of_developing_project_subprojects_data:
+                self.catalogs_of_modules_data.extend(self.list_of_developing_project_subprojects_data)
+                for subproject in self.list_of_developing_project_subprojects_data:
                     self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_project_dir_path, subproject.subproject_rel_path)))
             else:
                 self.docker_dirs_with_addons.append(self.docker_odoo_project_dir_path)
@@ -465,6 +468,8 @@ class Config():
             python_version=self.python_version,
             arch=self.arch,
             sql_queries=self.sql_queries,
+            modules_to_update=self.update_modules.split(","),
+            docker_dirs_with_addons=self.docker_dirs_with_addons,
         )
         return json.dumps(config).encode("utf-8")
             
