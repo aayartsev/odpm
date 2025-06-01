@@ -171,7 +171,7 @@ class SystemChecker(SystemCheckerProtocol):
                     exit(1)
 
     
-    def check_free_space_for_odoo_developing(self, free_space_size:float=constants.FREE_SPACE_FOR_USAGE):
+    def check_free_space_for_odoo_developing(self, free_space_size:float=constants.FREE_SPACE_FOR_USAGE) -> None:
         free_space = utils.get_free_space(Path.home())
         if free_space < free_space_size:
             _logger.error(translations.get_translation(translations.YOU_NEED_TO_HAVE_FREE_SPACE).format(

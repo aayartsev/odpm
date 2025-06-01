@@ -96,6 +96,7 @@ class OdooChecker():
                 # Execute sql queries
                 if self.sql_execute and self.sql_queries and self.db_name:
                     self.execute_sql_queries()
+                # Export po for selected language with pot files list of modules is getting from "update_modules"
                 if self.export_po_files_lang:
                     self.export_po_files_to_modules()
     
