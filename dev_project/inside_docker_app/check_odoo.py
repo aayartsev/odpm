@@ -44,6 +44,7 @@ class OdooChecker():
         from odoo.api import Environment # type: ignore
         from odoo.release import version_info as odoo_version_info # type: ignore
         self.odoo_version_info = odoo_version_info
+        self.int_odoo_version = self.odoo_version_info[0]
         if self.odoo_version_info < (15, 0):
             environment_manage = Environment.manage
         else:
@@ -54,7 +55,7 @@ class OdooChecker():
                 yield
         self.environment_manage = environment_manage
         if self.db_manager_password:
-            self.odoo_config_data["options"]["admin_passwd"] = self.get_encrypted_password(odoo_version_info[0], self.db_manager_password)
+            self.odoo_config_data["options"]["admin_passwd"] = self.get_encrypted_password(self.db_manager_password)
         self.create_config_file()
         self.odoo.tools.config.parse_config(["-c", self.docker_path_odoo_conf])
         # Enable database manager
@@ -119,7 +120,10 @@ class OdooChecker():
                         if file_ext == "pot":
                             lang = False
                             file_name = module_name
-                        self.odoo.tools.trans_export(lang, [module_name], buf, "po", cr)
+                        if self.int_odoo_version <= 17:
+                            self.odoo.tools.trans_export(lang, [module_name], buf, "po", cr)
+                        else:
+                            self.odoo.tools.translate.trans_export(lang, [module_name], buf, "po", cr)
                         content = buf.getvalue()
                         full_file_path = os.path.join(i18n_path, f"{file_name}.{file_ext}")
                         with open(full_file_path, "wb") as file_to_write:
@@ -142,8 +146,8 @@ class OdooChecker():
         string_query = f""" SELECT res_id FROM ir_model_data WHERE name = '{id_name}' AND module = '{module_name}' """
         return string_query
     
-    def get_encrypted_password(self, int_odoo_version, text_password):
-        if int_odoo_version not in [11,12]:
+    def get_encrypted_password(self, text_password):
+        if self.int_odoo_version not in [11,12]:
             password_crypt = self.pbkdf2_sha512.using(rounds=1).hash(text_password)
         else:
             crypt_context = self.passlib.context.CryptContext(schemes=['pbkdf2_sha512', 'plaintext'], # type: ignore
@@ -205,7 +209,7 @@ class OdooChecker():
         new_password = self.db_default_admin_password
         password_crypt_field = "password"
         admin_xml_id = "base.user_admin"
-        password_crypt = self.get_encrypted_password(self.odoo_version_info[0], new_password)
+        password_crypt = self.get_encrypted_password(new_password)
         if self.odoo_version_info[0] == 11:
             password_crypt_field = "password_crypt"
             admin_xml_id = "base.user_root"
