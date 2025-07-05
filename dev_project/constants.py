@@ -159,7 +159,9 @@ MODULE_FILES = ("__manifest__.py", "__openerp__.py", "__odoo__.py", "__terp__.py
 
 DEPRECATED_WORDS = [
     "debian_version",
-    "debian_name"
+    "debian_name",
+    "{DEBUGGER_PORT}:{DEBUGGER_DOCKER_PORT}",
+    "{POSTGRES_PORT}:{POSTGRES_DOCKER_PORT}",
 ]
 #  Scenarios for odpm usage
 DEVELOPER_SCENARIO = "developer"

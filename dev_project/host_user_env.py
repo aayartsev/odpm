@@ -190,5 +190,4 @@ class CreateUserEnvironment():
         _logger.info(translations.get_translation(translations.YOU_SELECT_ODPM_SCENARIO).format(
             SELECTED_ODPM_SCENARIO=selected_scenario,
         ))
-        print("selected_scenario", selected_scenario)
         return str(selected_scenario)

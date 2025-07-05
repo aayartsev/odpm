@@ -129,6 +129,10 @@ class Config():
         self.get_odpm_settings()
 
         # check for deprecated words
+        self.check_file_for_deprecated_words(self.pd_manager.project_docker_compose_template_path)
+        if not os.path.exists(self.pd_manager.project_docker_compose_template_path):
+            self.pd_manager.rebuild_docker_compose_template()
+
         self.check_file_for_deprecated_words(self.project_odpm_json)
         if not os.path.exists(self.project_odpm_json):
             self.rewrite_odpm_json()
@@ -308,7 +312,12 @@ class Config():
         if remove_file:
             dir_fo_file = os.path.dirname(file_path)
             filename = os.path.basename(file_path)
-            os.rename(file_path, os.path.join(dir_fo_file, f"deprecated_{filename}"))
+            deprecated_filename = f"deprecated_{filename}"
+            _logger.warning(translations.get_translation(translations.FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED).format(
+                SOURCE_FILE=file_path,
+                DEPRECATED_FILE_NAME=deprecated_filename,
+            ))
+            os.rename(file_path, os.path.join(dir_fo_file, deprecated_filename))
 
         
 

@@ -20,7 +20,6 @@ def main() -> None:
     start_dir_path = os.getenv("PWD", "")
     pd_manager = ProjectDirManager(start_dir_path, args, program_dir_path)
     user_environment = CreateUserEnvironment(pd_manager)
-    pd_manager.check_project_dir()
     config = Config(
         pd_manager,
         args,

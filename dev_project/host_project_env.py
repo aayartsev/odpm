@@ -175,13 +175,20 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             if not os.path.exists(mapped_volume.local):
                 path = Path(mapped_volume.local)
                 path.mkdir(parents=True)
-
+        
+        POSTGRES_PORT = self.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
+        POSTGRES_PORT_MAP = f"{POSTGRES_PORT}:{constants.POSTGRES_DOCKER_PORT}"
+        DEBUGGER_PORT = self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
+        DEBUGGER_PORT_MAP = f"{DEBUGGER_PORT}:{constants.DEBUGGER_DOCKER_PORT}"
+        if self.config.user_env.odpm_scenario == constants.SERVER_SCENARIO:
+            POSTGRES_PORT_MAP = f"127.0.0.1:{POSTGRES_PORT_MAP}"
+            DEBUGGER_PORT_MAP = f"127.0.0.1:{DEBUGGER_PORT_MAP}"
         content = "".join(lines).format(
             ODOO_IMAGE=self.config.odoo_image_name,
             MAPPED_VOLUMES=mapped_volumes,
-            DEBUGGER_PORT=self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT,
+            DEBUGGER_PORT_MAP=DEBUGGER_PORT_MAP,
             ODOO_PORT=self.user_env.odoo_port or constants.ODOO_DEFAULT_PORT,
-            POSTGRES_PORT=self.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT,
+            POSTGRES_PORT_MAP=POSTGRES_PORT_MAP,
             GEVENT_PORT=self.user_env.gevent_port or constants.GEVENT_DEFAULT_PORT,
             START_STRING=self.config.start_string,
             CURRENT_USER=constants.CURRENT_USER,
@@ -190,7 +197,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             POSTGRES_ODOO_PASS=constants.POSTGRES_ODOO_PASS,
             ODOO_DOCKER_PORT=constants.ODOO_DOCKER_PORT,
             DEBUGGER_DOCKER_PORT=constants.DEBUGGER_DOCKER_PORT,
-            POSTGRES_DOCKER_PORT=constants.POSTGRES_DOCKER_PORT,
             GEVENT_DOCKER_PORT=constants.GEVENT_DOCKER_PORT,
             COMPOSE_FILE_VERSION=self.config.compose_file_version,
             DATABASE_NAME_INSTANCE=constants.DATABASE_NAME_INSTANCE,

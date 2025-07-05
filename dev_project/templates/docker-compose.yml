@@ -6,7 +6,7 @@ services:
     user: root
     tty: true
     ports:
-      - {POSTGRES_PORT}:{POSTGRES_DOCKER_PORT}
+      - {POSTGRES_PORT_MAP}
     environment:
       - POSTGRES_PASSWORD={POSTGRES_ODOO_PASS}
       - POSTGRES_USER={POSTGRES_ODOO_USER}
@@ -25,7 +25,7 @@ services:
     ports:
       - {ODOO_PORT}:{ODOO_DOCKER_PORT}
       - {GEVENT_PORT}:{GEVENT_DOCKER_PORT}
-      - {DEBUGGER_PORT}:{DEBUGGER_DOCKER_PORT}
+      - {DEBUGGER_PORT_MAP}
 
     volumes: {MAPPED_VOLUMES}
 
