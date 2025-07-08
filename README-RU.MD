@@ -19,7 +19,7 @@
 
 ## Подготовка
 вам необходимо скачать и установить следующие программы:
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) для пользователей Linux и MacOS
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) для пользователей Windows и MacOS
 - [git](https://git-scm.com/)
 - [python3](https://www.python.org/)
 - [Visual Studio Code](https://code.visualstudio.com/)
