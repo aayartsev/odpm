@@ -18,7 +18,7 @@ If you are new, i recommend using this project in conjunction with the training 
 
 ## Prepare
 You need to download and install the following programs:
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) for Linux and MacOS users
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) for Windows and MacOS users
 - [git](https://git-scm.com/)
 - [python3](https://www.python.org/)
 - [Visual Studio Code](https://code.visualstudio.com/)
