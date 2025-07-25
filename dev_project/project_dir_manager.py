@@ -21,6 +21,14 @@ class ProjectDirManager():
         self.service_directory = os.path.join(self.project_path, constants.PROJECT_SERVICE_DIRECTORY)
         self.program_dir_path = program_dir_path
         self.home_config_dir = os.path.join(Path.home(), constants.CONFIG_DIR_IN_HOME_DIR)
+        self.check_project_dir()
+        self.program_docker_compose_template_path = os.path.join(self.program_dir_path, constants.PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH)
+        self.project_docker_compose_template_path = os.path.join(self.project_path, constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH)
+        
+        self.program_odoo_config_file_template_path = os.path.join(self.program_dir_path, constants.PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH)
+        self.project_odoo_config_file_template_path = os.path.join(self.project_path, constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH)
+        
+        self.rebuild_templates()
     
     def find_project_dir_in_parents(self):
         exist_service_directory = os.path.exists(self.service_directory)
@@ -57,7 +65,6 @@ class ProjectDirManager():
                         PROJECT_NAME=constants.PROJECT_NAME,
                     ))
             return
-        self.rebuild_templates()
 
 
     def init_project(self):
@@ -81,16 +88,13 @@ class ProjectDirManager():
         self.generate_project_template_files(program_dockerfile_template_path, project_dockerfile_template_path)
     
     def rebuild_docker_compose_template(self):
-        program_docker_compose_template_path = os.path.join(self.program_dir_path, constants.PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH)
-        project_docker_compose_template_path = os.path.join(self.project_path, constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH)
-        self.generate_project_template_files(program_docker_compose_template_path, project_docker_compose_template_path)
+        self.generate_project_template_files(self.program_docker_compose_template_path, self.project_docker_compose_template_path)
     
     def rebuild_odoo_config_file_template(self):
-        program_odoo_config_file_template_path = os.path.join(self.program_dir_path, constants.PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH)
-        project_odoo_config_file_template_path = os.path.join(self.project_path, constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH)
-        if self.check_project_odoo_config_template(project_odoo_config_file_template_path):
-            os.remove(project_odoo_config_file_template_path)
-        self.generate_project_template_files(program_odoo_config_file_template_path, project_odoo_config_file_template_path)
+        
+        if self.check_project_odoo_config_template(self.project_odoo_config_file_template_path):
+            os.remove(self.project_odoo_config_file_template_path)
+        self.generate_project_template_files(self.program_odoo_config_file_template_path, self.project_odoo_config_file_template_path)
     
     def check_project_odoo_config_template(self, project_odoo_config_file_template_path):
         odoo_config_need_to_rebuild = False

@@ -53,6 +53,10 @@ SET_POSTGRES_PORT = "Set PostgreSQL database server port which it will listen. Y
 SET_DEBUGGER_PORT = "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
 SET_GEVENT_PORT = "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n"
 YOU_SELECT_GEVENT_PORT = "You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n"
+
+SELECT_ODPM_SCENARIO = "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
+YOU_SELECT_ODPM_SCENARIO = "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
+
 YOU_SELECT_ODOO_DIR = "You select this odoo sources dir: {SELECTED_ODOO_DIR}\n"
 YOU_SELECT_ODOO_PROJECTS_DIR = "You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n"
 YOU_SELECT_ODOO_BACKUPS_DIR = "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
@@ -67,6 +71,7 @@ SET_ODOO_VERSION = """Please, enter odoo versions of this project. There is list
 YOU_SELECT_ODOO_VERSION = """You select this odoo version: {SELECTED_ODOO_VERSION}\n"""
 YOU_DO_NOT_SET_DEVELOPING_PROJECT = """You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"""
 YOU_NEED_TO_HAVE_FREE_SPACE = """You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"""
+FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED = """File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"""
 
 translations = {
     USER_NOT_IN_DOCKER_GROUP: {
@@ -202,6 +207,15 @@ translations = {
     YOU_NEED_TO_HAVE_FREE_SPACE:{
         "ru_RU": """В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} свободного места""",
     },
+    SELECT_ODPM_SCENARIO:{
+        "ru_RU": "Пожалуйта выберите ценарий использования odpm из указанного списка {LIST_OF_SCENARIOS}\n Нажпите 'Enter' чтобы оставить значение по уполчнию:\n"
+    },
+    YOU_SELECT_ODPM_SCENARIO:{
+        "ru_RU": "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
+    },
+    FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED: {
+        "ru_RU": """Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"""
+    }
 }
 
 def get_translation(string_to_translate):

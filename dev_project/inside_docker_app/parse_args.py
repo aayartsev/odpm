@@ -123,6 +123,12 @@ arg_parser.add_argument(
     help="""Will execute sql queries that are written in "sql_queries" """,
 )
 
+arg_parser.add_argument(
+    cli_params.EXPORT_PO_FILES,
+    help="""Will export pot and po file for selected language, for example ru_RU or eu_US for modules form "update_modules" from "user_settings.json" file """,
+    type=str,
+)
+
 
 ### SCAFFOLD SUBPARSER ###
 scaffold_subparser = arg_parser.add_subparsers(help='Scaffold help')

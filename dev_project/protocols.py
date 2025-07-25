@@ -1,6 +1,6 @@
 from typing import Protocol
 import inspect
-
+from . import constants
 class SystemCheckerProtocol(Protocol):
 
     def check_git(self):
@@ -21,7 +21,7 @@ class SystemCheckerProtocol(Protocol):
     def check_file_system(self):
         NotImplementedError(
                 f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
-    def check_free_space_for_odoo_developing(self):
+    def check_free_space_for_odoo_developing(self, free_space_size:float=constants.FREE_SPACE_FOR_USAGE):
         NotImplementedError(
                 f"""Define {inspect.stack()[0][3]} in {self.__class__.__name__}""")
 
@@ -68,4 +68,8 @@ class CreateProjectEnvironmentProtocol(Protocol):
     def build_image(self):
         NotImplementedError(
                 f"""Define build_image in {self.__class__.__name__}""")
+    
+    def download_odoo_nightly_build(self):
+        NotImplementedError(
+                f"""Define download_odoo_nightly_build in {self.__class__.__name__}""")
     

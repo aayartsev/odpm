@@ -68,6 +68,8 @@ class ConfigToJson(TypedDict):
     python_version: str
     arch: str
     sql_queries: list
+    modules_to_update: list
+    docker_dirs_with_addons: list
 
 @dataclass
 class SubProject:
@@ -92,8 +94,10 @@ class Config():
         self.config_home_dir = self.pd_manager.home_config_dir
         self.no_log_prefix = False
         self.user_env = user_env
+        
         if self.pd_manager.init and isinstance(self.pd_manager.init, str):
             self.clone_project()
+        self.postgres_data_local_storage = self.get_postgres_data_local_storage_path()
         # check current config.json file
         self.config_json_content = {}
         self.check_for_config()
@@ -125,6 +129,10 @@ class Config():
         self.get_odpm_settings()
 
         # check for deprecated words
+        self.check_file_for_deprecated_words(self.pd_manager.project_docker_compose_template_path)
+        if not os.path.exists(self.pd_manager.project_docker_compose_template_path):
+            self.pd_manager.rebuild_docker_compose_template()
+
         self.check_file_for_deprecated_words(self.project_odpm_json)
         if not os.path.exists(self.project_odpm_json):
             self.rewrite_odpm_json()
@@ -177,20 +185,23 @@ class Config():
         # prepare of mapped dirs for odoo addons
         self.catalogs_of_modules_data = []
         self.docker_dirs_with_addons = []
+        self.list_of_developing_project_subprojects_data = []
         self.docker_extra_addons = str(pathlib.PurePosixPath(self.docker_project_dir, "extra-addons"))
         if self.developing_project:
             self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name))
-            list_of_subprojects_data = self.check_project_for_subprojects(self.developing_project.project_path)
-            if list_of_subprojects_data:
-                self.catalogs_of_modules_data.extend(list_of_subprojects_data)
-                for subproject in list_of_subprojects_data:
+            self.list_of_developing_project_subprojects_data = self.check_project_for_subprojects(self.developing_project.project_path)
+            if self.list_of_developing_project_subprojects_data:
+                self.catalogs_of_modules_data.extend(self.list_of_developing_project_subprojects_data)
+                for subproject in self.list_of_developing_project_subprojects_data:
                     self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_project_dir_path, subproject.subproject_rel_path)))
             else:
                 self.docker_dirs_with_addons.append(self.docker_odoo_project_dir_path)
         odoo_addons_modules_data = self.check_project_for_subprojects(os.path.join(self.user_env.odoo_src_dir, "addons"))
         self.catalogs_of_modules_data.extend(odoo_addons_modules_data)
-        self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
         self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
+        if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
+            self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
+            
         
 
         self.path_odoo_conf = os.path.join(self.project_dir, constants.ODOO_CONF_NAME)
@@ -235,6 +246,12 @@ class Config():
     def system_checker(self, value: SystemCheckerProtocol) -> None:
         """Set system_checker property."""
         self._system_checker = value
+    
+    def get_postgres_data_local_storage_path(self) -> str:
+        postgres_data_local_storage_path = os.path.join(self.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR)
+        if not os.path.exists(postgres_data_local_storage_path):
+            os.mkdir(postgres_data_local_storage_path)
+        return postgres_data_local_storage_path
     
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
         subprojects_data = {}
@@ -295,7 +312,12 @@ class Config():
         if remove_file:
             dir_fo_file = os.path.dirname(file_path)
             filename = os.path.basename(file_path)
-            os.rename(file_path, os.path.join(dir_fo_file, f"deprecated_{filename}"))
+            deprecated_filename = f"deprecated_{filename}"
+            _logger.warning(translations.get_translation(translations.FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED).format(
+                SOURCE_FILE=file_path,
+                DEPRECATED_FILE_NAME=deprecated_filename,
+            ))
+            os.rename(file_path, os.path.join(dir_fo_file, deprecated_filename))
 
         
 
@@ -455,6 +477,8 @@ class Config():
             python_version=self.python_version,
             arch=self.arch,
             sql_queries=self.sql_queries,
+            modules_to_update=self.update_modules.split(","),
+            docker_dirs_with_addons=self.docker_dirs_with_addons,
         )
         return json.dumps(config).encode("utf-8")
             

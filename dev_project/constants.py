@@ -32,6 +32,7 @@ POSTGRES_DEFAULT_PORT = 5432
 POSTGRES_DOCKER_PORT = POSTGRES_DEFAULT_PORT
 GEVENT_DEFAULT_PORT = 8072
 GEVENT_DOCKER_PORT = GEVENT_DEFAULT_PORT
+
 DEBUGGER_UNIT_NAME = "Odoo: Remote Attach"
 GITLINK_TYPE_GIT = "git"
 GITLINK_TYPE_HTTP = "http"
@@ -158,8 +159,18 @@ MODULE_FILES = ("__manifest__.py", "__openerp__.py", "__odoo__.py", "__terp__.py
 
 DEPRECATED_WORDS = [
     "debian_version",
-    "debian_name"
+    "debian_name",
+    "{DEBUGGER_PORT}:{DEBUGGER_DOCKER_PORT}",
+    "{POSTGRES_PORT}:{POSTGRES_DOCKER_PORT}",
 ]
+#  Scenarios for odpm usage
+DEVELOPER_SCENARIO = "developer"
+SERVER_SCENARIO = "server"
+ODPM_SCENARIOS = {
+    1: DEVELOPER_SCENARIO,
+    2: SERVER_SCENARIO,
+}
+DEFAULT_ODPM_SCENARIO = DEVELOPER_SCENARIO
 
 ####
 # Default user_settings.json values
@@ -196,3 +207,5 @@ DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
 LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]
 
 DEPENDENCIES_DIR = "dependencies"
+
+POSTGRES_LOCAL_STORAGE_DIR = "db_data"

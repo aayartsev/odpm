@@ -146,23 +146,36 @@ class SystemChecker(SystemCheckerProtocol):
         if not os.path.exists(self.config.user_env.odoo_src_dir):
             os.mkdir(self.config.user_env.odoo_src_dir)
         os.chdir(self.config.user_env.odoo_src_dir)
-        odoo_src_state_bytes = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
-        odoo_src_state_string = odoo_src_state_bytes.stdout.decode("utf-8")
-        if not "true" in odoo_src_state_string:
-            clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
-            if clone_odoo and clone_odoo.lower() == "y":
-                self.config.project_env.download_odoo_repository()
-            else:
-                _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
-                    odoo_src_dir= self.config.user_env.odoo_src_dir
-                ))
-                exit(1)
+        # todo сделать переключатель
+        if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
+            odoo_src_state_bytes = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
+            odoo_src_state_string = odoo_src_state_bytes.stdout.decode("utf-8")
+            if not "true" in odoo_src_state_string:
+                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+                if clone_odoo and clone_odoo.lower() == "y":
+                    self.config.project_env.download_odoo_repository()
+                else:
+                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
+                        odoo_src_dir= self.config.user_env.odoo_src_dir
+                    ))
+                    exit(1)
+        if self.config.user_env.odpm_scenario == constants.SERVER_SCENARIO:
+            if not os.path.exists(os.path.join(self.config.user_env.odoo_src_dir, "odoo-bin")):
+                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+                if clone_odoo and clone_odoo.lower() == "y":
+                    self.config.project_env.download_odoo_nightly_build()
+                else:
+                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
+                        odoo_src_dir= self.config.user_env.odoo_src_dir
+                    ))
+                    exit(1)
+
     
-    def check_free_space_for_odoo_developing(self):
+    def check_free_space_for_odoo_developing(self, free_space_size:float=constants.FREE_SPACE_FOR_USAGE) -> None:
         free_space = utils.get_free_space(Path.home())
-        if free_space < constants.FREE_SPACE_FOR_USAGE:
+        if free_space < free_space_size:
             _logger.error(translations.get_translation(translations.YOU_NEED_TO_HAVE_FREE_SPACE).format(
-                NECESSARY_FREE_SPACE=constants.FREE_SPACE_FOR_USAGE,
+                NECESSARY_FREE_SPACE=free_space_size,
                 DIR_FOR_FREE_SPACE=Path.home(),
             ))
             exit(1)

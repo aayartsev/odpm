@@ -175,13 +175,20 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             if not os.path.exists(mapped_volume.local):
                 path = Path(mapped_volume.local)
                 path.mkdir(parents=True)
-
+        
+        POSTGRES_PORT = self.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
+        POSTGRES_PORT_MAP = f"{POSTGRES_PORT}:{constants.POSTGRES_DOCKER_PORT}"
+        DEBUGGER_PORT = self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
+        DEBUGGER_PORT_MAP = f"{DEBUGGER_PORT}:{constants.DEBUGGER_DOCKER_PORT}"
+        if self.config.user_env.odpm_scenario == constants.SERVER_SCENARIO:
+            POSTGRES_PORT_MAP = f"127.0.0.1:{POSTGRES_PORT_MAP}"
+            DEBUGGER_PORT_MAP = f"127.0.0.1:{DEBUGGER_PORT_MAP}"
         content = "".join(lines).format(
             ODOO_IMAGE=self.config.odoo_image_name,
             MAPPED_VOLUMES=mapped_volumes,
-            DEBUGGER_PORT=self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT,
+            DEBUGGER_PORT_MAP=DEBUGGER_PORT_MAP,
             ODOO_PORT=self.user_env.odoo_port or constants.ODOO_DEFAULT_PORT,
-            POSTGRES_PORT=self.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT,
+            POSTGRES_PORT_MAP=POSTGRES_PORT_MAP,
             GEVENT_PORT=self.user_env.gevent_port or constants.GEVENT_DEFAULT_PORT,
             START_STRING=self.config.start_string,
             CURRENT_USER=constants.CURRENT_USER,
@@ -190,11 +197,11 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             POSTGRES_ODOO_PASS=constants.POSTGRES_ODOO_PASS,
             ODOO_DOCKER_PORT=constants.ODOO_DOCKER_PORT,
             DEBUGGER_DOCKER_PORT=constants.DEBUGGER_DOCKER_PORT,
-            POSTGRES_DOCKER_PORT=constants.POSTGRES_DOCKER_PORT,
             GEVENT_DOCKER_PORT=constants.GEVENT_DOCKER_PORT,
             COMPOSE_FILE_VERSION=self.config.compose_file_version,
             DATABASE_NAME_INSTANCE=constants.DATABASE_NAME_INSTANCE,
             POSTGRES_VERSION=self.config.postgres_version,
+            POSTGRES_DATA_LOCAL_STORAGE=self.config.postgres_data_local_storage
         )
         content = content.replace(translations.get_translation(translations.MESSAGE_FOR_TEMPLATES), translations.get_translation(translations.DO_NOT_CHANGE_FILE))
         dockerfile_compose_path = os.path.join(self.config.project_dir, "docker-compose.yml")
@@ -390,6 +397,30 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         os.chdir(self.user_env.odoo_src_dir)
         subprocess.run(["git", "stash"])
         subprocess.run(["git", "pull"])
+        if os.path.exists(filepath_to_save):
+            os.remove(filepath_to_save)
+    
+    def download_odoo_nightly_build(self):
+        self.config.system_checker.check_free_space_for_odoo_developing(free_space_size=2.0)
+        dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
+        os.chdir(dir_for_odoo_src)
+        delete_files_in_directory(self.user_env.odoo_src_dir)
+        odoo_version = self.config.odoo_version
+        link_to_download = f"https://nightly.odoo.com/{odoo_version}/nightly/src/odoo_{odoo_version}.latest.zip"
+        filepath_to_save = os.path.join(Path.home(), "odoo.zip.download")
+        download_file(
+            link_to_download=link_to_download,
+            filepath_to_save=filepath_to_save,
+        )
+        un_zip_file_to_directory(
+            dir_for_odoo_src,
+            filepath_to_save,
+            rename_first_part_of_path="odoo",
+        )
+        os.replace(
+            os.path.join(self.user_env.odoo_src_dir, "setup", "odoo"), 
+            os.path.join(self.user_env.odoo_src_dir, "odoo-bin"), 
+        )
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)
     

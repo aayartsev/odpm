@@ -35,12 +35,17 @@ class StartStringBuilder():
         data_dir = str(pathlib.PurePosixPath(self.config.docker_project_dir, ".local/share/Odoo"))
         odoo_config["options"]["data_dir"] = data_dir
         self.config.odoo_config_data = {s:dict(odoo_config.items(s)) for s in odoo_config.sections()}
-        start_python_command = f"""python3 -u -m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} {self.config.docker_odoo_dir}/odoo-bin -c {self.config.docker_project_dir}/odoo.conf --limit-time-real 99999"""
+        debugger_command_string = ""
+        if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
+            debugger_command_string = f"-m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} "
+        start_odoo_bin_command = f"""python3 -u {debugger_command_string}{self.config.docker_odoo_dir}/odoo-bin"""
+        start_python_command = f"""{start_odoo_bin_command} -c {self.config.docker_project_dir}/odoo.conf --limit-time-real 99999"""
         db_name = self.args.d
         translate_lang = self.args.translate
         install_pip = self.args.pip_install
         start_pre_commit = self.args.start_precommit
         build_image = self.args.build_image
+        export_po_files_lang = self.args.export_po_files
         dev_mode = self.config.dev_mode or False
         
         if build_image:
@@ -72,12 +77,15 @@ class StartStringBuilder():
 
         if translate_lang:
             start_python_command += f" --language {translate_lang} --load-language {translate_lang} --i18n-overwrite"
+        
+        if export_po_files_lang:
+            start_python_command = "exit 0"
 
         if dev_mode:
             start_python_command += f" --dev {dev_mode}"
         
         if cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM in self.args:
-            start_python_command = f"""python3 -u -m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} {self.config.docker_odoo_dir}/odoo-bin """
+            start_python_command = f"""{start_odoo_bin_command} """
             start_python_command += f"""scaffold {self.args.scaffold_module_name} {self.config.docker_odoo_project_dir_path}"""
             if self.args.scaffold_template_name:
                 start_python_command += f""" -t {self.args.scaffold_template_name}"""
