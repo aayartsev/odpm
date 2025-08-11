@@ -21,6 +21,7 @@ class ProjectDirManager():
         self.service_directory = os.path.join(self.project_path, constants.PROJECT_SERVICE_DIRECTORY)
         self.program_dir_path = program_dir_path
         self.home_config_dir = os.path.join(Path.home(), constants.CONFIG_DIR_IN_HOME_DIR)
+        self.find_project_dir_in_parents()
         self.program_docker_compose_template_path = os.path.join(self.program_dir_path, constants.PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH)
         self.project_docker_compose_template_path = os.path.join(self.project_path, constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH)
         self.program_odoo_config_file_template_path = os.path.join(self.program_dir_path, constants.PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH)
@@ -41,7 +42,6 @@ class ProjectDirManager():
             exist_service_directory = os.path.exists(self.service_directory)
 
     def check_project_dir(self):
-        self.find_project_dir_in_parents()
         if os.path.exists(self.service_directory):
             self.dir_is_project = True
         else:
