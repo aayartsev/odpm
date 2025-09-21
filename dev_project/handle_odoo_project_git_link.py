@@ -84,7 +84,7 @@ class HandleOdooProjectLink():
         if index_of_link == 0 and len(project_data) > 2:
             self.commit = project_data[2]
 
-    def get_git_link_type(self) -> Literal["http"] | Literal["git"] | Literal["local_filesystem"] | Literal["ssh"]:
+    def get_git_link_type(self) -> Literal["http", "git", "local_filesystem", "ssh"]:
         project_link_type = constants.GITLINK_TYPE_FILE
         if FILE_SYSTEM_MARKER in self.project_link:
             project_link_type = constants.GITLINK_TYPE_FILE
