@@ -29,6 +29,7 @@ class OdpmJson(TypedDict):
     distro_name: str
     odoo_version: str
     postgres_version: str
+    use_builtin_addons: bool
     dependencies: list
     requirements_txt: list
 
@@ -145,6 +146,7 @@ class Config():
         self.distro_version_codename = constants.DISTRO_INFO.get(self.distro_name, {}).get(self.distro_version, "")
         self.dependencies = self.config_dict.get("dependencies", [])
         self.requirements_txt = self.config_dict.get("requirements_txt", [])
+        self.use_builtin_addons = self.config_dict.get("use_builtin_addons", constants.DEFAULT_USE_BUILTIN_ADDONS)
 
         current_python_debugpy = constants.DEBUGPY.get(self.python_version, constants.DEFAULT_DEBUGPY)
         debugpy_name = current_python_debugpy.split("==")[0]
@@ -198,11 +200,11 @@ class Config():
                 self.docker_dirs_with_addons.append(self.docker_odoo_project_dir_path)
         odoo_addons_modules_data = self.check_project_for_subprojects(os.path.join(self.user_env.odoo_src_dir, "addons"))
         self.catalogs_of_modules_data.extend(odoo_addons_modules_data)
-        self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
-        if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
+        if self.use_builtin_addons:
+            self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
+        if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO and self.use_builtin_addons:
             self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
-            
-        
+
 
         self.path_odoo_conf = os.path.join(self.project_dir, constants.ODOO_CONF_NAME)
         self.docker_path_odoo_conf = str(pathlib.PurePosixPath(self.docker_project_dir, constants.ODOO_CONF_NAME))
@@ -347,6 +349,7 @@ class Config():
                 distro_name=self.config_json_content.get("distro_name", constants.DEFAULT_DISTRO_NAME),
                 distro_version=self.config_json_content.get("distro_version", constants.DEFAULT_DISTRO_VERSION),
                 postgres_version=self.config_json_content.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION),
+                use_builtin_addons=self.config_json_content.get("use_builtin_addons", constants.DEFAULT_USE_BUILTIN_ADDONS),
                 odoo_version=self.config_json_content.get("odoo_version", 0.0),
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
@@ -379,6 +382,7 @@ class Config():
             distro_version=self.config_dict.get("distro_version",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_version"]),
             distro_name=self.config_dict.get("distro_name",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"]),
             postgres_version=self.config_dict.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION),
+            use_builtin_addons=self.config_json_content.get("use_builtin_addons", constants.DEFAULT_USE_BUILTIN_ADDONS),
             odoo_version=user_odoo_version,
             dependencies=self.config_dict.get("dependencies", []),
             requirements_txt=self.config_dict.get("requirements_txt", []),

@@ -57,6 +57,9 @@ class OdooChecker():
         if self.db_manager_password:
             self.odoo_config_data["options"]["admin_passwd"] = self.get_encrypted_password(self.db_manager_password)
         self.create_config_file()
+        self.odoo.addons.__path__ = self.odoo_config_data["options"]["addons_path"].split(",")
+        
+        print("self.docker_path_odoo_conf", self.docker_path_odoo_conf)
         self.odoo.tools.config.parse_config(["-c", self.docker_path_odoo_conf])
         # Enable database manager
         self.odoo_config_object['list_db'] = True
@@ -195,6 +198,8 @@ class OdooChecker():
         final_string = final_string.strip("\n")
     
     def check_if_exist_database(self):
+        # print("self.odoo", self.odoo)
+        # print("dir(self.odoo)", dir(self.odoo))
         db_exist = self.odoo.service.db.exp_db_exist(self.db_name)
         if not db_exist:
             self.odoo.service.db.exp_create_database(

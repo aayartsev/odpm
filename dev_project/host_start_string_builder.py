@@ -27,6 +27,7 @@ class StartStringBuilder():
             self.config.path_odoo_conf
         )
         # Build string of all addons directories
+        print("self.config.docker_dirs_with_addons", self.config.docker_dirs_with_addons)
         addons_string = ",".join(
             self.config.docker_dirs_with_addons
         )

@@ -1,0 +1,8 @@
+Добавляем эту строку в докер файл
+COPY  --from=localization ./ /home/odoo/extra-addons/ssh_project_localization
+и потом добавляем контенст для сборки
+docker buildx build --platform linux/amd64 --build-context localization=../../odoo_projects/git.rudoo.ru/a.yartsev/localization -t test_image:latest --debug . --output type=docker
+
+На самый верх докерафайла добавляем:
+# syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv

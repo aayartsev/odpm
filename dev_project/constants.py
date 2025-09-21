@@ -172,6 +172,8 @@ ODPM_SCENARIOS = {
 }
 DEFAULT_ODPM_SCENARIO = DEVELOPER_SCENARIO
 
+DEFAULT_USE_BUILTIN_ADDONS = True
+
 ####
 # Default user_settings.json values
 ####
