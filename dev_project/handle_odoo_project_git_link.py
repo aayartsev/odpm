@@ -26,7 +26,7 @@ class OdooProjectData(object):
     commit: str
     branch: str
     is_developing: bool
-    type: Literal["http"] | Literal["git"] | Literal["local_filesystem"] | Literal["ssh"]
+    type:  Literal["http", "git", "local_filesystem", "ssh"]
 
 class HandleOdooProjectLink():
 
