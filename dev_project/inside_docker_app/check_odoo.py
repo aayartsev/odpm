@@ -53,6 +53,12 @@ class OdooChecker():
                 # Environment.manage is a no-op in Odoo 15+, but it
                 # emits a noisy warning so let's avoid it.
                 yield
+
+        if self.odoo_version_info >= (19, 0):
+            # Since 19.0 version internal strucure was changed
+            import odoo.service # type: ignore
+            self.odoo.service = odoo.service 
+
         self.environment_manage = environment_manage
         if self.db_manager_password:
             self.odoo_config_data["options"]["admin_passwd"] = self.get_encrypted_password(self.db_manager_password)
