@@ -6,6 +6,7 @@ from contextlib import closing, contextmanager
 import io
 
 from logger import get_module_logger
+from postgres_waiter import PostgresWaiter
 import cli_params
 
 _logger = get_module_logger(__name__)
@@ -31,6 +32,13 @@ class OdooChecker():
         self.modules_to_update = config.get("modules_to_update", [])
         self.docker_dirs_with_addons = config.get("docker_dirs_with_addons", False)
 
+        postgre_waiter = PostgresWaiter(
+            host=self.odoo_config_data["options"]["db_host"], # PostgreSQL host
+            port=int(self.odoo_config_data["options"]["db_port"]), # PostgreSQL port
+            timeout=60,         # Maximum waiting time in seconds
+            check_interval=1    # Check interval in seconds
+        )
+        postgre_waiter.wait_for_postgres()
         sys.path.append(self.odoo_dir)
 
         from passlib.hash import pbkdf2_sha512 # type: ignore
