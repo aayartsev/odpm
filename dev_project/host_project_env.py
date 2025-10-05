@@ -66,7 +66,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         ]
         if self.config.developing_project.project_path:
             self.mapped_folders.append(
-                MappedPath(local=self.config.developing_project.project_path, docker=self.config.docker_odoo_project_dir_path),
+                MappedPath(local=self.config.developing_project.project_path, docker=self.config.docker_developing_project_dir_path),
             )
         if self.config.use_oca_dependencies:
             self.check_oca_dependencies(self.config.developing_project)
@@ -100,7 +100,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                     shutil.copy(real_file_place, full_path_pre_commit_file)
                 self.mapped_folders.append(MappedPath(
                     local=full_path_pre_commit_file, 
-                    docker=str(pathlib.PurePosixPath(self.config.docker_odoo_project_dir_path,pre_commit_file)),
+                    docker=str(pathlib.PurePosixPath(self.config.docker_developing_project_dir_path,pre_commit_file)),
                 ))
             else:
                 
@@ -123,7 +123,10 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             DISTRO_VERSION=self.config.distro_version, 
             DISTRO_VERSION_CODENAME=self.config.distro_version_codename,
         )
-        content = content.replace(translations.get_translation(translations.MESSAGE_FOR_TEMPLATES), translations.get_translation(translations.DO_NOT_CHANGE_FILE))
+        content = content.replace(
+            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
+            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+        )
         dockerfile_path = os.path.join(self.config.project_dir, constants.DOCKERFILE)
         self.config.dockerfile_path = dockerfile_path
         with open(dockerfile_path, 'w') as writer:
@@ -203,7 +206,10 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             POSTGRES_VERSION=self.config.postgres_version,
             POSTGRES_DATA_LOCAL_STORAGE=self.config.postgres_data_local_storage
         )
-        content = content.replace(translations.get_translation(translations.MESSAGE_FOR_TEMPLATES), translations.get_translation(translations.DO_NOT_CHANGE_FILE))
+        content = content.replace(
+            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
+            translations.get_translation(translations.DO_NOT_CHANGE_FILE)
+        )
         dockerfile_compose_path = os.path.join(self.config.project_dir, "docker-compose.yml")
         with open(dockerfile_compose_path, 'w') as writer:
             writer.write(content)
@@ -287,10 +293,12 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 dep_dir_name = os.path.basename(dep_for_link)
                 try:
                     os.symlink(dep_for_link, os.path.join(dir_to_create, dep_dir_name))
-                    self.config.symlinks_sources.append(SymlinksSources(
-                    source_path=dep_for_link,
-                    link_path=os.path.join(dep_for_link, os.path.join(dir_to_create, dep_dir_name))
-                ))
+                    self.config.symlinks_sources.append(
+                        SymlinksSources(
+                            source_path=dep_for_link,
+                            link_path=os.path.join(dep_for_link, os.path.join(dir_to_create, dep_dir_name)),
+                        )
+                    )
                 except FileExistsError:
                     pass
         if not os.path.exists(self.config.dependencies_dir) and self.config.dependencies_dirs:
@@ -317,7 +325,10 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         content = "".join(lines[1:]).replace(
             "{PYTHON_VERSION}", self.config.python_version,
         )
-        content = content.replace(translations.get_translation(translations.MESSAGE_FOR_TEMPLATES), translations.get_translation(translations.DO_NOT_CHANGE_FILE))
+        content = content.replace(
+            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
+            translations.get_translation(translations.DO_NOT_CHANGE_FILE)
+        )
         vscode_settings_json_path = os.path.join(self.get_vscode_dir_path(), "settings.json")
         with open(vscode_settings_json_path, 'w') as writer:
             writer.write(content)
@@ -385,7 +396,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         else:
             subprocess.call(f'git clone {constants.ODOO_GIT_LINK} --config core.sshCommand="ssh -i {self.config.user_env.path_to_ssh_key}"', shell=True)
     
-    def download_odoo_repository(self):
+    def download_odoo_repository(self) -> None:
         self.config.system_checker.check_free_space_for_odoo_developing()
         dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
         os.chdir(dir_for_odoo_src)
@@ -400,7 +411,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)
     
-    def download_odoo_nightly_build(self):
+    def download_odoo_nightly_build(self) -> None:
         self.config.system_checker.check_free_space_for_odoo_developing(free_space_size=2.0)
         dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
         os.chdir(dir_for_odoo_src)
@@ -424,7 +435,45 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)
     
-    def build_image(self):
+    def build_image(self) -> None:
         os.chdir(self.config.project_dir)
         # TODO i need to create .dockerignore file (because it tries to send docker context)
         subprocess.run(["docker", "build", "-f", self.config.dockerfile_path, "-t", self.config.odoo_image_name, f"--platform=linux/{self.config.arch}", self.config.project_dir])
+    
+    def build_final_image(self) -> None:
+        # Добавляем эту строку в докер файл
+        # COPY  --from=localization ./ /home/odoo/extra-addons/ssh_project_localization
+        # и потом добавляем контенст для сборки
+        # docker buildx build --platform linux/amd64 --build-context localization=../../odoo_projects/git.rudoo.ru/a.yartsev/localization -t test_image:latest --debug . --output type=docker
+
+        # На самый верх докерафайла добавляем:
+        # syntax=docker/dockerfile:1
+        # check=skip=SecretsUsedInArgOrEnv
+
+        # Каталоги для копирования:
+        # ./odoo
+        # ./venv
+        # ./developing_project
+        # ./dependencies/*
+        # ./odoo.conf
+        # self.config.symlinks_sources
+
+        print("self.config.symlinks_sources", self.config.symlinks_sources)
+        with open(self.config.dockerfile_path) as f:
+            lines = f.readlines()
+        
+        new_lines = [
+            lines[0],
+            "syntax=docker/dockerfile:1",
+            "check=skip=SecretsUsedInArgOrEnv",
+            *lines[1:],
+        ]
+
+        for mapped_volume in self.mapped_folders:
+            new_lines.append(
+                f"""COPY --from """
+                
+            )
+        print("test-001")
+        # self.mapped_folders
+        pass

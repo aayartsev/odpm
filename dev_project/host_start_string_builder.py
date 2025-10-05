@@ -1,12 +1,11 @@
 import configparser
-import json
 import base64
 import pathlib
-import os
 
 from . import constants
 from .inside_docker_app import cli_params
 from .host_config import Config
+
 
 class StartStringBuilder():
 
@@ -45,11 +44,16 @@ class StartStringBuilder():
         install_pip = self.args.pip_install
         start_pre_commit = self.args.start_precommit
         build_image = self.args.build_image
+        build_final_image = self.args.build_final_image
         export_po_files_lang = self.args.export_po_files
         dev_mode = self.config.dev_mode or False
         
         if build_image:
             self.config.project_env.build_image()
+            exit()
+        
+        if build_final_image:
+            self.config.project_env.build_final_image()
             exit()
 
         if install_pip:
@@ -58,7 +62,7 @@ class StartStringBuilder():
             return start_string
         
         if start_pre_commit:
-            start_string = f"""/bin/bash -c 'cd {self.config.docker_odoo_project_dir_path} && ls && git config --global --add safe.directory {self.config.docker_odoo_project_dir_path} && pre-commit run --all-files'"""
+            start_string = f"""/bin/bash -c 'cd {self.config.docker_developing_project_dir_path} && ls && git config --global --add safe.directory {self.config.docker_developing_project_dir_path} && pre-commit run --all-files'"""
             return start_string
 
         if db_name:
@@ -86,7 +90,7 @@ class StartStringBuilder():
         
         if cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM in self.args:
             start_python_command = f"""{start_odoo_bin_command} """
-            start_python_command += f"""scaffold {self.args.scaffold_module_name} {self.config.docker_odoo_project_dir_path}"""
+            start_python_command += f"""scaffold {self.args.scaffold_module_name} {self.config.docker_developing_project_dir_path}"""
             if self.args.scaffold_template_name:
                 start_python_command += f""" -t {self.args.scaffold_template_name}"""
 

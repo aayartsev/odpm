@@ -30,6 +30,15 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.BUILD_FINAL_IMAGE_PARAM,
+    help="Will build final image for your odoo project configuration",
+    nargs="?",
+    default=None,
+    const=True,
+    type=str,
+)
+
+arg_parser.add_argument(
     cli_params.CONFIG_BASE64_DATA,
     help="Will read base64 string and will try to parse its content as json string",
 )

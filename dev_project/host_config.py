@@ -188,14 +188,14 @@ class Config():
         self.list_of_developing_project_subprojects_data = []
         self.docker_extra_addons = str(pathlib.PurePosixPath(self.docker_project_dir, "extra-addons"))
         if self.developing_project:
-            self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name))
+            self.docker_developing_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name))
             self.list_of_developing_project_subprojects_data = self.check_project_for_subprojects(self.developing_project.project_path)
             if self.list_of_developing_project_subprojects_data:
                 self.catalogs_of_modules_data.extend(self.list_of_developing_project_subprojects_data)
                 for subproject in self.list_of_developing_project_subprojects_data:
-                    self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_project_dir_path, subproject.subproject_rel_path)))
+                    self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_developing_project_dir_path, subproject.subproject_rel_path)))
             else:
-                self.docker_dirs_with_addons.append(self.docker_odoo_project_dir_path)
+                self.docker_dirs_with_addons.append(self.docker_developing_project_dir_path)
         odoo_addons_modules_data = self.check_project_for_subprojects(os.path.join(self.user_env.odoo_src_dir, "addons"))
         self.catalogs_of_modules_data.extend(odoo_addons_modules_data)
         self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
