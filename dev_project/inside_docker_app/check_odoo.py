@@ -32,15 +32,17 @@ class OdooChecker():
         self.modules_to_update = config.get("modules_to_update", [])
         self.docker_dirs_with_addons = config.get("docker_dirs_with_addons", False)
 
-        postgre_waiter = PostgresWaiter(
+        postgres_waiter = PostgresWaiter(
             host=self.odoo_config_data["options"]["db_host"], # PostgreSQL host
             port=int(self.odoo_config_data["options"]["db_port"]), # PostgreSQL port
             timeout=60,         # Maximum waiting time in seconds
             check_interval=1    # Check interval in seconds
         )
-        postgre_waiter.wait_for_postgres()
+        #TODO will add this commands for deleting cache file
+        """find . -name "*.pyc" -delete"""
+        """find . -name "__pycache__" -type d -exec rm -rf {} +"""
+        postgres_waiter.wait_for_postgres()
         sys.path.append(self.odoo_dir)
-
         from passlib.hash import pbkdf2_sha512 # type: ignore
         self.pbkdf2_sha512 = pbkdf2_sha512
         import passlib # type: ignore
