@@ -91,6 +91,7 @@ DEBUGPY = {
     "3.10": "debugpy==1.7.0",
     "3.11": "debugpy==1.7.0",
     "3.12": "debugpy==1.7.0",
+    "3.13": "debugpy==1.8.0",
 }
 
 DEFAULT_POSTGRES_VERSION = "13"

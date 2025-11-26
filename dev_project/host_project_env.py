@@ -81,7 +81,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             self.config.dependencies_projects.append(dependency_project)
             self.config.dependencies_dirs.append(dependency_project.project_path)
             docker_dir_with_addons = docker_dependency_project_path
-            if dependency_project.project_type == constants.TYPE_PROJECT_MODULE:
+            if dependency_project.project_data.project_type == constants.TYPE_PROJECT_MODULE:
                 docker_dir_with_addons = str(pathlib.PurePosixPath(docker_dir_with_addons, os.pardir))
             if list_of_subprojects:
                 self.config.catalogs_of_modules_data.extend(list_of_subprojects)

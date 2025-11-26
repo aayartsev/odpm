@@ -23,9 +23,11 @@ class OdooProjectData(object):
     server:str
     author:str
     name:str
+    git_name:str
     commit: str
     branch: str
     is_developing: bool
+    project_type: Literal["module", "project"]
     type:  Literal["http", "git", "local_filesystem", "ssh"]
 
 class HandleOdooProjectLink():
@@ -43,7 +45,6 @@ class HandleOdooProjectLink():
         self.path_to_ssh_key = path_to_ssh_key
         self.odoo_projects_dir = odoo_projects_dir
         self.dir_to_clone = ""
-        self.project_type = None
         self.git_regex = r"git@[a-z._-]*:"
         self.parse_project_string()
         self.link_type = self.get_git_link_type()
@@ -59,9 +60,9 @@ class HandleOdooProjectLink():
             self.check_project()
         if self.link_type in [constants.GITLINK_TYPE_FILE]:
             self.is_cloned = True
-        self.get_project_type()
+        project_type = self.get_project_type()
         self.inside_docker_path = self.project_data.name
-        if self.project_type == constants.TYPE_PROJECT_MODULE:
+        if project_type == constants.TYPE_PROJECT_MODULE:
             self.inside_docker_path = str(pathlib.PurePosixPath(self.inside_docker_path, self.project_data.name))
 
     def parse_project_string(self) -> None:
@@ -103,10 +104,11 @@ class HandleOdooProjectLink():
     def parse_link_by_type(self) -> OdooProjectData:
         return getattr(self, f"parse_{self.link_type}")()
 
-    def get_project_type(self) -> None:
-        self.project_type = constants.TYPE_PROJECT_PROJECT
-        if os.path.exists(os.path.join(self.project_path, "__manifest__.py")):
-            self.project_type = constants.TYPE_PROJECT_MODULE
+    def get_project_type(self) -> Literal["module", "project"]:
+        project_type = constants.TYPE_PROJECT_PROJECT
+        if os.path.exists(os.path.join(self.get_project_path(), "__manifest__.py")):
+            project_type = constants.TYPE_PROJECT_MODULE
+        return project_type
 
     def parse_local_filesystem(self) -> OdooProjectData:
         local_path = self.project_link.replace("file://","")
@@ -119,9 +121,11 @@ class HandleOdooProjectLink():
                 server="",
                 author="",
                 name=project_name,
+                git_name=project_name,
                 commit=self.commit,
                 branch=self.branch,
                 is_developing=self.is_developing,
+                project_type=self.get_project_type(),
                 type=constants.GITLINK_TYPE_FILE,
             )
         else:
@@ -129,9 +133,11 @@ class HandleOdooProjectLink():
                 server="",
                 author="",
                 name="",
+                git_name="",
                 commit=self.commit,
                 branch=self.branch,
                 is_developing=self.is_developing,
+                project_type=self.get_project_type(),
                 type=constants.GITLINK_TYPE_FILE,
             )
 
@@ -148,9 +154,11 @@ class HandleOdooProjectLink():
                 server=server,
                 author=author,
                 name=project_name,
+                git_name=project_name,
                 commit=self.commit,
                 branch=self.branch,
                 is_developing=self.is_developing,
+                project_type=self.get_project_type(),
                 type=constants.GITLINK_TYPE_HTTP,
             )
         else:
@@ -160,9 +168,11 @@ class HandleOdooProjectLink():
                 server=server,
                 author="",
                 name=f"http_project_{project_name}",
+                git_name=project_name,
                 commit=self.commit,
                 branch=self.branch,
                 is_developing=self.is_developing,
+                project_type=self.get_project_type(),
                 type=constants.GITLINK_TYPE_SSH,
             )
 
@@ -180,9 +190,11 @@ class HandleOdooProjectLink():
             server=server,
             author="",
             name=f"ssh_project_{project_name}",
+            git_name=project_name,
             commit=self.commit,
             branch=self.branch,
             is_developing=self.is_developing,
+            project_type=self.get_project_type(),
             type=constants.GITLINK_TYPE_SSH,
         )
     
@@ -194,9 +206,11 @@ class HandleOdooProjectLink():
             server=server,
             author=author,
             name=project_name,
+            git_name=project_name,
             commit=self.commit,
             branch=self.branch,
             is_developing=self.is_developing,
+            project_type=self.get_project_type(),
             type=constants.GITLINK_TYPE_GIT,
         )
     
