@@ -91,6 +91,7 @@ DEBUGPY = {
     "3.10": "debugpy==1.7.0",
     "3.11": "debugpy==1.7.0",
     "3.12": "debugpy==1.7.0",
+    "3.13": "debugpy==1.8.0",
 }
 
 DEFAULT_POSTGRES_VERSION = "13"
@@ -101,6 +102,7 @@ DISTRO_INFO = {
     "debian":{
         "11": "bullseye",
         "12": "bookworm",
+        "13": "trixie",
     },
     "ubuntu":{
         "22.04": "jammy",
@@ -109,8 +111,13 @@ DISTRO_INFO = {
 }
 
 # git rev-parse --abbrev-ref HEAD
-ODOO_LATEST_VERSION = "18.0"
+ODOO_LATEST_VERSION = "19.0"
 ODOO_VERSION_DEFAULT_ENV = {
+    "19.0": {
+        "python_version": "3.12",
+        "distro_name": DEFAULT_DISTRO_NAME,
+        "distro_version": "12",
+    },
     "18.0": {
         "python_version": "3.10",
         "distro_name": DEFAULT_DISTRO_NAME,

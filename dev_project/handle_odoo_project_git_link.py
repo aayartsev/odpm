@@ -23,9 +23,12 @@ class OdooProjectData(object):
     server:str
     author:str
     name:str
+    git_name:str
     commit: str
     branch: str
     is_developing: bool
+    relative_path: str
+    project_type: Literal["module", "project"]
     type:  Literal["http", "git", "local_filesystem", "ssh"]
 
 class HandleOdooProjectLink():
@@ -43,12 +46,12 @@ class HandleOdooProjectLink():
         self.path_to_ssh_key = path_to_ssh_key
         self.odoo_projects_dir = odoo_projects_dir
         self.dir_to_clone = ""
-        self.project_type = None
         self.git_regex = r"git@[a-z._-]*:"
         self.parse_project_string()
         self.link_type = self.get_git_link_type()
         self.project_data = self.parse_link_by_type()
         self.project_path = self.get_project_path()
+        self.update_project_type()
         self.is_cloned = False
         
         
@@ -59,9 +62,9 @@ class HandleOdooProjectLink():
             self.check_project()
         if self.link_type in [constants.GITLINK_TYPE_FILE]:
             self.is_cloned = True
-        self.get_project_type()
+        project_type = self.get_project_type()
         self.inside_docker_path = self.project_data.name
-        if self.project_type == constants.TYPE_PROJECT_MODULE:
+        if project_type == constants.TYPE_PROJECT_MODULE:
             self.inside_docker_path = str(pathlib.PurePosixPath(self.inside_docker_path, self.project_data.name))
 
     def parse_project_string(self) -> None:
@@ -103,10 +106,15 @@ class HandleOdooProjectLink():
     def parse_link_by_type(self) -> OdooProjectData:
         return getattr(self, f"parse_{self.link_type}")()
 
-    def get_project_type(self) -> None:
-        self.project_type = constants.TYPE_PROJECT_PROJECT
-        if os.path.exists(os.path.join(self.project_path, "__manifest__.py")):
-            self.project_type = constants.TYPE_PROJECT_MODULE
+    def get_project_type(self) -> Literal["module", "project"]:
+        project_type = constants.TYPE_PROJECT_PROJECT
+        if os.path.exists(os.path.join(self.get_project_path(), "__manifest__.py")):
+            project_type = constants.TYPE_PROJECT_MODULE
+        return project_type
+
+    def update_project_type(self) -> None:
+        project_type = self.get_project_type()
+        self.project_data.project_type = project_type
 
     def parse_local_filesystem(self) -> OdooProjectData:
         local_path = self.project_link.replace("file://","")
@@ -119,9 +127,12 @@ class HandleOdooProjectLink():
                 server="",
                 author="",
                 name=project_name,
+                git_name=project_name,
                 commit=self.commit,
                 branch=self.branch,
+                relative_path="",
                 is_developing=self.is_developing,
+                project_type="project",
                 type=constants.GITLINK_TYPE_FILE,
             )
         else:
@@ -129,9 +140,12 @@ class HandleOdooProjectLink():
                 server="",
                 author="",
                 name="",
+                git_name="",
                 commit=self.commit,
                 branch=self.branch,
+                relative_path="",
                 is_developing=self.is_developing,
+                project_type="project",
                 type=constants.GITLINK_TYPE_FILE,
             )
 
@@ -141,16 +155,19 @@ class HandleOdooProjectLink():
         if ":" in server:
             server = server.split(":")[0]
         author = self.project_link.split("/")[3]
+        relative_path = self.project_link.replace("http://", "").replace("https://", "").replace(".git","")
         if ".git" in self.project_link:
-            project_name = self.project_link.split("/")[4].replace(".git", "")
-            
+            project_name = self.project_link.split("/")[-1].replace(".git", "")
             return OdooProjectData(
                 server=server,
                 author=author,
                 name=project_name,
+                git_name=project_name,
                 commit=self.commit,
                 branch=self.branch,
+                relative_path=relative_path,
                 is_developing=self.is_developing,
+                project_type="project",
                 type=constants.GITLINK_TYPE_HTTP,
             )
         else:
@@ -160,9 +177,12 @@ class HandleOdooProjectLink():
                 server=server,
                 author="",
                 name=f"http_project_{project_name}",
+                git_name=project_name,
                 commit=self.commit,
                 branch=self.branch,
+                relative_path=relative_path,
                 is_developing=self.is_developing,
+                project_type="project",
                 type=constants.GITLINK_TYPE_SSH,
             )
 
@@ -176,13 +196,21 @@ class HandleOdooProjectLink():
             relative_path = relative_path.replace(".git", "")
         project_name = os.path.join(*relative_path.split("/"))
         project_name = os.path.basename(project_name)
+        parsed_link = urlparse(self.project_link)
+        hostname = parsed_link.hostname
+        relative_path = f"{hostname}{parsed_link.path}"
+        if ".git" in relative_path:
+            relative_path = relative_path.replace(".git", "")
         return OdooProjectData(
             server=server,
             author="",
             name=f"ssh_project_{project_name}",
+            git_name=project_name,
             commit=self.commit,
             branch=self.branch,
+            relative_path=relative_path,
             is_developing=self.is_developing,
+            project_type="project",
             type=constants.GITLINK_TYPE_SSH,
         )
     
@@ -190,46 +218,29 @@ class HandleOdooProjectLink():
         server = self.project_link.split(":")[0].split("@")[1]
         author = self.project_link.split(":")[1].split("/")[0]
         project_name = self.project_link.split(":")[1].split("/")[1].replace(".git", "")
+        hostname = self.project_link.split("@")[1].split(":")[0]
+        uri_path = self.project_link.split(":")[1].replace(".git", "")
+        relative_path = f"{hostname}/{uri_path}"
         return OdooProjectData(
             server=server,
             author=author,
             name=project_name,
+            git_name=project_name,
             commit=self.commit,
             branch=self.branch,
             is_developing=self.is_developing,
+            project_type="project",
+            relative_path=relative_path,
             type=constants.GITLINK_TYPE_GIT,
         )
     
     def get_project_path(self) -> str:
-        if self.link_type == constants.GITLINK_TYPE_GIT:
+        if self.link_type in [constants.GITLINK_TYPE_SSH,constants.GITLINK_TYPE_GIT,constants.GITLINK_TYPE_HTTP]:
+            if self.link_type == constants.GITLINK_TYPE_SSH:
+                os.environ["GIT_SSH_VARIANT"] = "ssh"
             return os.path.abspath(os.path.join(
                 self.odoo_projects_dir,
-                self.project_data.server,
-                self.project_data.author,
-                self.project_data.name,
-            ))
-        if self.link_type == constants.GITLINK_TYPE_HTTP and ".git" in self.gitlink:
-            return os.path.abspath(os.path.join(
-                self.odoo_projects_dir,
-                self.project_data.server,
-                self.project_data.author,
-                self.project_data.name,
-            ))
-        if self.link_type == constants.GITLINK_TYPE_HTTP and ".git" not in self.gitlink:
-            return os.path.abspath(os.path.join(
-                self.odoo_projects_dir,
-                os.path.join(*self.project_link.split("/")[3:])
-            ))
-        if self.link_type in [constants.GITLINK_TYPE_SSH]:
-            os.environ["GIT_SSH_VARIANT"] = "ssh"
-            parsed_link = urlparse(self.project_link)
-            hostname = parsed_link.hostname
-            relative_path = f"{hostname}{parsed_link.path}"
-            if ".git" in relative_path:
-                relative_path = relative_path.replace(".git", "")
-            return os.path.abspath(os.path.join(
-                self.odoo_projects_dir,
-                os.path.join(*relative_path.split("/"))
+                self.project_data.relative_path
             ))
         local_path = self.project_link.replace("file://","")
         if local_path:

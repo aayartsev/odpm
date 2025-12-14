@@ -188,7 +188,10 @@ class Config():
         self.list_of_developing_project_subprojects_data = []
         self.docker_extra_addons = str(pathlib.PurePosixPath(self.docker_project_dir, "extra-addons"))
         if self.developing_project:
-            self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name))
+            if self.developing_project.project_data.project_type == constants.TYPE_PROJECT_MODULE:
+                self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name,self.developing_project.project_data.git_name))
+            if self.developing_project.project_data.project_type == constants.TYPE_PROJECT_PROJECT:
+                self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name))
             self.list_of_developing_project_subprojects_data = self.check_project_for_subprojects(self.developing_project.project_path)
             if self.list_of_developing_project_subprojects_data:
                 self.catalogs_of_modules_data.extend(self.list_of_developing_project_subprojects_data)

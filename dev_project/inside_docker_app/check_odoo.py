@@ -6,6 +6,7 @@ from contextlib import closing, contextmanager
 import io
 
 from logger import get_module_logger
+from postgres_waiter import PostgresWaiter
 import cli_params
 
 _logger = get_module_logger(__name__)
@@ -31,8 +32,17 @@ class OdooChecker():
         self.modules_to_update = config.get("modules_to_update", [])
         self.docker_dirs_with_addons = config.get("docker_dirs_with_addons", False)
 
+        postgres_waiter = PostgresWaiter(
+            host=self.odoo_config_data["options"]["db_host"], # PostgreSQL host
+            port=int(self.odoo_config_data["options"]["db_port"]), # PostgreSQL port
+            timeout=60,         # Maximum waiting time in seconds
+            check_interval=1    # Check interval in seconds
+        )
+        #TODO will add this commands for deleting cache file
+        """find . -name "*.pyc" -delete"""
+        """find . -name "__pycache__" -type d -exec rm -rf {} +"""
+        postgres_waiter.wait_for_postgres()
         sys.path.append(self.odoo_dir)
-
         from passlib.hash import pbkdf2_sha512 # type: ignore
         self.pbkdf2_sha512 = pbkdf2_sha512
         import passlib # type: ignore
@@ -53,6 +63,12 @@ class OdooChecker():
                 # Environment.manage is a no-op in Odoo 15+, but it
                 # emits a noisy warning so let's avoid it.
                 yield
+
+        if self.odoo_version_info >= (19, 0):
+            # Since 19.0 version internal strucure was changed
+            import odoo.service # type: ignore
+            self.odoo.service = odoo.service 
+
         self.environment_manage = environment_manage
         if self.db_manager_password:
             self.odoo_config_data["options"]["admin_passwd"] = self.get_encrypted_password(self.db_manager_password)
