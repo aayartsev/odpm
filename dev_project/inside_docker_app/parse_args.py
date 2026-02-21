@@ -129,6 +129,11 @@ arg_parser.add_argument(
     type=str,
 )
 
+arg_parser.add_argument(
+    cli_params.ODOO_BIN,
+    nargs=argparse.REMAINDER,
+    help="""Command to pass through as a single string"""
+)
 
 ### SCAFFOLD SUBPARSER ###
 scaffold_subparser = arg_parser.add_subparsers(help='Scaffold help')

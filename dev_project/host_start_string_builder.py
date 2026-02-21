@@ -1,12 +1,52 @@
 import configparser
-import json
+import argparse
 import base64
 import pathlib
-import os
+import re
 
 from . import constants
 from .inside_docker_app import cli_params
 from .host_config import Config
+
+class ArgumentParser():
+    def __init__(self, args_list=[]) -> None:
+        self.args_list = args_list
+        if args_list:
+            self.args_dict = self.get_dict_of_args(self.args_list)
+
+    def get_dict_of_args(self, args_list:list, as_argparse=True) -> dict:
+        args_dict = {}
+        if not args_list:
+            return args_dict
+        all_flags_args_keys = re.findall(r"-[a-z]\s|-[a-z]$", " ".join(args_list))
+        all_flags_args_keys = [arg.strip() for arg in all_flags_args_keys]
+        all_key_args_keys = re.findall(r"--[a-z-_0-9]*", " ".join(args_list))
+        all_key_args_keys = [arg.strip() for arg in all_key_args_keys]
+        all_args_keys = all_flags_args_keys + all_key_args_keys
+        current_index = 0
+        while current_index < len(args_list):
+            item = args_list[current_index]
+            key_item = item
+            if as_argparse:
+                key_item = item.strip("-").replace("-", "_")
+            if current_index < len(args_list)-1 and item in all_args_keys and args_list[args_list.index(item) + 1] not in all_args_keys:
+                args_dict[key_item] = args_list[args_list.index(item) + 1]
+                current_index += 2
+            else:
+                args_dict[key_item] = True
+                current_index += 1
+        return args_dict
+
+class ArgsDictToString():
+
+    def get_string_from_dict(self, dict_to_string:dict) -> str:
+        string_with_params = ""
+        for key, value in dict_to_string.items():
+            if isinstance(value, bool):
+                string_with_params = string_with_params + f" {key}"
+            else:
+                string_with_params = string_with_params + f" {key} {value}"
+        return string_with_params.strip()
 
 class StartStringBuilder():
 
@@ -19,6 +59,19 @@ class StartStringBuilder():
         data = self.config.config_to_json()
         config_base64_data = base64.b64encode(data)
         return config_base64_data.decode()
+    
+    def create_string_with_params_for_odoo_bin(self) -> str:
+        final_string = ""
+        parser = ArgumentParser()
+        odoo_bin_params_dict = parser.get_dict_of_args(vars(self.args).get("odoo_bin", []), False)
+        start_python_command_dict = parser.get_dict_of_args(self.start_python_command.split(" "), False)
+        for key_to_exclude in start_python_command_dict:
+            odoo_bin_params_dict.pop(key_to_exclude, None)
+        args_dict_to_string = ArgsDictToString()
+        if odoo_bin_params_dict:
+            final_string = args_dict_to_string.get_string_from_dict(odoo_bin_params_dict)
+        return final_string
+
     
     def get_start_string(self) -> str:
         # Reading of config file
@@ -39,7 +92,7 @@ class StartStringBuilder():
         if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
             debugger_command_string = f"-m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} "
         start_odoo_bin_command = f"""python3 -u {debugger_command_string}{self.config.docker_odoo_dir}/odoo-bin"""
-        start_python_command = f"""{start_odoo_bin_command} -c {self.config.docker_project_dir}/odoo.conf --limit-time-real 99999"""
+        self.start_python_command = f"""{start_odoo_bin_command} -c {self.config.docker_project_dir}/odoo.conf --limit-time-real 99999"""
         db_name = self.args.d
         translate_lang = self.args.translate
         install_pip = self.args.pip_install
@@ -62,39 +115,45 @@ class StartStringBuilder():
             return start_string
 
         if db_name:
-            start_python_command +=  f" {cli_params.D_PARAM} {db_name}"
+            self.start_python_command +=  f" {cli_params.D_PARAM} {db_name}"
 
         if self.args.i and self.config.init_modules:
-            start_python_command += f""" {cli_params.I_PARAM} {self.config.init_modules}"""
+            self.start_python_command += f""" {cli_params.I_PARAM} {self.config.init_modules}"""
 
         if self.args.u and self.config.update_modules:
-            start_python_command += f""" {cli_params.U_PARAM} {self.config.update_modules}"""
+            self.start_python_command += f""" {cli_params.U_PARAM} {self.config.update_modules}"""
 
         if self.args.test:
-            start_python_command += f" --test-enable --stop-after-init"
+            self.start_python_command += f" --test-enable --stop-after-init"
             if self.args.screencasts:
-                start_python_command += f""" {cli_params.SCREENCASTS_PARAM} {self.config.docker_temp_tests_dir}"""
+                self.start_python_command += f""" {cli_params.SCREENCASTS_PARAM} {self.config.docker_temp_tests_dir}"""
 
         if translate_lang:
-            start_python_command += f" --language {translate_lang} --load-language {translate_lang} --i18n-overwrite"
+            self.start_python_command += f" --language {translate_lang} --load-language {translate_lang} --i18n-overwrite"
         
         if export_po_files_lang:
-            start_python_command = "exit 0"
+            self.start_python_command = "exit 0"
 
         if dev_mode:
-            start_python_command += f" --dev {dev_mode}"
+            self.start_python_command += f" --dev {dev_mode}"
         
         if cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM in self.args:
-            start_python_command = f"""{start_odoo_bin_command} """
-            start_python_command += f"""scaffold {self.args.scaffold_module_name} {self.config.docker_odoo_project_dir_path}"""
+            self.start_python_command = f"""{start_odoo_bin_command} """
+            self.start_python_command += f"""scaffold {self.args.scaffold_module_name} {self.config.docker_odoo_project_dir_path}"""
             if self.args.scaffold_template_name:
-                start_python_command += f""" -t {self.args.scaffold_template_name}"""
+                self.start_python_command += f""" -t {self.args.scaffold_template_name}"""
+        
+        odoo_bin_additional_params = self.create_string_with_params_for_odoo_bin()
+        if odoo_bin_additional_params:
+            self.start_python_command += f""" {odoo_bin_additional_params}"""
 
         start_main = " && ".join([
             f"""cd {self.config.docker_project_dir}""",
             f"""python3 {pathlib.PurePosixPath(self.config.docker_inside_app,"main.py")} {cli_params.CONFIG_BASE64_DATA} {self.get_base64_string_config()}""",
             f""". {pathlib.PurePosixPath(self.config.docker_venv_dir,"bin", "activate")}""",
-            f"""{start_python_command}""",
+            f"""{self.start_python_command}""",
         ])
+        
         start_string = f"""bash -c '{start_main}'"""
+        
         return start_string
