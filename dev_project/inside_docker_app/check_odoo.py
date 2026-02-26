@@ -131,6 +131,7 @@ class OdooChecker():
             for file_ext in ["po", "pot"]:
                 with closing(io.BytesIO()) as buf:
                     with closing(db.cursor()) as cr:
+                        env = self.odoo.api.Environment(cr, self.odoo.SUPERUSER_ID, {})
                         lang = self.export_po_files_lang
                         file_name = self.export_po_files_lang.split("_")[0]
                         if file_ext == "pot":
@@ -139,7 +140,10 @@ class OdooChecker():
                         if self.int_odoo_version <= 17:
                             self.odoo.tools.trans_export(lang, [module_name], buf, "po", cr)
                         else:
-                            self.odoo.tools.translate.trans_export(lang, [module_name], buf, "po", cr)
+                            if self.int_odoo_version == 18:
+                                self.odoo.tools.translate.trans_export(lang, [module_name], buf, "po", cr)
+                            else:
+                                self.odoo.tools.translate.trans_export(lang, [module_name], buf, "po", env)
                         content = buf.getvalue()
                         full_file_path = os.path.join(i18n_path, f"{file_name}.{file_ext}")
                         with open(full_file_path, "wb") as file_to_write:
