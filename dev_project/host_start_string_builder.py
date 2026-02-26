@@ -129,7 +129,10 @@ class StartStringBuilder():
                 self.start_python_command += f""" {cli_params.SCREENCASTS_PARAM} {self.config.docker_temp_tests_dir}"""
 
         if translate_lang:
-            self.start_python_command += f" --language {translate_lang} --load-language {translate_lang} --i18n-overwrite"
+            lang_param = "--language"
+            if float(self.config.odoo_version) >= 19:
+                lang_param = "--load-language"
+            self.start_python_command += f" {lang_param} {translate_lang} --load-language {translate_lang} --i18n-overwrite"
         
         if export_po_files_lang:
             self.start_python_command = "exit 0"
