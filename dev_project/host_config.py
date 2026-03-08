@@ -31,6 +31,7 @@ class OdpmJson(TypedDict):
     postgres_version: str
     dependencies: list
     requirements_txt: list
+    odoo_build_date: str
 
 class DbCreationData(TypedDict):
     db_lang: str
@@ -145,6 +146,7 @@ class Config():
         self.distro_version_codename = constants.DISTRO_INFO.get(self.distro_name, {}).get(self.distro_version, "")
         self.dependencies = self.config_dict.get("dependencies", [])
         self.requirements_txt = self.config_dict.get("requirements_txt", [])
+        self.odoo_build_date = self.config_dict.get("odoo_build_date", "")
 
         current_python_debugpy = constants.DEBUGPY.get(self.python_version, constants.DEFAULT_DEBUGPY)
         debugpy_name = current_python_debugpy.split("==")[0]
@@ -353,6 +355,7 @@ class Config():
                 odoo_version=self.config_json_content.get("odoo_version", 0.0),
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
+                odoo_build_date=self.config_dict.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE),
             )
         available_versions = [int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV]
         available_versions_str = ", ".join([str(float(version)) for version in available_versions])
@@ -385,6 +388,7 @@ class Config():
             odoo_version=user_odoo_version,
             dependencies=self.config_dict.get("dependencies", []),
             requirements_txt=self.config_dict.get("requirements_txt", []),
+            odoo_build_date=self.config_dict.get("odoo_build_date", ""),
         )
         
         return default_odpm_json_content
