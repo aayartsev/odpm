@@ -6,6 +6,7 @@ import ast
 from argparse import Namespace
 
 from typing import TypedDict
+from typing import Literal
 from dataclasses import dataclass
 
 from . import constants
@@ -32,6 +33,7 @@ class OdpmJson(TypedDict):
     dependencies: list
     requirements_txt: list
     odoo_build_date: str
+    odoo_git_link: str
 
 class DbCreationData(TypedDict):
     db_lang: str
@@ -123,7 +125,7 @@ class Config():
         if not self.developing_project:
             _logger.error(translations.get_translation(translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT))
             exit(1)
-        self.developing_project = self.handle_git_link(self.developing_project, is_developing=True)
+        self.developing_project = self.handle_git_link(self.developing_project, system_type="standart")
         self.developing_project_dir_path = self.developing_project.project_path
         # init project settings from odpm.json
         self.get_project_odpm_json()
@@ -147,6 +149,7 @@ class Config():
         self.dependencies = self.config_dict.get("dependencies", [])
         self.requirements_txt = self.config_dict.get("requirements_txt", [])
         self.odoo_build_date = self.config_dict.get("odoo_build_date", "")
+        self.odoo_git_link = self.config_dict.get("odoo_git_link", constants.ODOO_GIT_LINK)
 
         current_python_debugpy = constants.DEBUGPY.get(self.python_version, constants.DEFAULT_DEBUGPY)
         debugpy_name = current_python_debugpy.split("==")[0]
@@ -356,6 +359,7 @@ class Config():
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
                 odoo_build_date=self.config_dict.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE),
+                odoo_git_link=self.config_dict.get("odoo_git_link", constants.ODOO_GIT_LINK),
             )
         available_versions = [int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV]
         available_versions_str = ", ".join([str(float(version)) for version in available_versions])
@@ -389,6 +393,7 @@ class Config():
             dependencies=self.config_dict.get("dependencies", []),
             requirements_txt=self.config_dict.get("requirements_txt", []),
             odoo_build_date=self.config_dict.get("odoo_build_date", ""),
+            odoo_git_link=self.config_dict.get("odoo_git_link", constants.ODOO_GIT_LINK),
         )
         
         return default_odpm_json_content
@@ -459,12 +464,12 @@ class Config():
 
 
     
-    def handle_git_link(self, gitlink: str, is_developing: bool = False) -> HandleOdooProjectLink:
+    def handle_git_link(self, gitlink: str, system_type: Literal["developing", "platform", "standart"]="standart") -> HandleOdooProjectLink:
         odoo_project = HandleOdooProjectLink(
             gitlink,
             self.user_env.path_to_ssh_key,
             self.user_env.odoo_projects_dir,
-            is_developing=is_developing
+            system_type=system_type,
         )
         odoo_project.build_project()
         return odoo_project

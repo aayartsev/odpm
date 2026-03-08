@@ -52,6 +52,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         self.config = config
         self.user_env = self.config.user_env
         self.config.project_env = self
+        self.odoo_platform_project: HandleOdooProjectLink
 
 
     def map_folders(self) -> None:
@@ -209,12 +210,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             writer.write(content)
     
     def checkout_dependencies(self) -> None:
-        odoo_project = HandleOdooProjectLink(
-            f"""file://{self.user_env.odoo_src_dir}""",
-            self.user_env.path_to_ssh_key,
-            self.user_env.odoo_projects_dir,
-        )
-        list_for_checkout = [odoo_project]
+        list_for_checkout = [self.odoo_platform_project]
         list_for_checkout.extend(self.config.dependencies_projects)
         for project in list_for_checkout:
             self.checkout_project(project)
@@ -229,7 +225,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             current_branch_float = float(current_branch_string)
         except:
             current_branch_float = 0.0
-        if current_branch_float and not project.is_developing and current_branch_string != project.branch:
+        if current_branch_float and project.system_type != "developing" and current_branch_string != project.branch:
             self.check_odoo_version_branch(project)
         if self.config.clean_git_repos:
             subprocess.run(["git", "stash"], capture_output=True)
@@ -247,7 +243,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         current__remote_branches_string = current_remote_branches_bytes.stdout.decode("utf-8").strip()
         if f"origin/{self.config.odoo_version}" in current__remote_branches_string:
             return
-        
         subprocess.run(["git", "fetch", "--depth", "1", "origin", f"{current_branch_string}:{current_branch_string}"], capture_output=False)
 
     def check_odoo_version_branch(self, project: HandleOdooProjectLink) -> None:
@@ -391,13 +386,14 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             json.dump(content, outfile, indent=4)
     
     def clone_odoo(self):
-        dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
-        os.chdir(dir_for_odoo_src)
-        if not self.config.user_env.path_to_ssh_key:
-            subprocess.run(["git", "clone", constants.ODOO_GIT_LINK])
-        else:
-            subprocess.call(f'git clone {constants.ODOO_GIT_LINK} --config core.sshCommand="ssh -i {self.config.user_env.path_to_ssh_key}"', shell=True)
-    
+        self.odoo_platform_project = HandleOdooProjectLink(
+            self.config.odoo_git_link,
+            self.user_env.path_to_ssh_key,
+            self.user_env.odoo_src_dir,
+            system_type="platform"
+        )
+        self.odoo_platform_project.build_project()
+
     def download_odoo_repository(self):
         self.config.system_checker.check_free_space_for_odoo_developing()
         dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
