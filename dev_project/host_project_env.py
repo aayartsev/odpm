@@ -233,21 +233,34 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             self.check_odoo_version_branch(project)
         if self.config.clean_git_repos:
             subprocess.run(["git", "stash"], capture_output=True)
+            self.check_for_branch(current_branch_string)
             subprocess.run(["git", "checkout", self.config.odoo_version], capture_output=True)
         if self.config.update_git_repos:
             subprocess.run(["git", "pull"], capture_output=True)
 
-    
+    def check_for_branch(self, current_branch_string: str) -> None:
+        current_branches_bytes = subprocess.run(["git", "branch"], capture_output=True)
+        current_branches_string = current_branches_bytes.stdout.decode("utf-8").strip()
+        if current_branch_string in current_branches_string:
+            return
+        current_remote_branches_bytes = subprocess.run(["git", "branch", "-a"], capture_output=True)
+        current__remote_branches_string = current_remote_branches_bytes.stdout.decode("utf-8").strip()
+        if f"origin/{self.config.odoo_version}" in current__remote_branches_string:
+            return
+        
+        subprocess.run(["git", "fetch", "--depth", "1", "origin", f"{current_branch_string}:{current_branch_string}"], capture_output=False)
+
     def check_odoo_version_branch(self, project: HandleOdooProjectLink) -> None:
         os.chdir(project.project_path)
         subprocess.run(["git", "stash"], capture_output=True)
+        self.check_for_branch(self.config.odoo_version)
         branch_commit_bytes = subprocess.run(["git", "rev-parse", "--verify", self.config.odoo_version], capture_output=True)
-        branch_commit_string = branch_commit_bytes.stdout.decode("utf-8").strip()
+        branch_commit_string = branch_commit_bytes.stdout.decode("utf-8").strip() or branch_commit_bytes.stderr.decode("utf-8").strip()
         if "fatal" in branch_commit_string:
-            newest_version = self.get_odoo_latest_version(os.chdir(project.project_path))
+            newest_version = self.get_odoo_latest_version(project.project_path)
             subprocess.run(["git", "checkout", str(newest_version)])
             subprocess.run(["git", "pull"])
-            newest_version = self.get_odoo_latest_version(os.chdir(project.project_path))
+            newest_version = self.get_odoo_latest_version(project.project_path)
             if str(newest_version) == self.config.odoo_version:
                 subprocess.run(["git", "checkout", str(newest_version)])
             else:
@@ -267,7 +280,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         all_branches_list = all_remote_branches_string.split("\n")
         for branch_name in all_branches_list:
             try:
-                branch_version = float(branch_name)
+                branch_version = float(branch_name.split("/")[1])
                 list_of_versions.append(branch_version)
             except:
                 continue
@@ -390,15 +403,8 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         dir_for_odoo_src = os.path.join(self.user_env.odoo_src_dir, "..")
         os.chdir(dir_for_odoo_src)
         delete_files_in_directory(self.user_env.odoo_src_dir)
-        link_to_download = get_direct_link_to_download_from_yadisk(constants.YADISK_SHARING_LINK)
-        filepath_to_save = os.path.join(Path.home(), "odoo.zip.download")
-        download_file(link_to_download=link_to_download, filepath_to_save=filepath_to_save)
-        un_zip_file_to_directory(dir_for_odoo_src, filepath_to_save)
-        os.chdir(self.user_env.odoo_src_dir)
-        subprocess.run(["git", "stash"])
-        subprocess.run(["git", "pull"])
-        if os.path.exists(filepath_to_save):
-            os.remove(filepath_to_save)
+        subprocess.run(["git", "clone", "--depth", "1", constants.ODOO_GIT_LINK])
+
     
     def download_odoo_nightly_build(self):
         self.config.system_checker.check_free_space_for_odoo_developing(free_space_size=2.0)
@@ -406,7 +412,8 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         os.chdir(dir_for_odoo_src)
         delete_files_in_directory(self.user_env.odoo_src_dir)
         odoo_version = self.config.odoo_version
-        link_to_download = f"https://nightly.odoo.com/{odoo_version}/nightly/src/odoo_{odoo_version}.latest.zip"
+        odoo_build_date = self.config.odoo_build_date or constants.ODOO_DEFAULT_BUILD_DATE
+        link_to_download = f"https://nightly.odoo.com/{odoo_version}/nightly/src/odoo_{odoo_version}.{odoo_build_date}.zip"
         filepath_to_save = os.path.join(Path.home(), "odoo.zip.download")
         download_file(
             link_to_download=link_to_download,
