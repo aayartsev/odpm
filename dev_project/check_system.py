@@ -88,8 +88,11 @@ class SystemChecker(SystemCheckerProtocol):
                 if len(port_map) >= 2:
                     host_port = port_map[0].split(":")[-1]
                 else:
-                    host_port = 0
-                busy_ports.append(int(host_port))
+                    host_port = "0"
+                if "-" in host_port:
+                    busy_ports.extend([int(item) for item in host_port.split("-")])
+                else: 
+                    busy_ports.append(int(host_port))
             return busy_ports
         process_result = subprocess.run(["docker",  "container", "ls", "--format", "'{{json .}}'"], capture_output=True)
         output_string = process_result.stdout.decode("utf-8")
@@ -148,17 +151,18 @@ class SystemChecker(SystemCheckerProtocol):
         os.chdir(self.config.user_env.odoo_src_dir)
         # todo сделать переключатель
         if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
-            odoo_src_state_bytes = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
-            odoo_src_state_string = odoo_src_state_bytes.stdout.decode("utf-8")
-            if not "true" in odoo_src_state_string:
-                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
-                if clone_odoo and clone_odoo.lower() == "y":
-                    self.config.project_env.download_odoo_repository()
-                else:
-                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
-                        odoo_src_dir= self.config.user_env.odoo_src_dir
-                    ))
-                    exit(1)
+            self.config.project_env.clone_odoo()
+            # odoo_src_state_bytes = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
+            # odoo_src_state_string = odoo_src_state_bytes.stdout.decode("utf-8")
+            # if not "true" in odoo_src_state_string:
+            #     clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+            #     if clone_odoo and clone_odoo.lower() == "y":
+            #         self.config.project_env.clone_odoo()
+            #     else:
+            #         _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
+            #             odoo_src_dir= self.config.user_env.odoo_src_dir
+            #         ))
+            #         exit(1)
         if self.config.user_env.odpm_scenario == constants.SERVER_SCENARIO:
             if not os.path.exists(os.path.join(self.config.user_env.odoo_src_dir, "odoo-bin")):
                 clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
