@@ -387,9 +387,9 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
     
     def clone_odoo(self):
         self.odoo_platform_project = HandleOdooProjectLink(
-            self.config.odoo_git_link,
-            self.user_env.path_to_ssh_key,
-            self.user_env.odoo_src_dir,
+            project_string=self.config.odoo_git_link,
+            path_to_ssh_key=self.user_env.path_to_ssh_key,
+            start_dir_to_clone=self.user_env.odoo_src_dir,
             system_type="platform"
         )
         self.odoo_platform_project.build_project()
