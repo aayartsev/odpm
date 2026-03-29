@@ -16,11 +16,13 @@ class ProjectDirManager():
         self.start_dir_path = start_dir_path
         self.project_path = start_dir_path
         self.dir_is_project = False
-        self.args = args
-        self.init = self.args.init
+        self.arguments = args
+        self.init = self.arguments.init
+        self.odoo_git_link = self.arguments.odoo_git_link
         self.service_directory = os.path.join(self.project_path, constants.PROJECT_SERVICE_DIRECTORY)
         self.program_dir_path = program_dir_path
         self.home_config_dir = os.path.join(Path.home(), constants.CONFIG_DIR_IN_HOME_DIR)
+        self.check_odoo_git_link()
         self.check_project_dir()
         self.rebuild_templates()
     
@@ -130,3 +132,14 @@ class ProjectDirManager():
         if not os.path.exists(project_template_file):
             with open(project_template_file, 'w') as writer:
                 writer.write(content)
+    
+    def check_odoo_git_link(self):
+        if self.odoo_git_link and not self.init:
+            _logger.error(translations.get_translation(translations.ODOO_GIT_LINK_REQUIRES_INIT).format(
+                        ODOO_GIT_LINK_PARAM=cli_params.ODOO_GIT_LINK_PARAM,
+                        INIT_PARAM=cli_params.INIT_PARAM,
+                    ))
+            exit(1)
+        if not self.odoo_git_link:
+            self.odoo_git_link = constants.ODOO_GIT_LINK
+        

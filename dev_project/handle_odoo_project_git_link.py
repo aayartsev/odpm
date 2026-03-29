@@ -268,7 +268,8 @@ class HandleOdooProjectLink():
             if os.path.exists(os.path.join(self.project_path, ".git")):
                 os.chdir(self.project_path)
                 state = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
-        if not state or b"true" not in state.stdout:
+            repo_is_same = self.check_repo_url(self.get_project_path(), self.project_string)
+        if not state or not repo_is_same or b"true" not in state.stdout:
             self.force_clone_repo()
         else:
             self.is_cloned = True
@@ -287,7 +288,6 @@ class HandleOdooProjectLink():
         self.clone_repo()
     
     def clone_repo(self) -> None:
-        print("test-001")
         if self.system_type != "platform":
             if not self.path_to_ssh_key:
                 clone_results = subprocess.run(["git", "clone", self.gitlink], capture_output=False)
@@ -310,6 +310,29 @@ class HandleOdooProjectLink():
                 self.is_cloned = False
             else:
                 self.is_cloned = True
+    
+    def check_repo_url(self, repo_path: str, expected_url: str) -> bool:
+        print("check_repo_url")
+        # try:
+        result = subprocess.run(
+            ['git', 'remote', 'get-url', 'origin'],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        actual_url = result.stdout.strip()
+        
+        # Нормализация URL (убираем .git и trailing slash)
+        actual_url = actual_url.rstrip('.git').rstrip('/')
+        expected_url = expected_url.rstrip('.git').rstrip('/')
+        
+        if actual_url == expected_url:
+            return True
+        else:
+            return False
+        # except subprocess.CalledProcessError:
+        #     return False
             
         
 

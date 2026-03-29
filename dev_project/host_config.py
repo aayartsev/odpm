@@ -358,8 +358,8 @@ class Config():
                 odoo_version=self.config_json_content.get("odoo_version", 0.0),
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
-                odoo_build_date=self.config_dict.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE),
-                odoo_git_link=self.config_dict.get("odoo_git_link", constants.ODOO_GIT_LINK),
+                odoo_build_date=self.config_json_content.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE),
+                odoo_git_link=self.config_json_content.get("odoo_git_link", self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK),
             )
         available_versions = [int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV]
         available_versions_str = ", ".join([str(float(version)) for version in available_versions])
@@ -393,7 +393,7 @@ class Config():
             dependencies=self.config_dict.get("dependencies", []),
             requirements_txt=self.config_dict.get("requirements_txt", []),
             odoo_build_date=self.config_dict.get("odoo_build_date", ""),
-            odoo_git_link=self.config_dict.get("odoo_git_link", constants.ODOO_GIT_LINK),
+            odoo_git_link=self.config_dict.get("odoo_git_link", self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK),
         )
         
         return default_odpm_json_content

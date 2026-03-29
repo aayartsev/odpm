@@ -72,9 +72,9 @@ class VirtualenvChecker():
         delete_files_in_directory(self.docker_venv_dir)
         self.create_venv()
         self.set_venv()
-        exit_code = os.system(f"""python3 -m pip install --upgrade pip""")
-        if os.WEXITSTATUS(exit_code) != 0:
-            self.package_installation_error(f"""Upgrade of pip was failed """)
+        # exit_code = os.system(f"""python3 -m pip install --upgrade pip setuptools wheel""")
+        # if os.WEXITSTATUS(exit_code) != 0:
+        #     self.package_installation_error(f"""Upgrade of pip was failed """)
         packages_to_install = ["wheel"]
         with open(self.odoo_requirements_path, "r") as file:
             for line in file.readlines():
