@@ -70,6 +70,7 @@ class ConfigToJson(TypedDict):
     requirements_txt: list
     odoo_version: str
     python_version: str
+    platform_name: str
     arch: str
     sql_queries: list
     modules_to_update: list
@@ -214,7 +215,8 @@ class Config():
         self.catalogs_of_modules_data.extend(odoo_addons_modules_data)
         self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, self.platform_name, "addons")))
         if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
-            self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
+            if os.path.exists(os.path.join(self.user_env.odoo_src_dir, "addons")):
+                self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
             
         
 
@@ -495,6 +497,7 @@ class Config():
             requirements_txt=self.requirements_txt,
             odoo_version=self.odoo_version,
             python_version=self.python_version,
+            platform_name=self.platform_name,
             arch=self.arch,
             sql_queries=self.sql_queries,
             modules_to_update=self.update_modules.split(","),

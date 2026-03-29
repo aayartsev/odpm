@@ -91,7 +91,7 @@ class StartStringBuilder():
         debugger_command_string = ""
         if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
             debugger_command_string = f"-m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} "
-        start_odoo_bin_command = f"""python3 -u {debugger_command_string}{self.config.docker_odoo_dir}/odoo-bin"""
+        start_odoo_bin_command = f"""python3 -u {debugger_command_string}{self.config.docker_odoo_dir}/{self.config.platform_name}-bin"""
         self.start_python_command = f"""{start_odoo_bin_command} -c {self.config.docker_project_dir}/odoo.conf --limit-time-real 99999"""
         db_name = self.args.d
         translate_lang = self.args.translate
