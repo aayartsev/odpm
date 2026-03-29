@@ -260,6 +260,7 @@ class HandleOdooProjectLink():
 
     def check_project(self) -> None:
         state = False
+        repo_is_same = False
         project_dir_name = os.path.basename(self.project_path)
         new_destination = os.path.join(self.dir_to_clone, f"new_project_{project_dir_name}")
         if self.link_type == constants.GITLINK_TYPE_HTTP and ".git" not in self.gitlink:
@@ -269,8 +270,9 @@ class HandleOdooProjectLink():
             if os.path.exists(os.path.join(self.project_path, ".git")):
                 os.chdir(self.project_path)
                 state = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
-            repo_is_same = self.check_repo_url(self.get_project_path(), self.project_string)
-        if not state or not repo_is_same or b"true" not in state.stdout:
+                if b"true" in state.stdout:
+                    repo_is_same = self.check_repo_url(self.get_project_path(), self.project_string)
+        if not state or b"true" not in state.stdout or not repo_is_same:
             self.force_clone_repo()
         else:
             self.is_cloned = True
