@@ -4,6 +4,7 @@ import platform
 ARCH = str(platform.machine()).lower()
 DEV_PROJECT_DIR = "dev_project"
 CONFIG_FILE_NAME = "config.json"
+PLATFORM_NAME = "odoo"
 
 PROJECT_NAME = "odpm"
 PROJECT_CONFIG_FILE_NAME = f"{PROJECT_NAME.lower()}.json"
@@ -12,7 +13,7 @@ CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
 PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
 ENV_FILE_NAME = ".env"
 DOCKERFILE = "Dockerfile"
-ODOO_CONF_NAME = "odoo.conf"
+ODOO_CONF_NAME = f"{PLATFORM_NAME}.conf"
 
 PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(DEV_PROJECT_DIR, "templates", "docker-compose.yml")
 PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "docker-compose.yml")

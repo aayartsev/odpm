@@ -80,7 +80,7 @@ class CreateUserEnvironment():
 
         
     def get_from_user_odoo_src_dir(self) -> str:
-        default_odoo_src_dir = os.path.join(Path.home(), "odoo")
+        default_odoo_src_dir = os.path.join(Path.home())
         user_dir = input(translations.get_translation(translations.SET_ODOO_SRC_DIR).format(
                     DEFAULT_ODOO_SRC_DIR=default_odoo_src_dir,
                 ))

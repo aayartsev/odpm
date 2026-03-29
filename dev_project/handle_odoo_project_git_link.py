@@ -239,6 +239,7 @@ class HandleOdooProjectLink():
             if self.system_type == "platform":
                 return os.path.abspath(os.path.join(
                     self.start_dir_to_clone,
+                    self.project_data.name,
                 ))
 
             if self.link_type == constants.GITLINK_TYPE_SSH:
@@ -312,8 +313,6 @@ class HandleOdooProjectLink():
                 self.is_cloned = True
     
     def check_repo_url(self, repo_path: str, expected_url: str) -> bool:
-        print("check_repo_url")
-        # try:
         result = subprocess.run(
             ['git', 'remote', 'get-url', 'origin'],
             cwd=repo_path,
@@ -331,10 +330,6 @@ class HandleOdooProjectLink():
             return True
         else:
             return False
-        # except subprocess.CalledProcessError:
-        #     return False
-            
-        
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.is_true

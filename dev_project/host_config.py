@@ -34,6 +34,7 @@ class OdpmJson(TypedDict):
     requirements_txt: list
     odoo_build_date: str
     odoo_git_link: str
+    platform_name: str
 
 class DbCreationData(TypedDict):
     db_lang: str
@@ -97,6 +98,7 @@ class Config():
         self.config_home_dir = self.pd_manager.home_config_dir
         self.no_log_prefix = False
         self.user_env = user_env
+        self.platform_name = ""
         
         if self.pd_manager.init and isinstance(self.pd_manager.init, str):
             self.clone_project()
@@ -150,6 +152,10 @@ class Config():
         self.requirements_txt = self.config_dict.get("requirements_txt", [])
         self.odoo_build_date = self.config_dict.get("odoo_build_date", "")
         self.odoo_git_link = self.config_dict.get("odoo_git_link", constants.ODOO_GIT_LINK)
+        self.platform_name = self.config_dict.get("platform_name", constants.PLATFORM_NAME)
+
+        # prepare platform
+        self.get_platform_sorces()
 
         current_python_debugpy = constants.DEBUGPY.get(self.python_version, constants.DEFAULT_DEBUGPY)
         debugpy_name = current_python_debugpy.split("==")[0]
@@ -185,7 +191,7 @@ class Config():
         self.docker_project_dir = str(pathlib.PurePosixPath("/home", constants.CURRENT_USER))
         self.docker_dev_project_dir = str(pathlib.PurePosixPath(self.docker_project_dir, constants.DEV_PROJECT_DIR))
         self.docker_inside_app = str(pathlib.PurePosixPath(self.docker_dev_project_dir, "inside_docker_app"))
-        self.docker_odoo_dir = str(pathlib.PurePosixPath(self.docker_project_dir, "odoo"))
+        self.docker_odoo_dir = str(pathlib.PurePosixPath(self.docker_project_dir, self.platform_name))
 
         # prepare of mapped dirs for odoo addons
         self.catalogs_of_modules_data = []
@@ -206,7 +212,7 @@ class Config():
                 self.docker_dirs_with_addons.append(self.docker_odoo_project_dir_path)
         odoo_addons_modules_data = self.check_project_for_subprojects(os.path.join(self.user_env.odoo_src_dir, "addons"))
         self.catalogs_of_modules_data.extend(odoo_addons_modules_data)
-        self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
+        self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, self.platform_name, "addons")))
         if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
             self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
             
@@ -360,6 +366,7 @@ class Config():
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
                 odoo_build_date=self.config_json_content.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE),
                 odoo_git_link=self.config_json_content.get("odoo_git_link", self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK),
+                platform_name = self.config_json_content.get("platform_name", constants.PLATFORM_NAME)
             )
         available_versions = [int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV]
         available_versions_str = ", ".join([str(float(version)) for version in available_versions])
@@ -394,6 +401,7 @@ class Config():
             requirements_txt=self.config_dict.get("requirements_txt", []),
             odoo_build_date=self.config_dict.get("odoo_build_date", ""),
             odoo_git_link=self.config_dict.get("odoo_git_link", self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK),
+            platform_name = self.config_dict.get("platform_name", constants.PLATFORM_NAME)
         )
         
         return default_odpm_json_content
@@ -493,6 +501,27 @@ class Config():
             docker_dirs_with_addons=self.docker_dirs_with_addons,
         )
         return json.dumps(config).encode("utf-8")
+    
+    def get_platform_sorces(self):
+        if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
+            self.odoo_platform_project = HandleOdooProjectLink(
+                project_string=self.odoo_git_link,
+                path_to_ssh_key=self.user_env.path_to_ssh_key,
+                start_dir_to_clone=self.user_env.odoo_src_dir,
+                system_type="platform"
+            )
+            self.odoo_platform_project.build_project()
+            self.user_env.odoo_src_dir = self.odoo_platform_project.get_project_path()
+        if self.user_env.odpm_scenario == constants.SERVER_SCENARIO:
+            if not os.path.exists(os.path.join(self.user_env.odoo_src_dir, "odoo-bin")):
+                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+                if clone_odoo and clone_odoo.lower() == "y":
+                    self.project_env.download_odoo_nightly_build()
+                else:
+                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
+                        odoo_src_dir= self.user_env.odoo_src_dir
+                    ))
+                    exit(1)
             
 
 
