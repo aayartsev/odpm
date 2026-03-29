@@ -210,7 +210,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             writer.write(content)
     
     def checkout_dependencies(self) -> None:
-        list_for_checkout = [self.odoo_platform_project]
+        list_for_checkout = [self.config.odoo_platform_project]
         list_for_checkout.extend(self.config.dependencies_projects)
         for project in list_for_checkout:
             self.checkout_project(project)
@@ -313,7 +313,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             list_of_all_modules.extend(catalog_of_modules.list_of_modules)
         
         if list_of_all_modules:
-            odoo_src_addons_dir = os.path.join(self.user_env.odoo_src_dir, "odoo","addons")
+            odoo_src_addons_dir = os.path.join(self.user_env.odoo_src_dir, self.config.platform_name,"addons")
             delete_old_links(odoo_src_addons_dir, list_of_all_modules)
             if self.config.create_module_links:
                 create_new_links(odoo_src_addons_dir, list_of_all_modules)
@@ -385,14 +385,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         with open(launch_json, "w") as outfile:
             json.dump(content, outfile, indent=4)
     
-    def clone_odoo(self):
-        self.odoo_platform_project = HandleOdooProjectLink(
-            project_string=self.config.odoo_git_link,
-            path_to_ssh_key=self.user_env.path_to_ssh_key,
-            start_dir_to_clone=self.user_env.odoo_src_dir,
-            system_type="platform"
-        )
-        self.odoo_platform_project.build_project()
 
     def download_odoo_repository(self):
         self.config.system_checker.check_free_space_for_odoo_developing()
