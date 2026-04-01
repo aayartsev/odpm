@@ -506,15 +506,14 @@ class Config():
         return json.dumps(config).encode("utf-8")
     
     def get_platform_sorces(self):
-        if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
-            self.odoo_platform_project = HandleOdooProjectLink(
-                project_string=self.odoo_git_link,
-                path_to_ssh_key=self.user_env.path_to_ssh_key,
-                start_dir_to_clone=self.user_env.odoo_src_dir,
-                system_type="platform"
-            )
-            self.odoo_platform_project.build_project()
-            self.user_env.odoo_src_dir = self.odoo_platform_project.get_project_path()
+        self.odoo_platform_project = HandleOdooProjectLink(
+            project_string=self.odoo_git_link,
+            path_to_ssh_key=self.user_env.path_to_ssh_key,
+            start_dir_to_clone=self.user_env.odoo_src_dir,
+            system_type="platform"
+        )
+        self.odoo_platform_project.build_project()
+        self.user_env.odoo_src_dir = self.odoo_platform_project.get_project_path()
         if self.user_env.odpm_scenario == constants.SERVER_SCENARIO:
             if not os.path.exists(os.path.join(self.user_env.odoo_src_dir, "odoo-bin")):
                 clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
@@ -525,6 +524,6 @@ class Config():
                         odoo_src_dir= self.user_env.odoo_src_dir
                     ))
                     exit(1)
-            
+
 
 
