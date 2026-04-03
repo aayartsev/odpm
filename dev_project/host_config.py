@@ -515,7 +515,7 @@ class Config():
         self.odoo_platform_project.build_project()
         self.user_env.odoo_src_dir = self.odoo_platform_project.get_project_path()
         if self.user_env.odpm_scenario == constants.SERVER_SCENARIO:
-            if not os.path.exists(os.path.join(self.user_env.odoo_src_dir, "odoo-bin")):
+            if not os.path.exists(os.path.join(self.user_env.odoo_src_dir, f"{self.platform_name}-bin")):
                 clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
                 if clone_odoo and clone_odoo.lower() == "y":
                     self.project_env.download_odoo_nightly_build()
