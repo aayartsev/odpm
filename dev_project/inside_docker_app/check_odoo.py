@@ -56,13 +56,14 @@ class OdooChecker():
         """find . -name "*.pyc" -delete"""
         """find . -name "__pycache__" -type d -exec rm -rf {} +"""
         postgres_waiter.wait_for_postgres()
-        postgres_waiter.wait_for_postgres_db(
-            dbname=self.db_name,
-            user=self.odoo_config_data["options"]["db_user"],
-            password=self.odoo_config_data["options"]["db_password"],
-            interval=1,
-            max_attempts=None
-        )
+        if self.db_name:
+            postgres_waiter.wait_for_postgres_db(
+                dbname=self.db_name,
+                user=self.odoo_config_data["options"]["db_user"],
+                password=self.odoo_config_data["options"]["db_password"],
+                interval=1,
+                max_attempts=None
+            )
         
         from passlib.hash import pbkdf2_sha512 # type: ignore
         self.pbkdf2_sha512 = pbkdf2_sha512
