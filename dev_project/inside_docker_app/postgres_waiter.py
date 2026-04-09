@@ -3,9 +3,11 @@ import time
 import logging
 import sys
 
+
 # Настройка логирования
 from logger import get_module_logger
 _logger = get_module_logger(__name__)
+
 
 class PostgresWaiter:
     def __init__(self, host='localhost', port=5432, timeout=60, check_interval=2):
@@ -54,3 +56,56 @@ class PostgresWaiter:
                 
             _logger.info(f"PostgreSQL is not available yet. Waiting {self.check_interval} seconds...")
             time.sleep(self.check_interval)
+    
+    def wait_for_postgres_db(self, dbname, user, password, interval=1, max_attempts=None):
+        """Waits for a specific database to become available after a crash recovery."""
+        try:
+            import psycopg2
+            from psycopg2 import OperationalError
+        except ImportError:
+            logging.error("psycopg2 is required. ")
+            sys.exit(2)
+
+        start = time.time()
+        attempt = 0
+        
+        while True:
+            attempt += 1
+            elapsed = time.time() - start
+
+            if self.timeout and elapsed >= self.timeout:
+                _logger.error(f"Timeout ({self.timeout}s). Database '{dbname}' did not recover.")
+                return False
+
+            if max_attempts and attempt > max_attempts:
+                _logger.error(f"Maximum attempts reached ({max_attempts}).")
+                return False
+
+            _logger.info(f"Attempt {attempt} | Elapsed: {elapsed:.1f}s | Checking '{dbname}'...")
+
+            try:
+                # connect_timeout prevents hanging on network issues
+                conn = psycopg2.connect(
+                    host=self.host, port=self.port, dbname=dbname,
+                    user=user, password=password,
+                    connect_timeout=5
+                )
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                conn.close()
+                
+                _logger.info(f"Database '{dbname}' is successfully available and ready.")
+                return True
+
+            except OperationalError as e:
+                # During crash recovery, PostgreSQL returns:
+                # "the database system is starting up" or "connection refused"
+                _logger.warning(f"Database not ready yet: {e}")
+            except Exception as e:
+                _logger.error(f"Unexpected connection error: {e}")
+                return False
+
+            # Exponential backoff: interval → ... → max 30s
+            delay = min(interval * (1.2 ** (attempt - 1)), 30)
+            _logger.info(f"Waiting {delay:.1f}s...")
+            time.sleep(delay)

@@ -4,6 +4,7 @@ import configparser
 import datetime
 from contextlib import closing, contextmanager
 import io
+import importlib
 
 from logger import get_module_logger
 from postgres_waiter import PostgresWaiter
@@ -13,6 +14,7 @@ _logger = get_module_logger(__name__)
 
 DEFAULT_TIMESTAMP_FORMAT = '%Y-%m-%d_%H-%M-%S'
 DEFAULT_DB_BACKUP_FORMAT = "zip"
+USED_ODOO_SUBMODULES = ["tools", "api", "service"]
 
 class OdooChecker():
 
@@ -22,6 +24,7 @@ class OdooChecker():
         self.odoo_config_data = config["odoo_config_data"]
         self.docker_path_odoo_conf = config["docker_path_odoo_conf"]
         self.args_dict = config["arguments"]
+        self.platform_name = config["platform_name"]
         self.db_lang = config["db_creation_data"]["db_lang"]
         self.db_country_code = config["db_creation_data"]["db_country_code"]
         self.db_default_admin_password = config["db_creation_data"]["db_default_admin_password"]
@@ -31,6 +34,17 @@ class OdooChecker():
         self.sql_queries = config.get("sql_queries", [])
         self.modules_to_update = config.get("modules_to_update", [])
         self.docker_dirs_with_addons = config.get("docker_dirs_with_addons", False)
+
+        self.drop_db_name = self.args_dict.get(cli_params.DB_DROP_PARAM.replace("-", "_").strip("_"), False)
+        self.get_db_list = self.args_dict.get(cli_params.GET_DB_LIST_PARAM.replace("-", "_").strip("_"), False)
+        self.db_name = self.args_dict.get(cli_params.D_PARAM.replace("-", "_").strip("_"), False)
+        self.db_restore_file_path = self.args_dict.get(cli_params.DB_RESTORE_PARAM.replace("-", "_").strip("_"), False)
+        self.db_backup = self.args_dict.get(cli_params.DB_BACKUP_PARAM.replace("-", "_").strip("_"), False)
+        self.set_admin_pass = self.args_dict.get(cli_params.SET_ADMIN_PASS_PARAM.replace("-", "_").strip("_"), False)
+        self.sql_execute = self.args_dict.get(cli_params.SQL_EXECUTE_PARAM.replace("-", "_").strip("_"), False)
+        self.export_po_files_lang = self.args_dict.get(cli_params.EXPORT_PO_FILES.replace("-", "_").strip("_"), False)
+        
+        sys.path.append(self.odoo_dir)
 
         postgres_waiter = PostgresWaiter(
             host=self.odoo_config_data["options"]["db_host"], # PostgreSQL host
@@ -42,17 +56,24 @@ class OdooChecker():
         """find . -name "*.pyc" -delete"""
         """find . -name "__pycache__" -type d -exec rm -rf {} +"""
         postgres_waiter.wait_for_postgres()
-        sys.path.append(self.odoo_dir)
+        postgres_waiter.wait_for_postgres_db(
+            dbname=self.db_name,
+            user=self.odoo_config_data["options"]["db_user"],
+            password=self.odoo_config_data["options"]["db_password"],
+            interval=1,
+            max_attempts=None
+        )
+        
         from passlib.hash import pbkdf2_sha512 # type: ignore
         self.pbkdf2_sha512 = pbkdf2_sha512
         import passlib # type: ignore
         self.passlib = passlib
-        import odoo # type: ignore
-        self.odoo = odoo
-        from odoo.tools import config # type: ignore
-        self.odoo_config_object = config
-        from odoo.api import Environment # type: ignore
-        from odoo.release import version_info as odoo_version_info # type: ignore
+        self.odoo = importlib.import_module(self.platform_name)
+        for submodule in USED_ODOO_SUBMODULES:
+            self.add_attrs_to_self_odoo(submodule)
+        self.odoo_config_object = getattr(self.odoo.tools, "config")
+        Environment = getattr(self.odoo.api, "Environment")
+        odoo_version_info = getattr(self.odoo.release, "version_info")
         self.odoo_version_info = odoo_version_info
         self.int_odoo_version = self.odoo_version_info[0]
         if self.odoo_version_info < (15, 0):
@@ -64,11 +85,6 @@ class OdooChecker():
                 # emits a noisy warning so let's avoid it.
                 yield
 
-        if self.odoo_version_info >= (19, 0):
-            # Since 19.0 version internal strucure was changed
-            import odoo.service # type: ignore
-            self.odoo.service = odoo.service 
-
         self.environment_manage = environment_manage
         if self.db_manager_password:
             self.odoo_config_data["options"]["admin_passwd"] = self.get_encrypted_password(self.db_manager_password)
@@ -78,14 +94,6 @@ class OdooChecker():
         self.odoo_config_object['list_db'] = True
         os.chdir(self.odoo_dir)
 
-        self.drop_db_name = self.args_dict.get(cli_params.DB_DROP_PARAM.replace("-", "_").strip("_"), False)
-        self.get_db_list = self.args_dict.get(cli_params.GET_DB_LIST_PARAM.replace("-", "_").strip("_"), False)
-        self.db_name = self.args_dict.get(cli_params.D_PARAM.replace("-", "_").strip("_"), False)
-        self.db_restore_file_path = self.args_dict.get(cli_params.DB_RESTORE_PARAM.replace("-", "_").strip("_"), False)
-        self.db_backup = self.args_dict.get(cli_params.DB_BACKUP_PARAM.replace("-", "_").strip("_"), False)
-        self.set_admin_pass = self.args_dict.get(cli_params.SET_ADMIN_PASS_PARAM.replace("-", "_").strip("_"), False)
-        self.sql_execute = self.args_dict.get(cli_params.SQL_EXECUTE_PARAM.replace("-", "_").strip("_"), False)
-        self.export_po_files_lang = self.args_dict.get(cli_params.EXPORT_PO_FILES.replace("-", "_").strip("_"), False)
         
         self.all_backup_file_path = os.path.join(self.odoo_dir, "../backups/")
         
@@ -117,6 +125,10 @@ class OdooChecker():
                 if self.export_po_files_lang:
                     self.export_po_files_to_modules()
     
+    def add_attrs_to_self_odoo(self, attr_name):
+        if not getattr(self.odoo, attr_name, None):
+                setattr(self.odoo, attr_name, importlib.import_module(f"{self.platform_name}.{attr_name}"))
+
     def export_po_files_to_modules(self):
         db = self.odoo.sql_db.db_connect(self.db_name)
         for module_name in self.modules_to_update:
