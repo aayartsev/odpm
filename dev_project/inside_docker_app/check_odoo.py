@@ -61,7 +61,6 @@ class OdooChecker():
                 dbname="postgres",
                 user=self.odoo_config_data["options"]["db_user"],
                 password=self.odoo_config_data["options"]["db_password"],
-                interval=1,
                 max_attempts=None
             )
         
