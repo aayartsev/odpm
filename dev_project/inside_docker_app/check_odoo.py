@@ -58,7 +58,7 @@ class OdooChecker():
         postgres_waiter.wait_for_postgres()
         if self.db_name:
             postgres_waiter.wait_for_postgres_db(
-                dbname=self.db_name,
+                dbname="postgres",
                 user=self.odoo_config_data["options"]["db_user"],
                 password=self.odoo_config_data["options"]["db_password"],
                 interval=1,
