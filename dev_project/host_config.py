@@ -3,6 +3,7 @@ import pathlib
 import json
 import subprocess
 import ast
+import shutil
 from argparse import Namespace
 
 from typing import TypedDict
@@ -139,8 +140,8 @@ class Config():
         if not os.path.exists(self.pd_manager.project_docker_compose_template_path):
             self.pd_manager.rebuild_docker_compose_template()
 
-        self.check_file_for_deprecated_words(self.project_odpm_json)
-        if not os.path.exists(self.project_odpm_json):
+        self.check_file_for_deprecated_words(self.repo_odpm_json)
+        if not os.path.exists(self.repo_odpm_json):
             self.rewrite_odpm_json()
         
         self.odoo_version = self.config_dict.get("odoo_version", 0.0)
@@ -238,6 +239,7 @@ class Config():
             self.user_env.backups,
             self.user_env.odoo_src_dir,
             self.developing_project_dir_path,
+            self.repo_odpm_json,
         ]
         if self.create_module_links and os.path.exists(self.repo_odpm_json):
             self.list_for_symlinks.append(self.repo_odpm_json)
@@ -345,7 +347,7 @@ class Config():
 
     def rewrite_odpm_json(self) -> None:
         default_odpm_json_content = self.create_default_odpm_json_content()
-        with open(self.project_odpm_json, "w", encoding="utf-8") as odpm_json_file:
+        with open(self.repo_odpm_json, "w", encoding="utf-8") as odpm_json_file:
             json.dump(default_odpm_json_content, odpm_json_file, ensure_ascii=False, indent=4)
             
     
@@ -415,14 +417,13 @@ class Config():
                 self.config_dict = user_settings_dict
     
     def get_odpm_settings(self) -> None:
-        if os.path.exists(self.project_odpm_json):
-            with open(self.project_odpm_json) as project_odpm_file:
-                project_odpm_dict = json.load(project_odpm_file)
-                self.config_dict.update(project_odpm_dict)
-        elif os.path.exists(self.repo_odpm_json):
-            with open(self.repo_odpm_json) as repo_odpm_json:
-                repo_odpm_json = json.load(repo_odpm_json)
-                self.config_dict.update(repo_odpm_json)
+        if os.path.exists(self.project_odpm_json) and not os.path.exists(self.repo_odpm_json):
+            shutil.move(self.project_odpm_json, self.repo_odpm_json)
+        if not os.path.islink(self.project_odpm_json) and os.path.exists(self.project_odpm_json) and os.path.exists(self.repo_odpm_json):
+            os.rename(self.project_odpm_json, f"deprecated_{constants.PROJECT_CONFIG_FILE_NAME}")
+        with open(self.repo_odpm_json) as repo_odpm_json:
+            repo_odpm_json = json.load(repo_odpm_json)
+            self.config_dict.update(repo_odpm_json)
 
     def check_for_config(self) -> None:
         self.config_json_path = os.path.join(self.project_dir, constants.CONFIG_FILE_NAME)
