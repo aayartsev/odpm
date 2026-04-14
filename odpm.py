@@ -43,6 +43,10 @@ def main() -> None:
 
     os.chdir(config.project_dir)
 
+    if args.skip_start:
+        _logger.info("Start of instace will be skipped")
+        exit(0)
+
     try:
         if config.no_log_prefix:
             os.system(f"""{config.docker_compose_command} up --no-log-prefix --abort-on-container-exit --force-recreate""")

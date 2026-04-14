@@ -136,6 +136,15 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.SKIP_START,
+    help="""Will generate docker-compose.yaml and exit without lounching odoo instance. After this command you can start instace with "docker compose up -d" for example""",
+    nargs="?",
+    default=None,
+    const=True,
+    type=bool,
+)
+
+arg_parser.add_argument(
     cli_params.ODOO_BIN,
     nargs=argparse.REMAINDER,
     help="""Command to pass through as a single string"""
