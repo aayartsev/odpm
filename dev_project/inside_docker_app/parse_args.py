@@ -47,7 +47,7 @@ arg_parser.add_argument(
 
 arg_parser.add_argument(
     cli_params.SET_ADMIN_PASS_PARAM,
-    help="""When you specify the value of this parameter, the administrator account (user with id = 2) will have its password and login changed to those specified in the "db_default_admin_login" and "db_default_admin_password" parameters in the "user_settings.json" configuration file. Be sure to specify the name of the database for which you want to change the password and use the "-d database_name" parameter""",
+    help=f"""When you specify the value of this parameter, the administrator account (user with xml_id = "base.user_admin") will have its password and login changed to those specified in the "db_default_admin_login" and "db_default_admin_password" parameters in the "user_settings.json" configuration file. Be sure to specify the name of the database for which you want to change the password and use the "{cli_params.D_PARAM} database_name" parameter""",
     nargs="?",
     default=None,
     const=True,
@@ -56,13 +56,13 @@ arg_parser.add_argument(
 
 arg_parser.add_argument(
     cli_params.TRANSLATE_PARAM,
-    help="""Will update translation for selected language, for example ru_RU or eu_US for database from -d param and for modules form "update_modules" and "init_modules" from "user_settings.json" file """,
+    help=f"""Will update translation for selected language, for example ru_RU or eu_US for database from "{cli_params.D_PARAM}" param and for modules form "update_modules" and "init_modules" from "user_settings.json" file """,
     type=str,
 )
 
 arg_parser.add_argument(
     cli_params.DB_DROP_PARAM,
-    help="""Accept database name as parameter. Database with selected  name will be deleted. If you will use it with  params "-d", "-i", "-u", and select the same name, system will with first step delete DB and with second step will create new DB with the same name, and will install selected modules.""",
+    help=f"""Accept database name as parameter. Database with selected  name will be deleted. If you will use it with  params "{cli_params.D_PARAM}", "{cli_params.I_PARAM}", "{cli_params.U_PARAM}", and select the same name, system will with first step delete DB and with second step will create new DB with the same name, and will install selected modules.""",
     action='store_true',
 )
 
@@ -102,19 +102,19 @@ arg_parser.add_argument(
 arg_parser.add_argument(
     cli_params.T_PARAM,
     cli_params.TEST_PARAM,
-    help="""Will run tests of modules specified in "init_modules" and "update_modules", works only when using parameters "-d", "-i", "-u". If the database is being created from scratch, tests of all installed modules will be run. This may take a long time.""",
+    help=f"""Will run tests of modules specified in "init_modules" and "update_modules", works only when using parameters "{cli_params.D_PARAM}", "{cli_params.I_PARAM}", "{cli_params.U_PARAM}". If the database is being created from scratch, tests of all installed modules will be run. This may take a long time.""",
     action='store_true',
 )
 
 arg_parser.add_argument(
     cli_params.BRANCH_PARAM,
-    help="""Used together with the "--init" parameter to specify the branch of the git repository to be cloned.""",
+    help=f"""Used together with the "{cli_params.INIT_PARAM}" parameter to specify the branch of the git repository to be cloned.""",
     type=str,
 )
 
 arg_parser.add_argument(
     cli_params.SCREENCASTS_PARAM,
-    help="""Used together with the "-t" or "--test" parameter to specify saving of screencast video for tours errors. This videos will be saved to "odoo_tests" directory inside project""",
+    help=f"""Used together with the "{cli_params.T_PARAM}" or "{cli_params.TEST_PARAM}" parameter to specify saving of screencast video for tours errors. This videos will be saved to "odoo_tests" directory inside project""",
     action='store_true',
 )
 
@@ -130,8 +130,14 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
-    cli_params.ODOO_GIT_LINK_PARAM,
-    help="""Used together with the "--init" parameter to specify a custom Odoo git repository URL for cloning instead of the official https://github.com/odoo/odoo.git. Accepts HTTP, SSH, or git@ links.""",
+    cli_params.PLATFORM_GIT_LINK_PARAM,
+    help=f"""Used together with the "{cli_params.INIT_PARAM}" parameter to specify a custom Odoo git repository URL for cloning instead of the official https://github.com/odoo/odoo.git. Accepts HTTP, SSH, or git@ links.""",
+    type=str,
+)
+
+arg_parser.add_argument(
+    cli_params.PLATFORM_NAME_PARAM,
+    help=f"""Used together with the "{cli_params.INIT_PARAM}" and "{cli_params.PLATFORM_GIT_LINK_PARAM}" parameters to specify a custom name of Odoo fork""",
     type=str,
 )
 

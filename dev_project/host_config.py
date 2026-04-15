@@ -34,7 +34,7 @@ class OdpmJson(TypedDict):
     dependencies: list
     requirements_txt: list
     odoo_build_date: str
-    odoo_git_link: str
+    platfrom_git_link: str
     platform_name: str
 
 class DbCreationData(TypedDict):
@@ -153,7 +153,7 @@ class Config():
         self.dependencies = self.config_dict.get("dependencies", [])
         self.requirements_txt = self.config_dict.get("requirements_txt", [])
         self.odoo_build_date = self.config_dict.get("odoo_build_date", "")
-        self.odoo_git_link = self.config_dict.get("odoo_git_link", constants.ODOO_GIT_LINK)
+        self.platform_git_link = self.config_dict.get("platform_git_link", constants.PLATFORM_GIT_LINK)
         self.platform_name = self.config_dict.get("platform_name", constants.PLATFORM_NAME)
 
         # prepare platform
@@ -369,8 +369,8 @@ class Config():
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
                 odoo_build_date=self.config_json_content.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE),
-                odoo_git_link=self.config_json_content.get("odoo_git_link", self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK),
-                platform_name = self.config_json_content.get("platform_name", constants.PLATFORM_NAME)
+                platfrom_git_link=self.config_json_content.get("platform_git_link", self.pd_manager.platform_git_link or constants.PLATFORM_GIT_LINK),
+                platform_name = self.config_json_content.get("platform_name", self.pd_manager.platform_name or constants.PLATFORM_NAME)
             )
         available_versions = [int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV]
         available_versions_str = ", ".join([str(float(version)) for version in available_versions])
@@ -404,7 +404,7 @@ class Config():
             dependencies=self.config_dict.get("dependencies", []),
             requirements_txt=self.config_dict.get("requirements_txt", []),
             odoo_build_date=self.config_dict.get("odoo_build_date", ""),
-            odoo_git_link=self.config_dict.get("odoo_git_link", self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK),
+            platfrom_git_link=self.config_dict.get("platform_git_link", self.pd_manager.platform_git_link or constants.PLATFORM_GIT_LINK),
             platform_name = self.config_dict.get("platform_name", constants.PLATFORM_NAME)
         )
         
@@ -508,9 +508,9 @@ class Config():
     
     def get_platform_sorces(self):
         self.odoo_platform_project = HandleOdooProjectLink(
-            project_string=self.odoo_git_link,
+            project_string=self.platform_git_link,
             path_to_ssh_key=self.user_env.path_to_ssh_key,
-            start_dir_to_clone=self.user_env.odoo_src_dir,
+            start_dir_to_clone=self.user_env.odoo_projects_dir,
             system_type="platform"
         )
         self.odoo_platform_project.build_project()

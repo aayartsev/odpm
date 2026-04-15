@@ -18,11 +18,13 @@ class ProjectDirManager():
         self.dir_is_project = False
         self.arguments = args
         self.init = self.arguments.init
-        self.odoo_git_link = self.arguments.odoo_git_link
+        self.platform_git_link = self.arguments.platform_git_link
+        self.platform_name = self.arguments.platform_name
         self.service_directory = os.path.join(self.project_path, constants.PROJECT_SERVICE_DIRECTORY)
         self.program_dir_path = program_dir_path
         self.home_config_dir = os.path.join(Path.home(), constants.CONFIG_DIR_IN_HOME_DIR)
-        self.check_odoo_git_link()
+        self.check_platfrom_git_link()
+        self.check_platform_name()
         self.check_project_dir()
         self.rebuild_templates()
     
@@ -133,13 +135,24 @@ class ProjectDirManager():
             with open(project_template_file, 'w') as writer:
                 writer.write(content)
     
-    def check_odoo_git_link(self):
-        if self.odoo_git_link and not self.init:
-            _logger.error(translations.get_translation(translations.ODOO_GIT_LINK_REQUIRES_INIT).format(
-                        ODOO_GIT_LINK_PARAM=cli_params.ODOO_GIT_LINK_PARAM,
+    def check_platfrom_git_link(self):
+        if self.platform_git_link and not self.init:
+            _logger.error(translations.get_translation(translations.PLATFORM_GIT_LINK_REQUIRES_INIT).format(
+                        PLATFORM_GIT_LINK_PARAM=cli_params.PLATFORM_GIT_LINK_PARAM,
                         INIT_PARAM=cli_params.INIT_PARAM,
                     ))
             exit(1)
-        if not self.odoo_git_link:
-            self.odoo_git_link = constants.ODOO_GIT_LINK
+        if not self.platform_git_link:
+            self.platform_git_link = constants.PLATFORM_GIT_LINK
+    
+    def check_platform_name(self):
+        if self.platform_name and not self.platform_git_link and not self.init:
+            _logger.error(translations.get_translation(translations.PLATFORM_NAME_REQUIRES_INIT_AND_GIT_LINK).format(
+                        PLATFORM_GIT_LINK_PARAM=cli_params.PLATFORM_GIT_LINK_PARAM,
+                        INIT_PARAM=cli_params.INIT_PARAM,
+                        PLATFORM_NAME=cli_params.PLATFORM_NAME_PARAM,
+                    ))
+            exit(1)
+        if not self.platform_name:
+            self.platform_name = constants.PLATFORM_NAME
         

@@ -72,7 +72,8 @@ YOU_SELECT_ODOO_VERSION = """You select this odoo version: {SELECTED_ODOO_VERSIO
 YOU_DO_NOT_SET_DEVELOPING_PROJECT = """You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"""
 YOU_NEED_TO_HAVE_FREE_SPACE = """You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"""
 FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED = """File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"""
-ODOO_GIT_LINK_REQUIRES_INIT = """The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"""
+PLATFORM_GIT_LINK_REQUIRES_INIT = """The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"""
+PLATFORM_NAME_REQUIRES_INIT_AND_GIT_LINK = """The {PLATFORM_NAME} parameter can only be used together with the {INIT_PARAM} and {PLATFORM_GIT_LINK_PARAM} parameters"""
 
 translations = {
     USER_NOT_IN_DOCKER_GROUP: {
@@ -217,9 +218,12 @@ translations = {
     FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED: {
         "ru_RU": """Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"""
     },
-    ODOO_GIT_LINK_REQUIRES_INIT: {
-        "ru_RU": """Параметр {ODOO_GIT_LINK_PARAM} может использоваться только совместно с параметром {INIT_PARAM}"""
+    PLATFORM_GIT_LINK_REQUIRES_INIT: {
+        "ru_RU": """Параметр {PLATFORM_GIT_LINK_PARAM} может использоваться только совместно с параметром {INIT_PARAM}"""
     },
+    PLATFORM_NAME_REQUIRES_INIT_AND_GIT_LINK: {
+        "ru_RU": """Параметр {PLATFORM_NAME} может использоваться только совместно с параметрами {INIT_PARAM} и {PLATFORM_GIT_LINK_PARAM}""",
+    }
 }
 
 def get_translation(string_to_translate):

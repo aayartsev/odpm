@@ -236,11 +236,11 @@ class HandleOdooProjectLink():
     
     def get_project_path(self) -> str:
         if self.link_type in [constants.GITLINK_TYPE_SSH,constants.GITLINK_TYPE_GIT,constants.GITLINK_TYPE_HTTP]:
-            if self.system_type == "platform":
-                return os.path.abspath(os.path.join(
-                    self.start_dir_to_clone,
-                    self.project_data.name,
-                ))
+            # if self.system_type == "platform":
+            #     return os.path.abspath(os.path.join(
+            #         self.start_dir_to_clone,
+            #         self.project_data.name,
+            #     ))
 
             if self.link_type == constants.GITLINK_TYPE_SSH:
                 os.environ["GIT_SSH_VARIANT"] = "ssh"
