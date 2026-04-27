@@ -421,6 +421,8 @@ class Config():
             shutil.move(self.project_odpm_json, self.repo_odpm_json)
         if not os.path.islink(self.project_odpm_json) and os.path.exists(self.project_odpm_json) and os.path.exists(self.repo_odpm_json):
             os.rename(self.project_odpm_json, f"deprecated_{constants.PROJECT_CONFIG_FILE_NAME}")
+        if not os.path.exists(self.repo_odpm_json):
+            self.rewrite_odpm_json()
         with open(self.repo_odpm_json) as repo_odpm_json:
             repo_odpm_json = json.load(repo_odpm_json)
             self.config_dict.update(repo_odpm_json)
