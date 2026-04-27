@@ -24,7 +24,7 @@ class OdooChecker():
         self.odoo_config_data = config["odoo_config_data"]
         self.docker_path_odoo_conf = config["docker_path_odoo_conf"]
         self.args_dict = config["arguments"]
-        self.platform_name = config["platform_name"]
+        self.platform_name = config.get("platform_name", "odoo")
         self.db_lang = config["db_creation_data"]["db_lang"]
         self.db_country_code = config["db_creation_data"]["db_country_code"]
         self.db_default_admin_password = config["db_creation_data"]["db_default_admin_password"]
