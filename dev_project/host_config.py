@@ -102,8 +102,6 @@ class Config():
         self.user_env = user_env
         self.platform_name = ""
         
-        if self.pd_manager.init and isinstance(self.pd_manager.init, str):
-            self.clone_project()
         self.postgres_data_local_storage = self.get_postgres_data_local_storage_path()
         # check current config.json file
         self.config_json_content = {}
@@ -130,6 +128,8 @@ class Config():
             _logger.error(translations.get_translation(translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT))
             exit(1)
         self.developing_project = self.handle_git_link(self.developing_project, system_type="standart")
+        if self.arguments.branch and isinstance(self.arguments.branch, str):
+            self.developing_project.switch_to_branch(self.arguments.branch)
         self.developing_project_dir_path = self.developing_project.project_path
         # init project settings from odpm.json
         self.get_project_odpm_json()
@@ -310,11 +310,13 @@ class Config():
             f.close()
         return manifest_data
 
-    def clone_project(self) -> None:
-        if cli_params.BRANCH_PARAM in self.arguments and isinstance(cli_params.BRANCH_PARAM, str):
-            subprocess.run(["git", "stash"], capture_output=False)
-            subprocess.run(["git", "pull"], capture_output=False)
-            subprocess.run(["git", "checkout", self.arguments.branch], capture_output=False)
+    # def clone_project(self) -> None:
+    #     if cli_params.BRANCH_PARAM in self.arguments and isinstance(cli_params.BRANCH_PARAM, str):
+    #         subprocess.run(["git", "stash"], capture_output=False)
+    #         subprocess.run(["git", "pull"], capture_output=False)
+    #         subprocess.run(["git", "checkout", self.arguments.branch], capture_output=False)
+    #     print("test-001")
+    #     exit()
     
     def check_file_for_deprecated_words(self, file_path: str) -> None:
         if not os.path.exists(file_path):
@@ -408,7 +410,6 @@ class Config():
             odoo_git_link=self.config_dict.get("odoo_git_link", self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK),
             platform_name = self.config_dict.get("platform_name", constants.PLATFORM_NAME)
         )
-        
         return default_odpm_json_content
 
     def get_user_settings(self) -> None:
@@ -510,24 +511,18 @@ class Config():
         return json.dumps(config).encode("utf-8")
     
     def get_platform_sorces(self):
-        self.odoo_platform_project = HandleOdooProjectLink(
-            project_string=self.odoo_git_link,
-            path_to_ssh_key=self.user_env.path_to_ssh_key,
-            start_dir_to_clone=self.user_env.odoo_src_dir,
-            system_type="platform"
-        )
-        self.odoo_platform_project.build_project()
+        self.odoo_platform_project = self.handle_git_link(self.odoo_git_link, system_type="platform")
         self.user_env.odoo_src_dir = self.odoo_platform_project.get_project_path()
-        if self.user_env.odpm_scenario == constants.SERVER_SCENARIO:
-            if not os.path.exists(os.path.join(self.user_env.odoo_src_dir, f"{self.platform_name}-bin")):
-                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
-                if clone_odoo and clone_odoo.lower() == "y":
-                    self.project_env.download_odoo_nightly_build()
-                else:
-                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
-                        odoo_src_dir= self.user_env.odoo_src_dir
-                    ))
-                    exit(1)
+        # if self.user_env.odpm_scenario == constants.SERVER_SCENARIO:
+        #     if not os.path.exists(os.path.join(self.user_env.odoo_src_dir, f"{self.platform_name}-bin")):
+        #         clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+        #         if clone_odoo and clone_odoo.lower() == "y":
+        #             self.project_env.download_odoo_nightly_build()
+        #         else:
+        #             _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
+        #                 odoo_src_dir= self.user_env.odoo_src_dir
+        #             ))
+        #             exit(1)
 
 
 
