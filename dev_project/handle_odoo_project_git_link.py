@@ -236,11 +236,6 @@ class HandleOdooProjectLink():
     
     def get_project_path(self) -> str:
         if self.link_type in [constants.GITLINK_TYPE_SSH,constants.GITLINK_TYPE_GIT,constants.GITLINK_TYPE_HTTP]:
-            if self.system_type == "platform":
-                return os.path.abspath(os.path.join(
-                    self.start_dir_to_clone,
-                    self.project_data.name,
-                ))
 
             if self.link_type == constants.GITLINK_TYPE_SSH:
                 os.environ["GIT_SSH_VARIANT"] = "ssh"
@@ -335,3 +330,10 @@ class HandleOdooProjectLink():
 
     def __bool__(self) -> bool:
         return self.is_true
+    
+    def switch_to_branch(self, branch_name:str) -> None:
+        os.chdir(self.project_path)
+        _logger.info(f"Switching project {self.project_string} to branch {branch_name}")
+        subprocess.run(["git", "clean", "-fd"], capture_output=True)
+        subprocess.run(["git", "pull"], capture_output=True)
+        subprocess.run(["git", "checkout", branch_name], capture_output=True)
