@@ -347,6 +347,7 @@ class Config():
 
     def rewrite_odpm_json(self) -> None:
         default_odpm_json_content = self.create_default_odpm_json_content()
+        pathlib.Path(self.developing_project.project_path).mkdir(parents=True, exist_ok=True)
         with open(self.repo_odpm_json, "w", encoding="utf-8") as odpm_json_file:
             json.dump(default_odpm_json_content, odpm_json_file, ensure_ascii=False, indent=4)
             
