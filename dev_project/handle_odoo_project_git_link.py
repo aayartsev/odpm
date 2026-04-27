@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from . import constants
+from . import translations
 
 from .inside_docker_app.logger import get_module_logger
 
@@ -333,7 +334,11 @@ class HandleOdooProjectLink():
     
     def switch_to_branch(self, branch_name:str) -> None:
         os.chdir(self.project_path)
-        _logger.info(f"Switching project {self.project_string} to branch {branch_name}")
+        _logger.info(translations.get_translation(translations.SWITCHING_TO_BRANCH).format(
+            PROJECT_NAME=self.project_string,
+            BRANCH_NAME=branch_name,
+        ))
+        subprocess.run(["git", "stash"], capture_output=True)
         subprocess.run(["git", "clean", "-fd"], capture_output=True)
         subprocess.run(["git", "pull"], capture_output=True)
         subprocess.run(["git", "checkout", branch_name], capture_output=True)
