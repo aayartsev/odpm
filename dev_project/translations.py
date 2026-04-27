@@ -73,6 +73,7 @@ YOU_DO_NOT_SET_DEVELOPING_PROJECT = """You do not set where developing project i
 YOU_NEED_TO_HAVE_FREE_SPACE = """You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"""
 FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED = """File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"""
 ODOO_GIT_LINK_REQUIRES_INIT = """The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"""
+SWITCHING_TO_BRANCH = """Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"""
 
 translations = {
     USER_NOT_IN_DOCKER_GROUP: {
@@ -212,14 +213,17 @@ translations = {
         "ru_RU": "Пожалуйта выберите ценарий использования odpm из указанного списка {LIST_OF_SCENARIOS}\n Нажпите 'Enter' чтобы оставить значение по уполчнию:\n"
     },
     YOU_SELECT_ODPM_SCENARIO:{
-        "ru_RU": "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
+        "ru_RU": "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n",
     },
     FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED: {
-        "ru_RU": """Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"""
+        "ru_RU": """Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}""",
     },
     ODOO_GIT_LINK_REQUIRES_INIT: {
-        "ru_RU": """Параметр {ODOO_GIT_LINK_PARAM} может использоваться только совместно с параметром {INIT_PARAM}"""
+        "ru_RU": """Параметр {ODOO_GIT_LINK_PARAM} может использоваться только совместно с параметром {INIT_PARAM}""",
     },
+    SWITCHING_TO_BRANCH: {
+        "ru_RU": """Переключение проекта {PROJECT_NAME} на ветку {BRANCH_NAME}""",
+    }
 }
 
 def get_translation(string_to_translate):
