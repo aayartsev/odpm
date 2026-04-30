@@ -75,13 +75,13 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 local=self.user_env.backups, docker=self.config.docker_backups_dir
             ),
             MappedPath(
-                local=os.path.join(self.config.docker_home, ".local"),
+                local=os.path.join(self.config.dir_for_odoo_container_home, ".local"),
                 docker=str(
                     pathlib.PurePosixPath(self.config.docker_project_dir, ".local")
                 ),
             ),
             MappedPath(
-                local=os.path.join(self.config.docker_home, ".cache"),
+                local=os.path.join(self.config.dir_for_odoo_container_home, ".cache"),
                 docker=str(
                     pathlib.PurePosixPath(self.config.docker_project_dir, ".cache")
                 ),

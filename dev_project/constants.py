@@ -15,14 +15,26 @@ ENV_FILE_NAME = ".env"
 DOCKERFILE = "Dockerfile"
 ODOO_CONF_NAME = f"{PLATFORM_NAME}.conf"
 
-PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(DEV_PROJECT_DIR, "templates", "docker-compose.yml")
-PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "docker-compose.yml")
+PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "docker-compose.yml"
+)
+PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "docker-compose.yml"
+)
 
-PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(DEV_PROJECT_DIR, "templates", "dev_odoo_docker_config_file.conf")
-PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "dev_odoo_docker_config_file.conf")
+PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "dev_odoo_docker_config_file.conf"
+)
+PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "dev_odoo_docker_config_file.conf"
+)
 
-PROGRAM_VSCODE_SETTINGS_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "vscode_settings.json")
-PROJECT_VSCODE_SETTINGS_TEMPLATE = os.path.join(PROJECT_SERVICE_DIRECTORY, "vscode_settings.json")
+PROGRAM_VSCODE_SETTINGS_TEMPLATE = os.path.join(
+    DEV_PROJECT_DIR, "templates", "vscode_settings.json"
+)
+PROJECT_VSCODE_SETTINGS_TEMPLATE = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "vscode_settings.json"
+)
 
 DATABASE_NAME_INSTANCE = "db"
 DEBUGGER_DEFAULT_PORT = 5678
@@ -53,6 +65,7 @@ if ARCH == "aarch64":
 
 if platform.system() == "Linux":
     import pwd
+
     CURRENT_USER_UID = os.getuid()
     CURRENT_USER_GID = os.getgid()
     CURRENT_USER = pwd.getpwuid(CURRENT_USER_UID)[0]
@@ -101,15 +114,15 @@ DEFAULT_PYTHON_VERSION = "3.7"
 DEFAULT_DISTRO_NAME = "debian"
 DEFAULT_DISTRO_VERSION = "11"
 DISTRO_INFO = {
-    "debian":{
+    "debian": {
         "11": "bullseye",
         "12": "bookworm",
         "13": "trixie",
     },
-    "ubuntu":{
+    "ubuntu": {
         "22.04": "jammy",
         "20.04": "focal",
-    }
+    },
 }
 
 # git rev-parse --abbrev-ref HEAD
@@ -208,13 +221,15 @@ DEFAULT_CREATE_MODULE_LINKS = False
 
 # YANDEX DISK LINKS
 YADISK_SHARING_LINK = "https://disk.yandex.ru/d/FbMn-ySeNYGAoQ"
-YADISK_API_ENDPOINT = "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
+YADISK_API_ENDPOINT = (
+    "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
+)
 
-FREE_SPACE_FOR_USAGE = 20.0
+FREE_SPACE_FOR_USAGE = 2.0
 
 DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
 LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]
 
 DEPENDENCIES_DIR = "dependencies"
 
-POSTGRES_LOCAL_STORAGE_DIR = "db_data"
+POSTGRES_LOCAL_STORAGE_DIR = "data/postgres/var/lib/postgresql/data"
