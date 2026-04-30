@@ -77,7 +77,6 @@ This app build environment for your project. The project itself is a directory t
 ## Parameters in .env file:
 The system will try to create a `.odpm` directory in the user's home directory of your operating system. Inside it the system will place the `.env` file. If you are launching the application for the first time, it will ask a question for each item described below in this file and offer default values. If you don't know what to answer, just press `Enter`. If you place the `.env` file in the project directory, the program will consider it a priority and try to take values from the file inside the project.
 - `BACKUP_DIR` - the directory where the archives are located. It is used to specify the name of the database for recovery using command-line parameters and then the system will search for an archive with the specified name in this directory, or when saving the database to the archive, it will appear in this directory, can be used for all projects
-- `ODOO_SRC_DIR` - The directory where the full clone of the repository of the `odoo` platform itself should be located. I usually put it in my user profile. It is used by all projects.
 - `ODOO_PROJECTS_DIR` - create a directory where clones of all used repositories will be created. You just need specify the path to this directory, then the system itself will create this directory and clone all the repositories into it and arrange them so that there are no conflicts
 - `PATH_TO_SSH_KEY` - if, for some reason, you are unable to add your repository key to the ssh agent, then you can specify the path to it here. At the moment, one key will be used for all repositories
 - `ODOO_PORT` - the port on which odoo will be launched by default at the address 127.0.0.1
@@ -88,7 +87,6 @@ The system will try to create a `.odpm` directory in the user's home directory o
 Example:
 ```conf
 BACKUP_DIR=/home/user/odoo_backups
-ODOO_SRC_DIR=/home/user/odoo
 ODOO_PROJECTS_DIR=/home/user/odoo_projects
 PATH_TO_SSH_KEY=/home/user/.ssh/my_ssh_key
 ODOO_PORT=8069
