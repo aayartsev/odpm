@@ -8,7 +8,13 @@ from dataclasses import dataclass
 from typing import Literal, TypedDict
 
 from . import constants, translations
-from .handle_odoo_project_git_link import HandleOdooProjectLink
+from .handle_odoo_project_git_link import (
+    FILE_SYSTEM_MARKER,
+    GIT_MARKER,
+    HTTP_MARKER,
+    SSH_MARKER,
+    HandleOdooProjectLink,
+)
 from .host_user_env import CreateUserEnvironment
 from .inside_docker_app.logger import get_module_logger
 from .project_dir_manager import ProjectDirManager
@@ -688,10 +694,7 @@ class Config:
             dev_mode=self.config_json_content.get(
                 "dev_mode", constants.DEFAULT_DEV_MODE
             ),
-            developing_project=self.config_json_content.get(
-                "developing_project",
-                self.pd_manager.init or constants.DEFAULT_DEVELOPING_PROJECT,
-            ),
+            developing_project=self.get_developing_project_link(),
             pre_commit_map_files=self.config_json_content.get(
                 "pre_commit_map_files", constants.DEFAULT_PRE_COMMIT_MAP_FILES
             ),
@@ -706,6 +709,23 @@ class Config:
             ),
         )
         return user_settings_content
+
+    def get_developing_project_link(self) -> str:
+        config_json_dev_link = self.config_json_content.get("developing_project")
+        if config_json_dev_link:
+            return config_json_dev_link
+        pd_manger_init_dev_link = self.pd_manager.init
+        if pd_manger_init_dev_link == ".":
+            pd_manger_init_dev_link = (
+                f"file://{self.pd_manager.project_path}/my_odoo_project"
+            )
+            return pd_manger_init_dev_link
+        for marker in [HTTP_MARKER, GIT_MARKER, SSH_MARKER, FILE_SYSTEM_MARKER]:
+            if marker in pd_manger_init_dev_link:
+                # TODO make check for file://
+                return pd_manger_init_dev_link
+        pd_manger_init_dev_link = f"file://{os.path.join(self.pd_manager.project_path, pd_manger_init_dev_link)}"
+        return pd_manger_init_dev_link
 
     def handle_git_link(
         self,
