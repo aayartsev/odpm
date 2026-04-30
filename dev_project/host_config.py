@@ -390,9 +390,7 @@ class Config:
             self.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR
         )
         if not os.path.exists(postgres_data_local_storage_path):
-            pathlib.Path(os.path.join(postgres_data_local_storage_path, "..")).mkdir(
-                parents=True, exist_ok=True
-            )
+            os.mkdir(postgres_data_local_storage_path)
         return postgres_data_local_storage_path
 
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
