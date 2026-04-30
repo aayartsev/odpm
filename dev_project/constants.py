@@ -232,4 +232,4 @@ LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compo
 
 DEPENDENCIES_DIR = "dependencies"
 
-POSTGRES_LOCAL_STORAGE_DIR = "data/postgres/var/lib/postgresql/data"
+POSTGRES_LOCAL_STORAGE_DIR = "db_data"
