@@ -342,11 +342,15 @@ class Config:
         )
         self.docker_temp_tests_dir = str(pathlib.PurePosixPath("/tmp", "odoo_tests"))
         self.venv_dir = os.path.join(self.project_dir, "venv")
-        self.docker_home = os.path.join(self.project_dir, "docker_home")
+        self.dir_for_odoo_container_home = os.path.join(
+            self.project_dir, "data/odoo", f"home/{constants.CURRENT_USER}"
+        )
         self.dependencies_dir = os.path.join(
             self.project_dir, constants.DEPENDENCIES_DIR
         )
-        self.odoo_tests_dir = os.path.join(self.project_dir, "odoo_tests")
+        self.odoo_tests_dir = os.path.join(
+            self.project_dir, "data/odoo", "tmp/odoo_tests"
+        )
         self.compose_file_version = constants.DOCKER_COMPOSE_DEFAULT_FILE_VERSION
         self.odoo_config_data = {}
 
@@ -386,7 +390,9 @@ class Config:
             self.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR
         )
         if not os.path.exists(postgres_data_local_storage_path):
-            os.mkdir(postgres_data_local_storage_path)
+            pathlib.Path(os.path.join(postgres_data_local_storage_path, "..")).mkdir(
+                parents=True, exist_ok=True
+            )
         return postgres_data_local_storage_path
 
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
