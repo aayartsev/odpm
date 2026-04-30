@@ -417,7 +417,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         def delete_old_links(dir_to_clean, current_links):
             os.chdir(dir_to_clean)
             for item in os.listdir():
-                if os.path.islink(item) and not item in current_links:
+                if os.path.islink(item) and item not in current_links:
                     os.unlink(item)
 
         def create_new_links(dir_to_create, current_links):

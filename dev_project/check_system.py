@@ -5,10 +5,6 @@ import subprocess
 from pathlib import Path
 from typing import NamedTuple
 
-if platform.system() == "Linux":
-    import grp
-    import pwd
-
 from . import constants, translations
 from .host_config import Config
 from .inside_docker_app import utils
@@ -39,6 +35,9 @@ class SystemChecker(SystemCheckerProtocol):
             exit(1)
 
     def get_system_groups(self, user: str) -> list:
+        import grp
+        import pwd
+
         gids = [g.gr_gid for g in grp.getgrall() if user in g.gr_mem]
         gid = pwd.getpwnam(user).pw_gid
         gids.append(grp.getgrgid(gid).gr_gid)
