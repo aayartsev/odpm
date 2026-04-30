@@ -10,7 +10,6 @@ from typing import Literal, TypedDict
 from . import constants, translations
 from .handle_odoo_project_git_link import HandleOdooProjectLink
 from .host_user_env import CreateUserEnvironment
-from .inside_docker_app import cli_params
 from .inside_docker_app.logger import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .protocols import CreateProjectEnvironmentProtocol, SystemCheckerProtocol
