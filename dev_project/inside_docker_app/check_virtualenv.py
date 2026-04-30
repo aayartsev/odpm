@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 import venv
 
@@ -15,13 +16,17 @@ class VirtualenvChecker:
         self.docker_venv_dir = config.get("docker_venv_dir", "")
         self.docker_project_dir = config["docker_project_dir"]
         self.requirements_txt = config.get("requirements_txt", [])
+        self.use_uv = config.get("use_uv")
         self.odoo_requirements_path = os.path.join(
             config["docker_odoo_dir"], "requirements.txt"
         )
         self.venv_lock_file_path = os.path.join(self.docker_venv_dir, "venv.lock")
         self.python_version = config["python_version"]
         self.arch = config["arch"]
-        self.check_virtual_env()
+        if self.use_uv:
+            self.check_uv_virtual_env()
+        else:
+            self.check_virtual_env()
 
     def is_virtualenv(self):
         return sys.prefix != sys.base_prefix
@@ -135,3 +140,16 @@ class VirtualenvChecker:
                 self.recreate_venv()
         self.set_venv()
         self.check_packages_for_install()
+
+    def recreate_uv_venv(self):
+        os.path.join(self.docker_venv_dir)
+        clone_results = subprocess.run(f"", shell=True)
+
+    def check_uv_virtual_env(self):
+        if not os.path.exists(self.venv_lock_file_path):
+            self.recreate_uv_venv()
+        # elif os.path.exists(self.venv_lock_file_path):
+        #     with open(self.venv_lock_file_path) as f:
+        #         content = f.readlines()
+        #     if self.arch != content[0]:
+        #         self.recreate_venv()

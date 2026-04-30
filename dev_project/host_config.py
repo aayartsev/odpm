@@ -58,6 +58,7 @@ class UserSettingsJson(TypedDict):
     sql_queries: list
     use_oca_dependencies: bool
     create_module_links: bool
+    use_uv: bool
 
 
 class ConfigToJson(TypedDict):
@@ -70,6 +71,7 @@ class ConfigToJson(TypedDict):
     docker_venv_dir: str
     docker_project_dir: str
     requirements_txt: list
+    use_uv: bool
     odoo_version: str
     python_version: str
     platform_name: str
@@ -154,6 +156,7 @@ class Config:
         self.create_module_links = self.config_dict.get(
             "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
         )
+        self.use_uv = self.config_dict.get("use_uv", constants.DEFAULT_USE_UV)
 
         # prepare developing project
         if not self.developing_project:
@@ -711,6 +714,7 @@ class Config:
             create_module_links=self.config_json_content.get(
                 "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
             ),
+            use_uv=self.config_json_content.get("use_uv", constants.DEFAULT_USE_UV),
         )
         return user_settings_content
 
@@ -756,6 +760,7 @@ class Config:
             docker_venv_dir=self.docker_venv_dir,
             docker_project_dir=self.docker_project_dir,
             requirements_txt=self.requirements_txt,
+            use_uv=self.use_uv,
             odoo_version=self.odoo_version,
             python_version=self.python_version,
             platform_name=self.platform_name,

@@ -16,11 +16,11 @@ RUN getent group $USER_GID 2>&1 > /dev/null || groupadd --gid $USER_GID $USER_NA
     && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
     && chmod 0440 /etc/sudoers.d/$USER_NAME
 
-# install dependecies 
+# install dependecies
 RUN apt-get update && apt-get -y install git postgresql-client node-less npm ssh \
-    libxml2-dev libxslt1-dev libldap2-dev\  
-    libsasl2-dev libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev\  
-    zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev\  
+    libxml2-dev libxslt1-dev libldap2-dev\
+    libsasl2-dev libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev\
+    zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev\
     libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev\
     openssl build-essential libssl-dev libxrender-dev \
     git-core libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig\
