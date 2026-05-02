@@ -24,10 +24,30 @@ class VirtualenvChecker:
         self.venv_lock_file_path = os.path.join(self.docker_venv_dir, ".lock")
         self.python_version = config["python_version"]
         self.arch = config["arch"]
+        self.packages_to_install = ["wheel"]
         if self.use_uv:
             self.check_uv_virtual_env()
         else:
             self.check_virtual_env()
+
+    def get_packages_to_install_from_odoo_requiremets_txt(self):
+        with open(self.odoo_requirements_path, "r") as file:
+            for line in file.readlines():
+                data = line.split(";")
+                if len(data) == 1:
+                    package = data[0].split("#")[0]
+                    if package:
+                        self.packages_to_install.append(package)
+                    continue
+                package_version, condition_of_installation_text = data
+                condition_of_installation_text = condition_of_installation_text.split(
+                    "#"
+                )[0]
+                condition_of_installation = self.evaluate_text_condition(
+                    condition_of_installation_text
+                )
+                if condition_of_installation:
+                    self.packages_to_install.append(package_version)
 
     def is_virtualenv(self):
         return sys.prefix != sys.base_prefix
@@ -128,8 +148,13 @@ class VirtualenvChecker:
         exit(1)
 
     def create_venv(self):
-        env = venv.EnvBuilder(with_pip=True)
-        env.create(self.docker_venv_dir)
+        if not self.use_uv:
+            env = venv.EnvBuilder(with_pip=True)
+            env.create(self.docker_venv_dir)
+        else:
+            dir_for_venv = os.path.join(self.docker_venv_dir, "..")
+            os.chdir(dir_for_venv)
+            subprocess.run(["uv venv"], shell=True)
 
     def check_virtual_env(self):
         if not os.path.exists(self.venv_lock_file_path):
@@ -143,12 +168,57 @@ class VirtualenvChecker:
         self.check_packages_for_install()
 
     def recreate_uv_venv(self):
-        dir_for_venv = os.path.join(self.docker_venv_dir, "..")
-        os.chdir(dir_for_venv)
-        subprocess.run(["uv venv"], shell=True)
-        subprocess.run([f"uv pip install -r {self.odoo_requirements_path}"], shell=True)
+        delete_files_in_directory(self.docker_venv_dir)
+        self.create_venv()
+        self.set_venv()
+        self.get_packages_to_install_from_odoo_requiremets_txt()
+        subprocess.run(
+            ["""uv pip install "cython<3.0" setuptools wheel --link-mode=copy"""],
+            shell=True,
+        )
+        for package in self.packages_to_install:
+            if "gevent" in package:
+                package = f"{package} --no-build-isolation"
+                package = package.replace("<", "=").replace(">", "=")
+                exit_code = os.system(f"""uv pip install {package} --link-mode=copy""")
+                if os.WEXITSTATUS(exit_code) != 0:
+                    self.package_installation_error(
+                        f"""Installation of package {package} was failed """
+                    )
+
+        subprocess.run(
+            [f"uv pip install -r {self.odoo_requirements_path} --link-mode=copy"],
+            shell=True,
+        )
         for package_to_install in self.requirements_txt:
-            subprocess.run([f"uv pip install {package_to_install}"], shell=True)
+            subprocess.run(
+                [f"uv pip install {package_to_install} --link-mode=copy"], shell=True
+            )
+
+    # def recreate_uv_venv(self):
+    #     delete_files_in_directory(self.docker_venv_dir)
+    #     self.create_venv()
+    #     self.set_venv()
+    #     # exit_code = os.system(f"""python3 -m pip install --upgrade pip setuptools wheel""")
+    #     # if os.WEXITSTATUS(exit_code) != 0:
+    #     #     self.package_installation_error(f"""Upgrade of pip was failed """)
+    #     self.get_packages_to_install_from_odoo_requiremets_txt()
+    #     for package in self.packages_to_install:
+    #         if "gevent" in package:
+    #             package = f"{package} --no-build-isolation"
+    #         package = package.replace("<", "=").replace(">", "=")
+    #         exit_code = os.system(f"""uv pip install {package}""")
+    #         if os.WEXITSTATUS(exit_code) != 0:
+    #             self.package_installation_error(
+    #                 f"""Installation of package {package} was failed """
+    #             )
+
+    #     for package in self.requirements_txt:
+    #         exit_code = os.system(f"""uv pip install {package}""")
+    #         if os.WEXITSTATUS(exit_code) != 0:
+    #             self.package_installation_error(
+    #                 f"""Installation of package {package} was failed """
+    #             )
 
     def check_uv_venv(self):
         dir_for_venv = os.path.join(self.docker_venv_dir, "..")

@@ -132,7 +132,7 @@ ODOO_VERSION_DEFAULT_ENV = {
     "19.0": {
         "python_version": "3.12",
         "distro_name": DEFAULT_DISTRO_NAME,
-        "distro_version": "12",
+        "distro_version": "13",
     },
     "18.0": {
         "python_version": "3.10",
@@ -142,7 +142,7 @@ ODOO_VERSION_DEFAULT_ENV = {
     "17.0": {
         "python_version": "3.10",
         "distro_name": DEFAULT_DISTRO_NAME,
-        "distro_version": DEFAULT_DISTRO_VERSION,
+        "distro_version": "12",
     },
     "16.0": {
         "python_version": "3.10",

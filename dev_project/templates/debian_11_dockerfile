@@ -24,7 +24,7 @@ RUN apt-get update && apt-get -y install git postgresql-client node-less npm ssh
     libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev\
     openssl build-essential libssl-dev libxrender-dev \
     git-core libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig\
-    xvfb libfontconfig python3-virtualenv virtualenv libx11-xcb1 chromium ffmpeg\
+    xvfb libfontconfig python3-virtualenv virtualenv libx11-xcb1 chromium ffmpeg libev-dev libuv1-dev\
     && python3 -m pip install pre-commit
 
 # RUN curl -LsSf https://astral.sh/uv/install.sh | sh && echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc

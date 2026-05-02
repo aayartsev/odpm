@@ -27,7 +27,7 @@ RUN apt-get update && apt-get -y install libxml2-dev libxslt1-dev libldap2-dev\
         libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev\
         openssl build-essential libssl-dev libxrender-dev \
         git-core libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig\
-        xvfb libfontconfig python3-virtualenv virtualenv libx11-xcb1 chromium ffmpeg \
+        xvfb libfontconfig python3-virtualenv virtualenv libx11-xcb1 chromium ffmpeg  libev-dev libuv1-dev\
         git postgresql-client node-less npm ssh  \
         && python3 -m pip install pre-commit
 
