@@ -31,7 +31,7 @@ RUN apt-get update && apt-get -y install libxml2-dev libxslt1-dev libldap2-dev\
         git postgresql-client node-less npm ssh  \
         && python3 -m pip install pre-commit
 
-RUN apt install pipx && pipx install uv
+RUN python3 -m pip install uv
 
 # Here we download and install wkhtmltox from its website, because from debian packages it has less functionality, and do not
 # render headers and footers

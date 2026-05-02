@@ -337,14 +337,14 @@ class Config:
             pathlib.PurePosixPath(self.docker_project_dir, constants.ODOO_CONF_NAME)
         )
         self.docker_venv_dir = str(
-            pathlib.PurePosixPath(self.docker_project_dir, "venv")
+            pathlib.PurePosixPath(self.docker_project_dir, constants.VENV_DIR_NAME)
         )
 
         self.docker_backups_dir = str(
             pathlib.PurePosixPath(self.docker_project_dir, "backups")
         )
         self.docker_temp_tests_dir = str(pathlib.PurePosixPath("/tmp", "odoo_tests"))
-        self.venv_dir = os.path.join(self.project_dir, "venv")
+        self.venv_dir = os.path.join(self.project_dir, constants.VENV_DIR_NAME)
         self.dir_for_odoo_container_home = os.path.join(
             self.project_dir, "data/odoo", f"home/{constants.CURRENT_USER}"
         )

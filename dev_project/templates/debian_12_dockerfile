@@ -1,6 +1,6 @@
 # #MESSAGE#
 FROM python:{PYTHON_VERSION}-{DISTRO_VERSION_CODENAME}
-  
+
 # Project variables
 ARG USER_UID={CURRENT_USER_UID}
 ARG USER_GID={CURRENT_USER_GID}
@@ -19,17 +19,20 @@ RUN groupadd --gid $USER_GID $USER_NAME \
     && chown $USER_NAME:$USER_NAME /home/$USER_NAME/.ssh\
     && mkdir -p /home/$USER_NAME/.vscode-server\
     && chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/.vscode-server
- 
+
 # install dependecies
-RUN apt-get update && apt-get -y install libxml2-dev libxslt1-dev libldap2-dev\  
-        libsasl2-dev libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev\  
-        zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev\  
+RUN apt-get update && apt-get -y install libxml2-dev libxslt1-dev libldap2-dev\
+        libsasl2-dev libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev\
+        zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev\
         libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev\
         openssl build-essential libssl-dev libxrender-dev \
         git-core libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev fontconfig\
         xvfb libfontconfig python3-virtualenv virtualenv libx11-xcb1 chromium ffmpeg \
         git postgresql-client node-less npm ssh  \
         && python3 -m pip install pre-commit
+
+RUN python3 -m pip install uv
+
 # Here we download and install wkhtmltox from its website, because from debian packages it has less functionality, and do not
 # render headers and footers
 RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_{PROCESSOR_ARCH}.deb \

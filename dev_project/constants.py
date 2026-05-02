@@ -12,6 +12,7 @@ USER_CONFIG_FILE_NAME = "user_settings.json"
 CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
 PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
 ENV_FILE_NAME = ".env"
+VENV_DIR_NAME = ".venv"
 DOCKERFILE = "Dockerfile"
 ODOO_CONF_NAME = f"{PLATFORM_NAME}.conf"
 

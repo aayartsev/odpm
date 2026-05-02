@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -20,7 +21,7 @@ class VirtualenvChecker:
         self.odoo_requirements_path = os.path.join(
             config["docker_odoo_dir"], "requirements.txt"
         )
-        self.venv_lock_file_path = os.path.join(self.docker_venv_dir, "venv.lock")
+        self.venv_lock_file_path = os.path.join(self.docker_venv_dir, ".lock")
         self.python_version = config["python_version"]
         self.arch = config["arch"]
         if self.use_uv:
@@ -142,14 +143,45 @@ class VirtualenvChecker:
         self.check_packages_for_install()
 
     def recreate_uv_venv(self):
-        os.path.join(self.docker_venv_dir)
-        clone_results = subprocess.run(f"", shell=True)
+        dir_for_venv = os.path.join(self.docker_venv_dir, "..")
+        os.chdir(dir_for_venv)
+        subprocess.run(["uv venv"], shell=True)
+        subprocess.run([f"uv pip install -r {self.odoo_requirements_path}"], shell=True)
+        for package_to_install in self.requirements_txt:
+            subprocess.run([f"uv pip install {package_to_install}"], shell=True)
+
+    def check_uv_venv(self):
+        dir_for_venv = os.path.join(self.docker_venv_dir, "..")
+        os.chdir(dir_for_venv)
+        json_pip_list_bytes = subprocess.run(
+            ["uv pip list --format json"],
+            capture_output=True,
+            shell=True,
+        )
+        json_pip_list_string = json_pip_list_bytes.stdout.decode("utf-8").strip()
+        json_pip_list = json.loads(json_pip_list_string)
+        for package_to_install in self.requirements_txt:
+            package_is_installed = False
+            for installed_package in json_pip_list:
+                if (
+                    "==" not in package_to_install
+                    and package_to_install in installed_package
+                ):
+                    package_is_installed = True
+                if (
+                    "==" in package_to_install
+                    and package_to_install in installed_package
+                ):
+                    package_is_installed = True
+            if not package_is_installed:
+                json_pip_list_bytes = subprocess.run(
+                    [f"uv pip install {package_to_install}"],
+                    capture_output=True,
+                    shell=True,
+                )
 
     def check_uv_virtual_env(self):
         if not os.path.exists(self.venv_lock_file_path):
             self.recreate_uv_venv()
-        # elif os.path.exists(self.venv_lock_file_path):
-        #     with open(self.venv_lock_file_path) as f:
-        #         content = f.readlines()
-        #     if self.arch != content[0]:
-        #         self.recreate_venv()
+        self.check_uv_venv()
+        self.set_venv()
