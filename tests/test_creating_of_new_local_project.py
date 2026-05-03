@@ -13,8 +13,6 @@ import sys
 import time
 from pathlib import Path
 
-from secure_delete import DEFAULT_PROTECTED, delete_paths, is_root
-
 # Add project root to path for logger import
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
