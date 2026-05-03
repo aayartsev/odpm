@@ -154,9 +154,6 @@ class Config:
         self.create_module_links = self.config_dict.get(
             "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
         )
-        self.odoo_version = self.config_dict.get(
-            "odoo_version", self.arguments.odoo_version or 0.0
-        )
 
         # prepare developing project
         if not self.developing_project:
@@ -187,6 +184,9 @@ class Config:
         if not os.path.exists(self.repo_odpm_json):
             self.rewrite_odpm_json()
 
+        self.odoo_version = self.config_dict.get(
+            "odoo_version", self.arguments.odoo_version or 0.0
+        )
         self.python_version = self.config_dict.get(
             "python_version", constants.DEFAULT_PYTHON_VERSION
         )
@@ -543,7 +543,7 @@ class Config:
         available_versions_str = ", ".join(
             [str(float(version)) for version in available_versions]
         )
-        user_odoo_version = self.odoo_version
+        user_odoo_version = self.arguments.odoo_version
         if not user_odoo_version:
             while True:
                 user_odoo_version = input(
