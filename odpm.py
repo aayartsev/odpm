@@ -16,7 +16,7 @@ _logger = get_module_logger(__name__)
 
 def main() -> None:
     program_dir_path = os.path.dirname(os.path.abspath(__file__))
-    start_dir_path = os.getenv("PWD", "")
+    start_dir_path = os.getcwd()
     pd_manager = ProjectDirManager(start_dir_path, args, program_dir_path)
     user_environment = CreateUserEnvironment(pd_manager)
     config = Config(

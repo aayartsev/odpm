@@ -156,6 +156,9 @@ class Config:
         self.create_module_links = self.config_dict.get(
             "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
         )
+        self.odoo_version = self.config_dict.get(
+            "odoo_version", self.arguments.odoo_version or 0.0
+        )
         self.use_uv = self.config_dict.get("use_uv", constants.DEFAULT_USE_UV)
 
         # prepare developing project
@@ -187,7 +190,6 @@ class Config:
         if not os.path.exists(self.repo_odpm_json):
             self.rewrite_odpm_json()
 
-        self.odoo_version = self.config_dict.get("odoo_version", 0.0)
         self.python_version = self.config_dict.get(
             "python_version", constants.DEFAULT_PYTHON_VERSION
         )
@@ -521,7 +523,10 @@ class Config:
                 postgres_version=self.config_json_content.get(
                     "postgres_version", constants.DEFAULT_POSTGRES_VERSION
                 ),
-                odoo_version=self.config_json_content.get("odoo_version", 0.0),
+                odoo_version=self.config_json_content.get(
+                    "odoo_version",
+                    self.arguments.odoo_version or constants.ODOO_LATEST_VERSION,
+                ),
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
                 odoo_build_date=self.config_json_content.get(
@@ -541,7 +546,7 @@ class Config:
         available_versions_str = ", ".join(
             [str(float(version)) for version in available_versions]
         )
-        user_odoo_version = self.config_dict.get("odoo_version", None)
+        user_odoo_version = self.odoo_version
         if not user_odoo_version:
             while True:
                 user_odoo_version = input(
