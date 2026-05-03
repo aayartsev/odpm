@@ -136,6 +136,12 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.VERSION,
+    help="""Will show version of odpm manager""",
+    action="store_true",
+)
+
+arg_parser.add_argument(
     cli_params.ODOO_GIT_LINK_PARAM,
     help="""Used together with the "--init" parameter to specify a custom Odoo git repository URL for cloning instead of the official https://github.com/odoo/odoo.git. Accepts HTTP, SSH, or git@ links.""",
     type=str,

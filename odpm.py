@@ -2,6 +2,7 @@
 import os
 import sys
 
+import dev_project.translations as translations
 from dev_project.check_system import SystemChecker
 from dev_project.host_config import Config
 from dev_project.host_project_env import CreateProjectEnvironment
@@ -12,6 +13,10 @@ from dev_project.inside_docker_app.parse_args import args
 from dev_project.project_dir_manager import ProjectDirManager
 
 _logger = get_module_logger(__name__)
+
+if hasattr(os, "geteuid") and os.geteuid() == 0:
+    _logger.error(translations.get_translation(translations.RUNNING_AS_ROOT_DISABLED))
+    sys.exit(1)
 
 
 def main() -> None:

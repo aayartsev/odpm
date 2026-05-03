@@ -88,6 +88,8 @@ YOU_NEED_TO_HAVE_FREE_SPACE = """You need to have free space more than {NECESSAR
 FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED = """File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"""
 ODOO_GIT_LINK_REQUIRES_INIT = """The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"""
 SWITCHING_TO_BRANCH = """Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"""
+PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION = """Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project."""
+RUNNING_AS_ROOT_DISABLED = """Running with sudo/root privileges is not permitted."""
 
 translations = {
     USER_NOT_IN_DOCKER_GROUP: {
@@ -223,6 +225,10 @@ translations = {
     SWITCHING_TO_BRANCH: {
         "ru_RU": """Переключение проекта {PROJECT_NAME} на ветку {BRANCH_NAME}""",
     },
+    PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION: {
+        "ru_RU": """Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте версию менеджера соотвествующую версии odpm в проекте. Или созданй новый проект"""
+    },
+    RUNNING_AS_ROOT_DISABLED: {"ru_RU": "Запуск скрипта от root/sudo запрещен"},
 }
 
 

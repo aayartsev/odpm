@@ -34,6 +34,7 @@ class OdpmJson(TypedDict):
     odoo_build_date: str
     odoo_git_link: str
     platform_name: str
+    odpm_version: str
 
 
 class DbCreationData(TypedDict):
@@ -99,6 +100,9 @@ class Config:
         self.pd_manager = pd_manager
         self.program_dir = program_dir
         self.arguments = arguments
+        if self.arguments.version:
+            _logger.info(f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}")
+            exit(0)
         self.config_dict = {}
         self.repo_odpm_json = ""
         self.dockerfile_path = ""
@@ -211,6 +215,19 @@ class Config:
         self.platform_name = self.config_dict.get(
             "platform_name", constants.PLATFORM_NAME
         )
+        self.project_odpm_version = self.config_dict.get(
+            "odpm_version", constants.DEFAULT_ODPM_VERSION
+        )
+        if float(self.project_odpm_version) < float(constants.ODPM_VERSION):
+            _logger.warning(
+                translations.get_translation(
+                    translations.PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION
+                ).format(
+                    PROJECT_ODPM_VERSION=self.project_odpm_version,
+                    ODPM_VERSION=constants.ODPM_VERSION,
+                )
+            )
+            exit(1)
 
         # prepare platform
         self.get_platform_sorces()
@@ -538,6 +555,9 @@ class Config:
                 platform_name=self.config_json_content.get(
                     "platform_name", constants.PLATFORM_NAME
                 ),
+                odpm_version=self.config_dict.get(
+                    "odpm_version", constants.ODPM_VERSION
+                ),
             )
         available_versions = [
             int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV
@@ -597,6 +617,7 @@ class Config:
             platform_name=self.config_dict.get(
                 "platform_name", constants.PLATFORM_NAME
             ),
+            odpm_version=self.config_dict.get("odpm_version", constants.ODPM_VERSION),
         )
         return default_odpm_json_content
 

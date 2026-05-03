@@ -16,6 +16,7 @@ from pathlib import Path
 from delete_images import remove_images_by_prefix_cli
 
 CLEAN_ALL_DATA = 0
+CLEAN_DOCKER_IMAGES = 0
 
 # Add project root to path for logger import
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -193,7 +194,7 @@ def main():
     # Dictionary for storing results
     results = {}
     all_success = True
-    if CLEAN_ALL_DATA:
+    if CLEAN_DOCKER_IMAGES:
         delete_images()
     try:
         for version in ODOO_VERSIONS:
@@ -260,4 +261,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
