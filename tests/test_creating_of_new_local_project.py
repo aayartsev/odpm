@@ -15,6 +15,8 @@ from pathlib import Path
 
 from delete_images import remove_images_by_prefix_cli
 
+CLEAN_ALL_DATA = 0
+
 # Add project root to path for logger import
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -25,7 +27,7 @@ from dev_project.inside_docker_app.logger import get_module_logger
 _logger = get_module_logger(__name__)
 
 # Odoo versions for testing
-ODOO_VERSIONS = ["19.0"]
+ODOO_VERSIONS = ["19.0", "18.0", "17.0", "16.0", "15.0", "14.0", "13.0", "12.0", "11.0"]
 
 # Test paths
 TEST_BASE_DIR = Path("/tmp/odoo_test_projects")
@@ -83,7 +85,8 @@ def create_test_environment(version: str) -> Path:
         Path to created directory
     """
     version_dir = Path(os.path.join(str(TEST_BASE_DIR), f"test-{version}"))
-    cleanup_directory(version_dir)
+    if CLEAN_ALL_DATA:
+        cleanup_directory(version_dir)
     version_dir.mkdir(parents=True, exist_ok=True)
     _logger.info(f"Created directory for version {version}: {version_dir}")
     return version_dir
@@ -171,12 +174,12 @@ def cleanup_test_artifacts():
     """
     Remove created test directories after all tests complete successfully.
     """
-    dirs_to_clean = [TEST_BASE_DIR, BACKUP_DIR, ODOO_PROJECTS_DIR]
-
-    for directory in dirs_to_clean:
-        if directory.exists():
-            _logger.info(f"Removing test directory: {directory}")
-            cleanup_directory(directory)
+    if CLEAN_ALL_DATA:
+        dirs_to_clean = [TEST_BASE_DIR, BACKUP_DIR, ODOO_PROJECTS_DIR]
+        for directory in dirs_to_clean:
+            if directory.exists():
+                _logger.info(f"Removing test directory: {directory}")
+                cleanup_directory(directory)
 
 
 def main():
@@ -190,7 +193,8 @@ def main():
     # Dictionary for storing results
     results = {}
     all_success = True
-    delete_images()
+    if CLEAN_ALL_DATA:
+        delete_images()
     try:
         for version in ODOO_VERSIONS:
             _logger.info("-" * 60)
