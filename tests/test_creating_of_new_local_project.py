@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Тестовый скрипт для создания новых локальных проектов Odoo.
+Test script for creating new local Odoo projects.
 
-Создает проекты для различных версий Odoo, измеряет время выполнения и логирует результаты.
+Creates projects for various Odoo versions, measures execution time and logs results.
 """
 
 import logging
@@ -15,26 +15,26 @@ from pathlib import Path
 
 from secure_delete import DEFAULT_PROTECTED, delete_paths, is_root
 
-# Добавляем корень проекта в path для импорта логгера
+# Add project root to path for logger import
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from dev_project.inside_docker_app.logger import get_module_logger
 
-# Инициализируем логгер из проекта
+# Initialize logger from project
 _logger = get_module_logger(__name__)
 
-# Версии Odoo для тестирования
+# Odoo versions for testing
 ODOO_VERSIONS = ["19.0"]
 
-# Пути для тестов
+# Test paths
 TEST_BASE_DIR = Path("/tmp/odoo_test_projects")
 BACKUP_DIR = Path("/tmp/odoo_backups")
 ODOO_PROJECTS_DIR = Path("/tmp/odoo_projects")
 
 
 def setup_logging():
-    """Настройка логирования на основе конфигурации проекта."""
+    """Configure logging based on project configuration."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -44,52 +44,52 @@ def setup_logging():
 
 def cleanup_directory(directory: Path):
     """
-    Удаляет содержимое директории с повышенными привилегиями.
+    Remove directory contents with elevated privileges.
 
     Args:
-        directory: Путь к директории для очистки
+        directory: Path to directory for cleanup
     """
     if directory.exists():
-        _logger.info(f"Очистка директории: {directory}")
+        _logger.info(f"Cleaning directory: {directory}")
         try:
-            # Попытка удалить через shutil
+            # Try to remove via shutil
             shutil.rmtree(directory)
         except PermissionError:
-            # Если не получилось, используем sudo
-            _logger.warning(f"Требуется sudo для удаления {directory}")
+            # If failed, use sudo
+            _logger.warning(f"sudo required to remove {directory}")
             subprocess.run(
                 ["sudo", "rm", "-rf", str(directory)],
                 check=True,
                 capture_output=True,
             )
-        _logger.info(f"Директория {directory} успешно очищена")
+        _logger.info(f"Directory {directory} successfully cleaned")
 
 
 def create_test_environment(version: str) -> Path:
     """
-    Создает каталог для тестирования указанной версии Odoo.
+    Create directory for testing specified Odoo version.
 
     Args:
-        version: Версия Odoo
+        version: Odoo version
 
     Returns:
-        Путь к созданной директории
+        Path to created directory
     """
     version_dir = Path(os.path.join(str(TEST_BASE_DIR), f"test-{version}"))
     cleanup_directory(version_dir)
     version_dir.mkdir(parents=True, exist_ok=True)
-    _logger.info(f"Создана директория для версии {version}: {version_dir}")
+    _logger.info(f"Created directory for version {version}: {version_dir}")
     return version_dir
 
 
 def create_env_file(work_dir: Path, port_offset: int = 0):
     """
-    Создает файл .env с необходимыми параметрами.
+    Create .env file with required parameters.
 
     Args:
-        work_dir: Рабочая директория
-        version: Версия Odoo
-        port_offset: Смещение для портов (чтобы избежать конфликтов)
+        work_dir: Working directory
+        version: Odoo version
+        port_offset: Port offset (to avoid conflicts)
     """
     env_content = f"""BACKUP_DIR={BACKUP_DIR}
 ODOO_PROJECTS_DIR={ODOO_PROJECTS_DIR}
@@ -102,35 +102,35 @@ ODPM_SCENARIO=developer
 """
     env_file = work_dir / ".env"
     env_file.write_text(env_content)
-    _logger.info(f"Создан файл .env в {work_dir}")
+    _logger.info(f"Created .env file in {work_dir}")
 
 
 def run_odpm_script(work_dir: Path, version: str) -> tuple[bool, float]:
     """
-    Запускает скрипт odpm.py для создания проекта.
+    Run odpm.py script for project creation.
 
     Args:
-        work_dir: Рабочая директория
-        version: Версия Odoo
+        work_dir: Working directory
+        version: Odoo version
 
     Returns:
-        Кортеж (успех, время_выполнения)
+        Tuple (success, elapsed_time)
     """
     odpm_script = PROJECT_ROOT / "odpm.py"
 
-    # Проверяем существование скрипта
+    # Check script existence
     if not odpm_script.exists():
-        _logger.error(f"Скрипт odpm.py не найден: {odpm_script}")
+        _logger.error(f"odpm.py script not found: {odpm_script}")
         return False, 0.0
 
-    # Переходим в рабочую директорию
+    # Change to working directory
     os.chdir(work_dir)
-    _logger.info(f"Переход в рабочую директорию: {work_dir}")
+    _logger.info(f"Changing to working directory: {work_dir}")
 
-    # Замеряем время начала
+    # Measure start time
     start_time = time.time()
-    _logger.info(f"Начало выполнения для версии {version}")
-    # Формируем команду
+    _logger.info(f"Starting execution for version {version}")
+    # Build command
     cmd = [
         "python3",
         str(odpm_script),
@@ -144,7 +144,7 @@ def run_odpm_script(work_dir: Path, version: str) -> tuple[bool, float]:
         "--stop-after-init",
     ]
 
-    _logger.info(f"Выполняемая команда: {' '.join(cmd)}")
+    _logger.info(f"Executing command: {' '.join(cmd)}")
 
     try:
         os.system(f"""{" ".join(cmd)}""")
@@ -152,55 +152,55 @@ def run_odpm_script(work_dir: Path, version: str) -> tuple[bool, float]:
         return True, elapsed_time
     except subprocess.TimeoutExpired:
         elapsed_time = time.time() - start_time
-        _logger.error(f"Версия {version}: ТАЙМАУТ после {elapsed_time:.2f} сек")
+        _logger.error(f"Version {version}: TIMEOUT after {elapsed_time:.2f} sec")
         return False, elapsed_time
     except Exception as e:
         elapsed_time = time.time() - start_time
-        _logger.error(f"Версия {version}: ИСКЛЮЧЕНИЕ {e} за {elapsed_time:.2f} сек")
+        _logger.error(f"Version {version}: EXCEPTION {e} in {elapsed_time:.2f} sec")
         return False, elapsed_time
 
 
 def cleanup_test_artifacts():
     """
-    Удаляет созданные тестовые каталоги после успешного завершения всех тестов.
+    Remove created test directories after all tests complete successfully.
     """
     dirs_to_clean = [TEST_BASE_DIR, BACKUP_DIR, ODOO_PROJECTS_DIR]
 
     for directory in dirs_to_clean:
         if directory.exists():
-            _logger.info(f"Удаление тестовой директории: {directory}")
+            _logger.info(f"Removing test directory: {directory}")
             cleanup_directory(directory)
 
 
 def main():
-    """Основная функция тестирования."""
+    """Main test function."""
     setup_logging()
 
     _logger.info("=" * 60)
-    _logger.info("Запуск тестирования создания проектов Odoo")
+    _logger.info("Starting Odoo project creation testing")
     _logger.info("=" * 60)
 
-    # Словарь для хранения результатов
+    # Dictionary for storing results
     results = {}
     all_success = True
 
     try:
         for version in ODOO_VERSIONS:
             _logger.info("-" * 60)
-            _logger.info(f"Обработка версии Odoo: {version}")
+            _logger.info(f"Processing Odoo version: {version}")
             _logger.info("-" * 60)
 
-            # Шаг 1: Создаем каталог для версии
+            # Step 1: Create directory for version
             work_dir = create_test_environment(version)
 
-            # Шаг 2: Создаем файл .env
+            # Step 2: Create .env file
             port_offset = ODOO_VERSIONS.index(version) * 10
             create_env_file(work_dir, port_offset)
 
-            # Шаг 3-6: Запускаем скрипт и получаем результаты
+            # Step 3-6: Run script and get results
             success, elapsed_time = run_odpm_script(work_dir, version)
 
-            # Сохраняем результаты
+            # Store results
             results[version] = {
                 "success": success,
                 "elapsed_time": elapsed_time,
@@ -209,42 +209,42 @@ def main():
 
             if not success:
                 all_success = False
-                _logger.warning(f"Тест для версии {version} завершен с ошибкой")
+                _logger.warning(f"Test for version {version} completed with error")
             else:
-                _logger.info(f"Тест для версии {version} завершен успешно")
+                _logger.info(f"Test for version {version} completed successfully")
 
-        # Шаг 7: Вывод итоговых результатов
+        # Step 7: Output final results
         _logger.info("=" * 60)
-        _logger.info("ИТОГОВЫЕ РЕЗУЛЬТАТЫ")
+        _logger.info("FINAL RESULTS")
         _logger.info("=" * 60)
 
         for version, result in results.items():
-            status = "✓ УСПЕХ" if result["success"] else "✗ ОШИБКА"
+            status = "✓ SUCCESS" if result["success"] else "✗ ERROR"
             time_str = (
-                f"{result['elapsed_time']:.2f} сек"
+                f"{result['elapsed_time']:.2f} sec"
                 if result["elapsed_time"] > 0
                 else "N/A"
             )
-            _logger.info(f"{version}: {status} | Время: {time_str}")
+            _logger.info(f"{version}: {status} | Time: {time_str}")
 
         if all_success:
             _logger.info("=" * 60)
-            _logger.info("Все тесты завершены успешно!")
-            _logger.info("Удаление тестовых каталогов...")
+            _logger.info("All tests completed successfully!")
+            _logger.info("Removing test directories...")
             cleanup_test_artifacts()
-            _logger.info("Тестовые каталоги удалены")
+            _logger.info("Test directories removed")
             _logger.info("=" * 60)
             return 0
         else:
-            _logger.warning("Некоторые тесты завершились с ошибками")
-            _logger.warning("Тестовые каталоги сохранены для отладки")
+            _logger.warning("Some tests completed with errors")
+            _logger.warning("Test directories preserved for debugging")
             return 1
 
     except KeyboardInterrupt:
-        _logger.info("Тестирование прервано пользователем (Control+C)")
+        _logger.info("Testing interrupted by user (Control+C)")
         return 1
     except Exception as e:
-        _logger.exception(f"Критическая ошибка: {e}")
+        _logger.exception(f"Critical error: {e}")
         return 1
 
 
