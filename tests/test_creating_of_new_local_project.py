@@ -13,6 +13,8 @@ import sys
 import time
 from pathlib import Path
 
+from delete_images import remove_images_by_prefix_cli
+
 # Add project root to path for logger import
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -61,6 +63,13 @@ def cleanup_directory(directory: Path):
                 capture_output=True,
             )
         _logger.info(f"Directory {directory} successfully cleaned")
+
+
+def delete_images():
+    os.system("docker builder prune -a -f")
+    remove_images_by_prefix_cli("odoo")
+    remove_images_by_prefix_cli("python")
+    remove_images_by_prefix_cli("postgres")
 
 
 def create_test_environment(version: str) -> Path:
@@ -181,7 +190,7 @@ def main():
     # Dictionary for storing results
     results = {}
     all_success = True
-
+    delete_images()
     try:
         for version in ODOO_VERSIONS:
             _logger.info("-" * 60)
