@@ -57,7 +57,7 @@ class PostgresWaiter:
             _logger.info(f"PostgreSQL is not available yet. Waiting {self.check_interval} seconds...")
             time.sleep(self.check_interval)
     
-    def wait_for_postgres_db(self, dbname, user, password, interval=1, max_attempts=None):
+    def wait_for_postgres_db(self, dbname, user, password, max_attempts=None):
         """Waits for a specific database to become available after a crash recovery."""
         try:
             import psycopg2
@@ -86,9 +86,12 @@ class PostgresWaiter:
             try:
                 # connect_timeout prevents hanging on network issues
                 conn = psycopg2.connect(
-                    host=self.host, port=self.port, dbname=dbname,
-                    user=user, password=password,
-                    connect_timeout=5
+                    host=self.host,
+                    port=self.port,
+                    dbname=dbname,
+                    user=user,
+                    password=password,
+                    connect_timeout=5,
                 )
                 with conn.cursor() as cur:
                     cur.execute("SELECT 1")
@@ -106,6 +109,6 @@ class PostgresWaiter:
                 return False
 
             # Exponential backoff: interval → ... → max 30s
-            delay = min(interval * (1.2 ** (attempt - 1)), 30)
+            delay = min(self.check_interval * (1.2 ** (attempt - 1)), 30)
             _logger.info(f"Waiting {delay:.1f}s...")
             time.sleep(delay)

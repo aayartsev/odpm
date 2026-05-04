@@ -1,14 +1,13 @@
-import re
 import os
-import subprocess
-import shutil
 import pathlib
-from urllib.parse import urlparse
+import re
+import shutil
+import subprocess
 from dataclasses import dataclass
 from typing import Literal
+from urllib.parse import urlparse
 
-from . import constants
-
+from . import constants, translations
 from .inside_docker_app.logger import get_module_logger
 
 _logger = get_module_logger(__name__)
@@ -18,33 +17,40 @@ GIT_MARKER = "git"
 SSH_MARKER = "ssh"
 FILE_SYSTEM_MARKER = "file://"
 
+
 @dataclass
 class OdooProjectData(object):
-    server:str
-    author:str
-    name:str
-    git_name:str
+    server: str
+    author: str
+    name: str
+    git_name: str
     commit: str
     branch: str
-    is_developing: bool
+    system_type: Literal["developing", "platform", "standart"]
     relative_path: str
-    project_type: Literal["module", "project"]
-    type:  Literal["http", "git", "local_filesystem", "ssh"]
+    project_type: Literal["module", "project", "platform"]
+    type: Literal["http", "git", "local_filesystem", "ssh"]
 
-class HandleOdooProjectLink():
 
-    def __init__(self, project_string:str, path_to_ssh_key: str, odoo_projects_dir: str, is_developing: bool = False):
-        self.is_true =True
+class HandleOdooProjectLink:
+    def __init__(
+        self,
+        project_string: str,
+        path_to_ssh_key: str,
+        start_dir_to_clone: str,
+        system_type: Literal["developing", "platform", "standart"] = "standart",
+    ):
+        self.is_true = True
         if not project_string:
             self.is_true = False
-        self.is_developing = is_developing
+        self.system_type: Literal["developing", "platform", "standart"] = system_type
         self.project_string = project_string
         self.project_link = ""
         self.gitlink = ""
         self.commit = ""
         self.branch = ""
         self.path_to_ssh_key = path_to_ssh_key
-        self.odoo_projects_dir = odoo_projects_dir
+        self.start_dir_to_clone = start_dir_to_clone
         self.dir_to_clone = ""
         self.git_regex = r"git@[a-z._-]*:"
         self.parse_project_string()
@@ -53,11 +59,13 @@ class HandleOdooProjectLink():
         self.project_path = self.get_project_path()
         self.update_project_type()
         self.is_cloned = False
-        
-        
-    
+
     def build_project(self) -> None:
-        if self.link_type in [constants.GITLINK_TYPE_HTTP, constants.GITLINK_TYPE_GIT, constants.GITLINK_TYPE_SSH]:
+        if self.link_type in [
+            constants.GITLINK_TYPE_HTTP,
+            constants.GITLINK_TYPE_GIT,
+            constants.GITLINK_TYPE_SSH,
+        ]:
             self.get_dir_to_clone()
             self.check_project()
         if self.link_type in [constants.GITLINK_TYPE_FILE]:
@@ -65,7 +73,9 @@ class HandleOdooProjectLink():
         project_type = self.get_project_type()
         self.inside_docker_path = self.project_data.name
         if project_type == constants.TYPE_PROJECT_MODULE:
-            self.inside_docker_path = str(pathlib.PurePosixPath(self.inside_docker_path, self.project_data.name))
+            self.inside_docker_path = str(
+                pathlib.PurePosixPath(self.inside_docker_path, self.project_data.name)
+            )
 
     def parse_project_string(self) -> None:
         project_data = self.project_string.split(" ")
@@ -102,11 +112,11 @@ class HandleOdooProjectLink():
         if git_pattern:
             project_link_type = constants.GITLINK_TYPE_GIT
         return project_link_type
-    
+
     def parse_link_by_type(self) -> OdooProjectData:
         return getattr(self, f"parse_{self.link_type}")()
 
-    def get_project_type(self) -> Literal["module", "project"]:
+    def get_project_type(self) -> Literal["module", "project", "platform"]:
         project_type = constants.TYPE_PROJECT_PROJECT
         if os.path.exists(os.path.join(self.get_project_path(), "__manifest__.py")):
             project_type = constants.TYPE_PROJECT_MODULE
@@ -117,7 +127,7 @@ class HandleOdooProjectLink():
         self.project_data.project_type = project_type
 
     def parse_local_filesystem(self) -> OdooProjectData:
-        local_path = self.project_link.replace("file://","")
+        local_path = self.project_link.replace("file://", "")
         if local_path:
             if local_path[-1] == "/":
                 local_path = local_path[:-1]
@@ -131,7 +141,7 @@ class HandleOdooProjectLink():
                 commit=self.commit,
                 branch=self.branch,
                 relative_path="",
-                is_developing=self.is_developing,
+                system_type=self.system_type,
                 project_type="project",
                 type=constants.GITLINK_TYPE_FILE,
             )
@@ -144,18 +154,21 @@ class HandleOdooProjectLink():
                 commit=self.commit,
                 branch=self.branch,
                 relative_path="",
-                is_developing=self.is_developing,
+                system_type=self.system_type,
                 project_type="project",
                 type=constants.GITLINK_TYPE_FILE,
             )
-
 
     def parse_http(self) -> OdooProjectData:
         server = self.project_link.split("/")[2]
         if ":" in server:
             server = server.split(":")[0]
         author = self.project_link.split("/")[3]
-        relative_path = self.project_link.replace("http://", "").replace("https://", "").replace(".git","")
+        relative_path = (
+            self.project_link.replace("http://", "")
+            .replace("https://", "")
+            .replace(".git", "")
+        )
         if ".git" in self.project_link:
             project_name = self.project_link.split("/")[-1].replace(".git", "")
             return OdooProjectData(
@@ -166,7 +179,7 @@ class HandleOdooProjectLink():
                 commit=self.commit,
                 branch=self.branch,
                 relative_path=relative_path,
-                is_developing=self.is_developing,
+                system_type=self.system_type,
                 project_type="project",
                 type=constants.GITLINK_TYPE_HTTP,
             )
@@ -181,7 +194,7 @@ class HandleOdooProjectLink():
                 commit=self.commit,
                 branch=self.branch,
                 relative_path=relative_path,
-                is_developing=self.is_developing,
+                system_type=self.system_type,
                 project_type="project",
                 type=constants.GITLINK_TYPE_SSH,
             )
@@ -209,11 +222,11 @@ class HandleOdooProjectLink():
             commit=self.commit,
             branch=self.branch,
             relative_path=relative_path,
-            is_developing=self.is_developing,
+            system_type=self.system_type,
             project_type="project",
             type=constants.GITLINK_TYPE_SSH,
         )
-    
+
     def parse_git(self) -> OdooProjectData:
         server = self.project_link.split(":")[0].split("@")[1]
         author = self.project_link.split(":")[1].split("/")[0]
@@ -228,21 +241,24 @@ class HandleOdooProjectLink():
             git_name=project_name,
             commit=self.commit,
             branch=self.branch,
-            is_developing=self.is_developing,
+            system_type=self.system_type,
             project_type="project",
             relative_path=relative_path,
             type=constants.GITLINK_TYPE_GIT,
         )
-    
+
     def get_project_path(self) -> str:
-        if self.link_type in [constants.GITLINK_TYPE_SSH,constants.GITLINK_TYPE_GIT,constants.GITLINK_TYPE_HTTP]:
+        if self.link_type in [
+            constants.GITLINK_TYPE_SSH,
+            constants.GITLINK_TYPE_GIT,
+            constants.GITLINK_TYPE_HTTP,
+        ]:
             if self.link_type == constants.GITLINK_TYPE_SSH:
                 os.environ["GIT_SSH_VARIANT"] = "ssh"
-            return os.path.abspath(os.path.join(
-                self.odoo_projects_dir,
-                self.project_data.relative_path
-            ))
-        local_path = self.project_link.replace("file://","")
+            return os.path.abspath(
+                os.path.join(self.start_dir_to_clone, self.project_data.relative_path)
+            )
+        local_path = self.project_link.replace("file://", "")
         if local_path:
             if self.link_type in [constants.GITLINK_TYPE_FILE]:
                 if local_path[-1] == "/":
@@ -254,20 +270,33 @@ class HandleOdooProjectLink():
 
     def check_project(self) -> None:
         state = False
+        repo_is_same = False
         project_dir_name = os.path.basename(self.project_path)
-        new_destination = os.path.join(self.dir_to_clone, f"new_project_{project_dir_name}")
+        new_destination = os.path.join(
+            self.dir_to_clone, f"new_project_{project_dir_name}"
+        )
         if self.link_type == constants.GITLINK_TYPE_HTTP and ".git" not in self.gitlink:
             if os.path.exists(new_destination):
                 self.project_path = new_destination
         if os.path.exists(self.project_path):
             if os.path.exists(os.path.join(self.project_path, ".git")):
                 os.chdir(self.project_path)
-                state = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
-        if not state or b"true" not in state.stdout:
+                state = subprocess.run(
+                    ["git", "rev-parse", "--is-inside-work-tree"], capture_output=True
+                )
+                if b"true" in state.stdout:
+                    repo_is_same = self.check_repo_url(
+                        self.get_project_path(), self.project_string
+                    )
+        if not state or b"true" not in state.stdout or not repo_is_same:
             self.force_clone_repo()
         else:
             self.is_cloned = True
-        if project_dir_name in  ["odoo"] and not os.path.exists(new_destination):
+        if (
+            project_dir_name in ["odoo"]
+            and not os.path.exists(new_destination)
+            and self.system_type != "platform"
+        ):
             os.rename(self.project_path, new_destination)
             self.project_path = new_destination
 
@@ -275,24 +304,82 @@ class HandleOdooProjectLink():
         try:
             shutil.rmtree(self.project_path)
         except FileNotFoundError:
-            pass 
+            pass
         if not os.path.exists(self.dir_to_clone):
             os.makedirs(self.dir_to_clone)
         os.chdir(self.dir_to_clone)
         self.clone_repo()
-    
-    def clone_repo(self) -> None:
-        if not self.path_to_ssh_key:
-            clone_results = subprocess.run(["git", "clone", self.gitlink], capture_output=False)
-        else:
-            clone_results = subprocess.run(f"""git clone {self.gitlink} --config core.sshCommand="ssh -i {self.path_to_ssh_key}" """, capture_output=False, shell=True)
-        if clone_results.stderr: 
-            clone_results_error_string = clone_results.stderr.decode("utf-8").strip()
-            _logger.warning(clone_results_error_string)
-            self.is_cloned = False
-        else:
-            self.is_cloned = True
-        
 
-    def __bool__(self):
+    def clone_repo(self) -> None:
+        if self.system_type != "platform":
+            if not self.path_to_ssh_key:
+                clone_results = subprocess.run(
+                    ["git", "clone", self.gitlink], capture_output=False
+                )
+            else:
+                clone_results = subprocess.run(
+                    f"""git clone {self.gitlink} --config core.sshCommand="ssh -i {self.path_to_ssh_key}" """,
+                    capture_output=False,
+                    shell=True,
+                )
+            if clone_results.stderr:
+                clone_results_error_string = clone_results.stderr.decode(
+                    "utf-8"
+                ).strip()
+                _logger.warning(clone_results_error_string)
+                self.is_cloned = False
+            else:
+                self.is_cloned = True
+        else:
+            if not self.path_to_ssh_key:
+                clone_results = subprocess.run(
+                    ["git", "clone", "--depth", "1", self.gitlink]
+                )
+            else:
+                clone_results = subprocess.run(
+                    f'git clone --depth 1 {self.gitlink} --config core.sshCommand="ssh -i {self.path_to_ssh_key}"',
+                    shell=True,
+                )
+            if clone_results.stderr:
+                clone_results_error_string = clone_results.stderr.decode(
+                    "utf-8"
+                ).strip()
+                _logger.warning(clone_results_error_string)
+                self.is_cloned = False
+            else:
+                self.is_cloned = True
+
+    def check_repo_url(self, repo_path: str, expected_url: str) -> bool:
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        actual_url = result.stdout.strip()
+
+        # Нормализация URL (убираем .git и trailing slash)
+        actual_url = actual_url.rstrip(".git").rstrip("/")
+        expected_url = expected_url.rstrip(".git").rstrip("/")
+
+        if actual_url == expected_url:
+            return True
+        else:
+            return False
+
+    def __bool__(self) -> bool:
         return self.is_true
+
+    def switch_to_branch(self, branch_name: str) -> None:
+        os.chdir(self.project_path)
+        _logger.info(
+            translations.get_translation(translations.SWITCHING_TO_BRANCH).format(
+                PROJECT_NAME=self.project_string,
+                BRANCH_NAME=branch_name,
+            )
+        )
+        subprocess.run(["git", "stash"], capture_output=True)
+        subprocess.run(["git", "clean", "-fd"], capture_output=True)
+        subprocess.run(["git", "pull"], capture_output=True)
+        subprocess.run(["git", "checkout", branch_name], capture_output=True)

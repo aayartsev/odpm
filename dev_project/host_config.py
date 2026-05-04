@@ -1,27 +1,27 @@
+import ast
+import json
 import os
 import pathlib
-import json
-import subprocess
-import ast
+import shutil
 from argparse import Namespace
-
-from typing import TypedDict
 from dataclasses import dataclass
+from typing import Literal, TypedDict
 
-from . import constants
-from . import translations
-from .inside_docker_app import cli_params
-
-from .handle_odoo_project_git_link import HandleOdooProjectLink
+from . import constants, translations
+from .handle_odoo_project_git_link import (
+    FILE_SYSTEM_MARKER,
+    GIT_MARKER,
+    HTTP_MARKER,
+    SSH_MARKER,
+    HandleOdooProjectLink,
+)
 from .host_user_env import CreateUserEnvironment
-from .project_dir_manager import ProjectDirManager
-
-from .protocols import CreateProjectEnvironmentProtocol
-from .protocols import SystemCheckerProtocol
-
 from .inside_docker_app.logger import get_module_logger
+from .project_dir_manager import ProjectDirManager
+from .protocols import CreateProjectEnvironmentProtocol, SystemCheckerProtocol
 
 _logger = get_module_logger(__name__)
+
 
 class OdpmJson(TypedDict):
     python_version: str
@@ -31,6 +31,11 @@ class OdpmJson(TypedDict):
     postgres_version: str
     dependencies: list
     requirements_txt: list
+    odoo_build_date: str
+    odoo_git_link: str
+    platform_name: str
+    odpm_version: str
+
 
 class DbCreationData(TypedDict):
     db_lang: str
@@ -38,6 +43,7 @@ class DbCreationData(TypedDict):
     create_demo: bool
     db_default_admin_login: str
     db_default_admin_password: str
+
 
 class UserSettingsJson(TypedDict):
     init_modules: list
@@ -54,6 +60,7 @@ class UserSettingsJson(TypedDict):
     use_oca_dependencies: bool
     create_module_links: bool
 
+
 class ConfigToJson(TypedDict):
     docker_odoo_dir: str
     odoo_config_data: dict
@@ -66,10 +73,12 @@ class ConfigToJson(TypedDict):
     requirements_txt: list
     odoo_version: str
     python_version: str
+    platform_name: str
     arch: str
     sql_queries: list
     modules_to_update: list
     docker_dirs_with_addons: list
+
 
 @dataclass
 class SubProject:
@@ -78,13 +87,22 @@ class SubProject:
     list_of_modules: list
     list_of_python_packages: list
 
-class Config():
 
-    def __init__(self, pd_manager: ProjectDirManager, arguments: Namespace, program_dir: str, user_env: CreateUserEnvironment) -> None:
-        
+class Config:
+    def __init__(
+        self,
+        pd_manager: ProjectDirManager,
+        arguments: Namespace,
+        program_dir: str,
+        user_env: CreateUserEnvironment,
+    ) -> None:
+
         self.pd_manager = pd_manager
         self.program_dir = program_dir
         self.arguments = arguments
+        if self.arguments.version:
+            _logger.info(f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}")
+            exit(0)
         self.config_dict = {}
         self.repo_odpm_json = ""
         self.dockerfile_path = ""
@@ -94,9 +112,8 @@ class Config():
         self.config_home_dir = self.pd_manager.home_config_dir
         self.no_log_prefix = False
         self.user_env = user_env
-        
-        if self.pd_manager.init and isinstance(self.pd_manager.init, str):
-            self.clone_project()
+        self.platform_name = ""
+
         self.postgres_data_local_storage = self.get_postgres_data_local_storage_path()
         # check current config.json file
         self.config_json_content = {}
@@ -104,49 +121,120 @@ class Config():
         # init user settings from json file
         self.get_user_settings_json()
         self.get_user_settings()
-        self.init_modules = self.beautify_module_list(self.config_dict.get("init_modules"))
-        self.update_modules = self.beautify_module_list(self.config_dict.get("update_modules"))
-        self.db_creation_data = self.config_dict.get("db_creation_data", constants.DEFAULT_DB_CREATION_DATA)
-        self.update_git_repos = self.config_dict.get("update_git_repos", constants.DEFAULT_UPDATE_GIT_REPOS)
-        self.clean_git_repos = self.config_dict.get("clean_git_repos", constants.DEFAULT_CLEAN_GIT_REPOS)
-        self.check_system = self.config_dict.get("check_system", constants.DEFAULT_CHECK_SYSTEM)
-        self.db_manager_password = self.config_dict.get("db_manager_password", constants.DEFAULT_DB_MANAGER_PASSWORD)
+        self.init_modules = self.beautify_module_list(
+            self.config_dict.get("init_modules")
+        )
+        self.update_modules = self.beautify_module_list(
+            self.config_dict.get("update_modules")
+        )
+        self.db_creation_data = self.config_dict.get(
+            "db_creation_data", constants.DEFAULT_DB_CREATION_DATA
+        )
+        self.update_git_repos = self.config_dict.get(
+            "update_git_repos", constants.DEFAULT_UPDATE_GIT_REPOS
+        )
+        self.clean_git_repos = self.config_dict.get(
+            "clean_git_repos", constants.DEFAULT_CLEAN_GIT_REPOS
+        )
+        self.check_system = self.config_dict.get(
+            "check_system", constants.DEFAULT_CHECK_SYSTEM
+        )
+        self.db_manager_password = self.config_dict.get(
+            "db_manager_password", constants.DEFAULT_DB_MANAGER_PASSWORD
+        )
         self.dev_mode = self.config_dict.get("dev_mode", constants.DEFAULT_DEV_MODE)
-        self.developing_project = self.config_dict.get("developing_project", constants.DEFAULT_DEVELOPING_PROJECT)
-        self.pre_commit_map_files = self.config_dict.get("pre_commit_map_files", constants.DEFAULT_PRE_COMMIT_MAP_FILES)
-        self.sql_queries = self.config_dict.get("sql_queries", constants.DEFAULT_SQL_QUERIES)
-        self.use_oca_dependencies = self.config_dict.get("use_oca_dependencies", constants.DEFAULT_USE_OCA_DEPENDENCIES)
-        self.create_module_links = self.config_dict.get("create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS)
+        self.developing_project = self.config_dict.get(
+            "developing_project", constants.DEFAULT_DEVELOPING_PROJECT
+        )
+        self.pre_commit_map_files = self.config_dict.get(
+            "pre_commit_map_files", constants.DEFAULT_PRE_COMMIT_MAP_FILES
+        )
+        self.sql_queries = self.config_dict.get(
+            "sql_queries", constants.DEFAULT_SQL_QUERIES
+        )
+        self.use_oca_dependencies = self.config_dict.get(
+            "use_oca_dependencies", constants.DEFAULT_USE_OCA_DEPENDENCIES
+        )
+        self.create_module_links = self.config_dict.get(
+            "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
+        )
 
         # prepare developing project
         if not self.developing_project:
-            _logger.error(translations.get_translation(translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT))
+            _logger.error(
+                translations.get_translation(
+                    translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT
+                )
+            )
             exit(1)
-        self.developing_project = self.handle_git_link(self.developing_project, is_developing=True)
+        self.developing_project = self.handle_git_link(
+            self.developing_project, system_type="standart"
+        )
+        if self.arguments.branch and isinstance(self.arguments.branch, str):
+            self.developing_project.switch_to_branch(self.arguments.branch)
         self.developing_project_dir_path = self.developing_project.project_path
         # init project settings from odpm.json
         self.get_project_odpm_json()
         self.get_odpm_settings()
 
         # check for deprecated words
-        self.check_file_for_deprecated_words(self.pd_manager.project_docker_compose_template_path)
+        self.check_file_for_deprecated_words(
+            self.pd_manager.project_docker_compose_template_path
+        )
         if not os.path.exists(self.pd_manager.project_docker_compose_template_path):
             self.pd_manager.rebuild_docker_compose_template()
 
-        self.check_file_for_deprecated_words(self.project_odpm_json)
-        if not os.path.exists(self.project_odpm_json):
+        self.check_file_for_deprecated_words(self.repo_odpm_json)
+        if not os.path.exists(self.repo_odpm_json):
             self.rewrite_odpm_json()
-        
-        self.odoo_version = self.config_dict.get("odoo_version", 0.0)
-        self.python_version = self.config_dict.get("python_version", constants.DEFAULT_PYTHON_VERSION)
-        self.distro_version = self.config_dict.get("distro_version", constants.DEFAULT_DISTRO_VERSION)
-        self.distro_name = self.config_dict.get("distro_name", constants.DEFAULT_DISTRO_NAME)
-        self.postgres_version = self.config_dict.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION)
-        self.distro_version_codename = constants.DISTRO_INFO.get(self.distro_name, {}).get(self.distro_version, "")
+
+        self.odoo_version = self.config_dict.get(
+            "odoo_version", self.arguments.odoo_version or 0.0
+        )
+        self.python_version = self.config_dict.get(
+            "python_version", constants.DEFAULT_PYTHON_VERSION
+        )
+        self.distro_version = self.config_dict.get(
+            "distro_version", constants.DEFAULT_DISTRO_VERSION
+        )
+        self.distro_name = self.config_dict.get(
+            "distro_name", constants.DEFAULT_DISTRO_NAME
+        )
+        self.postgres_version = self.config_dict.get(
+            "postgres_version", constants.DEFAULT_POSTGRES_VERSION
+        )
+        self.distro_version_codename = constants.DISTRO_INFO.get(
+            self.distro_name, {}
+        ).get(self.distro_version, "")
         self.dependencies = self.config_dict.get("dependencies", [])
         self.requirements_txt = self.config_dict.get("requirements_txt", [])
+        self.odoo_build_date = self.config_dict.get("odoo_build_date", "")
+        self.odoo_git_link = self.config_dict.get(
+            "odoo_git_link", constants.ODOO_GIT_LINK
+        )
+        self.platform_name = self.config_dict.get(
+            "platform_name", constants.PLATFORM_NAME
+        )
+        self.project_odpm_version = self.config_dict.get(
+            "odpm_version", constants.DEFAULT_ODPM_VERSION
+        )
+        if float(self.project_odpm_version) < float(constants.ODPM_VERSION):
+            _logger.warning(
+                translations.get_translation(
+                    translations.PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION
+                ).format(
+                    PROJECT_ODPM_VERSION=self.project_odpm_version,
+                    ODPM_VERSION=constants.ODPM_VERSION,
+                )
+            )
+            exit(1)
 
-        current_python_debugpy = constants.DEBUGPY.get(self.python_version, constants.DEFAULT_DEBUGPY)
+        # prepare platform
+        self.get_platform_sorces()
+
+        current_python_debugpy = constants.DEBUGPY.get(
+            self.python_version, constants.DEFAULT_DEBUGPY
+        )
         debugpy_name = current_python_debugpy.split("==")[0]
         for python_package in self.requirements_txt:
             if debugpy_name in python_package:
@@ -154,15 +242,21 @@ class Config():
         self.requirements_txt.append(current_python_debugpy)
 
         # prepare dockerfile template
-        self.dockerfile_template_name = f"""{self.distro_name}_{self.distro_version.replace(".", "")}_dockerfile"""
+        self.dockerfile_template_name = (
+            f"""{self.distro_name}_{self.distro_version.replace(".", "")}_dockerfile"""
+        )
         self.project_dockerfile_template_path = os.path.join(
             self.pd_manager.project_path,
-            os.path.join(constants.PROJECT_SERVICE_DIRECTORY, self.dockerfile_template_name)
+            os.path.join(
+                constants.PROJECT_SERVICE_DIRECTORY, self.dockerfile_template_name
+            ),
         )
         self.check_file_for_deprecated_words(self.project_dockerfile_template_path)
         if not os.path.exists(self.project_dockerfile_template_path):
-            self.pd_manager.rebuild_dockerfile_template(docker_template_filename=self.dockerfile_template_name)
-        
+            self.pd_manager.rebuild_dockerfile_template(
+                docker_template_filename=self.dockerfile_template_name
+            )
+
         # prepare vscode settings.json template
 
         # prepare list of mapped dirs for  third party modules from which our project depends on
@@ -175,61 +269,121 @@ class Config():
         self.arch = self.config_dict.get("arch", constants.ARCH)
         if self.arch == "auto":
             self.arch = constants.ARCH
-        
+
         self.odoo_image_name = f"""odoo-{self.arch}-python-{self.python_version}-{self.distro_name}-{self.distro_version.replace(".", "")}"""
-        self.docker_project_dir = str(pathlib.PurePosixPath("/home", constants.CURRENT_USER))
-        self.docker_dev_project_dir = str(pathlib.PurePosixPath(self.docker_project_dir, constants.DEV_PROJECT_DIR))
-        self.docker_inside_app = str(pathlib.PurePosixPath(self.docker_dev_project_dir, "inside_docker_app"))
-        self.docker_odoo_dir = str(pathlib.PurePosixPath(self.docker_project_dir, "odoo"))
+        self.docker_project_dir = str(
+            pathlib.PurePosixPath("/home", constants.CURRENT_USER)
+        )
+        self.docker_dev_project_dir = str(
+            pathlib.PurePosixPath(self.docker_project_dir, constants.DEV_PROJECT_DIR)
+        )
+        self.docker_inside_app = str(
+            pathlib.PurePosixPath(self.docker_dev_project_dir, "inside_docker_app")
+        )
+        self.docker_odoo_dir = str(
+            pathlib.PurePosixPath(self.docker_project_dir, self.platform_name)
+        )
 
         # prepare of mapped dirs for odoo addons
         self.catalogs_of_modules_data = []
         self.docker_dirs_with_addons = []
         self.list_of_developing_project_subprojects_data = []
-        self.docker_extra_addons = str(pathlib.PurePosixPath(self.docker_project_dir, "extra-addons"))
+        self.docker_extra_addons = str(
+            pathlib.PurePosixPath(self.docker_project_dir, "extra-addons")
+        )
         if self.developing_project:
-            if self.developing_project.project_data.project_type == constants.TYPE_PROJECT_MODULE:
-                self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name,self.developing_project.project_data.git_name))
-            if self.developing_project.project_data.project_type == constants.TYPE_PROJECT_PROJECT:
-                self.docker_odoo_project_dir_path = str(pathlib.PurePosixPath(self.docker_extra_addons, self.developing_project.project_data.name))
-            self.list_of_developing_project_subprojects_data = self.check_project_for_subprojects(self.developing_project.project_path)
+            if (
+                self.developing_project.project_data.project_type
+                == constants.TYPE_PROJECT_MODULE
+            ):
+                self.docker_odoo_project_dir_path = str(
+                    pathlib.PurePosixPath(
+                        self.docker_extra_addons,
+                        self.developing_project.project_data.name,
+                        self.developing_project.project_data.git_name,
+                    )
+                )
+            if (
+                self.developing_project.project_data.project_type
+                == constants.TYPE_PROJECT_PROJECT
+            ):
+                self.docker_odoo_project_dir_path = str(
+                    pathlib.PurePosixPath(
+                        self.docker_extra_addons,
+                        self.developing_project.project_data.name,
+                    )
+                )
+            self.list_of_developing_project_subprojects_data = (
+                self.check_project_for_subprojects(self.developing_project.project_path)
+            )
             if self.list_of_developing_project_subprojects_data:
-                self.catalogs_of_modules_data.extend(self.list_of_developing_project_subprojects_data)
+                self.catalogs_of_modules_data.extend(
+                    self.list_of_developing_project_subprojects_data
+                )
                 for subproject in self.list_of_developing_project_subprojects_data:
-                    self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_project_dir_path, subproject.subproject_rel_path)))
+                    self.docker_dirs_with_addons.append(
+                        str(
+                            pathlib.PurePosixPath(
+                                self.docker_odoo_project_dir_path,
+                                subproject.subproject_rel_path,
+                            )
+                        )
+                    )
             else:
                 self.docker_dirs_with_addons.append(self.docker_odoo_project_dir_path)
-        odoo_addons_modules_data = self.check_project_for_subprojects(os.path.join(self.user_env.odoo_src_dir, "addons"))
+        odoo_addons_modules_data = self.check_project_for_subprojects(
+            os.path.join(self.odoo_src_dir, "addons")
+        )
         self.catalogs_of_modules_data.extend(odoo_addons_modules_data)
-        self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "odoo", "addons")))
+        self.docker_dirs_with_addons.append(
+            str(
+                pathlib.PurePosixPath(
+                    self.docker_odoo_dir, self.platform_name, "addons"
+                )
+            )
+        )
         if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
-            self.docker_dirs_with_addons.append(str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons")))
-            
-        
+            if os.path.exists(os.path.join(self.odoo_src_dir, "addons")):
+                self.docker_dirs_with_addons.append(
+                    str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons"))
+                )
 
         self.path_odoo_conf = os.path.join(self.project_dir, constants.ODOO_CONF_NAME)
-        self.docker_path_odoo_conf = str(pathlib.PurePosixPath(self.docker_project_dir, constants.ODOO_CONF_NAME))
-        self.docker_venv_dir = str(pathlib.PurePosixPath(self.docker_project_dir, "venv"))
-        
-        self.docker_backups_dir = str(pathlib.PurePosixPath(self.docker_project_dir, "backups"))
+        self.docker_path_odoo_conf = str(
+            pathlib.PurePosixPath(self.docker_project_dir, constants.ODOO_CONF_NAME)
+        )
+        self.docker_venv_dir = str(
+            pathlib.PurePosixPath(self.docker_project_dir, constants.VENV_DIR_NAME)
+        )
+
+        self.docker_backups_dir = str(
+            pathlib.PurePosixPath(self.docker_project_dir, "backups")
+        )
         self.docker_temp_tests_dir = str(pathlib.PurePosixPath("/tmp", "odoo_tests"))
-        self.venv_dir = os.path.join(self.project_dir, "venv")
-        self.docker_home = os.path.join(self.project_dir, "docker_home")
-        self.dependencies_dir = os.path.join(self.project_dir, constants.DEPENDENCIES_DIR)
-        self.odoo_tests_dir = os.path.join(self.project_dir, "odoo_tests")
+        self.venv_dir = os.path.join(self.project_dir, constants.VENV_DIR_NAME)
+        self.dir_for_odoo_container_home = os.path.join(
+            self.project_dir, "data/odoo", f"home/{constants.CURRENT_USER}"
+        )
+        self.dependencies_dir = os.path.join(
+            self.project_dir, constants.DEPENDENCIES_DIR
+        )
+        self.odoo_tests_dir = os.path.join(
+            self.project_dir, "data/odoo", "tmp/odoo_tests"
+        )
         self.compose_file_version = constants.DOCKER_COMPOSE_DEFAULT_FILE_VERSION
         self.odoo_config_data = {}
 
         # list of dirs and files which symlinks must be inside of project dir
         self.list_for_symlinks = [
             self.user_env.backups,
-            self.user_env.odoo_src_dir,
+            self.odoo_src_dir,
             self.developing_project_dir_path,
+            self.repo_odpm_json,
         ]
         if self.create_module_links and os.path.exists(self.repo_odpm_json):
             self.list_for_symlinks.append(self.repo_odpm_json)
         self.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
-    
+
     @property
     def project_env(self) -> CreateProjectEnvironmentProtocol:
         """Get project_env property."""
@@ -239,7 +393,7 @@ class Config():
     def project_env(self, value: CreateProjectEnvironmentProtocol) -> None:
         """Set project_env property."""
         self._project_env = value
-    
+
     @property
     def system_checker(self) -> SystemCheckerProtocol:
         """Get system_checker property."""
@@ -249,13 +403,17 @@ class Config():
     def system_checker(self, value: SystemCheckerProtocol) -> None:
         """Set system_checker property."""
         self._system_checker = value
-    
+
     def get_postgres_data_local_storage_path(self) -> str:
-        postgres_data_local_storage_path = os.path.join(self.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR)
+        postgres_data_local_storage_path = os.path.join(
+            self.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR
+        )
         if not os.path.exists(postgres_data_local_storage_path):
-            os.mkdir(postgres_data_local_storage_path)
+            pathlib.Path(postgres_data_local_storage_path).mkdir(
+                parents=True, exist_ok=True
+            )
         return postgres_data_local_storage_path
-    
+
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
         subprojects_data = {}
         list_of_subprojects = []
@@ -268,7 +426,11 @@ class Config():
                         subprojects_data[subproject_dir_path] = [root]
                     else:
                         subprojects_data[subproject_dir_path].append(root)
-                    list_of_python_packages_for_module = self.get_names_of_python_packages_from_manifest(os.path.abspath(os.path.join(root, file)))
+                    list_of_python_packages_for_module = (
+                        self.get_names_of_python_packages_from_manifest(
+                            os.path.abspath(os.path.join(root, file))
+                        )
+                    )
                     for module in list_of_python_packages_for_module:
                         set_of_python_packages.add(module)
         for subproject_dir, module_list in subprojects_data.items():
@@ -277,30 +439,26 @@ class Config():
                 subproject_dir_path=subproject_dir,
                 subproject_rel_path=rel_path,
                 list_of_modules=module_list,
-                list_of_python_packages=list(set_of_python_packages)
+                list_of_python_packages=list(set_of_python_packages),
             )
             list_of_subprojects.append(subproject)
         return list_of_subprojects
-    
-    def get_names_of_python_packages_from_manifest(self, path_to_manifest: str) -> list[str]:
+
+    def get_names_of_python_packages_from_manifest(
+        self, path_to_manifest: str
+    ) -> list[str]:
         manifest_data = self.get_manifest_data(path_to_manifest)
         return manifest_data.get("external_dependencies", {}).get("python", [])
-    
+
     def get_manifest_data(self, path_to_manifest: str) -> dict:
         manifest_data = {}
-        f = open(path_to_manifest, mode='rb')
+        f = open(path_to_manifest, mode="rb")
         try:
-            manifest_data.update(ast.literal_eval(f.read().decode('utf-8')))
+            manifest_data.update(ast.literal_eval(f.read().decode("utf-8")))
         finally:
             f.close()
         return manifest_data
 
-    def clone_project(self) -> None:
-        if cli_params.BRANCH_PARAM in self.arguments and isinstance(cli_params.BRANCH_PARAM, str):
-            subprocess.run(["git", "stash"], capture_output=False)
-            subprocess.run(["git", "pull"], capture_output=False)
-            subprocess.run(["git", "checkout", self.arguments.branch], capture_output=False)
-    
     def check_file_for_deprecated_words(self, file_path: str) -> None:
         if not os.path.exists(file_path):
             return
@@ -316,53 +474,106 @@ class Config():
             dir_fo_file = os.path.dirname(file_path)
             filename = os.path.basename(file_path)
             deprecated_filename = f"deprecated_{filename}"
-            _logger.warning(translations.get_translation(translations.FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED).format(
-                SOURCE_FILE=file_path,
-                DEPRECATED_FILE_NAME=deprecated_filename,
-            ))
+            _logger.warning(
+                translations.get_translation(
+                    translations.FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED
+                ).format(
+                    SOURCE_FILE=file_path,
+                    DEPRECATED_FILE_NAME=deprecated_filename,
+                )
+            )
             os.rename(file_path, os.path.join(dir_fo_file, deprecated_filename))
 
-        
-
     def get_project_odpm_json(self) -> None:
-        self.repo_odpm_json = os.path.join(self.developing_project.project_path, constants.PROJECT_CONFIG_FILE_NAME)
-        self.project_odpm_json = os.path.join(self.project_dir, constants.PROJECT_CONFIG_FILE_NAME)
-        if not os.path.exists(self.repo_odpm_json) and not os.path.exists(self.project_odpm_json):
+        self.repo_odpm_json = os.path.join(
+            self.developing_project.project_path, constants.PROJECT_CONFIG_FILE_NAME
+        )
+        self.project_odpm_json = os.path.join(
+            self.project_dir, constants.PROJECT_CONFIG_FILE_NAME
+        )
+        if not os.path.exists(self.repo_odpm_json) and not os.path.exists(
+            self.project_odpm_json
+        ):
             self.rewrite_odpm_json()
 
     def rewrite_odpm_json(self) -> None:
         default_odpm_json_content = self.create_default_odpm_json_content()
-        with open(self.project_odpm_json, "w", encoding="utf-8") as odpm_json_file:
-            json.dump(default_odpm_json_content, odpm_json_file, ensure_ascii=False, indent=4)
-            
-    
+        pathlib.Path(self.developing_project.project_path).mkdir(
+            parents=True, exist_ok=True
+        )
+        with open(self.repo_odpm_json, "w", encoding="utf-8") as odpm_json_file:
+            json.dump(
+                default_odpm_json_content, odpm_json_file, ensure_ascii=False, indent=4
+            )
+
     def get_user_settings_json(self) -> None:
-        self.user_settings_json = os.path.join(self.project_dir, constants.USER_CONFIG_FILE_NAME)
+        self.user_settings_json = os.path.join(
+            self.project_dir, constants.USER_CONFIG_FILE_NAME
+        )
         if not os.path.exists(self.user_settings_json):
-            default_user_settings_json_content = self.create_default_user_setting_json_content()
-            with open(self.user_settings_json, "w", encoding="utf-8") as user_settings_json_file:
-                json.dump(default_user_settings_json_content, user_settings_json_file, ensure_ascii=False, indent=4)
+            default_user_settings_json_content = (
+                self.create_default_user_setting_json_content()
+            )
+            with open(
+                self.user_settings_json, "w", encoding="utf-8"
+            ) as user_settings_json_file:
+                json.dump(
+                    default_user_settings_json_content,
+                    user_settings_json_file,
+                    ensure_ascii=False,
+                    indent=4,
+                )
 
     def create_default_odpm_json_content(self) -> OdpmJson:
         if self.config_json_content:
             return OdpmJson(
-                python_version=self.config_json_content.get("python_version", constants.DEFAULT_PYTHON_VERSION),
-                distro_name=self.config_json_content.get("distro_name", constants.DEFAULT_DISTRO_NAME),
-                distro_version=self.config_json_content.get("distro_version", constants.DEFAULT_DISTRO_VERSION),
-                postgres_version=self.config_json_content.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION),
-                odoo_version=self.config_json_content.get("odoo_version", 0.0),
+                python_version=self.config_json_content.get(
+                    "python_version", constants.DEFAULT_PYTHON_VERSION
+                ),
+                distro_name=self.config_json_content.get(
+                    "distro_name", constants.DEFAULT_DISTRO_NAME
+                ),
+                distro_version=self.config_json_content.get(
+                    "distro_version", constants.DEFAULT_DISTRO_VERSION
+                ),
+                postgres_version=self.config_json_content.get(
+                    "postgres_version", constants.DEFAULT_POSTGRES_VERSION
+                ),
+                odoo_version=self.config_json_content.get(
+                    "odoo_version",
+                    self.arguments.odoo_version or constants.ODOO_LATEST_VERSION,
+                ),
                 dependencies=self.config_json_content.get("dependencies", []),
                 requirements_txt=self.config_json_content.get("requirements_txt", []),
+                odoo_build_date=self.config_json_content.get(
+                    "odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE
+                ),
+                odoo_git_link=self.config_json_content.get(
+                    "odoo_git_link",
+                    self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK,
+                ),
+                platform_name=self.config_json_content.get(
+                    "platform_name", constants.PLATFORM_NAME
+                ),
+                odpm_version=self.config_dict.get(
+                    "odpm_version", constants.ODPM_VERSION
+                ),
             )
-        available_versions = [int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV]
-        available_versions_str = ", ".join([str(float(version)) for version in available_versions])
-        user_odoo_version = self.config_dict.get("odoo_version", None)
+        available_versions = [
+            int(float(version)) for version in constants.ODOO_VERSION_DEFAULT_ENV
+        ]
+        available_versions_str = ", ".join(
+            [str(float(version)) for version in available_versions]
+        )
+        user_odoo_version = self.arguments.odoo_version
         if not user_odoo_version:
             while True:
-                user_odoo_version = input(translations.get_translation(translations.SET_ODOO_VERSION).format(
+                user_odoo_version = input(
+                    translations.get_translation(translations.SET_ODOO_VERSION).format(
                         ODOO_LATEST_VERSION=constants.ODOO_LATEST_VERSION,
-                        AVAILABEL_ODOO_VERSIONS_ARE = available_versions_str,
-                    ))
+                        AVAILABEL_ODOO_VERSIONS_ARE=available_versions_str,
+                    )
+                )
                 try:
                     if not user_odoo_version:
                         user_odoo_version = constants.ODOO_LATEST_VERSION
@@ -374,19 +585,40 @@ class Config():
                 except:
                     continue
 
-        _logger.info(translations.get_translation(translations.YOU_SELECT_ODOO_VERSION).format(
-            SELECTED_ODOO_VERSION=user_odoo_version,
-        ))
+        _logger.info(
+            translations.get_translation(translations.YOU_SELECT_ODOO_VERSION).format(
+                SELECTED_ODOO_VERSION=user_odoo_version,
+            )
+        )
         default_odpm_json_content = OdpmJson(
-            python_version=self.config_dict.get("python_version",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["python_version"]),
-            distro_version=self.config_dict.get("distro_version",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_version"]),
-            distro_name=self.config_dict.get("distro_name",constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"]),
-            postgres_version=self.config_dict.get("postgres_version", constants.DEFAULT_POSTGRES_VERSION),
+            python_version=self.config_dict.get(
+                "python_version",
+                constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["python_version"],
+            ),
+            distro_version=self.config_dict.get(
+                "distro_version",
+                constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_version"],
+            ),
+            distro_name=self.config_dict.get(
+                "distro_name",
+                constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"],
+            ),
+            postgres_version=self.config_dict.get(
+                "postgres_version", constants.DEFAULT_POSTGRES_VERSION
+            ),
             odoo_version=user_odoo_version,
             dependencies=self.config_dict.get("dependencies", []),
             requirements_txt=self.config_dict.get("requirements_txt", []),
+            odoo_build_date=self.config_dict.get("odoo_build_date", ""),
+            odoo_git_link=self.config_dict.get(
+                "odoo_git_link",
+                self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK,
+            ),
+            platform_name=self.config_dict.get(
+                "platform_name", constants.PLATFORM_NAME
+            ),
+            odpm_version=self.config_dict.get("odpm_version", constants.ODPM_VERSION),
         )
-        
         return default_odpm_json_content
 
     def get_user_settings(self) -> None:
@@ -394,29 +626,46 @@ class Config():
             with open(self.user_settings_json) as user_settings_file:
                 user_settings_dict = json.load(user_settings_file)
                 self.config_dict = user_settings_dict
-    
+
     def get_odpm_settings(self) -> None:
-        if os.path.exists(self.project_odpm_json):
-            with open(self.project_odpm_json) as project_odpm_file:
-                project_odpm_dict = json.load(project_odpm_file)
-                self.config_dict.update(project_odpm_dict)
-        elif os.path.exists(self.repo_odpm_json):
-            with open(self.repo_odpm_json) as repo_odpm_json:
-                repo_odpm_json = json.load(repo_odpm_json)
-                self.config_dict.update(repo_odpm_json)
+        if os.path.exists(self.project_odpm_json) and not os.path.exists(
+            self.repo_odpm_json
+        ):
+            shutil.move(self.project_odpm_json, self.repo_odpm_json)
+        if (
+            not os.path.islink(self.project_odpm_json)
+            and os.path.exists(self.project_odpm_json)
+            and os.path.exists(self.repo_odpm_json)
+        ):
+            os.rename(
+                self.project_odpm_json,
+                f"deprecated_{constants.PROJECT_CONFIG_FILE_NAME}",
+            )
+        if not os.path.exists(self.repo_odpm_json):
+            self.rewrite_odpm_json()
+        with open(self.repo_odpm_json) as repo_odpm_json:
+            repo_odpm_json = json.load(repo_odpm_json)
+            self.config_dict.update(repo_odpm_json)
 
     def check_for_config(self) -> None:
-        self.config_json_path = os.path.join(self.project_dir, constants.CONFIG_FILE_NAME)
-        self.config_deprecated_json_path = os.path.join(self.project_dir, f"deprecated_{self.config_json_path}")
+        self.config_json_path = os.path.join(
+            self.project_dir, constants.CONFIG_FILE_NAME
+        )
+        self.config_deprecated_json_path = os.path.join(
+            self.project_dir, f"deprecated_{self.config_json_path}"
+        )
         if os.path.exists(self.config_json_path):
             with open(self.config_json_path) as config_file:
                 self.config_json_content = json.load(config_file)
             os.rename(self.config_json_path, self.config_deprecated_json_path)
-            _logger.warning(translations.get_translation(translations.CONFIG_JSON_IS_DEPRECATED).format(
+            _logger.warning(
+                translations.get_translation(
+                    translations.CONFIG_JSON_IS_DEPRECATED
+                ).format(
                     CONFIG_FILE_NAME=constants.CONFIG_FILE_NAME,
-                ))
+                )
+            )
 
-    
     def beautify_module_list(self, modules) -> str:
         if not modules:
             return constants.DEFAULT_LIST_OF_MODULES
@@ -427,40 +676,99 @@ class Config():
             modules = [module.strip() for module in modules]
             modules = ",".join(modules)
         return modules
-        
-    
+
     def create_default_user_setting_json_content(self) -> UserSettingsJson:
         user_settings_content = UserSettingsJson(
-            init_modules=self.config_json_content.get("init_modules", constants.DEFAULT_INIT_MODULES),
-            update_modules=self.config_json_content.get("update_modules", constants.DEFAULT_UPDATE_MODULES),
-            db_creation_data=DbCreationData(
-                db_lang=self.config_json_content.get("db_creation_data", {}).get("db_lang", constants.DEFAULT_DB_CREATION_DATA_DB_LANG),
-                db_country_code=self.config_json_content.get("db_creation_data", {}).get("db_country_code", constants.DEFAULT_DB_CREATION_DATA_DB_COUNTRY_CODE),
-                create_demo=self.config_json_content.get("db_creation_data", {}).get("create_demo", constants.DEFAULT_DB_CREATION_DATA_CREATE_DEMO),
-                db_default_admin_login=self.config_json_content.get("db_creation_data", {}).get("db_default_admin_login", constants.DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_LOGIN),
-                db_default_admin_password=self.config_json_content.get("db_creation_data", {}).get("db_default_admin_password", constants.DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_PASSWORD),
+            init_modules=self.config_json_content.get(
+                "init_modules", constants.DEFAULT_INIT_MODULES
             ),
-            update_git_repos=self.config_json_content.get("update_git_repos", constants.DEFAULT_UPDATE_GIT_REPOS),
-            clean_git_repos=self.config_json_content.get("clean_git_repos", constants.DEFAULT_CLEAN_GIT_REPOS),
-            check_system=self.config_json_content.get("check_system", constants.DEFAULT_CHECK_SYSTEM),
-            db_manager_password=self.config_json_content.get("db_manager_password", constants.DEFAULT_DB_MANAGER_PASSWORD),
-            dev_mode=self.config_json_content.get("dev_mode", constants.DEFAULT_DEV_MODE),
-            developing_project=self.config_json_content.get("developing_project", self.pd_manager.init or constants.DEFAULT_DEVELOPING_PROJECT),
-            pre_commit_map_files=self.config_json_content.get("pre_commit_map_files", constants.DEFAULT_PRE_COMMIT_MAP_FILES),
-            sql_queries=self.config_json_content.get("sql_queries", constants.DEFAULT_SQL_QUERIES),
-            use_oca_dependencies=self.config_json_content.get("use_oca_dependencies", constants.DEFAULT_USE_OCA_DEPENDENCIES), 
-            create_module_links = self.config_json_content.get("create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS),
+            update_modules=self.config_json_content.get(
+                "update_modules", constants.DEFAULT_UPDATE_MODULES
+            ),
+            db_creation_data=DbCreationData(
+                db_lang=self.config_json_content.get("db_creation_data", {}).get(
+                    "db_lang", constants.DEFAULT_DB_CREATION_DATA_DB_LANG
+                ),
+                db_country_code=self.config_json_content.get(
+                    "db_creation_data", {}
+                ).get(
+                    "db_country_code",
+                    constants.DEFAULT_DB_CREATION_DATA_DB_COUNTRY_CODE,
+                ),
+                create_demo=self.config_json_content.get("db_creation_data", {}).get(
+                    "create_demo", constants.DEFAULT_DB_CREATION_DATA_CREATE_DEMO
+                ),
+                db_default_admin_login=self.config_json_content.get(
+                    "db_creation_data", {}
+                ).get(
+                    "db_default_admin_login",
+                    constants.DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_LOGIN,
+                ),
+                db_default_admin_password=self.config_json_content.get(
+                    "db_creation_data", {}
+                ).get(
+                    "db_default_admin_password",
+                    constants.DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_PASSWORD,
+                ),
+            ),
+            update_git_repos=self.config_json_content.get(
+                "update_git_repos", constants.DEFAULT_UPDATE_GIT_REPOS
+            ),
+            clean_git_repos=self.config_json_content.get(
+                "clean_git_repos", constants.DEFAULT_CLEAN_GIT_REPOS
+            ),
+            check_system=self.config_json_content.get(
+                "check_system", constants.DEFAULT_CHECK_SYSTEM
+            ),
+            db_manager_password=self.config_json_content.get(
+                "db_manager_password", constants.DEFAULT_DB_MANAGER_PASSWORD
+            ),
+            dev_mode=self.config_json_content.get(
+                "dev_mode", constants.DEFAULT_DEV_MODE
+            ),
+            developing_project=self.get_developing_project_link(),
+            pre_commit_map_files=self.config_json_content.get(
+                "pre_commit_map_files", constants.DEFAULT_PRE_COMMIT_MAP_FILES
+            ),
+            sql_queries=self.config_json_content.get(
+                "sql_queries", constants.DEFAULT_SQL_QUERIES
+            ),
+            use_oca_dependencies=self.config_json_content.get(
+                "use_oca_dependencies", constants.DEFAULT_USE_OCA_DEPENDENCIES
+            ),
+            create_module_links=self.config_json_content.get(
+                "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
+            ),
         )
         return user_settings_content
 
+    def get_developing_project_link(self) -> str:
+        config_json_dev_link = self.config_json_content.get("developing_project")
+        if config_json_dev_link:
+            return config_json_dev_link
+        pd_manger_init_dev_link = self.pd_manager.init
+        if pd_manger_init_dev_link == ".":
+            pd_manger_init_dev_link = (
+                f"file://{self.pd_manager.project_path}/my_odoo_project"
+            )
+            return pd_manger_init_dev_link
+        for marker in [HTTP_MARKER, GIT_MARKER, SSH_MARKER, FILE_SYSTEM_MARKER]:
+            if marker in pd_manger_init_dev_link:
+                # TODO make check for file://
+                return pd_manger_init_dev_link
+        pd_manger_init_dev_link = f"file://{os.path.join(self.pd_manager.project_path, pd_manger_init_dev_link)}"
+        return pd_manger_init_dev_link
 
-    
-    def handle_git_link(self, gitlink: str, is_developing: bool = False) -> HandleOdooProjectLink:
+    def handle_git_link(
+        self,
+        gitlink: str,
+        system_type: Literal["developing", "platform", "standart"] = "standart",
+    ) -> HandleOdooProjectLink:
         odoo_project = HandleOdooProjectLink(
             gitlink,
             self.user_env.path_to_ssh_key,
             self.user_env.odoo_projects_dir,
-            is_developing=is_developing
+            system_type=system_type,
         )
         odoo_project.build_project()
         return odoo_project
@@ -478,12 +786,16 @@ class Config():
             requirements_txt=self.requirements_txt,
             odoo_version=self.odoo_version,
             python_version=self.python_version,
+            platform_name=self.platform_name,
             arch=self.arch,
             sql_queries=self.sql_queries,
             modules_to_update=self.update_modules.split(","),
             docker_dirs_with_addons=self.docker_dirs_with_addons,
         )
         return json.dumps(config).encode("utf-8")
-            
 
-
+    def get_platform_sorces(self):
+        self.odoo_platform_project = self.handle_git_link(
+            self.odoo_git_link, system_type="platform"
+        )
+        self.odoo_src_dir = self.odoo_platform_project.get_project_path()

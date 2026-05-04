@@ -4,6 +4,7 @@ import platform
 ARCH = str(platform.machine()).lower()
 DEV_PROJECT_DIR = "dev_project"
 CONFIG_FILE_NAME = "config.json"
+PLATFORM_NAME = "odoo"
 
 PROJECT_NAME = "odpm"
 PROJECT_CONFIG_FILE_NAME = f"{PROJECT_NAME.lower()}.json"
@@ -11,17 +12,30 @@ USER_CONFIG_FILE_NAME = "user_settings.json"
 CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
 PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
 ENV_FILE_NAME = ".env"
+VENV_DIR_NAME = ".venv"
 DOCKERFILE = "Dockerfile"
-ODOO_CONF_NAME = "odoo.conf"
+ODOO_CONF_NAME = f"{PLATFORM_NAME}.conf"
 
-PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(DEV_PROJECT_DIR, "templates", "docker-compose.yml")
-PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "docker-compose.yml")
+PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "docker-compose.yml"
+)
+PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "docker-compose.yml"
+)
 
-PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(DEV_PROJECT_DIR, "templates", "dev_odoo_docker_config_file.conf")
-PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "dev_odoo_docker_config_file.conf")
+PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "dev_odoo_docker_config_file.conf"
+)
+PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "dev_odoo_docker_config_file.conf"
+)
 
-PROGRAM_VSCODE_SETTINGS_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "vscode_settings.json")
-PROJECT_VSCODE_SETTINGS_TEMPLATE = os.path.join(PROJECT_SERVICE_DIRECTORY, "vscode_settings.json")
+PROGRAM_VSCODE_SETTINGS_TEMPLATE = os.path.join(
+    DEV_PROJECT_DIR, "templates", "vscode_settings.json"
+)
+PROJECT_VSCODE_SETTINGS_TEMPLATE = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "vscode_settings.json"
+)
 
 DATABASE_NAME_INSTANCE = "db"
 DEBUGGER_DEFAULT_PORT = 5678
@@ -52,6 +66,7 @@ if ARCH == "aarch64":
 
 if platform.system() == "Linux":
     import pwd
+
     CURRENT_USER_UID = os.getuid()
     CURRENT_USER_GID = os.getgid()
     CURRENT_USER = pwd.getpwuid(CURRENT_USER_UID)[0]
@@ -82,6 +97,7 @@ POSTGRES_ODOO_PORT_MARKER = "#POSTGRES_ODOO_PORT_MARKER#"
 ODOO_PORT_MARKER = "#ODOO_PORT_MARKER#"
 
 ODOO_GIT_LINK = "https://github.com/odoo/odoo.git"
+ODOO_DEFAULT_BUILD_DATE = "latest"
 
 DEFAULT_DEBUGPY = "debugpy==1.6.3"
 DEBUGPY = {
@@ -99,15 +115,15 @@ DEFAULT_PYTHON_VERSION = "3.7"
 DEFAULT_DISTRO_NAME = "debian"
 DEFAULT_DISTRO_VERSION = "11"
 DISTRO_INFO = {
-    "debian":{
+    "debian": {
         "11": "bullseye",
         "12": "bookworm",
         "13": "trixie",
     },
-    "ubuntu":{
+    "ubuntu": {
         "22.04": "jammy",
         "20.04": "focal",
-    }
+    },
 }
 
 # git rev-parse --abbrev-ref HEAD
@@ -116,7 +132,7 @@ ODOO_VERSION_DEFAULT_ENV = {
     "19.0": {
         "python_version": "3.12",
         "distro_name": DEFAULT_DISTRO_NAME,
-        "distro_version": "12",
+        "distro_version": "13",
     },
     "18.0": {
         "python_version": "3.10",
@@ -126,7 +142,7 @@ ODOO_VERSION_DEFAULT_ENV = {
     "17.0": {
         "python_version": "3.10",
         "distro_name": DEFAULT_DISTRO_NAME,
-        "distro_version": DEFAULT_DISTRO_VERSION,
+        "distro_version": "12",
     },
     "16.0": {
         "python_version": "3.10",
@@ -178,6 +194,8 @@ ODPM_SCENARIOS = {
     2: SERVER_SCENARIO,
 }
 DEFAULT_ODPM_SCENARIO = DEVELOPER_SCENARIO
+DEFAULT_ODPM_VERSION = "3.0"
+ODPM_VERSION = "4.0"
 
 ####
 # Default user_settings.json values
@@ -206,13 +224,15 @@ DEFAULT_CREATE_MODULE_LINKS = False
 
 # YANDEX DISK LINKS
 YADISK_SHARING_LINK = "https://disk.yandex.ru/d/FbMn-ySeNYGAoQ"
-YADISK_API_ENDPOINT = "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
+YADISK_API_ENDPOINT = (
+    "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
+)
 
-FREE_SPACE_FOR_USAGE = 20.0
+FREE_SPACE_FOR_USAGE = 2.0
 
 DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
 LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]
 
 DEPENDENCIES_DIR = "dependencies"
 
-POSTGRES_LOCAL_STORAGE_DIR = "db_data"
+POSTGRES_LOCAL_STORAGE_DIR = "data/postgresql/var/lib/postgresql/data"

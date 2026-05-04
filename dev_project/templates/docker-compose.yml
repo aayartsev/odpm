@@ -22,6 +22,7 @@ services:
       - {DATABASE_NAME_INSTANCE}
     environment:
       - PYTHONUNBUFFERED=1
+      - PYTHONWARNINGS="ignore::DeprecationWarning:docutils"
     ports:
       - {ODOO_PORT}:{ODOO_DOCKER_PORT}
       - {GEVENT_PORT}:{GEVENT_DOCKER_PORT}
