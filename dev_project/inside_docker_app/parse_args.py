@@ -148,6 +148,12 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.PLATFORM_NAME,
+    help=f"""Used together with the "{cli_params.INIT_PARAM}" and "{cli_params.ODOO_GIT_LINK_PARAM}" parameters to specify custom name for Odoo fork.""",
+    type=str,
+)
+
+arg_parser.add_argument(
     cli_params.SKIP_START,
     help="""Will generate docker-compose.yaml and exit without lounching odoo instance. After this command you can start instace with "docker compose up -d" for example""",
     nargs="?",

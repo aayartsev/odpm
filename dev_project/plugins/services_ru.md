@@ -60,3 +60,26 @@
       retries: 3
     restart: unless-stopped
 ```
+
+Тестовый почтовый сервер. Имеет web интерфейс на порту 8025
+```yml
+mailpit:
+   container_name: mailpit
+   image: axllent/mailpit
+   restart: unless-stopped
+   volumes:
+    - ./data/mailpit:/data
+   ports:
+    - 8025:8025
+    - 1025:1025
+    - 1110:1110
+   environment:
+    - MP_MAX_MESSAGES=5000
+    - MP_POP3_BIND_ADDR=0.0.0.0:1110
+    - MP_DATABASE=/data/mailpit.db
+    - MP_SMTP_AUTH_ACCEPT_ANY=1
+    - MP_SMTP_AUTH_ALLOW_INSECURE=1
+    - MP_POP3_AUTH=user1:user1 user2:user2
+```
+
+# https://github.com/vernu/textbee - проект для тестирования отправки sms сообщений

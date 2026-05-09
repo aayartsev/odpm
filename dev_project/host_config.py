@@ -112,7 +112,7 @@ class Config:
         self.config_home_dir = self.pd_manager.home_config_dir
         self.no_log_prefix = False
         self.user_env = user_env
-        self.platform_name = ""
+        self.platform_name = constants.PLATFORM_NAME
 
         self.postgres_data_local_storage = self.get_postgres_data_local_storage_path()
         # check current config.json file
@@ -550,10 +550,11 @@ class Config:
                 ),
                 odoo_git_link=self.config_json_content.get(
                     "odoo_git_link",
-                    self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK,
+                    self.arguments.odoo_git_link or constants.ODOO_GIT_LINK,
                 ),
                 platform_name=self.config_json_content.get(
-                    "platform_name", constants.PLATFORM_NAME
+                    "platform_name",
+                    self.arguments.platform_name or constants.PLATFORM_NAME,
                 ),
                 odpm_version=self.config_dict.get(
                     "odpm_version", constants.ODPM_VERSION
@@ -612,10 +613,11 @@ class Config:
             odoo_build_date=self.config_dict.get("odoo_build_date", ""),
             odoo_git_link=self.config_dict.get(
                 "odoo_git_link",
-                self.pd_manager.odoo_git_link or constants.ODOO_GIT_LINK,
+                self.arguments.odoo_git_link or constants.ODOO_GIT_LINK,
             ),
             platform_name=self.config_dict.get(
-                "platform_name", constants.PLATFORM_NAME
+                "platform_name",
+                self.arguments.platform_name or constants.PLATFORM_NAME,
             ),
             odpm_version=self.config_dict.get("odpm_version", constants.ODPM_VERSION),
         )
