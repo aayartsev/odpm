@@ -148,13 +148,37 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
-    cli_params.PLATFORM_NAME,
+    cli_params.PLATFORM_NAME_PARAM,
     help=f"""Used together with the "{cli_params.INIT_PARAM}" and "{cli_params.ODOO_GIT_LINK_PARAM}" parameters to specify custom name for Odoo fork.""",
     type=str,
 )
 
 arg_parser.add_argument(
-    cli_params.SKIP_START,
+    cli_params.PYTHON_VERSION_PARAM,
+    help="""You can set python version by this param""",
+    type=str,
+)
+
+arg_parser.add_argument(
+    cli_params.DISTRO_VERSION_PARAM,
+    help="""You can set Linux distro version by this param, now supported only Debian 11, 12, 13""",
+    type=str,
+)
+
+arg_parser.add_argument(
+    cli_params.DISTRO_NAME_PARAM,
+    help="""You can set Linux distro name by this param, now supported only Debian 11, 12, 13""",
+    type=str,
+)
+
+arg_parser.add_argument(
+    cli_params.POSTGRES_VERSION_PARAM,
+    help="""You can set Postgres version by this param""",
+    type=str,
+)
+
+arg_parser.add_argument(
+    cli_params.SKIP_START_PARAM,
     help="""Will generate docker-compose.yaml and exit without lounching odoo instance. After this command you can start instace with "docker compose up -d" for example""",
     nargs="?",
     default=None,
@@ -163,7 +187,7 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
-    cli_params.ODOO_BIN,
+    cli_params.ODOO_BIN_PARAM,
     nargs=argparse.REMAINDER,
     help="""Command to pass through as a single string""",
 )

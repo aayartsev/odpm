@@ -183,7 +183,7 @@ class ProjectDirManager:
                 writer.write(content)
 
     def check_odoo_git_link(self):
-        if self.odoo_git_link and not self.init:
+        if self.arguments.odoo_git_link and not self.init:
             _logger.error(
                 translations.get_translation(
                     translations.ODOO_GIT_LINK_REQUIRES_INIT
@@ -193,5 +193,5 @@ class ProjectDirManager:
                 )
             )
             exit(1)
-        if not self.odoo_git_link:
-            self.odoo_git_link = constants.ODOO_GIT_LINK
+        if not self.arguments.odoo_git_link:
+            self.arguments.odoo_git_link = constants.ODOO_GIT_LINK

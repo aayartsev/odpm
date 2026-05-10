@@ -5,6 +5,7 @@ import subprocess
 import sys
 import venv
 
+import pip._vendor.packaging.version as pip_ver
 from logger import get_module_logger
 from pip._internal.operations.freeze import freeze
 from pip._vendor.packaging.markers import Marker, default_environment
@@ -30,6 +31,14 @@ class VirtualenvChecker:
         if self.uv_info.get("installed"):
             self.use_uv = True
         self.check_uv_virtual_env()
+
+    def compare_versions(self, ver1: str, ver2: str) -> int:
+        """
+        Returns: -1 if ver1 < ver2, 0 if ver1 == ver2, 1 if ver1 > ver2
+        """
+        v1 = pip_ver.parse(ver1)
+        v2 = pip_ver.parse(ver2)
+        return (v1 > v2) - (v1 < v2)
 
     def check_uv_installed(self) -> dict:
         """
@@ -209,26 +218,72 @@ class VirtualenvChecker:
             options = ""
             list_of_installed_packages = [pkg for pkg in freeze()]
         for package_to_install in self.requirements_txt:
-            package_is_installed = False
-            for installed_package in list_of_installed_packages:
-                if (
-                    "==" not in package_to_install
-                    and package_to_install in installed_package
-                ):
-                    package_is_installed = True
-                if (
-                    "==" in package_to_install
-                    and package_to_install in installed_package
-                ):
-                    package_is_installed = True
-            if not package_is_installed:
-                json_pip_list_bytes = subprocess.run(
-                    [
-                        f"{manager_commad} pip install {package_to_install} {options}".strip()
-                    ],
-                    capture_output=True,
-                    shell=True,
+            instructions_for_package = self.check_package_to_install(
+                package_to_install, list_of_installed_packages
+            )
+            for instruction in instructions_for_package:
+                command = instruction.get("command")
+                package_name = instruction.get("name")
+                package_version = instruction.get("version")
+                full_package_name = f"{package_name}=={package_version}"
+                if instruction:
+                    json_pip_list_bytes = subprocess.run(
+                        [
+                            f"{manager_commad} pip {command} {full_package_name} {options}".strip()
+                        ],
+                        capture_output=True,
+                        shell=True,
+                    )
+
+    def check_package_to_install(self, package_string, installed_package_list):
+        instructions = []
+        to_install_package_version = False
+        if "==" in package_string:
+            to_install_package_name = package_string.split("==")[0]
+            to_install_package_version = package_string.split("==")[1]
+        else:
+            to_install_package_name = package_string
+        for installed_package_info in installed_package_list:
+            installed_package_name = installed_package_info.get("name")
+            installed_package_version = installed_package_info.get("version")
+            if to_install_package_name == installed_package_name:
+                if not to_install_package_version:
+                    return [
+                        {
+                            "command": "install",
+                            "name": to_install_package_name,
+                            "version": "",
+                        }
+                    ]
+                compare_result = self.compare_versions(
+                    to_install_package_version, installed_package_version
                 )
+                if compare_result == 0:
+                    return [
+                        {
+                            "command": "install",
+                            "name": to_install_package_name,
+                            "version": to_install_package_version,
+                        }
+                    ]
+                instructions.append(
+                    {
+                        "command": "remove",
+                        "name": installed_package_name,
+                        "version": installed_package_version,
+                    }
+                )
+                instructions.append(
+                    {
+                        "command": "install",
+                        "name": to_install_package_name,
+                        "version": to_install_package_version,
+                    }
+                )
+        return instructions
+
+    # def check_package_to_remove(self, package_string, installed_package_list):
+    #     pip_ver
 
     def check_uv_virtual_env(self):
         if not os.path.exists(self.venv_lock_file_path):

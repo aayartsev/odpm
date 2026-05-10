@@ -192,16 +192,19 @@ class Config:
             "odoo_version", self.arguments.odoo_version or 0.0
         )
         self.python_version = self.config_dict.get(
-            "python_version", constants.DEFAULT_PYTHON_VERSION
+            "python_version",
+            self.arguments.python_version or constants.DEFAULT_PYTHON_VERSION,
         )
         self.distro_version = self.config_dict.get(
-            "distro_version", constants.DEFAULT_DISTRO_VERSION
+            "distro_version",
+            self.arguments.distro_version or constants.DEFAULT_DISTRO_VERSION,
         )
         self.distro_name = self.config_dict.get(
-            "distro_name", constants.DEFAULT_DISTRO_NAME
+            "distro_name", self.arguments.distro_name or constants.DEFAULT_DISTRO_NAME
         )
         self.postgres_version = self.config_dict.get(
-            "postgres_version", constants.DEFAULT_POSTGRES_VERSION
+            "postgres_version",
+            self.arguments.postgres_version or constants.DEFAULT_POSTGRES_VERSION,
         )
         self.distro_version_codename = constants.DISTRO_INFO.get(
             self.distro_name, {}
@@ -528,16 +531,21 @@ class Config:
         if self.config_json_content:
             return OdpmJson(
                 python_version=self.config_json_content.get(
-                    "python_version", constants.DEFAULT_PYTHON_VERSION
+                    "python_version",
+                    self.arguments.python_version or constants.DEFAULT_PYTHON_VERSION,
                 ),
                 distro_name=self.config_json_content.get(
-                    "distro_name", constants.DEFAULT_DISTRO_NAME
+                    "distro_name",
+                    self.arguments.distro_name or constants.DEFAULT_DISTRO_NAME,
                 ),
                 distro_version=self.config_json_content.get(
-                    "distro_version", constants.DEFAULT_DISTRO_VERSION
+                    "distro_version",
+                    self.arguments.distro_version or constants.DEFAULT_DISTRO_VERSION,
                 ),
                 postgres_version=self.config_json_content.get(
-                    "postgres_version", constants.DEFAULT_POSTGRES_VERSION
+                    "postgres_version",
+                    self.arguments.postgres_version
+                    or constants.DEFAULT_POSTGRES_VERSION,
                 ),
                 odoo_version=self.config_json_content.get(
                     "odoo_version",
@@ -594,18 +602,26 @@ class Config:
         default_odpm_json_content = OdpmJson(
             python_version=self.config_dict.get(
                 "python_version",
-                constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["python_version"],
+                self.arguments.python_version
+                or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version][
+                    "python_version"
+                ],
             ),
             distro_version=self.config_dict.get(
                 "distro_version",
-                constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_version"],
+                self.arguments.distro_version
+                or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version][
+                    "distro_version"
+                ],
             ),
             distro_name=self.config_dict.get(
                 "distro_name",
-                constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"],
+                self.arguments.distro_name
+                or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"],
             ),
             postgres_version=self.config_dict.get(
-                "postgres_version", constants.DEFAULT_POSTGRES_VERSION
+                "postgres_version",
+                self.arguments.postgres_version or constants.DEFAULT_POSTGRES_VERSION,
             ),
             odoo_version=user_odoo_version,
             dependencies=self.config_dict.get("dependencies", []),
