@@ -210,7 +210,9 @@ class Config:
             self.distro_name, {}
         ).get(self.distro_version, "")
         self.dependencies = self.config_dict.get("dependencies", [])
-        self.requirements_txt = self.config_dict.get("requirements_txt", [])
+        self.requirements_txt = self.config_dict.get(
+            "requirements_txt", self.arguments.requirements_txt.split(",") or []
+        )
         self.odoo_build_date = self.config_dict.get("odoo_build_date", "")
         self.odoo_git_link = self.config_dict.get(
             "odoo_git_link", constants.ODOO_GIT_LINK
@@ -552,7 +554,9 @@ class Config:
                     self.arguments.odoo_version or constants.ODOO_LATEST_VERSION,
                 ),
                 dependencies=self.config_json_content.get("dependencies", []),
-                requirements_txt=self.config_json_content.get("requirements_txt", []),
+                requirements_txt=self.config_json_content.get(
+                    "requirements_txt", self.arguments.requirements_txt.split(",") or []
+                ),
                 odoo_build_date=self.config_json_content.get(
                     "odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE
                 ),
@@ -625,7 +629,9 @@ class Config:
             ),
             odoo_version=user_odoo_version,
             dependencies=self.config_dict.get("dependencies", []),
-            requirements_txt=self.config_dict.get("requirements_txt", []),
+            requirements_txt=self.config_dict.get(
+                "requirements_txt", self.arguments.requirements_txt.split(",") or []
+            ),
             odoo_build_date=self.config_dict.get("odoo_build_date", ""),
             odoo_git_link=self.config_dict.get(
                 "odoo_git_link",
