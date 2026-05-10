@@ -123,7 +123,6 @@ class ProjectDirManager:
         )
 
     def rebuild_odoo_config_file_template(self):
-
         if self.check_project_odoo_config_template(
             self.project_odoo_config_file_template_path
         ):

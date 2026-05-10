@@ -21,7 +21,7 @@ if hasattr(os, "geteuid") and os.geteuid() == 0:
 
 def main() -> None:
     program_dir_path = os.path.dirname(os.path.abspath(__file__))
-    start_dir_path = os.getcwd()
+    start_dir_path = os.environ.get("PWD") or os.getcwd()
     pd_manager = ProjectDirManager(start_dir_path, args, program_dir_path)
     user_environment = CreateUserEnvironment(pd_manager)
     config = Config(
