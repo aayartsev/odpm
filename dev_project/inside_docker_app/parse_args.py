@@ -181,6 +181,7 @@ arg_parser.add_argument(
     cli_params.REQUIREMENTS_TXT_PARAM,
     help=f"""You can set list of python packages with versions separated with comma. Example {cli_params.REQUIREMENTS_TXT_PARAM} setuptool==80,requests==2.31.0""",
     type=str,
+    default="",
 )
 
 arg_parser.add_argument(
