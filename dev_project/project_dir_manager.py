@@ -1,4 +1,5 @@
 import os
+import shlex
 from argparse import Namespace
 from pathlib import Path
 
@@ -43,6 +44,16 @@ class ProjectDirManager:
 
     def check_project_dir(self):
         self.find_project_dir_in_parents()
+        if self.project_path in self.start_dir_path:
+            _logger.info(
+                translations.get_translation(
+                    translations.PROJECT_PATH_IN_START_DIR_PATH
+                ).format(
+                    START_DIR_PATH=self.start_dir_path,
+                    PROJECT_PATH=self.project_path,
+                )
+            )
+            exit()
         if os.path.exists(self.service_directory):
             self.dir_is_project = True
         else:
@@ -194,3 +205,29 @@ class ProjectDirManager:
             exit(1)
         if not self.arguments.odoo_git_link:
             self.arguments.odoo_git_link = constants.ODOO_GIT_LINK
+
+    def get_shortest_cd_command(self, current_dir: str, target_dir: str) -> str:
+        """
+        Returns the shortest 'cd' command to navigate from current_dir to target_dir.
+        Automatically selects the optimal path (relative vs. absolute) based on length.
+        """
+        curr = Path(current_dir).resolve()
+        tgt = Path(target_dir).resolve()
+
+        if curr == tgt:
+            return "cd ."
+
+        # Attempt to compute the relative path
+        try:
+            rel_path = os.path.relpath(tgt, curr)
+        except ValueError:
+            # On Windows, this raises ValueError if paths are on different drives (e.g., C:\ and D:\)
+            rel_path = None
+
+        abs_path = str(tgt)
+
+        # Select the shorter option (fallback to absolute path if relative is unavailable)
+        best_path = rel_path if rel_path and len(rel_path) < len(abs_path) else abs_path
+
+        # Quote spaces and special characters for safe terminal execution
+        return f"cd {shlex.quote(best_path)}"
