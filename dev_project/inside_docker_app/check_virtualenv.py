@@ -216,7 +216,7 @@ class VirtualenvChecker:
         else:
             manager_commad = "python3 -m"
             options = ""
-            list_of_installed_packages = [pkg for pkg in freeze()]
+            list_of_installed_packages = [{"name": pkg.split("==")[0], "version": pkg.split("==")[1]} for pkg in freeze()]
         for package_to_install in self.requirements_txt:
             instructions_for_package = self.check_package_to_install(
                 package_to_install, list_of_installed_packages
