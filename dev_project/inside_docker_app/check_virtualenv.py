@@ -216,7 +216,10 @@ class VirtualenvChecker:
         else:
             manager_commad = "python3 -m"
             options = ""
-            list_of_installed_packages = [{"name": pkg.split("==")[0], "version": pkg.split("==")[1]} for pkg in freeze()]
+            list_of_installed_packages = [
+                {"name": pkg.split("==")[0], "version": pkg.split("==")[1]}
+                for pkg in freeze()
+            ]
         for package_to_install in self.requirements_txt:
             instructions_for_package = self.check_package_to_install(
                 package_to_install, list_of_installed_packages
@@ -225,13 +228,15 @@ class VirtualenvChecker:
                 command = instruction.get("command")
                 package_name = instruction.get("name")
                 package_version = instruction.get("version")
-                full_package_name = f"{package_name}=={package_version}"
+                full_package_name = f"{package_name}"
+                if package_version:
+                    full_package_name = f"{package_name}=={package_version}"
                 if instruction:
                     json_pip_list_bytes = subprocess.run(
                         [
                             f"{manager_commad} pip {command} {full_package_name} {options}".strip()
                         ],
-                        capture_output=True,
+                        # capture_output=True,
                         shell=True,
                     )
 
@@ -243,31 +248,23 @@ class VirtualenvChecker:
             to_install_package_version = package_string.split("==")[1]
         else:
             to_install_package_name = package_string
-        if to_install_package_name in [package_info["name"] for package_info in installed_package_list]:
-            for installed_package_info in installed_package_list:
-                installed_package_name = installed_package_info.get("name")
-                installed_package_version = installed_package_info.get("version")
-                if to_install_package_name == installed_package_name:
-                    if not to_install_package_version:
-                        return [
-                            {
-                                "command": "install",
-                                "name": to_install_package_name,
-                                "version": to_install_package_version,
-                            }
-                        ]
-                    compare_result = self.compare_versions(
-                        to_install_package_version, installed_package_version
-                    )
-                    if compare_result == 0:
-                        return [
-                            {
-                                "command": "install",
-                                "name": to_install_package_name,
-                                "version": to_install_package_version,
-                            }
-                        ]
-                    instructions.append(
+        list_of_install_package_names = [
+            installed_package["name"] for installed_package in installed_package_list
+        ]
+        if to_install_package_name not in list_of_install_package_names:
+            return [
+                {
+                    "command": "install",
+                    "name": to_install_package_name,
+                    "version": "",
+                }
+            ]
+        for installed_package_info in installed_package_list:
+            installed_package_name = installed_package_info.get("name")
+            installed_package_version = installed_package_info.get("version")
+            if to_install_package_name == installed_package_name:
+                if not to_install_package_version:
+                    return [
                         {
                             "command": "remove",
                             "name": installed_package_name,
