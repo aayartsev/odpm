@@ -242,7 +242,7 @@ class VirtualenvChecker:
 
     def check_package_to_install(self, package_string, installed_package_list):
         instructions = []
-        to_install_package_version = ""
+        to_install_package_version = False
         if "==" in package_string:
             to_install_package_name = package_string.split("==")[0]
             to_install_package_version = package_string.split("==")[1]
@@ -266,26 +266,37 @@ class VirtualenvChecker:
                 if not to_install_package_version:
                     return [
                         {
-                            "command": "remove",
-                            "name": installed_package_name,
-                            "version": installed_package_version,
+                            "command": "install",
+                            "name": to_install_package_name,
+                            "version": "",
                         }
-                    )
-                    instructions.append(
+                    ]
+                compare_result = self.compare_versions(
+                    to_install_package_version, installed_package_version
+                )
+                if compare_result == 0:
+                    return [
                         {
                             "command": "install",
                             "name": to_install_package_name,
                             "version": to_install_package_version,
                         }
-                    )
-            return instructions
-        return [
-            {
-                "command": "install",
-                "name": to_install_package_name,
-                "version": to_install_package_version,
-            }
-        ]
+                    ]
+                instructions.append(
+                    {
+                        "command": "remove",
+                        "name": installed_package_name,
+                        "version": installed_package_version,
+                    }
+                )
+                instructions.append(
+                    {
+                        "command": "install",
+                        "name": to_install_package_name,
+                        "version": to_install_package_version,
+                    }
+                )
+        return instructions
 
     # def check_package_to_remove(self, package_string, installed_package_list):
     #     pip_ver
