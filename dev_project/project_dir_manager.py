@@ -46,7 +46,8 @@ class ProjectDirManager:
         self.find_project_dir_in_parents()
         if (
             self.project_path != self.start_dir_path
-            and self.project_path in self.start_dir_path and not self.init
+            and self.project_path in self.start_dir_path
+            and not self.init
         ):
             _logger.info(
                 translations.get_translation(
