@@ -220,6 +220,7 @@ class VirtualenvChecker:
                 {"name": pkg.split("==")[0], "version": pkg.split("==")[1]}
                 for pkg in freeze()
             ]
+        all_instructions = {}
         for package_to_install in self.requirements_txt:
             instructions_for_package = self.check_package_to_install(
                 package_to_install, list_of_installed_packages
@@ -231,14 +232,29 @@ class VirtualenvChecker:
                 full_package_name = f"{package_name}"
                 if package_version:
                     full_package_name = f"{package_name}=={package_version}"
-                if instruction:
-                    json_pip_list_bytes = subprocess.run(
-                        [
-                            f"{manager_commad} pip {command} {full_package_name} {options}".strip()
-                        ],
-                        # capture_output=True,
-                        shell=True,
-                    )
+                if command not in all_instructions:
+                    all_instructions[command] = []
+                    all_instructions[command].append({"package_version": package_version, "package_name": package_name, "full_package_name": full_package_name})
+        string_to_remove = ",".join([package_to_remove.get("full_package_name", "") for package_to_remove in all_instructions.get("remove", [])])
+        if string_to_remove:
+            json_pip_list_bytes = subprocess.run(
+                [
+                    f"{manager_commad} pip remove {string_to_remove} {options}".strip()
+                ],
+                # capture_output=True,
+                shell=True,
+            )
+        string_to_install = ",".join([package_to_remove.get("full_package_name", "") for package_to_remove in all_instructions.get("install", [])])
+        if string_to_install:
+            json_pip_list_bytes = subprocess.run(
+                [
+                    f"{manager_commad} pip install {string_to_install} {options}".strip()
+                ],
+                # capture_output=True,
+                shell=True,
+            )
+
+
 
     def check_package_to_install(self, package_string, installed_package_list):
         instructions = []
@@ -252,13 +268,13 @@ class VirtualenvChecker:
             installed_package["name"] for installed_package in installed_package_list
         ]
         if to_install_package_name not in list_of_install_package_names:
-            return [
+            instructions.append(
                 {
                     "command": "install",
                     "name": to_install_package_name,
                     "version": "",
                 }
-            ]
+            )
         for installed_package_info in installed_package_list:
             installed_package_name = installed_package_info.get("name")
             installed_package_version = installed_package_info.get("version")
