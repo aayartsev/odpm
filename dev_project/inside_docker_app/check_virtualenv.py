@@ -234,27 +234,37 @@ class VirtualenvChecker:
                     full_package_name = f"{package_name}=={package_version}"
                 if command not in all_instructions:
                     all_instructions[command] = []
-                    all_instructions[command].append({"package_version": package_version, "package_name": package_name, "full_package_name": full_package_name})
-        string_to_remove = ",".join([package_to_remove.get("full_package_name", "") for package_to_remove in all_instructions.get("remove", [])])
+                all_instructions[command].append(
+                    {
+                        "package_version": package_version,
+                        "package_name": package_name,
+                        "full_package_name": full_package_name,
+                    }
+                )
+        string_to_remove = ",".join(
+            [
+                package_to_remove.get("full_package_name", "")
+                for package_to_remove in all_instructions.get("remove", [])
+            ]
+        )
         if string_to_remove:
             json_pip_list_bytes = subprocess.run(
-                [
-                    f"{manager_commad} pip remove {string_to_remove} {options}".strip()
-                ],
+                [f"{manager_commad} pip remove {string_to_remove} {options}".strip()],
                 # capture_output=True,
                 shell=True,
             )
-        string_to_install = ",".join([package_to_remove.get("full_package_name", "") for package_to_remove in all_instructions.get("install", [])])
+        string_to_install = ",".join(
+            [
+                package_to_remove.get("full_package_name", "")
+                for package_to_remove in all_instructions.get("install", [])
+            ]
+        )
         if string_to_install:
             json_pip_list_bytes = subprocess.run(
-                [
-                    f"{manager_commad} pip install {string_to_install} {options}".strip()
-                ],
+                [f"{manager_commad} pip install {string_to_install} {options}".strip()],
                 # capture_output=True,
                 shell=True,
             )
-
-
 
     def check_package_to_install(self, package_string, installed_package_list):
         instructions = []
