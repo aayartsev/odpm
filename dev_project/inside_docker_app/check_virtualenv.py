@@ -202,6 +202,7 @@ class VirtualenvChecker:
 
     def check_uv_venv(self):
         if self.use_uv:
+            separator = " "
             manager_commad = "uv"
             options = "--link-mode=copy"
             dir_for_venv = os.path.join(self.docker_venv_dir, "..")
@@ -214,6 +215,7 @@ class VirtualenvChecker:
             json_pip_list_string = json_pip_list_bytes.stdout.decode("utf-8").strip()
             list_of_installed_packages = json.loads(json_pip_list_string)
         else:
+            separator = ","
             manager_commad = "python3 -m"
             options = ""
             list_of_installed_packages = [
@@ -225,6 +227,8 @@ class VirtualenvChecker:
             instructions_for_package = self.check_package_to_install(
                 package_to_install, list_of_installed_packages
             )
+            if not instructions_for_package:
+                continue
             for instruction in instructions_for_package:
                 command = instruction.get("command")
                 package_name = instruction.get("name")
@@ -241,7 +245,7 @@ class VirtualenvChecker:
                         "full_package_name": full_package_name,
                     }
                 )
-        string_to_remove = ",".join(
+        string_to_remove = separator.join(
             [
                 package_to_remove.get("full_package_name", "")
                 for package_to_remove in all_instructions.get("remove", [])
@@ -253,7 +257,7 @@ class VirtualenvChecker:
                 # capture_output=True,
                 shell=True,
             )
-        string_to_install = ",".join(
+        string_to_install = separator.join(
             [
                 package_to_remove.get("full_package_name", "")
                 for package_to_remove in all_instructions.get("install", [])
@@ -274,54 +278,47 @@ class VirtualenvChecker:
             to_install_package_version = package_string.split("==")[1]
         else:
             to_install_package_name = package_string
-        list_of_install_package_names = [
-            installed_package["name"] for installed_package in installed_package_list
-        ]
-        if to_install_package_name not in list_of_install_package_names:
+
+        for installed_package_info in installed_package_list:
+            installed_package_name = installed_package_info.get("name")
+            installed_package_version = installed_package_info.get("version")
+            if to_install_package_name != installed_package_name:
+                continue
+
+            if not to_install_package_version:
+                return []
+
+            compare_result = self.compare_versions(
+                to_install_package_version, installed_package_version
+            )
+            if compare_result == 0:
+                return []
+            if compare_result > 0:
+                return []
+
+            instructions.append(
+                {
+                    "command": "remove",
+                    "name": installed_package_name,
+                    "version": installed_package_version,
+                }
+            )
             instructions.append(
                 {
                     "command": "install",
                     "name": to_install_package_name,
-                    "version": "",
+                    "version": to_install_package_version,
                 }
             )
-        for installed_package_info in installed_package_list:
-            installed_package_name = installed_package_info.get("name")
-            installed_package_version = installed_package_info.get("version")
-            if to_install_package_name == installed_package_name:
-                if not to_install_package_version:
-                    return [
-                        {
-                            "command": "install",
-                            "name": to_install_package_name,
-                            "version": "",
-                        }
-                    ]
-                compare_result = self.compare_versions(
-                    to_install_package_version, installed_package_version
-                )
-                if compare_result == 0:
-                    return [
-                        {
-                            "command": "install",
-                            "name": to_install_package_name,
-                            "version": to_install_package_version,
-                        }
-                    ]
-                instructions.append(
-                    {
-                        "command": "remove",
-                        "name": installed_package_name,
-                        "version": installed_package_version,
-                    }
-                )
-                instructions.append(
-                    {
-                        "command": "install",
-                        "name": to_install_package_name,
-                        "version": to_install_package_version,
-                    }
-                )
+            return instructions
+
+        instructions.append(
+            {
+                "command": "install",
+                "name": to_install_package_name,
+                "version": to_install_package_version or "",
+            }
+        )
         return instructions
 
     # def check_package_to_remove(self, package_string, installed_package_list):
