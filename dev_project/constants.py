@@ -236,3 +236,12 @@ LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compo
 DEPENDENCIES_DIR = "dependencies"
 
 POSTGRES_LOCAL_STORAGE_DIR = "data/postgresql/var/lib/postgresql/data"
+
+VENV_LOCK_KEYS = (
+    "python_version",
+    "distro_version",
+    "distro_name",
+    "postgres_version",
+    "odoo_version",
+    "arch",  # см. ниже
+)

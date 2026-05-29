@@ -26,6 +26,7 @@ class VirtualenvChecker:
         )
         self.venv_lock_file_path = os.path.join(self.docker_venv_dir, ".lock")
         self.python_version = config["python_version"]
+        self.venv_lock_hash = config["venv_lock_hash"]
         self.arch = config["arch"]
         self.packages_to_install = ["wheel"]
         self.uv_info = self.check_uv_installed()
@@ -199,7 +200,7 @@ class VirtualenvChecker:
                 shell=True,
             )
         with open(self.venv_lock_file_path, "w") as f:
-            f.write(self.arch)
+            f.write(self.venv_lock_hash)
 
     def _canonical_package_name(self, name: str) -> str:
         return canonicalize_name(name.strip())
@@ -343,7 +344,9 @@ class VirtualenvChecker:
         elif os.path.exists(self.venv_lock_file_path):
             with open(self.venv_lock_file_path) as f:
                 content = f.readlines()
-            if self.arch != content[-1]:
+            if not content:
+                self.recreate_uv_venv()
+            if content and self.venv_lock_hash != content[-1]:
                 self.recreate_uv_venv()
         self.set_venv()
         self.check_uv_venv()

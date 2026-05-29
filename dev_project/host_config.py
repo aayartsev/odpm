@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 import shutil
+import hashlib
 from argparse import Namespace
 from dataclasses import dataclass
 from typing import Literal, TypedDict
@@ -78,6 +79,7 @@ class ConfigToJson(TypedDict):
     sql_queries: list
     modules_to_update: list
     docker_dirs_with_addons: list
+    venv_lock_hash: str
 
 
 @dataclass
@@ -796,6 +798,12 @@ class Config:
         )
         odoo_project.build_project()
         return odoo_project
+    
+    def compute_venv_lock_hash(self,config: dict) -> str:
+        self.config_dict["arch"] = constants.ARCH
+        payload = {key: str(config[key]) for key in constants.VENV_LOCK_KEYS}
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def config_to_json(self) -> bytes:
         config = ConfigToJson(
@@ -810,6 +818,7 @@ class Config:
             requirements_txt=self.requirements_txt,
             odoo_version=self.odoo_version,
             python_version=self.python_version,
+            venv_lock_hash=self.compute_venv_lock_hash(self.config_dict),
             platform_name=self.platform_name,
             arch=self.arch,
             sql_queries=self.sql_queries,
