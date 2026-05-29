@@ -349,11 +349,10 @@ class Config:
                 )
             )
         )
-        if self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
-            if os.path.exists(os.path.join(self.odoo_src_dir, "addons")):
-                self.docker_dirs_with_addons.append(
-                    str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons"))
-                )
+        if os.path.exists(os.path.join(self.odoo_src_dir, "addons")):
+            self.docker_dirs_with_addons.append(
+                str(pathlib.PurePosixPath(self.docker_odoo_dir, "addons"))
+            )
 
         self.path_odoo_conf = os.path.join(self.project_dir, constants.ODOO_CONF_NAME)
         self.docker_path_odoo_conf = str(
