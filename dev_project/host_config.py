@@ -215,7 +215,7 @@ class Config:
         self.requirements_txt = self.config_dict.get(
             "requirements_txt", self.arguments.requirements_txt.split(",") or []
         )
-        self.odoo_build_date = self.config_dict.get("odoo_build_date", "")
+        self.odoo_build_date = self.get_effective_odoo_build_date()
         self.odoo_git_link = self.config_dict.get(
             "odoo_git_link", constants.ODOO_GIT_LINK
         )
@@ -559,8 +559,10 @@ class Config:
                 requirements_txt=self.config_json_content.get(
                     "requirements_txt", self.arguments.requirements_txt.split(",") or []
                 ),
-                odoo_build_date=self.config_json_content.get(
-                    "odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE
+                odoo_build_date=self._odoo_build_date_for_odpm_json(
+                    self.config_json_content.get(
+                        "odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE
+                    )
                 ),
                 odoo_git_link=self.config_json_content.get(
                     "odoo_git_link",
@@ -634,7 +636,9 @@ class Config:
             requirements_txt=self.config_dict.get(
                 "requirements_txt", self.arguments.requirements_txt.split(",") or []
             ),
-            odoo_build_date=self.config_dict.get("odoo_build_date", ""),
+            odoo_build_date=self._odoo_build_date_for_odpm_json(
+                self.config_dict.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE)
+            ),
             odoo_git_link=self.config_dict.get(
                 "odoo_git_link",
                 self.arguments.odoo_git_link or constants.ODOO_GIT_LINK,
@@ -827,8 +831,27 @@ class Config:
         )
         return json.dumps(config).encode("utf-8")
 
+    def get_effective_odoo_build_date(self) -> str:
+        cli_date = getattr(self.arguments, "odoo_build_date", None)
+        if cli_date:
+            return cli_date.strip()
+        return (self.config_dict.get("odoo_build_date") or "").strip()
+
+    def _odoo_build_date_for_odpm_json(self, fallback: str) -> str:
+        cli_date = getattr(self.arguments, "odoo_build_date", None)
+        if cli_date:
+            return cli_date.strip()
+        return fallback
+
+    def apply_odoo_build_date_to_platform(self) -> None:
+        self.odoo_platform_project.apply_build_date(
+            self.odoo_build_date,
+            str(self.odoo_version),
+        )
+
     def get_platform_sorces(self):
         self.odoo_platform_project = self.handle_git_link(
             self.odoo_git_link, system_type="platform"
         )
         self.odoo_src_dir = self.odoo_platform_project.get_project_path()
+        self.apply_odoo_build_date_to_platform()

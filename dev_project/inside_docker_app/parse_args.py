@@ -185,6 +185,12 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.ODOO_BUILD_DATE_PARAM,
+    help="""Odoo nightly build date (YYYYMMDD or YYYY-MM-DD). Resolves to the last commit on the platform branch before that day and checks it out. Overrides odoo_build_date from odpm.json. Ignored when a commit hash is set in odoo_git_link.""",
+    type=str,
+)
+
+arg_parser.add_argument(
     cli_params.SKIP_START_PARAM,
     help="""Will generate docker-compose.yaml and exit without lounching odoo instance. After this command you can start instace with "docker compose up -d" for example""",
     nargs="?",

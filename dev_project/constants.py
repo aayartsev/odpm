@@ -99,6 +99,12 @@ ODOO_PORT_MARKER = "#ODOO_PORT_MARKER#"
 ODOO_GIT_LINK = "https://github.com/odoo/odoo.git"
 ODOO_DEFAULT_BUILD_DATE = "latest"
 
+# Platform git: keep shallow clone; extend history only for odoo_build_date checkout.
+PLATFORM_GIT_CLONE_DEPTH = 1
+PLATFORM_BUILD_DATE_SHALLOW_SINCE_DAYS = 31
+PLATFORM_BUILD_DATE_FETCH_DEEPEN_STEP = 500
+PLATFORM_BUILD_DATE_FETCH_DEEPEN_MAX = 10000
+
 DEFAULT_DEBUGPY = "debugpy==1.6.3"
 DEBUGPY = {
     "3.7": DEFAULT_DEBUGPY,

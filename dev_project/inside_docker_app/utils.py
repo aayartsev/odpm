@@ -1,6 +1,8 @@
 import os
+import re
 import shutil
 import json
+from datetime import datetime, timedelta
 from urllib.request import urlopen
 import zipfile
 
@@ -96,3 +98,36 @@ def get_free_space(path):
     MB = 1024 * KB
     GB = 1024 * MB
     return shutil.disk_usage(path).free / GB
+
+
+_BUILD_DATE_RE = re.compile(r"^(\d{4})-?(\d{2})-?(\d{2})$")
+
+
+def is_actionable_build_date(build_date: str | None) -> bool:
+    if not build_date:
+        return False
+    normalized = build_date.strip().lower()
+    return normalized not in ("", constants.ODOO_DEFAULT_BUILD_DATE.lower())
+
+
+def parse_build_date(build_date: str) -> datetime:
+    match = _BUILD_DATE_RE.match(build_date.strip())
+    if not match:
+        raise ValueError(
+            f"Invalid odoo_build_date {build_date!r}: expected YYYYMMDD or YYYY-MM-DD"
+        )
+    year, month, day = match.groups()
+    return datetime(int(year), int(month), int(day))
+
+
+def commit_before_timestamp(build_date: str) -> str:
+    """End of build_date calendar day → git rev-list --before next midnight."""
+    parsed = parse_build_date(build_date)
+    next_day = parsed + timedelta(days=1)
+    return next_day.strftime("%Y-%m-%d 00:00:00")
+
+
+def shallow_since_date(build_date: str) -> str:
+    parsed = parse_build_date(build_date)
+    since = parsed - timedelta(days=constants.PLATFORM_BUILD_DATE_SHALLOW_SINCE_DAYS)
+    return since.strftime("%Y-%m-%d")

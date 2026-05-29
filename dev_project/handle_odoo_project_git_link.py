@@ -9,6 +9,11 @@ from urllib.parse import urlparse
 
 from . import constants, translations
 from .inside_docker_app.logger import get_module_logger
+from .inside_docker_app.utils import (
+    commit_before_timestamp,
+    is_actionable_build_date,
+    shallow_since_date,
+)
 
 _logger = get_module_logger(__name__)
 
@@ -337,7 +342,12 @@ class HandleOdooProjectLink:
             else:
                 self.is_cloned = True
         else:
-            clone_cmd = ["git", "clone", "--depth", "1"]
+            clone_cmd = [
+                "git",
+                "clone",
+                "--depth",
+                str(constants.PLATFORM_GIT_CLONE_DEPTH),
+            ]
             if self.branch_explicit and not self.commit_explicit:
                 clone_cmd.extend(["-b", self.branch])
             if self.path_to_ssh_key:
@@ -380,31 +390,145 @@ class HandleOdooProjectLink:
     def __bool__(self) -> bool:
         return self.is_true
 
+    def _run_git(
+        self,
+        args: list[str],
+        *,
+        capture: bool = True,
+        check: bool = False,
+    ) -> subprocess.CompletedProcess[str]:
+        cmd = ["git", *args]
+        if self.path_to_ssh_key:
+            cmd = [
+                "git",
+                "-c",
+                f"core.sshCommand=ssh -i {self.path_to_ssh_key}",
+                *args,
+            ]
+        if not capture:
+            _logger.info("→ git %s", " ".join(args))
+        return subprocess.run(
+            cmd,
+            cwd=self.project_path,
+            capture_output=capture,
+            text=capture,
+            check=check,
+        )
+
     def _git_stash(self) -> None:
-        subprocess.run(["git", "stash"], cwd=self.project_path, capture_output=True)
+        self._run_git(["stash"])
 
     def _git_pull(self) -> None:
-        subprocess.run(["git", "pull"], cwd=self.project_path, capture_output=True)
+        self._run_git(["pull"], capture=False)
 
     def _git_checkout_ref(self, ref: str) -> None:
-        subprocess.run(
-            ["git", "checkout", ref],
-            cwd=self.project_path,
-            capture_output=True,
-        )
+        _logger.info("Checking out %s", ref)
+        self._run_git(["checkout", ref], capture=False)
 
     def _git_fetch_ref(self, ref: str) -> None:
-        verify = subprocess.run(
-            ["git", "rev-parse", "--verify", ref],
-            cwd=self.project_path,
-            capture_output=True,
-        )
+        verify = self._run_git(["rev-parse", "--verify", ref])
         if verify.returncode == 0:
             return
-        subprocess.run(
-            ["git", "fetch", "--depth", "1", "origin", ref],
-            cwd=self.project_path,
-            capture_output=False,
+        self._run_git(["fetch", "--depth", "1", "origin", ref], capture=False)
+
+    def _branch_ref(self, branch: str) -> str:
+        for ref in (f"origin/{branch}", branch):
+            result = self._run_git(["rev-parse", "--verify", ref])
+            if result.returncode == 0:
+                return ref
+        raise RuntimeError(
+            f"Branch {branch!r} not found in {self.project_path}. "
+            "Check odoo_git_link branch or odoo_version."
+        )
+
+    def resolve_commit_by_build_date(self, branch: str, build_date: str) -> str:
+        before = commit_before_timestamp(build_date)
+        ref = self._branch_ref(branch)
+        result = self._run_git(["rev-list", "-1", f"--before={before}", ref])
+        commit = result.stdout.strip()
+        if result.returncode != 0 or not commit:
+            raise RuntimeError(
+                f"No commit on {ref} before {before} in {self.project_path}. "
+                "Try a newer build date or check branch name."
+            )
+        return commit
+
+    def _fetch_history_for_build_date(self, branch: str, build_date: str) -> None:
+        since = shallow_since_date(build_date)
+        _logger.info(
+            "Fetching history for odoo_build_date %s (shallow-since=%s)",
+            build_date,
+            since,
+        )
+        result = self._run_git(
+            ["fetch", "origin", branch, f"--shallow-since={since}"],
+            capture=False,
+        )
+        if result.returncode == 0:
+            return
+
+        step = constants.PLATFORM_BUILD_DATE_FETCH_DEEPEN_STEP
+        max_extra = constants.PLATFORM_BUILD_DATE_FETCH_DEEPEN_MAX
+        fetched = 0
+        while fetched < max_extra:
+            _logger.info("Deepening history +%s commits (%s/%s)", step, fetched, max_extra)
+            deepen_result = self._run_git(["fetch", "--deepen", str(step)], capture=False)
+            if deepen_result.returncode != 0:
+                raise RuntimeError(
+                    f"git fetch --deepen failed in {self.project_path}"
+                )
+            fetched += step
+            try:
+                self.resolve_commit_by_build_date(branch, build_date)
+                return
+            except RuntimeError:
+                continue
+
+        raise RuntimeError(
+            f"Could not fetch enough history for build date {build_date} "
+            f"(deepened {fetched} commits, max {max_extra})."
+        )
+
+    def resolve_commit_with_fetch(self, branch: str, build_date: str) -> str:
+        try:
+            return self.resolve_commit_by_build_date(branch, build_date)
+        except RuntimeError:
+            pass
+        self._fetch_history_for_build_date(branch, build_date)
+        return self.resolve_commit_by_build_date(branch, build_date)
+
+    def apply_build_date(self, build_date: str, odoo_version: str) -> None:
+        if not is_actionable_build_date(build_date):
+            return
+        if self.commit_explicit:
+            _logger.warning(
+                "odoo_build_date %s ignored: commit is set explicitly in odoo_git_link",
+                build_date,
+            )
+            return
+        if self.link_type == constants.GITLINK_TYPE_FILE:
+            return
+
+        branch = self.branch if self.branch_explicit else odoo_version
+        _logger.info(
+            "Resolving odoo_build_date %s on branch %s in %s",
+            build_date,
+            branch,
+            self.project_path,
+        )
+        try:
+            commit = self.resolve_commit_with_fetch(branch, build_date)
+        except (ValueError, RuntimeError) as error:
+            _logger.error("Failed to resolve odoo_build_date %s: %s", build_date, error)
+            exit(1)
+
+        self.commit = commit
+        self.commit_explicit = True
+        _logger.info(
+            "Resolved odoo_build_date %s to commit %s on branch %s",
+            build_date,
+            commit[:12],
+            branch,
         )
 
     def _checkout_version_branch(self, odoo_version: str) -> None:
