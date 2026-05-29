@@ -12,7 +12,21 @@ from pip._vendor.packaging.markers import Marker, default_environment
 from pip._vendor.packaging.utils import canonicalize_name
 from utils import delete_files_in_directory
 
+try:
+    from .. import constants
+except ImportError:
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    import constants
+
 _logger = get_module_logger(__name__)
+
+def get_venv_bootstrap_packages(python_version: str) -> list[str]:
+    return constants.VENV_BOOTSTRAP_PACKAGES.get(
+        python_version,
+        constants.DEFAULT_VENV_BOOTSTRAP + ["setuptools"],
+    )
 
 
 class VirtualenvChecker:
@@ -138,6 +152,7 @@ class VirtualenvChecker:
         os.environ["PATH"] = venv_bin_dir + os.pathsep + os.environ["PATH"]
         # Inserting path to the venv's dirs in system path
         sys.path.insert(1, venv_lib_path)
+        # os.environ["VIRTUAL_ENV"] = self.docker_venv_dir
 
     def evaluate_text_condition(self, condition_of_installation_text):
         marker = Marker(condition_of_installation_text)
@@ -148,6 +163,16 @@ class VirtualenvChecker:
     def package_installation_error(self, txt):
         _logger.error(txt)
         exit(1)
+    
+    def bootstrap_packages(self, manager_commad: str, options: str):
+        print("bootstrap_packages", get_venv_bootstrap_packages(self.python_version))
+        for package in get_venv_bootstrap_packages(self.python_version):
+            subprocess.run(
+                [
+                    f"""{manager_commad} pip install "{package}" {options}""".strip()
+                ],
+                shell=True,
+            )
 
     def create_venv(self):
         if not self.use_uv:
@@ -168,12 +193,7 @@ class VirtualenvChecker:
         self.create_venv()
         self.set_venv()
         self.get_packages_to_install_from_odoo_requiremets_txt()
-        subprocess.run(
-            [
-                f"""{manager_commad} pip install "cython<3.0" setuptools wheel {options}""".strip()
-            ],
-            shell=True,
-        )
+        self.bootstrap_packages(manager_commad, options)
         for package in self.packages_to_install:
             if "gevent" in package:
                 package = f"{package} --no-build-isolation"

@@ -116,6 +116,20 @@ DEBUGPY = {
     "3.13": "debugpy==1.8.0",
 }
 
+DEFAULT_VENV_BOOTSTRAP = [
+    "cython<3.0",
+    "wheel",
+]
+VENV_BOOTSTRAP_PACKAGES = {
+    "3.7": ["cython<3.0", "setuptools==59.6.0", "wheel"],
+    "3.8": ["cython<3.0", "setuptools==59.6.0", "wheel"],
+    "3.9": ["cython<3.0", "setuptools==65.5.0", "wheel"],
+    "3.10": ["setuptools==69.5.1", "cython<3.0", "wheel<0.46"],
+    "3.11": ["cython<3.0", "setuptools==75.1.0", "wheel"],
+    "3.12": ["cython<3.0", "setuptools==75.1.0", "wheel"],
+    "3.13": ["cython<3.0", "setuptools==80", "wheel"],
+}
+
 DEFAULT_POSTGRES_VERSION = "13"
 DEFAULT_PYTHON_VERSION = "3.7"
 DEFAULT_DISTRO_NAME = "debian"
@@ -141,9 +155,9 @@ ODOO_VERSION_DEFAULT_ENV = {
         "distro_version": "13",
     },
     "18.0": {
-        "python_version": "3.10",
+        "python_version": "3.12",
         "distro_name": DEFAULT_DISTRO_NAME,
-        "distro_version": "12",
+        "distro_version": "13",
     },
     "17.0": {
         "python_version": "3.10",
