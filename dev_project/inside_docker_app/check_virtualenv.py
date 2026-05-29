@@ -9,6 +9,7 @@ import pip._vendor.packaging.version as pip_ver
 from logger import get_module_logger
 from pip._internal.operations.freeze import freeze
 from pip._vendor.packaging.markers import Marker, default_environment
+from pip._vendor.packaging.utils import canonicalize_name
 from utils import delete_files_in_directory
 
 _logger = get_module_logger(__name__)
@@ -200,9 +201,24 @@ class VirtualenvChecker:
         with open(self.venv_lock_file_path, "w") as f:
             f.write(self.arch)
 
+    def _canonical_package_name(self, name: str) -> str:
+        return canonicalize_name(name.strip())
+
+    def _run_pip_command(self, command: str) -> None:
+        result = subprocess.run(
+            [command],
+            capture_output=True,
+            shell=True,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.decode("utf-8", errors="replace").strip()
+            self.package_installation_error(
+                f"Command failed (exit {result.returncode}): {command}\n{stderr}"
+            )
+
     def check_uv_venv(self):
+        separator = " "
         if self.use_uv:
-            separator = " "
             manager_commad = "uv"
             options = "--link-mode=copy"
             dir_for_venv = os.path.join(self.docker_venv_dir, "..")
@@ -215,7 +231,6 @@ class VirtualenvChecker:
             json_pip_list_string = json_pip_list_bytes.stdout.decode("utf-8").strip()
             list_of_installed_packages = json.loads(json_pip_list_string)
         else:
-            separator = ","
             manager_commad = "python3 -m"
             options = ""
             list_of_installed_packages = [
@@ -252,10 +267,8 @@ class VirtualenvChecker:
             ]
         )
         if string_to_remove:
-            json_pip_list_bytes = subprocess.run(
-                [f"{manager_commad} pip remove {string_to_remove} {options}".strip()],
-                # capture_output=True,
-                shell=True,
+            self._run_pip_command(
+                f"{manager_commad} pip remove {string_to_remove} {options}".strip()
             )
         string_to_install = separator.join(
             [
@@ -264,28 +277,28 @@ class VirtualenvChecker:
             ]
         )
         if string_to_install:
-            json_pip_list_bytes = subprocess.run(
-                [f"{manager_commad} pip install {string_to_install} {options}".strip()],
-                # capture_output=True,
-                shell=True,
+            self._run_pip_command(
+                f"{manager_commad} pip install {string_to_install} {options}".strip()
             )
 
     def check_package_to_install(self, package_string, installed_package_list):
         instructions = []
-        to_install_package_version = False
+        to_install_package_version = None
         if "==" in package_string:
             to_install_package_name = package_string.split("==")[0]
             to_install_package_version = package_string.split("==")[1]
         else:
             to_install_package_name = package_string
 
+        required_name = self._canonical_package_name(to_install_package_name)
+
         for installed_package_info in installed_package_list:
             installed_package_name = installed_package_info.get("name")
             installed_package_version = installed_package_info.get("version")
-            if to_install_package_name != installed_package_name:
+            if required_name != self._canonical_package_name(installed_package_name):
                 continue
 
-            if not to_install_package_version:
+            if to_install_package_version is None:
                 return []
 
             compare_result = self.compare_versions(
@@ -293,7 +306,7 @@ class VirtualenvChecker:
             )
             if compare_result == 0:
                 return []
-            if compare_result > 0:
+            if compare_result < 0:
                 return []
 
             instructions.append(
