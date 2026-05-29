@@ -22,7 +22,7 @@ services:
       - {DATABASE_NAME_INSTANCE}
     environment:
       - PYTHONUNBUFFERED=1
-      - PYTHONWARNINGS="ignore::DeprecationWarning:docutils"
+      - PYTHONWARNINGS=ignore::DeprecationWarning:docutils
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib3; http=urllib3.PoolManager(); r=http.request('GET','http://localhost:{ODOO_PORT}/web'); exit(0 if r.status==200 else 1)"]
       interval: 10s
