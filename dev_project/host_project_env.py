@@ -304,113 +304,11 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             self.checkout_project(project)
 
     def checkout_project(self, project: HandleOdooProjectLink) -> None:
-        os.chdir(project.project_path)
-        if not project.branch:
-            project.branch = self.config.odoo_version
-        current_branch_bytes = subprocess.run(
-            ["git", "branch", "--show-current"], capture_output=True
+        project.checkout_repository(
+            self.config.odoo_version,
+            clean_git_repos=self.config.clean_git_repos,
+            update_git_repos=self.config.update_git_repos,
         )
-        current_branch_string = current_branch_bytes.stdout.decode("utf-8").strip()
-        try:
-            current_branch_float = float(current_branch_string)
-        except:
-            current_branch_float = 0.0
-        if (
-            current_branch_float
-            and project.system_type != "developing"
-            and current_branch_string != project.branch
-        ):
-            self.check_odoo_version_branch(project)
-        if self.config.clean_git_repos:
-            subprocess.run(["git", "stash"], capture_output=True)
-            self.check_for_branch(current_branch_string)
-            subprocess.run(
-                ["git", "checkout", self.config.odoo_version], capture_output=True
-            )
-        if self.config.update_git_repos:
-            subprocess.run(["git", "pull"], capture_output=True)
-
-    def check_for_branch(self, current_branch_string: str) -> None:
-        current_branches_bytes = subprocess.run(["git", "branch"], capture_output=True)
-        current_branches_string = current_branches_bytes.stdout.decode("utf-8").strip()
-        if current_branch_string in current_branches_string:
-            return
-        current_remote_branches_bytes = subprocess.run(
-            ["git", "branch", "-a"], capture_output=True
-        )
-        current__remote_branches_string = current_remote_branches_bytes.stdout.decode(
-            "utf-8"
-        ).strip()
-        if f"origin/{self.config.odoo_version}" in current__remote_branches_string:
-            return
-        subprocess.run(
-            [
-                "git",
-                "fetch",
-                "--depth",
-                "1",
-                "origin",
-                f"{current_branch_string}:{current_branch_string}",
-            ],
-            capture_output=False,
-        )
-
-    def check_odoo_version_branch(self, project: HandleOdooProjectLink) -> None:
-        os.chdir(project.project_path)
-        subprocess.run(["git", "stash"], capture_output=True)
-        self.check_for_branch(self.config.odoo_version)
-        branch_commit_bytes = subprocess.run(
-            ["git", "rev-parse", "--verify", self.config.odoo_version],
-            capture_output=True,
-        )
-        branch_commit_string = (
-            branch_commit_bytes.stdout.decode("utf-8").strip()
-            or branch_commit_bytes.stderr.decode("utf-8").strip()
-        )
-        if "fatal" in branch_commit_string:
-            newest_version = self.get_odoo_latest_version(project.project_path)
-            subprocess.run(["git", "checkout", str(newest_version)])
-            subprocess.run(["git", "pull"])
-            newest_version = self.get_odoo_latest_version(project.project_path)
-            if str(newest_version) == self.config.odoo_version:
-                subprocess.run(["git", "checkout", str(newest_version)])
-            else:
-                _logger.error(
-                    f"Version {self.config.odoo_version} not exists in git repository {project.project_path}"
-                )
-                exit(1)
-        else:
-            if project.branch and project.commit:
-                subprocess.run(
-                    ["git", "checkout", project.branch, project.commit],
-                    capture_output=True,
-                )
-            else:
-                subprocess.run(["git", "checkout", project.branch], capture_output=True)
-
-    def get_odoo_latest_version(self, source_dir) -> float:
-        os.chdir(source_dir)
-        all_remote_branches_bytes = subprocess.run(
-            [
-                "git",
-                "branch",
-                "-r",
-            ],
-            capture_output=True,
-        )
-        all_remote_branches_string = all_remote_branches_bytes.stdout.decode(
-            "utf-8"
-        ).strip()
-        list_of_versions = []
-        all_branches_list = all_remote_branches_string.split("\n")
-        for branch_name in all_branches_list:
-            try:
-                branch_version = float(branch_name.split("/")[1])
-                list_of_versions.append(branch_version)
-            except:
-                continue
-        newest_version = sorted(list_of_versions)[-1]
-        return newest_version
 
     def update_links(self) -> None:
 
