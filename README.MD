@@ -44,7 +44,7 @@ python3 /path/to/cloned/odoo_dev_project/odpm.py --init file:///your/path/to/odo
 ```
 
 The utility will try to prepare your computer:
-1. The utility will ask questions about which parameters should be saved to a file `.env`
+1. The utility will ask questions about which parameters should be saved to a file `.env` (including the usage scenario: `developer` or `server`)
 1. If you are deploying a project from scratch, the utility will ask you to specify the odoo version and make initial settings based on this information
 1. The cloning process of the main odoo repository will be started. This takes a very significant time of 40 minutes or more, so be patient
 1. The repository of the developed project will be cloned, or the directory of the local file system will be connected if a path to the file system was specified.
@@ -83,6 +83,7 @@ The system will try to create a `.odpm` directory in the user's home directory o
 - `POSTGRES_PORT` - the port on which the PostgreSQL DBMS will be launched by default at the address 127.0.0.1
 - `DEBUGGER_PORT` - the port on which the debugger will run by default at the address 127.0.0.1
 - `GEVENT_PORT` - the port on which the Websocket Gevent System will listen by default at the address 127.0.0.1
+- `ODPM_SCENARIO` - usage scenario for odpm: `developer` (default) or `server`. See [Usage scenarios](#usage-scenarios-odpm_scenario) below.
 
 Example:
 ```conf
@@ -93,7 +94,62 @@ ODOO_PORT=8069
 POSTGRES_PORT=5432
 DEBUGGER_PORT=5678
 GEVENT_PORT=8072
+ODPM_SCENARIO=developer
 ```
+
+## Usage scenarios (`ODPM_SCENARIO`)
+
+On the first run, odpm asks you to choose a scenario by number (`1` — developer, `2` — server). The value is stored in `.env` as `ODPM_SCENARIO`. You can change it later and regenerate `docker-compose.yml` by running odpm again.
+
+The scenario does **not** replace `odpm.json` or `user_settings.json`. It only changes how Docker ports are published and how Odoo starts (with or without `debugpy`).
+
+### `developer` (default)
+
+Use on a **local workstation** when you develop modules, debug code in VS Code, and need Odoo developer features.
+
+| Area | Behavior |
+|------|----------|
+| **debugpy** | Odoo starts with `debugpy` listening inside the container (`0.0.0.0:5678`). The debugger port is published on the host (all interfaces, same as other published ports). |
+| **PostgreSQL / debugger on host** | Published as `HOST_PORT:CONTAINER_PORT` (not restricted to loopback on the host). |
+| **Odoo / Gevent** | Published on the host on `ODOO_PORT` and `GEVENT_PORT`. |
+| **`dev_mode` in `user_settings.json`** | Applied when passed on the command line (e.g. assets reload). Suitable for daily development. |
+
+Typical workflow: `ODPM_SCENARIO=developer`, attach the debugger from VS Code, open `http://127.0.0.1:8069`.
+
+### `server`
+
+Use on a **machine that runs Odoo as a service** (staging/production, VPS). Focus: less exposure of infrastructure ports and no debugger in the Odoo process.
+
+| Area | Behavior |
+|------|----------|
+| **debugpy** | **Not** added to the Odoo start command. |
+| **PostgreSQL on host** | Bound to `127.0.0.1:POSTGRES_PORT` only (not reachable from other machines via the published port). |
+| **Debugger port on host** | Bound to `127.0.0.1:DEBUGGER_PORT` (port may still appear in `docker-compose.yml`, but Odoo does not listen for debugpy). |
+| **Odoo / Gevent on host** | Still published as `ODOO_PORT` / `GEVENT_PORT` on all host interfaces — put a reverse proxy (nginx, traefik) and firewall in front for public access. |
+| **`dev_mode`** | Not disabled automatically; for production, leave `dev_mode` empty in `user_settings.json` and do not use developer-only flags. |
+
+### Comparison
+
+| | `developer` | `server` |
+|---|---------------|----------|
+| Remote debug (debugpy) | Yes | No |
+| Postgres on host | All interfaces | `127.0.0.1` only |
+| Debugger port on host | All interfaces | `127.0.0.1` only |
+| Recommended environment | Local PC / laptop | Server / VPS |
+
+### Switching scenario
+
+1. Edit `ODPM_SCENARIO` in `~/.odpm/.env` or in the project `.env`.
+2. Run odpm from the project directory (e.g. `python3 .../odpm.py --skip-start`) so `docker-compose.yml` is regenerated.
+3. Restart containers: `docker compose up -d` (or run odpm without `--skip-start`).
+
+### Recommendations for `server`
+
+- Do not use `dev_mode` on a publicly reachable instance.
+- Set strong values for `db_manager_password`, `db_default_admin_*`, and PostgreSQL credentials; do not rely on image defaults.
+- Prefer HTTPS via a reverse proxy; set Odoo `proxy_mode` and `dbfilter` in `odoo.conf` when exposing the instance.
+- Restrict inbound traffic with a host firewall (allow only SSH and HTTPS; block direct access to `8069`/`8072` from the internet if the proxy is on the same host).
+- For database administration from the host only, `127.0.0.1` binding of Postgres is sufficient; do not map `5432` to `0.0.0.0` manually in compose.
 
 ## Parameters in user_settings.json:
 
@@ -120,9 +176,14 @@ GEVENT_PORT=8072
 - `python_version` - `type: String`. The python version is indicated in text form by its number, for example `"3.10"` or `"3.7"`,
 - `distro_name` - `type: String`. The name of the distribution on which the image for running Odoo will be created. Currently, only `"debian"` is supported.
 - `distro_version` - `type: String`. The version of the distribution specified in the distro_name key, indicated as a text version, for example, `"11"` or `"12"`
+- `postgres_version` - `type: String`. PostgreSQL version for Docker Compose (e.g. `"15"`).
 - `odoo_version` - `type: String`. The version of the odoo system. Examples: `"16.0"`, `"15.0"`, `"11.0"`
 - `dependencies` - `type: List`. A list of links to the project repositories on which your project depends
 - `requirements_txt` - `type: List`. A list of python modules, each element can be formatted in the same way as a line in a file requirements.txt
+- `odoo_git_link` - `type: String`. Platform repository URL; optional branch/commit after a space (same format as CLI `--odoo-git-link`).
+- `platform_name` - `type: String`. Python package name for a custom fork (default `"odoo"`).
+- `odoo_build_date` - `type: String`. Nightly build date (`YYYYMMDD`) or `"latest"`. Checkout matching commit on the platform branch. Overridden by CLI `--odoo-build-date`.
+- `odpm_version` - `type: String`. odpm format version of the project file.
 
 ### Supported Linux Distributions and Versions with Python Versions
 
@@ -142,25 +203,110 @@ Supported distributions and versions:
     - Ubuntu 20.04 (Focal)
         - Python 3.8
 
-## Command Line Interface parameters
+## Command line parameters
 
-- `--init` - initiate a project in the current directory. As a parameter, you can specify a link to the `git` repository
-- `--branch` - used together with the `--init` parameter to specify the branch of the git repository to be cloned.
-- `-d` - to specify the name of the database to work with. If there is no such database, it will be automatically created based on the `db_creation_data` parameter from the configuration file `user_settings.json`
-- `-i` - the parameter indicates that the modules specified in the `init_modules` parameter of the `user_settings.json` configuration file should be initialized.
-- `-u` - the parameter indicates that the modules specified in the `pdate_modules` parameter of the `user_settings.json` configuration file should be updated.
-- `-t` - will run tests of modules specified in `init_modules` and `update_modules`, works only when using parameters `-d`, `-i`, `-u`. If the database is being created from scratch, tests of all installed modules will be run. This may take a long time.
-- `--get-dbs-list` - will show list of databases
-- `--db-restore` - The system will attempt to restore a database archive. Specify the archive name, which must be located in the directory specified by the `BACKUP_DIR` parameter in the `.env` file. The database name for restoration will be taken from the `-d` parameter.
-- `--db-backup` - The system will attempt to create a database archive. You can specify the archive name to be created in the directory specified by the `BACKUP_DIR` parameter in the `.env` file. If no name is provided, it will be generated automatically based on the database name from the `-d` parameter plus a timestamp. The database name for archiving will be taken from the `-d` parameter.
-- `--db-drop` - accept database name as parameter. Database with selected  name will be deleted. If you will use it with  params `-d`, `-i`, `-u`, and select the same name, system will with first step delete DB and with second step will create new DB with the same name, and will install selected modules.
-- `--translate` - will update translation for selected language, for example `ru_RU` or `eu_US` for database from `-d` param and for modules form `update_modules` and `init_modules` from `user_settings.json` file
-- `--pip-install` - will start install of all python packages from odoo `requirements.txt` and from `requirements_txt` param to environment inside `docker container`.
-- `--start-precommit` - will start pre-commit for your project inside container, specified in parameter `developing_project` from file `user_settings.json`.
-- `--build-image` - will build Docker image for your odoo version
-- `--set-admin-pass` - when you specify the value of this parameter, the administrator account will have its password and login changed to those specified in the `db_default_admin_login` and `db_default_admin_password` parameters in the `user_settings.json` configuration file. Be sure to specify the name of the database for which you want to change the password and use the `-d database_name` parameter.
-- `--sql-execute` - wen this parameter is used, the SQL scripts specified in the `sql_queries` parameter of the `user_settings.json` configuration file will be executed. Each script is a separate string that is an element of the list.You must specify the name of the database for which you want to change the password and use the parameter `-d database_name`.
-- `--export-po-files` will create files for selected language, for example `ru_RU` or `eu_US`. System will create `po` and `pot` files for modules that are listed in `update_modules` parameter of `user_settings.json` file in your project environment.You must specify the name of the database for which you want to create translation files and use the parameter `-d database_name`
-- `scaffold my_module_name` - The additional command `scaffold` creates a module with the specified name in the project being developed. In this case, `my_module_name`.
-    - `-t` - The name of the directory where the templates for generating the module are located in the directory with the specified name. The templates are written using [jinja2](https://jinja.palletsprojects.com/en/stable/)
-- `--odoo-bin` - flag to capture original Odoo arguments and forward them during instance launch. For instance, to stop Odoo after initializing all modules, you typically use the `--stop-after-init` flag. Now, you can achieve this by adding `--odoo-bin --stop-after-init`
+Run `python3 /path/to/odpm.py --help` for the full list. Parameters below are grouped by purpose.
+
+### Project initialization
+
+| Parameter | Description |
+|-----------|-------------|
+| `--init LINK` | Initialize the current directory as an odpm project. `LINK` is a git URL, `git@…` SSH URL, or `file:///path/to/local/project`. |
+| `--branch NAME` | With `--init`: branch of the **developing** project repository to clone. |
+| `--odoo-version VER` | With `--init`: Odoo version (e.g. `17.0`). Used when creating `odpm.json`. |
+| `--odoo-git-link LINK` | With `--init`: platform Odoo repository instead of official `odoo/odoo`. May include branch (and optional commit), e.g. `'git@host:org/odoo-17.git 17.0'`. Saved to `odpm.json`. |
+| `--platform-name NAME` | With `--init` / custom git link: Python package name of the fork (default `odoo`). Affects paths and `odoo-bin` command inside the container. |
+| `--python-version VER` | With `--init`: Python version for the Docker image (e.g. `3.10`). |
+| `--distro-name NAME` | With `--init`: Linux distribution name (currently `debian`). |
+| `--distro-version VER` | With `--init`: distribution version (e.g. `12`). |
+| `--postgres-version VER` | With `--init`: PostgreSQL version for compose (e.g. `15`). |
+| `--requirements-txt PKGS` | Comma-separated pip packages with versions, e.g. `requests==2.31.0,cryptography==42.0.8`. Written to `odpm.json`. |
+
+Example:
+
+```bash
+python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
+  --odoo-version 17.0 --odoo-git-link 'git@github.com/org/odoo-17.git 17.0' \
+  --platform-name odoo --python-version 3.10 --distro-version 12
+```
+
+### Environment and image
+
+| Parameter | Description |
+|-----------|-------------|
+| `--skip-start` | Regenerate `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. |
+| `--version` | Print odpm version and exit. |
+| `--config-base64-data STRING` | Decode a base64 JSON config string (advanced / automation). |
+
+### Odoo run: database and modules
+
+| Parameter | Description |
+|-----------|-------------|
+| `-d DB_NAME` | Database name. Created automatically from `db_creation_data` in `user_settings.json` if missing. |
+| `-i` | Install modules listed in `init_modules` (`user_settings.json`). |
+| `-u` | Update modules listed in `update_modules` (`user_settings.json`). |
+| `-t`, `--test` | Run tests for modules from `init_modules` / `update_modules`. Requires `-d` and usually `-i` or `-u`. On a fresh DB, tests for all installed modules may run (slow). |
+| `--screencasts` | With `-t` / `--test`: save screencast videos for tour failures under `data/odoo/tmp/odoo_tests` in the project. |
+| `--odoo-bin ARGS…` | Pass arguments to `odoo-bin` (everything after `--odoo-bin`). Example: `--odoo-bin --stop-after-init`. |
+
+Typical development run:
+
+```bash
+python3 odpm.py -d test_db -i -u
+```
+
+Init and stop (CI / first setup):
+
+```bash
+python3 odpm.py -d test_db -i --odoo-bin --stop-after-init
+```
+
+### Platform git: nightly build date
+
+| Parameter | Description |
+|-----------|-------------|
+| `--odoo-build-date DATE` | Odoo nightly date: `YYYYMMDD` or `YYYY-MM-DD`. Resolves the last commit on the platform branch before that day and checks it out. Overrides `odoo_build_date` in `odpm.json`. Ignored if a commit hash is set in `odoo_git_link`. |
+
+Example:
+
+```bash
+python3 odpm.py --skip-start --odoo-build-date 20250529
+```
+
+### Database backup and maintenance
+
+| Parameter | Description |
+|-----------|-------------|
+| `--get-dbs-list` | List databases (inside the running environment). |
+| `--db-backup [ARCHIVE]` | Backup the database from `-d` into `BACKUP_DIR` (`.env`). Optional archive name; otherwise name + timestamp. |
+| `--db-restore ARCHIVE` | Restore archive from `BACKUP_DIR` into the database named in `-d`. |
+| `--db-drop` | Drop the database named in `-d`. With `-d`, `-i`, `-u` and the same name: drop, recreate, install modules. |
+
+### Translations and admin
+
+| Parameter | Description |
+|-----------|-------------|
+| `--translate LANG` | Update translations (e.g. `ru_RU`) for DB `-d` and modules from `init_modules` / `update_modules`. Use with `-d`, `-i`, or `-u`. |
+| `--export-po-files LANG` | Export `pot` / `po` for `LANG` and modules from `update_modules`. Requires `-d`. |
+| `--set-admin-pass` | Set admin (uid=2) login/password from `db_default_admin_login` / `db_default_admin_password` in `user_settings.json`. Requires `-d`. |
+
+### Development tools
+
+| Parameter | Description |
+|-----------|-------------|
+| `--start-precommit` | Run `pre-commit` in the developing project inside the container. |
+| `--sql-execute` | Run SQL from `sql_queries` in `user_settings.json`. Requires `-d`. |
+
+### Scaffold subcommand
+
+Creates a module in the developing project (run **without** other odpm flags):
+
+```bash
+python3 odpm.py scaffold my_module_name
+python3 odpm.py scaffold my_module_name -t /path/to/template_dir
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `scaffold MODULE` | Subcommand: generate a module from templates ([jinja2](https://jinja.palletsprojects.com/en/stable/)). |
+| `-t`, `--scaffold_template_name DIR` | Custom template directory. |
