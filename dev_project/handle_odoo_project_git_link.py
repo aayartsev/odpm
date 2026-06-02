@@ -516,6 +516,8 @@ class HandleOdooProjectLink:
             branch,
             self.project_path,
         )
+        if os.path.exists(os.path.join(self.project_path, ".git")):
+            self.ensure_branch_exists(branch, odoo_version)
         try:
             commit = self.resolve_commit_with_fetch(branch, build_date)
         except (ValueError, RuntimeError) as error:
@@ -585,7 +587,7 @@ class HandleOdooProjectLink:
         current_remote_branches_string = current_remote_branches_bytes.stdout.decode(
             "utf-8"
         ).strip()
-        if f"origin/{odoo_version}" in current_remote_branches_string:
+        if f"origin/{branch_name}" in current_remote_branches_string:
             return
         subprocess.run(
             [
