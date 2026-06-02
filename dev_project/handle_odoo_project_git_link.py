@@ -406,7 +406,7 @@ class HandleOdooProjectLink:
                 *args,
             ]
         if not capture:
-            _logger.info("→ git %s", " ".join(args))
+            _logger.info(f"""running command: → git {" ".join(args)} for {self.project_string}""")
         return subprocess.run(
             cmd,
             cwd=self.project_path,
@@ -422,7 +422,7 @@ class HandleOdooProjectLink:
         self._run_git(["pull"], capture=False)
 
     def _git_checkout_ref(self, ref: str) -> None:
-        _logger.info("Checking out %s", ref)
+        _logger.info(f"Checking out {ref} for {self.project_string}")
         self._run_git(["checkout", ref], capture=False)
 
     def _git_fetch_ref(self, ref: str) -> None:
