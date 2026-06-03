@@ -152,7 +152,6 @@ class VirtualenvChecker:
         os.environ["PATH"] = venv_bin_dir + os.pathsep + os.environ["PATH"]
         # Inserting path to the venv's dirs in system path
         sys.path.insert(1, venv_lib_path)
-        # os.environ["VIRTUAL_ENV"] = self.docker_venv_dir
 
     def evaluate_text_condition(self, condition_of_installation_text):
         marker = Marker(condition_of_installation_text)
@@ -163,15 +162,18 @@ class VirtualenvChecker:
     def package_installation_error(self, txt):
         _logger.error(txt)
         exit(1)
-    
+
+    def _run_pip_command(self, command: str) -> None:
+        result = subprocess.run([command], shell=True)
+        if result.returncode != 0:
+            self.package_installation_error(
+                f"Command failed (exit {result.returncode}): {command}"
+            )
+
     def bootstrap_packages(self, manager_commad: str, options: str):
-        print("bootstrap_packages", get_venv_bootstrap_packages(self.python_version))
         for package in get_venv_bootstrap_packages(self.python_version):
-            subprocess.run(
-                [
-                    f"""{manager_commad} pip install "{package}" {options}""".strip()
-                ],
-                shell=True,
+            self._run_pip_command(
+                f"""{manager_commad} pip install "{package}" {options}""".strip()
             )
 
     def create_venv(self):
@@ -181,7 +183,11 @@ class VirtualenvChecker:
         else:
             dir_for_venv = os.path.join(self.docker_venv_dir, "..")
             os.chdir(dir_for_venv)
-            subprocess.run(["uv venv"], shell=True)
+            result = subprocess.run(["uv", "venv"])
+            if result.returncode != 0:
+                self.package_installation_error(
+                    f"uv venv failed (exit {result.returncode})"
+                )
 
     def recreate_uv_venv(self):
         manager_commad = "python3 -m"
@@ -198,44 +204,22 @@ class VirtualenvChecker:
             if "gevent" in package:
                 package = f"{package} --no-build-isolation"
                 package = package.replace("<", "=").replace(">", "=")
-                exit_code = os.system(
+                self._run_pip_command(
                     f"""{manager_commad} pip install {package} {options}""".strip()
                 )
-                if os.WEXITSTATUS(exit_code) != 0:
-                    self.package_installation_error(
-                        f"""Installation of package {package} failed """
-                    )
 
-        subprocess.run(
-            [
-                f"{manager_commad} pip install -r {self.odoo_requirements_path} {options}".strip()
-            ],
-            shell=True,
+        self._run_pip_command(
+            f"{manager_commad} pip install -r {self.odoo_requirements_path} {options}".strip()
         )
         for package_to_install in self.requirements_txt:
-            subprocess.run(
-                [
-                    f"{manager_commad} pip install {package_to_install} {options}".strip()
-                ],
-                shell=True,
+            self._run_pip_command(
+                f"{manager_commad} pip install {package_to_install} {options}".strip()
             )
         with open(self.venv_lock_file_path, "w") as f:
             f.write(self.venv_lock_hash)
 
     def _canonical_package_name(self, name: str) -> str:
         return canonicalize_name(name.strip())
-
-    def _run_pip_command(self, command: str) -> None:
-        result = subprocess.run(
-            [command],
-            capture_output=True,
-            shell=True,
-        )
-        if result.returncode != 0:
-            stderr = result.stderr.decode("utf-8", errors="replace").strip()
-            self.package_installation_error(
-                f"Command failed (exit {result.returncode}): {command}\n{stderr}"
-            )
 
     def check_uv_venv(self):
         separator = " "
