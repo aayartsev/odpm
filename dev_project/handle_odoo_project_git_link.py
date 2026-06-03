@@ -297,7 +297,8 @@ class HandleOdooProjectLink:
                 )
                 if b"true" in state.stdout:
                     repo_is_same = self.check_repo_url(
-                        self.get_project_path(), self.project_string
+                        self.get_project_path(), 
+                        self.gitlink or self.project_link,
                     )
         if not state or b"true" not in state.stdout or not repo_is_same:
             self.force_clone_repo()
@@ -377,8 +378,7 @@ class HandleOdooProjectLink:
             check=True,
         )
         actual_url = result.stdout.strip()
-
-        # Нормализация URL (убираем .git и trailing slash)
+        #URL normalization (strip .git and trailing slash)
         actual_url = actual_url.rstrip(".git").rstrip("/")
         expected_url = expected_url.rstrip(".git").rstrip("/")
 
