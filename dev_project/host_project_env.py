@@ -494,4 +494,9 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         )
 
     def build_ci_image(self) -> None:
+        # TODO(architecture): OCA deps from oca_dependencies.txt are appended to
+        # config.dependencies during map_folders() but the same for-loop does not
+        # process URLs added mid-iteration; a second odpm run or a single-pass
+        # dependency resolver is required before CI context/conf are complete.
+        # See: check_oca_dependencies() + map_folders() loop.
         _logger.info("build_ci_image: stub — full CI image build will be implemented here")
