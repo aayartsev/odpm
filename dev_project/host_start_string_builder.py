@@ -1,5 +1,4 @@
 import base64
-import configparser
 import pathlib
 import re
 
@@ -83,20 +82,7 @@ class StartStringBuilder:
         return final_string
 
     def get_start_string(self) -> str:
-        # Reading of config file
-        odoo_config = configparser.ConfigParser()
-        odoo_config.read(self.config.path_odoo_conf)
-        # Build string of all addons directories
-        addons_string = ",".join(self.config.docker_dirs_with_addons)
-        odoo_config["options"]["addons_path"] = addons_string
-
-        data_dir = str(
-            pathlib.PurePosixPath(self.config.docker_project_dir, ".local/share/Odoo")
-        )
-        odoo_config["options"]["data_dir"] = data_dir
-        self.config.odoo_config_data = {
-            s: dict(odoo_config.items(s)) for s in odoo_config.sections()
-        }
+        self.config.generate_odoo_conf_docker_data()
         debugger_command_string = ""
         if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
             debugger_command_string = (

@@ -4,6 +4,7 @@ import os
 import pathlib
 import shutil
 import hashlib
+import configparser
 from argparse import Namespace
 from dataclasses import dataclass
 from typing import Literal, TypedDict
@@ -854,3 +855,21 @@ class Config:
         )
         self.odoo_src_dir = self.odoo_platform_project.get_project_path()
         self.apply_odoo_build_date_to_platform()
+    
+    def generate_odoo_conf_docker_data(self) -> None:
+        odoo_config = configparser.ConfigParser()
+        odoo_config.read(self.path_odoo_conf)
+        if "options" not in odoo_config:
+            odoo_config["options"] = {}
+        odoo_config["options"]["addons_path"] = ",".join(
+            self.docker_dirs_with_addons
+        )
+        odoo_config["options"]["data_dir"] = str(
+            pathlib.PurePosixPath(
+                self.docker_project_dir, ".local/share/Odoo"
+            )
+        )
+        self.odoo_config_data = {
+            section: dict(odoo_config.items(section))
+            for section in odoo_config.sections()
+        }

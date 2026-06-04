@@ -41,6 +41,10 @@ class CreateProjectEnvironmentProtocol(Protocol):
         NotImplementedError(
                 f"""Define generate_config_file in {self.__class__.__name__}""")
     
+    def generate_odoo_conf_docker_data(self):
+        NotImplementedError(
+                f"""Define generate_odoo_conf_docker_data in {self.__class__.__name__}""")
+    
     def generate_docker_compose_file(self):
         NotImplementedError(
                 f"""Define generate_docker_compose_file in {self.__class__.__name__}""")
