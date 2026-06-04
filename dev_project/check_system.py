@@ -75,7 +75,7 @@ class SystemChecker(SystemCheckerProtocol):
                 if self.config.odoo_image_name == new_record["Repository"]:
                     result_list.append(new_record)
         if not result_list:
-            self.config.project_env.build_image()
+            self.config.project_env.build_base_image()
 
     def check_running_containers(self) -> None:
         ports_to_check = [

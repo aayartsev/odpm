@@ -108,13 +108,8 @@ class StartStringBuilder:
         translate_lang = self.args.translate
         install_pip = self.args.pip_install
         start_pre_commit = self.args.start_precommit
-        build_image = self.args.build_image
         export_po_files_lang = self.args.export_po_files
         dev_mode = self.config.dev_mode or False
-
-        if build_image:
-            self.config.project_env.build_image()
-            exit()
 
         if install_pip:
             pip_install_command = f"""cd {self.config.docker_project_dir} && python3 -m venv {self.config.docker_venv_dir} && . {pathlib.PurePosixPath(self.config.docker_venv_dir, "bin", "activate")} && wget -O odoo_requirements.txt https://raw.githubusercontent.com/odoo/odoo/{self.config.odoo_version}/requirements.txt && python3 -m pip install -r odoo_requirements.txt && python3 -m pip install {" ".join([req for req in self.config.requirements_txt])}"""

@@ -42,6 +42,9 @@ def main() -> None:
     system_checker.check_docker_compose()
     project_environment.checkout_dependencies()
     project_environment.update_links()
+    if args.build_image:
+        project_environment.build_ci_image()
+        sys.exit(0)
     project_environment.update_vscode_debugger_launcher()
     project_environment.generate_vscode_settings_json()
 

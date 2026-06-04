@@ -26,7 +26,8 @@ arg_parser.add_argument(
 
 arg_parser.add_argument(
     cli_params.BUILD_IMAGE_PARAM,
-    help="Will build image for your odoo version",
+    help="Build CI image with platform sources, addons, and venv (stub for now)",
+    action="store_true",
 )
 
 arg_parser.add_argument(

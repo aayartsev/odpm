@@ -477,7 +477,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)
 
-    def build_image(self):
+    def build_base_image(self) -> None:
         os.chdir(self.config.project_dir)
         # TODO i need to create .dockerignore file (because it tries to send docker context)
         subprocess.run(
@@ -492,3 +492,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 self.config.project_dir,
             ]
         )
+
+    def build_ci_image(self) -> None:
+        _logger.info("build_ci_image: stub — full CI image build will be implemented here")
