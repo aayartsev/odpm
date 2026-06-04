@@ -10,6 +10,7 @@ from . import constants, translations
 from .handle_odoo_project_git_link import HandleOdooProjectLink
 from .host_config import Config
 from .inside_docker_app.logger import get_module_logger
+from .bake_venv import VenvInstallSpec, get_venv_bootstrap_packages, write_ci_bake_dir
 from .inside_docker_app.utils import (
     delete_files_in_directory,
     download_file,
@@ -524,6 +525,35 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
     def _ci_copytree_ignore(self, _directory: str, names: list) -> set:
         return {name for name in names if name in (".git", "__pycache__")}
 
+    def _build_ci_venv_install_spec(self) -> VenvInstallSpec:
+        extra_packages = [
+            package.strip()
+            for package in self.config.requirements_txt
+            if package and package.strip()
+        ]
+        return VenvInstallSpec(
+            project_dir=self.config.docker_project_dir,
+            venv_dir=self.config.docker_venv_dir,
+            odoo_requirements_path=os.path.join(
+                self.config.docker_odoo_dir, "requirements.txt"
+            ),
+            extra_packages=extra_packages,
+            python_version=self.config.python_version,
+            bootstrap_packages=get_venv_bootstrap_packages(
+                self.config.python_version
+            ),
+        )
+
+    def _prepare_ci_bake_files(self, context_dir: str) -> None:
+        dev_project_dir = os.path.join(
+            self.config.program_dir, constants.DEV_PROJECT_DIR
+        )
+        write_ci_bake_dir(
+            context_dir,
+            self._build_ci_venv_install_spec(),
+            dev_project_dir,
+        )
+
     def prepare_ci_build_context(self) -> None:
         context_dir = self.config.ci_build_context_dir
         if os.path.exists(context_dir):
@@ -555,11 +585,19 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         with open(dockerignore_path, "w") as writer:
             writer.write(constants.CI_CONTEXT_DOCKERIGNORE)
 
+        self._prepare_ci_bake_files(context_dir)
+
+        bake_modules = ", ".join(
+            os.path.basename(path) for path in constants.CI_BAKE_PYTHON_FILES
+        )
         _logger.info(
-            "prepare_ci_build_context: %s (%s source tree(s), %s)",
+            "prepare_ci_build_context: %s (%s source tree(s), %s, %s/[%s, %s])",
             context_dir,
             copied,
             constants.ODOO_CONF_NAME,
+            constants.CI_BAKE_DIR,
+            bake_modules,
+            constants.CI_VENV_INSTALL_JSON,
         )
 
     def build_base_image(self) -> None:

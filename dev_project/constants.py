@@ -12,6 +12,12 @@ USER_CONFIG_FILE_NAME = "user_settings.json"
 CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
 PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
 CI_BUILD_CONTEXT_DIR = os.path.join(PROJECT_SERVICE_DIRECTORY, "ci-build-context")
+CI_BAKE_DIR = "bake"
+CI_VENV_INSTALL_JSON = "venv_install.json"
+CI_BAKE_PYTHON_FILES = (
+    "bake_venv.py",
+    os.path.join("inside_docker_app", "logger.py"),
+)
 CI_CONTEXT_DOCKERIGNORE = """**/.git
 **/__pycache__
 *.pyc

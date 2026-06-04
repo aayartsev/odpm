@@ -1,32 +1,31 @@
 import json
 import os
-import shutil
 import subprocess
 import sys
-import venv
 
 import pip._vendor.packaging.version as pip_ver
 from logger import get_module_logger
 from pip._internal.operations.freeze import freeze
-from pip._vendor.packaging.markers import Marker, default_environment
 from pip._vendor.packaging.utils import canonicalize_name
 from utils import delete_files_in_directory
 
 try:
-    from .. import constants
+    from ..bake_venv import (
+        build_spec_from_config,
+        detect_uv_info,
+        install_fresh,
+        run_pip_command,
+    )
 except ImportError:
-    import os
-    import sys
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    import constants
+    from bake_venv import (
+        build_spec_from_config,
+        detect_uv_info,
+        install_fresh,
+        run_pip_command,
+    )
 
 _logger = get_module_logger(__name__)
-
-def get_venv_bootstrap_packages(python_version: str) -> list[str]:
-    return constants.VENV_BOOTSTRAP_PACKAGES.get(
-        python_version,
-        constants.DEFAULT_VENV_BOOTSTRAP + ["setuptools"],
-    )
 
 
 class VirtualenvChecker:
@@ -34,7 +33,6 @@ class VirtualenvChecker:
         self.docker_venv_dir = config.get("docker_venv_dir", "")
         self.docker_project_dir = config["docker_project_dir"]
         self.requirements_txt = config.get("requirements_txt", [])
-        self.use_uv = False
         self.odoo_requirements_path = os.path.join(
             config["docker_odoo_dir"], "requirements.txt"
         )
@@ -42,10 +40,8 @@ class VirtualenvChecker:
         self.python_version = config["python_version"]
         self.venv_lock_hash = config["venv_lock_hash"]
         self.arch = config["arch"]
-        self.packages_to_install = ["wheel"]
-        self.uv_info = self.check_uv_installed()
-        if self.uv_info.get("installed"):
-            self.use_uv = True
+        self.uv_info = detect_uv_info()
+        self.use_uv = self.uv_info["installed"]
         self.check_uv_virtual_env()
 
     def compare_versions(self, ver1: str, ver2: str) -> int:
@@ -57,75 +53,7 @@ class VirtualenvChecker:
         return (v1 > v2) - (v1 < v2)
 
     def check_uv_installed(self) -> dict:
-        """
-        Checks for the presence and functionality of uv in the system.
-        :return: dict with keys: installed, path, version, error
-        """
-        uv_path = shutil.which("uv")
-        if not uv_path:
-            return {
-                "installed": False,
-                "path": None,
-                "version": None,
-                "error": "Executable 'uv' not found in PATH",
-            }
-
-        try:
-            # Проверяем, что uv отвечает на --version (таймаут 3 сек)
-            result = subprocess.run(
-                [uv_path, "--version"],
-                capture_output=True,
-                text=True,
-                check=True,
-                timeout=3,
-            )
-            version = result.stdout.strip()
-            return {
-                "installed": True,
-                "path": uv_path,
-                "version": version,
-                "error": None,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "installed": False,
-                "path": uv_path,
-                "version": None,
-                "error": "uv timed out during --version execution",
-            }
-        except subprocess.CalledProcessError as e:
-            return {
-                "installed": False,
-                "path": uv_path,
-                "version": None,
-                "error": f"uv вернул ошибку: {e.stderr.strip()}",
-            }
-        except Exception as e:
-            return {
-                "installed": False,
-                "path": uv_path,
-                "version": None,
-                "error": str(e),
-            }
-
-    def get_packages_to_install_from_odoo_requiremets_txt(self):
-        with open(self.odoo_requirements_path, "r") as file:
-            for line in file.readlines():
-                data = line.split(";")
-                if len(data) == 1:
-                    package = data[0].split("#")[0]
-                    if package:
-                        self.packages_to_install.append(package)
-                    continue
-                package_version, condition_of_installation_text = data
-                condition_of_installation_text = condition_of_installation_text.split(
-                    "#"
-                )[0]
-                condition_of_installation = self.evaluate_text_condition(
-                    condition_of_installation_text
-                )
-                if condition_of_installation:
-                    self.packages_to_install.append(package_version)
+        return self.uv_info
 
     def is_virtualenv(self):
         return sys.prefix != sys.base_prefix
@@ -139,84 +67,41 @@ class VirtualenvChecker:
         return ""
 
     def set_venv(self):
-        # This is the heart of this script that puts you inside the virtual environment.
-        # There is no need to undo this. When this script ends, your original path will
-        # be restored.
-        # Finding venv/bin dir
-        venv_bin_dir = os.path.dirname(self.find_file(self.docker_venv_dir, "activate"))
-        # Defining path to the venv's dirs
+        activate_path = self.find_file(self.docker_venv_dir, "activate")
+        venv_bin_dir = os.path.dirname(activate_path)
         venv_lib_path = os.path.join(
             self.docker_venv_dir, "lib", f"python{self.python_version}", "site-packages"
         )
-        # Update PATH environment variable
         os.environ["PATH"] = venv_bin_dir + os.pathsep + os.environ["PATH"]
-        # Inserting path to the venv's dirs in system path
         sys.path.insert(1, venv_lib_path)
-
-    def evaluate_text_condition(self, condition_of_installation_text):
-        marker = Marker(condition_of_installation_text)
-        params = default_environment()
-        res = marker.evaluate(params)
-        return res
 
     def package_installation_error(self, txt):
         _logger.error(txt)
         exit(1)
 
     def _run_pip_command(self, command: str) -> None:
-        result = subprocess.run([command], shell=True)
-        if result.returncode != 0:
-            self.package_installation_error(
-                f"Command failed (exit {result.returncode}): {command}"
-            )
-
-    def bootstrap_packages(self, manager_commad: str, options: str):
-        for package in get_venv_bootstrap_packages(self.python_version):
-            self._run_pip_command(
-                f"""{manager_commad} pip install "{package}" {options}""".strip()
-            )
-
-    def create_venv(self):
-        if not self.use_uv:
-            env = venv.EnvBuilder(with_pip=True)
-            env.create(self.docker_venv_dir)
-        else:
-            dir_for_venv = os.path.join(self.docker_venv_dir, "..")
-            os.chdir(dir_for_venv)
-            result = subprocess.run(["uv", "venv"])
-            if result.returncode != 0:
-                self.package_installation_error(
-                    f"uv venv failed (exit {result.returncode})"
-                )
+        try:
+            run_pip_command(command)
+        except SystemExit:
+            self.package_installation_error(f"Command failed: {command}")
 
     def recreate_uv_venv(self):
-        manager_commad = "python3 -m"
-        options = ""
-        if self.use_uv:
-            manager_commad = "uv"
-            options = "--link-mode=copy"
         delete_files_in_directory(self.docker_venv_dir)
-        self.create_venv()
-        self.set_venv()
-        self.get_packages_to_install_from_odoo_requiremets_txt()
-        self.bootstrap_packages(manager_commad, options)
-        for package in self.packages_to_install:
-            if "gevent" in package:
-                package = f"{package} --no-build-isolation"
-                package = package.replace("<", "=").replace(">", "=")
-                self._run_pip_command(
-                    f"""{manager_commad} pip install {package} {options}""".strip()
-                )
-
-        self._run_pip_command(
-            f"{manager_commad} pip install -r {self.odoo_requirements_path} {options}".strip()
+        spec = build_spec_from_config(
+            {
+                "docker_project_dir": self.docker_project_dir,
+                "docker_venv_dir": self.docker_venv_dir,
+                "docker_odoo_dir": os.path.dirname(self.odoo_requirements_path),
+                "requirements_txt": self.requirements_txt,
+                "python_version": self.python_version,
+            }
         )
-        for package_to_install in self.requirements_txt:
-            self._run_pip_command(
-                f"{manager_commad} pip install {package_to_install} {options}".strip()
-            )
-        with open(self.venv_lock_file_path, "w") as f:
-            f.write(self.venv_lock_hash)
+        install_fresh(
+            spec,
+            use_uv=self.use_uv,
+            lock_file_path=self.venv_lock_file_path,
+            lock_hash=self.venv_lock_hash,
+        )
 
     def _canonical_package_name(self, name: str) -> str:
         return canonicalize_name(name.strip())
@@ -338,9 +223,6 @@ class VirtualenvChecker:
             }
         )
         return instructions
-
-    # def check_package_to_remove(self, package_string, installed_package_list):
-    #     pip_ver
 
     def check_uv_virtual_env(self):
         if not os.path.exists(self.venv_lock_file_path):
