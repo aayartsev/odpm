@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shutil
@@ -165,9 +166,11 @@ def create_venv(spec: VenvInstallSpec, use_uv: bool) -> None:
         env = venv.EnvBuilder(with_pip=True)
         env.create(spec.venv_dir)
         return
-    venv_parent = os.path.join(spec.venv_dir, "..")
-    os.chdir(venv_parent)
-    result = subprocess.run(["uv", "venv"], check=False)
+    result = subprocess.run(
+        ["uv", "venv", spec.venv_dir],
+        cwd=spec.project_dir,
+        check=False,
+    )
     if result.returncode != 0:
         _logger.error("uv venv failed (exit %s)", result.returncode)
         sys.exit(1)
@@ -292,3 +295,19 @@ def write_ci_bake_dir(
         json.dump(spec.to_dict(), config_file, indent=2, ensure_ascii=False)
         config_file.write("\n")
     return bake_dir
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Install Odoo virtualenv (CI bake)")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to venv_install.json (VenvInstallSpec)",
+    )
+    args = parser.parse_args(argv)
+    spec = VenvInstallSpec.from_json_file(args.config)
+    install_fresh(spec)
+
+
+if __name__ == "__main__":
+    main()

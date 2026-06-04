@@ -77,6 +77,10 @@ class CreateProjectEnvironmentProtocol(Protocol):
         NotImplementedError(
                 f"""Define prepare_ci_build_context in {self.__class__.__name__}""")
 
+    def generate_ci_dockerfile(self):
+        NotImplementedError(
+                f"""Define generate_ci_dockerfile in {self.__class__.__name__}""")
+
     def build_ci_image(self):
         NotImplementedError(
                 f"""Define build_ci_image in {self.__class__.__name__}""")

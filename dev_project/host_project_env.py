@@ -3,6 +3,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Literal, NamedTuple, TypedDict
 
@@ -616,6 +617,30 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             ]
         )
 
+    def generate_ci_dockerfile(self) -> str:
+        template_path = os.path.join(
+            self.config.program_dir, constants.CI_DOCKERFILE_TEMPLATE
+        )
+        with open(template_path) as template_file:
+            content = template_file.read()
+        content = content.format(
+            BASE_IMAGE=self.config.odoo_image_name,
+            DOCKER_PROJECT_DIR=self.config.docker_project_dir,
+            CURRENT_USER=constants.CURRENT_USER,
+            CI_BAKE_DIR=constants.CI_BAKE_DIR,
+            CI_VENV_INSTALL_JSON=constants.CI_VENV_INSTALL_JSON,
+        )
+        content = content.replace(
+            constants.MESSAGE_MARKER,
+            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+        )
+        dockerfile_path = os.path.join(
+            self.config.ci_build_context_dir, constants.CI_DOCKERFILE
+        )
+        with open(dockerfile_path, "w") as writer:
+            writer.write(content)
+        return dockerfile_path
+
     def build_ci_image(self) -> None:
         self.ensure_base_image()
         self.prepare_ci_build_context()
@@ -624,9 +649,32 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         # process URLs added mid-iteration; a second odpm run or a single-pass
         # dependency resolver is required before CI context/conf are complete.
         # See: check_oca_dependencies() + map_folders() loop.
+        ci_dockerfile = self.generate_ci_dockerfile()
+        context_dir = self.config.ci_build_context_dir
         _logger.info(
-            "build_ci_image: stub — CI tag %s (base %s), context dir %s",
+            "build_ci_image: building %s from %s (base %s)",
             self.config.odoo_ci_image_name,
+            ci_dockerfile,
             self.config.odoo_image_name,
-            self.config.ci_build_context_dir,
+        )
+        result = subprocess.run(
+            [
+                "docker",
+                "build",
+                "-f",
+                ci_dockerfile,
+                "-t",
+                self.config.odoo_ci_image_name,
+                f"--platform=linux/{self.config.arch}",
+                context_dir,
+            ],
+            cwd=self.config.project_dir,
+        )
+        if result.returncode != 0:
+            _logger.error(
+                "build_ci_image: docker build failed (exit %s)", result.returncode
+            )
+            sys.exit(result.returncode)
+        _logger.info(
+            "build_ci_image: finished %s", self.config.odoo_ci_image_name
         )

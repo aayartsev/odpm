@@ -18,6 +18,8 @@ CI_BAKE_PYTHON_FILES = (
     "bake_venv.py",
     os.path.join("inside_docker_app", "logger.py"),
 )
+CI_DOCKERFILE = "Dockerfile.ci"
+CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
 CI_CONTEXT_DOCKERIGNORE = """**/.git
 **/__pycache__
 *.pyc
