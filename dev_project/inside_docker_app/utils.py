@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta
 from urllib.request import urlopen
 import zipfile
+from typing import Optional
 
 try:
     from .. import constants
@@ -103,7 +104,7 @@ def get_free_space(path):
 _BUILD_DATE_RE = re.compile(r"^(\d{4})-?(\d{2})-?(\d{2})$")
 
 
-def is_actionable_build_date(build_date: str | None) -> bool:
+def is_actionable_build_date(build_date: Optional[str]) -> bool:
     if not build_date:
         return False
     normalized = build_date.strip().lower()
