@@ -6,6 +6,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urlparse
+from typing import Optional
 
 from . import constants, translations
 from .inside_docker_app.logger import get_module_logger
@@ -624,11 +625,11 @@ class HandleOdooProjectLink:
         self,
         branch: str,
         *,
-        commit: str | None = None,
+        commit: Optional[str] = None,
         hard: bool = False,
         clean: bool = False,
         update: bool = False,
-        odoo_version: str | None = None,
+        odoo_version: Optional[str] = None,
         odoo_version_sync: bool = False,
     ) -> None:
         if hard:
