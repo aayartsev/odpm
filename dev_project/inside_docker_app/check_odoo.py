@@ -9,6 +9,7 @@ from contextlib import closing, contextmanager
 import cli_params
 from logger import get_module_logger
 from postgres_waiter import PostgresWaiter
+from utils import write_odoo_config_data_to_file
 
 _logger = get_module_logger(__name__)
 
@@ -201,14 +202,15 @@ class OdooChecker:
             )
 
     def create_config_file(self):
-        odoo_conf = configparser.ConfigParser()
-        for section in self.odoo_config_data:
-            odoo_conf[section] = {}
-            for key in self.odoo_config_data[section]:
-                odoo_conf[section][key] = self.odoo_config_data[section][key]
-        # Now we will create config file from received data threw current script argument
-        with open(self.docker_path_odoo_conf, "w") as odoo_config_file:
-            odoo_conf.write(odoo_config_file)
+        # odoo_conf = configparser.ConfigParser()
+        # for section in self.odoo_config_data:
+        #     odoo_conf[section] = {}
+        #     for key in self.odoo_config_data[section]:
+        #         odoo_conf[section][key] = self.odoo_config_data[section][key]
+        # # Now we will create config file from received data threw current script argument
+        # with open(self.docker_path_odoo_conf, "w") as odoo_config_file:
+        #     odoo_conf.write(odoo_config_file)
+        write_odoo_config_data_to_file(self.odoo_config_data, self.docker_path_odoo_conf)
 
     def get_id_from_ir_model_data_by_xml_id(self, xml_id):
         module_name = xml_id.split(".")[0]

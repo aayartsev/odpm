@@ -73,6 +73,10 @@ class CreateProjectEnvironmentProtocol(Protocol):
         NotImplementedError(
                 f"""Define ensure_base_image in {self.__class__.__name__}""")
 
+    def prepare_ci_build_context(self):
+        NotImplementedError(
+                f"""Define prepare_ci_build_context in {self.__class__.__name__}""")
+
     def build_ci_image(self):
         NotImplementedError(
                 f"""Define build_ci_image in {self.__class__.__name__}""")

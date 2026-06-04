@@ -1,3 +1,4 @@
+import configparser
 import os
 import re
 import shutil
@@ -18,6 +19,16 @@ except:
     from logger import get_module_logger
 
 _logger = get_module_logger(__name__)
+
+def write_odoo_config_data_to_file(odoo_config_data: dict, file_path: str) -> None:
+    odoo_conf = configparser.ConfigParser()
+    for section in odoo_config_data:
+        odoo_conf[section] = {}
+        for key, value in odoo_config_data[section].items():
+            odoo_conf[section][key] = value
+    with open(file_path, "w") as odoo_config_file:
+        odoo_conf.write(odoo_config_file)
+
 
 def delete_files_in_directory(directory_path):
     for filename in os.listdir(directory_path):

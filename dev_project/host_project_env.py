@@ -14,6 +14,7 @@ from .inside_docker_app.utils import (
     delete_files_in_directory,
     download_file,
     un_zip_file_to_directory,
+    write_odoo_config_data_to_file,
 )
 from .protocols import CreateProjectEnvironmentProtocol
 
@@ -494,6 +495,73 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         if not self.base_image_exists():
             self.build_base_image()
 
+    def _docker_path_to_context_rel(self, docker_path: str) -> str:
+        docker_base = pathlib.PurePosixPath(self.config.docker_project_dir)
+        return str(pathlib.PurePosixPath(docker_path).relative_to(docker_base))
+
+    def _should_copy_for_ci_image(self, mapped: MappedPath) -> bool:
+        if not os.path.isdir(mapped.local):
+            return False
+        docker_path = mapped.docker
+        skip_exact = {
+            self.config.docker_venv_dir,
+            self.config.docker_dev_project_dir,
+            self.config.docker_backups_dir,
+            self.config.docker_temp_tests_dir,
+            str(pathlib.PurePosixPath(self.config.docker_project_dir, ".local")),
+            str(pathlib.PurePosixPath(self.config.docker_project_dir, ".cache")),
+        }
+        if docker_path in skip_exact:
+            return False
+        docker_odoo = self.config.docker_odoo_dir
+        docker_extra = self.config.docker_extra_addons
+        if docker_path == docker_odoo or docker_path.startswith(f"{docker_odoo}/"):
+            return True
+        if docker_path == docker_extra or docker_path.startswith(f"{docker_extra}/"):
+            return True
+        return False
+
+    def _ci_copytree_ignore(self, _directory: str, names: list) -> set:
+        return {name for name in names if name in (".git", "__pycache__")}
+
+    def prepare_ci_build_context(self) -> None:
+        context_dir = self.config.ci_build_context_dir
+        if os.path.exists(context_dir):
+            shutil.rmtree(context_dir)
+        os.makedirs(context_dir)
+
+        copied = 0
+        for mapped in self.mapped_folders:
+            if not self._should_copy_for_ci_image(mapped):
+                continue
+            rel_path = self._docker_path_to_context_rel(mapped.docker)
+            dest_dir = os.path.join(context_dir, rel_path)
+            parent_dir = os.path.dirname(dest_dir)
+            if parent_dir:
+                os.makedirs(parent_dir, exist_ok=True)
+            shutil.copytree(
+                mapped.local,
+                dest_dir,
+                dirs_exist_ok=True,
+                ignore=self._ci_copytree_ignore,
+            )
+            copied += 1
+
+        write_odoo_config_data_to_file(
+            self.config.odoo_config_data,
+            os.path.join(context_dir, constants.ODOO_CONF_NAME),
+        )
+        dockerignore_path = os.path.join(context_dir, ".dockerignore")
+        with open(dockerignore_path, "w") as writer:
+            writer.write(constants.CI_CONTEXT_DOCKERIGNORE)
+
+        _logger.info(
+            "prepare_ci_build_context: %s (%s source tree(s), %s)",
+            context_dir,
+            copied,
+            constants.ODOO_CONF_NAME,
+        )
+
     def build_base_image(self) -> None:
         os.chdir(self.config.project_dir)
         # TODO i need to create .dockerignore file (because it tries to send docker context)
@@ -512,6 +580,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
 
     def build_ci_image(self) -> None:
         self.ensure_base_image()
+        self.prepare_ci_build_context()
         # TODO(architecture): OCA deps from oca_dependencies.txt are appended to
         # config.dependencies during map_folders() but the same for-loop does not
         # process URLs added mid-iteration; a second odpm run or a single-pass
