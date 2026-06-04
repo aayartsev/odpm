@@ -64,18 +64,7 @@ class SystemChecker(SystemCheckerProtocol):
             )
             exit(1)
 
-        process_result = subprocess.run(
-            ["docker", "images", "--format", "'{{json .}}'"], capture_output=True
-        )
-        output_string = process_result.stdout.decode("utf-8")
-        result_list = []
-        for record in output_string.split("\n"):
-            if record:
-                new_record = json.loads(record.replace("'", ""))
-                if self.config.odoo_image_name == new_record["Repository"]:
-                    result_list.append(new_record)
-        if not result_list:
-            self.config.project_env.build_base_image()
+        self.config.project_env.ensure_base_image()
 
     def check_running_containers(self) -> None:
         ports_to_check = [

@@ -279,6 +279,10 @@ class Config:
             self.arch = constants.ARCH
 
         self.odoo_image_name = f"""odoo-{self.arch}-python-{self.python_version}-{self.distro_name}-{self.distro_version.replace(".", "")}"""
+        self.odoo_ci_image_name = self.get_odoo_ci_image_name()
+        self.ci_build_context_dir = os.path.join(
+            self.project_dir, constants.CI_BUILD_CONTEXT_DIR
+        )
         self.docker_project_dir = str(
             pathlib.PurePosixPath("/home", constants.CURRENT_USER)
         )
@@ -830,6 +834,13 @@ class Config:
             docker_dirs_with_addons=self.docker_dirs_with_addons,
         )
         return json.dumps(config).encode("utf-8")
+
+    def get_odoo_ci_image_name(self) -> str:
+        image_tag = getattr(self.arguments, "image_tag", None)
+        if image_tag:
+            return image_tag.strip()
+        version_label = str(self.odoo_version).replace(".", "-")
+        return f"{self.platform_name}-{version_label}-ci:latest"
 
     def get_effective_odoo_build_date(self) -> str:
         cli_date = getattr(self.arguments, "odoo_build_date", None)

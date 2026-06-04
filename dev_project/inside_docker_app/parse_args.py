@@ -31,6 +31,12 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.IMAGE_TAG_PARAM,
+    help="Docker tag for the CI image built with --build-image",
+    type=str,
+)
+
+arg_parser.add_argument(
     cli_params.CONFIG_BASE64_DATA,
     help="Will read base64 string and will try to parse its content as json string",
 )

@@ -11,6 +11,7 @@ PROJECT_CONFIG_FILE_NAME = f"{PROJECT_NAME.lower()}.json"
 USER_CONFIG_FILE_NAME = "user_settings.json"
 CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
 PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
+CI_BUILD_CONTEXT_DIR = os.path.join(PROJECT_SERVICE_DIRECTORY, "ci-build-context")
 ENV_FILE_NAME = ".env"
 VENV_DIR_NAME = ".venv"
 DOCKERFILE = "Dockerfile"

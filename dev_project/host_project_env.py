@@ -477,6 +477,23 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         if os.path.exists(filepath_to_save):
             os.remove(filepath_to_save)
 
+    def base_image_exists(self) -> bool:
+        process_result = subprocess.run(
+            ["docker", "images", "--format", "'{{json .}}'"], capture_output=True
+        )
+        output_string = process_result.stdout.decode("utf-8")
+        for record in output_string.split("\n"):
+            if not record:
+                continue
+            new_record = json.loads(record.replace("'", ""))
+            if self.config.odoo_image_name == new_record.get("Repository"):
+                return True
+        return False
+
+    def ensure_base_image(self) -> None:
+        if not self.base_image_exists():
+            self.build_base_image()
+
     def build_base_image(self) -> None:
         os.chdir(self.config.project_dir)
         # TODO i need to create .dockerignore file (because it tries to send docker context)
@@ -494,9 +511,15 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         )
 
     def build_ci_image(self) -> None:
+        self.ensure_base_image()
         # TODO(architecture): OCA deps from oca_dependencies.txt are appended to
         # config.dependencies during map_folders() but the same for-loop does not
         # process URLs added mid-iteration; a second odpm run or a single-pass
         # dependency resolver is required before CI context/conf are complete.
         # See: check_oca_dependencies() + map_folders() loop.
-        _logger.info("build_ci_image: stub — full CI image build will be implemented here")
+        _logger.info(
+            "build_ci_image: stub — CI tag %s (base %s), context dir %s",
+            self.config.odoo_ci_image_name,
+            self.config.odoo_image_name,
+            self.config.ci_build_context_dir,
+        )

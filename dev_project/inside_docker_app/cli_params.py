@@ -1,5 +1,6 @@
 INSTALL_PIP_PARAM = "--pip-install"
 BUILD_IMAGE_PARAM = "--build-image"
+IMAGE_TAG_PARAM = "--image-tag"
 CONFIG_BASE64_DATA = "--config-base64-data"
 GET_DB_LIST_PARAM = "--get-dbs-list"
 START_PRECOMMIT_PARAM = "--start-precommit"
