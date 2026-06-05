@@ -122,7 +122,7 @@ ODPM_SCENARIO=developer
 
 | Область | Поведение |
 |---------|-----------|
-| **debugpy** | В команду запуска Odoo **не** добавляется. |
+| **debugpy** | **Не устанавливается** и в команду запуска Odoo **не** добавляется. Для отладки переключитесь на `ODPM_SCENARIO=developer` и пересоздайте окружение. |
 | **PostgreSQL на хосте** | Только `127.0.0.1:POSTGRES_PORT` (с других машин через этот проброс не подключиться). |
 | **Порт отладчика в compose** | **Не публикуется** (debugpy в процессе Odoo не используется). |
 | **Odoo / Gevent на хосте** | По-прежнему `ODOO_PORT` / `GEVENT_PORT` на всех интерфейсах хоста — для доступа из интернета используйте reverse proxy (nginx, traefik) и firewall. |
@@ -136,7 +136,7 @@ ODPM_SCENARIO=developer
 |---------|-----------|
 | **Образ** | Project-specific CI-образ (`odpm --build-image`, только при `ODPM_SCENARIO=ci`) |
 | **Volumes odoo** | Нет bind-mount исходников |
-| **debugpy / debugger port** | Нет |
+| **debugpy / debugger port** | Нет (debugpy не устанавливается в `ci`) |
 | **Gevent 8072** | Да (как в dev/server) |
 | **Entrypoint** | `bake/main.py` (копия общего `main.py` / `container_bootstrap`) |
 | **VS Code** | Не настраивается |

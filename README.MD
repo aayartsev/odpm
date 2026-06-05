@@ -122,7 +122,7 @@ Use on a **machine that runs Odoo as a service** (staging/production, VPS). Focu
 
 | Area | Behavior |
 |------|----------|
-| **debugpy** | **Not** added to the Odoo start command. |
+| **debugpy** | **Not** installed and **not** added to the Odoo start command. To debug, switch to `ODPM_SCENARIO=developer` and recreate the environment. |
 | **PostgreSQL on host** | Bound to `127.0.0.1:POSTGRES_PORT` only (not reachable from other machines via the published port). |
 | **Debugger port in compose** | **Not published** (Odoo does not use debugpy). |
 | **Odoo / Gevent on host** | Still published as `ODOO_PORT` / `GEVENT_PORT` on all host interfaces — put a reverse proxy (nginx, traefik) and firewall in front for public access. |
@@ -136,7 +136,7 @@ For **building and running a baked image** on a CI runner: sources and venv live
 |------|----------|
 | **Image** | Project-specific CI image (`odpm --build-image`, only when `ODPM_SCENARIO=ci`) |
 | **Odoo volumes** | No bind-mount of sources |
-| **debugpy / debugger port** | No |
+| **debugpy / debugger port** | No (debugpy is not installed in `ci`) |
 | **Gevent 8072** | Yes (same as dev/server) |
 | **Entrypoint** | `bake/main.py` (copy of shared `main.py` / `container_bootstrap`) |
 | **VS Code** | Not configured |

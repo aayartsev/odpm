@@ -8,11 +8,22 @@ from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.bake_venv import VenvInstallSpec, write_ci_bake_dir
+from dev_project.host_project_env import CreateProjectEnvironment
 from dev_project.host_start_string_builder import StartStringBuilder
-from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
+
+
+def normalize_as_host_config(
+    scenario: str, requirements_txt: list[str], python_version: str = "3.12"
+) -> list[str]:
+    """Same normalization path as host_config.Config after reading odpm.json."""
+    policy = ScenarioPolicy.from_scenario(scenario)
+    return policy.normalize_requirements(
+        requirements_txt, python_version=python_version
+    )
 
 
 class ScenarioPolicyTests(unittest.TestCase):
@@ -22,6 +33,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.include_odoo_volumes)
         self.assertFalse(policy.include_debugger_port)
         self.assertFalse(policy.include_debugpy)
+        self.assertFalse(policy.install_debugpy)
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertTrue(policy.allow_build_image)
         self.assertTrue(policy.skip_vscode)
@@ -32,6 +44,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.include_odoo_volumes)
         self.assertFalse(policy.include_debugger_port)
         self.assertFalse(policy.include_debugpy)
+        self.assertFalse(policy.install_debugpy)
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertFalse(policy.allow_build_image)
 
@@ -39,7 +52,79 @@ class ScenarioPolicyTests(unittest.TestCase):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         self.assertTrue(policy.include_debugger_port)
         self.assertTrue(policy.include_debugpy)
+        self.assertTrue(policy.install_debugpy)
         self.assertFalse(policy.bind_postgres_localhost)
+
+    def test_policy_invariant_include_implies_install(self):
+        for scenario in constants.ODPM_SCENARIO_VALUES:
+            policy = ScenarioPolicy.from_scenario(scenario)
+            if policy.include_debugpy:
+                self.assertTrue(
+                    policy.install_debugpy,
+                    f"{scenario}: runtime debugpy requires package install",
+                )
+
+    def test_is_debugpy_requirement_recognizes_real_pip_specs(self):
+        self.assertTrue(is_debugpy_requirement("debugpy==1.8.0"))
+        self.assertTrue(is_debugpy_requirement("DEBUGPY>=1.0"))
+        self.assertTrue(is_debugpy_requirement("debugpy[test]==1.7.0"))
+        self.assertFalse(is_debugpy_requirement("requests==2.31.0"))
+        self.assertFalse(is_debugpy_requirement("notdebugpy==1.0"))
+
+    def test_server_strips_debugpy_from_odpm_json_like_list(self):
+        # User added debugpy in odpm.json on a server deployment — must be removed.
+        normalized = normalize_as_host_config(
+            constants.SERVER_SCENARIO,
+            ["debugpy==1.8.0", "requests==2.31.0", "pre-commit"],
+        )
+        self.assertIn("requests==2.31.0", normalized)
+        self.assertIn("pre-commit", normalized)
+        self.assertFalse(any(is_debugpy_requirement(req) for req in normalized))
+
+    def test_developer_typical_odpm_json_gets_pinned_debugpy(self):
+        # Typical developer project: only project tools, no debugpy in odpm.json.
+        normalized = normalize_as_host_config(
+            constants.DEVELOPER_SCENARIO,
+            ["pre-commit", "black"],
+            python_version="3.12",
+        )
+        expected = constants.DEBUGPY.get("3.12", constants.DEFAULT_DEBUGPY)
+        self.assertIn("pre-commit", normalized)
+        self.assertIn("black", normalized)
+        self.assertIn(expected, normalized)
+        self.assertEqual(
+            sum(1 for req in normalized if is_debugpy_requirement(req)),
+            1,
+        )
+
+    def test_developer_replaces_user_debugpy_with_pinned_version(self):
+        normalized = normalize_as_host_config(
+            constants.DEVELOPER_SCENARIO,
+            ["debugpy==0.0.1", "requests==2.31.0"],
+            python_version="3.12",
+        )
+        expected = constants.DEBUGPY.get("3.12", constants.DEFAULT_DEBUGPY)
+        self.assertIn(expected, normalized)
+        self.assertIn("requests==2.31.0", normalized)
+        self.assertNotIn("debugpy==0.0.1", normalized)
+
+    def test_ci_venv_spec_excludes_debugpy_after_normalization(self):
+        # Simulates CreateProjectEnvironment._build_ci_venv_install_spec input.
+        normalized = normalize_as_host_config(
+            constants.CI_SCENARIO,
+            ["debugpy==1.8.0", "requests==2.31.0"],
+        )
+        spec = VenvInstallSpec(
+            project_dir="/home/odoo",
+            venv_dir="/home/odoo/.venv",
+            odoo_requirements_path="/home/odoo/odoo/requirements.txt",
+            extra_packages=normalized,
+            python_version="3.12",
+        )
+        self.assertIn("requests==2.31.0", spec.extra_packages)
+        self.assertFalse(
+            any(is_debugpy_requirement(pkg) for pkg in spec.extra_packages)
+        )
 
     def test_compose_fragments_ci(self):
         policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
@@ -54,6 +139,29 @@ class ScenarioPolicyTests(unittest.TestCase):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         self.assertIn("5678:5678", policy.build_dev_extra_ports("5678:5678"))
         self.assertIn("volumes:", policy.build_odoo_volumes_block("\n      - x:y\n"))
+
+
+class CiVenvInstallSpecTests(unittest.TestCase):
+    def test_build_ci_venv_install_spec_uses_normalized_requirements(self):
+        """CI bake reads config.requirements_txt after host_config normalization."""
+        config = MagicMock()
+        config.requirements_txt = normalize_as_host_config(
+            constants.CI_SCENARIO,
+            ["debugpy==1.8.0", "requests==2.31.0"],
+        )
+        config.docker_project_dir = "/home/odoo"
+        config.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_odoo_dir = "/home/odoo/odoo"
+        config.python_version = "3.12"
+        config.compute_venv_lock_hash.return_value = "abc123"
+        config.config_dict = {}
+
+        spec = CreateProjectEnvironment(config)._build_ci_venv_install_spec()
+
+        self.assertIn("requests==2.31.0", spec.extra_packages)
+        self.assertFalse(
+            any(is_debugpy_requirement(pkg) for pkg in spec.extra_packages)
+        )
 
 
 class WriteCiBakeDirTests(unittest.TestCase):
@@ -115,13 +223,22 @@ class StartStringBuilderTests(unittest.TestCase):
 
     def test_ci_entrypoint_without_debugpy(self):
         config = self._make_config(constants.CI_SCENARIO)
-        builder = StartStringBuilder(config)
+        StartStringBuilder(config)
         self.assertIn("/home/odoo/bake/main.py", config.start_string)
+        self.assertNotIn("debugpy", config.start_string)
+
+    def test_server_entrypoint_without_debugpy(self):
+        config = self._make_config(constants.SERVER_SCENARIO)
+        StartStringBuilder(config)
+        self.assertIn(
+            "/home/odoo/dev_project/inside_docker_app/main.py",
+            config.start_string,
+        )
         self.assertNotIn("debugpy", config.start_string)
 
     def test_developer_entrypoint_with_debugpy(self):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
-        builder = StartStringBuilder(config)
+        StartStringBuilder(config)
         self.assertIn(
             "/home/odoo/dev_project/inside_docker_app/main.py",
             config.start_string,

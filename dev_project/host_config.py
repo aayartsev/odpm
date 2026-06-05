@@ -21,6 +21,7 @@ from .host_user_env import CreateUserEnvironment
 from .inside_docker_app.logger import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .protocols import CreateProjectEnvironmentProtocol, SystemCheckerProtocol
+from .scenario_policy import ScenarioPolicy, is_debugpy_requirement
 
 _logger = get_module_logger(__name__)
 
@@ -241,14 +242,25 @@ class Config:
         # prepare platform
         self.get_platform_sorces()
 
-        current_python_debugpy = constants.DEBUGPY.get(
-            self.python_version, constants.DEFAULT_DEBUGPY
+        policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
+        original_requirements_txt = list(self.requirements_txt)
+        self.requirements_txt = policy.normalize_requirements(
+            self.requirements_txt,
+            python_version=self.python_version,
         )
-        debugpy_name = current_python_debugpy.split("==")[0]
-        for python_package in self.requirements_txt:
-            if debugpy_name in python_package:
-                self.requirements_txt.remove(python_package)
-        self.requirements_txt.append(current_python_debugpy)
+        if any(is_debugpy_requirement(req) for req in original_requirements_txt):
+            if not policy.install_debugpy:
+                _logger.warning(
+                    "debugpy is forbidden in scenario %s and will not be installed",
+                    policy.scenario,
+                )
+            else:
+                debugpy_req = policy.debugpy_requirement(self.python_version)
+                _logger.info(
+                    "debugpy requirement normalized for scenario %s: %s",
+                    policy.scenario,
+                    debugpy_req,
+                )
 
         # prepare dockerfile template
         self.dockerfile_template_name = (
