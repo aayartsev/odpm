@@ -640,9 +640,14 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             constants.CI_VENV_INSTALL_JSON,
         )
 
+    def ensure_project_dockerignore(self) -> None:
+        dockerignore_path = os.path.join(self.config.project_dir, ".dockerignore")
+        with open(dockerignore_path, "w") as writer:
+            writer.write(constants.PROJECT_DOCKERIGNORE)
+
     def build_base_image(self) -> None:
         os.chdir(self.config.project_dir)
-        # TODO i need to create .dockerignore file (because it tries to send docker context)
+        self.ensure_project_dockerignore()
         subprocess.run(
             [
                 "docker",

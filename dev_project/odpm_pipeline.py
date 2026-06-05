@@ -10,6 +10,7 @@ from argparse import Namespace
 
 from . import translations
 from .check_system import SystemChecker
+from .compose_runtime import should_force_recreate_compose
 from .host_config import Config
 from .host_project_env import CreateProjectEnvironment
 from .host_start_string_builder import StartStringBuilder
@@ -91,11 +92,21 @@ class OdpmPipeline:
         project_env.update_vscode_debugger_launcher()
         project_env.generate_vscode_settings_json()
 
-    def build_compose_up_argv(self, config: Config) -> list[str]:
+    def build_compose_up_argv(
+        self, config: Config, *, force_recreate: bool | None = None
+    ) -> list[str]:
+        if force_recreate is None:
+            force_recreate = should_force_recreate_compose(config)
         argv = shlex.split(config.docker_compose_command) + ["up"]
         if config.no_log_prefix:
             argv.append("--no-log-prefix")
-        argv.extend(["--abort-on-container-exit", "--force-recreate"])
+        argv.append("--abort-on-container-exit")
+        if force_recreate:
+            argv.append("--force-recreate")
+        else:
+            _logger.info(
+                "Compose stack is healthy; starting without --force-recreate"
+            )
         return argv
 
     def start_containers(self) -> None:

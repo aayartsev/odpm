@@ -84,19 +84,34 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
 
 
 class OdpmPipelineComposeTests(unittest.TestCase):
-    def test_build_compose_up_argv(self):
+    def test_build_compose_up_argv_force_recreate_explicit(self):
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
         pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
         self.assertEqual(
-            pipeline.build_compose_up_argv(config),
+            pipeline.build_compose_up_argv(config, force_recreate=True),
             [
                 "docker",
                 "compose",
                 "up",
                 "--abort-on-container-exit",
                 "--force-recreate",
+            ],
+        )
+
+    def test_build_compose_up_argv_skips_force_recreate_when_healthy(self):
+        config = MagicMock()
+        config.docker_compose_command = "docker compose"
+        config.no_log_prefix = False
+        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        self.assertEqual(
+            pipeline.build_compose_up_argv(config, force_recreate=False),
+            [
+                "docker",
+                "compose",
+                "up",
+                "--abort-on-container-exit",
             ],
         )
 
@@ -106,7 +121,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         config.no_log_prefix = True
         pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
         self.assertEqual(
-            pipeline.build_compose_up_argv(config),
+            pipeline.build_compose_up_argv(config, force_recreate=True),
             [
                 "docker-compose",
                 "up",
@@ -116,7 +131,23 @@ class OdpmPipelineComposeTests(unittest.TestCase):
             ],
         )
 
-    def test_start_containers_uses_subprocess(self):
+    @patch(
+        "dev_project.odpm_pipeline.should_force_recreate_compose",
+        return_value=True,
+    )
+    def test_build_compose_up_argv_auto_detects_force_recreate(self, _mock_should):
+        config = MagicMock()
+        config.docker_compose_command = "docker compose"
+        config.no_log_prefix = False
+        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        argv = pipeline.build_compose_up_argv(config)
+        self.assertIn("--force-recreate", argv)
+
+    @patch(
+        "dev_project.odpm_pipeline.should_force_recreate_compose",
+        return_value=False,
+    )
+    def test_start_containers_uses_subprocess(self, _mock_should):
         pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
@@ -125,13 +156,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         with patch("dev_project.odpm_pipeline.subprocess.run") as mock_run:
             pipeline.start_containers()
         mock_run.assert_called_once_with(
-            [
-                "docker",
-                "compose",
-                "up",
-                "--abort-on-container-exit",
-                "--force-recreate",
-            ],
+            ["docker", "compose", "up", "--abort-on-container-exit"],
             cwd="/tmp/project",
             check=False,
         )

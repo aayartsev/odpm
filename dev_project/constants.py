@@ -36,6 +36,13 @@ CI_CONTEXT_DOCKERIGNORE = """**/.git
 *.pyc
 **/node_modules
 """
+PROJECT_DOCKERIGNORE = """**/.git
+**/__pycache__
+*.pyc
+**/node_modules
+.venv
+.odpm/ci-build-context
+"""
 ENV_FILE_NAME = ".env"
 VENV_DIR_NAME = ".venv"
 DOCKERFILE = "Dockerfile"
