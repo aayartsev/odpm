@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants, translations
-from dev_project.host_project_env import CreateProjectEnvironment
+from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_dir_manager import ProjectDirManager
 
 

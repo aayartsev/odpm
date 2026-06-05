@@ -4,8 +4,10 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
+from dev_project.config import Config
 from dev_project.inside_docker_app.check_virtualenv import VirtualenvChecker
 from dev_project.inside_docker_app.utils import resolve_venv_mode
+from dev_project.scenario_policy import ScenarioPolicy
 
 
 def _config(**overrides) -> dict:
@@ -156,9 +158,6 @@ class VenvLockHashTests(unittest.TestCase):
         }
 
     def test_lock_hash_differs_when_normalized_requirements_differ(self):
-        from dev_project.host_config import Config
-        from dev_project.scenario_policy import ScenarioPolicy
-
         base_dict = self._base_config_dict()
 
         dev_config = MagicMock()
@@ -184,9 +183,6 @@ class VenvLockHashTests(unittest.TestCase):
         self.assertNotEqual(dev_hash, server_hash)
 
     def test_lock_hash_differs_when_venv_mode_differs(self):
-        from dev_project.host_config import Config
-        from dev_project.scenario_policy import ScenarioPolicy
-
         base_dict = self._base_config_dict()
         shared_requirements = ["pre-commit", "requests==2.31.0"]
 

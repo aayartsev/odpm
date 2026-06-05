@@ -3,6 +3,7 @@ import os
 import tempfile
 import unittest
 from argparse import Namespace
+from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
@@ -28,6 +29,26 @@ class ConfigLoaderTests(unittest.TestCase):
             loader.beautify_module_list(None),
             constants.DEFAULT_LIST_OF_MODULES,
         )
+
+    def test_check_for_config_renames_legacy_config_json(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.config_json_content = {}
+            config.config_json_path = ""
+            config.config_deprecated_json_path = ""
+
+            legacy_path = os.path.join(project_dir, constants.CONFIG_FILE_NAME)
+            Path(legacy_path).write_text('{"init_modules": []}', encoding="utf-8")
+
+            ConfigLoader(config).check_for_config()
+
+            self.assertFalse(os.path.exists(legacy_path))
+            deprecated_path = os.path.join(
+                project_dir, f"deprecated_{constants.CONFIG_FILE_NAME}"
+            )
+            self.assertTrue(os.path.exists(deprecated_path))
+            self.assertEqual(config.config_json_content, {"init_modules": []})
 
 
 class ConfigPathsTests(unittest.TestCase):

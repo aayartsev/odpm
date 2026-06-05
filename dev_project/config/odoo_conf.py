@@ -64,8 +64,6 @@ class OdooConfBuilder:
         self.config.docker_dirs_with_addons = []
         self.config.list_of_developing_project_subprojects_data = []
 
-        self.config._paths.apply_developing_project_docker_path()
-
         if self.config.developing_project:
             self.config.list_of_developing_project_subprojects_data = (
                 self.check_project_for_subprojects(

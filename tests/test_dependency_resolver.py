@@ -147,7 +147,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
     """Host-layer _resolve_dependencies() with real oca_dependencies.txt on disk."""
 
     def _make_env(self, config):
-        from dev_project.host_project_env import CreateProjectEnvironment
+        from dev_project.project_env import CreateProjectEnvironment
 
         env = CreateProjectEnvironment(config)
         env._links.checkout_project = MagicMock()

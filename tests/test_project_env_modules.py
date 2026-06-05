@@ -158,7 +158,7 @@ class CiImageBuilderPipelineTests(unittest.TestCase):
         config.ci_build_context_dir = "/tmp/project/.odpm/ci-build-context"
         env = MagicMock()
         env.config = config
-        env._base_image = MagicMock()
+        env.ensure_base_image = MagicMock()
         env.mapped_folders = []
         return CiImageBuilder(env)
 
@@ -172,7 +172,7 @@ class CiImageBuilderPipelineTests(unittest.TestCase):
         with self.assertRaises(PipelineError) as ctx:
             builder.build_ci_image()
         self.assertEqual(ctx.exception.exit_code, 2)
-        builder.env._base_image.ensure_base_image.assert_called_once()
+        builder.env.ensure_base_image.assert_called_once()
 
 
 if __name__ == "__main__":

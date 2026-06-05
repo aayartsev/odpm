@@ -219,6 +219,7 @@ class Config:
 
         self._paths.apply_image_names()
         self._paths.apply_docker_layout()
+        self._paths.apply_developing_project_docker_path()
         self._odoo_conf.populate_addons_paths()
 
         self.odoo_config_data = {}

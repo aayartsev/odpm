@@ -9,7 +9,8 @@ from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.bake_venv import VenvInstallSpec, write_ci_bake_dir
-from dev_project.host_project_env import CreateProjectEnvironment
+from dev_project.config import Config
+from dev_project.project_env import CreateProjectEnvironment
 from dev_project.host_start_string_builder import StartStringBuilder
 from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
 
@@ -93,8 +94,6 @@ class ScenarioPolicyTests(unittest.TestCase):
         config.docker_dirs_with_addons = []
         config.config_dict = {"arch": "amd64", "python_version": "3.12"}
         config.compute_venv_lock_hash.return_value = "abc"
-
-        from dev_project.host_config import Config
 
         payload = json.loads(Config.config_to_json(config).decode("utf-8"))
         self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)

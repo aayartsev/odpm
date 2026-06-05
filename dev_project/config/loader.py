@@ -31,7 +31,7 @@ class ConfigLoader:
             self.config.project_dir, constants.CONFIG_FILE_NAME
         )
         self.config.config_deprecated_json_path = os.path.join(
-            self.config.project_dir, f"deprecated_{self.config.config_json_path}"
+            self.config.project_dir, f"deprecated_{constants.CONFIG_FILE_NAME}"
         )
         if os.path.exists(self.config.config_json_path):
             with open(self.config.config_json_path) as config_file:

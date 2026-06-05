@@ -167,7 +167,7 @@ class CiImageBuilder:
         return dockerfile_path
 
     def build_ci_image(self) -> None:
-        self.env._base_image.ensure_base_image()
+        self.env.ensure_base_image()
         self.prepare_ci_build_context()
         ci_dockerfile = self.generate_ci_dockerfile()
         context_dir = self.config.ci_build_context_dir
