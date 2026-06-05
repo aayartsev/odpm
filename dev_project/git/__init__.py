@@ -1,3 +1,4 @@
+from .developing_repo_materializer import DevelopingRepoMaterializer
 from .link import HandleOdooProjectLink
 from .types import (
     FILE_SYSTEM_MARKER,
@@ -8,6 +9,7 @@ from .types import (
 )
 
 __all__ = [
+    "DevelopingRepoMaterializer",
     "HandleOdooProjectLink",
     "OdooProjectData",
     "HTTP_MARKER",

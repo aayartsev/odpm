@@ -5,6 +5,7 @@ from typing import Literal
 from .. import constants, translations
 from ..errors import ConfigError
 from ..git import HandleOdooProjectLink
+from ..git.developing_repo_materializer import DevelopingRepoMaterializer
 from ..host_user_env import CreateUserEnvironment
 from ..inside_docker_app.logger import get_module_logger
 from ..project_dir_manager import ProjectDirManager
@@ -29,6 +30,18 @@ class Config:
         program_dir: str,
         user_env: CreateUserEnvironment,
     ) -> None:
+        """Bootstrap host configuration in ordered phases:
+
+        1. Context and user settings (``user_settings.json``).
+        2. Developing project link (no clone yet) and optional early clone so
+           ``odpm.json`` can be read from a remote git repository.
+        3. Project settings from ``odpm.json``.
+        4. Platform (Odoo core) link.
+        5. Scenario policy, Docker layout, and addon paths.
+
+        Full git clone/update for the prepare phase runs later via
+        :meth:`materialize_git_repos` (``OdpmPipeline.prepare_project_files``).
+        """
         self._init_context(pd_manager, arguments, program_dir, user_env)
         self._load_user_settings()
         self._bind_developing_link()
@@ -64,7 +77,7 @@ class Config:
             self._paths.get_postgres_data_local_storage_path()
         )
         self.config_json_content = {}
-        self._developing_repo_materialized = False
+        self._developing_materializer = DevelopingRepoMaterializer()
 
     def _load_user_settings(self) -> None:
         self._loader.check_for_config()
@@ -121,35 +134,7 @@ class Config:
             materialize=False,
         )
         self.developing_project_dir_path = self.developing_project.project_path
-        self._ensure_developing_project_for_odpm_json()
-
-    def _is_remote_git_link(self, link: HandleOdooProjectLink) -> bool:
-        return link.link_type in (
-            constants.GITLINK_TYPE_HTTP,
-            constants.GITLINK_TYPE_GIT,
-            constants.GITLINK_TYPE_SSH,
-        )
-
-    def _ensure_developing_project_for_odpm_json(self) -> None:
-        """Clone developing repo before reading odpm.json when it lives in git."""
-        if not self._is_remote_git_link(self.developing_project):
-            return
-        if self.skip_git_update():
-            return
-        repo_odpm_json = os.path.join(
-            self.developing_project.project_path,
-            constants.PROJECT_CONFIG_FILE_NAME,
-        )
-        project_odpm_json = os.path.join(
-            self.project_dir, constants.PROJECT_CONFIG_FILE_NAME
-        )
-        if os.path.exists(repo_odpm_json) or os.path.exists(project_odpm_json):
-            return
-        self.developing_project.build_project()
-        if self.arguments.branch and isinstance(self.arguments.branch, str):
-            self.developing_project.switch_to_branch(self.arguments.branch)
-        self.developing_project_dir_path = self.developing_project.project_path
-        self._developing_repo_materialized = True
+        self._developing_materializer.materialize_for_odpm_json(self)
 
     def _load_project_settings(self) -> None:
         self._loader.get_project_odpm_json()
@@ -294,11 +279,7 @@ class Config:
             raise ConfigError(message)
 
     def materialize_git_repos(self) -> None:
-        if not self._developing_repo_materialized:
-            self.developing_project.build_project()
-            if self.arguments.branch and isinstance(self.arguments.branch, str):
-                self.developing_project.switch_to_branch(self.arguments.branch)
-            self.developing_project_dir_path = self.developing_project.project_path
+        self._developing_materializer.materialize_full(self)
 
         self.odoo_platform_project.build_project()
         self.apply_odoo_build_date_to_platform()
