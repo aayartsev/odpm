@@ -115,5 +115,3 @@ class ConfigPaths:
             self.config.developing_project_dir_path,
             self.config.repo_odpm_json,
         ]
-        if self.config.create_module_links and os.path.exists(self.config.repo_odpm_json):
-            self.config.list_for_symlinks.append(self.config.repo_odpm_json)

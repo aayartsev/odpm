@@ -79,7 +79,7 @@ class ConfigPathsTests(unittest.TestCase):
             path = ConfigPaths(config).get_postgres_data_local_storage_path()
             self.assertTrue(os.path.isdir(path))
 
-    def test_apply_symlink_sources_deduplicates_repo_odpm_json_when_not_needed(self):
+    def test_apply_symlink_sources_includes_repo_odpm_json_once(self):
         config = MagicMock()
         config.user_env = MagicMock(backups="/tmp/backups")
         config.odoo_src_dir = "/tmp/odoo"
@@ -88,6 +88,17 @@ class ConfigPathsTests(unittest.TestCase):
         config.create_module_links = False
         ConfigPaths(config).apply_symlink_sources()
         self.assertEqual(config.list_for_symlinks.count("/tmp/dev/odpm.json"), 1)
+
+    def test_apply_symlink_sources_no_duplicate_when_create_module_links_true(self):
+        config = MagicMock()
+        config.user_env = MagicMock(backups="/tmp/backups")
+        config.odoo_src_dir = "/tmp/odoo"
+        config.developing_project_dir_path = "/tmp/dev"
+        config.repo_odpm_json = "/tmp/dev/odpm.json"
+        config.create_module_links = True
+        ConfigPaths(config).apply_symlink_sources()
+        self.assertEqual(config.list_for_symlinks.count("/tmp/dev/odpm.json"), 1)
+        self.assertEqual(len(config.list_for_symlinks), 4)
 
 
 class ConfigLoaderExtraTests(unittest.TestCase):
