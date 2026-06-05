@@ -98,6 +98,12 @@ class ScenarioPolicy:
         """Fresh mode may rebuild venv; baked mode only validates pre-installed venv."""
         return self.venv_mode == constants.VENV_MODE_FRESH
 
+    def is_ci(self) -> bool:
+        return self.scenario == constants.CI_SCENARIO
+
+    def is_developer(self) -> bool:
+        return self.scenario == constants.DEVELOPER_SCENARIO
+
     def debugpy_requirement(self, python_version: str) -> str | None:
         if not self.install_debugpy:
             return None

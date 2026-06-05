@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import shlex
+import subprocess
 import sys
 from argparse import Namespace
 
@@ -16,6 +18,12 @@ from .inside_docker_app.logger import get_module_logger
 from .project_dir_manager import ProjectDirManager
 
 _logger = get_module_logger(__name__)
+
+
+class PipelineError(Exception):
+    def __init__(self, message: str, *, exit_code: int = 1) -> None:
+        self.exit_code = exit_code
+        super().__init__(message)
 
 
 class OdpmPipeline:
@@ -56,7 +64,7 @@ class OdpmPipeline:
         system_checker.check_docker()
         system_checker.check_running_containers()
         project_env.generate_config_file()
-        StartStringBuilder(config)
+        StartStringBuilder(config).build()
         project_env.generate_docker_compose_file()
         system_checker.check_docker_compose()
         project_env.checkout_dependencies()
@@ -68,12 +76,11 @@ class OdpmPipeline:
             return False
         config = self._config()
         if not config.policy.allow_build_image:
-            _logger.error(
-                translations.get_translation(
-                    translations.BUILD_IMAGE_REQUIRES_CI_SCENARIO
-                )
+            message = translations.get_translation(
+                translations.BUILD_IMAGE_REQUIRES_CI_SCENARIO
             )
-            sys.exit(1)
+            _logger.error(message)
+            raise PipelineError(message, exit_code=1)
         self._project_environment().build_ci_image()
         return True
 
@@ -84,35 +91,39 @@ class OdpmPipeline:
         project_env.update_vscode_debugger_launcher()
         project_env.generate_vscode_settings_json()
 
+    def build_compose_up_argv(self, config: Config) -> list[str]:
+        argv = shlex.split(config.docker_compose_command) + ["up"]
+        if config.no_log_prefix:
+            argv.append("--no-log-prefix")
+        argv.extend(["--abort-on-container-exit", "--force-recreate"])
+        return argv
+
     def start_containers(self) -> None:
         config = self._config()
-        if config.no_log_prefix:
-            compose_cmd = (
-                f"{config.docker_compose_command} up --no-log-prefix "
-                "--abort-on-container-exit --force-recreate"
-            )
-        else:
-            compose_cmd = (
-                f"{config.docker_compose_command} up "
-                "--abort-on-container-exit --force-recreate"
-            )
-        os.system(compose_cmd)
+        subprocess.run(
+            self.build_compose_up_argv(config),
+            cwd=config.project_dir,
+            check=False,
+        )
 
     def run(self) -> None:
-        self.setup()
-        self.prepare_project_files()
-        if self.handle_build_image():
-            return
-        self.configure_vscode()
-        os.chdir(self._config().project_dir)
-        if self.args.skip_start:
-            _logger.info("Start of instace will be skipped")
-            return
         try:
-            self.start_containers()
-        except KeyboardInterrupt:
-            _logger.info("Control+C pressed")
-            sys.exit()
+            self.setup()
+            self.prepare_project_files()
+            if self.handle_build_image():
+                return
+            self.configure_vscode()
+            os.chdir(self._config().project_dir)
+            if self.args.skip_start:
+                _logger.info("Start of instace will be skipped")
+                return
+            try:
+                self.start_containers()
+            except KeyboardInterrupt:
+                _logger.info("Control+C pressed")
+                sys.exit()
+        except PipelineError as exc:
+            sys.exit(exc.exit_code)
 
     def _config(self) -> Config:
         if self.config is None:

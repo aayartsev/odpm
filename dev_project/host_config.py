@@ -95,6 +95,8 @@ class SubProject:
 
 
 class Config:
+    policy: ScenarioPolicy
+
     def __init__(
         self,
         pd_manager: ProjectDirManager,
@@ -860,11 +862,11 @@ class Config:
 
     @property
     def is_ci_scenario(self) -> bool:
-        return self.policy.scenario == constants.CI_SCENARIO
+        return self.policy.is_ci()
 
     @property
     def is_developer_scenario(self) -> bool:
-        return self.policy.scenario == constants.DEVELOPER_SCENARIO
+        return self.policy.is_developer()
 
     def get_odoo_ci_image_name(self) -> str:
         image_tag = getattr(self.arguments, "image_tag", None)

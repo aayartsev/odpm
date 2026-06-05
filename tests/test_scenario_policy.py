@@ -42,6 +42,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
         self.assertTrue(policy.venv_is_baked())
         self.assertFalse(policy.allows_venv_recreate())
+        self.assertTrue(policy.is_ci())
+        self.assertFalse(policy.is_developer())
 
     def test_server_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
@@ -54,6 +56,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
         self.assertTrue(policy.allows_venv_recreate())
+        self.assertFalse(policy.is_ci())
+        self.assertFalse(policy.is_developer())
 
     def test_developer_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -64,6 +68,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
         self.assertTrue(policy.allows_venv_recreate())
+        self.assertFalse(policy.is_ci())
+        self.assertTrue(policy.is_developer())
 
     def test_config_to_json_includes_venv_mode(self):
         config = MagicMock()
@@ -274,7 +280,7 @@ class StartStringBuilderTests(unittest.TestCase):
 
     def test_ci_entrypoint_without_debugpy(self):
         config = self._make_config(constants.CI_SCENARIO)
-        StartStringBuilder(config)
+        StartStringBuilder(config).build()
         self.assertIn(
             f"python3 -m {constants.CI_BAKE_ENTRYPOINT}",
             config.start_string,
@@ -283,7 +289,7 @@ class StartStringBuilderTests(unittest.TestCase):
 
     def test_server_entrypoint_without_debugpy(self):
         config = self._make_config(constants.SERVER_SCENARIO)
-        StartStringBuilder(config)
+        StartStringBuilder(config).build()
         self.assertIn(
             f"python3 -m {constants.DEV_ENTRYPOINT}",
             config.start_string,
@@ -292,7 +298,7 @@ class StartStringBuilderTests(unittest.TestCase):
 
     def test_developer_entrypoint_with_debugpy(self):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
-        StartStringBuilder(config)
+        StartStringBuilder(config).build()
         self.assertIn(
             f"python3 -m {constants.DEV_ENTRYPOINT}",
             config.start_string,

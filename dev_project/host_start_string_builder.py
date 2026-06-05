@@ -5,6 +5,8 @@ import re
 from . import constants
 from .host_config import Config
 from .inside_docker_app import cli_params
+
+
 class ArgumentParser:
     def __init__(self, args_list=[]) -> None:
         self.args_list = args_list
@@ -55,7 +57,12 @@ class StartStringBuilder:
         self.config = config
         self.args = self.config.arguments
         self.policy = config.policy
-        self.config.start_string = self.get_start_string()
+        self.start_python_command = ""
+
+    def build(self) -> str:
+        start_string = self.get_start_string()
+        self.config.start_string = start_string
+        return start_string
 
     def get_base64_string_config(self) -> str:
         data = self.config.config_to_json()

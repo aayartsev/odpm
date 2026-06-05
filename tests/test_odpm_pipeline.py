@@ -3,7 +3,7 @@ from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.odpm_pipeline import OdpmPipeline
+from dev_project.odpm_pipeline import OdpmPipeline, PipelineError
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -20,12 +20,9 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         pipeline.config.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         )
-        with patch(
-            "dev_project.odpm_pipeline.sys.exit", side_effect=SystemExit(1)
-        ) as mock_exit:
-            with self.assertRaises(SystemExit):
-                pipeline.handle_build_image()
-        mock_exit.assert_called_once_with(1)
+        with self.assertRaises(PipelineError) as ctx:
+            pipeline.handle_build_image()
+        self.assertEqual(ctx.exception.exit_code, 1)
         pipeline.project_environment.build_ci_image.assert_not_called()
 
     def test_handle_build_image_runs_for_ci_policy(self):
@@ -82,7 +79,62 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         from dev_project.host_start_string_builder import StartStringBuilder
 
         builder = StartStringBuilder(config)
+        builder.build()
         self.assertIs(builder.policy, policy)
+
+
+class OdpmPipelineComposeTests(unittest.TestCase):
+    def test_build_compose_up_argv(self):
+        config = MagicMock()
+        config.docker_compose_command = "docker compose"
+        config.no_log_prefix = False
+        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        self.assertEqual(
+            pipeline.build_compose_up_argv(config),
+            [
+                "docker",
+                "compose",
+                "up",
+                "--abort-on-container-exit",
+                "--force-recreate",
+            ],
+        )
+
+    def test_build_compose_up_argv_with_no_log_prefix(self):
+        config = MagicMock()
+        config.docker_compose_command = "docker-compose"
+        config.no_log_prefix = True
+        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        self.assertEqual(
+            pipeline.build_compose_up_argv(config),
+            [
+                "docker-compose",
+                "up",
+                "--no-log-prefix",
+                "--abort-on-container-exit",
+                "--force-recreate",
+            ],
+        )
+
+    def test_start_containers_uses_subprocess(self):
+        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.project_dir = "/tmp/project"
+        pipeline.config.docker_compose_command = "docker compose"
+        pipeline.config.no_log_prefix = False
+        with patch("dev_project.odpm_pipeline.subprocess.run") as mock_run:
+            pipeline.start_containers()
+        mock_run.assert_called_once_with(
+            [
+                "docker",
+                "compose",
+                "up",
+                "--abort-on-container-exit",
+                "--force-recreate",
+            ],
+            cwd="/tmp/project",
+            check=False,
+        )
 
 
 class OdpmPipelineRunTests(unittest.TestCase):
@@ -133,6 +185,59 @@ class OdpmPipelineRunTests(unittest.TestCase):
 
         mock_vscode.assert_not_called()
         mock_start.assert_not_called()
+
+    @patch("dev_project.odpm_pipeline.sys.exit")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_exits_on_pipeline_error(
+        self, mock_setup, mock_prepare, mock_exit
+    ):
+        pipeline = OdpmPipeline(Namespace(build_image=True), "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.policy = ScenarioPolicy.from_scenario(
+            constants.DEVELOPER_SCENARIO
+        )
+        pipeline.project_environment = MagicMock()
+        with patch.object(
+            pipeline,
+            "handle_build_image",
+            side_effect=PipelineError("forbidden", exit_code=1),
+        ):
+            pipeline.run()
+        mock_exit.assert_called_once_with(1)
+
+
+class OdpmPipelineSetupTests(unittest.TestCase):
+    @patch("dev_project.odpm_pipeline.SystemChecker")
+    @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
+    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
+    @patch("dev_project.odpm_pipeline.ProjectDirManager")
+    def test_setup_wires_config_project_env_and_checker(
+        self,
+        mock_pd_manager_cls,
+        mock_user_env_cls,
+        mock_config_cls,
+        mock_project_env_cls,
+        mock_checker_cls,
+    ):
+        mock_config = MagicMock()
+        mock_config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
+        mock_config_cls.return_value = mock_config
+        mock_project_env = MagicMock()
+        mock_project_env_cls.return_value = mock_project_env
+        mock_checker = MagicMock()
+        mock_checker_cls.return_value = mock_checker
+
+        pipeline = OdpmPipeline(Namespace(build_image=False, skip_start=False), "/opt/odpm")
+        pipeline.setup()
+
+        self.assertIs(pipeline.config, mock_config)
+        self.assertIs(pipeline.project_environment, mock_project_env)
+        self.assertIs(pipeline.system_checker, mock_checker)
+        mock_config_cls.assert_called_once()
+        mock_project_env_cls.assert_called_once_with(mock_config)
+        mock_checker_cls.assert_called_once_with(mock_config)
 
 
 if __name__ == "__main__":
