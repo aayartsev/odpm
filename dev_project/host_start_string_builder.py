@@ -66,7 +66,7 @@ class StartStringBuilder:
         return config_base64_data.decode()
 
     def build_entrypoint_invocation(self) -> str:
-        return f"python3 -m {self.policy.entrypoint_rel_path}"
+        return f"python3 -m {self.policy.entrypoint_module}"
 
     def build_debugger_prefix(self) -> str:
         if not self.policy.include_debugpy:
