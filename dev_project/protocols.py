@@ -1,95 +1,57 @@
-from typing import Protocol
-import inspect
+from __future__ import annotations
+
+from typing import Protocol, runtime_checkable
+
 from . import constants
+
+
+@runtime_checkable
 class SystemCheckerProtocol(Protocol):
+    def check_git(self) -> None: ...
 
-    def check_git(self):
-        NotImplementedError(
-                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
-    def get_groups(self):
-        NotImplementedError(
-                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
-    def check_docker(self):
-        NotImplementedError(
-                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
-    def check_running_containers(self):
-        NotImplementedError(
-                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
-    def check_docker_compose(self):
-        NotImplementedError(
-                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
-    def check_file_system(self):
-        NotImplementedError(
-                f"""Define {inspect.stack()[0][3]}  in {self.__class__.__name__}""")
-    def check_free_space_for_odoo_developing(self, free_space_size:float=constants.FREE_SPACE_FOR_USAGE):
-        NotImplementedError(
-                f"""Define {inspect.stack()[0][3]} in {self.__class__.__name__}""")
+    def check_docker(self) -> None: ...
+
+    def check_running_containers(self) -> None: ...
+
+    def check_docker_compose(self) -> None: ...
+
+    def check_file_system(self) -> None: ...
+
+    def check_free_space_for_odoo_developing(
+        self, free_space_size: float = constants.FREE_SPACE_FOR_USAGE
+    ) -> None: ...
 
 
+@runtime_checkable
 class CreateProjectEnvironmentProtocol(Protocol):
+    def map_folders(self) -> None: ...
 
+    def generate_dockerfile(self) -> None: ...
 
-    def map_folders(self):
-        NotImplementedError(
-                f"""Define map_folders in {self.__class__.__name__}""")
-    
-    def generate_dockerfile(self):
-        NotImplementedError(
-                f"""Define generate_dockerfile in {self.__class__.__name__}""")
+    def generate_dockerignore(self) -> None: ...
 
-    def generate_dockerignore(self):
-        NotImplementedError(
-                f"""Define generate_dockerignore in {self.__class__.__name__}""")
-    
-    def generate_config_file(self):
-        NotImplementedError(
-                f"""Define generate_config_file in {self.__class__.__name__}""")
-    
-    def generate_docker_compose_file(self):
-        NotImplementedError(
-                f"""Define generate_docker_compose_file in {self.__class__.__name__}""")
-    
-    def checkout_dependencies(self):
-        NotImplementedError(
-                f"""Define checkout_dependencies in {self.__class__.__name__}""")
-    
-    def update_links(self):
-        NotImplementedError(
-                f"""Define update_links in {self.__class__.__name__}""")
-    
-    def update_vscode_debugger_launcher(self):
-        NotImplementedError(
-                f"""Define update_vscode_debugger_launcher in {self.__class__.__name__}""")
-    
-    def clone_odoo(self):
-        NotImplementedError(
-                f"""Define clone_odoo in {self.__class__.__name__}""")
-    
-    def download_odoo_repository(self):
-        NotImplementedError(
-                f"""Define download_odoo_repository in {self.__class__.__name__}""")
-    
-    def build_base_image(self):
-        NotImplementedError(
-                f"""Define build_base_image in {self.__class__.__name__}""")
+    def generate_config_file(self) -> None: ...
 
-    def ensure_base_image(self):
-        NotImplementedError(
-                f"""Define ensure_base_image in {self.__class__.__name__}""")
+    def generate_docker_compose_file(self) -> None: ...
 
-    def prepare_ci_build_context(self):
-        NotImplementedError(
-                f"""Define prepare_ci_build_context in {self.__class__.__name__}""")
+    def checkout_dependencies(self) -> None: ...
 
-    def generate_ci_dockerfile(self):
-        NotImplementedError(
-                f"""Define generate_ci_dockerfile in {self.__class__.__name__}""")
+    def update_links(self) -> None: ...
 
-    def build_ci_image(self):
-        NotImplementedError(
-                f"""Define build_ci_image in {self.__class__.__name__}""")
-    
-    def download_odoo_nightly_build(self):
-        NotImplementedError(
-                f"""Define download_odoo_nightly_build in {self.__class__.__name__}""")
-    
+    def update_vscode_debugger_launcher(self) -> None: ...
+
+    def generate_vscode_settings_json(self) -> None: ...
+
+    def download_odoo_repository(self) -> None: ...
+
+    def download_odoo_nightly_build(self) -> None: ...
+
+    def build_base_image(self) -> None: ...
+
+    def ensure_base_image(self) -> None: ...
+
+    def prepare_ci_build_context(self) -> None: ...
+
+    def generate_ci_dockerfile(self) -> str: ...
+
+    def build_ci_image(self) -> None: ...

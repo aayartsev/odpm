@@ -1,4 +1,14 @@
-"""Backward-compatible re-export. Prefer ``dev_project.config``."""
+"""Deprecated re-export. Prefer ``dev_project.config``."""
+
+from __future__ import annotations
+
+import warnings
+
+warnings.warn(
+    "dev_project.host_config is deprecated; import from dev_project.config instead",
+    DeprecationWarning,
+    stacklevel=1,
+)
 
 from .config import (
     Config,

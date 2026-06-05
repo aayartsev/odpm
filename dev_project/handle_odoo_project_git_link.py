@@ -1,4 +1,14 @@
-"""Backward-compatible re-export. Prefer ``dev_project.git``."""
+"""Deprecated re-export. Prefer ``dev_project.git``."""
+
+from __future__ import annotations
+
+import warnings
+
+warnings.warn(
+    "dev_project.handle_odoo_project_git_link is deprecated; import from dev_project.git instead",
+    DeprecationWarning,
+    stacklevel=1,
+)
 
 from .git import (
     FILE_SYSTEM_MARKER,
