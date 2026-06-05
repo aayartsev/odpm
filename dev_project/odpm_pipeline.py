@@ -11,7 +11,7 @@ from . import translations
 from .check_system import SystemChecker
 from .compose_runtime import should_force_recreate_compose
 from .errors import OdpmError, PipelineError
-from .host_config import Config
+from .config import Config
 from .project_env import CreateProjectEnvironment
 from .host_start_string_builder import StartStringBuilder
 from .host_user_env import CreateUserEnvironment

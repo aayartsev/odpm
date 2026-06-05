@@ -3,7 +3,7 @@ import pathlib
 import re
 
 from . import constants
-from .host_config import Config
+from .config import Config
 from .inside_docker_app import cli_params
 
 

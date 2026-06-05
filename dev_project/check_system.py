@@ -6,7 +6,7 @@ from typing import NamedTuple
 
 from . import constants, translations
 from .errors import SystemCheckError
-from .host_config import Config
+from .config import Config
 from .inside_docker_app import utils
 from .inside_docker_app.logger import get_module_logger
 from .protocols import SystemCheckerProtocol

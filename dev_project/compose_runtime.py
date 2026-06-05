@@ -5,7 +5,7 @@ from __future__ import annotations
 import shlex
 
 from . import constants
-from .host_config import Config
+from .config import Config
 from .subprocess_runner import run_checked
 
 COMPOSE_STACK_SERVICES = ("odoo", constants.DATABASE_NAME_INSTANCE)
