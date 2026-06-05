@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -15,12 +16,13 @@ from typing import Any
 from pip._vendor.packaging.markers import Marker, default_environment
 
 from . import constants
+from .inside_docker_app.exceptions import VenvError
 from .inside_docker_app.logger import get_module_logger
 
 
 _logger = get_module_logger(__name__)
 
-UV_PIP_OPTIONS = "--link-mode=copy"
+UV_PIP_OPTIONS = ("--link-mode=copy",)
 
 
 @dataclass
@@ -54,6 +56,42 @@ class VenvInstallSpec:
     def from_json_file(cls, path: str) -> VenvInstallSpec:
         with open(path) as config_file:
             return cls.from_dict(json.load(config_file))
+
+
+@dataclass(frozen=True)
+class PipRunner:
+    base_cmd: list[str]
+    pip_extra_args: list[str]
+    cwd: str
+
+    def install(self, *packages: str) -> None:
+        if not packages:
+            return
+        cmd = [*self.base_cmd, "pip", "install", *self.pip_extra_args, *packages]
+        _run_subprocess(cmd, cwd=self.cwd)
+
+    def install_requirements(self, requirements_path: str) -> None:
+        cmd = [
+            *self.base_cmd,
+            "pip",
+            "install",
+            *self.pip_extra_args,
+            "-r",
+            requirements_path,
+        ]
+        _run_subprocess(cmd, cwd=self.cwd)
+
+    def install_gevent(self, package: str) -> None:
+        gevent_spec = package.replace("<", "=").replace(">", "=")
+        cmd = [
+            *self.base_cmd,
+            "pip",
+            "install",
+            *self.pip_extra_args,
+            gevent_spec,
+            "--no-build-isolation",
+        ]
+        _run_subprocess(cmd, cwd=self.cwd)
 
 
 def get_venv_bootstrap_packages(python_version: str) -> list[str]:
@@ -141,17 +179,32 @@ def parse_odoo_requirements(requirements_path: str) -> list[str]:
     return packages
 
 
-def _pip_manager(use_uv: bool) -> tuple[str, str]:
+def _make_pip_runner(spec: VenvInstallSpec, use_uv: bool) -> PipRunner:
     if use_uv:
-        return "uv", UV_PIP_OPTIONS
-    return "python3 -m", ""
+        return PipRunner(
+            base_cmd=["uv"],
+            pip_extra_args=list(UV_PIP_OPTIONS),
+            cwd=spec.project_dir,
+        )
+    return PipRunner(base_cmd=[sys.executable, "-m"], pip_extra_args=[], cwd=spec.project_dir)
 
 
-def run_pip_command(command: str) -> None:
-    result = subprocess.run([command], shell=True)
+def _run_subprocess(cmd: list[str], *, cwd: str) -> None:
+    result = subprocess.run(cmd, cwd=cwd, check=False)
     if result.returncode != 0:
-        _logger.error("Command failed (exit %s): %s", result.returncode, command)
-        sys.exit(1)
+        rendered = " ".join(cmd)
+        _logger.error("Command failed (exit %s): %s", result.returncode, rendered)
+        raise VenvError(
+            f"Command failed (exit {result.returncode}): {rendered}",
+            exit_code=result.returncode,
+        )
+
+
+def run_pip_command(command: str, *, cwd: str | None = None) -> None:
+    """Run a pip shell-less command built from a legacy string (for callers outside bake)."""
+    argv = shlex.split(command)
+    workdir = cwd if cwd is not None else os.getcwd()
+    _run_subprocess(argv, cwd=workdir)
 
 
 def create_venv(spec: VenvInstallSpec, use_uv: bool) -> None:
@@ -165,15 +218,17 @@ def create_venv(spec: VenvInstallSpec, use_uv: bool) -> None:
         check=False,
     )
     if result.returncode != 0:
-        _logger.error("uv venv failed (exit %s)", result.returncode)
-        sys.exit(1)
+        message = f"uv venv failed (exit {result.returncode})"
+        _logger.error(message)
+        raise VenvError(message, exit_code=result.returncode)
 
 
 def activate_venv(spec: VenvInstallSpec) -> None:
     activate_path = _find_file(spec.venv_dir, "activate")
     if not activate_path:
-        _logger.error("activate script not found under %s", spec.venv_dir)
-        sys.exit(1)
+        message = f"activate script not found under {spec.venv_dir}"
+        _logger.error(message)
+        raise VenvError(message)
     venv_bin_dir = os.path.dirname(activate_path)
     venv_lib_path = os.path.join(
         spec.venv_dir, "lib", f"python{spec.python_version}", "site-packages"
@@ -190,43 +245,27 @@ def _find_file(start_dir: str, pattern: str) -> str:
     return ""
 
 
-def bootstrap_packages(
-    spec: VenvInstallSpec, manager_command: str, options: str
-) -> None:
+def bootstrap_packages(spec: VenvInstallSpec, pip: PipRunner) -> None:
     for package in resolve_bootstrap_packages(spec):
-        run_pip_command(
-            f'{manager_command} pip install "{package}" {options}'.strip()
-        )
+        pip.install(package)
 
 
 def install_odoo_requirement_packages(
     packages: list[str],
-    manager_command: str,
-    options: str,
+    pip: PipRunner,
     requirements_path: str,
 ) -> None:
     for package in packages:
         if "gevent" in package:
-            gevent_spec = f"{package} --no-build-isolation"
-            gevent_spec = gevent_spec.replace("<", "=").replace(">", "=")
-            run_pip_command(
-                f"{manager_command} pip install {gevent_spec} {options}".strip()
-            )
-    run_pip_command(
-        f"{manager_command} pip install -r {requirements_path} {options}".strip()
-    )
+            pip.install_gevent(package)
+    pip.install_requirements(requirements_path)
 
 
-def install_extra_packages(
-    extra_packages: list[str], manager_command: str, options: str
-) -> None:
+def install_extra_packages(extra_packages: list[str], pip: PipRunner) -> None:
     for package in extra_packages:
         package = package.strip()
-        if not package:
-            continue
-        run_pip_command(
-            f"{manager_command} pip install {package} {options}".strip()
-        )
+        if package:
+            pip.install(package)
 
 
 def install_fresh(
@@ -238,19 +277,15 @@ def install_fresh(
 ) -> None:
     if use_uv is None:
         use_uv = detect_uv()
-    os.chdir(spec.project_dir)
-    manager_command, options = _pip_manager(use_uv)
+    pip = _make_pip_runner(spec, use_uv)
     create_venv(spec, use_uv)
     activate_venv(spec)
     odoo_packages = parse_odoo_requirements(spec.odoo_requirements_path)
-    bootstrap_packages(spec, manager_command, options)
+    bootstrap_packages(spec, pip)
     install_odoo_requirement_packages(
-        odoo_packages,
-        manager_command,
-        options,
-        spec.odoo_requirements_path,
+        odoo_packages, pip, spec.odoo_requirements_path
     )
-    install_extra_packages(spec.extra_packages, manager_command, options)
+    install_extra_packages(spec.extra_packages, pip)
     if lock_file_path and lock_hash is not None:
         with open(lock_file_path, "w") as lock_file:
             lock_file.write(lock_hash)
@@ -287,12 +322,15 @@ def main(argv: list[str] | None = None) -> None:
         help="Path to venv_install.json (VenvInstallSpec)",
     )
     args = parser.parse_args(argv)
-    spec = VenvInstallSpec.from_json_file(args.config)
-    install_fresh(
-        spec,
-        lock_file_path=spec.lock_file_path,
-        lock_hash=spec.lock_hash,
-    )
+    try:
+        spec = VenvInstallSpec.from_json_file(args.config)
+        install_fresh(
+            spec,
+            lock_file_path=spec.lock_file_path,
+            lock_hash=spec.lock_hash,
+        )
+    except VenvError as exc:
+        sys.exit(exc.exit_code)
 
 
 if __name__ == "__main__":

@@ -107,11 +107,7 @@ class VirtualenvChecker:
         raise VenvError(txt)
 
     def _run_pip_command(self, command: str) -> None:
-        try:
-            run_pip_command(command)
-        except SystemExit as exc:
-            code = exc.code if exc.code is not None else 1
-            raise VenvError(f"Command failed: {command}", exit_code=code) from exc
+        run_pip_command(command, cwd=self.docker_project_dir)
 
     def recreate_uv_venv(self):
         delete_files_in_directory(self.docker_venv_dir)
