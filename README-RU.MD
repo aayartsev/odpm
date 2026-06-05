@@ -102,6 +102,27 @@ GEVENT_PORT=8072
 ODPM_SCENARIO=developer
 ```
 
+## Неинтерактивный запуск (CI, скрипты)
+
+Если stdin не подключён к терминалу (нет TTY), odpm **не задаёт вопросы** через `input()`.
+
+**Файл `.env`** — должен уже существовать в каталоге проекта или в `~/.odpm/.env`. Альтернатива для первого запуска: задайте хотя бы одну переменную окружения из списка ниже — odpm создаст `~/.odpm/.env`, подставив остальные значения по умолчанию:
+
+- `BACKUP_DIR`, `ODOO_PROJECTS_DIR`, `PATH_TO_SSH_KEY`
+- `ODOO_PORT`, `POSTGRES_PORT`, `DEBUGGER_PORT`, `GEVENT_PORT`
+- `ODPM_SCENARIO`
+
+**Создание `odpm.json`** — при `--init` без готового `odpm.json` в developing project укажите `--odoo-version` или положите `odoo_version` в `odpm.json` репозитория (после клонирования developing project).
+
+Пример для CI:
+
+```bash
+export ODPM_SCENARIO=ci
+export ODOO_PROJECTS_DIR=/data/odoo_projects
+export BACKUP_DIR=/data/backups
+odpm --init https://github.com/acme/demo.git --skip-start
+```
+
 ## Сценарии использования (`ODPM_SCENARIO`)
 
 При первом запуске odpm предложит выбрать сценарий по номеру (`1` — developer, `2` — server, `3` — ci). Значение сохраняется в `.env` как `ODPM_SCENARIO`. Его можно изменить позже и пересоздать `docker-compose.yml`, снова запустив odpm.

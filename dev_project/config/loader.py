@@ -7,6 +7,8 @@ import shutil
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
+from ..errors import ConfigError
+from ..interactive import prompt_input, stdin_is_interactive
 from ..git import (
     FILE_SYSTEM_MARKER,
     GIT_MARKER,
@@ -294,8 +296,14 @@ class ConfigLoader:
         )
         user_odoo_version = self.config.arguments.odoo_version
         if not user_odoo_version:
+            if not stdin_is_interactive():
+                message = translations.get_translation(
+                    translations.NON_INTERACTIVE_ODOO_VERSION_REQUIRED
+                )
+                _logger.error(message)
+                raise ConfigError(message)
             while True:
-                user_odoo_version = input(
+                user_odoo_version = prompt_input(
                     translations.get_translation(translations.SET_ODOO_VERSION).format(
                         ODOO_LATEST_VERSION=constants.ODOO_LATEST_VERSION,
                         AVAILABEL_ODOO_VERSIONS_ARE=available_versions_str,

@@ -101,6 +101,20 @@ OCA_DEPENDENCY_NOT_CLONED = (
 )
 PROJECT_PATH_IN_START_DIR_PATH = """Directory {START_DIR_PATH} is not a valid odpm project directory. Please run "cd {PROJECT_PATH}" to navigate to the correct location."""
 
+NON_INTERACTIVE_ODOO_VERSION_REQUIRED = (
+    "Non-interactive mode requires odoo_version in the developing project's "
+    "odpm.json or pass --odoo-version on the command line."
+)
+NON_INTERACTIVE_ENV_FILE_HINT = (
+    "Non-interactive mode requires an existing .env file in the project directory "
+    "or under ~/.odpm/.env. Create it manually or set environment variables "
+    "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
+    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) before the first run."
+)
+NON_INTERACTIVE_ENV_CREATED = (
+    "Created {ENV_FILE} from environment variables and defaults (non-interactive mode)."
+)
+
 translations = {
     USER_NOT_IN_DOCKER_GROUP: {
         "ru_RU": """Вам необходимо добавить пользователя {CURRENT_USER} в группу {LINUX_DOCKER_GROUPNAME}\n запустите следующую команду от имени root или с помощью sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER}\n Затем перезапустите ваш компьютер""",
@@ -256,6 +270,26 @@ translations = {
     },
     PROJECT_PATH_IN_START_DIR_PATH: {
         "ru_RU": """Каталог {START_DIR_PATH} не является odpm катлогом, пожалуйста выполните команду cd {PROJECT_PATH} для перехода в нужный вам каталог"""
+    },
+    NON_INTERACTIVE_ODOO_VERSION_REQUIRED: {
+        "ru_RU": (
+            "В неинтерактивном режиме требуется odoo_version в odpm.json "
+            "разрабатываемого проекта или параметр --odoo-version в командной строке."
+        ),
+    },
+    NON_INTERACTIVE_ENV_FILE_HINT: {
+        "ru_RU": (
+            "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта "
+            "или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения "
+            "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
+            "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) перед первым запуском."
+        ),
+    },
+    NON_INTERACTIVE_ENV_CREATED: {
+        "ru_RU": (
+            "Создан файл {ENV_FILE} из переменных окружения и значений по умолчанию "
+            "(неинтерактивный режим)."
+        ),
     },
 }
 

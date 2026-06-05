@@ -102,6 +102,27 @@ GEVENT_PORT=8072
 ODPM_SCENARIO=developer
 ```
 
+## Non-interactive mode (CI, scripts)
+
+When stdin is not attached to a terminal (no TTY), odpm **does not prompt** via `input()`.
+
+**`.env` file** — must already exist in the project directory or at `~/.odpm/.env`. For the first run you can instead set at least one of the environment variables below; odpm will create `~/.odpm/.env` and fill the rest from defaults:
+
+- `BACKUP_DIR`, `ODOO_PROJECTS_DIR`, `PATH_TO_SSH_KEY`
+- `ODOO_PORT`, `POSTGRES_PORT`, `DEBUGGER_PORT`, `GEVENT_PORT`
+- `ODPM_SCENARIO`
+
+**Creating `odpm.json`** — on `--init` without an existing `odpm.json` in the developing project, pass `--odoo-version` or ensure `odoo_version` is present in the cloned repo's `odpm.json`.
+
+Example for CI:
+
+```bash
+export ODPM_SCENARIO=ci
+export ODOO_PROJECTS_DIR=/data/odoo_projects
+export BACKUP_DIR=/data/backups
+odpm --init https://github.com/acme/demo.git --skip-start
+```
+
 ## Usage scenarios (`ODPM_SCENARIO`)
 
 On the first run, odpm asks you to choose a scenario by number (`1` — developer, `2` — server, `3` — ci). The value is stored in `.env` as `ODPM_SCENARIO`. You can change it later and regenerate `docker-compose.yml` by running odpm again.
