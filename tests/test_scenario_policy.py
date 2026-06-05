@@ -315,6 +315,28 @@ class StartStringBuilderTests(unittest.TestCase):
         )
         self.assertIn("debugpy", config.start_string)
 
+    def test_start_command_includes_database_name(self):
+        config = self._make_config(constants.SERVER_SCENARIO)
+        config.arguments.d = "my_project"
+        StartStringBuilder(config).build()
+        self.assertIn("-d my_project", config.start_string)
+
+    def test_start_command_includes_translate_flags_for_odoo_19(self):
+        config = self._make_config(constants.SERVER_SCENARIO)
+        config.odoo_version = "19.0"
+        config.arguments.translate = "ru_RU"
+        StartStringBuilder(config).build()
+        self.assertIn("--load-language ru_RU", config.start_string)
+        self.assertIn("--i18n-overwrite", config.start_string)
+
+    def test_build_start_command_returns_structured_command(self):
+        config = self._make_config(constants.CI_SCENARIO)
+        command = StartStringBuilder(config).build_start_command()
+        self.assertEqual(command.entrypoint, ["python3", "-m", constants.DEV_ENTRYPOINT])
+        self.assertFalse(command.debugpy)
+        self.assertTrue(command.odoo_bin[0].endswith("/odoo-bin"))
+        self.assertEqual(command.to_compose_shell(), StartStringBuilder(config).build())
+
 
 class ComposeTemplateMigrationTests(unittest.TestCase):
     def test_deprecated_words_include_legacy_placeholders(self):
