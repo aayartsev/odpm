@@ -8,9 +8,10 @@ from argparse import Namespace
 from unittest.mock import MagicMock
 
 from dev_project import constants
-from dev_project.bake_venv import VenvInstallSpec, write_ci_bake_dir
+from dev_project.bake_venv import VenvInstallSpec, write_ci_venv_install_spec
 from dev_project.config import Config
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.project_env.ci_image import CiImageBuilder
 from dev_project.host_start_string_builder import StartStringBuilder
 from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
 
@@ -39,7 +40,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertTrue(policy.allow_build_image)
         self.assertTrue(policy.skip_vscode)
-        self.assertEqual(policy.entrypoint_module, constants.CI_BAKE_ENTRYPOINT)
+        self.assertEqual(policy.entrypoint_module, constants.DEV_ENTRYPOINT)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
         self.assertTrue(policy.venv_is_baked())
         self.assertFalse(policy.allows_venv_recreate())
@@ -208,8 +209,8 @@ class CiVenvInstallSpecTests(unittest.TestCase):
         )
 
 
-class WriteCiBakeDirTests(unittest.TestCase):
-    def test_package_layout_preserved_under_bake(self):
+class WriteCiVenvInstallSpecTests(unittest.TestCase):
+    def test_writes_json_under_ci_dir(self):
         with tempfile.TemporaryDirectory() as context_dir:
             spec = VenvInstallSpec(
                 project_dir="/home/odoo",
@@ -218,26 +219,33 @@ class WriteCiBakeDirTests(unittest.TestCase):
                 extra_packages=[],
                 python_version="3.12",
             )
-            bake_dir = write_ci_bake_dir(
-                context_dir, spec, str(DEV_PROJECT_DIR)
+            config_path = write_ci_venv_install_spec(context_dir, spec)
+            self.assertEqual(
+                config_path,
+                os.path.join(context_dir, constants.CI_VENV_INSTALL_JSON),
             )
-            self.assertTrue(os.path.isfile(os.path.join(bake_dir, "__init__.py")))
+            self.assertTrue(os.path.isfile(config_path))
+            with open(config_path) as config_file:
+                payload = json.load(config_file)
+            self.assertEqual(payload["project_dir"], "/home/odoo")
+            self.assertFalse(os.path.exists(os.path.join(context_dir, "bake")))
+
+    def test_copy_dev_project_for_ci_places_full_package(self):
+        with tempfile.TemporaryDirectory() as context_dir:
+            config = MagicMock()
+            config.program_dir = str(PROJECT_ROOT)
+            config.docker_project_dir = "/home/odoo"
+            config.docker_dev_project_dir = "/home/odoo/dev_project"
+            env = MagicMock()
+            env.config = config
+            CiImageBuilder(env)._copy_dev_project_for_ci(context_dir)
+
+            dest = os.path.join(context_dir, "dev_project")
+            self.assertTrue(os.path.isfile(os.path.join(dest, "bake_venv.py")))
             self.assertTrue(
-                os.path.isfile(os.path.join(bake_dir, "constants", "__init__.py"))
+                os.path.isfile(os.path.join(dest, "inside_docker_app", "main.py"))
             )
-            self.assertTrue(os.path.isfile(os.path.join(bake_dir, "bake_venv.py")))
-            self.assertTrue(
-                os.path.isfile(
-                    os.path.join(bake_dir, "inside_docker_app", "__init__.py")
-                )
-            )
-            main_path = os.path.join(bake_dir, "inside_docker_app", "main.py")
-            bootstrap_path = os.path.join(
-                bake_dir, "inside_docker_app", "container_bootstrap.py"
-            )
-            self.assertTrue(os.path.isfile(main_path))
-            self.assertTrue(os.path.isfile(bootstrap_path))
-            self.assertFalse(os.path.isfile(os.path.join(bake_dir, "main.py")))
+            main_path = os.path.join(dest, "inside_docker_app", "main.py")
             with open(main_path) as main_file:
                 main_source = main_file.read()
             with open(
@@ -283,7 +291,7 @@ class StartStringBuilderTests(unittest.TestCase):
         config = self._make_config(constants.CI_SCENARIO)
         StartStringBuilder(config).build()
         self.assertIn(
-            f"python3 -m {constants.CI_BAKE_ENTRYPOINT}",
+            f"python3 -m {constants.DEV_ENTRYPOINT}",
             config.start_string,
         )
         self.assertNotIn("debugpy", config.start_string)

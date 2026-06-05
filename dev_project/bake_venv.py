@@ -270,29 +270,13 @@ def build_spec_from_config(config: dict[str, Any]) -> VenvInstallSpec:
     )
 
 
-def write_ci_bake_dir(
-    context_dir: str, spec: VenvInstallSpec, dev_project_dir: str
-) -> str:
-    bake_dir = os.path.join(context_dir, constants.CI_BAKE_DIR)
-    os.makedirs(bake_dir, exist_ok=True)
-    for init_rel in ("__init__.py", os.path.join("inside_docker_app", "__init__.py")):
-        init_path = os.path.join(bake_dir, init_rel)
-        os.makedirs(os.path.dirname(init_path), exist_ok=True)
-        if not os.path.exists(init_path):
-            with open(init_path, "w") as init_file:
-                init_file.write("")
-    for rel_path in constants.CI_BAKE_PYTHON_FILES:
-        src = os.path.join(dev_project_dir, rel_path)
-        if not os.path.isfile(src):
-            raise FileNotFoundError(f"CI bake module not found: {src}")
-        dest = os.path.join(bake_dir, rel_path)
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
-        shutil.copy2(src, dest)
-    config_path = os.path.join(bake_dir, constants.CI_VENV_INSTALL_JSON)
+def write_ci_venv_install_spec(context_dir: str, spec: VenvInstallSpec) -> str:
+    config_path = os.path.join(context_dir, constants.CI_VENV_INSTALL_JSON)
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
     with open(config_path, "w") as config_file:
         json.dump(spec.to_dict(), config_file, indent=2, ensure_ascii=False)
         config_file.write("\n")
-    return bake_dir
+    return config_path
 
 
 def main(argv: list[str] | None = None) -> None:

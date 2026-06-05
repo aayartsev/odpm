@@ -6,7 +6,11 @@ import shutil
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
-from ..bake_venv import VenvInstallSpec, get_venv_bootstrap_packages, write_ci_bake_dir
+from ..bake_venv import (
+    VenvInstallSpec,
+    get_venv_bootstrap_packages,
+    write_ci_venv_install_spec,
+)
 from ..errors import PipelineError
 from ..inside_docker_app.logger import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
@@ -54,7 +58,25 @@ class CiImageBuilder:
         return False
 
     def _ci_copytree_ignore(self, _directory: str, names: list) -> set:
-        return {name for name in names if name in (".git", "__pycache__")}
+        ignored = {name for name in names if name in (".git", "__pycache__")}
+        ignored.update(name for name in names if name.endswith(".pyc"))
+        return ignored
+
+    def _copy_dev_project_for_ci(self, context_dir: str) -> None:
+        dev_project_dir = os.path.join(
+            self.config.program_dir, constants.DEV_PROJECT_DIR
+        )
+        rel_path = self._docker_path_to_context_rel(self.config.docker_dev_project_dir)
+        dest_dir = os.path.join(context_dir, rel_path)
+        parent_dir = os.path.dirname(dest_dir)
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
+        shutil.copytree(
+            dev_project_dir,
+            dest_dir,
+            dirs_exist_ok=True,
+            ignore=self._ci_copytree_ignore,
+        )
 
     def _build_ci_venv_install_spec(self) -> VenvInstallSpec:
         extra_packages = [
@@ -78,14 +100,10 @@ class CiImageBuilder:
             lock_hash=self.config.compute_venv_lock_hash(),
         )
 
-    def _prepare_ci_bake_files(self, context_dir: str) -> None:
-        dev_project_dir = os.path.join(
-            self.config.program_dir, constants.DEV_PROJECT_DIR
-        )
-        write_ci_bake_dir(
+    def _write_ci_venv_spec(self, context_dir: str) -> None:
+        write_ci_venv_install_spec(
             context_dir,
             self._build_ci_venv_install_spec(),
-            dev_project_dir,
         )
 
     def _read_ci_dockerignore_template(self) -> str:
@@ -127,18 +145,15 @@ class CiImageBuilder:
         with open(dockerignore_path, "w") as writer:
             writer.write(self._read_ci_dockerignore_template())
 
-        self._prepare_ci_bake_files(context_dir)
+        self._copy_dev_project_for_ci(context_dir)
+        self._write_ci_venv_spec(context_dir)
 
-        bake_modules = ", ".join(
-            os.path.basename(path) for path in constants.CI_BAKE_PYTHON_FILES
-        )
         _logger.info(
-            "prepare_ci_build_context: %s (%s source tree(s), %s, %s/[%s, %s])",
+            "prepare_ci_build_context: %s (%s source tree(s), %s, %s, %s)",
             context_dir,
             copied,
             constants.ODOO_CONF_NAME,
-            constants.CI_BAKE_DIR,
-            bake_modules,
+            constants.DEV_PROJECT_DIR,
             constants.CI_VENV_INSTALL_JSON,
         )
 
@@ -152,7 +167,6 @@ class CiImageBuilder:
             BASE_IMAGE=self.config.odoo_image_name,
             DOCKER_PROJECT_DIR=self.config.docker_project_dir,
             CURRENT_USER=constants.CURRENT_USER,
-            CI_BAKE_DIR=constants.CI_BAKE_DIR,
             CI_VENV_INSTALL_JSON=constants.CI_VENV_INSTALL_JSON,
         )
         content = content.replace(

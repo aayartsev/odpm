@@ -143,7 +143,7 @@ ODPM_SCENARIO=developer
 | **Volumes odoo** | Нет bind-mount исходников |
 | **debugpy / debugger port** | Нет (debugpy не устанавливается в `ci`) |
 | **Gevent 8072** | Да (как в dev/server) |
-| **Entrypoint** | `python3 -m bake.inside_docker_app.main` (пакет `bake/` в образе) |
+| **Entrypoint** | `python3 -m dev_project.inside_docker_app.main` (полный пакет `dev_project/` в образе, `venv_mode=baked`) |
 | **VS Code** | Не настраивается |
 
 Типично на runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, затем `docker compose up`.

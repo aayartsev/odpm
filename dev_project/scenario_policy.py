@@ -58,7 +58,7 @@ class ScenarioPolicy:
                 bind_postgres_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
-                entrypoint_module=constants.CI_BAKE_ENTRYPOINT,
+                entrypoint_module=constants.DEV_ENTRYPOINT,
                 skip_vscode=True,
                 allow_build_image=True,
                 venv_mode=constants.VENV_MODE_BAKED,
