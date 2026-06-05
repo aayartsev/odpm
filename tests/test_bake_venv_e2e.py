@@ -1,7 +1,6 @@
 """Subprocess-level checks for CI build context (mirrors Dockerfile.ci)."""
 
 import json
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -9,38 +8,17 @@ import unittest
 from pathlib import Path
 
 from dev_project import constants
-from dev_project.bake_venv import VenvInstallSpec, write_ci_venv_install_spec
+from tests.ci_build_context import write_minimal_ci_build_context
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
-DOCKERFILE_CI = DEV_PROJECT_DIR / "templates" / "dockerfile_ci"
+DOCKERFILE_CI = PROJECT_ROOT / "dev_project" / "templates" / "dockerfile_ci"
 
 
 def _write_ci_context(context_dir: str) -> Path:
-    """Minimal /home/odoo-like tree with dev_project/ package under context_dir."""
-    project_dir = Path(context_dir)
-    odoo_dir = project_dir / "odoo"
-    odoo_dir.mkdir(parents=True)
-    (odoo_dir / "requirements.txt").write_text("", encoding="utf-8")
-
-    shutil.copytree(
-        DEV_PROJECT_DIR,
-        project_dir / constants.DEV_PROJECT_DIR,
-        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
-    )
-
-    py_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-    spec = VenvInstallSpec(
-        project_dir=str(project_dir),
-        venv_dir=str(project_dir / ".venv"),
-        odoo_requirements_path=str(odoo_dir / "requirements.txt"),
-        extra_packages=[],
-        python_version=py_version,
-        lock_file_path=str(project_dir / ".venv" / ".lock"),
+    return write_minimal_ci_build_context(
+        context_dir,
         lock_hash="ci-bake-e2e-lock",
     )
-    write_ci_venv_install_spec(context_dir, spec)
-    return project_dir
 
 
 class BakeVenvSubprocessTests(unittest.TestCase):

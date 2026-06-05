@@ -169,6 +169,23 @@ For **building and running a baked image** on a CI runner: sources and venv live
 
 Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker compose up`.
 
+**Manual verification** (full project with real Odoo sources):
+
+```bash
+export ODPM_SCENARIO=ci
+./scripts/verify_ci_scenario.sh
+```
+
+The script runs `python3 odpm.py --build-image` and `docker compose up -d` from the project root.
+
+**Opt-in docker integration test** (minimal CI context, no compose):
+
+```bash
+ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_image_build -v
+```
+
+Requires Docker on the host. Skipped by default in `unittest discover` (fast CI).
+
 ### Comparison
 
 | | `developer` | `server` | `ci` |

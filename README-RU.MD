@@ -169,6 +169,23 @@ odpm --init https://github.com/acme/demo.git --skip-start
 
 Типично на runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, затем `docker compose up`.
 
+**Ручная проверка** (полный проект с реальными исходниками Odoo):
+
+```bash
+export ODPM_SCENARIO=ci
+./scripts/verify_ci_scenario.sh
+```
+
+Скрипт запускает `python3 odpm.py --build-image` и `docker compose up -d` из корня проекта.
+
+**Opt-in integration-тест docker build** (минимальный CI context, без compose):
+
+```bash
+ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_image_build -v
+```
+
+Нужен Docker на хосте. По умолчанию пропускается в `unittest discover` (быстрый CI).
+
 ### Сравнение
 
 | | `developer` | `server` | `ci` |
