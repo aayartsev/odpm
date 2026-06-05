@@ -60,6 +60,38 @@ class ProjectDockerignoreTests(unittest.TestCase):
             self.assertIn(".venv", content)
             self.assertIn(".odpm/ci-build-context", content)
 
+    def test_generate_dockerignore_uses_custom_project_template(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            manager.rebuild_dockerignore_template()
+            project_template = Path(project_dir) / constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH
+            project_template.write_text(
+                project_template.read_text(encoding="utf-8")
+                + "custom-exclusion/\n",
+                encoding="utf-8",
+            )
+
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.project_dockerignore_template_path = str(project_template)
+            env = CreateProjectEnvironment(config)
+            env.generate_dockerignore()
+
+            content = (Path(project_dir) / constants.DOCKERIGNORE).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("custom-exclusion/", content)
+
+    def test_read_ci_dockerignore_template_reads_program_template(self):
+        program_dir = self._program_dir()
+        config = MagicMock()
+        config.program_dir = program_dir
+        env = CreateProjectEnvironment(config)
+        content = env._read_ci_dockerignore_template()
+        self.assertIn("**/.git", content)
+        self.assertNotIn(".venv", content)
+        self.assertNotIn(".odpm/ci-build-context", content)
+
 
 if __name__ == "__main__":
     unittest.main()

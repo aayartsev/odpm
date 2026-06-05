@@ -867,14 +867,6 @@ class Config:
         )
         return json.dumps(config).encode("utf-8")
 
-    @property
-    def is_ci_scenario(self) -> bool:
-        return self.policy.is_ci()
-
-    @property
-    def is_developer_scenario(self) -> bool:
-        return self.policy.is_developer()
-
     def get_odoo_ci_image_name(self) -> str:
         image_tag = getattr(self.arguments, "image_tag", None)
         if image_tag:

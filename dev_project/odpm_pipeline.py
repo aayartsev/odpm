@@ -112,11 +112,20 @@ class OdpmPipeline:
 
     def start_containers(self) -> None:
         config = self._config()
-        subprocess.run(
+        result = subprocess.run(
             self.build_compose_up_argv(config),
             cwd=config.project_dir,
-            check=False,
+            capture_output=True,
+            text=True,
         )
+        if result.returncode != 0:
+            if result.stderr:
+                _logger.error(result.stderr.strip())
+            message = translations.get_translation(
+                translations.COMPOSE_UP_FAILED
+            ).format(EXIT_CODE=result.returncode)
+            _logger.error(message)
+            raise PipelineError(message, exit_code=result.returncode)
 
     def run(self) -> None:
         try:

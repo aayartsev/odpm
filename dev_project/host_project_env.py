@@ -661,7 +661,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
 
     def build_base_image(self) -> None:
         os.chdir(self.config.project_dir)
-        self.generate_dockerignore()
         subprocess.run(
             [
                 "docker",

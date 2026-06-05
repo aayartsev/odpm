@@ -36,6 +36,10 @@ class CreateProjectEnvironmentProtocol(Protocol):
     def generate_dockerfile(self):
         NotImplementedError(
                 f"""Define generate_dockerfile in {self.__class__.__name__}""")
+
+    def generate_dockerignore(self):
+        NotImplementedError(
+                f"""Define generate_dockerignore in {self.__class__.__name__}""")
     
     def generate_config_file(self):
         NotImplementedError(

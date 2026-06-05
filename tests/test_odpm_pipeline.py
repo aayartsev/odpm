@@ -154,12 +154,36 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         pipeline.config.docker_compose_command = "docker compose"
         pipeline.config.no_log_prefix = False
         with patch("dev_project.odpm_pipeline.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stderr="", stdout="")
             pipeline.start_containers()
         mock_run.assert_called_once_with(
             ["docker", "compose", "up", "--abort-on-container-exit"],
             cwd="/tmp/project",
-            check=False,
+            capture_output=True,
+            text=True,
         )
+
+    @patch(
+        "dev_project.odpm_pipeline.should_force_recreate_compose",
+        return_value=False,
+    )
+    def test_start_containers_raises_pipeline_error_on_compose_failure(
+        self, _mock_should
+    ):
+        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.project_dir = "/tmp/project"
+        pipeline.config.docker_compose_command = "docker compose"
+        pipeline.config.no_log_prefix = False
+        with patch("dev_project.odpm_pipeline.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=17,
+                stderr="service failed",
+                stdout="",
+            )
+            with self.assertRaises(PipelineError) as ctx:
+                pipeline.start_containers()
+        self.assertEqual(ctx.exception.exit_code, 17)
 
 
 class OdpmPipelineRunTests(unittest.TestCase):
