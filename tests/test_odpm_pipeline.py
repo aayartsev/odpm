@@ -254,7 +254,7 @@ class OdpmPipelineSetupTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.Config")
     @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
     @patch("dev_project.odpm_pipeline.ProjectDirManager")
-    def test_setup_wires_config_project_env_and_checker(
+    def test_setup_wires_pipeline_dependencies(
         self,
         mock_pd_manager_cls,
         mock_user_env_cls,
@@ -278,7 +278,7 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         self.assertIs(pipeline.system_checker, mock_checker)
         mock_config_cls.assert_called_once()
         mock_project_env_cls.assert_called_once_with(mock_config)
-        mock_checker_cls.assert_called_once_with(mock_config)
+        mock_checker_cls.assert_called_once_with(mock_config, mock_project_env)
 
 
 class OdpmPipelinePrepareTests(unittest.TestCase):

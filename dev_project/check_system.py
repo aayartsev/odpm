@@ -9,6 +9,7 @@ from .errors import SystemCheckError
 from .config import Config
 from .inside_docker_app import utils
 from .inside_docker_app.logger import get_module_logger
+from .project_env import CreateProjectEnvironment
 from .protocols import SystemCheckerProtocol
 from .subprocess_runner import run_checked, run_logged
 
@@ -21,8 +22,13 @@ class ContainerData(NamedTuple):
 
 
 class SystemChecker(SystemCheckerProtocol):
-    def __init__(self, config: Config) -> None:
+    def __init__(
+        self,
+        config: Config,
+        project_environment: CreateProjectEnvironment,
+    ) -> None:
         self.config = config
+        self.project_environment = project_environment
         self.config.system_checker = self
         if self.config.check_system:
             self.check_git()
@@ -64,7 +70,7 @@ class SystemChecker(SystemCheckerProtocol):
             _logger.error(message)
             raise SystemCheckError(message)
 
-        self.config.project_env.ensure_base_image()
+        self.project_environment.ensure_base_image()
 
     def check_running_containers(self) -> None:
         ports_to_check = [

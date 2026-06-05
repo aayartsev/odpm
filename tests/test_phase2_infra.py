@@ -48,13 +48,16 @@ class SystemCheckerDockerTests(unittest.TestCase):
         config.user_env.odoo_projects_dir = "/tmp/odoo-projects"
         return config
 
+    def _checker(self, config: MagicMock | None = None) -> SystemChecker:
+        return SystemChecker(config or self._config(), MagicMock())
+
     @patch.object(SystemChecker, "check_file_system")
     @patch("dev_project.check_system.platform.system", return_value="Darwin")
     @patch("dev_project.check_system.run_checked")
     def test_check_docker_raises_system_check_error_when_docker_unavailable(
         self, mock_checked, _mock_platform, _mock_fs
     ):
-        checker = SystemChecker(self._config())
+        checker = self._checker()
         mock_checked.return_value = MagicMock(returncode=0, stdout="broken", stderr="")
         with self.assertRaises(SystemCheckError):
             checker.check_docker()
@@ -66,15 +69,15 @@ class SystemCheckerDockerTests(unittest.TestCase):
         self, mock_checked, _mock_platform, _mock_fs
     ):
         config = self._config()
-        config.project_env = MagicMock()
-        checker = SystemChecker(config)
+        project_environment = MagicMock()
+        checker = SystemChecker(config, project_environment)
         mock_checked.return_value = MagicMock(
             returncode=0,
             stdout="Server:\n Version 24.0",
             stderr="",
         )
         checker.check_docker()
-        config.project_env.ensure_base_image.assert_called_once()
+        project_environment.ensure_base_image.assert_called_once()
 
 
 class SystemCheckerExtraTests(unittest.TestCase):
@@ -85,13 +88,16 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config.user_env.odoo_projects_dir = "/tmp/odoo-projects"
         return config
 
+    def _checker(self, config: MagicMock | None = None) -> SystemChecker:
+        return SystemChecker(config or self._config(), MagicMock())
+
     @patch.object(SystemChecker, "check_file_system")
     @patch("dev_project.check_system.run_checked")
     def test_check_git_raises_system_check_error_when_git_missing(
         self, mock_checked, _mock_fs
     ):
         mock_checked.return_value = MagicMock(returncode=0, stdout="broken", stderr="")
-        checker = SystemChecker(self._config())
+        checker = self._checker()
         with self.assertRaises(SystemCheckError):
             checker.check_git()
 
@@ -100,7 +106,7 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config = self._config()
         config.no_log_prefix = True
         config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
-        checker = SystemChecker(config)
+        checker = self._checker(config)
         mock_checked.return_value = MagicMock(returncode=0, stdout="unknown tool", stderr="")
         with self.assertRaises(SystemCheckError):
             checker.check_docker_compose()

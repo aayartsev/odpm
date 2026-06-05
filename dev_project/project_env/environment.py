@@ -28,7 +28,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
     def __init__(self, config: Config):
         self.config = config
         self.user_env = self.config.user_env
-        self.config.project_env = self
         self.odoo_platform_project: HandleOdooProjectLink
         self.mapped_folders: list[MappedPath] = []
         self._templates = ProjectTemplates(self)

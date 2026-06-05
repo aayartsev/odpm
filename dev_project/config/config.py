@@ -9,7 +9,7 @@ from ..git.developing_repo_materializer import DevelopingRepoMaterializer
 from ..host_user_env import CreateUserEnvironment
 from ..inside_docker_app.logger import get_module_logger
 from ..project_dir_manager import ProjectDirManager
-from ..protocols import CreateProjectEnvironmentProtocol, SystemCheckerProtocol
+from ..protocols import SystemCheckerProtocol
 from ..scenario_policy import ScenarioPolicy, is_debugpy_requirement
 from .loader import ConfigLoader
 from .odoo_conf import OdooConfBuilder
@@ -350,14 +350,6 @@ class Config:
         self.apply_odoo_build_date_to_platform()
 
         self._paths.apply_developing_project_docker_path()
-
-    @property
-    def project_env(self) -> CreateProjectEnvironmentProtocol:
-        return self._project_env
-
-    @project_env.setter
-    def project_env(self, value: CreateProjectEnvironmentProtocol) -> None:
-        self._project_env = value
 
     @property
     def system_checker(self) -> SystemCheckerProtocol:

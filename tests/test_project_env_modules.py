@@ -13,6 +13,14 @@ from dev_project.project_dir_manager import ProjectDirManager
 
 
 class ProjectTemplatesTests(unittest.TestCase):
+    def test_create_project_environment_does_not_set_config_project_env(self):
+        class ConfigStub:
+            user_env = MagicMock()
+
+        config = ConfigStub()
+        CreateProjectEnvironment(config)  # type: ignore[arg-type]
+        self.assertFalse(hasattr(config, "project_env"))
+
     def _program_dir(self) -> str:
         return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
