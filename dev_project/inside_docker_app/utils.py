@@ -9,6 +9,7 @@ import zipfile
 from typing import Optional
 
 from .. import constants
+from .exceptions import ConfigValidationError, VenvError
 from .logger import get_module_logger
 
 _logger = get_module_logger(__name__)
@@ -33,7 +34,9 @@ def delete_files_in_directory(directory_path):
                 shutil.rmtree(file_path)
         except Exception as e:
             _logger.warning(f"Failed to delete {file_path}. Reason: {e}")
-            exit()
+            raise VenvError(
+                f"Failed to delete {file_path}: {e}"
+            ) from e
 
 def get_direct_link_to_download_from_yadisk(yadisk_url):
     response = urlopen(constants.YADISK_API_ENDPOINT.format(yadisk_url))
@@ -148,12 +151,12 @@ def resolve_venv_mode(config: dict) -> str:
     venv_mode = config.get("venv_mode")
     if venv_mode is not None:
         if venv_mode not in constants.VENV_MODE_VALUES:
-            _logger.error(
-                "Invalid venv_mode %r in container config; expected one of %s",
-                venv_mode,
-                ", ".join(sorted(constants.VENV_MODE_VALUES)),
+            message = (
+                f"Invalid venv_mode {venv_mode!r} in container config; "
+                f"expected one of {', '.join(sorted(constants.VENV_MODE_VALUES))}"
             )
-            exit(1)
+            _logger.error(message)
+            raise ConfigValidationError(message)
         return venv_mode
     if config.get("odpm_scenario") == constants.CI_SCENARIO:
         return constants.VENV_MODE_BAKED

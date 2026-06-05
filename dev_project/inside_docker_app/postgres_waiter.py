@@ -1,10 +1,7 @@
 import socket
 import time
-import logging
-import sys
 
-
-# Настройка логирования
+from .exceptions import PostgresError
 from .logger import get_module_logger
 _logger = get_module_logger(__name__)
 
@@ -47,8 +44,9 @@ class PostgresWaiter:
         while True:
             elapsed_time = time.time() - self.start_time
             if elapsed_time >= self.timeout:
-                _logger.error("PostgreSQL startup timeout exceeded")
-                sys.exit(1)
+                message = "PostgreSQL startup timeout exceeded"
+                _logger.error(message)
+                raise PostgresError(message)
                 
             if self.is_postgres_up():
                 _logger.info("PostgreSQL is up and running")
@@ -62,9 +60,10 @@ class PostgresWaiter:
         try:
             import psycopg2
             from psycopg2 import OperationalError
-        except ImportError:
-            logging.error("psycopg2 is required. ")
-            sys.exit(2)
+        except ImportError as exc:
+            message = "psycopg2 is required."
+            _logger.error(message)
+            raise PostgresError(message, exit_code=2) from exc
 
         start = time.time()
         attempt = 0

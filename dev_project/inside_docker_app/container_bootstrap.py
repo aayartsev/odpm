@@ -1,8 +1,10 @@
 import base64
 import json
+import sys
 
 from .check_odoo import OdooChecker
 from .check_virtualenv import VirtualenvChecker
+from .exceptions import ContainerError
 
 
 def decode_config(config_base64: str) -> dict:
@@ -21,4 +23,7 @@ def run_container_bootstrap(config: dict) -> None:
 def main() -> None:
     from .parse_args import parse_args
 
-    run_container_bootstrap(decode_config(parse_args().config_base64_data))
+    try:
+        run_container_bootstrap(decode_config(parse_args().config_base64_data))
+    except ContainerError as exc:
+        sys.exit(exc.exit_code)

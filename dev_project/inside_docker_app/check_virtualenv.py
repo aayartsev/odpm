@@ -14,6 +14,7 @@ from ..bake_venv import (
     install_fresh,
     run_pip_command,
 )
+from .exceptions import VenvError
 from .logger import get_module_logger
 from .utils import delete_files_in_directory, resolve_venv_mode
 
@@ -101,15 +102,16 @@ class VirtualenvChecker:
         os.environ["PATH"] = venv_bin_dir + os.pathsep + os.environ["PATH"]
         sys.path.insert(1, venv_lib_path)
 
-    def package_installation_error(self, txt):
+    def package_installation_error(self, txt: str) -> None:
         _logger.error(txt)
-        exit(1)
+        raise VenvError(txt)
 
     def _run_pip_command(self, command: str) -> None:
         try:
             run_pip_command(command)
-        except SystemExit:
-            self.package_installation_error(f"Command failed: {command}")
+        except SystemExit as exc:
+            code = exc.code if exc.code is not None else 1
+            raise VenvError(f"Command failed: {command}", exit_code=code) from exc
 
     def recreate_uv_venv(self):
         delete_files_in_directory(self.docker_venv_dir)

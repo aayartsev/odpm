@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.config import Config
 from dev_project.inside_docker_app.check_virtualenv import VirtualenvChecker
+from dev_project.inside_docker_app.exceptions import ConfigValidationError, VenvError
 from dev_project.inside_docker_app.utils import resolve_venv_mode
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -37,9 +38,10 @@ class ResolveVenvModeTests(unittest.TestCase):
             constants.VENV_MODE_BAKED,
         )
 
-    def test_invalid_venv_mode_exits(self):
-        with self.assertRaises(SystemExit):
+    def test_invalid_venv_mode_raises(self):
+        with self.assertRaises(ConfigValidationError) as ctx:
             resolve_venv_mode(_config(venv_mode="invalid"))
+        self.assertEqual(ctx.exception.exit_code, 1)
 
 
 class VirtualenvCheckerContractTests(unittest.TestCase):
@@ -111,8 +113,9 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
 
 class BakedVenvFailureTests(unittest.TestCase):
     def _assert_baked_init_fails(self, config: dict) -> None:
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(VenvError) as ctx:
             VirtualenvChecker(config)
+        self.assertEqual(ctx.exception.exit_code, 1)
 
     def test_baked_missing_venv_dir_exits(self):
         with tempfile.TemporaryDirectory() as parent:
