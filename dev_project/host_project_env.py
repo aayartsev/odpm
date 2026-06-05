@@ -1,15 +1,13 @@
-import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 
-from . import constants, translations
+from . import constants
+from .base_image_builder import BaseImageBuilder
 from .ci_image_builder import CiImageBuilder
 from .compose_generator import ComposeGenerator
 from .handle_odoo_project_git_link import HandleOdooProjectLink
 from .host_config import Config
-from .inside_docker_app.logger import get_module_logger
 from .inside_docker_app.utils import (
     delete_files_in_directory,
     download_file,
@@ -19,19 +17,15 @@ from .project_env_types import (
     DebuggerPathRecord,
     DebuggerUnit,
     MappedPath,
-    MappedSources,
     SymlinksSources,
 )
 from .project_links import ProjectLinks
 from .project_templates import ProjectTemplates
 from .protocols import CreateProjectEnvironmentProtocol
 
-_logger = get_module_logger(__name__)
-
 __all__ = [
     "CreateProjectEnvironment",
     "MappedPath",
-    "MappedSources",
     "SymlinksSources",
     "DebuggerPathRecord",
     "DebuggerUnit",
@@ -49,6 +43,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         self._compose = ComposeGenerator(self)
         self._ci = CiImageBuilder(self)
         self._links = ProjectLinks(self)
+        self._base_image = BaseImageBuilder(self)
 
     def map_folders(self) -> None:
         self._links.map_folders()
@@ -96,65 +91,10 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         return self._ci._build_ci_venv_install_spec()
 
     def get_vscode_dir_path(self) -> str:
-        vscode_dir = os.path.join(self.config.project_dir, ".vscode")
-        if not os.path.exists(vscode_dir):
-            os.mkdir(vscode_dir)
-        return vscode_dir
+        return self._templates.get_vscode_dir_path()
 
     def update_vscode_debugger_launcher(self) -> None:
-        def get_list_of_mapped_sources() -> None:
-            list_for_links = [
-                symlink_item for symlink_item in self.config.symlinks_sources
-            ]
-            for linking_dir in list_for_links:
-                dir_name_to_link = os.path.basename(linking_dir.link_path)
-                for mapped_folder in self.mapped_folders:
-                    mapped_dir_name = os.path.basename(mapped_folder.local)
-                    if (
-                        dir_name_to_link == mapped_dir_name
-                        and linking_dir.source_path not in [self.user_env.backups]
-                    ):
-                        self.config.debugger_path_mappings.append(
-                            DebuggerPathRecord(
-                                localRoot=linking_dir.link_path,
-                                remoteRoot=mapped_folder.docker,
-                            )
-                        )
-
-        launch_json = os.path.join(self.get_vscode_dir_path(), "launch.json")
-        if not os.path.exists(launch_json):
-            content = {"configurations": []}
-        else:
-            with open(launch_json, "r") as open_file:
-                content = json.load(open_file)
-        debugger_unit_exists = False
-        get_list_of_mapped_sources()
-        port = self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
-        odoo_debugger_uint = DebuggerUnit(
-            name=constants.DEBUGGER_UNIT_NAME,
-            type="python",
-            request="attach",
-            port=int(port),
-            host="localhost",
-            pathMappings=self.config.debugger_path_mappings,
-        )
-        for index, debugger_unit in enumerate(content["configurations"]):
-            if debugger_unit["name"] == constants.DEBUGGER_UNIT_NAME:
-                content["configurations"][index] = odoo_debugger_uint
-                debugger_unit_exists = True
-        if not debugger_unit_exists:
-            content["configurations"].append(
-                DebuggerUnit(
-                    name=constants.DEBUGGER_UNIT_NAME,
-                    type="python",
-                    request="attach",
-                    port=self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT,
-                    host="localhost",
-                    pathMappings=self.config.debugger_path_mappings,
-                )
-            )
-        with open(launch_json, "w") as outfile:
-            json.dump(content, outfile, indent=4)
+        self._templates.update_vscode_debugger_launcher()
 
     def download_odoo_repository(self):
         self.config.system_checker.check_free_space_for_odoo_developing()
@@ -193,33 +133,10 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             os.remove(filepath_to_save)
 
     def base_image_exists(self) -> bool:
-        process_result = subprocess.run(
-            ["docker", "images", "--format", "'{{json .}}'"], capture_output=True
-        )
-        output_string = process_result.stdout.decode("utf-8")
-        for record in output_string.split("\n"):
-            if not record:
-                continue
-            new_record = json.loads(record.replace("'", ""))
-            if self.config.odoo_image_name == new_record.get("Repository"):
-                return True
-        return False
+        return self._base_image.base_image_exists()
 
     def ensure_base_image(self) -> None:
-        if not self.base_image_exists():
-            self.build_base_image()
+        self._base_image.ensure_base_image()
 
     def build_base_image(self) -> None:
-        os.chdir(self.config.project_dir)
-        subprocess.run(
-            [
-                "docker",
-                "build",
-                "-f",
-                self.config.dockerfile_path,
-                "-t",
-                self.config.odoo_image_name,
-                f"--platform=linux/{self.config.arch}",
-                self.config.project_dir,
-            ]
-        )
+        self._base_image.build_base_image()

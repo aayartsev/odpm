@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import os
 from typing import TYPE_CHECKING
 
 from . import constants, translations
+from .project_env_types import DebuggerPathRecord, DebuggerUnit
 
 if TYPE_CHECKING:
     from .host_project_env import CreateProjectEnvironment
@@ -16,6 +18,69 @@ class ProjectTemplates:
     @property
     def config(self):
         return self.env.config
+
+    def get_vscode_dir_path(self) -> str:
+        vscode_dir = os.path.join(self.config.project_dir, ".vscode")
+        if not os.path.exists(vscode_dir):
+            os.mkdir(vscode_dir)
+        return vscode_dir
+
+    def update_vscode_debugger_launcher(self) -> None:
+        def get_list_of_mapped_sources() -> None:
+            list_for_links = [
+                symlink_item for symlink_item in self.config.symlinks_sources
+            ]
+            for linking_dir in list_for_links:
+                dir_name_to_link = os.path.basename(linking_dir.link_path)
+                for mapped_folder in self.env.mapped_folders:
+                    mapped_dir_name = os.path.basename(mapped_folder.local)
+                    if (
+                        dir_name_to_link == mapped_dir_name
+                        and linking_dir.source_path
+                        not in [self.env.user_env.backups]
+                    ):
+                        self.config.debugger_path_mappings.append(
+                            DebuggerPathRecord(
+                                localRoot=linking_dir.link_path,
+                                remoteRoot=mapped_folder.docker,
+                            )
+                        )
+
+        launch_json = os.path.join(self.get_vscode_dir_path(), "launch.json")
+        if not os.path.exists(launch_json):
+            content = {"configurations": []}
+        else:
+            with open(launch_json, "r") as open_file:
+                content = json.load(open_file)
+        debugger_unit_exists = False
+        get_list_of_mapped_sources()
+        port = self.env.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
+        odoo_debugger_uint = DebuggerUnit(
+            name=constants.DEBUGGER_UNIT_NAME,
+            type="python",
+            request="attach",
+            port=int(port),
+            host="localhost",
+            pathMappings=self.config.debugger_path_mappings,
+        )
+        for index, debugger_unit in enumerate(content["configurations"]):
+            if debugger_unit["name"] == constants.DEBUGGER_UNIT_NAME:
+                content["configurations"][index] = odoo_debugger_uint
+                debugger_unit_exists = True
+        if not debugger_unit_exists:
+            content["configurations"].append(
+                DebuggerUnit(
+                    name=constants.DEBUGGER_UNIT_NAME,
+                    type="python",
+                    request="attach",
+                    port=self.env.user_env.debugger_port
+                    or constants.DEBUGGER_DEFAULT_PORT,
+                    host="localhost",
+                    pathMappings=self.config.debugger_path_mappings,
+                )
+            )
+        with open(launch_json, "w") as outfile:
+            json.dump(content, outfile, indent=4)
 
     def generate_dockerfile(self) -> None:
         with open(self.config.project_dockerfile_template_path) as reader:
@@ -98,7 +163,7 @@ class ProjectTemplates:
             translations.get_translation(translations.DO_NOT_CHANGE_FILE),
         )
         vscode_settings_json_path = os.path.join(
-            self.env.get_vscode_dir_path(), "settings.json"
+            self.get_vscode_dir_path(), "settings.json"
         )
         with open(vscode_settings_json_path, "w") as writer:
             writer.write(content)

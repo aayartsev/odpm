@@ -6,11 +6,6 @@ class MappedPath(NamedTuple):
     docker: str
 
 
-class MappedSources(NamedTuple):
-    local: str
-    remote: str
-
-
 class SymlinksSources(NamedTuple):
     source_path: str
     link_path: str

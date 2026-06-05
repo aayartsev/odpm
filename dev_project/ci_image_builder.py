@@ -3,15 +3,15 @@ from __future__ import annotations
 import os
 import pathlib
 import shutil
-import subprocess
-import sys
 from typing import TYPE_CHECKING
 
 from . import constants, translations
 from .bake_venv import VenvInstallSpec, get_venv_bootstrap_packages, write_ci_bake_dir
+from .errors import PipelineError
 from .inside_docker_app.logger import get_module_logger
 from .inside_docker_app.utils import write_odoo_config_data_to_file
 from .project_env_types import MappedPath
+from .subprocess_runner import run_logged
 
 if TYPE_CHECKING:
     from .host_project_env import CreateProjectEnvironment
@@ -167,7 +167,7 @@ class CiImageBuilder:
         return dockerfile_path
 
     def build_ci_image(self) -> None:
-        self.env.ensure_base_image()
+        self.env._base_image.ensure_base_image()
         self.prepare_ci_build_context()
         ci_dockerfile = self.generate_ci_dockerfile()
         context_dir = self.config.ci_build_context_dir
@@ -177,7 +177,7 @@ class CiImageBuilder:
             ci_dockerfile,
             self.config.odoo_image_name,
         )
-        result = subprocess.run(
+        returncode = run_logged(
             [
                 "docker",
                 "build",
@@ -190,11 +190,12 @@ class CiImageBuilder:
             ],
             cwd=self.config.project_dir,
         )
-        if result.returncode != 0:
-            _logger.error(
-                "build_ci_image: docker build failed (exit %s)", result.returncode
-            )
-            sys.exit(result.returncode)
+        if returncode != 0:
+            message = translations.get_translation(
+                translations.DOCKER_BUILD_FAILED
+            ).format(EXIT_CODE=returncode)
+            _logger.error(message)
+            raise PipelineError(message, exit_code=returncode)
         _logger.info(
             "build_ci_image: finished %s", self.config.odoo_ci_image_name
         )

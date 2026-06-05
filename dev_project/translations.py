@@ -94,6 +94,7 @@ BUILD_IMAGE_REQUIRES_CI_SCENARIO = (
     "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 )
 COMPOSE_UP_FAILED = "docker compose up failed with exit code {EXIT_CODE}"
+DOCKER_BUILD_FAILED = "docker build failed with exit code {EXIT_CODE}"
 OCA_DEPENDENCY_NOT_CLONED = (
     "OCA dependency {DEPENDENCY_URL} is not available locally; "
     "transitive oca_dependencies.txt entries will be skipped"
@@ -243,6 +244,9 @@ translations = {
     },
     COMPOSE_UP_FAILED: {
         "ru_RU": "docker compose up завершился с кодом {EXIT_CODE}",
+    },
+    DOCKER_BUILD_FAILED: {
+        "ru_RU": "docker build завершился с кодом {EXIT_CODE}",
     },
     OCA_DEPENDENCY_NOT_CLONED: {
         "ru_RU": (
