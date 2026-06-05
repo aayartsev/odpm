@@ -281,5 +281,31 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         mock_checker_cls.assert_called_once_with(mock_config)
 
 
+class OdpmPipelinePrepareTests(unittest.TestCase):
+    def _pipeline_with_mocks(self, **args_overrides) -> OdpmPipeline:
+        args = Namespace(build_image=False, skip_start=True, **args_overrides)
+        pipeline = OdpmPipeline(args, "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.project_environment = MagicMock()
+        pipeline.system_checker = MagicMock()
+        return pipeline
+
+    @patch("dev_project.odpm_pipeline.StartStringBuilder")
+    def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
+        pipeline = self._pipeline_with_mocks()
+        pipeline.prepare_project_files()
+        pipeline.config.materialize_git_repos.assert_called_once()
+        pipeline.config.ensure_git_repos_present.assert_not_called()
+        pipeline.project_environment.checkout_dependencies.assert_called_once()
+
+    @patch("dev_project.odpm_pipeline.StartStringBuilder")
+    def test_prepare_skips_git_when_no_git_update(self, _mock_builder):
+        pipeline = self._pipeline_with_mocks(no_git_update=True)
+        pipeline.prepare_project_files()
+        pipeline.config.ensure_git_repos_present.assert_called_once()
+        pipeline.config.materialize_git_repos.assert_not_called()
+        pipeline.project_environment.checkout_dependencies.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()

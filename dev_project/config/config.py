@@ -29,6 +29,20 @@ class Config:
         program_dir: str,
         user_env: CreateUserEnvironment,
     ) -> None:
+        self._init_context(pd_manager, arguments, program_dir, user_env)
+        self._load_user_settings()
+        self._bind_developing_link()
+        self._load_project_settings()
+        self._bind_platform_link()
+        self._apply_policy_and_layout()
+
+    def _init_context(
+        self,
+        pd_manager: ProjectDirManager,
+        arguments: Namespace,
+        program_dir: str,
+        user_env: CreateUserEnvironment,
+    ) -> None:
         self.pd_manager = pd_manager
         self.program_dir = program_dir
         self.arguments = arguments
@@ -43,15 +57,15 @@ class Config:
         self.user_env = user_env
         self.policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
         self.platform_name = constants.PLATFORM_NAME
-
         self._loader = ConfigLoader(self)
         self._paths = ConfigPaths(self)
         self._odoo_conf = OdooConfBuilder(self)
-
         self.postgres_data_local_storage = (
             self._paths.get_postgres_data_local_storage_path()
         )
         self.config_json_content = {}
+
+    def _load_user_settings(self) -> None:
         self._loader.check_for_config()
         self._loader.get_user_settings_json()
         self._loader.get_user_settings()
@@ -93,6 +107,7 @@ class Config:
             "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
         )
 
+    def _bind_developing_link(self) -> None:
         if not self.developing_project:
             message = translations.get_translation(
                 translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT
@@ -100,12 +115,13 @@ class Config:
             _logger.error(message)
             raise ConfigError(message)
         self.developing_project = self.handle_git_link(
-            self.developing_project, system_type="standart"
+            self.developing_project,
+            system_type="standart",
+            materialize=False,
         )
-        if self.arguments.branch and isinstance(self.arguments.branch, str):
-            self.developing_project.switch_to_branch(self.arguments.branch)
         self.developing_project_dir_path = self.developing_project.project_path
 
+    def _load_project_settings(self) -> None:
         self._loader.get_project_odpm_json()
         self._loader.get_odpm_settings()
 
@@ -164,8 +180,15 @@ class Config:
             _logger.warning(message)
             raise ConfigError(message)
 
-        self.get_platform_sorces()
+    def _bind_platform_link(self) -> None:
+        self.odoo_platform_project = self.handle_git_link(
+            self.odoo_git_link,
+            system_type="platform",
+            materialize=False,
+        )
+        self.odoo_src_dir = self.odoo_platform_project.get_project_path()
 
+    def _apply_policy_and_layout(self) -> None:
         original_requirements_txt = list(self.requirements_txt)
         self.requirements_txt = self.policy.normalize_requirements(
             self.requirements_txt,
@@ -220,6 +243,36 @@ class Config:
 
         self.odoo_config_data = {}
         self._paths.apply_symlink_sources()
+
+    def skip_git_update(self) -> bool:
+        return bool(getattr(self.arguments, "no_git_update", False))
+
+    def ensure_git_repos_present(self) -> None:
+        missing: list[str] = []
+        for label, path in (
+            ("platform", self.odoo_src_dir),
+            ("developing", self.developing_project_dir_path),
+        ):
+            if not path or not os.path.isdir(path):
+                missing.append(f"{label}: {path or '<unset>'}")
+        if missing:
+            message = (
+                "--no-git-update requires existing local repository directories: "
+                + ", ".join(missing)
+            )
+            _logger.error(message)
+            raise ConfigError(message)
+
+    def materialize_git_repos(self) -> None:
+        self.developing_project.build_project()
+        if self.arguments.branch and isinstance(self.arguments.branch, str):
+            self.developing_project.switch_to_branch(self.arguments.branch)
+        self.developing_project_dir_path = self.developing_project.project_path
+
+        self.odoo_platform_project.build_project()
+        self.apply_odoo_build_date_to_platform()
+
+        self._paths.apply_developing_project_docker_path()
 
     @property
     def project_env(self) -> CreateProjectEnvironmentProtocol:
@@ -290,6 +343,8 @@ class Config:
         self,
         gitlink: str,
         system_type: Literal["developing", "platform", "standart"] = "standart",
+        *,
+        materialize: bool = False,
     ) -> HandleOdooProjectLink:
         odoo_project = HandleOdooProjectLink(
             gitlink,
@@ -297,7 +352,8 @@ class Config:
             self.user_env.odoo_projects_dir,
             system_type=system_type,
         )
-        odoo_project.build_project()
+        if materialize:
+            odoo_project.build_project()
         return odoo_project
 
     def compute_venv_lock_hash(self) -> str:
@@ -318,11 +374,9 @@ class Config:
             str(self.odoo_version),
         )
 
-    def get_platform_sorces(self):
-        self.odoo_platform_project = self.handle_git_link(
-            self.odoo_git_link, system_type="platform"
-        )
-        self.odoo_src_dir = self.odoo_platform_project.get_project_path()
+    def get_platform_sorces(self) -> None:
+        self._bind_platform_link()
+        self.odoo_platform_project.build_project()
         self.apply_odoo_build_date_to_platform()
 
     def generate_odoo_conf_docker_data(self) -> None:

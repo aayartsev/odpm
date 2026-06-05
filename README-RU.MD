@@ -257,6 +257,7 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | Параметр | Описание |
 |----------|----------|
 | `--skip-start` | Пересоздать `Dockerfile`, `.dockerignore`, `docker-compose.yml` и связанные файлы **без** запуска контейнеров. Удобно после смены `.env` или сценария. |
+| `--no-git-update` | Не выполнять git clone/fetch/checkout. Нужны уже существующие локальные каталоги platform и developing project. Удобно с `--skip-start` без сети: `python3 odpm.py --skip-start --no-git-update`. |
 | `--version` | Показать версию odpm и выйти. |
 | `--config-base64-data СТРОКА` | Раскодировать base64 JSON конфигурации (автоматизация). |
 

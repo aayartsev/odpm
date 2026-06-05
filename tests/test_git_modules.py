@@ -163,9 +163,9 @@ class GitOperationsTests(unittest.TestCase):
             ops.clone_repo()
 
     @patch("dev_project.git.operations.GitOperations.clone_repo")
-    @patch("dev_project.git.operations.os.path.exists")
-    def test_check_project_does_not_chdir(self, mock_exists, mock_clone):
-        mock_exists.return_value = False
+    @patch("dev_project.git.operations.os.makedirs")
+    @patch("dev_project.git.operations.os.path.exists", return_value=False)
+    def test_check_project_does_not_chdir(self, _mock_exists, _mock_makedirs, mock_clone):
         ops = self._operations()
         with patch("dev_project.git.operations.os.chdir") as mock_chdir:
             ops.check_project()

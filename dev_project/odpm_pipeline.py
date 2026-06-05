@@ -59,6 +59,11 @@ class OdpmPipeline:
         project_env = self._project_environment()
         system_checker = self._system_checker()
         config = self._config()
+        skip_git = getattr(self.args, "no_git_update", False)
+        if skip_git:
+            config.ensure_git_repos_present()
+        else:
+            config.materialize_git_repos()
         project_env.map_folders()
         project_env.generate_dockerfile()
         project_env.generate_dockerignore()
@@ -68,7 +73,8 @@ class OdpmPipeline:
         StartStringBuilder(config).build()
         project_env.generate_docker_compose_file()
         system_checker.check_docker_compose()
-        project_env.checkout_dependencies()
+        if not skip_git:
+            project_env.checkout_dependencies()
         project_env.update_links()
 
     def handle_build_image(self) -> bool:

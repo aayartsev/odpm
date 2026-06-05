@@ -4,12 +4,13 @@ import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
 from dev_project.config.loader import ConfigLoader
 from dev_project.config.paths import ConfigPaths
+from dev_project.errors import ConfigError
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -200,6 +201,52 @@ class ConfigPayloadTests(unittest.TestCase):
         mock_config.config_dict = dict(base_dict)
 
         self.assertTrue(Config.compute_venv_lock_hash(mock_config))
+
+
+class ConfigBootstrapTests(unittest.TestCase):
+    @patch("dev_project.config.config.HandleOdooProjectLink")
+    def test_handle_git_link_skips_build_when_not_materializing(self, mock_link_cls):
+        mock_link = MagicMock()
+        mock_link_cls.return_value = mock_link
+        config = MagicMock()
+        config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
+
+        Config.handle_git_link(config, "git@github.com:acme/demo.git", materialize=False)
+
+        mock_link.build_project.assert_not_called()
+
+    @patch("dev_project.config.config.HandleOdooProjectLink")
+    def test_handle_git_link_builds_when_materializing(self, mock_link_cls):
+        mock_link = MagicMock()
+        mock_link_cls.return_value = mock_link
+        config = MagicMock()
+        config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
+
+        Config.handle_git_link(config, "git@github.com:acme/demo.git", materialize=True)
+
+        mock_link.build_project.assert_called_once()
+
+    def test_materialize_git_repos_builds_developing_and_platform(self):
+        config = MagicMock()
+        config.developing_project = MagicMock()
+        config.odoo_platform_project = MagicMock()
+        config.arguments = Namespace(branch=None)
+        config._paths = MagicMock()
+
+        Config.materialize_git_repos(config)
+
+        config.developing_project.build_project.assert_called_once()
+        config.odoo_platform_project.build_project.assert_called_once()
+        config.apply_odoo_build_date_to_platform.assert_called_once()
+        config._paths.apply_developing_project_docker_path.assert_called_once()
+
+    def test_ensure_git_repos_present_raises_when_directories_missing(self):
+        config = MagicMock()
+        config.odoo_src_dir = "/missing/platform"
+        config.developing_project_dir_path = "/missing/dev"
+
+        with self.assertRaises(ConfigError):
+            Config.ensure_git_repos_present(config)
 
 
 if __name__ == "__main__":

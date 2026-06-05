@@ -68,8 +68,12 @@ class ProjectLinks:
             )
         resolved_dependencies = self._resolve_dependencies()
         self.config.dependencies = resolved_dependencies
+        materialize_deps = not self.config.skip_git_update()
         for dependency_string in resolved_dependencies:
-            dependency_project = self.config.handle_git_link(dependency_string)
+            dependency_project = self.config.handle_git_link(
+                dependency_string,
+                materialize=materialize_deps,
+            )
             if not dependency_project.is_cloned:
                 continue
             list_of_subprojects = self.config.check_project_for_subprojects(
@@ -154,7 +158,7 @@ class ProjectLinks:
 
     def _resolve_dependencies(self) -> list[str]:
         seed_urls = list(self.config.dependencies)
-        if not self.config.use_oca_dependencies:
+        if self.config.skip_git_update() or not self.config.use_oca_dependencies:
             return seed_urls
 
         initial_extra_urls: list[str] = []

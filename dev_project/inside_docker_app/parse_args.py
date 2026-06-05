@@ -204,6 +204,12 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.NO_GIT_UPDATE_PARAM,
+    help="""Skip git clone, fetch, and checkout. Requires existing local platform and developing project directories (use with --skip-start to regenerate Docker files offline).""",
+    action="store_true",
+)
+
+arg_parser.add_argument(
     cli_params.ODOO_BIN_PARAM,
     nargs=argparse.REMAINDER,
     help="""Command to pass through as a single string""",

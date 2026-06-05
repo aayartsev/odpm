@@ -183,6 +183,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
             config = MagicMock()
             config.dependencies = [url_a]
             config.use_oca_dependencies = True
+            config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
 
@@ -196,6 +197,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
         config = MagicMock()
         config.dependencies = ["https://github.com/OCA/missing.git"]
         config.use_oca_dependencies = True
+        config.skip_git_update.return_value = False
         config.developing_project = MagicMock(project_path="")
         missing = MagicMock(is_cloned=False, project_path="")
         config.handle_git_link = MagicMock(return_value=missing)
