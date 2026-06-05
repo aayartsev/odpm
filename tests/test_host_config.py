@@ -10,6 +10,7 @@ from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
 from dev_project.config.loader import ConfigLoader
 from dev_project.config.paths import ConfigPaths
+from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
 from dev_project.errors import ConfigError
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -295,6 +296,74 @@ class ConfigBootstrapTests(unittest.TestCase):
 
         with self.assertRaises(ConfigError):
             Config.ensure_git_repos_present(config)
+
+
+class ConfigStateSliceTests(unittest.TestCase):
+    def test_slice_property_facade_reads_and_writes(self):
+        config = Config.__new__(Config)
+        config._user = UserSettingsState()
+        config._project = ProjectSettingsState()
+        config._docker = DockerLayoutState()
+
+        config.init_modules = "sale,purchase"
+        config.odoo_version = "19.0"
+        config.docker_project_dir = "/home/odoo"
+
+        self.assertEqual(config._user.init_modules, "sale,purchase")
+        self.assertEqual(config._project.odoo_version, "19.0")
+        self.assertEqual(config._docker.docker_project_dir, "/home/odoo")
+        self.assertEqual(config.user_settings.init_modules, "sale,purchase")
+        self.assertEqual(config.project_settings.odoo_version, "19.0")
+        self.assertEqual(config.docker_layout.docker_project_dir, "/home/odoo")
+
+    def test_load_user_settings_populates_user_slice(self):
+        config = Config.__new__(Config)
+        config.config_dict = {
+            "init_modules": ["sale", "purchase"],
+            "developing_project": "https://github.com/acme/demo.git",
+        }
+        config._user = UserSettingsState()
+        config._loader = MagicMock()
+        config._loader.beautify_module_list.side_effect = ConfigLoader(config).beautify_module_list
+
+        Config._load_user_settings(config)
+
+        self.assertEqual(config._user.init_modules, "sale,purchase")
+        self.assertEqual(
+            config._user.developing_project, "https://github.com/acme/demo.git"
+        )
+
+    def test_load_project_settings_populates_project_slice(self):
+        config = Config.__new__(Config)
+        config.config_dict = {
+            "odoo_version": "18.0",
+            "python_version": "3.12",
+            "platform_name": "odoo",
+            "odpm_version": constants.ODPM_VERSION,
+        }
+        config.arguments = Namespace(
+            odoo_version=None,
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+        )
+        config._project = ProjectSettingsState()
+        config._loader = MagicMock()
+        config._loader.get_effective_odoo_build_date.return_value = (
+            constants.ODOO_DEFAULT_BUILD_DATE
+        )
+        config.repo_odpm_json = "/tmp/project/odpm.json"
+        config.pd_manager = MagicMock(
+            project_docker_compose_template_path="/tmp/project/.odpm/docker-compose.yml"
+        )
+
+        Config._load_project_settings(config)
+
+        self.assertEqual(config._project.odoo_version, "18.0")
+        self.assertEqual(config._project.python_version, "3.12")
+        self.assertEqual(config._project.platform_name, "odoo")
 
 
 if __name__ == "__main__":

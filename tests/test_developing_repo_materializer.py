@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 from dev_project import constants
 from dev_project.config.config import Config
 from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
+from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
 
 
 class DevelopingRepoMaterializerTests(unittest.TestCase):
@@ -17,6 +18,9 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
     def test_materialize_for_odpm_json_clones_remote_git(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = Config.__new__(Config)
+            config._user = UserSettingsState()
+            config._project = ProjectSettingsState()
+            config._docker = DockerLayoutState()
             config.project_dir = project_dir
             config.arguments = Namespace(branch="17.0", no_git_update=False)
             config.developing_project = MagicMock(
@@ -40,6 +44,9 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             Path(odpm_path).write_text("{}", encoding="utf-8")
 
             config = Config.__new__(Config)
+            config._user = UserSettingsState()
+            config._project = ProjectSettingsState()
+            config._docker = DockerLayoutState()
             config.project_dir = project_dir
             config.arguments = Namespace(branch=None, no_git_update=False)
             config.developing_project = MagicMock(
@@ -56,6 +63,9 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
 
     def test_materialize_for_odpm_json_skips_file_link(self):
         config = Config.__new__(Config)
+        config._user = UserSettingsState()
+        config._project = ProjectSettingsState()
+        config._docker = DockerLayoutState()
         config.project_dir = "/tmp/project"
         config.arguments = Namespace(no_git_update=False)
         config.developing_project = MagicMock(
@@ -71,6 +81,9 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
 
     def test_materialize_for_odpm_json_skips_no_git_update(self):
         config = Config.__new__(Config)
+        config._user = UserSettingsState()
+        config._project = ProjectSettingsState()
+        config._docker = DockerLayoutState()
         config.project_dir = "/tmp/project"
         config.arguments = Namespace(no_git_update=True)
         config.developing_project = MagicMock(
