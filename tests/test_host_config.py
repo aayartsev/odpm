@@ -79,6 +79,48 @@ class ConfigPathsTests(unittest.TestCase):
             path = ConfigPaths(config).get_postgres_data_local_storage_path()
             self.assertTrue(os.path.isdir(path))
 
+    def test_apply_symlink_sources_deduplicates_repo_odpm_json_when_not_needed(self):
+        config = MagicMock()
+        config.user_env = MagicMock(backups="/tmp/backups")
+        config.odoo_src_dir = "/tmp/odoo"
+        config.developing_project_dir_path = "/tmp/dev"
+        config.repo_odpm_json = "/tmp/dev/odpm.json"
+        config.create_module_links = False
+        ConfigPaths(config).apply_symlink_sources()
+        self.assertEqual(config.list_for_symlinks.count("/tmp/dev/odpm.json"), 1)
+
+
+class ConfigLoaderExtraTests(unittest.TestCase):
+    def test_get_developing_project_link_from_legacy_config_json(self):
+        config = MagicMock()
+        config.config_json_content = {
+            "developing_project": "https://github.com/acme/demo.git"
+        }
+        config.pd_manager = MagicMock(init=".", project_path="/tmp/project")
+        link = ConfigLoader(config).get_developing_project_link()
+        self.assertEqual(link, "https://github.com/acme/demo.git")
+
+    def test_get_developing_project_link_wraps_relative_init_path(self):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.pd_manager = MagicMock(init="my_repo", project_path="/tmp/project")
+        link = ConfigLoader(config).get_developing_project_link()
+        self.assertEqual(link, "file:///tmp/project/my_repo")
+
+    def test_check_file_for_deprecated_words_renames_file(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = os.path.join(tmp_dir, "docker-compose.yml")
+            with open(path, "w", encoding="utf-8") as writer:
+                writer.write("services:\n  {DEBUGGER_PORT_MAP}:\n")
+
+            config = MagicMock()
+            ConfigLoader(config).check_file_for_deprecated_words(path)
+
+            self.assertFalse(os.path.exists(path))
+            self.assertTrue(
+                os.path.exists(os.path.join(tmp_dir, "deprecated_docker-compose.yml"))
+            )
+
 
 class ConfigPayloadTests(unittest.TestCase):
     def _base_config_dict(self) -> dict:

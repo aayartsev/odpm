@@ -45,6 +45,15 @@ class ComposeStackHealthTests(unittest.TestCase):
         mock_running_id.side_effect = ["odoo-id", "db-id"]
         self.assertTrue(compose_stack_is_healthy(self._config()))
 
+    @patch("dev_project.compose_runtime.container_is_running_and_healthy")
+    @patch("dev_project.compose_runtime._running_container_id")
+    def test_compose_stack_unhealthy_when_odoo_unhealthy(
+        self, mock_running_id, mock_health
+    ):
+        mock_running_id.side_effect = ["odoo-id", "db-id"]
+        mock_health.side_effect = [False, True]
+        self.assertFalse(compose_stack_is_healthy(self._config()))
+
     @patch("dev_project.compose_runtime._running_container_id", return_value=None)
     def test_compose_stack_unhealthy_when_service_missing(self, _mock_running_id):
         self.assertFalse(compose_stack_is_healthy(self._config()))

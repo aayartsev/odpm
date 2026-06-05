@@ -92,6 +92,36 @@ class ProjectDockerignoreTests(unittest.TestCase):
         self.assertNotIn(".venv", content)
         self.assertNotIn(".odpm/ci-build-context", content)
 
+    def test_prepare_ci_build_context_writes_program_dockerignore(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = MagicMock()
+            config.program_dir = self._program_dir()
+            config.ci_build_context_dir = os.path.join(
+                project_dir, constants.CI_BUILD_CONTEXT_DIR
+            )
+            config.odoo_config_data = {"options": {"admin_passwd": "admin"}}
+            config.docker_project_dir = "/home/odoo"
+            config.docker_venv_dir = "/home/odoo/.venv"
+            config.docker_dev_project_dir = "/home/odoo/dev_project"
+            config.docker_backups_dir = "/home/odoo/backups"
+            config.docker_temp_tests_dir = "/tmp/odoo_tests"
+            config.docker_odoo_dir = "/home/odoo/odoo"
+            config.docker_extra_addons = "/home/odoo/extra-addons"
+            config.compute_venv_lock_hash.return_value = "abc"
+            config.python_version = "3.12"
+            config.requirements_txt = []
+            config.arch = "amd64"
+
+            env = CreateProjectEnvironment(config)
+            env.mapped_folders = []
+            env.prepare_ci_build_context()
+
+            dockerignore = Path(config.ci_build_context_dir) / constants.DOCKERIGNORE
+            self.assertTrue(dockerignore.is_file())
+            content = dockerignore.read_text(encoding="utf-8")
+            self.assertIn("**/.git", content)
+            self.assertNotIn(".venv", content)
+
 
 if __name__ == "__main__":
     unittest.main()

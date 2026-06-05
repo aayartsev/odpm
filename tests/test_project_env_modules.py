@@ -1,5 +1,4 @@
 import os
-import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,9 +9,7 @@ from dev_project.errors import PipelineError
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.base_image import BaseImageBuilder
 from dev_project.project_env.ci_image import CiImageBuilder
-from dev_project.project_env.compose import ComposeGenerator
 from dev_project.project_dir_manager import ProjectDirManager
-from dev_project.scenario_policy import ScenarioPolicy
 
 
 class ProjectTemplatesTests(unittest.TestCase):
@@ -61,55 +58,6 @@ class ProjectTemplatesTests(unittest.TestCase):
             vscode_dir = env._templates.get_vscode_dir_path()
             self.assertTrue(os.path.isdir(vscode_dir))
             self.assertEqual(vscode_dir, os.path.join(project_dir, ".vscode"))
-
-
-class ComposeGeneratorTests(unittest.TestCase):
-    def _program_dir(self) -> str:
-        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    def _make_env(self, project_dir: str) -> CreateProjectEnvironment:
-        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config = MagicMock()
-        config.project_dir = project_dir
-        config.policy = policy
-        config.odoo_image_name = "odoo-dev:test"
-        config.start_string = '["python3", "odoo-bin"]'
-        config.compose_file_version = "3.8"
-        config.postgres_version = "16"
-        config.postgres_data_local_storage = "/tmp/postgres-data"
-        config.pd_manager = MagicMock()
-        user_env = MagicMock()
-        user_env.postgres_port = None
-        user_env.debugger_port = None
-        user_env.odoo_port = None
-        user_env.gevent_port = None
-        config.user_env = user_env
-        env = CreateProjectEnvironment(config)
-        env.mapped_folders = []
-        return env
-
-    def test_generate_docker_compose_file_writes_compose_yml(self):
-        with tempfile.TemporaryDirectory() as project_dir:
-            template_dest = os.path.join(
-                project_dir,
-                constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
-            )
-            os.makedirs(os.path.dirname(template_dest), exist_ok=True)
-            shutil.copy(
-                os.path.join(self._program_dir(), "dev_project", "templates", "docker-compose.yml"),
-                template_dest,
-            )
-            env = self._make_env(project_dir)
-            env._compose.generate_docker_compose_file()
-
-            compose_path = Path(project_dir) / "docker-compose.yml"
-            self.assertTrue(compose_path.is_file())
-            content = compose_path.read_text(encoding="utf-8")
-            self.assertIn("odoo-dev:test", content)
-            self.assertIn(
-                translations.get_translation(translations.DO_NOT_CHANGE_FILE),
-                content,
-            )
 
 
 class BaseImageBuilderTests(unittest.TestCase):

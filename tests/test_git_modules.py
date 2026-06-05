@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.git import (
@@ -114,6 +115,31 @@ class ProjectDiscoveryTests(unittest.TestCase):
         discovery.get_project_type = fake_get_project_type
         discovery.apply_inside_docker_path()
         self.assertEqual(link.inside_docker_path, "my_module/my_module")
+
+
+class GitOperationsTests(unittest.TestCase):
+    def _operations(self):
+        from dev_project.git.operations import GitOperations
+
+        link = object.__new__(HandleOdooProjectLink)
+        link.project_path = "/tmp/repo"
+        link.gitlink = "https://github.com/acme/demo.git"
+        link.project_link = link.gitlink
+        link.path_to_ssh_key = ""
+        link.project_string = link.gitlink
+        return GitOperations(link)
+
+    @patch("dev_project.git.operations.subprocess.run")
+    def test_check_repo_url_normalizes_git_suffix(self, mock_run):
+        mock_run.return_value = MagicMock(
+            stdout="https://github.com/acme/demo.git\n",
+            returncode=0,
+        )
+        ops = self._operations()
+        self.assertTrue(
+            ops.check_repo_url("/tmp/repo", "https://github.com/acme/demo")
+        )
+        mock_run.assert_called_once()
 
 
 class HandleOdooProjectLinkInitTests(unittest.TestCase):
