@@ -5,7 +5,7 @@ import sys
 
 
 # Настройка логирования
-from logger import get_module_logger
+from .logger import get_module_logger
 _logger = get_module_logger(__name__)
 
 

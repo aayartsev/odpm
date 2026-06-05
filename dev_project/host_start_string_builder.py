@@ -65,12 +65,8 @@ class StartStringBuilder:
         config_base64_data = base64.b64encode(data)
         return config_base64_data.decode()
 
-    def build_entrypoint_path(self) -> str:
-        if self.policy.entrypoint_rel_path == constants.CI_BAKE_ENTRYPOINT:
-            return str(
-                pathlib.PurePosixPath(self.config.docker_project_dir, "bake", "main.py")
-            )
-        return str(pathlib.PurePosixPath(self.config.docker_inside_app, "main.py"))
+    def build_entrypoint_invocation(self) -> str:
+        return f"python3 -m {self.policy.entrypoint_rel_path}"
 
     def build_debugger_prefix(self) -> str:
         if not self.policy.include_debugpy:
@@ -167,11 +163,11 @@ class StartStringBuilder:
         if odoo_bin_additional_params:
             self.start_python_command += f""" {odoo_bin_additional_params}"""
 
-        entrypoint_path = self.build_entrypoint_path()
+        entrypoint_invocation = self.build_entrypoint_invocation()
         start_main = " && ".join(
             [
                 f"""cd {self.config.docker_project_dir}""",
-                f"""python3 {entrypoint_path} {cli_params.CONFIG_BASE64_DATA} {self.get_base64_string_config()}""",
+                f"""{entrypoint_invocation} {cli_params.CONFIG_BASE64_DATA} {self.get_base64_string_config()}""",
                 f""". {pathlib.PurePosixPath(self.config.docker_venv_dir, "bin", "activate")}""",
                 f"""{self.start_python_command}""",
             ]

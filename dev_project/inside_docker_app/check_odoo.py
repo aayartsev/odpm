@@ -6,10 +6,10 @@ import os
 import sys
 from contextlib import closing, contextmanager
 
-import cli_params
-from logger import get_module_logger
-from postgres_waiter import PostgresWaiter
-from utils import write_odoo_config_data_to_file
+from . import cli_params
+from .logger import get_module_logger
+from .postgres_waiter import PostgresWaiter
+from .utils import write_odoo_config_data_to_file
 
 _logger = get_module_logger(__name__)
 

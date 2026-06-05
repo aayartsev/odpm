@@ -1,14 +1,8 @@
-import sys
 import unittest
-from pathlib import Path
 from unittest.mock import patch
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-INSIDE_DOCKER_APP = PROJECT_ROOT / "dev_project" / "inside_docker_app"
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(INSIDE_DOCKER_APP))
-
 from dev_project import constants
+from dev_project.inside_docker_app.container_bootstrap import prepare_venv
 from dev_project.inside_docker_app.utils import resolve_venv_is_baked, resolve_venv_mode
 
 
@@ -71,10 +65,8 @@ class ResolveVenvModeTests(unittest.TestCase):
 
 
 class PrepareVenvTests(unittest.TestCase):
-    @patch("container_bootstrap.VirtualenvChecker")
+    @patch("dev_project.inside_docker_app.container_bootstrap.VirtualenvChecker")
     def test_prepare_venv_uses_config_venv_mode(self, checker_cls):
-        from container_bootstrap import prepare_venv
-
         config = _minimal_config(venv_mode=constants.VENV_MODE_BAKED)
         prepare_venv(config)
         checker_cls.assert_called_once_with(config)

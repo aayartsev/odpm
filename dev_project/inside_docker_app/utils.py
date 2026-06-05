@@ -8,18 +8,8 @@ from urllib.request import urlopen
 import zipfile
 from typing import Optional
 
-try:
-    from .. import constants
-except ImportError:
-    try:
-        from dev_project import constants
-    except ImportError:
-        constants = None  # type: ignore[assignment]
-
-try:
-    from .logger import get_module_logger
-except:
-    from logger import get_module_logger
+from .. import constants
+from .logger import get_module_logger
 
 _logger = get_module_logger(__name__)
 
@@ -119,9 +109,7 @@ _BUILD_DATE_RE = re.compile(r"^(\d{4})-?(\d{2})-?(\d{2})$")
 
 
 def _default_build_date_label() -> str:
-    if constants is not None:
-        return constants.ODOO_DEFAULT_BUILD_DATE.lower()
-    return "latest"
+    return constants.ODOO_DEFAULT_BUILD_DATE.lower()
 
 
 def is_actionable_build_date(build_date: Optional[str]) -> bool:
@@ -150,46 +138,28 @@ def commit_before_timestamp(build_date: str) -> str:
 
 def shallow_since_date(build_date: str) -> str:
     parsed = parse_build_date(build_date)
-    shallow_days = (
-        constants.PLATFORM_BUILD_DATE_SHALLOW_SINCE_DAYS
-        if constants is not None
-        else 30
-    )
+    shallow_days = constants.PLATFORM_BUILD_DATE_SHALLOW_SINCE_DAYS
     since = parsed - timedelta(days=shallow_days)
     return since.strftime("%Y-%m-%d")
 
 
-def _venv_mode_constants() -> tuple[str, str, frozenset[str]]:
-    if constants is not None:
-        return (
-            constants.VENV_MODE_FRESH,
-            constants.VENV_MODE_BAKED,
-            constants.VENV_MODE_VALUES,
-        )
-    return ("fresh", "baked", frozenset(("fresh", "baked")))
-
-
 def resolve_venv_mode(config: dict) -> str:
     """Return venv_mode from container config (with legacy fallback)."""
-    fresh_mode, baked_mode, valid_modes = _venv_mode_constants()
     venv_mode = config.get("venv_mode")
     if venv_mode is not None:
-        if venv_mode not in valid_modes:
+        if venv_mode not in constants.VENV_MODE_VALUES:
             _logger.error(
                 "Invalid venv_mode %r in container config; expected one of %s",
                 venv_mode,
-                ", ".join(sorted(valid_modes)),
+                ", ".join(sorted(constants.VENV_MODE_VALUES)),
             )
             exit(1)
         return venv_mode
-    if config.get("odpm_scenario") == (
-        constants.CI_SCENARIO if constants is not None else "ci"
-    ):
-        return baked_mode
-    return fresh_mode
+    if config.get("odpm_scenario") == constants.CI_SCENARIO:
+        return constants.VENV_MODE_BAKED
+    return constants.VENV_MODE_FRESH
 
 
 def resolve_venv_is_baked(config: dict) -> bool:
     """True when virtualenv was pre-installed in the image (CI bake)."""
-    _, baked_mode, _ = _venv_mode_constants()
-    return resolve_venv_mode(config) == baked_mode
+    return resolve_venv_mode(config) == constants.VENV_MODE_BAKED

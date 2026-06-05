@@ -1,15 +1,10 @@
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-INSIDE_DOCKER_APP = PROJECT_ROOT / "dev_project" / "inside_docker_app"
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(INSIDE_DOCKER_APP))
-
 from dev_project import constants
+from dev_project.inside_docker_app.check_virtualenv import VirtualenvChecker
 from dev_project.inside_docker_app.utils import resolve_venv_mode
 
 
@@ -46,14 +41,16 @@ class ResolveVenvModeTests(unittest.TestCase):
 
 
 class VirtualenvCheckerContractTests(unittest.TestCase):
-    @patch("check_virtualenv.VirtualenvChecker.sync_extra_requirements")
-    @patch("check_virtualenv.VirtualenvChecker.recreate_uv_venv")
-    @patch("check_virtualenv.VirtualenvChecker.set_venv")
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.sync_extra_requirements"
+    )
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.recreate_uv_venv"
+    )
+    @patch("dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.set_venv")
     def test_fresh_recreates_when_lock_mismatch(
         self, mock_set_venv, mock_recreate, mock_sync
     ):
-        from check_virtualenv import VirtualenvChecker
-
         with tempfile.TemporaryDirectory() as venv_dir:
             lock_path = Path(venv_dir) / ".lock"
             lock_path.write_text("stale-hash\n", encoding="utf-8")
@@ -66,14 +63,16 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
             mock_sync.assert_called_once()
             mock_set_venv.assert_called()
 
-    @patch("check_virtualenv.VirtualenvChecker.sync_extra_requirements")
-    @patch("check_virtualenv.VirtualenvChecker.recreate_uv_venv")
-    @patch("check_virtualenv.VirtualenvChecker.set_venv")
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.sync_extra_requirements"
+    )
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.recreate_uv_venv"
+    )
+    @patch("dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.set_venv")
     def test_fresh_skips_recreate_when_lock_matches(
         self, mock_set_venv, mock_recreate, mock_sync
     ):
-        from check_virtualenv import VirtualenvChecker
-
         with tempfile.TemporaryDirectory() as venv_dir:
             lock_path = Path(venv_dir) / ".lock"
             lock_path.write_text("expected-hash\n", encoding="utf-8")
@@ -85,14 +84,16 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
             mock_recreate.assert_not_called()
             mock_sync.assert_called_once()
 
-    @patch("check_virtualenv.VirtualenvChecker.sync_extra_requirements")
-    @patch("check_virtualenv.VirtualenvChecker.recreate_uv_venv")
-    @patch("check_virtualenv.VirtualenvChecker.set_venv")
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.sync_extra_requirements"
+    )
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.recreate_uv_venv"
+    )
+    @patch("dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.set_venv")
     def test_baked_never_recreates_or_syncs_extras(
         self, mock_set_venv, mock_recreate, mock_sync
     ):
-        from check_virtualenv import VirtualenvChecker
-
         with tempfile.TemporaryDirectory() as venv_dir:
             lock_path = Path(venv_dir) / ".lock"
             lock_path.write_text("expected-hash\n", encoding="utf-8")
@@ -108,8 +109,6 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
 
 class BakedVenvFailureTests(unittest.TestCase):
     def _assert_baked_init_fails(self, config: dict) -> None:
-        from check_virtualenv import VirtualenvChecker
-
         with self.assertRaises(SystemExit):
             VirtualenvChecker(config)
 

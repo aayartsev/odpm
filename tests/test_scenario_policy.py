@@ -203,7 +203,7 @@ class CiVenvInstallSpecTests(unittest.TestCase):
 
 
 class WriteCiBakeDirTests(unittest.TestCase):
-    def test_main_and_bootstrap_copied_to_bake(self):
+    def test_package_layout_preserved_under_bake(self):
         with tempfile.TemporaryDirectory() as context_dir:
             spec = VenvInstallSpec(
                 project_dir="/home/odoo",
@@ -215,11 +215,22 @@ class WriteCiBakeDirTests(unittest.TestCase):
             bake_dir = write_ci_bake_dir(
                 context_dir, spec, str(DEV_PROJECT_DIR)
             )
-            self.assertTrue(os.path.isfile(os.path.join(bake_dir, "main.py")))
+            self.assertTrue(os.path.isfile(os.path.join(bake_dir, "__init__.py")))
+            self.assertTrue(os.path.isfile(os.path.join(bake_dir, "constants.py")))
+            self.assertTrue(os.path.isfile(os.path.join(bake_dir, "bake_venv.py")))
             self.assertTrue(
-                os.path.isfile(os.path.join(bake_dir, "container_bootstrap.py"))
+                os.path.isfile(
+                    os.path.join(bake_dir, "inside_docker_app", "__init__.py")
+                )
             )
-            with open(os.path.join(bake_dir, "main.py")) as main_file:
+            main_path = os.path.join(bake_dir, "inside_docker_app", "main.py")
+            bootstrap_path = os.path.join(
+                bake_dir, "inside_docker_app", "container_bootstrap.py"
+            )
+            self.assertTrue(os.path.isfile(main_path))
+            self.assertTrue(os.path.isfile(bootstrap_path))
+            self.assertFalse(os.path.isfile(os.path.join(bake_dir, "main.py")))
+            with open(main_path) as main_file:
                 main_source = main_file.read()
             with open(
                 DEV_PROJECT_DIR / "inside_docker_app" / "main.py"
@@ -262,14 +273,17 @@ class StartStringBuilderTests(unittest.TestCase):
     def test_ci_entrypoint_without_debugpy(self):
         config = self._make_config(constants.CI_SCENARIO)
         StartStringBuilder(config)
-        self.assertIn("/home/odoo/bake/main.py", config.start_string)
+        self.assertIn(
+            f"python3 -m {constants.CI_BAKE_ENTRYPOINT}",
+            config.start_string,
+        )
         self.assertNotIn("debugpy", config.start_string)
 
     def test_server_entrypoint_without_debugpy(self):
         config = self._make_config(constants.SERVER_SCENARIO)
         StartStringBuilder(config)
         self.assertIn(
-            "/home/odoo/dev_project/inside_docker_app/main.py",
+            f"python3 -m {constants.DEV_ENTRYPOINT}",
             config.start_string,
         )
         self.assertNotIn("debugpy", config.start_string)
@@ -278,7 +292,7 @@ class StartStringBuilderTests(unittest.TestCase):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
         StartStringBuilder(config)
         self.assertIn(
-            "/home/odoo/dev_project/inside_docker_app/main.py",
+            f"python3 -m {constants.DEV_ENTRYPOINT}",
             config.start_string,
         )
         self.assertIn("debugpy", config.start_string)

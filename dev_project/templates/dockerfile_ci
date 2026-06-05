@@ -7,4 +7,4 @@ COPY --chown={CURRENT_USER}:{CURRENT_USER} . .
 
 USER {CURRENT_USER}
 
-RUN python3 {CI_BAKE_DIR}/bake_venv.py --config {CI_BAKE_DIR}/{CI_VENV_INSTALL_JSON}
+RUN python3 -m bake.bake_venv --config {CI_BAKE_DIR}/{CI_VENV_INSTALL_JSON}

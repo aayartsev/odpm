@@ -138,7 +138,7 @@ For **building and running a baked image** on a CI runner: sources and venv live
 | **Odoo volumes** | No bind-mount of sources |
 | **debugpy / debugger port** | No (debugpy is not installed in `ci`) |
 | **Gevent 8072** | Yes (same as dev/server) |
-| **Entrypoint** | `bake/main.py` (copy of shared `main.py` / `container_bootstrap`) |
+| **Entrypoint** | `python3 -m bake.inside_docker_app.main` (bake package under `bake/`) |
 | **VS Code** | Not configured |
 
 Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker compose up`.

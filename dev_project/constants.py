@@ -14,9 +14,10 @@ PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
 CI_BUILD_CONTEXT_DIR = os.path.join(PROJECT_SERVICE_DIRECTORY, "ci-build-context")
 CI_BAKE_DIR = "bake"
 CI_VENV_INSTALL_JSON = "venv_install.json"
-CI_BAKE_ENTRYPOINT = "bake/main.py"
-DEV_ENTRYPOINT = os.path.join("inside_docker_app", "main.py")
+CI_BAKE_ENTRYPOINT = "bake.inside_docker_app.main"
+DEV_ENTRYPOINT = "dev_project.inside_docker_app.main"
 CI_BAKE_PYTHON_FILES = (
+    "constants.py",
     "bake_venv.py",
     os.path.join("inside_docker_app", "main.py"),
     os.path.join("inside_docker_app", "container_bootstrap.py"),

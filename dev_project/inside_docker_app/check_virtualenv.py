@@ -4,45 +4,20 @@ import subprocess
 import sys
 
 import pip._vendor.packaging.version as pip_ver
-from logger import get_module_logger
 from pip._internal.operations.freeze import freeze
 from pip._vendor.packaging.utils import canonicalize_name
-from utils import delete_files_in_directory, resolve_venv_mode
 
-try:
-    from .. import constants
-except ImportError:
-    try:
-        from dev_project import constants
-    except ImportError:
-        constants = None  # type: ignore[assignment]
-
-try:
-    from ..bake_venv import (
-        build_spec_from_config,
-        detect_uv_info,
-        install_fresh,
-        run_pip_command,
-    )
-except ImportError:
-    _module_dir = os.path.dirname(os.path.abspath(__file__))
-    if _module_dir not in sys.path:
-        sys.path.insert(0, _module_dir)
-    _parent_dir = os.path.join(_module_dir, "..")
-    if _parent_dir not in sys.path:
-        sys.path.insert(0, _parent_dir)
-    from bake_venv import (
-        build_spec_from_config,
-        detect_uv_info,
-        install_fresh,
-        run_pip_command,
-    )
+from .. import constants
+from ..bake_venv import (
+    build_spec_from_config,
+    detect_uv_info,
+    install_fresh,
+    run_pip_command,
+)
+from .logger import get_module_logger
+from .utils import delete_files_in_directory, resolve_venv_mode
 
 _logger = get_module_logger(__name__)
-
-_VENV_MODE_BAKED = (
-    constants.VENV_MODE_BAKED if constants is not None else "baked"
-)
 
 
 class VirtualenvChecker:
@@ -60,7 +35,7 @@ class VirtualenvChecker:
         self.arch = config["arch"]
         self.uv_info = detect_uv_info()
         self.use_uv = self.uv_info["installed"]
-        if self.venv_mode == _VENV_MODE_BAKED:
+        if self.venv_mode == constants.VENV_MODE_BAKED:
             self.ensure_baked_venv()
         else:
             self.ensure_fresh_venv()

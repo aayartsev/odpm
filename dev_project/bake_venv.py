@@ -14,20 +14,11 @@ from typing import Any
 
 from pip._vendor.packaging.markers import Marker, default_environment
 
-try:
-    from . import constants
-except ImportError:
-    constants = None  # type: ignore[assignment]
-
-try:
-    from .inside_docker_app.logger import get_module_logger
-except ImportError:
-    from logger import get_module_logger
+from . import constants
+from .inside_docker_app.logger import get_module_logger
 
 
 _logger = get_module_logger(__name__)
-
-_FALLBACK_BOOTSTRAP = ["cython<3.0", "wheel", "setuptools"]
 
 UV_PIP_OPTIONS = "--link-mode=copy"
 
@@ -66,8 +57,6 @@ class VenvInstallSpec:
 
 
 def get_venv_bootstrap_packages(python_version: str) -> list[str]:
-    if constants is None:
-        return list(_FALLBACK_BOOTSTRAP)
     return constants.VENV_BOOTSTRAP_PACKAGES.get(
         python_version,
         constants.DEFAULT_VENV_BOOTSTRAP + ["setuptools"],
@@ -284,15 +273,20 @@ def build_spec_from_config(config: dict[str, Any]) -> VenvInstallSpec:
 def write_ci_bake_dir(
     context_dir: str, spec: VenvInstallSpec, dev_project_dir: str
 ) -> str:
-    if constants is None:
-        raise RuntimeError("write_ci_bake_dir must run from the dev_project package")
     bake_dir = os.path.join(context_dir, constants.CI_BAKE_DIR)
     os.makedirs(bake_dir, exist_ok=True)
+    for init_rel in ("__init__.py", os.path.join("inside_docker_app", "__init__.py")):
+        init_path = os.path.join(bake_dir, init_rel)
+        os.makedirs(os.path.dirname(init_path), exist_ok=True)
+        if not os.path.exists(init_path):
+            with open(init_path, "w") as init_file:
+                init_file.write("")
     for rel_path in constants.CI_BAKE_PYTHON_FILES:
         src = os.path.join(dev_project_dir, rel_path)
         if not os.path.isfile(src):
             raise FileNotFoundError(f"CI bake module not found: {src}")
-        dest = os.path.join(bake_dir, os.path.basename(rel_path))
+        dest = os.path.join(bake_dir, rel_path)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
         shutil.copy2(src, dest)
     config_path = os.path.join(bake_dir, constants.CI_VENV_INSTALL_JSON)
     with open(config_path, "w") as config_file:

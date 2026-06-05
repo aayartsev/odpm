@@ -1,9 +1,6 @@
 import argparse
 
-try:
-    from . import cli_params
-except:
-    import cli_params
+from . import cli_params
 
 arg_parser = argparse.ArgumentParser(
     prog="odpm",

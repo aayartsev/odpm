@@ -1,12 +1,8 @@
 import base64
 import json
 
-try:
-    from .check_odoo import OdooChecker
-    from .check_virtualenv import VirtualenvChecker
-except ImportError:
-    from check_odoo import OdooChecker
-    from check_virtualenv import VirtualenvChecker
+from .check_odoo import OdooChecker
+from .check_virtualenv import VirtualenvChecker
 
 
 def decode_config(config_base64: str) -> dict:
@@ -23,6 +19,6 @@ def run_container_bootstrap(config: dict) -> None:
 
 
 def main() -> None:
-    from parse_args import args
+    from .parse_args import args
 
     run_container_bootstrap(decode_config(args.config_base64_data))
