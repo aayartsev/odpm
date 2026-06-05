@@ -18,6 +18,7 @@ from .inside_docker_app.utils import (
     un_zip_file_to_directory,
     write_odoo_config_data_to_file,
 )
+from .dependency_resolver import read_oca_dependency_urls, resolve_dependency_urls
 from .protocols import CreateProjectEnvironmentProtocol
 from .scenario_policy import ScenarioPolicy
 
@@ -98,14 +99,12 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                     docker=self.config.docker_odoo_project_dir_path,
                 ),
             )
-        if self.config.use_oca_dependencies:
-            self.check_oca_dependencies(self.config.developing_project)
-        for dependency_string in self.config.dependencies:
+        resolved_dependencies = self._resolve_dependencies()
+        self.config.dependencies = resolved_dependencies
+        for dependency_string in resolved_dependencies:
             dependency_project = self.config.handle_git_link(dependency_string)
             if not dependency_project.is_cloned:
                 continue
-            if self.config.use_oca_dependencies:
-                self.check_oca_dependencies(dependency_project)
             list_of_subprojects = self.config.check_project_for_subprojects(
                 dependency_project.project_path
             )
@@ -197,22 +196,30 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         with open(dockerfile_path, "w") as writer:
             writer.write(content)
 
-    def check_oca_dependencies(self, project: HandleOdooProjectLink) -> None:
+    def _get_oca_urls_for_dependency(self, dependency_string: str) -> list[str]:
+        project = self.config.handle_git_link(dependency_string)
+        if not project.is_cloned:
+            return []
         self.checkout_project(project)
-        oca_dependencies_txt = os.path.join(
-            project.project_path, "oca_dependencies.txt"
+        return read_oca_dependency_urls(project.project_path)
+
+    def _resolve_dependencies(self) -> list[str]:
+        seed_urls = list(self.config.dependencies)
+        if not self.config.use_oca_dependencies:
+            return seed_urls
+
+        initial_extra_urls: list[str] = []
+        if self.config.developing_project.project_path:
+            self.checkout_project(self.config.developing_project)
+            initial_extra_urls = read_oca_dependency_urls(
+                self.config.developing_project.project_path
+            )
+
+        return resolve_dependency_urls(
+            seed_urls,
+            self._get_oca_urls_for_dependency,
+            initial_extra_urls=initial_extra_urls,
         )
-        if os.path.exists(oca_dependencies_txt):
-            with open(oca_dependencies_txt, "r") as oca_deps:
-                oca_deps_content_lines = oca_deps.readlines()
-            for oca_dep_string in oca_deps_content_lines:
-                oca_dep_string = oca_dep_string.strip()
-                if "#" in oca_dep_string:
-                    continue
-                if "github" not in oca_dep_string:
-                    oca_dep_string = f"https://github.com/OCA/{oca_dep_string}.git"
-                if oca_dep_string not in self.config.dependencies:
-                    self.config.dependencies.append(oca_dep_string)
 
     def generate_config_file(self) -> None:
         config_file_template_path = os.path.join(
@@ -673,11 +680,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
     def build_ci_image(self) -> None:
         self.ensure_base_image()
         self.prepare_ci_build_context()
-        # TODO(architecture): OCA deps from oca_dependencies.txt are appended to
-        # config.dependencies during map_folders() but the same for-loop does not
-        # process URLs added mid-iteration; a second odpm run or a single-pass
-        # dependency resolver is required before CI context/conf are complete.
-        # See: check_oca_dependencies() + map_folders() loop.
         ci_dockerfile = self.generate_ci_dockerfile()
         context_dir = self.config.ci_build_context_dir
         _logger.info(
