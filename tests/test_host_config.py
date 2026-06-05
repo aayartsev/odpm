@@ -232,6 +232,7 @@ class ConfigBootstrapTests(unittest.TestCase):
         config.odoo_platform_project = MagicMock()
         config.arguments = Namespace(branch=None)
         config._paths = MagicMock()
+        config._developing_repo_materialized = False
 
         Config.materialize_git_repos(config)
 
@@ -239,6 +240,114 @@ class ConfigBootstrapTests(unittest.TestCase):
         config.odoo_platform_project.build_project.assert_called_once()
         config.apply_odoo_build_date_to_platform.assert_called_once()
         config._paths.apply_developing_project_docker_path.assert_called_once()
+
+    def test_materialize_git_repos_skips_developing_when_already_materialized(self):
+        config = MagicMock()
+        config.developing_project = MagicMock()
+        config.odoo_platform_project = MagicMock()
+        config.arguments = Namespace(branch="17.0")
+        config._paths = MagicMock()
+        config._developing_repo_materialized = True
+
+        Config.materialize_git_repos(config)
+
+        config.developing_project.build_project.assert_not_called()
+        config.developing_project.switch_to_branch.assert_not_called()
+        config.odoo_platform_project.build_project.assert_called_once()
+
+    def test_ensure_developing_project_for_odpm_json_clones_remote_git(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = Config.__new__(Config)
+            config.project_dir = project_dir
+            config.arguments = Namespace(branch="17.0", no_git_update=False)
+            config.developing_project = MagicMock(
+                project_path=os.path.join(project_dir, "cloned_repo"),
+                link_type=constants.GITLINK_TYPE_HTTP,
+            )
+            config._developing_repo_materialized = False
+
+            Config._ensure_developing_project_for_odpm_json(config)
+
+            config.developing_project.build_project.assert_called_once()
+            config.developing_project.switch_to_branch.assert_called_once_with("17.0")
+            self.assertTrue(config._developing_repo_materialized)
+
+    def test_ensure_developing_project_for_odpm_json_skips_when_odpm_json_exists(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            dev_path = os.path.join(project_dir, "cloned_repo")
+            os.makedirs(dev_path)
+            odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
+            Path(odpm_path).write_text("{}", encoding="utf-8")
+
+            config = Config.__new__(Config)
+            config.project_dir = project_dir
+            config.arguments = Namespace(branch=None, no_git_update=False)
+            config.developing_project = MagicMock(
+                project_path=dev_path,
+                link_type=constants.GITLINK_TYPE_GIT,
+            )
+            config._developing_repo_materialized = False
+
+            Config._ensure_developing_project_for_odpm_json(config)
+
+            config.developing_project.build_project.assert_not_called()
+            self.assertFalse(config._developing_repo_materialized)
+
+    def test_ensure_developing_project_for_odpm_json_skips_file_link(self):
+        config = Config.__new__(Config)
+        config.project_dir = "/tmp/project"
+        config.arguments = Namespace(no_git_update=False)
+        config.developing_project = MagicMock(
+            project_path="/tmp/local_dev",
+            link_type=constants.GITLINK_TYPE_FILE,
+        )
+        config._developing_repo_materialized = False
+
+        Config._ensure_developing_project_for_odpm_json(config)
+
+        config.developing_project.build_project.assert_not_called()
+
+    def test_ensure_developing_project_for_odpm_json_skips_no_git_update(self):
+        config = Config.__new__(Config)
+        config.project_dir = "/tmp/project"
+        config.arguments = Namespace(no_git_update=True)
+        config.developing_project = MagicMock(
+            project_path="/tmp/missing_repo",
+            link_type=constants.GITLINK_TYPE_HTTP,
+        )
+        config._developing_repo_materialized = False
+        config.skip_git_update = lambda: True
+
+        Config._ensure_developing_project_for_odpm_json(config)
+
+        config.developing_project.build_project.assert_not_called()
+
+    def test_get_odpm_settings_reads_odpm_json_from_cloned_repo(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            dev_path = os.path.join(project_dir, "dev_repo")
+            os.makedirs(dev_path)
+            odpm_content = {
+                "odoo_version": "17.0",
+                "python_version": "3.10",
+                "odpm_version": constants.ODPM_VERSION,
+            }
+            odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
+            Path(odpm_path).write_text(json.dumps(odpm_content), encoding="utf-8")
+
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.developing_project = MagicMock(project_path=dev_path)
+            config.config_dict = {"developing_project": "https://github.com/acme/demo.git"}
+            config.repo_odpm_json = ""
+            config.project_odpm_json = os.path.join(
+                project_dir, constants.PROJECT_CONFIG_FILE_NAME
+            )
+
+            ConfigLoader(config).get_project_odpm_json()
+            ConfigLoader(config).get_odpm_settings()
+
+            self.assertEqual(config.config_dict["odoo_version"], "17.0")
+            self.assertEqual(config.config_dict["python_version"], "3.10")
 
     def test_ensure_git_repos_present_raises_when_directories_missing(self):
         config = MagicMock()

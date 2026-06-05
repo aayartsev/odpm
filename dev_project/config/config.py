@@ -64,6 +64,7 @@ class Config:
             self._paths.get_postgres_data_local_storage_path()
         )
         self.config_json_content = {}
+        self._developing_repo_materialized = False
 
     def _load_user_settings(self) -> None:
         self._loader.check_for_config()
@@ -120,6 +121,35 @@ class Config:
             materialize=False,
         )
         self.developing_project_dir_path = self.developing_project.project_path
+        self._ensure_developing_project_for_odpm_json()
+
+    def _is_remote_git_link(self, link: HandleOdooProjectLink) -> bool:
+        return link.link_type in (
+            constants.GITLINK_TYPE_HTTP,
+            constants.GITLINK_TYPE_GIT,
+            constants.GITLINK_TYPE_SSH,
+        )
+
+    def _ensure_developing_project_for_odpm_json(self) -> None:
+        """Clone developing repo before reading odpm.json when it lives in git."""
+        if not self._is_remote_git_link(self.developing_project):
+            return
+        if self.skip_git_update():
+            return
+        repo_odpm_json = os.path.join(
+            self.developing_project.project_path,
+            constants.PROJECT_CONFIG_FILE_NAME,
+        )
+        project_odpm_json = os.path.join(
+            self.project_dir, constants.PROJECT_CONFIG_FILE_NAME
+        )
+        if os.path.exists(repo_odpm_json) or os.path.exists(project_odpm_json):
+            return
+        self.developing_project.build_project()
+        if self.arguments.branch and isinstance(self.arguments.branch, str):
+            self.developing_project.switch_to_branch(self.arguments.branch)
+        self.developing_project_dir_path = self.developing_project.project_path
+        self._developing_repo_materialized = True
 
     def _load_project_settings(self) -> None:
         self._loader.get_project_odpm_json()
@@ -264,10 +294,11 @@ class Config:
             raise ConfigError(message)
 
     def materialize_git_repos(self) -> None:
-        self.developing_project.build_project()
-        if self.arguments.branch and isinstance(self.arguments.branch, str):
-            self.developing_project.switch_to_branch(self.arguments.branch)
-        self.developing_project_dir_path = self.developing_project.project_path
+        if not self._developing_repo_materialized:
+            self.developing_project.build_project()
+            if self.arguments.branch and isinstance(self.arguments.branch, str):
+                self.developing_project.switch_to_branch(self.arguments.branch)
+            self.developing_project_dir_path = self.developing_project.project_path
 
         self.odoo_platform_project.build_project()
         self.apply_odoo_build_date_to_platform()
