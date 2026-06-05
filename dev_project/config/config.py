@@ -3,6 +3,7 @@ from argparse import Namespace
 from typing import Literal
 
 from .. import constants, translations
+from ..errors import ConfigError
 from ..git import HandleOdooProjectLink
 from ..host_user_env import CreateUserEnvironment
 from ..inside_docker_app.logger import get_module_logger
@@ -31,9 +32,6 @@ class Config:
         self.pd_manager = pd_manager
         self.program_dir = program_dir
         self.arguments = arguments
-        if self.arguments.version:
-            _logger.info(f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}")
-            exit(0)
         self.config_dict = {}
         self.repo_odpm_json = ""
         self.dockerfile_path = ""
@@ -96,12 +94,11 @@ class Config:
         )
 
         if not self.developing_project:
-            _logger.error(
-                translations.get_translation(
-                    translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT
-                )
+            message = translations.get_translation(
+                translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT
             )
-            exit(1)
+            _logger.error(message)
+            raise ConfigError(message)
         self.developing_project = self.handle_git_link(
             self.developing_project, system_type="standart"
         )
@@ -158,15 +155,14 @@ class Config:
             "odpm_version", constants.DEFAULT_ODPM_VERSION
         )
         if float(self.project_odpm_version) < float(constants.ODPM_VERSION):
-            _logger.warning(
-                translations.get_translation(
-                    translations.PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION
-                ).format(
-                    PROJECT_ODPM_VERSION=self.project_odpm_version,
-                    ODPM_VERSION=constants.ODPM_VERSION,
-                )
+            message = translations.get_translation(
+                translations.PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION
+            ).format(
+                PROJECT_ODPM_VERSION=self.project_odpm_version,
+                ODPM_VERSION=constants.ODPM_VERSION,
             )
-            exit(1)
+            _logger.warning(message)
+            raise ConfigError(message)
 
         self.get_platform_sorces()
 

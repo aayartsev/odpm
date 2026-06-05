@@ -3,8 +3,10 @@ from unittest.mock import MagicMock, patch
 
 from dev_project.errors import (
     ConfigError,
+    GitError,
     OdpmError,
     PipelineError,
+    ProjectDirError,
     SystemCheckError,
 )
 from dev_project.subprocess_runner import CommandResult, run_checked, run_logged
@@ -21,6 +23,13 @@ class OdpmErrorHierarchyTests(unittest.TestCase):
 
     def test_config_error_is_odpm_error(self):
         self.assertIsInstance(ConfigError("config"), OdpmError)
+
+    def test_git_error_is_odpm_error(self):
+        self.assertIsInstance(GitError("git"), OdpmError)
+
+    def test_project_dir_error_supports_exit_code_zero(self):
+        error = ProjectDirError("", exit_code=0)
+        self.assertEqual(error.exit_code, 0)
 
 
 class SubprocessRunnerTests(unittest.TestCase):

@@ -17,3 +17,11 @@ class ConfigError(OdpmError):
 
 class SystemCheckError(OdpmError):
     pass
+
+
+class ProjectDirError(OdpmError):
+    pass
+
+
+class GitError(OdpmError):
+    pass

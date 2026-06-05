@@ -7,10 +7,10 @@ import shlex
 import sys
 from argparse import Namespace
 
-from . import translations
+from . import constants, translations
 from .check_system import SystemChecker
 from .compose_runtime import should_force_recreate_compose
-from .errors import OdpmError, PipelineError
+from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
 from .project_env import CreateProjectEnvironment
 from .host_start_string_builder import StartStringBuilder
@@ -37,6 +37,11 @@ class OdpmPipeline:
         self.system_checker: SystemChecker | None = None
 
     def setup(self) -> None:
+        if getattr(self.args, "version", False):
+            _logger.info(
+                f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}"
+            )
+            raise ConfigError("", exit_code=0)
         self.pd_manager = ProjectDirManager(
             self.start_dir, self.args, self.program_dir
         )

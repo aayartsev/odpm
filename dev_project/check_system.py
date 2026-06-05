@@ -31,8 +31,9 @@ class SystemChecker(SystemCheckerProtocol):
     def check_git(self) -> None:
         process_result = run_checked(["git", "--version"])
         if constants.GIT_WORKING_MESSAGE not in process_result.stdout:
-            _logger.error(translations.get_translation(translations.IS_GIT_INSTALLED))
-            exit(1)
+            message = translations.get_translation(translations.IS_GIT_INSTALLED)
+            _logger.error(message)
+            raise SystemCheckError(message)
 
     def get_system_groups(self, user: str) -> list:
         import grp
@@ -123,12 +124,11 @@ class SystemChecker(SystemCheckerProtocol):
                 self.config.docker_compose_command = command
                 break
         if not docker_compose_working_message_in_output_string:
-            _logger.error(
-                translations.get_translation(
-                    translations.CAN_NOT_GET_DOCKER_COMPOSE_INFO
-                )
+            message = translations.get_translation(
+                translations.CAN_NOT_GET_DOCKER_COMPOSE_INFO
             )
-            exit(1)
+            _logger.error(message)
+            raise SystemCheckError(message)
 
     def check_file_system(self) -> None:
         for dir_path in [
@@ -139,14 +139,13 @@ class SystemChecker(SystemCheckerProtocol):
                 try:
                     os.makedirs(dir_path)
                 except BaseException:
-                    _logger.error(
-                        translations.get_translation(
-                            translations.CAN_NOT_CREATE_DIR
-                        ).format(
-                            dir_path=dir_path,
-                        )
+                    message = translations.get_translation(
+                        translations.CAN_NOT_CREATE_DIR
+                    ).format(
+                        dir_path=dir_path,
                     )
-                    exit(1)
+                    _logger.error(message)
+                    raise SystemCheckError(message)
         # todo сделать переключатель
 
     def check_free_space_for_odoo_developing(
@@ -154,12 +153,11 @@ class SystemChecker(SystemCheckerProtocol):
     ) -> None:
         free_space = utils.get_free_space(Path.home())
         if free_space < free_space_size:
-            _logger.error(
-                translations.get_translation(
-                    translations.YOU_NEED_TO_HAVE_FREE_SPACE
-                ).format(
-                    NECESSARY_FREE_SPACE=free_space_size,
-                    DIR_FOR_FREE_SPACE=Path.home(),
-                )
+            message = translations.get_translation(
+                translations.YOU_NEED_TO_HAVE_FREE_SPACE
+            ).format(
+                NECESSARY_FREE_SPACE=free_space_size,
+                DIR_FOR_FREE_SPACE=Path.home(),
             )
-            exit(1)
+            _logger.error(message)
+            raise SystemCheckError(message)

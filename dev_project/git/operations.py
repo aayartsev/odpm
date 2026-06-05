@@ -6,6 +6,7 @@ import subprocess
 from typing import TYPE_CHECKING, Optional
 
 from .. import constants, translations
+from ..errors import GitError
 from ..inside_docker_app.logger import get_module_logger
 from ..inside_docker_app.utils import (
     commit_before_timestamp,
@@ -261,8 +262,9 @@ class GitOperations:
         try:
             commit = self.resolve_commit_with_fetch(branch, build_date)
         except (ValueError, RuntimeError) as error:
-            _logger.error("Failed to resolve odoo_build_date %s: %s", build_date, error)
-            exit(1)
+            message = f"Failed to resolve odoo_build_date {build_date}: {error}"
+            _logger.error(message)
+            raise GitError(message) from error
 
         self.link.commit = commit
         self.link.commit_explicit = True
@@ -292,10 +294,12 @@ class GitOperations:
             if str(newest_version) == odoo_version:
                 self._git_checkout_ref(str(newest_version))
             else:
-                _logger.error(
-                    f"Version {odoo_version} not exists in git repository {self.link.project_path}"
+                message = (
+                    f"Version {odoo_version} not exists in git repository "
+                    f"{self.link.project_path}"
                 )
-                exit(1)
+                _logger.error(message)
+                raise GitError(message)
         else:
             self._git_checkout_ref(odoo_version)
 

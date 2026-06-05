@@ -4,6 +4,7 @@ from argparse import Namespace
 from pathlib import Path
 
 from . import constants, translations
+from .errors import ProjectDirError
 from .inside_docker_app import cli_params
 from .inside_docker_app.logger import get_module_logger
 
@@ -67,7 +68,7 @@ class ProjectDirManager:
                     PROJECT_PATH=self.project_path,
                 )
             )
-            exit()
+            raise ProjectDirError("", exit_code=0)
         if os.path.exists(self.service_directory):
             self.dir_is_project = True
         else:
@@ -84,11 +85,11 @@ class ProjectDirManager:
                     INIT_PARAM=cli_params.INIT_PARAM,
                 )
             )
-            exit()
+            raise ProjectDirError("", exit_code=0)
         if self.init and not self.dir_is_project:
             self.init_project()
             if isinstance(self.init, bool):
-                exit()
+                raise ProjectDirError("", exit_code=0)
             return
         if self.init and self.dir_is_project:
             _logger.info(
@@ -229,15 +230,14 @@ class ProjectDirManager:
 
     def check_odoo_git_link(self):
         if self.arguments.odoo_git_link and not self.init:
-            _logger.error(
-                translations.get_translation(
-                    translations.ODOO_GIT_LINK_REQUIRES_INIT
-                ).format(
-                    ODOO_GIT_LINK_PARAM=cli_params.ODOO_GIT_LINK_PARAM,
-                    INIT_PARAM=cli_params.INIT_PARAM,
-                )
+            message = translations.get_translation(
+                translations.ODOO_GIT_LINK_REQUIRES_INIT
+            ).format(
+                ODOO_GIT_LINK_PARAM=cli_params.ODOO_GIT_LINK_PARAM,
+                INIT_PARAM=cli_params.INIT_PARAM,
             )
-            exit(1)
+            _logger.error(message)
+            raise ProjectDirError(message)
         if not self.arguments.odoo_git_link:
             self.arguments.odoo_git_link = constants.ODOO_GIT_LINK
 
