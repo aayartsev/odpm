@@ -276,17 +276,15 @@ class Config:
             ),
         )
         self.check_file_for_deprecated_words(self.project_dockerfile_template_path)
-        if not os.path.exists(self.project_dockerfile_template_path):
-            self.pd_manager.rebuild_dockerfile_template(
-                docker_template_filename=self.dockerfile_template_name
-            )
+        self.pd_manager.rebuild_dockerfile_template(
+            docker_template_filename=self.dockerfile_template_name
+        )
 
         self.project_dockerignore_template_path = os.path.join(
             self.pd_manager.project_path,
             constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
         )
-        if not os.path.exists(self.project_dockerignore_template_path):
-            self.pd_manager.rebuild_dockerignore_template()
+        self.pd_manager.rebuild_dockerignore_template()
 
         # prepare vscode settings.json template
 

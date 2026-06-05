@@ -19,6 +19,7 @@ from .inside_docker_app.utils import (
     write_odoo_config_data_to_file,
 )
 from .dependency_resolver import read_oca_dependency_urls, resolve_dependency_urls
+from .project_dir_manager import template_needs_upgrade
 from .protocols import CreateProjectEnvironmentProtocol
 _logger = get_module_logger(__name__)
 _ = translations._
@@ -258,15 +259,12 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 writer.write(content)
 
     def _ensure_compose_template_current(self, template_path: str) -> list[str]:
-        with open(template_path) as template_file:
-            lines = template_file.readlines()
-        if "{DEV_EXTRA_PORTS}" in "".join(lines):
-            return lines
-        _logger.info(
-            "Upgrading %s to scenario-aware docker-compose template",
-            template_path,
-        )
-        self.config.pd_manager.rebuild_docker_compose_template()
+        if template_needs_upgrade(template_path, constants.COMPOSE_TEMPLATE_MARKERS):
+            _logger.info(
+                "Upgrading %s to scenario-aware docker-compose template",
+                template_path,
+            )
+            self.config.pd_manager.rebuild_docker_compose_template()
         with open(template_path) as template_file:
             return template_file.readlines()
 

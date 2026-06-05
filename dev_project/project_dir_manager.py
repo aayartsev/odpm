@@ -10,6 +10,16 @@ from .inside_docker_app.logger import get_module_logger
 _logger = get_module_logger(__name__)
 
 
+def template_needs_upgrade(
+    project_template_path: str, required_markers: list[str]
+) -> bool:
+    if not os.path.exists(project_template_path):
+        return False
+    with open(project_template_path) as reader:
+        content = reader.read()
+    return any(marker not in content for marker in required_markers)
+
+
 class ProjectDirManager:
     def __init__(self, start_dir_path: str, args: Namespace, program_dir_path: str):
         self.start_dir_path = start_dir_path
@@ -128,14 +138,17 @@ class ProjectDirManager:
             self.project_path,
             os.path.join(constants.PROJECT_SERVICE_DIRECTORY, docker_template_filename),
         )
-        self.generate_project_template_files(
-            program_dockerfile_template_path, project_dockerfile_template_path
+        self.ensure_project_template(
+            program_dockerfile_template_path,
+            project_dockerfile_template_path,
+            constants.DOCKERFILE_TEMPLATE_MARKERS,
         )
 
     def rebuild_docker_compose_template(self):
-        self.generate_project_template_files(
+        self.ensure_project_template(
             self.program_docker_compose_template_path,
             self.project_docker_compose_template_path,
+            constants.COMPOSE_TEMPLATE_MARKERS,
         )
 
     def rebuild_dockerignore_template(self):
@@ -147,41 +160,26 @@ class ProjectDirManager:
             self.project_path,
             constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
         )
-        self.generate_project_template_files(
+        self.ensure_project_template(
             program_dockerignore_template_path,
             project_dockerignore_template_path,
+            constants.DOCKERIGNORE_TEMPLATE_MARKERS,
         )
 
     def rebuild_odoo_config_file_template(self):
-        if self.check_project_odoo_config_template(
-            self.project_odoo_config_file_template_path
-        ):
-            os.remove(self.project_odoo_config_file_template_path)
-        self.generate_project_template_files(
+        self.ensure_project_template(
             self.program_odoo_config_file_template_path,
             self.project_odoo_config_file_template_path,
+            constants.ODOO_CONFIG_TEMPLATE_MARKERS,
         )
 
     def check_project_odoo_config_template(
         self, project_odoo_config_file_template_path
     ):
-        odoo_config_need_to_rebuild = False
-        if os.path.exists(project_odoo_config_file_template_path):
-            with open(project_odoo_config_file_template_path) as f:
-                lines = f.readlines()
-            content = "".join(lines)
-            for searchable_pattern in [
-                constants.DO_NOT_CHANGE_PARAM,
-                constants.ADMIN_PASSWD_MESSAGE,
-                constants.POSTGRES_ODOO_USER_MARKER,
-                constants.POSTGRES_ODOO_PASS_MARKER,
-                constants.POSTGRES_ODOO_HOST_MARKER,
-                constants.POSTGRES_ODOO_PORT_MARKER,
-                constants.ODOO_PORT_MARKER,
-            ]:
-                if searchable_pattern not in content:
-                    odoo_config_need_to_rebuild = True
-        return odoo_config_need_to_rebuild
+        return template_needs_upgrade(
+            project_odoo_config_file_template_path,
+            constants.ODOO_CONFIG_TEMPLATE_MARKERS,
+        )
 
     def rebuild_vscode_settings_json_file_template(self):
         program_vscode_settings_json_file_template = os.path.join(
@@ -193,6 +191,24 @@ class ProjectDirManager:
         self.generate_project_template_files(
             program_vscode_settings_json_file_template,
             project_vscode_settings_json_file_template,
+        )
+
+    def ensure_project_template(
+        self,
+        program_template_file: str,
+        project_template_file: str,
+        required_markers: list[str] | None = None,
+    ) -> None:
+        if required_markers and template_needs_upgrade(
+            project_template_file, required_markers
+        ):
+            _logger.info(
+                "Upgrading %s to current odpm template",
+                project_template_file,
+            )
+            os.remove(project_template_file)
+        self.generate_project_template_files(
+            program_template_file, project_template_file
         )
 
     def generate_project_template_files(
