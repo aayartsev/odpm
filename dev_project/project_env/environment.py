@@ -90,17 +90,18 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
 
     def download_odoo_repository(self):
         self.config.system_checker.check_free_space_for_odoo_developing()
-        dir_for_odoo_src = os.path.join(self.config.odoo_src_dir, "..")
-        os.chdir(dir_for_odoo_src)
+        parent_dir = os.path.dirname(self.config.odoo_src_dir)
         delete_files_in_directory(self.config.odoo_src_dir)
-        subprocess.run(["git", "clone", "--depth", "1", constants.ODOO_GIT_LINK])
+        subprocess.run(
+            ["git", "clone", "--depth", "1", constants.ODOO_GIT_LINK],
+            cwd=parent_dir,
+        )
 
     def download_odoo_nightly_build(self):
         self.config.system_checker.check_free_space_for_odoo_developing(
             free_space_size=2.0
         )
-        dir_for_odoo_src = os.path.join(self.config.odoo_src_dir, "..")
-        os.chdir(dir_for_odoo_src)
+        parent_dir = os.path.dirname(self.config.odoo_src_dir)
         delete_files_in_directory(self.config.odoo_src_dir)
         odoo_version = self.config.odoo_version
         odoo_build_date = (
@@ -113,7 +114,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             filepath_to_save=filepath_to_save,
         )
         un_zip_file_to_directory(
-            dir_for_odoo_src,
+            parent_dir,
             filepath_to_save,
             rename_first_part_of_path="odoo",
         )
