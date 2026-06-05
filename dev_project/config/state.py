@@ -2,12 +2,192 @@
 
 from __future__ import annotations
 
+import warnings
+from argparse import Namespace
 from dataclasses import dataclass, field
-from typing import Any, Union
+from typing import Any, Callable, Union
 
 from .. import constants
 from ..git import HandleOdooProjectLink
 from .types import DbCreationData
+
+USER_JSON_KEYS = frozenset(
+    {
+        "init_modules",
+        "update_modules",
+        "db_creation_data",
+        "update_git_repos",
+        "clean_git_repos",
+        "check_system",
+        "db_manager_password",
+        "dev_mode",
+        "developing_project",
+        "pre_commit_map_files",
+        "sql_queries",
+        "use_oca_dependencies",
+        "create_module_links",
+    }
+)
+
+ODPM_JSON_KEYS = frozenset(
+    {
+        "python_version",
+        "distro_version",
+        "distro_name",
+        "odoo_version",
+        "postgres_version",
+        "dependencies",
+        "requirements_txt",
+        "odoo_build_date",
+        "odoo_git_link",
+        "platform_name",
+        "odpm_version",
+        "arch",
+    }
+)
+
+_CONFIG_DICT_DEPRECATION = (
+    "config.config_dict is deprecated; use config.user_settings, "
+    "config.project_settings, or slice properties instead"
+)
+
+
+def warn_config_dict_access() -> None:
+    warnings.warn(_CONFIG_DICT_DEPRECATION, DeprecationWarning, stacklevel=3)
+
+
+def split_config_dict(data: dict) -> tuple[dict, dict]:
+    user_data = {key: data[key] for key in data if key in USER_JSON_KEYS}
+    odpm_data = {key: data[key] for key in data if key in ODPM_JSON_KEYS}
+    return user_data, odpm_data
+
+
+def user_settings_from_raw(
+    raw: dict,
+    *,
+    beautify_module_list: Callable[[Any], str],
+) -> UserSettingsState:
+    return UserSettingsState(
+        init_modules=beautify_module_list(raw.get("init_modules")),
+        update_modules=beautify_module_list(raw.get("update_modules")),
+        db_creation_data=raw.get("db_creation_data", constants.DEFAULT_DB_CREATION_DATA),
+        update_git_repos=raw.get("update_git_repos", constants.DEFAULT_UPDATE_GIT_REPOS),
+        clean_git_repos=raw.get("clean_git_repos", constants.DEFAULT_CLEAN_GIT_REPOS),
+        check_system=raw.get("check_system", constants.DEFAULT_CHECK_SYSTEM),
+        db_manager_password=raw.get(
+            "db_manager_password", constants.DEFAULT_DB_MANAGER_PASSWORD
+        ),
+        dev_mode=raw.get("dev_mode", constants.DEFAULT_DEV_MODE),
+        developing_project=raw.get(
+            "developing_project", constants.DEFAULT_DEVELOPING_PROJECT
+        ),
+        pre_commit_map_files=raw.get(
+            "pre_commit_map_files", constants.DEFAULT_PRE_COMMIT_MAP_FILES
+        ),
+        sql_queries=raw.get("sql_queries", constants.DEFAULT_SQL_QUERIES),
+        use_oca_dependencies=raw.get(
+            "use_oca_dependencies", constants.DEFAULT_USE_OCA_DEPENDENCIES
+        ),
+        create_module_links=raw.get(
+            "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
+        ),
+    )
+
+
+def project_settings_from_raw(
+    raw: dict,
+    arguments: Namespace,
+    *,
+    odoo_build_date: str,
+) -> ProjectSettingsState:
+    odoo_version = raw.get("odoo_version", arguments.odoo_version or 0.0)
+    python_version = raw.get(
+        "python_version",
+        arguments.python_version or constants.DEFAULT_PYTHON_VERSION,
+    )
+    distro_version = raw.get(
+        "distro_version",
+        arguments.distro_version or constants.DEFAULT_DISTRO_VERSION,
+    )
+    distro_name = raw.get(
+        "distro_name", arguments.distro_name or constants.DEFAULT_DISTRO_NAME
+    )
+    postgres_version = raw.get(
+        "postgres_version",
+        arguments.postgres_version or constants.DEFAULT_POSTGRES_VERSION,
+    )
+    return ProjectSettingsState(
+        odoo_version=odoo_version,
+        python_version=python_version,
+        distro_version=distro_version,
+        distro_name=distro_name,
+        postgres_version=postgres_version,
+        distro_version_codename=constants.DISTRO_INFO.get(distro_name, {}).get(
+            distro_version, ""
+        ),
+        dependencies=raw.get("dependencies", []),
+        requirements_txt=raw.get(
+            "requirements_txt", arguments.requirements_txt.split(",") or []
+        ),
+        odoo_build_date=odoo_build_date,
+        odoo_git_link=raw.get("odoo_git_link", constants.ODOO_GIT_LINK),
+        platform_name=raw.get("platform_name", constants.PLATFORM_NAME),
+        project_odpm_version=raw.get("odpm_version", constants.DEFAULT_ODPM_VERSION),
+        arch=raw.get("arch", constants.ARCH),
+    )
+
+
+def user_settings_to_dict(user: UserSettingsState) -> dict:
+    return {
+        "init_modules": user.init_modules,
+        "update_modules": user.update_modules,
+        "db_creation_data": user.db_creation_data,
+        "update_git_repos": user.update_git_repos,
+        "clean_git_repos": user.clean_git_repos,
+        "check_system": user.check_system,
+        "db_manager_password": user.db_manager_password,
+        "dev_mode": user.dev_mode,
+        "developing_project": user.developing_project,
+        "pre_commit_map_files": user.pre_commit_map_files,
+        "sql_queries": user.sql_queries,
+        "use_oca_dependencies": user.use_oca_dependencies,
+        "create_module_links": user.create_module_links,
+    }
+
+
+def project_settings_to_dict(project: ProjectSettingsState) -> dict:
+    return {
+        "python_version": project.python_version,
+        "distro_version": project.distro_version,
+        "distro_name": project.distro_name,
+        "odoo_version": project.odoo_version,
+        "postgres_version": project.postgres_version,
+        "dependencies": project.dependencies,
+        "requirements_txt": project.requirements_txt,
+        "odoo_build_date": project.odoo_build_date,
+        "odoo_git_link": project.odoo_git_link,
+        "platform_name": project.platform_name,
+        "odpm_version": project.project_odpm_version,
+        "arch": project.arch,
+    }
+
+
+def merged_config_dict_view(
+    raw_user_settings: dict,
+    raw_odpm_json: dict,
+    user: UserSettingsState,
+    project: ProjectSettingsState,
+    *,
+    user_loaded: bool = False,
+    project_loaded: bool = False,
+) -> dict:
+    merged = dict(raw_user_settings)
+    merged.update(raw_odpm_json)
+    if user_loaded:
+        merged.update(user_settings_to_dict(user))
+    if project_loaded:
+        merged.update(project_settings_to_dict(project))
+    return merged
 
 
 def _slice_property(slice_attr: str, field_name: str) -> property:

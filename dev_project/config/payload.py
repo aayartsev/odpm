@@ -12,15 +12,27 @@ if TYPE_CHECKING:
 
 
 def compute_venv_lock_hash(config: Config) -> str:
-    config.config_dict["arch"] = constants.ARCH
+    arch = config.arch if config.arch != "auto" else constants.ARCH
     payload: dict[str, str] = {}
     for key in constants.VENV_LOCK_KEYS:
         if key == "requirements_txt":
             payload[key] = ",".join(sorted(config.requirements_txt))
         elif key == "venv_mode":
             payload[key] = config.policy.venv_mode
+        elif key == "arch":
+            payload[key] = str(arch)
+        elif key == "python_version":
+            payload[key] = str(config.python_version)
+        elif key == "distro_version":
+            payload[key] = str(config.distro_version)
+        elif key == "distro_name":
+            payload[key] = str(config.distro_name)
+        elif key == "postgres_version":
+            payload[key] = str(config.postgres_version)
+        elif key == "odoo_version":
+            payload[key] = str(config.odoo_version)
         else:
-            payload[key] = str(config.config_dict.get(key, ""))
+            payload[key] = ""
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 

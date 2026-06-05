@@ -93,7 +93,6 @@ class ScenarioPolicyTests(unittest.TestCase):
         config.sql_queries = []
         config.update_modules = ""
         config.docker_dirs_with_addons = []
-        config.config_dict = {"arch": "amd64", "python_version": "3.12"}
         config.compute_venv_lock_hash.return_value = "abc"
 
         payload = json.loads(Config.config_to_json(config).decode("utf-8"))
@@ -199,7 +198,6 @@ class CiVenvInstallSpecTests(unittest.TestCase):
         config.docker_odoo_dir = "/home/odoo/odoo"
         config.python_version = "3.12"
         config.compute_venv_lock_hash.return_value = "abc123"
-        config.config_dict = {}
 
         spec = CreateProjectEnvironment(config)._build_ci_venv_install_spec()
 

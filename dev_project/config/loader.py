@@ -91,8 +91,7 @@ class ConfigLoader:
     def get_user_settings(self) -> None:
         if os.path.exists(self.config.user_settings_json):
             with open(self.config.user_settings_json) as user_settings_file:
-                user_settings_dict = json.load(user_settings_file)
-                self.config.config_dict = user_settings_dict
+                self.config._raw_user_settings = json.load(user_settings_file)
 
     def get_odpm_settings(self) -> None:
         if os.path.exists(self.config.project_odpm_json) and not os.path.exists(
@@ -111,8 +110,7 @@ class ConfigLoader:
         if not os.path.exists(self.config.repo_odpm_json):
             self.rewrite_odpm_json()
         with open(self.config.repo_odpm_json) as repo_odpm_json:
-            repo_odpm_json = json.load(repo_odpm_json)
-            self.config.config_dict.update(repo_odpm_json)
+            self.config._raw_odpm_json = json.load(repo_odpm_json)
 
     def check_file_for_deprecated_words(self, file_path: str) -> None:
         if not os.path.exists(file_path):
@@ -154,7 +152,7 @@ class ConfigLoader:
         cli_date = getattr(self.config.arguments, "odoo_build_date", None)
         if cli_date:
             return cli_date.strip()
-        return (self.config.config_dict.get("odoo_build_date") or "").strip()
+        return (self.config._raw_odpm_json.get("odoo_build_date") or "").strip()
 
     def _odoo_build_date_for_odpm_json(self, fallback: str) -> str:
         cli_date = getattr(self.config.arguments, "odoo_build_date", None)
@@ -284,7 +282,7 @@ class ConfigLoader:
                     "platform_name",
                     self.config.arguments.platform_name or constants.PLATFORM_NAME,
                 ),
-                odpm_version=self.config.config_dict.get(
+                odpm_version=self.config._raw_odpm_json.get(
                     "odpm_version", constants.ODPM_VERSION
                 ),
             )
@@ -326,45 +324,47 @@ class ConfigLoader:
             )
         )
         default_odpm_json_content = OdpmJson(
-            python_version=self.config.config_dict.get(
+            python_version=self.config._raw_odpm_json.get(
                 "python_version",
                 self.config.arguments.python_version
                 or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version][
                     "python_version"
                 ],
             ),
-            distro_version=self.config.config_dict.get(
+            distro_version=self.config._raw_odpm_json.get(
                 "distro_version",
                 self.config.arguments.distro_version
                 or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version][
                     "distro_version"
                 ],
             ),
-            distro_name=self.config.config_dict.get(
+            distro_name=self.config._raw_odpm_json.get(
                 "distro_name",
                 self.config.arguments.distro_name
                 or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"],
             ),
-            postgres_version=self.config.config_dict.get(
+            postgres_version=self.config._raw_odpm_json.get(
                 "postgres_version",
                 self.config.arguments.postgres_version or constants.DEFAULT_POSTGRES_VERSION,
             ),
             odoo_version=user_odoo_version,
-            dependencies=self.config.config_dict.get("dependencies", []),
-            requirements_txt=self.config.config_dict.get(
+            dependencies=self.config._raw_odpm_json.get("dependencies", []),
+            requirements_txt=self.config._raw_odpm_json.get(
                 "requirements_txt", self.config.arguments.requirements_txt.split(",") or []
             ),
             odoo_build_date=self._odoo_build_date_for_odpm_json(
-                self.config.config_dict.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE)
+                self.config._raw_odpm_json.get("odoo_build_date", constants.ODOO_DEFAULT_BUILD_DATE)
             ),
-            odoo_git_link=self.config.config_dict.get(
+            odoo_git_link=self.config._raw_odpm_json.get(
                 "odoo_git_link",
                 self.config.arguments.odoo_git_link or constants.ODOO_GIT_LINK,
             ),
-            platform_name=self.config.config_dict.get(
+            platform_name=self.config._raw_odpm_json.get(
                 "platform_name",
                 self.config.arguments.platform_name or constants.PLATFORM_NAME,
             ),
-            odpm_version=self.config.config_dict.get("odpm_version", constants.ODPM_VERSION),
+            odpm_version=self.config._raw_odpm_json.get(
+                "odpm_version", constants.ODPM_VERSION
+            ),
         )
         return default_odpm_json_content

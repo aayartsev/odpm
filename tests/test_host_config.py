@@ -146,6 +146,10 @@ class ConfigPayloadTests(unittest.TestCase):
             "arch": "amd64",
         }
 
+    def _apply_lock_hash_fields(self, config: MagicMock, base_dict: dict) -> None:
+        for key, value in base_dict.items():
+            setattr(config, key, value)
+
     def test_compute_venv_lock_hash_differs_by_venv_mode(self):
         base_dict = self._base_config_dict()
         shared_requirements = ["pre-commit"]
@@ -154,13 +158,13 @@ class ConfigPayloadTests(unittest.TestCase):
         dev_config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
         dev_config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         dev_config.requirements_txt = list(shared_requirements)
-        dev_config.config_dict = dict(base_dict)
+        self._apply_lock_hash_fields(dev_config, base_dict)
 
         ci_config = MagicMock()
         ci_config.user_env.odpm_scenario = constants.CI_SCENARIO
         ci_config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         ci_config.requirements_txt = list(shared_requirements)
-        ci_config.config_dict = dict(base_dict)
+        self._apply_lock_hash_fields(ci_config, base_dict)
 
         self.assertNotEqual(
             compute_venv_lock_hash(dev_config),
@@ -187,7 +191,6 @@ class ConfigPayloadTests(unittest.TestCase):
         config.sql_queries = []
         config.update_modules = ""
         config.docker_dirs_with_addons = []
-        config.config_dict = {"arch": "amd64", "python_version": "3.12"}
 
         payload = json.loads(config_to_json(config).decode("utf-8"))
         self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)
@@ -199,7 +202,7 @@ class ConfigPayloadTests(unittest.TestCase):
         mock_config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
         mock_config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         mock_config.requirements_txt = ["pre-commit"]
-        mock_config.config_dict = dict(base_dict)
+        self._apply_lock_hash_fields(mock_config, base_dict)
 
         self.assertTrue(Config.compute_venv_lock_hash(mock_config))
 
@@ -274,10 +277,15 @@ class ConfigBootstrapTests(unittest.TestCase):
             odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
             Path(odpm_path).write_text(json.dumps(odpm_content), encoding="utf-8")
 
-            config = MagicMock()
+            config = Config.__new__(Config)
+            config._raw_user_settings = {}
+            config._raw_odpm_json = {}
+            config._user = UserSettingsState()
+            config._project = ProjectSettingsState()
+            config._user_loaded = False
+            config._project_loaded = False
             config.project_dir = project_dir
             config.developing_project = MagicMock(project_path=dev_path)
-            config.config_dict = {"developing_project": "https://github.com/acme/demo.git"}
             config.repo_odpm_json = ""
             config.project_odpm_json = os.path.join(
                 project_dir, constants.PROJECT_CONFIG_FILE_NAME
@@ -286,8 +294,10 @@ class ConfigBootstrapTests(unittest.TestCase):
             ConfigLoader(config).get_project_odpm_json()
             ConfigLoader(config).get_odpm_settings()
 
-            self.assertEqual(config.config_dict["odoo_version"], "17.0")
-            self.assertEqual(config.config_dict["python_version"], "3.10")
+            self.assertEqual(config._raw_odpm_json["odoo_version"], "17.0")
+            self.assertEqual(config._raw_odpm_json["python_version"], "3.10")
+            with self.assertWarns(DeprecationWarning):
+                self.assertEqual(config.config_dict["odoo_version"], "17.0")
 
     def test_ensure_git_repos_present_raises_when_directories_missing(self):
         config = MagicMock()
@@ -318,7 +328,7 @@ class ConfigStateSliceTests(unittest.TestCase):
 
     def test_load_user_settings_populates_user_slice(self):
         config = Config.__new__(Config)
-        config.config_dict = {
+        config._raw_user_settings = {
             "init_modules": ["sale", "purchase"],
             "developing_project": "https://github.com/acme/demo.git",
         }
@@ -332,10 +342,11 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertEqual(
             config._user.developing_project, "https://github.com/acme/demo.git"
         )
+        self.assertTrue(config._user_loaded)
 
     def test_load_project_settings_populates_project_slice(self):
         config = Config.__new__(Config)
-        config.config_dict = {
+        config._raw_odpm_json = {
             "odoo_version": "18.0",
             "python_version": "3.12",
             "platform_name": "odoo",
@@ -364,6 +375,22 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertEqual(config._project.odoo_version, "18.0")
         self.assertEqual(config._project.python_version, "3.12")
         self.assertEqual(config._project.platform_name, "odoo")
+        self.assertTrue(config._project_loaded)
+
+    def test_config_dict_emits_deprecation_warning(self):
+        config = Config.__new__(Config)
+        config._raw_user_settings = {"developing_project": "https://example.com/repo.git"}
+        config._raw_odpm_json = {"odoo_version": "17.0"}
+        config._user = UserSettingsState()
+        config._project = ProjectSettingsState()
+        config._user_loaded = False
+        config._project_loaded = False
+
+        with self.assertWarns(DeprecationWarning):
+            view = config.config_dict
+
+        self.assertEqual(view["odoo_version"], "17.0")
+        self.assertEqual(view["developing_project"], "https://example.com/repo.git")
 
 
 if __name__ == "__main__":

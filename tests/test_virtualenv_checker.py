@@ -160,6 +160,11 @@ class VenvLockHashTests(unittest.TestCase):
             "arch": "amd64",
         }
 
+    @classmethod
+    def _apply_lock_hash_fields(cls, config: MagicMock, base_dict: dict) -> None:
+        for key, value in base_dict.items():
+            setattr(config, key, value)
+
     def test_lock_hash_differs_when_normalized_requirements_differ(self):
         base_dict = self._base_config_dict()
 
@@ -169,7 +174,7 @@ class VenvLockHashTests(unittest.TestCase):
         dev_config.requirements_txt = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         ).normalize_requirements(["pre-commit"], python_version="3.12")
-        dev_config.config_dict = dict(base_dict)
+        self._apply_lock_hash_fields(dev_config, base_dict)
 
         server_config = MagicMock()
         server_config.user_env.odpm_scenario = constants.SERVER_SCENARIO
@@ -179,7 +184,7 @@ class VenvLockHashTests(unittest.TestCase):
         ).normalize_requirements(
             ["pre-commit", "debugpy==9.9.9"], python_version="3.12"
         )
-        server_config.config_dict = dict(base_dict)
+        self._apply_lock_hash_fields(server_config, base_dict)
 
         dev_hash = Config.compute_venv_lock_hash(dev_config)
         server_hash = Config.compute_venv_lock_hash(server_config)
@@ -193,13 +198,13 @@ class VenvLockHashTests(unittest.TestCase):
         dev_config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
         dev_config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         dev_config.requirements_txt = list(shared_requirements)
-        dev_config.config_dict = dict(base_dict)
+        self._apply_lock_hash_fields(dev_config, base_dict)
 
         ci_config = MagicMock()
         ci_config.user_env.odpm_scenario = constants.CI_SCENARIO
         ci_config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         ci_config.requirements_txt = list(shared_requirements)
-        ci_config.config_dict = dict(base_dict)
+        self._apply_lock_hash_fields(ci_config, base_dict)
 
         dev_hash = Config.compute_venv_lock_hash(dev_config)
         ci_hash = Config.compute_venv_lock_hash(ci_config)

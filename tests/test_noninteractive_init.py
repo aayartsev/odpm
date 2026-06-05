@@ -32,7 +32,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
         config = MagicMock()
         config.config_json_content = {}
         config.arguments = Namespace(odoo_version=None)
-        config.config_dict = {}
+        config._raw_odpm_json = {}
 
         with self.assertRaises(ConfigError):
             ConfigLoader(config).create_default_odpm_json_content()
@@ -51,7 +51,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
             odoo_git_link=None,
             platform_name=None,
         )
-        config.config_dict = {"odpm_version": constants.ODPM_VERSION}
+        config._raw_odpm_json = {"odpm_version": constants.ODPM_VERSION}
 
         content = ConfigLoader(config).create_default_odpm_json_content()
 

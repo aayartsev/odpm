@@ -20,6 +20,11 @@ from .state import (
     ProjectSettingsState,
     UserSettingsState,
     _slice_property,
+    merged_config_dict_view,
+    project_settings_from_raw,
+    split_config_dict,
+    user_settings_from_raw,
+    warn_config_dict_access,
 )
 from .types import SubProject
 
@@ -128,7 +133,10 @@ class Config:
         self.pd_manager = pd_manager
         self.program_dir = program_dir
         self.arguments = arguments
-        self.config_dict = {}
+        self._raw_user_settings: dict = {}
+        self._raw_odpm_json: dict = {}
+        self._user_loaded = False
+        self._project_loaded = False
         self.repo_odpm_json = ""
         self.dockerfile_path = ""
         self.config_json_loaded = False
@@ -154,45 +162,11 @@ class Config:
         self._loader.check_for_config()
         self._loader.get_user_settings_json()
         self._loader.get_user_settings()
-        self._user = UserSettingsState(
-            init_modules=self._loader.beautify_module_list(
-                self.config_dict.get("init_modules")
-            ),
-            update_modules=self._loader.beautify_module_list(
-                self.config_dict.get("update_modules")
-            ),
-            db_creation_data=self.config_dict.get(
-                "db_creation_data", constants.DEFAULT_DB_CREATION_DATA
-            ),
-            update_git_repos=self.config_dict.get(
-                "update_git_repos", constants.DEFAULT_UPDATE_GIT_REPOS
-            ),
-            clean_git_repos=self.config_dict.get(
-                "clean_git_repos", constants.DEFAULT_CLEAN_GIT_REPOS
-            ),
-            check_system=self.config_dict.get(
-                "check_system", constants.DEFAULT_CHECK_SYSTEM
-            ),
-            db_manager_password=self.config_dict.get(
-                "db_manager_password", constants.DEFAULT_DB_MANAGER_PASSWORD
-            ),
-            dev_mode=self.config_dict.get("dev_mode", constants.DEFAULT_DEV_MODE),
-            developing_project=self.config_dict.get(
-                "developing_project", constants.DEFAULT_DEVELOPING_PROJECT
-            ),
-            pre_commit_map_files=self.config_dict.get(
-                "pre_commit_map_files", constants.DEFAULT_PRE_COMMIT_MAP_FILES
-            ),
-            sql_queries=self.config_dict.get(
-                "sql_queries", constants.DEFAULT_SQL_QUERIES
-            ),
-            use_oca_dependencies=self.config_dict.get(
-                "use_oca_dependencies", constants.DEFAULT_USE_OCA_DEPENDENCIES
-            ),
-            create_module_links=self.config_dict.get(
-                "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
-            ),
+        self._user = user_settings_from_raw(
+            self._raw_user_settings,
+            beautify_module_list=self._loader.beautify_module_list,
         )
+        self._user_loaded = True
 
     def _bind_developing_link(self) -> None:
         if not self.developing_project:
@@ -223,47 +197,10 @@ class Config:
         if not os.path.exists(self.repo_odpm_json):
             self._loader.rewrite_odpm_json()
 
-        odoo_version = self.config_dict.get(
-            "odoo_version", self.arguments.odoo_version or 0.0
-        )
-        python_version = self.config_dict.get(
-            "python_version",
-            self.arguments.python_version or constants.DEFAULT_PYTHON_VERSION,
-        )
-        distro_version = self.config_dict.get(
-            "distro_version",
-            self.arguments.distro_version or constants.DEFAULT_DISTRO_VERSION,
-        )
-        distro_name = self.config_dict.get(
-            "distro_name", self.arguments.distro_name or constants.DEFAULT_DISTRO_NAME
-        )
-        postgres_version = self.config_dict.get(
-            "postgres_version",
-            self.arguments.postgres_version or constants.DEFAULT_POSTGRES_VERSION,
-        )
-        self._project = ProjectSettingsState(
-            odoo_version=odoo_version,
-            python_version=python_version,
-            distro_version=distro_version,
-            distro_name=distro_name,
-            postgres_version=postgres_version,
-            distro_version_codename=constants.DISTRO_INFO.get(distro_name, {}).get(
-                distro_version, ""
-            ),
-            dependencies=self.config_dict.get("dependencies", []),
-            requirements_txt=self.config_dict.get(
-                "requirements_txt", self.arguments.requirements_txt.split(",") or []
-            ),
+        self._project = project_settings_from_raw(
+            self._raw_odpm_json,
+            self.arguments,
             odoo_build_date=self._loader.get_effective_odoo_build_date(),
-            odoo_git_link=self.config_dict.get(
-                "odoo_git_link", constants.ODOO_GIT_LINK
-            ),
-            platform_name=self.config_dict.get(
-                "platform_name", constants.PLATFORM_NAME
-            ),
-            project_odpm_version=self.config_dict.get(
-                "odpm_version", constants.DEFAULT_ODPM_VERSION
-            ),
         )
         if float(self.project_odpm_version) < float(constants.ODPM_VERSION):
             message = translations.get_translation(
@@ -274,6 +211,7 @@ class Config:
             )
             _logger.warning(message)
             raise ConfigError(message)
+        self._project_loaded = True
 
     def _bind_platform_link(self) -> None:
         self.odoo_platform_project = self.handle_git_link(
@@ -289,7 +227,7 @@ class Config:
             self.requirements_txt,
             python_version=self.python_version,
         )
-        arch = self.config_dict.get("arch", constants.ARCH)
+        arch = self._raw_odpm_json.get("arch", constants.ARCH)
         if arch == "auto":
             arch = constants.ARCH
 
@@ -354,6 +292,25 @@ class Config:
 
         self.odoo_config_data = {}
         self._paths.apply_symlink_sources()
+
+    @property
+    def config_dict(self) -> dict:
+        warn_config_dict_access()
+        return merged_config_dict_view(
+            self._raw_user_settings,
+            self._raw_odpm_json,
+            self._user,
+            self._project,
+            user_loaded=self._user_loaded,
+            project_loaded=self._project_loaded,
+        )
+
+    @config_dict.setter
+    def config_dict(self, value: dict) -> None:
+        warn_config_dict_access()
+        user_data, odpm_data = split_config_dict(value)
+        self._raw_user_settings = user_data
+        self._raw_odpm_json = odpm_data
 
     @property
     def user_settings(self) -> UserSettingsState:
