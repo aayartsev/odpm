@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 from . import constants
+
+VenvMode = Literal["fresh", "baked"]
 
 
 def _package_name(requirement: str) -> str:
@@ -32,6 +35,7 @@ class ScenarioPolicy:
     entrypoint_rel_path: str
     skip_vscode: bool
     allow_build_image: bool
+    venv_mode: VenvMode
 
     def __post_init__(self) -> None:
         if self.include_debugpy and not self.install_debugpy:
@@ -57,6 +61,7 @@ class ScenarioPolicy:
                 entrypoint_rel_path=constants.CI_BAKE_ENTRYPOINT,
                 skip_vscode=True,
                 allow_build_image=True,
+                venv_mode=constants.VENV_MODE_BAKED,
             )
         if normalized == constants.SERVER_SCENARIO:
             return cls(
@@ -70,6 +75,7 @@ class ScenarioPolicy:
                 entrypoint_rel_path=constants.DEV_ENTRYPOINT,
                 skip_vscode=False,
                 allow_build_image=False,
+                venv_mode=constants.VENV_MODE_FRESH,
             )
         return cls(
             scenario=constants.DEVELOPER_SCENARIO,
@@ -82,7 +88,11 @@ class ScenarioPolicy:
             entrypoint_rel_path=constants.DEV_ENTRYPOINT,
             skip_vscode=False,
             allow_build_image=False,
+            venv_mode=constants.VENV_MODE_FRESH,
         )
+
+    def venv_is_baked(self) -> bool:
+        return self.venv_mode == constants.VENV_MODE_BAKED
 
     def debugpy_requirement(self, python_version: str) -> str | None:
         if not self.install_debugpy:

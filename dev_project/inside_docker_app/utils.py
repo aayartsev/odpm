@@ -10,8 +10,11 @@ from typing import Optional
 
 try:
     from .. import constants
-except:
-    pass
+except ImportError:
+    try:
+        from dev_project import constants
+    except ImportError:
+        constants = None  # type: ignore[assignment]
 
 try:
     from .logger import get_module_logger
@@ -115,11 +118,17 @@ def get_free_space(path):
 _BUILD_DATE_RE = re.compile(r"^(\d{4})-?(\d{2})-?(\d{2})$")
 
 
+def _default_build_date_label() -> str:
+    if constants is not None:
+        return constants.ODOO_DEFAULT_BUILD_DATE.lower()
+    return "latest"
+
+
 def is_actionable_build_date(build_date: Optional[str]) -> bool:
     if not build_date:
         return False
     normalized = build_date.strip().lower()
-    return normalized not in ("", constants.ODOO_DEFAULT_BUILD_DATE.lower())
+    return normalized not in ("", _default_build_date_label())
 
 
 def parse_build_date(build_date: str) -> datetime:
@@ -141,5 +150,20 @@ def commit_before_timestamp(build_date: str) -> str:
 
 def shallow_since_date(build_date: str) -> str:
     parsed = parse_build_date(build_date)
-    since = parsed - timedelta(days=constants.PLATFORM_BUILD_DATE_SHALLOW_SINCE_DAYS)
+    shallow_days = (
+        constants.PLATFORM_BUILD_DATE_SHALLOW_SINCE_DAYS
+        if constants is not None
+        else 30
+    )
+    since = parsed - timedelta(days=shallow_days)
     return since.strftime("%Y-%m-%d")
+
+
+def resolve_venv_is_baked(config: dict) -> bool:
+    """True when virtualenv was pre-installed in the image (CI bake)."""
+    baked_mode = constants.VENV_MODE_BAKED if constants is not None else "baked"
+    ci_scenario = constants.CI_SCENARIO if constants is not None else "ci"
+    venv_mode = config.get("venv_mode")
+    if venv_mode is not None:
+        return venv_mode == baked_mode
+    return config.get("odpm_scenario") == ci_scenario

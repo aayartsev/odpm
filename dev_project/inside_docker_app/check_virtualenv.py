@@ -7,7 +7,7 @@ import pip._vendor.packaging.version as pip_ver
 from logger import get_module_logger
 from pip._internal.operations.freeze import freeze
 from pip._vendor.packaging.utils import canonicalize_name
-from utils import delete_files_in_directory
+from utils import delete_files_in_directory, resolve_venv_is_baked
 
 try:
     from ..bake_venv import (
@@ -34,7 +34,9 @@ _logger = get_module_logger(__name__)
 
 
 class VirtualenvChecker:
-    def __init__(self, config, baked=False):
+    def __init__(self, config, baked=None):
+        if baked is None:
+            baked = self._resolve_baked_from_config(config)
         self.baked = baked
         self.docker_venv_dir = config.get("docker_venv_dir", "")
         self.docker_project_dir = config["docker_project_dir"]
@@ -52,6 +54,10 @@ class VirtualenvChecker:
             self.check_baked_venv()
         else:
             self.check_uv_virtual_env()
+
+    @staticmethod
+    def _resolve_baked_from_config(config) -> bool:
+        return resolve_venv_is_baked(config)
 
     def check_baked_venv(self):
         if not os.path.isdir(self.docker_venv_dir):

@@ -4,12 +4,11 @@ import json
 try:
     from .check_odoo import OdooChecker
     from .check_virtualenv import VirtualenvChecker
+    from .utils import resolve_venv_is_baked
 except ImportError:
     from check_odoo import OdooChecker
     from check_virtualenv import VirtualenvChecker
-
-# Must match dev_project.constants.CI_SCENARIO (not imported: flat bake/ layout).
-CI_SCENARIO = "ci"
+    from utils import resolve_venv_is_baked
 
 
 def decode_config(config_base64: str) -> dict:
@@ -17,8 +16,7 @@ def decode_config(config_base64: str) -> dict:
 
 
 def prepare_venv(config: dict) -> None:
-    baked = config.get("odpm_scenario") == CI_SCENARIO
-    VirtualenvChecker(config, baked=baked)
+    VirtualenvChecker(config, baked=resolve_venv_is_baked(config))
 
 
 def run_container_bootstrap(config: dict) -> None:

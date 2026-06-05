@@ -83,6 +83,7 @@ class ConfigToJson(TypedDict):
     docker_dirs_with_addons: list
     venv_lock_hash: str
     odpm_scenario: str
+    venv_mode: str
 
 
 @dataclass
@@ -827,6 +828,7 @@ class Config:
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def config_to_json(self) -> bytes:
+        policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
         config = ConfigToJson(
             docker_odoo_dir=self.docker_odoo_dir,
             odoo_config_data=self.odoo_config_data,
@@ -846,6 +848,7 @@ class Config:
             modules_to_update=self.update_modules.split(","),
             docker_dirs_with_addons=self.docker_dirs_with_addons,
             odpm_scenario=self.user_env.odpm_scenario,
+            venv_mode=policy.venv_mode,
         )
         return json.dumps(config).encode("utf-8")
 

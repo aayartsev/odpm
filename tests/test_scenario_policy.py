@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import tempfile
@@ -38,6 +39,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.allow_build_image)
         self.assertTrue(policy.skip_vscode)
         self.assertEqual(policy.entrypoint_rel_path, constants.CI_BAKE_ENTRYPOINT)
+        self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
+        self.assertTrue(policy.venv_is_baked())
 
     def test_server_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
@@ -47,6 +50,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.install_debugpy)
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertFalse(policy.allow_build_image)
+        self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
+        self.assertFalse(policy.venv_is_baked())
 
     def test_developer_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -54,6 +59,36 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.include_debugpy)
         self.assertTrue(policy.install_debugpy)
         self.assertFalse(policy.bind_postgres_localhost)
+        self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
+        self.assertFalse(policy.venv_is_baked())
+
+    def test_config_to_json_includes_venv_mode(self):
+        config = MagicMock()
+        config.user_env.odpm_scenario = constants.SERVER_SCENARIO
+        config.docker_odoo_dir = "/home/odoo/odoo"
+        config.odoo_config_data = {}
+        config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
+        config.arguments = Namespace()
+        config.db_creation_data = {}
+        config.db_manager_password = ""
+        config.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_project_dir = "/home/odoo"
+        config.requirements_txt = []
+        config.odoo_version = "19.0"
+        config.python_version = "3.12"
+        config.platform_name = "odoo"
+        config.arch = "amd64"
+        config.sql_queries = []
+        config.update_modules = ""
+        config.docker_dirs_with_addons = []
+        config.config_dict = {"arch": "amd64", "python_version": "3.12"}
+        config.compute_venv_lock_hash.return_value = "abc"
+
+        from dev_project.host_config import Config
+
+        payload = json.loads(Config.config_to_json(config).decode("utf-8"))
+        self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)
+        self.assertEqual(payload["odpm_scenario"], constants.SERVER_SCENARIO)
 
     def test_policy_invariant_include_implies_install(self):
         for scenario in constants.ODPM_SCENARIO_VALUES:
