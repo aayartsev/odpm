@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import subprocess
 from typing import TYPE_CHECKING, Optional
 
 from .. import constants, translations
@@ -13,6 +12,7 @@ from ..inside_docker_app.utils import (
     is_actionable_build_date,
     shallow_since_date,
 )
+from ..subprocess_runner import CommandResult, run_checked, run_logged
 
 if TYPE_CHECKING:
     from .link import HandleOdooProjectLink
@@ -24,8 +24,33 @@ class GitOperations:
     def __init__(self, link: HandleOdooProjectLink) -> None:
         self.link = link
 
+    def _build_git_cmd(self, args: list[str]) -> list[str]:
+        if self.link.path_to_ssh_key:
+            return [
+                "git",
+                "-c",
+                f"core.sshCommand=ssh -i {self.link.path_to_ssh_key}",
+                *args,
+            ]
+        return ["git", *args]
+
+    def _run_git(
+        self,
+        args: list[str],
+        *,
+        cwd: str | None = None,
+        capture: bool = True,
+    ) -> CommandResult:
+        cmd = self._build_git_cmd(args)
+        workdir = self.link.project_path if cwd is None else cwd
+        if not capture:
+            _logger.info(
+                f"""running command: → git {" ".join(args)} for {self.link.project_string}"""
+            )
+        return run_checked(cmd, cwd=workdir, capture=capture)
+
     def check_project(self) -> None:
-        state = False
+        inside_work_tree = False
         repo_is_same = False
         project_dir_name = os.path.basename(self.link.project_path)
         new_destination = os.path.join(
@@ -39,16 +64,17 @@ class GitOperations:
                 self.link.project_path = new_destination
         if os.path.exists(self.link.project_path):
             if os.path.exists(os.path.join(self.link.project_path, ".git")):
-                os.chdir(self.link.project_path)
-                state = subprocess.run(
-                    ["git", "rev-parse", "--is-inside-work-tree"], capture_output=True
+                state = self._run_git(
+                    ["rev-parse", "--is-inside-work-tree"],
+                    cwd=self.link.project_path,
                 )
-                if b"true" in state.stdout:
+                inside_work_tree = state.returncode == 0 and "true" in state.stdout
+                if inside_work_tree:
                     repo_is_same = self.check_repo_url(
                         self.link.project_path,
                         self.link.gitlink or self.link.project_link,
                     )
-        if not state or b"true" not in state.stdout or not repo_is_same:
+        if not inside_work_tree or not repo_is_same:
             self.force_clone_repo()
         else:
             self.link.is_cloned = True
@@ -67,94 +93,43 @@ class GitOperations:
             pass
         if not os.path.exists(self.link.dir_to_clone):
             os.makedirs(self.link.dir_to_clone)
-        os.chdir(self.link.dir_to_clone)
         self.clone_repo()
 
     def clone_repo(self) -> None:
         if self.link.system_type != "platform":
-            if not self.link.path_to_ssh_key:
-                clone_results = subprocess.run(
-                    ["git", "clone", self.link.gitlink], capture_output=False
-                )
-            else:
-                clone_results = subprocess.run(
-                    f"""git clone {self.link.gitlink} --config core.sshCommand="ssh -i {self.link.path_to_ssh_key}" """,
-                    capture_output=False,
-                    shell=True,
-                )
-            if clone_results.stderr:
-                clone_results_error_string = clone_results.stderr.decode(
-                    "utf-8"
-                ).strip()
-                _logger.warning(clone_results_error_string)
-                self.link.is_cloned = False
-            else:
-                self.link.is_cloned = True
+            clone_args = ["clone", self.link.gitlink]
         else:
-            clone_cmd = [
-                "git",
+            clone_args = [
                 "clone",
                 "--depth",
                 str(constants.PLATFORM_GIT_CLONE_DEPTH),
             ]
             if self.link.branch_explicit and not self.link.commit_explicit:
-                clone_cmd.extend(["-b", self.link.branch])
-            if self.link.path_to_ssh_key:
-                clone_cmd.extend(
-                    [
-                        "--config",
-                        f"core.sshCommand=ssh -i {self.link.path_to_ssh_key}",
-                    ]
-                )
-            clone_cmd.append(self.link.gitlink)
-            clone_results = subprocess.run(clone_cmd)
-            if clone_results.stderr:
-                clone_results_error_string = clone_results.stderr.decode(
-                    "utf-8"
-                ).strip()
-                _logger.warning(clone_results_error_string)
-                self.link.is_cloned = False
-            else:
-                self.link.is_cloned = True
+                clone_args.extend(["-b", self.link.branch])
+            clone_args.append(self.link.gitlink)
+
+        returncode = run_logged(
+            self._build_git_cmd(clone_args),
+            cwd=self.link.dir_to_clone,
+        )
+
+        if returncode != 0:
+            message = (
+                f"git clone failed for {self.link.gitlink!r} "
+                f"(exit code {returncode})"
+            )
+            _logger.error(message)
+            raise GitError(message)
+
+        self.link.is_cloned = True
 
     def check_repo_url(self, repo_path: str, expected_url: str) -> bool:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=repo_path,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        result = self._run_git(["remote", "get-url", "origin"], cwd=repo_path)
+        if result.returncode != 0:
+            return False
         actual_url = result.stdout.strip().rstrip(".git").rstrip("/")
         expected_url = expected_url.rstrip(".git").rstrip("/")
         return actual_url == expected_url
-
-    def _run_git(
-        self,
-        args: list[str],
-        *,
-        capture: bool = True,
-        check: bool = False,
-    ) -> subprocess.CompletedProcess[str]:
-        cmd = ["git", *args]
-        if self.link.path_to_ssh_key:
-            cmd = [
-                "git",
-                "-c",
-                f"core.sshCommand=ssh -i {self.link.path_to_ssh_key}",
-                *args,
-            ]
-        if not capture:
-            _logger.info(
-                f"""running command: → git {" ".join(args)} for {self.link.project_string}"""
-            )
-        return subprocess.run(
-            cmd,
-            cwd=self.link.project_path,
-            capture_output=capture,
-            text=capture,
-            check=check,
-        )
 
     def _git_stash(self) -> None:
         self._run_git(["stash"])
@@ -277,16 +252,9 @@ class GitOperations:
 
     def _checkout_version_branch(self, odoo_version: str) -> None:
         self.ensure_branch_exists(odoo_version, odoo_version)
-        branch_commit_bytes = subprocess.run(
-            ["git", "rev-parse", "--verify", odoo_version],
-            cwd=self.link.project_path,
-            capture_output=True,
-        )
-        branch_commit_string = (
-            branch_commit_bytes.stdout.decode("utf-8").strip()
-            or branch_commit_bytes.stderr.decode("utf-8").strip()
-        )
-        if "fatal" in branch_commit_string:
+        branch_commit = self._run_git(["rev-parse", "--verify", odoo_version])
+        branch_commit_string = branch_commit.stdout.strip() or branch_commit.stderr.strip()
+        if branch_commit.returncode != 0 or "fatal" in branch_commit_string:
             newest_version = self.get_odoo_latest_version()
             self._git_checkout_ref(str(newest_version))
             self._git_pull()
@@ -319,44 +287,27 @@ class GitOperations:
             self._checkout_version_branch(odoo_version)
 
     def ensure_branch_exists(self, branch_name: str, odoo_version: str) -> None:
-        current_branches_bytes = subprocess.run(
-            ["git", "branch"], cwd=self.link.project_path, capture_output=True
-        )
-        current_branches_string = current_branches_bytes.stdout.decode("utf-8").strip()
-        if branch_name in current_branches_string:
+        current_branches = self._run_git(["branch"])
+        if branch_name in current_branches.stdout:
             return
-        current_remote_branches_bytes = subprocess.run(
-            ["git", "branch", "-a"], cwd=self.link.project_path, capture_output=True
-        )
-        current_remote_branches_string = current_remote_branches_bytes.stdout.decode(
-            "utf-8"
-        ).strip()
-        if f"origin/{branch_name}" in current_remote_branches_string:
+        current_remote_branches = self._run_git(["branch", "-a"])
+        if f"origin/{branch_name}" in current_remote_branches.stdout:
             return
-        subprocess.run(
+        self._run_git(
             [
-                "git",
                 "fetch",
                 "--depth",
                 "1",
                 "origin",
                 f"{branch_name}:{branch_name}",
             ],
-            cwd=self.link.project_path,
-            capture_output=False,
+            capture=False,
         )
 
     def get_odoo_latest_version(self) -> float:
-        all_remote_branches_bytes = subprocess.run(
-            ["git", "branch", "-r"],
-            cwd=self.link.project_path,
-            capture_output=True,
-        )
-        all_remote_branches_string = all_remote_branches_bytes.stdout.decode(
-            "utf-8"
-        ).strip()
+        all_remote_branches = self._run_git(["branch", "-r"])
         list_of_versions = []
-        for branch_name in all_remote_branches_string.split("\n"):
+        for branch_name in all_remote_branches.stdout.strip().split("\n"):
             try:
                 branch_version = float(branch_name.split("/")[1])
                 list_of_versions.append(branch_version)
@@ -377,9 +328,7 @@ class GitOperations:
     ) -> None:
         if hard:
             self._git_stash()
-            subprocess.run(
-                ["git", "clean", "-fd"], cwd=self.link.project_path, capture_output=True
-            )
+            self._run_git(["clean", "-fd"])
             self._git_pull()
             self._git_checkout_ref(commit or branch)
             return

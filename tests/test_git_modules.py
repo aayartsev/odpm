@@ -118,7 +118,7 @@ class ProjectDiscoveryTests(unittest.TestCase):
 
 
 class GitOperationsTests(unittest.TestCase):
-    def _operations(self):
+    def _operations(self, **link_overrides):
         from dev_project.git.operations import GitOperations
 
         link = object.__new__(HandleOdooProjectLink)
@@ -127,19 +127,50 @@ class GitOperationsTests(unittest.TestCase):
         link.project_link = link.gitlink
         link.path_to_ssh_key = ""
         link.project_string = link.gitlink
+        link.dir_to_clone = "/tmp/clone_base"
+        link.system_type = "standart"
+        link.link_type = constants.GITLINK_TYPE_GIT
+        for key, value in link_overrides.items():
+            setattr(link, key, value)
         return GitOperations(link)
 
-    @patch("dev_project.git.operations.subprocess.run")
-    def test_check_repo_url_normalizes_git_suffix(self, mock_run):
-        mock_run.return_value = MagicMock(
+    @patch("dev_project.git.operations.run_checked")
+    def test_check_repo_url_normalizes_git_suffix(self, mock_run_checked):
+        mock_run_checked.return_value = MagicMock(
             stdout="https://github.com/acme/demo.git\n",
             returncode=0,
+            stderr="",
         )
         ops = self._operations()
         self.assertTrue(
             ops.check_repo_url("/tmp/repo", "https://github.com/acme/demo")
         )
-        mock_run.assert_called_once()
+        mock_run_checked.assert_called_once()
+
+    @patch("dev_project.git.operations.run_logged", return_value=0)
+    def test_clone_repo_uses_dir_to_clone_as_cwd(self, mock_run_logged):
+        ops = self._operations()
+        ops.clone_repo()
+        mock_run_logged.assert_called_once()
+        self.assertEqual(mock_run_logged.call_args.kwargs["cwd"], "/tmp/clone_base")
+
+    @patch("dev_project.git.operations.run_logged", return_value=128)
+    def test_clone_repo_raises_git_error_on_failure(self, _mock_run_logged):
+        from dev_project.errors import GitError
+
+        ops = self._operations()
+        with self.assertRaises(GitError):
+            ops.clone_repo()
+
+    @patch("dev_project.git.operations.GitOperations.clone_repo")
+    @patch("dev_project.git.operations.os.path.exists")
+    def test_check_project_does_not_chdir(self, mock_exists, mock_clone):
+        mock_exists.return_value = False
+        ops = self._operations()
+        with patch("dev_project.git.operations.os.chdir") as mock_chdir:
+            ops.check_project()
+        mock_chdir.assert_not_called()
+        mock_clone.assert_called_once()
 
 
 class HandleOdooProjectLinkInitTests(unittest.TestCase):
