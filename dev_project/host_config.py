@@ -821,9 +821,17 @@ class Config:
         odoo_project.build_project()
         return odoo_project
     
-    def compute_venv_lock_hash(self,config: dict) -> str:
+    def compute_venv_lock_hash(self) -> str:
         self.config_dict["arch"] = constants.ARCH
-        payload = {key: str(config[key]) for key in constants.VENV_LOCK_KEYS}
+        policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
+        payload: dict[str, str] = {}
+        for key in constants.VENV_LOCK_KEYS:
+            if key == "requirements_txt":
+                payload[key] = ",".join(sorted(self.requirements_txt))
+            elif key == "venv_mode":
+                payload[key] = policy.venv_mode
+            else:
+                payload[key] = str(self.config_dict.get(key, ""))
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -841,7 +849,7 @@ class Config:
             requirements_txt=self.requirements_txt,
             odoo_version=self.odoo_version,
             python_version=self.python_version,
-            venv_lock_hash=self.compute_venv_lock_hash(self.config_dict),
+            venv_lock_hash=self.compute_venv_lock_hash(),
             platform_name=self.platform_name,
             arch=self.arch,
             sql_queries=self.sql_queries,

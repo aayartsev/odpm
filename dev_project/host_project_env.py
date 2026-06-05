@@ -583,7 +583,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 self.config.python_version
             ),
             lock_file_path=lock_file_path,
-            lock_hash=self.config.compute_venv_lock_hash(self.config.config_dict),
+            lock_hash=self.config.compute_venv_lock_hash(),
         )
 
     def _prepare_ci_bake_files(self, context_dir: str) -> None:

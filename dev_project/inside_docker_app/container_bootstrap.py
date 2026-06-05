@@ -4,11 +4,9 @@ import json
 try:
     from .check_odoo import OdooChecker
     from .check_virtualenv import VirtualenvChecker
-    from .utils import resolve_venv_is_baked
 except ImportError:
     from check_odoo import OdooChecker
     from check_virtualenv import VirtualenvChecker
-    from utils import resolve_venv_is_baked
 
 
 def decode_config(config_base64: str) -> dict:
@@ -16,7 +14,7 @@ def decode_config(config_base64: str) -> dict:
 
 
 def prepare_venv(config: dict) -> None:
-    VirtualenvChecker(config, baked=resolve_venv_is_baked(config))
+    VirtualenvChecker(config)
 
 
 def run_container_bootstrap(config: dict) -> None:

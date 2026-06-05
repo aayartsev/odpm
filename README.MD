@@ -101,7 +101,7 @@ ODPM_SCENARIO=developer
 
 On the first run, odpm asks you to choose a scenario by number (`1` — developer, `2` — server, `3` — ci). The value is stored in `.env` as `ODPM_SCENARIO`. You can change it later and regenerate `docker-compose.yml` by running odpm again.
 
-The scenario does **not** replace `odpm.json` or `user_settings.json`. It only changes how Docker ports are published and how Odoo starts (with or without `debugpy`).
+The scenario does **not** replace `odpm.json` or `user_settings.json`. It changes Docker ports, how Odoo starts (with or without `debugpy`), and how the Python venv is managed (`fresh` vs `baked`; see comparison table).
 
 ### `developer` (default)
 
@@ -151,6 +151,7 @@ Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker comp
 | Postgres on host | All interfaces | `127.0.0.1` only | `127.0.0.1` only |
 | Debugger port in compose | Yes | No | No |
 | Odoo bind-mount | Yes | Yes | No |
+| Python venv (`venv_mode`) | `fresh` — recreated when lock changes | `fresh` — same as developer | `baked` — pre-built in image, no recreate |
 | `--build-image` | Error | Error | Yes |
 | Recommended environment | Local PC / laptop | Server / VPS | CI runner |
 

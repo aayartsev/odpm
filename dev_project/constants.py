@@ -295,5 +295,7 @@ VENV_LOCK_KEYS = (
     "distro_name",
     "postgres_version",
     "odoo_version",
-    "arch",  # см. ниже
+    "arch",
+    "requirements_txt",
+    "venv_mode",
 )

@@ -7,7 +7,15 @@ import pip._vendor.packaging.version as pip_ver
 from logger import get_module_logger
 from pip._internal.operations.freeze import freeze
 from pip._vendor.packaging.utils import canonicalize_name
-from utils import delete_files_in_directory, resolve_venv_is_baked
+from utils import delete_files_in_directory, resolve_venv_mode
+
+try:
+    from .. import constants
+except ImportError:
+    try:
+        from dev_project import constants
+    except ImportError:
+        constants = None  # type: ignore[assignment]
 
 try:
     from ..bake_venv import (
@@ -32,12 +40,20 @@ except ImportError:
 
 _logger = get_module_logger(__name__)
 
+_VENV_MODE_BAKED = (
+    constants.VENV_MODE_BAKED if constants is not None else "baked"
+)
+
 
 class VirtualenvChecker:
     def __init__(self, config, baked=None):
-        if baked is None:
-            baked = self._resolve_baked_from_config(config)
-        self.baked = baked
+        if baked is not None:
+            fresh_mode = (
+                constants.VENV_MODE_FRESH if constants is not None else "fresh"
+            )
+            self.venv_mode = _VENV_MODE_BAKED if baked else fresh_mode
+        else:
+            self.venv_mode = resolve_venv_mode(config)
         self.docker_venv_dir = config.get("docker_venv_dir", "")
         self.docker_project_dir = config["docker_project_dir"]
         self.requirements_txt = config.get("requirements_txt", [])
@@ -50,16 +66,12 @@ class VirtualenvChecker:
         self.arch = config["arch"]
         self.uv_info = detect_uv_info()
         self.use_uv = self.uv_info["installed"]
-        if self.baked:
-            self.check_baked_venv()
+        if self.venv_mode == _VENV_MODE_BAKED:
+            self.ensure_baked_venv()
         else:
-            self.check_uv_virtual_env()
+            self.ensure_fresh_venv()
 
-    @staticmethod
-    def _resolve_baked_from_config(config) -> bool:
-        return resolve_venv_is_baked(config)
-
-    def check_baked_venv(self):
+    def ensure_baked_venv(self) -> None:
         if not os.path.isdir(self.docker_venv_dir):
             self.package_installation_error(
                 f"Baked virtualenv directory is missing: {self.docker_venv_dir}"
@@ -73,6 +85,21 @@ class VirtualenvChecker:
         if not lock_content or self.venv_lock_hash != lock_content:
             self.package_installation_error("Baked virtualenv lock hash mismatch")
         self.set_venv()
+
+    def ensure_fresh_venv(self) -> None:
+        if not self._venv_lock_matches():
+            self.recreate_uv_venv()
+        self.set_venv()
+        self.sync_extra_requirements()
+
+    def _venv_lock_matches(self) -> bool:
+        if not os.path.exists(self.venv_lock_file_path):
+            return False
+        with open(self.venv_lock_file_path) as lock_file:
+            content = lock_file.read().strip()
+        if not content:
+            return False
+        return self.venv_lock_hash == content
 
     def compare_versions(self, ver1: str, ver2: str) -> int:
         """
@@ -136,7 +163,8 @@ class VirtualenvChecker:
     def _canonical_package_name(self, name: str) -> str:
         return canonicalize_name(name.strip())
 
-    def check_uv_venv(self):
+    def sync_extra_requirements(self) -> None:
+        """Install or adjust only extra packages from requirements_txt (fresh mode)."""
         separator = " "
         if self.use_uv:
             manager_commad = "uv"
@@ -253,16 +281,3 @@ class VirtualenvChecker:
             }
         )
         return instructions
-
-    def check_uv_virtual_env(self):
-        if not os.path.exists(self.venv_lock_file_path):
-            self.recreate_uv_venv()
-        elif os.path.exists(self.venv_lock_file_path):
-            with open(self.venv_lock_file_path) as f:
-                content = f.readlines()
-            if not content:
-                self.recreate_uv_venv()
-            if content and self.venv_lock_hash != content[-1]:
-                self.recreate_uv_venv()
-        self.set_venv()
-        self.check_uv_venv()

@@ -159,11 +159,37 @@ def shallow_since_date(build_date: str) -> str:
     return since.strftime("%Y-%m-%d")
 
 
-def resolve_venv_is_baked(config: dict) -> bool:
-    """True when virtualenv was pre-installed in the image (CI bake)."""
-    baked_mode = constants.VENV_MODE_BAKED if constants is not None else "baked"
-    ci_scenario = constants.CI_SCENARIO if constants is not None else "ci"
+def _venv_mode_constants() -> tuple[str, str, frozenset[str]]:
+    if constants is not None:
+        return (
+            constants.VENV_MODE_FRESH,
+            constants.VENV_MODE_BAKED,
+            constants.VENV_MODE_VALUES,
+        )
+    return ("fresh", "baked", frozenset(("fresh", "baked")))
+
+
+def resolve_venv_mode(config: dict) -> str:
+    """Return venv_mode from container config (with legacy fallback)."""
+    fresh_mode, baked_mode, valid_modes = _venv_mode_constants()
     venv_mode = config.get("venv_mode")
     if venv_mode is not None:
-        return venv_mode == baked_mode
-    return config.get("odpm_scenario") == ci_scenario
+        if venv_mode not in valid_modes:
+            _logger.error(
+                "Invalid venv_mode %r in container config; expected one of %s",
+                venv_mode,
+                ", ".join(sorted(valid_modes)),
+            )
+            exit(1)
+        return venv_mode
+    if config.get("odpm_scenario") == (
+        constants.CI_SCENARIO if constants is not None else "ci"
+    ):
+        return baked_mode
+    return fresh_mode
+
+
+def resolve_venv_is_baked(config: dict) -> bool:
+    """True when virtualenv was pre-installed in the image (CI bake)."""
+    _, baked_mode, _ = _venv_mode_constants()
+    return resolve_venv_mode(config) == baked_mode

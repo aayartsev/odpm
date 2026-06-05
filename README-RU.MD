@@ -101,7 +101,7 @@ ODPM_SCENARIO=developer
 
 При первом запуске odpm предложит выбрать сценарий по номеру (`1` — developer, `2` — server, `3` — ci). Значение сохраняется в `.env` как `ODPM_SCENARIO`. Его можно изменить позже и пересоздать `docker-compose.yml`, снова запустив odpm.
 
-Сценарий **не заменяет** `odpm.json` и `user_settings.json`. Он влияет только на публикацию портов Docker и команду запуска Odoo (с `debugpy` или без).
+Сценарий **не заменяет** `odpm.json` и `user_settings.json`. Он влияет на публикацию портов Docker, команду запуска Odoo (с `debugpy` или без) и режим venv (`fresh` / `baked`; см. таблицу сравнения).
 
 ### `developer` (по умолчанию)
 
@@ -151,6 +151,7 @@ ODPM_SCENARIO=developer
 | Postgres на хосте | Все интерфейсы | Только `127.0.0.1` | Только `127.0.0.1` |
 | Порт debugger в compose | Да | Нет | Нет |
 | Bind-mount odoo | Да | Да | Нет |
+| Python venv (`venv_mode`) | `fresh` — пересоздаётся при смене lock | `fresh` — как у developer | `baked` — собран в образе, без recreate |
 | `--build-image` | Ошибка | Ошибка | Да |
 | Где использовать | Локальный ПК | Сервер / VPS | CI runner |
 

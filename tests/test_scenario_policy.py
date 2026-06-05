@@ -41,6 +41,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertEqual(policy.entrypoint_rel_path, constants.CI_BAKE_ENTRYPOINT)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
         self.assertTrue(policy.venv_is_baked())
+        self.assertFalse(policy.allows_venv_recreate())
 
     def test_server_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
@@ -52,6 +53,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.allow_build_image)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
+        self.assertTrue(policy.allows_venv_recreate())
 
     def test_developer_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)

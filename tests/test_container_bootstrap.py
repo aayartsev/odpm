@@ -9,7 +9,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(INSIDE_DOCKER_APP))
 
 from dev_project import constants
-from dev_project.inside_docker_app.utils import resolve_venv_is_baked
+from dev_project.inside_docker_app.utils import resolve_venv_is_baked, resolve_venv_mode
 
 
 def _minimal_config(**overrides) -> dict:
@@ -62,22 +62,22 @@ class ResolveVenvIsBakedTests(unittest.TestCase):
         )
 
 
+class ResolveVenvModeTests(unittest.TestCase):
+    def test_resolve_venv_mode_matches_policy(self):
+        self.assertEqual(
+            resolve_venv_mode(_minimal_config(venv_mode=constants.VENV_MODE_BAKED)),
+            constants.VENV_MODE_BAKED,
+        )
+
+
 class PrepareVenvTests(unittest.TestCase):
     @patch("container_bootstrap.VirtualenvChecker")
-    def test_prepare_venv_passes_baked_for_ci_mode(self, checker_cls):
+    def test_prepare_venv_uses_config_venv_mode(self, checker_cls):
         from container_bootstrap import prepare_venv
 
         config = _minimal_config(venv_mode=constants.VENV_MODE_BAKED)
         prepare_venv(config)
-        checker_cls.assert_called_once_with(config, baked=True)
-
-    @patch("container_bootstrap.VirtualenvChecker")
-    def test_prepare_venv_passes_fresh_for_developer_mode(self, checker_cls):
-        from container_bootstrap import prepare_venv
-
-        config = _minimal_config(venv_mode=constants.VENV_MODE_FRESH)
-        prepare_venv(config)
-        checker_cls.assert_called_once_with(config, baked=False)
+        checker_cls.assert_called_once_with(config)
 
 
 if __name__ == "__main__":
