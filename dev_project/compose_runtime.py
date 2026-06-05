@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import shlex
-import subprocess
 
 from . import constants
 from .host_config import Config
+from .subprocess_runner import run_checked
 
 COMPOSE_STACK_SERVICES = ("odoo", constants.DATABASE_NAME_INSTANCE)
 
@@ -18,11 +18,9 @@ def _compose_base_argv(config: Config) -> list[str]:
 def _running_container_id(
     config: Config, service: str
 ) -> str | None:
-    result = subprocess.run(
+    result = run_checked(
         _compose_base_argv(config) + ["ps", "-q", service],
         cwd=config.project_dir,
-        capture_output=True,
-        text=True,
     )
     if result.returncode != 0:
         return None
@@ -31,7 +29,7 @@ def _running_container_id(
 
 
 def container_is_running_and_healthy(container_id: str) -> bool:
-    result = subprocess.run(
+    result = run_checked(
         [
             "docker",
             "inspect",
@@ -39,8 +37,6 @@ def container_is_running_and_healthy(container_id: str) -> bool:
             "{{.State.Running}} {{if .State.Health}}{{.State.Health.Status}}{{end}}",
             container_id,
         ],
-        capture_output=True,
-        text=True,
     )
     if result.returncode != 0:
         return False

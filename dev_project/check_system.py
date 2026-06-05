@@ -1,15 +1,16 @@
 import json
 import os
 import platform
-import subprocess
 from pathlib import Path
 from typing import NamedTuple
 
 from . import constants, translations
+from .errors import SystemCheckError
 from .host_config import Config
 from .inside_docker_app import utils
 from .inside_docker_app.logger import get_module_logger
 from .protocols import SystemCheckerProtocol
+from .subprocess_runner import run_checked, run_logged
 
 _logger = get_module_logger(__name__)
 
@@ -28,9 +29,8 @@ class SystemChecker(SystemCheckerProtocol):
         self.check_file_system()
 
     def check_git(self) -> None:
-        process_result = subprocess.run(["git", "--version"], capture_output=True)
-        output_string = process_result.stdout.decode("utf-8")
-        if constants.GIT_WORKING_MESSAGE not in output_string:
+        process_result = run_checked(["git", "--version"])
+        if constants.GIT_WORKING_MESSAGE not in process_result.stdout:
             _logger.error(translations.get_translation(translations.IS_GIT_INSTALLED))
             exit(1)
 
@@ -47,22 +47,21 @@ class SystemChecker(SystemCheckerProtocol):
         if platform.system() == "Linux":
             groups = self.get_system_groups(constants.CURRENT_USER)
             if constants.LINUX_DOCKER_GROUPNAME not in groups:
-                _logger.error(
-                    translations.get_translation(
-                        translations.USER_NOT_IN_DOCKER_GROUP
-                    ).format(
-                        CURRENT_USER=constants.CURRENT_USER,
-                        LINUX_DOCKER_GROUPNAME=constants.LINUX_DOCKER_GROUPNAME,
-                    )
+                message = translations.get_translation(
+                    translations.USER_NOT_IN_DOCKER_GROUP
+                ).format(
+                    CURRENT_USER=constants.CURRENT_USER,
+                    LINUX_DOCKER_GROUPNAME=constants.LINUX_DOCKER_GROUPNAME,
                 )
-                exit(1)
-        process_result = subprocess.run(["docker", "info"], capture_output=True)
-        output_string = process_result.stdout.decode("utf-8")
-        if constants.DOCKER_WORKING_MESSAGE not in output_string:
-            _logger.error(
-                translations.get_translation(translations.CAN_NOT_CONNECT_DOCKER)
+                _logger.error(message)
+                raise SystemCheckError(message)
+        process_result = run_checked(["docker", "info"])
+        if constants.DOCKER_WORKING_MESSAGE not in process_result.stdout:
+            message = translations.get_translation(
+                translations.CAN_NOT_CONNECT_DOCKER
             )
-            exit(1)
+            _logger.error(message)
+            raise SystemCheckError(message)
 
         self.config.project_env.ensure_base_image()
 
@@ -89,11 +88,10 @@ class SystemChecker(SystemCheckerProtocol):
                     busy_ports.append(int(host_port))
             return busy_ports
 
-        process_result = subprocess.run(
+        process_result = run_checked(
             ["docker", "container", "ls", "--format", "'{{json .}}'"],
-            capture_output=True,
         )
-        output_string = process_result.stdout.decode("utf-8")
+        output_string = process_result.stdout
         result_list = []
         for record in output_string.split("\n"):
             if record:
@@ -107,21 +105,19 @@ class SystemChecker(SystemCheckerProtocol):
         for result in result_list:
             used_ports = list(set(result.ports) & set(ports_to_check))
             if used_ports:
-                subprocess.run(["docker", "stop", result.container_id])
+                run_logged(["docker", "stop", result.container_id])
 
     def check_docker_compose(self) -> None:
         self.config.no_log_prefix = True
         docker_compose_working_message_in_output_string = False
         for command in constants.LIST_OF_DOCKER_COMPOSE_COMMANDS:
             up_help_command_list = [*command.split(" "), "up", "--help"]
-            up_help_result = subprocess.run(up_help_command_list, capture_output=True)
-            up_help_string = up_help_result.stdout.decode("utf-8")
-            if constants.NO_LOG_PREFIX not in up_help_string:
+            up_help_result = run_checked(up_help_command_list)
+            if constants.NO_LOG_PREFIX not in up_help_result.stdout:
                 self.config.no_log_prefix = False
             version_command_list = [*command.split(" "), "version"]
-            process_result = subprocess.run(version_command_list, capture_output=True)
-            output_string = process_result.stdout.decode("utf-8")
-            output_string = output_string.lower().replace("-", " ")
+            process_result = run_checked(version_command_list)
+            output_string = process_result.stdout.lower().replace("-", " ")
             if constants.DOCKER_COMPOSE_WORKING_MESSAGE in output_string:
                 docker_compose_working_message_in_output_string = True
                 self.config.docker_compose_command = command

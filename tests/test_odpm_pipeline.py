@@ -153,8 +153,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         pipeline.config.project_dir = "/tmp/project"
         pipeline.config.docker_compose_command = "docker compose"
         pipeline.config.no_log_prefix = False
-        with patch("dev_project.odpm_pipeline.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
+        with patch("dev_project.odpm_pipeline.run_logged", return_value=0) as mock_run:
             pipeline.start_containers()
         mock_run.assert_called_once_with(
             ["docker", "compose", "up", "--abort-on-container-exit"],
@@ -173,8 +172,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         pipeline.config.project_dir = "/tmp/project"
         pipeline.config.docker_compose_command = "docker compose"
         pipeline.config.no_log_prefix = False
-        with patch("dev_project.odpm_pipeline.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=17)
+        with patch("dev_project.odpm_pipeline.run_logged", return_value=17):
             with self.assertRaises(PipelineError) as ctx:
                 pipeline.start_containers()
         self.assertEqual(ctx.exception.exit_code, 17)

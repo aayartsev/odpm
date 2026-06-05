@@ -19,6 +19,6 @@ def run_container_bootstrap(config: dict) -> None:
 
 
 def main() -> None:
-    from .parse_args import args
+    from .parse_args import parse_args
 
-    run_container_bootstrap(decode_config(args.config_base64_data))
+    run_container_bootstrap(decode_config(parse_args().config_base64_data))

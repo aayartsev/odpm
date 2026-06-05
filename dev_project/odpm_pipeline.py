@@ -4,28 +4,22 @@ from __future__ import annotations
 
 import os
 import shlex
-import subprocess
 import sys
 from argparse import Namespace
 
 from . import translations
 from .check_system import SystemChecker
 from .compose_runtime import should_force_recreate_compose
+from .errors import OdpmError, PipelineError
 from .host_config import Config
 from .host_project_env import CreateProjectEnvironment
 from .host_start_string_builder import StartStringBuilder
 from .host_user_env import CreateUserEnvironment
 from .inside_docker_app.logger import get_module_logger
 from .project_dir_manager import ProjectDirManager
+from .subprocess_runner import run_logged
 
 _logger = get_module_logger(__name__)
-
-
-class PipelineError(Exception):
-    def __init__(self, message: str, *, exit_code: int = 1) -> None:
-        self.exit_code = exit_code
-        super().__init__(message)
-
 
 class OdpmPipeline:
     def __init__(
@@ -112,16 +106,16 @@ class OdpmPipeline:
 
     def start_containers(self) -> None:
         config = self._config()
-        result = subprocess.run(
+        returncode = run_logged(
             self.build_compose_up_argv(config),
             cwd=config.project_dir,
         )
-        if result.returncode != 0:
+        if returncode != 0:
             message = translations.get_translation(
                 translations.COMPOSE_UP_FAILED
-            ).format(EXIT_CODE=result.returncode)
+            ).format(EXIT_CODE=returncode)
             _logger.error(message)
-            raise PipelineError(message, exit_code=result.returncode)
+            raise PipelineError(message, exit_code=returncode)
 
     def run(self) -> None:
         try:
@@ -139,7 +133,7 @@ class OdpmPipeline:
             except KeyboardInterrupt:
                 _logger.info("Control+C pressed")
                 sys.exit()
-        except PipelineError as exc:
+        except OdpmError as exc:
             sys.exit(exc.exit_code)
 
     def _config(self) -> Config:

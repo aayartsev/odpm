@@ -4,7 +4,7 @@ import sys
 
 import dev_project.translations as translations
 from dev_project.inside_docker_app.logger import get_module_logger
-from dev_project.inside_docker_app.parse_args import args
+from dev_project.inside_docker_app.parse_args import parse_args
 from dev_project.odpm_pipeline import OdpmPipeline
 
 _logger = get_module_logger(__name__)
@@ -16,7 +16,7 @@ if hasattr(os, "geteuid") and os.geteuid() == 0:
 
 def main() -> None:
     program_dir_path = os.path.dirname(os.path.abspath(__file__))
-    OdpmPipeline(args, program_dir_path).run()
+    OdpmPipeline(parse_args(), program_dir_path).run()
 
 
 if __name__ == "__main__":

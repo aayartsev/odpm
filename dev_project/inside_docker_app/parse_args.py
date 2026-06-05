@@ -228,4 +228,6 @@ parser_scaffold.add_argument(
     help="""The name of template directory, files are passed through jinja2 then copied to the destination directory""",
 )
 
-args = arg_parser.parse_args()
+
+def parse_args(argv: list[str] | None = None):
+    return arg_parser.parse_args(argv)

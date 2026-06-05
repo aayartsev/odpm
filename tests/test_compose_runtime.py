@@ -10,23 +10,23 @@ from dev_project.compose_runtime import (
 
 class ContainerHealthTests(unittest.TestCase):
     def test_running_without_healthcheck_is_healthy(self):
-        with patch("dev_project.compose_runtime.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout="true \n")
+        with patch("dev_project.compose_runtime.run_checked") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="true \n", stderr="")
             self.assertTrue(container_is_running_and_healthy("abc123"))
 
     def test_running_with_healthy_status(self):
-        with patch("dev_project.compose_runtime.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout="true healthy\n")
+        with patch("dev_project.compose_runtime.run_checked") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="true healthy\n", stderr="")
             self.assertTrue(container_is_running_and_healthy("abc123"))
 
     def test_unhealthy_container(self):
-        with patch("dev_project.compose_runtime.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout="true unhealthy\n")
+        with patch("dev_project.compose_runtime.run_checked") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="true unhealthy\n", stderr="")
             self.assertFalse(container_is_running_and_healthy("abc123"))
 
     def test_not_running_container(self):
-        with patch("dev_project.compose_runtime.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout="false\n")
+        with patch("dev_project.compose_runtime.run_checked") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="false\n", stderr="")
             self.assertFalse(container_is_running_and_healthy("abc123"))
 
 
