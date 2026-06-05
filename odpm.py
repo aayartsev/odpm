@@ -7,6 +7,7 @@ from dev_project.check_system import SystemChecker
 from dev_project.host_config import Config
 from dev_project.host_project_env import CreateProjectEnvironment
 from dev_project.host_start_string_builder import StartStringBuilder
+from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.host_user_env import CreateUserEnvironment
 from dev_project.inside_docker_app.logger import get_module_logger
 from dev_project.inside_docker_app.parse_args import args
@@ -42,11 +43,20 @@ def main() -> None:
     system_checker.check_docker_compose()
     project_environment.checkout_dependencies()
     project_environment.update_links()
+    policy = ScenarioPolicy.from_scenario(config.user_env.odpm_scenario)
     if args.build_image:
+        if not policy.allow_build_image:
+            _logger.error(
+                translations.get_translation(
+                    translations.BUILD_IMAGE_REQUIRES_CI_SCENARIO
+                )
+            )
+            sys.exit(1)
         project_environment.build_ci_image()
         sys.exit(0)
-    project_environment.update_vscode_debugger_launcher()
-    project_environment.generate_vscode_settings_json()
+    if not policy.skip_vscode:
+        project_environment.update_vscode_debugger_launcher()
+        project_environment.generate_vscode_settings_json()
 
     os.chdir(config.project_dir)
 

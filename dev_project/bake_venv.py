@@ -40,6 +40,8 @@ class VenvInstallSpec:
     extra_packages: list[str]
     python_version: str
     bootstrap_packages: list[str] = field(default_factory=list)
+    lock_file_path: str | None = None
+    lock_hash: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -53,6 +55,8 @@ class VenvInstallSpec:
             extra_packages=list(data.get("extra_packages") or []),
             python_version=data["python_version"],
             bootstrap_packages=list(data.get("bootstrap_packages") or []),
+            lock_file_path=data.get("lock_file_path"),
+            lock_hash=data.get("lock_hash"),
         )
 
     @classmethod
@@ -306,7 +310,11 @@ def main(argv: list[str] | None = None) -> None:
     )
     args = parser.parse_args(argv)
     spec = VenvInstallSpec.from_json_file(args.config)
-    install_fresh(spec)
+    install_fresh(
+        spec,
+        lock_file_path=spec.lock_file_path,
+        lock_hash=spec.lock_hash,
+    )
 
 
 if __name__ == "__main__":

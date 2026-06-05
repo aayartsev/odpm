@@ -14,9 +14,19 @@ PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
 CI_BUILD_CONTEXT_DIR = os.path.join(PROJECT_SERVICE_DIRECTORY, "ci-build-context")
 CI_BAKE_DIR = "bake"
 CI_VENV_INSTALL_JSON = "venv_install.json"
+CI_BAKE_ENTRYPOINT = "bake/main.py"
+DEV_ENTRYPOINT = os.path.join("inside_docker_app", "main.py")
 CI_BAKE_PYTHON_FILES = (
     "bake_venv.py",
+    os.path.join("inside_docker_app", "main.py"),
+    os.path.join("inside_docker_app", "container_bootstrap.py"),
+    os.path.join("inside_docker_app", "check_odoo.py"),
+    os.path.join("inside_docker_app", "check_virtualenv.py"),
+    os.path.join("inside_docker_app", "postgres_waiter.py"),
+    os.path.join("inside_docker_app", "utils.py"),
     os.path.join("inside_docker_app", "logger.py"),
+    os.path.join("inside_docker_app", "parse_args.py"),
+    os.path.join("inside_docker_app", "cli_params.py"),
 )
 CI_DOCKERFILE = "Dockerfile.ci"
 CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
@@ -219,14 +229,19 @@ DEPRECATED_WORDS = [
     "debian_name",
     "{DEBUGGER_PORT}:{DEBUGGER_DOCKER_PORT}",
     "{POSTGRES_PORT}:{POSTGRES_DOCKER_PORT}",
+    "{DEBUGGER_PORT_MAP}",
+    "{MAPPED_VOLUMES}",
 ]
 #  Scenarios for odpm usage
 DEVELOPER_SCENARIO = "developer"
 SERVER_SCENARIO = "server"
+CI_SCENARIO = "ci"
 ODPM_SCENARIOS = {
     1: DEVELOPER_SCENARIO,
     2: SERVER_SCENARIO,
+    3: CI_SCENARIO,
 }
+ODPM_SCENARIO_VALUES = frozenset(ODPM_SCENARIOS.values())
 DEFAULT_ODPM_SCENARIO = DEVELOPER_SCENARIO
 DEFAULT_ODPM_VERSION = "3.0"
 ODPM_VERSION = "4.0"

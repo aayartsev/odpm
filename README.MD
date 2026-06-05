@@ -83,7 +83,7 @@ The system will try to create a `.odpm` directory in the user's home directory o
 - `POSTGRES_PORT` - the port on which the PostgreSQL DBMS will be launched by default at the address 127.0.0.1
 - `DEBUGGER_PORT` - the port on which the debugger will run by default at the address 127.0.0.1
 - `GEVENT_PORT` - the port on which the Websocket Gevent System will listen by default at the address 127.0.0.1
-- `ODPM_SCENARIO` - usage scenario for odpm: `developer` (default) or `server`. See [Usage scenarios](#usage-scenarios-odpm_scenario) below.
+- `ODPM_SCENARIO` - usage scenario for odpm: `developer` (default), `server`, or `ci`. See [Usage scenarios](#usage-scenarios-odpm_scenario) below.
 
 Example:
 ```conf
@@ -99,7 +99,7 @@ ODPM_SCENARIO=developer
 
 ## Usage scenarios (`ODPM_SCENARIO`)
 
-On the first run, odpm asks you to choose a scenario by number (`1` — developer, `2` — server). The value is stored in `.env` as `ODPM_SCENARIO`. You can change it later and regenerate `docker-compose.yml` by running odpm again.
+On the first run, odpm asks you to choose a scenario by number (`1` — developer, `2` — server, `3` — ci). The value is stored in `.env` as `ODPM_SCENARIO`. You can change it later and regenerate `docker-compose.yml` by running odpm again.
 
 The scenario does **not** replace `odpm.json` or `user_settings.json`. It only changes how Docker ports are published and how Odoo starts (with or without `debugpy`).
 
@@ -124,18 +124,35 @@ Use on a **machine that runs Odoo as a service** (staging/production, VPS). Focu
 |------|----------|
 | **debugpy** | **Not** added to the Odoo start command. |
 | **PostgreSQL on host** | Bound to `127.0.0.1:POSTGRES_PORT` only (not reachable from other machines via the published port). |
-| **Debugger port on host** | Bound to `127.0.0.1:DEBUGGER_PORT` (port may still appear in `docker-compose.yml`, but Odoo does not listen for debugpy). |
+| **Debugger port in compose** | **Not published** (Odoo does not use debugpy). |
 | **Odoo / Gevent on host** | Still published as `ODOO_PORT` / `GEVENT_PORT` on all host interfaces — put a reverse proxy (nginx, traefik) and firewall in front for public access. |
 | **`dev_mode`** | Not disabled automatically; for production, leave `dev_mode` empty in `user_settings.json` and do not use developer-only flags. |
 
+### `ci` (CI / DevOps)
+
+For **building and running a baked image** on a CI runner: sources and venv live inside the Docker image; no bind-mount of Odoo directories.
+
+| Area | Behavior |
+|------|----------|
+| **Image** | Project-specific CI image (`odpm --build-image`, only when `ODPM_SCENARIO=ci`) |
+| **Odoo volumes** | No bind-mount of sources |
+| **debugpy / debugger port** | No |
+| **Gevent 8072** | Yes (same as dev/server) |
+| **Entrypoint** | `bake/main.py` (copy of shared `main.py` / `container_bootstrap`) |
+| **VS Code** | Not configured |
+
+Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker compose up`.
+
 ### Comparison
 
-| | `developer` | `server` |
-|---|---------------|----------|
-| Remote debug (debugpy) | Yes | No |
-| Postgres on host | All interfaces | `127.0.0.1` only |
-| Debugger port on host | All interfaces | `127.0.0.1` only |
-| Recommended environment | Local PC / laptop | Server / VPS |
+| | `developer` | `server` | `ci` |
+|---|---------------|----------|------|
+| Remote debug (debugpy) | Yes | No | No |
+| Postgres on host | All interfaces | `127.0.0.1` only | `127.0.0.1` only |
+| Debugger port in compose | Yes | No | No |
+| Odoo bind-mount | Yes | Yes | No |
+| `--build-image` | Error | Error | Yes |
+| Recommended environment | Local PC / laptop | Server / VPS | CI runner |
 
 ### Switching scenario
 

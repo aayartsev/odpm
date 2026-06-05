@@ -90,6 +90,9 @@ ODOO_GIT_LINK_REQUIRES_INIT = """The {ODOO_GIT_LINK_PARAM} parameter can only be
 SWITCHING_TO_BRANCH = """Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"""
 PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION = """Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project."""
 RUNNING_AS_ROOT_DISABLED = """Running with sudo/root privileges is not permitted."""
+BUILD_IMAGE_REQUIRES_CI_SCENARIO = (
+    "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
+)
 PROJECT_PATH_IN_START_DIR_PATH = """Directory {START_DIR_PATH} is not a valid odpm project directory. Please run "cd {PROJECT_PATH}" to navigate to the correct location."""
 
 translations = {
@@ -230,6 +233,9 @@ translations = {
         "ru_RU": """Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте версию менеджера соотвествующую версии odpm в проекте. Или созданй новый проект"""
     },
     RUNNING_AS_ROOT_DISABLED: {"ru_RU": "Запуск скрипта от root/sudo запрещен"},
+    BUILD_IMAGE_REQUIRES_CI_SCENARIO: {
+        "ru_RU": "--build-image доступен только при ODPM_SCENARIO=ci в .env",
+    },
     PROJECT_PATH_IN_START_DIR_PATH: {
         "ru_RU": """Каталог {START_DIR_PATH} не является odpm катлогом, пожалуйста выполните команду cd {PROJECT_PATH} для перехода в нужный вам каталог"""
     },

@@ -17,7 +17,12 @@ try:
         run_pip_command,
     )
 except ImportError:
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    _module_dir = os.path.dirname(os.path.abspath(__file__))
+    if _module_dir not in sys.path:
+        sys.path.insert(0, _module_dir)
+    _parent_dir = os.path.join(_module_dir, "..")
+    if _parent_dir not in sys.path:
+        sys.path.insert(0, _parent_dir)
     from bake_venv import (
         build_spec_from_config,
         detect_uv_info,
@@ -29,7 +34,8 @@ _logger = get_module_logger(__name__)
 
 
 class VirtualenvChecker:
-    def __init__(self, config):
+    def __init__(self, config, baked=False):
+        self.baked = baked
         self.docker_venv_dir = config.get("docker_venv_dir", "")
         self.docker_project_dir = config["docker_project_dir"]
         self.requirements_txt = config.get("requirements_txt", [])
@@ -42,7 +48,25 @@ class VirtualenvChecker:
         self.arch = config["arch"]
         self.uv_info = detect_uv_info()
         self.use_uv = self.uv_info["installed"]
-        self.check_uv_virtual_env()
+        if self.baked:
+            self.check_baked_venv()
+        else:
+            self.check_uv_virtual_env()
+
+    def check_baked_venv(self):
+        if not os.path.isdir(self.docker_venv_dir):
+            self.package_installation_error(
+                f"Baked virtualenv directory is missing: {self.docker_venv_dir}"
+            )
+        if not os.path.exists(self.venv_lock_file_path):
+            self.package_installation_error(
+                f"Baked virtualenv lock file is missing: {self.venv_lock_file_path}"
+            )
+        with open(self.venv_lock_file_path) as lock_file:
+            lock_content = lock_file.read().strip()
+        if not lock_content or self.venv_lock_hash != lock_content:
+            self.package_installation_error("Baked virtualenv lock hash mismatch")
+        self.set_venv()
 
     def compare_versions(self, ver1: str, ver2: str) -> int:
         """

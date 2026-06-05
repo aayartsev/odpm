@@ -19,6 +19,7 @@ from .inside_docker_app.utils import (
     write_odoo_config_data_to_file,
 )
 from .protocols import CreateProjectEnvironmentProtocol
+from .scenario_policy import ScenarioPolicy
 
 _logger = get_module_logger(__name__)
 _ = translations._
@@ -246,13 +247,25 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             with open(self.config.path_odoo_conf, "w") as writer:
                 writer.write(content)
 
+    def _ensure_compose_template_current(self, template_path: str) -> list[str]:
+        with open(template_path) as template_file:
+            lines = template_file.readlines()
+        if "{DEV_EXTRA_PORTS}" in "".join(lines):
+            return lines
+        _logger.info(
+            "Upgrading %s to scenario-aware docker-compose template",
+            template_path,
+        )
+        self.config.pd_manager.rebuild_docker_compose_template()
+        with open(template_path) as template_file:
+            return template_file.readlines()
+
     def generate_docker_compose_file(self) -> None:
         docker_compose_template_path = os.path.join(
             self.config.project_dir,
             constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
         )
-        with open(docker_compose_template_path) as f:
-            lines = f.readlines()
+        lines = self._ensure_compose_template_current(docker_compose_template_path)
 
         mapped_volumes = "\n"
         for mapped_volume in self.mapped_folders:
@@ -263,17 +276,27 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 path = Path(mapped_volume.local)
                 path.mkdir(parents=True)
 
+        policy = ScenarioPolicy.from_scenario(self.config.user_env.odpm_scenario)
+        odoo_image = getattr(self.config, policy.odoo_image_attr)
+
         POSTGRES_PORT = self.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
-        POSTGRES_PORT_MAP = f"{POSTGRES_PORT}:{constants.POSTGRES_DOCKER_PORT}"
+        POSTGRES_PORT_MAP = policy.build_postgres_port_map(
+            f"{POSTGRES_PORT}:{constants.POSTGRES_DOCKER_PORT}"
+        )
         DEBUGGER_PORT = self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
-        DEBUGGER_PORT_MAP = f"{DEBUGGER_PORT}:{constants.DEBUGGER_DOCKER_PORT}"
-        if self.config.user_env.odpm_scenario == constants.SERVER_SCENARIO:
-            POSTGRES_PORT_MAP = f"127.0.0.1:{POSTGRES_PORT_MAP}"
-            DEBUGGER_PORT_MAP = f"127.0.0.1:{DEBUGGER_PORT_MAP}"
+        DEBUGGER_PORT_MAP = (
+            f"{DEBUGGER_PORT}:{constants.DEBUGGER_DOCKER_PORT}"
+        )
+        DEV_EXTRA_PORTS = policy.build_dev_extra_ports(DEBUGGER_PORT_MAP)
+        ODOO_VOLUMES_BLOCK = policy.build_odoo_volumes_block(mapped_volumes)
+
+        legacy_mapped_volumes = (
+            mapped_volumes if policy.include_odoo_volumes else "\n"
+        )
         content = "".join(lines).format(
-            ODOO_IMAGE=self.config.odoo_image_name,
-            MAPPED_VOLUMES=mapped_volumes,
-            DEBUGGER_PORT_MAP=DEBUGGER_PORT_MAP,
+            ODOO_IMAGE=odoo_image,
+            DEV_EXTRA_PORTS=DEV_EXTRA_PORTS,
+            ODOO_VOLUMES_BLOCK=ODOO_VOLUMES_BLOCK,
             ODOO_PORT=self.user_env.odoo_port or constants.ODOO_DEFAULT_PORT,
             POSTGRES_PORT_MAP=POSTGRES_PORT_MAP,
             GEVENT_PORT=self.user_env.gevent_port or constants.GEVENT_DEFAULT_PORT,
@@ -289,9 +312,12 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             DATABASE_NAME_INSTANCE=constants.DATABASE_NAME_INSTANCE,
             POSTGRES_VERSION=self.config.postgres_version,
             POSTGRES_DATA_LOCAL_STORAGE=self.config.postgres_data_local_storage,
+            # Legacy placeholders ( prefer auto-upgrade above)
+            DEBUGGER_PORT_MAP=DEBUGGER_PORT_MAP,
+            MAPPED_VOLUMES=legacy_mapped_volumes,
         )
         content = content.replace(
-            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
+            constants.MESSAGE_MARKER,
             translations.get_translation(translations.DO_NOT_CHANGE_FILE),
         )
         dockerfile_compose_path = os.path.join(
@@ -532,6 +558,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             for package in self.config.requirements_txt
             if package and package.strip()
         ]
+        lock_file_path = os.path.join(self.config.docker_venv_dir, ".lock")
         return VenvInstallSpec(
             project_dir=self.config.docker_project_dir,
             venv_dir=self.config.docker_venv_dir,
@@ -543,6 +570,8 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             bootstrap_packages=get_venv_bootstrap_packages(
                 self.config.python_version
             ),
+            lock_file_path=lock_file_path,
+            lock_hash=self.config.compute_venv_lock_hash(self.config.config_dict),
         )
 
     def _prepare_ci_bake_files(self, context_dir: str) -> None:

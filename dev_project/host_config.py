@@ -81,6 +81,7 @@ class ConfigToJson(TypedDict):
     modules_to_update: list
     docker_dirs_with_addons: list
     venv_lock_hash: str
+    odpm_scenario: str
 
 
 @dataclass
@@ -832,8 +833,17 @@ class Config:
             sql_queries=self.sql_queries,
             modules_to_update=self.update_modules.split(","),
             docker_dirs_with_addons=self.docker_dirs_with_addons,
+            odpm_scenario=self.user_env.odpm_scenario,
         )
         return json.dumps(config).encode("utf-8")
+
+    @property
+    def is_ci_scenario(self) -> bool:
+        return self.user_env.odpm_scenario == constants.CI_SCENARIO
+
+    @property
+    def is_developer_scenario(self) -> bool:
+        return self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO
 
     def get_odoo_ci_image_name(self) -> str:
         image_tag = getattr(self.arguments, "image_tag", None)

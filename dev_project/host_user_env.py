@@ -63,9 +63,17 @@ class CreateUserEnvironment:
             parser["env"].get("GEVENT_PORT", str(constants.GEVENT_DEFAULT_PORT))
         )
         path_to_ssh_key = parser["env"].get("PATH_TO_SSH_KEY", "")
-        self.odpm_scenario = parser["env"].get(
+        raw_scenario = parser["env"].get(
             "ODPM_SCENARIO", constants.DEFAULT_ODPM_SCENARIO
         )
+        if raw_scenario not in constants.ODPM_SCENARIO_VALUES:
+            _logger.warning(
+                "Unknown ODPM_SCENARIO=%r, using %s",
+                raw_scenario,
+                constants.DEFAULT_ODPM_SCENARIO,
+            )
+            raw_scenario = constants.DEFAULT_ODPM_SCENARIO
+        self.odpm_scenario = raw_scenario
         if isinstance(path_to_ssh_key, str) and platform.system() == "Windows":
             path_to_ssh_key = path_to_ssh_key.replace("\\", "\\\\")
         self.path_to_ssh_key = path_to_ssh_key
@@ -215,7 +223,9 @@ class CreateUserEnvironment:
             selected_scenario = default_odpm_scenario
         else:
             odpm_scenario_key = int(odpm_scenario_key)
-            selected_scenario = constants.ODPM_SCENARIOS.get(odpm_scenario_key)
+            selected_scenario = constants.ODPM_SCENARIOS.get(
+                odpm_scenario_key, default_odpm_scenario
+            )
         _logger.info(
             translations.get_translation(translations.YOU_SELECT_ODPM_SCENARIO).format(
                 SELECTED_ODPM_SCENARIO=selected_scenario,

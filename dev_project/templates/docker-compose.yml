@@ -31,10 +31,7 @@ services:
     ports:
       - {ODOO_PORT}:{ODOO_DOCKER_PORT}
       - {GEVENT_PORT}:{GEVENT_DOCKER_PORT}
-      - {DEBUGGER_PORT_MAP}
-
-    volumes: {MAPPED_VOLUMES}
-
+{DEV_EXTRA_PORTS}{ODOO_VOLUMES_BLOCK}
     command: {START_STRING}
 
 volumes:

@@ -5,6 +5,7 @@ import re
 from . import constants
 from .host_config import Config
 from .inside_docker_app import cli_params
+from .scenario_policy import ScenarioPolicy
 
 
 class ArgumentParser:
@@ -56,12 +57,32 @@ class StartStringBuilder:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.args = self.config.arguments
+        self.policy = ScenarioPolicy.from_scenario(config.user_env.odpm_scenario)
         self.config.start_string = self.get_start_string()
 
     def get_base64_string_config(self) -> str:
         data = self.config.config_to_json()
         config_base64_data = base64.b64encode(data)
         return config_base64_data.decode()
+
+    def build_entrypoint_path(self) -> str:
+        if self.policy.entrypoint_rel_path == constants.CI_BAKE_ENTRYPOINT:
+            return str(
+                pathlib.PurePosixPath(self.config.docker_project_dir, "bake", "main.py")
+            )
+        return str(pathlib.PurePosixPath(self.config.docker_inside_app, "main.py"))
+
+    def build_debugger_prefix(self) -> str:
+        if not self.policy.include_debugpy:
+            return ""
+        return f"-m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} "
+
+    def build_odoo_bin_command(self) -> str:
+        debugger_command_string = self.build_debugger_prefix()
+        return (
+            f"python3 -u {debugger_command_string}"
+            f"{self.config.docker_odoo_dir}/{self.config.platform_name}-bin"
+        )
 
     def create_string_with_params_for_odoo_bin(self) -> str:
         final_string = ""
@@ -83,13 +104,11 @@ class StartStringBuilder:
 
     def get_start_string(self) -> str:
         self.config.generate_odoo_conf_docker_data()
-        debugger_command_string = ""
-        if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
-            debugger_command_string = (
-                f"-m debugpy --listen 0.0.0.0:{constants.DEBUGGER_DOCKER_PORT} "
-            )
-        start_odoo_bin_command = f"""python3 -u {debugger_command_string}{self.config.docker_odoo_dir}/{self.config.platform_name}-bin"""
-        self.start_python_command = f"""{start_odoo_bin_command} -c {self.config.docker_project_dir}/odoo.conf --limit-time-real 99999"""
+        start_odoo_bin_command = self.build_odoo_bin_command()
+        self.start_python_command = (
+            f"{start_odoo_bin_command} -c {self.config.docker_project_dir}/odoo.conf "
+            f"--limit-time-real 99999"
+        )
         db_name = self.args.d
         translate_lang = self.args.translate
         install_pip = self.args.pip_install
@@ -148,10 +167,11 @@ class StartStringBuilder:
         if odoo_bin_additional_params:
             self.start_python_command += f""" {odoo_bin_additional_params}"""
 
+        entrypoint_path = self.build_entrypoint_path()
         start_main = " && ".join(
             [
                 f"""cd {self.config.docker_project_dir}""",
-                f"""python3 {pathlib.PurePosixPath(self.config.docker_inside_app, "main.py")} {cli_params.CONFIG_BASE64_DATA} {self.get_base64_string_config()}""",
+                f"""python3 {entrypoint_path} {cli_params.CONFIG_BASE64_DATA} {self.get_base64_string_config()}""",
                 f""". {pathlib.PurePosixPath(self.config.docker_venv_dir, "bin", "activate")}""",
                 f"""{self.start_python_command}""",
             ]
