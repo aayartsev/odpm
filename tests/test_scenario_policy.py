@@ -63,6 +63,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.bind_postgres_localhost)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
+        self.assertTrue(policy.allows_venv_recreate())
 
     def test_config_to_json_includes_venv_mode(self):
         config = MagicMock()

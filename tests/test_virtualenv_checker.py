@@ -40,20 +40,15 @@ class ResolveVenvModeTests(unittest.TestCase):
             constants.VENV_MODE_BAKED,
         )
 
+    def test_invalid_venv_mode_exits(self):
+        with self.assertRaises(SystemExit):
+            resolve_venv_mode(_config(venv_mode="invalid"))
+
 
 class VirtualenvCheckerContractTests(unittest.TestCase):
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "sync_extra_requirements",
-    )
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "recreate_uv_venv",
-    )
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "set_venv",
-    )
+    @patch("check_virtualenv.VirtualenvChecker.sync_extra_requirements")
+    @patch("check_virtualenv.VirtualenvChecker.recreate_uv_venv")
+    @patch("check_virtualenv.VirtualenvChecker.set_venv")
     def test_fresh_recreates_when_lock_mismatch(
         self, mock_set_venv, mock_recreate, mock_sync
     ):
@@ -71,18 +66,9 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
             mock_sync.assert_called_once()
             mock_set_venv.assert_called()
 
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "sync_extra_requirements",
-    )
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "recreate_uv_venv",
-    )
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "set_venv",
-    )
+    @patch("check_virtualenv.VirtualenvChecker.sync_extra_requirements")
+    @patch("check_virtualenv.VirtualenvChecker.recreate_uv_venv")
+    @patch("check_virtualenv.VirtualenvChecker.set_venv")
     def test_fresh_skips_recreate_when_lock_matches(
         self, mock_set_venv, mock_recreate, mock_sync
     ):
@@ -99,18 +85,9 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
             mock_recreate.assert_not_called()
             mock_sync.assert_called_once()
 
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "sync_extra_requirements",
-    )
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "recreate_uv_venv",
-    )
-    @patch.object(
-        __import__("check_virtualenv", fromlist=["VirtualenvChecker"]).VirtualenvChecker,
-        "set_venv",
-    )
+    @patch("check_virtualenv.VirtualenvChecker.sync_extra_requirements")
+    @patch("check_virtualenv.VirtualenvChecker.recreate_uv_venv")
+    @patch("check_virtualenv.VirtualenvChecker.set_venv")
     def test_baked_never_recreates_or_syncs_extras(
         self, mock_set_venv, mock_recreate, mock_sync
     ):
@@ -129,12 +106,48 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
             mock_set_venv.assert_called_once()
 
 
-class VenvLockHashTests(unittest.TestCase):
-    def test_lock_hash_reflects_requirements_and_scenario(self):
-        from dev_project.host_config import Config
-        from dev_project.scenario_policy import ScenarioPolicy
+class BakedVenvFailureTests(unittest.TestCase):
+    def _assert_baked_init_fails(self, config: dict) -> None:
+        from check_virtualenv import VirtualenvChecker
 
-        base_dict = {
+        with self.assertRaises(SystemExit):
+            VirtualenvChecker(config)
+
+    def test_baked_missing_venv_dir_exits(self):
+        with tempfile.TemporaryDirectory() as parent:
+            missing_dir = str(Path(parent) / "no-venv")
+            self._assert_baked_init_fails(
+                _config(
+                    docker_venv_dir=missing_dir,
+                    venv_mode=constants.VENV_MODE_BAKED,
+                )
+            )
+
+    def test_baked_missing_lock_file_exits(self):
+        with tempfile.TemporaryDirectory() as venv_dir:
+            self._assert_baked_init_fails(
+                _config(
+                    docker_venv_dir=venv_dir,
+                    venv_mode=constants.VENV_MODE_BAKED,
+                )
+            )
+
+    def test_baked_lock_hash_mismatch_exits(self):
+        with tempfile.TemporaryDirectory() as venv_dir:
+            lock_path = Path(venv_dir) / ".lock"
+            lock_path.write_text("wrong-hash\n", encoding="utf-8")
+            self._assert_baked_init_fails(
+                _config(
+                    docker_venv_dir=venv_dir,
+                    venv_mode=constants.VENV_MODE_BAKED,
+                )
+            )
+
+
+class VenvLockHashTests(unittest.TestCase):
+    @staticmethod
+    def _base_config_dict() -> dict:
+        return {
             "python_version": "3.12",
             "distro_version": "12",
             "distro_name": "debian",
@@ -142,6 +155,12 @@ class VenvLockHashTests(unittest.TestCase):
             "odoo_version": "19.0",
             "arch": "amd64",
         }
+
+    def test_lock_hash_differs_when_normalized_requirements_differ(self):
+        from dev_project.host_config import Config
+        from dev_project.scenario_policy import ScenarioPolicy
+
+        base_dict = self._base_config_dict()
 
         dev_config = MagicMock()
         dev_config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
@@ -162,6 +181,26 @@ class VenvLockHashTests(unittest.TestCase):
         dev_hash = Config.compute_venv_lock_hash(dev_config)
         server_hash = Config.compute_venv_lock_hash(server_config)
         self.assertNotEqual(dev_hash, server_hash)
+
+    def test_lock_hash_differs_when_venv_mode_differs(self):
+        from dev_project.host_config import Config
+
+        base_dict = self._base_config_dict()
+        shared_requirements = ["pre-commit", "requests==2.31.0"]
+
+        dev_config = MagicMock()
+        dev_config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
+        dev_config.requirements_txt = list(shared_requirements)
+        dev_config.config_dict = dict(base_dict)
+
+        ci_config = MagicMock()
+        ci_config.user_env.odpm_scenario = constants.CI_SCENARIO
+        ci_config.requirements_txt = list(shared_requirements)
+        ci_config.config_dict = dict(base_dict)
+
+        dev_hash = Config.compute_venv_lock_hash(dev_config)
+        ci_hash = Config.compute_venv_lock_hash(ci_config)
+        self.assertNotEqual(dev_hash, ci_hash)
 
 
 if __name__ == "__main__":

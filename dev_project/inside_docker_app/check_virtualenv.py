@@ -46,14 +46,8 @@ _VENV_MODE_BAKED = (
 
 
 class VirtualenvChecker:
-    def __init__(self, config, baked=None):
-        if baked is not None:
-            fresh_mode = (
-                constants.VENV_MODE_FRESH if constants is not None else "fresh"
-            )
-            self.venv_mode = _VENV_MODE_BAKED if baked else fresh_mode
-        else:
-            self.venv_mode = resolve_venv_mode(config)
+    def __init__(self, config):
+        self.venv_mode = resolve_venv_mode(config)
         self.docker_venv_dir = config.get("docker_venv_dir", "")
         self.docker_project_dir = config["docker_project_dir"]
         self.requirements_txt = config.get("requirements_txt", [])
