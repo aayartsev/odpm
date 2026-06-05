@@ -1,11 +1,9 @@
-"""Backward-compatible re-export. Prefer ``dev_project.git``."""
-
-from .git import (
+from .link import HandleOdooProjectLink
+from .types import (
     FILE_SYSTEM_MARKER,
     GIT_MARKER,
     HTTP_MARKER,
     SSH_MARKER,
-    HandleOdooProjectLink,
     OdooProjectData,
 )
 

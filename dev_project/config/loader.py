@@ -7,7 +7,7 @@ import shutil
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
-from ..handle_odoo_project_git_link import (
+from ..git import (
     FILE_SYSTEM_MARKER,
     GIT_MARKER,
     HTTP_MARKER,

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from .. import constants, translations
 from ..dependency_resolver import read_oca_dependency_urls, resolve_dependency_urls
-from ..handle_odoo_project_git_link import HandleOdooProjectLink
+from ..git import HandleOdooProjectLink
 from ..inside_docker_app.logger import get_module_logger
 from .types import MappedPath, SymlinksSources
 

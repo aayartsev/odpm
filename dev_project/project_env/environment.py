@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 
 from .. import constants
-from ..handle_odoo_project_git_link import HandleOdooProjectLink
+from ..git import HandleOdooProjectLink
 from ..config import Config
 from ..inside_docker_app.utils import (
     delete_files_in_directory,
