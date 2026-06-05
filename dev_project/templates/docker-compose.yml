@@ -20,9 +20,11 @@ services:
     tty: true
     depends_on:
       - {DATABASE_NAME_INSTANCE}
+    working_dir: {DOCKER_PROJECT_DIR}
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONWARNINGS=ignore::DeprecationWarning:docutils
+{ODPM_CONFIG_ENV_LINE}{START_COMMAND_BLOCK}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib3; http=urllib3.PoolManager(); r=http.request('GET','http://localhost:{ODOO_PORT}/web'); exit(0 if r.status==200 else 1)"]
       interval: 10s
@@ -32,7 +34,6 @@ services:
       - {ODOO_PORT}:{ODOO_DOCKER_PORT}
       - {GEVENT_PORT}:{GEVENT_DOCKER_PORT}
 {DEV_EXTRA_PORTS}{ODOO_VOLUMES_BLOCK}
-    command: {START_STRING}
 
 volumes:
   postgres-data:

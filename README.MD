@@ -135,7 +135,7 @@ Use on a **local workstation** when you develop modules, debug code in VS Code, 
 
 | Area | Behavior |
 |------|----------|
-| **debugpy** | Odoo starts with `debugpy` listening inside the container (`0.0.0.0:5678`). The debugger port is published on the host (all interfaces, same as other published ports). |
+| **debugpy** | Enabled **inside the container** by `run_odoo` when `ODPM_SCENARIO=developer` (not in the compose `command` list). Listens on `0.0.0.0:5678`; the debugger port is published on the host. |
 | **PostgreSQL / debugger on host** | Published as `HOST_PORT:CONTAINER_PORT` (not restricted to loopback on the host). |
 | **Odoo / Gevent** | Published on the host on `ODOO_PORT` and `GEVENT_PORT`. |
 | **`dev_mode` in `user_settings.json`** | Applied when passed on the command line (e.g. assets reload). Suitable for daily development. |
@@ -164,7 +164,7 @@ For **building and running a baked image** on a CI runner: sources and venv live
 | **Odoo volumes** | No bind-mount of sources |
 | **debugpy / debugger port** | No (debugpy is not installed in `ci`) |
 | **Gevent 8072** | Yes (same as dev/server) |
-| **Entrypoint** | `python3 -m dev_project.inside_docker_app.main` (full `dev_project/` package in the image, `venv_mode=baked`) |
+| **Entrypoint** | Compose `command` is exec form: `python3 -m dev_project.inside_docker_app.run_odoo` with project config in `ODPM_CONFIG_B64` env (`venv_mode=baked`) |
 | **VS Code** | Not configured |
 
 Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker compose up`.
@@ -203,6 +203,8 @@ Requires Docker on the host. Skipped by default in `unittest discover` (fast CI)
 1. Edit `ODPM_SCENARIO` in `~/.odpm/.env` or in the project `.env`.
 2. Run odpm from the project directory (e.g. `python3 .../odpm.py --skip-start`) so `docker-compose.yml` is regenerated.
 3. Restart containers: `docker compose up -d` (or run odpm without `--skip-start`).
+
+Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_dir`, and `ODPM_CONFIG_B64` in `environment`. Do not edit these lines manually — regenerate with odpm after upgrading odpm or changing scenario/CLI flags.
 
 ### Recommendations for `server`
 

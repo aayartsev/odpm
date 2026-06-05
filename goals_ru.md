@@ -153,7 +153,7 @@ sequenceDiagram
 | Сейчас (odpm 4.0)                      | Идеал                                                               |
 | -------------------------------------- | ------------------------------------------------------------------- |
 | base64 JSON без `schema_version`       | Versioned schema + migration                                        |
-| `bash -c 'cd && ... && odoo-bin ...'`  | Structured entrypoint (argv list) или small wrapper script in image |
+| `bash -c 'cd && ... && odoo-bin ...'`  | ~~Structured entrypoint (argv list)~~ — `run_odoo` + exec form в compose |
 | dict в container checkers              | Typed `ContainerConfig` dataclass                                   |
 | Host user vs container `odoo` mismatch | Явные `HOST_USER` / `CONTAINER_USER`                                |
 

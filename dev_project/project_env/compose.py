@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
+from ..compose_command_render import (
+    render_compose_command_block,
+    render_odpm_config_env_line,
+)
 from ..inside_docker_app.logger import get_module_logger
 from ..project_dir_manager import template_needs_upgrade
 
@@ -66,6 +70,19 @@ class ComposeGenerator:
         legacy_mapped_volumes = (
             mapped_volumes if policy.include_odoo_volumes else "\n"
         )
+        compose_service = self.config.compose_service
+        if compose_service is None:
+            raise ValueError(
+                "config.compose_service is required; run StartStringBuilder.build() first"
+            )
+
+        odpm_config_env_line = ""
+        if compose_service.include_config_env:
+            odpm_config_env_line = render_odpm_config_env_line(
+                constants.ODPM_CONFIG_B64_ENV,
+                compose_service.config_b64,
+            )
+
         content = "".join(lines).format(
             ODOO_IMAGE=odoo_image,
             DEV_EXTRA_PORTS=dev_extra_ports,
@@ -73,7 +90,12 @@ class ComposeGenerator:
             ODOO_PORT=self.user_env.odoo_port or constants.ODOO_DEFAULT_PORT,
             POSTGRES_PORT_MAP=postgres_port_map,
             GEVENT_PORT=self.user_env.gevent_port or constants.GEVENT_DEFAULT_PORT,
-            START_STRING=self.config.start_string,
+            DOCKER_PROJECT_DIR=compose_service.working_dir,
+            ODPM_CONFIG_ENV_LINE=odpm_config_env_line,
+            START_COMMAND_BLOCK=render_compose_command_block(
+                compose_service.command
+            ),
+            START_STRING="",
             CURRENT_USER=constants.CURRENT_USER,
             CURRENT_PASSWORD=constants.CURRENT_PASSWORD,
             POSTGRES_ODOO_USER=constants.POSTGRES_ODOO_USER,

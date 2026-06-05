@@ -9,6 +9,7 @@ from dev_project import constants, translations
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.compose import ComposeGenerator
 from dev_project.project_env.types import MappedPath
+from dev_project.start_command import ComposeOdooService
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -36,7 +37,17 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         config.policy = policy
         config.odoo_image_name = "odoo-base:dev"
         config.odoo_ci_image_name = "odoo-ci:19"
-        config.start_string = '["python3", "odoo-bin"]'
+        config.compose_service = ComposeOdooService(
+            working_dir="/home/odoo",
+            config_b64="abc123",
+            command=[
+                "python3",
+                "-m",
+                constants.RUN_ODOO_ENTRYPOINT,
+                "--",
+                "/home/odoo/odoo/odoo-bin",
+            ],
+        )
         config.compose_file_version = "3.8"
         config.postgres_version = "16"
         config.postgres_data_local_storage = "/tmp/postgres-data"
@@ -85,6 +96,15 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertIn("127.0.0.1:15432:5432", content)
             self.assertNotIn("5678:5678", content)
             self.assertNotIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
+
+    def test_compose_uses_exec_form_without_bash_for_standard_path(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            content = self._compose_content(project_dir, constants.DEVELOPER_SCENARIO)
+            self.assertIn("working_dir: /home/odoo", content)
+            self.assertIn(f"{constants.ODPM_CONFIG_B64_ENV}=abc123", content)
+            self.assertIn(f"- {constants.RUN_ODOO_ENTRYPOINT}", content)
+            self.assertNotIn("bash -c", content)
+            self.assertIn("    command:", content)
 
     @patch("dev_project.project_env.compose.template_needs_upgrade", return_value=True)
     def test_ensure_compose_template_current_rebuilds_legacy_template(

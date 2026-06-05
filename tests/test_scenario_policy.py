@@ -40,7 +40,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertTrue(policy.allow_build_image)
         self.assertTrue(policy.skip_vscode)
-        self.assertEqual(policy.entrypoint_module, constants.DEV_ENTRYPOINT)
+        self.assertEqual(policy.entrypoint_module, constants.RUN_ODOO_ENTRYPOINT)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
         self.assertTrue(policy.venv_is_baked())
         self.assertFalse(policy.allows_venv_recreate())
@@ -291,64 +291,74 @@ class StartStringBuilderTests(unittest.TestCase):
     def test_ci_entrypoint_without_debugpy(self):
         config = self._make_config(constants.CI_SCENARIO)
         StartStringBuilder(config).build()
+        command = config.compose_service.command
         self.assertIn(
-            f"python3 -m {constants.DEV_ENTRYPOINT}",
-            config.start_string,
+            constants.RUN_ODOO_ENTRYPOINT,
+            command,
         )
-        self.assertNotIn("debugpy", config.start_string)
+        self.assertNotIn("debugpy", command)
 
     def test_server_entrypoint_without_debugpy(self):
         config = self._make_config(constants.SERVER_SCENARIO)
         StartStringBuilder(config).build()
+        command = config.compose_service.command
         self.assertIn(
-            f"python3 -m {constants.DEV_ENTRYPOINT}",
-            config.start_string,
+            constants.RUN_ODOO_ENTRYPOINT,
+            command,
         )
-        self.assertNotIn("debugpy", config.start_string)
+        self.assertNotIn("debugpy", command)
 
-    def test_developer_entrypoint_with_debugpy(self):
+    def test_developer_compose_uses_run_odoo_without_debugpy_in_command(self):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
         StartStringBuilder(config).build()
+        command = config.compose_service.command
         self.assertIn(
-            f"python3 -m {constants.DEV_ENTRYPOINT}",
-            config.start_string,
+            constants.RUN_ODOO_ENTRYPOINT,
+            command,
         )
-        self.assertIn("debugpy", config.start_string)
+        self.assertNotIn("debugpy", command)
 
     def test_start_command_includes_database_name(self):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.arguments.d = "my_project"
         StartStringBuilder(config).build()
-        self.assertIn("-d my_project", config.start_string)
+        self.assertIn("-d", config.compose_service.command)
+        self.assertIn("my_project", config.compose_service.command)
 
     def test_start_command_includes_translate_flags_for_odoo_19(self):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.odoo_version = "19.0"
         config.arguments.translate = "ru_RU"
         StartStringBuilder(config).build()
-        self.assertIn("--load-language ru_RU", config.start_string)
-        self.assertIn("--i18n-overwrite", config.start_string)
+        command = config.compose_service.command
+        self.assertIn("--load-language", command)
+        self.assertIn("ru_RU", command)
+        self.assertIn("--i18n-overwrite", command)
 
     def test_build_start_command_returns_structured_command(self):
         config = self._make_config(constants.CI_SCENARIO)
         command = StartStringBuilder(config).build_start_command()
-        self.assertEqual(command.entrypoint, ["python3", "-m", constants.DEV_ENTRYPOINT])
-        self.assertFalse(command.debugpy)
         self.assertTrue(command.odoo_bin[0].endswith("/odoo-bin"))
-        self.assertEqual(command.to_compose_shell(), StartStringBuilder(config).build())
+        service = command.to_compose_service()
+        self.assertIn(constants.RUN_ODOO_ENTRYPOINT, service.command)
+        self.assertEqual(StartStringBuilder(config).build(), config.start_string)
 
 
 class ComposeTemplateMigrationTests(unittest.TestCase):
     def test_deprecated_words_include_legacy_placeholders(self):
         self.assertIn("{DEBUGGER_PORT_MAP}", constants.DEPRECATED_WORDS)
         self.assertIn("{MAPPED_VOLUMES}", constants.DEPRECATED_WORDS)
+        self.assertIn("{START_STRING}", constants.DEPRECATED_WORDS)
 
     def test_program_template_uses_new_placeholders(self):
         template_path = DEV_PROJECT_DIR / "templates" / "docker-compose.yml"
         content = template_path.read_text()
         self.assertIn("{DEV_EXTRA_PORTS}", content)
         self.assertIn("{ODOO_VOLUMES_BLOCK}", content)
+        self.assertIn("{START_COMMAND_BLOCK}", content)
+        self.assertIn("{ODPM_CONFIG_ENV_LINE}", content)
         self.assertNotIn("{DEBUGGER_PORT_MAP}", content)
+        self.assertNotIn("{START_STRING}", content)
 
 
 if __name__ == "__main__":

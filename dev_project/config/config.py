@@ -11,6 +11,7 @@ from ..inside_docker_app.logger import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..protocols import SystemCheckerProtocol
 from ..scenario_policy import ScenarioPolicy, is_debugpy_requirement
+from ..start_command import ComposeOdooService
 from .loader import ConfigLoader
 from .odoo_conf import OdooConfBuilder
 from .paths import ConfigPaths
@@ -140,6 +141,7 @@ class Config:
         self.repo_odpm_json = ""
         self.dockerfile_path = ""
         self.config_json_loaded = False
+        self.compose_service: ComposeOdooService | None = None
         self.start_string = ""
         self.project_dir = self.pd_manager.project_path
         self.config_home_dir = self.pd_manager.home_config_dir

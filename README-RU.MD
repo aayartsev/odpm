@@ -135,7 +135,7 @@ odpm --init https://github.com/acme/demo.git --skip-start
 
 | Область | Поведение |
 |---------|-----------|
-| **debugpy** | Odoo запускается с `debugpy` внутри контейнера (`0.0.0.0:5678`). Порт отладчика пробрасывается на хост (на все интерфейсы, как и остальные опубликованные порты). |
+| **debugpy** | Включается **внутри контейнера** модулем `run_odoo` при `ODPM_SCENARIO=developer` (не в списке `command` в compose). Слушает `0.0.0.0:5678`; порт отладчика пробрасывается на хост. |
 | **PostgreSQL / отладчик на хосте** | Проброс `ПОРТ_ХОСТА:ПОРТ_КОНТЕЙНЕРА` без привязки только к loopback. |
 | **Odoo / Gevent** | Доступны на хосте на `ODOO_PORT` и `GEVENT_PORT`. |
 | **`dev_mode` в `user_settings.json`** | Подключается при передаче через CLI. Подходит для ежедневной разработки. |
@@ -164,7 +164,7 @@ odpm --init https://github.com/acme/demo.git --skip-start
 | **Volumes odoo** | Нет bind-mount исходников |
 | **debugpy / debugger port** | Нет (debugpy не устанавливается в `ci`) |
 | **Gevent 8072** | Да (как в dev/server) |
-| **Entrypoint** | `python3 -m dev_project.inside_docker_app.main` (полный пакет `dev_project/` в образе, `venv_mode=baked`) |
+| **Entrypoint** | В compose exec form: `python3 -m dev_project.inside_docker_app.run_odoo`, конфиг проекта в env `ODPM_CONFIG_B64` (`venv_mode=baked`) |
 | **VS Code** | Не настраивается |
 
 Типично на runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, затем `docker compose up`.
@@ -203,6 +203,8 @@ ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_imag
 1. Измените `ODPM_SCENARIO` в `~/.odpm/.env` или в `.env` проекта.
 2. Запустите odpm из каталога проекта (например `python3 .../odpm.py --skip-start`), чтобы пересоздать `docker-compose.yml`.
 3. Перезапустите контейнеры: `docker compose up -d` (или запустите odpm без `--skip-start`).
+
+Сгенерированный `docker-compose.yml` использует exec form `command:` (YAML-список), `working_dir` и `ODPM_CONFIG_B64` в `environment`. Не редактируйте эти строки вручную — пересоздавайте через odpm после обновления odpm или смены сценария/флагов CLI.
 
 ### Рекомендации для `server`
 

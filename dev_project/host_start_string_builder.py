@@ -1,4 +1,5 @@
 import base64
+import json
 import pathlib
 import re
 import warnings
@@ -69,9 +70,10 @@ class StartStringBuilder:
 
     def build(self) -> str:
         start_command = self.build_start_command()
-        start_string = start_command.to_compose_shell()
-        self.config.start_string = start_string
-        return start_string
+        compose_service = start_command.to_compose_service()
+        self.config.compose_service = compose_service
+        self.config.start_string = json.dumps(compose_service.command)
+        return self.config.start_string
 
     def build_start_command(self) -> StartCommand:
         self.config.generate_odoo_conf_docker_data()
@@ -92,6 +94,7 @@ class StartStringBuilder:
             return StartCommand(
                 kind="pip_install",
                 pip_install_script=pip_install_command,
+                docker_project_dir=self.config.docker_project_dir,
             )
 
         if self.args.start_precommit:
@@ -103,17 +106,15 @@ class StartStringBuilder:
             return StartCommand(
                 kind="pre_commit",
                 pre_commit_script=pre_commit_script,
+                docker_project_dir=self.config.docker_project_dir,
             )
 
         if self.args.export_po_files:
             return StartCommand(
                 kind="standard",
-                entrypoint=self._entrypoint_argv(),
                 config_b64=self.get_base64_string_config(),
                 docker_project_dir=self.config.docker_project_dir,
-                docker_venv_dir=self.config.docker_venv_dir,
-                debugpy=self.policy.include_debugpy,
-                odoo_shell_override="exit 0",
+                bootstrap_only=True,
             )
 
         if cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM in self.args:
@@ -127,27 +128,18 @@ class StartStringBuilder:
                 odoo_bin.extend(["-t", self.args.scaffold_template_name])
             return StartCommand(
                 kind="standard",
-                entrypoint=self._entrypoint_argv(),
                 config_b64=self.get_base64_string_config(),
                 docker_project_dir=self.config.docker_project_dir,
-                docker_venv_dir=self.config.docker_venv_dir,
-                debugpy=self.policy.include_debugpy,
                 odoo_bin=odoo_bin,
             )
 
         odoo_bin = self._build_odoo_bin_argv(odoo_bin_path)
         return StartCommand(
             kind="standard",
-            entrypoint=self._entrypoint_argv(),
             config_b64=self.get_base64_string_config(),
             docker_project_dir=self.config.docker_project_dir,
-            docker_venv_dir=self.config.docker_venv_dir,
-            debugpy=self.policy.include_debugpy,
             odoo_bin=odoo_bin,
         )
-
-    def _entrypoint_argv(self) -> list[str]:
-        return ["python3", "-m", self.policy.entrypoint_module]
 
     def get_base64_string_config(self) -> str:
         data = self.config.config_to_json()
