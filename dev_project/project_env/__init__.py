@@ -1,7 +1,5 @@
-"""Backward-compatible re-export. Prefer ``dev_project.project_env``."""
-
-from .project_env import (
-    CreateProjectEnvironment,
+from .environment import CreateProjectEnvironment
+from .types import (
     DebuggerPathRecord,
     DebuggerUnit,
     MappedPath,

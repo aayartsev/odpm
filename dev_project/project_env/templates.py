@@ -4,11 +4,11 @@ import json
 import os
 from typing import TYPE_CHECKING
 
-from . import constants, translations
-from .project_env_types import DebuggerPathRecord, DebuggerUnit
+from .. import constants, translations
+from .types import DebuggerPathRecord, DebuggerUnit
 
 if TYPE_CHECKING:
-    from .host_project_env import CreateProjectEnvironment
+    from .environment import CreateProjectEnvironment
 
 
 class ProjectTemplates:

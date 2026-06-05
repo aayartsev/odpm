@@ -6,11 +6,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants, translations
-from dev_project.base_image_builder import BaseImageBuilder
-from dev_project.ci_image_builder import CiImageBuilder
-from dev_project.compose_generator import ComposeGenerator
 from dev_project.errors import PipelineError
-from dev_project.host_project_env import CreateProjectEnvironment
+from dev_project.project_env import CreateProjectEnvironment
+from dev_project.project_env.base_image import BaseImageBuilder
+from dev_project.project_env.ci_image import CiImageBuilder
+from dev_project.project_env.compose import ComposeGenerator
 from dev_project.project_dir_manager import ProjectDirManager
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -123,15 +123,15 @@ class BaseImageBuilderTests(unittest.TestCase):
         env.config = config
         return BaseImageBuilder(env)
 
-    @patch("dev_project.base_image_builder.run_checked")
+    @patch("dev_project.project_env.base_image.run_checked")
     def test_base_image_exists_when_repository_matches(self, mock_checked):
         mock_checked.return_value = MagicMock(
             stdout='{"Repository":"odoo-base:test","Tag":"latest"}\n'
         )
         self.assertTrue(self._builder().base_image_exists())
 
-    @patch("dev_project.base_image_builder.run_logged", return_value=1)
-    @patch("dev_project.base_image_builder.os.chdir")
+    @patch("dev_project.project_env.base_image.run_logged", return_value=1)
+    @patch("dev_project.project_env.base_image.os.chdir")
     def test_build_base_image_raises_pipeline_error_on_failure(
         self, _mock_chdir, _mock_logged
     ):
@@ -162,7 +162,7 @@ class CiImageBuilderPipelineTests(unittest.TestCase):
         env.mapped_folders = []
         return CiImageBuilder(env)
 
-    @patch("dev_project.ci_image_builder.run_logged", return_value=2)
+    @patch("dev_project.project_env.ci_image.run_logged", return_value=2)
     @patch.object(CiImageBuilder, "generate_ci_dockerfile", return_value="/ctx/Dockerfile.ci")
     @patch.object(CiImageBuilder, "prepare_ci_build_context")
     def test_build_ci_image_raises_pipeline_error_on_failure(

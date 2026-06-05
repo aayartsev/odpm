@@ -4,12 +4,12 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from . import constants, translations
-from .inside_docker_app.logger import get_module_logger
-from .project_dir_manager import template_needs_upgrade
+from .. import constants, translations
+from ..inside_docker_app.logger import get_module_logger
+from ..project_dir_manager import template_needs_upgrade
 
 if TYPE_CHECKING:
-    from .host_project_env import CreateProjectEnvironment
+    from .environment import CreateProjectEnvironment
 
 _logger = get_module_logger(__name__)
 

@@ -202,7 +202,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
 
         env = self._make_env(config)
         with patch(
-            "dev_project.project_links._logger"
+            "dev_project.project_env.links._logger"
         ) as mock_logger:
             resolved = env._resolve_dependencies()
 

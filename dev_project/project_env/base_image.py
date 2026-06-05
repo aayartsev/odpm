@@ -4,13 +4,13 @@ import json
 import os
 from typing import TYPE_CHECKING
 
-from . import constants, translations
-from .errors import PipelineError
-from .inside_docker_app.logger import get_module_logger
-from .subprocess_runner import run_checked, run_logged
+from .. import constants, translations
+from ..errors import PipelineError
+from ..inside_docker_app.logger import get_module_logger
+from ..subprocess_runner import run_checked, run_logged
 
 if TYPE_CHECKING:
-    from .host_project_env import CreateProjectEnvironment
+    from .environment import CreateProjectEnvironment
 
 _logger = get_module_logger(__name__)
 
