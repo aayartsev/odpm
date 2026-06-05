@@ -111,6 +111,7 @@ class ProjectDirManager:
             self.project_path, constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH
         )
         self.rebuild_docker_compose_template()
+        self.rebuild_dockerignore_template()
         self.rebuild_odoo_config_file_template()
         self.rebuild_vscode_settings_json_file_template()
 
@@ -135,6 +136,20 @@ class ProjectDirManager:
         self.generate_project_template_files(
             self.program_docker_compose_template_path,
             self.project_docker_compose_template_path,
+        )
+
+    def rebuild_dockerignore_template(self):
+        program_dockerignore_template_path = os.path.join(
+            self.program_dir_path,
+            constants.PROGRAM_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
+        )
+        project_dockerignore_template_path = os.path.join(
+            self.project_path,
+            constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
+        )
+        self.generate_project_template_files(
+            program_dockerignore_template_path,
+            project_dockerignore_template_path,
         )
 
     def rebuild_odoo_config_file_template(self):

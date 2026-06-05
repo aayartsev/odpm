@@ -621,9 +621,9 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             self.config.odoo_config_data,
             os.path.join(context_dir, constants.ODOO_CONF_NAME),
         )
-        dockerignore_path = os.path.join(context_dir, ".dockerignore")
+        dockerignore_path = os.path.join(context_dir, constants.DOCKERIGNORE)
         with open(dockerignore_path, "w") as writer:
-            writer.write(constants.CI_CONTEXT_DOCKERIGNORE)
+            writer.write(self._read_ci_dockerignore_template())
 
         self._prepare_ci_bake_files(context_dir)
 
@@ -640,14 +640,28 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
             constants.CI_VENV_INSTALL_JSON,
         )
 
-    def ensure_project_dockerignore(self) -> None:
-        dockerignore_path = os.path.join(self.config.project_dir, ".dockerignore")
+    def _read_ci_dockerignore_template(self) -> str:
+        template_path = os.path.join(
+            self.config.program_dir,
+            constants.PROGRAM_CI_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
+        )
+        with open(template_path) as reader:
+            return reader.read()
+
+    def generate_dockerignore(self) -> None:
+        with open(self.config.project_dockerignore_template_path) as reader:
+            content = reader.read()
+        content = content.replace(
+            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
+            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+        )
+        dockerignore_path = os.path.join(self.config.project_dir, constants.DOCKERIGNORE)
         with open(dockerignore_path, "w") as writer:
-            writer.write(constants.PROJECT_DOCKERIGNORE)
+            writer.write(content)
 
     def build_base_image(self) -> None:
         os.chdir(self.config.project_dir)
-        self.ensure_project_dockerignore()
+        self.generate_dockerignore()
         subprocess.run(
             [
                 "docker",

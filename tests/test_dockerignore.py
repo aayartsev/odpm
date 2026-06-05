@@ -1,25 +1,64 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from dev_project import constants
+from dev_project import constants, translations
 from dev_project.host_project_env import CreateProjectEnvironment
+from dev_project.project_dir_manager import ProjectDirManager
 
 
 class ProjectDockerignoreTests(unittest.TestCase):
-    def test_ensure_project_dockerignore_writes_managed_file(self):
+    def _program_dir(self) -> str:
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    def _make_manager(self, project_dir: str) -> ProjectDirManager:
+        os.makedirs(
+            os.path.join(project_dir, constants.PROJECT_SERVICE_DIRECTORY),
+            exist_ok=True,
+        )
+        return ProjectDirManager(
+            project_dir,
+            MagicMock(init=False, odoo_git_link=None),
+            self._program_dir(),
+        )
+
+    def test_rebuild_dockerignore_template_copies_program_template(self):
         with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            manager.rebuild_dockerignore_template()
+            project_template = Path(project_dir) / constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH
+            self.assertTrue(project_template.is_file())
+            self.assertIn(
+                translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
+                project_template.read_text(encoding="utf-8"),
+            )
+
+    def test_generate_dockerignore_writes_managed_file(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            manager.rebuild_dockerignore_template()
+
             config = MagicMock()
             config.project_dir = project_dir
-            env = CreateProjectEnvironment(config)
-            env.ensure_project_dockerignore()
-            dockerignore = Path(project_dir) / ".dockerignore"
-            self.assertTrue(dockerignore.is_file())
-            self.assertEqual(
-                dockerignore.read_text(encoding="utf-8"),
-                constants.PROJECT_DOCKERIGNORE,
+            config.project_dockerignore_template_path = os.path.join(
+                project_dir,
+                constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
             )
+            env = CreateProjectEnvironment(config)
+            env.generate_dockerignore()
+
+            dockerignore = Path(project_dir) / constants.DOCKERIGNORE
+            self.assertTrue(dockerignore.is_file())
+            content = dockerignore.read_text(encoding="utf-8")
+            self.assertIn(
+                translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+                content,
+            )
+            self.assertIn("**/.git", content)
+            self.assertIn(".venv", content)
+            self.assertIn(".odpm/ci-build-context", content)
 
 
 if __name__ == "__main__":

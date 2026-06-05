@@ -31,18 +31,17 @@ CI_BAKE_PYTHON_FILES = (
 )
 CI_DOCKERFILE = "Dockerfile.ci"
 CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
-CI_CONTEXT_DOCKERIGNORE = """**/.git
-**/__pycache__
-*.pyc
-**/node_modules
-"""
-PROJECT_DOCKERIGNORE = """**/.git
-**/__pycache__
-*.pyc
-**/node_modules
-.venv
-.odpm/ci-build-context
-"""
+DOCKERIGNORE = ".dockerignore"
+DOCKERIGNORE_TEMPLATE = "dockerignore"
+PROGRAM_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", DOCKERIGNORE_TEMPLATE
+)
+PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, DOCKERIGNORE_TEMPLATE
+)
+PROGRAM_CI_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "ci_dockerignore"
+)
 ENV_FILE_NAME = ".env"
 VENV_DIR_NAME = ".venv"
 DOCKERFILE = "Dockerfile"

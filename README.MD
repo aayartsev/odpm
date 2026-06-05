@@ -49,6 +49,7 @@ The utility will try to prepare your computer:
 1. The cloning process of the main odoo repository will be started. This takes a very significant time of 40 minutes or more, so be patient
 1. The repository of the developed project will be cloned, or the directory of the local file system will be connected if a path to the file system was specified.
 1. A `Dockerfile` will be automatically generated for the specified `python` and `debian` version.
+1. A `.dockerignore` in the project root is generated from the `.odpm/dockerignore` template (Docker build context).
 1. After this, the automatic build of the `Docker image` will start if it has not been built before.
 1. The `docker-compose.yml` file will be automatically generated
 1. Configuration files will be generated for VS Code for the debugger to work correctly
@@ -73,6 +74,10 @@ After that, you can open the address `http://127.0.0.1:8069` in the browser and 
 ## Short summary
 
 This app build environment for your project. The project itself is a directory that is specified in a parameter `developing_project` of `user_settings.json` file or as key of `--init` param.
+
+### `.dockerignore` template
+
+Edit Docker build exclusions in `.odpm/dockerignore` (copied from odpm when the project is initialized). On every odpm run, the root `.dockerignore` is regenerated from that template — do not edit the root file by hand. To reset the template to odpm defaults, delete `.odpm/dockerignore` and run odpm again.
 
 ## Parameters in .env file:
 The system will try to create a `.odpm` directory in the user's home directory of your operating system. Inside it the system will place the `.env` file. If you are launching the application for the first time, it will ask a question for each item described below in this file and offer default values. If you don't know what to answer, just press `Enter`. If you place the `.env` file in the project directory, the program will consider it a priority and try to take values from the file inside the project.
@@ -252,7 +257,7 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 
 | Parameter | Description |
 |-----------|-------------|
-| `--skip-start` | Regenerate `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. |
+| `--skip-start` | Regenerate `Dockerfile`, `.dockerignore`, `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. |
 | `--version` | Print odpm version and exit. |
 | `--config-base64-data STRING` | Decode a base64 JSON config string (advanced / automation). |
 

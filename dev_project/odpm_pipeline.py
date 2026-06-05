@@ -62,6 +62,7 @@ class OdpmPipeline:
         config = self._config()
         project_env.map_folders()
         project_env.generate_dockerfile()
+        project_env.generate_dockerignore()
         system_checker.check_docker()
         system_checker.check_running_containers()
         project_env.generate_config_file()
