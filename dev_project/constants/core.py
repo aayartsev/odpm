@@ -2,74 +2,6 @@ import os
 import platform
 
 ARCH = str(platform.machine()).lower()
-DEV_PROJECT_DIR = "dev_project"
-CONFIG_FILE_NAME = "config.json"
-PLATFORM_NAME = "odoo"
-
-PROJECT_NAME = "odpm"
-PROJECT_CONFIG_FILE_NAME = f"{PROJECT_NAME.lower()}.json"
-USER_CONFIG_FILE_NAME = "user_settings.json"
-CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
-PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
-CI_BUILD_CONTEXT_DIR = os.path.join(PROJECT_SERVICE_DIRECTORY, "ci-build-context")
-CI_BAKE_DIR = "bake"
-CI_VENV_INSTALL_JSON = "venv_install.json"
-CI_BAKE_ENTRYPOINT = "bake.inside_docker_app.main"
-DEV_ENTRYPOINT = "dev_project.inside_docker_app.main"
-CI_BAKE_PYTHON_FILES = (
-    "constants.py",
-    "bake_venv.py",
-    os.path.join("inside_docker_app", "main.py"),
-    os.path.join("inside_docker_app", "container_bootstrap.py"),
-    os.path.join("inside_docker_app", "check_odoo.py"),
-    os.path.join("inside_docker_app", "check_virtualenv.py"),
-    os.path.join("inside_docker_app", "postgres_waiter.py"),
-    os.path.join("inside_docker_app", "utils.py"),
-    os.path.join("inside_docker_app", "logger.py"),
-    os.path.join("inside_docker_app", "parse_args.py"),
-    os.path.join("inside_docker_app", "cli_params.py"),
-)
-CI_DOCKERFILE = "Dockerfile.ci"
-CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
-DOCKERIGNORE = ".dockerignore"
-DOCKERIGNORE_TEMPLATE = "dockerignore"
-PROGRAM_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
-    DEV_PROJECT_DIR, "templates", DOCKERIGNORE_TEMPLATE
-)
-PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
-    PROJECT_SERVICE_DIRECTORY, DOCKERIGNORE_TEMPLATE
-)
-PROGRAM_CI_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
-    DEV_PROJECT_DIR, "templates", "ci_dockerignore"
-)
-DOCKERIGNORE_TEMPLATE_MARKERS = [".odpm/ci-build-context"]
-DOCKERFILE_TEMPLATE_MARKERS = ["{PYTHON_VERSION}"]
-COMPOSE_TEMPLATE_MARKERS = ["{DEV_EXTRA_PORTS}"]
-ENV_FILE_NAME = ".env"
-VENV_DIR_NAME = ".venv"
-DOCKERFILE = "Dockerfile"
-ODOO_CONF_NAME = f"{PLATFORM_NAME}.conf"
-
-PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
-    DEV_PROJECT_DIR, "templates", "docker-compose.yml"
-)
-PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
-    PROJECT_SERVICE_DIRECTORY, "docker-compose.yml"
-)
-
-PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
-    DEV_PROJECT_DIR, "templates", "dev_odoo_docker_config_file.conf"
-)
-PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
-    PROJECT_SERVICE_DIRECTORY, "dev_odoo_docker_config_file.conf"
-)
-
-PROGRAM_VSCODE_SETTINGS_TEMPLATE = os.path.join(
-    DEV_PROJECT_DIR, "templates", "vscode_settings.json"
-)
-PROJECT_VSCODE_SETTINGS_TEMPLATE = os.path.join(
-    PROJECT_SERVICE_DIRECTORY, "vscode_settings.json"
-)
 
 DATABASE_NAME_INSTANCE = "db"
 DEBUGGER_DEFAULT_PORT = 5678
@@ -113,9 +45,6 @@ POSTGRES_ODOO_USER = CURRENT_USER
 POSTGRES_ODOO_PASS = CURRENT_PASSWORD
 POSTGRES_ODOO_HOST = DATABASE_NAME_INSTANCE
 POSTGRES_ODOO_PORT = POSTGRES_DOCKER_PORT
-
-NO_LOG_PREFIX = "--no-log-prefix"
-DOCKER_COMPOSE_DEFAULT_FILE_VERSION = "3.3"
 
 DOCKER_WORKING_MESSAGE = "Version"
 GIT_WORKING_MESSAGE = "git version"
@@ -244,31 +173,6 @@ DEFAULT_LOCALE = "en_US"
 
 MODULE_FILES = ("__manifest__.py", "__openerp__.py", "__odoo__.py", "__terp__.py")
 
-DEPRECATED_WORDS = [
-    "debian_version",
-    "debian_name",
-    "{DEBUGGER_PORT}:{DEBUGGER_DOCKER_PORT}",
-    "{POSTGRES_PORT}:{POSTGRES_DOCKER_PORT}",
-    "{DEBUGGER_PORT_MAP}",
-    "{MAPPED_VOLUMES}",
-]
-#  Scenarios for odpm usage
-DEVELOPER_SCENARIO = "developer"
-SERVER_SCENARIO = "server"
-CI_SCENARIO = "ci"
-ODPM_SCENARIOS = {
-    1: DEVELOPER_SCENARIO,
-    2: SERVER_SCENARIO,
-    3: CI_SCENARIO,
-}
-ODPM_SCENARIO_VALUES = frozenset(ODPM_SCENARIOS.values())
-DEFAULT_ODPM_SCENARIO = DEVELOPER_SCENARIO
-VENV_MODE_FRESH = "fresh"
-VENV_MODE_BAKED = "baked"
-VENV_MODE_VALUES = frozenset((VENV_MODE_FRESH, VENV_MODE_BAKED))
-DEFAULT_ODPM_VERSION = "3.0"
-ODPM_VERSION = "4.0"
-
 ####
 # Default user_settings.json values
 ####
@@ -301,13 +205,6 @@ YADISK_API_ENDPOINT = (
 )
 
 FREE_SPACE_FOR_USAGE = 2.0
-
-DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
-LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]
-
-DEPENDENCIES_DIR = "dependencies"
-
-POSTGRES_LOCAL_STORAGE_DIR = "data/postgresql/var/lib/postgresql/data"
 
 VENV_LOCK_KEYS = (
     "python_version",

@@ -222,7 +222,9 @@ class WriteCiBakeDirTests(unittest.TestCase):
                 context_dir, spec, str(DEV_PROJECT_DIR)
             )
             self.assertTrue(os.path.isfile(os.path.join(bake_dir, "__init__.py")))
-            self.assertTrue(os.path.isfile(os.path.join(bake_dir, "constants.py")))
+            self.assertTrue(
+                os.path.isfile(os.path.join(bake_dir, "constants", "__init__.py"))
+            )
             self.assertTrue(os.path.isfile(os.path.join(bake_dir, "bake_venv.py")))
             self.assertTrue(
                 os.path.isfile(
