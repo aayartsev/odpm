@@ -199,6 +199,11 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
     def _get_oca_urls_for_dependency(self, dependency_string: str) -> list[str]:
         project = self.config.handle_git_link(dependency_string)
         if not project.is_cloned:
+            _logger.warning(
+                translations.get_translation(
+                    translations.OCA_DEPENDENCY_NOT_CLONED
+                ).format(DEPENDENCY_URL=dependency_string)
+            )
             return []
         self.checkout_project(project)
         return read_oca_dependency_urls(project.project_path)

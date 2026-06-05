@@ -93,6 +93,10 @@ RUNNING_AS_ROOT_DISABLED = """Running with sudo/root privileges is not permitted
 BUILD_IMAGE_REQUIRES_CI_SCENARIO = (
     "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 )
+OCA_DEPENDENCY_NOT_CLONED = (
+    "OCA dependency {DEPENDENCY_URL} is not available locally; "
+    "transitive oca_dependencies.txt entries will be skipped"
+)
 PROJECT_PATH_IN_START_DIR_PATH = """Directory {START_DIR_PATH} is not a valid odpm project directory. Please run "cd {PROJECT_PATH}" to navigate to the correct location."""
 
 translations = {
@@ -235,6 +239,12 @@ translations = {
     RUNNING_AS_ROOT_DISABLED: {"ru_RU": "Запуск скрипта от root/sudo запрещен"},
     BUILD_IMAGE_REQUIRES_CI_SCENARIO: {
         "ru_RU": "--build-image доступен только при ODPM_SCENARIO=ci в .env",
+    },
+    OCA_DEPENDENCY_NOT_CLONED: {
+        "ru_RU": (
+            "OCA-зависимость {DEPENDENCY_URL} недоступна локально; "
+            "транзитивные записи из oca_dependencies.txt будут пропущены"
+        ),
     },
     PROJECT_PATH_IN_START_DIR_PATH: {
         "ru_RU": """Каталог {START_DIR_PATH} не является odpm катлогом, пожалуйста выполните команду cd {PROJECT_PATH} для перехода в нужный вам каталог"""

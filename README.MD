@@ -186,7 +186,7 @@ Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker comp
 - `dev_mode` - `type: String`. You can specify comma-separated [parameters for developers](https://www.oovoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev). See the official documentation for your version of odoo
 - `db_manager_password` - `type: String`. password for the database manager
 - `sql_queries` - `type: List`. Contains a list of strings, each of which is an SQL script that will be executed when using the command line parameter `--sql-execute`
-- `use_oca_dependencies` - added an experimental feature that allows automatically loading all dependencies specified in the `"oca_dependencies.txt"` file. The default value is `false`
+- `use_oca_dependencies` - experimental: automatically resolves dependencies from `"oca_dependencies.txt"` (including transitive OCA repos from your developing project and from each dependency) in a **single odpm run**—no second run is required. The default value is `false`
 - `create_module_links` - an experimental feature that adds soft links for all modules involved in the project to the `odoo/odoo/addons` directory. This allows the language server to automatically resolve import paths. The default value is `false`.
 
 ## Parameters in odpm.json:
