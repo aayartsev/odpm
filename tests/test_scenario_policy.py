@@ -230,7 +230,7 @@ class WriteCiVenvInstallSpecTests(unittest.TestCase):
             self.assertEqual(payload["project_dir"], "/home/odoo")
             self.assertFalse(os.path.exists(os.path.join(context_dir, "bake")))
 
-    def test_copy_dev_project_for_ci_places_full_package(self):
+    def test_copy_dev_project_for_ci_places_runtime_package_without_templates(self):
         with tempfile.TemporaryDirectory() as context_dir:
             config = MagicMock()
             config.program_dir = str(PROJECT_ROOT)
@@ -245,6 +245,9 @@ class WriteCiVenvInstallSpecTests(unittest.TestCase):
             self.assertTrue(
                 os.path.isfile(os.path.join(dest, "inside_docker_app", "main.py"))
             )
+            self.assertFalse(os.path.isdir(os.path.join(dest, "templates")))
+            self.assertFalse(os.path.isdir(os.path.join(dest, "i18n")))
+            self.assertFalse(os.path.isdir(os.path.join(dest, "plugins")))
             main_path = os.path.join(dest, "inside_docker_app", "main.py")
             with open(main_path) as main_file:
                 main_source = main_file.read()

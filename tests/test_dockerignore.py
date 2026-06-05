@@ -89,6 +89,8 @@ class ProjectDockerignoreTests(unittest.TestCase):
         env = CreateProjectEnvironment(config)
         content = env._read_ci_dockerignore_template()
         self.assertIn("**/.git", content)
+        self.assertIn("dev_project/templates/**", content)
+        self.assertIn("dev_project/i18n/**", content)
         self.assertNotIn(".venv", content)
         self.assertNotIn(".odpm/ci-build-context", content)
 
@@ -121,6 +123,17 @@ class ProjectDockerignoreTests(unittest.TestCase):
             content = dockerignore.read_text(encoding="utf-8")
             self.assertIn("**/.git", content)
             self.assertNotIn(".venv", content)
+
+            dev_project_dest = Path(config.ci_build_context_dir) / "dev_project"
+            self.assertTrue((dev_project_dest / "bake_venv.py").is_file())
+            self.assertTrue(
+                (dev_project_dest / "inside_docker_app" / "main.py").is_file()
+            )
+            self.assertFalse((dev_project_dest / "templates").exists())
+            self.assertFalse((dev_project_dest / "i18n").exists())
+            self.assertTrue(
+                (Path(config.ci_build_context_dir) / constants.CI_VENV_INSTALL_JSON).is_file()
+            )
 
 
 if __name__ == "__main__":

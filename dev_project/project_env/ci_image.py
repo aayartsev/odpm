@@ -62,6 +62,14 @@ class CiImageBuilder:
         ignored.update(name for name in names if name.endswith(".pyc"))
         return ignored
 
+    def _ci_dev_project_copytree_ignore(self, _directory: str, names: list) -> set:
+        ignored = self._ci_copytree_ignore(_directory, names)
+        ignored.update(
+            name for name in names if name in constants.CI_DEV_PROJECT_COPY_IGNORE_DIRS
+        )
+        ignored.update(name for name in names if name.endswith(".md"))
+        return ignored
+
     def _copy_dev_project_for_ci(self, context_dir: str) -> None:
         dev_project_dir = os.path.join(
             self.config.program_dir, constants.DEV_PROJECT_DIR
@@ -75,7 +83,7 @@ class CiImageBuilder:
             dev_project_dir,
             dest_dir,
             dirs_exist_ok=True,
-            ignore=self._ci_copytree_ignore,
+            ignore=self._ci_dev_project_copytree_ignore,
         )
 
     def _build_ci_venv_install_spec(self) -> VenvInstallSpec:

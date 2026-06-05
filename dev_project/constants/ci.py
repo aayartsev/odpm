@@ -8,3 +8,7 @@ CI_VENV_INSTALL_JSON = os.path.join(CI_VENV_SPEC_DIR, "venv_install.json")
 DEV_ENTRYPOINT = "dev_project.inside_docker_app.main"
 CI_DOCKERFILE = "Dockerfile.ci"
 CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
+# Subdirectories omitted when copying dev_project/ into CI build context.
+CI_DEV_PROJECT_COPY_IGNORE_DIRS = frozenset(
+    {"templates", "i18n", "__pycache__", ".git", "plugins"}
+)
