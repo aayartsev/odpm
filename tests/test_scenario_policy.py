@@ -68,6 +68,7 @@ class ScenarioPolicyTests(unittest.TestCase):
     def test_config_to_json_includes_venv_mode(self):
         config = MagicMock()
         config.user_env.odpm_scenario = constants.SERVER_SCENARIO
+        config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
         config.docker_odoo_dir = "/home/odoo/odoo"
         config.odoo_config_data = {}
         config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
@@ -242,6 +243,7 @@ class StartStringBuilderTests(unittest.TestCase):
     def _make_config(self, scenario: str):
         config = MagicMock()
         config.user_env.odpm_scenario = scenario
+        config.policy = ScenarioPolicy.from_scenario(scenario)
         config.arguments = Namespace(
             d=None,
             translate=None,

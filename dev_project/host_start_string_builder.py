@@ -5,9 +5,6 @@ import re
 from . import constants
 from .host_config import Config
 from .inside_docker_app import cli_params
-from .scenario_policy import ScenarioPolicy
-
-
 class ArgumentParser:
     def __init__(self, args_list=[]) -> None:
         self.args_list = args_list
@@ -57,7 +54,7 @@ class StartStringBuilder:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.args = self.config.arguments
-        self.policy = ScenarioPolicy.from_scenario(config.user_env.odpm_scenario)
+        self.policy = config.policy
         self.config.start_string = self.get_start_string()
 
     def get_base64_string_config(self) -> str:

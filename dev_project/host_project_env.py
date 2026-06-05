@@ -20,8 +20,6 @@ from .inside_docker_app.utils import (
 )
 from .dependency_resolver import read_oca_dependency_urls, resolve_dependency_urls
 from .protocols import CreateProjectEnvironmentProtocol
-from .scenario_policy import ScenarioPolicy
-
 _logger = get_module_logger(__name__)
 _ = translations._
 
@@ -288,7 +286,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 path = Path(mapped_volume.local)
                 path.mkdir(parents=True)
 
-        policy = ScenarioPolicy.from_scenario(self.config.user_env.odpm_scenario)
+        policy = self.config.policy
         odoo_image = getattr(self.config, policy.odoo_image_attr)
 
         POSTGRES_PORT = self.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT

@@ -163,6 +163,7 @@ class VenvLockHashTests(unittest.TestCase):
 
         dev_config = MagicMock()
         dev_config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
+        dev_config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         dev_config.requirements_txt = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         ).normalize_requirements(["pre-commit"], python_version="3.12")
@@ -170,6 +171,7 @@ class VenvLockHashTests(unittest.TestCase):
 
         server_config = MagicMock()
         server_config.user_env.odpm_scenario = constants.SERVER_SCENARIO
+        server_config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
         server_config.requirements_txt = ScenarioPolicy.from_scenario(
             constants.SERVER_SCENARIO
         ).normalize_requirements(
@@ -183,17 +185,20 @@ class VenvLockHashTests(unittest.TestCase):
 
     def test_lock_hash_differs_when_venv_mode_differs(self):
         from dev_project.host_config import Config
+        from dev_project.scenario_policy import ScenarioPolicy
 
         base_dict = self._base_config_dict()
         shared_requirements = ["pre-commit", "requests==2.31.0"]
 
         dev_config = MagicMock()
         dev_config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
+        dev_config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         dev_config.requirements_txt = list(shared_requirements)
         dev_config.config_dict = dict(base_dict)
 
         ci_config = MagicMock()
         ci_config.user_env.odpm_scenario = constants.CI_SCENARIO
+        ci_config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         ci_config.requirements_txt = list(shared_requirements)
         ci_config.config_dict = dict(base_dict)
 

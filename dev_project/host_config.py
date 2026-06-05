@@ -118,6 +118,7 @@ class Config:
         self.config_home_dir = self.pd_manager.home_config_dir
         self.no_log_prefix = False
         self.user_env = user_env
+        self.policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
         self.platform_name = constants.PLATFORM_NAME
 
         self.postgres_data_local_storage = self.get_postgres_data_local_storage_path()
@@ -243,23 +244,22 @@ class Config:
         # prepare platform
         self.get_platform_sorces()
 
-        policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
         original_requirements_txt = list(self.requirements_txt)
-        self.requirements_txt = policy.normalize_requirements(
+        self.requirements_txt = self.policy.normalize_requirements(
             self.requirements_txt,
             python_version=self.python_version,
         )
         if any(is_debugpy_requirement(req) for req in original_requirements_txt):
-            if not policy.install_debugpy:
+            if not self.policy.install_debugpy:
                 _logger.warning(
                     "debugpy is forbidden in scenario %s and will not be installed",
-                    policy.scenario,
+                    self.policy.scenario,
                 )
             else:
-                debugpy_req = policy.debugpy_requirement(self.python_version)
+                debugpy_req = self.policy.debugpy_requirement(self.python_version)
                 _logger.info(
                     "debugpy requirement normalized for scenario %s: %s",
-                    policy.scenario,
+                    self.policy.scenario,
                     debugpy_req,
                 )
 
@@ -823,20 +823,18 @@ class Config:
     
     def compute_venv_lock_hash(self) -> str:
         self.config_dict["arch"] = constants.ARCH
-        policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
         payload: dict[str, str] = {}
         for key in constants.VENV_LOCK_KEYS:
             if key == "requirements_txt":
                 payload[key] = ",".join(sorted(self.requirements_txt))
             elif key == "venv_mode":
-                payload[key] = policy.venv_mode
+                payload[key] = self.policy.venv_mode
             else:
                 payload[key] = str(self.config_dict.get(key, ""))
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def config_to_json(self) -> bytes:
-        policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
         config = ConfigToJson(
             docker_odoo_dir=self.docker_odoo_dir,
             odoo_config_data=self.odoo_config_data,
@@ -856,17 +854,17 @@ class Config:
             modules_to_update=self.update_modules.split(","),
             docker_dirs_with_addons=self.docker_dirs_with_addons,
             odpm_scenario=self.user_env.odpm_scenario,
-            venv_mode=policy.venv_mode,
+            venv_mode=self.policy.venv_mode,
         )
         return json.dumps(config).encode("utf-8")
 
     @property
     def is_ci_scenario(self) -> bool:
-        return self.user_env.odpm_scenario == constants.CI_SCENARIO
+        return self.policy.scenario == constants.CI_SCENARIO
 
     @property
     def is_developer_scenario(self) -> bool:
-        return self.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO
+        return self.policy.scenario == constants.DEVELOPER_SCENARIO
 
     def get_odoo_ci_image_name(self) -> str:
         image_tag = getattr(self.arguments, "image_tag", None)
