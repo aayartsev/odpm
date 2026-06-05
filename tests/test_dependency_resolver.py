@@ -150,7 +150,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
         from dev_project.host_project_env import CreateProjectEnvironment
 
         env = CreateProjectEnvironment(config)
-        env.checkout_project = MagicMock()
+        env._links.checkout_project = MagicMock()
         return env
 
     def test_resolve_dependencies_discovers_transitive_oca_on_disk(self):
@@ -202,7 +202,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
 
         env = self._make_env(config)
         with patch(
-            "dev_project.host_project_env._logger"
+            "dev_project.project_links._logger"
         ) as mock_logger:
             resolved = env._resolve_dependencies()
 
