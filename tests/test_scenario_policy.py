@@ -5,14 +5,14 @@ import tempfile
 import unittest
 from pathlib import Path
 from argparse import Namespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.bake_venv import VenvInstallSpec, write_ci_venv_install_spec
 from dev_project.config import Config
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.ci_image import CiImageBuilder
-from dev_project.host_start_string_builder import StartStringBuilder
+from dev_project.compose_service_builder import ComposeServiceBuilder
 from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -40,7 +40,6 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertTrue(policy.allow_build_image)
         self.assertTrue(policy.skip_vscode)
-        self.assertEqual(policy.entrypoint_module, constants.RUN_ODOO_ENTRYPOINT)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
         self.assertTrue(policy.venv_is_baked())
         self.assertFalse(policy.allows_venv_recreate())
@@ -94,10 +93,12 @@ class ScenarioPolicyTests(unittest.TestCase):
         config.update_modules = ""
         config.docker_dirs_with_addons = []
         config.compute_venv_lock_hash.return_value = "abc"
+        config.container_run_mode = constants.RUN_MODE_ODOO
 
         payload = json.loads(Config.config_to_json(config).decode("utf-8"))
         self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)
         self.assertEqual(payload["odpm_scenario"], constants.SERVER_SCENARIO)
+        self.assertEqual(payload["run_mode"], constants.RUN_MODE_ODOO)
 
     def test_policy_invariant_include_implies_install(self):
         for scenario in constants.ODPM_SCENARIO_VALUES:
@@ -173,7 +174,7 @@ class ScenarioPolicyTests(unittest.TestCase):
     def test_compose_fragments_ci(self):
         policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         self.assertEqual(policy.build_dev_extra_ports("5678:5678"), "")
-        self.assertEqual(policy.build_odoo_volumes_block("\n      - x:y\n"), "")
+        self.assertEqual(policy.build_odoo_volumes_block(""), "")
         self.assertEqual(
             policy.build_postgres_port_map("5432:5432"),
             "127.0.0.1:5432:5432",
@@ -255,11 +256,13 @@ class WriteCiVenvInstallSpecTests(unittest.TestCase):
                 self.assertEqual(main_source, src_file.read())
 
 
-class StartStringBuilderTests(unittest.TestCase):
+class ComposeServiceBuilderTests(unittest.TestCase):
     def _make_config(self, scenario: str):
         config = MagicMock()
+        config.project_dir = "/tmp/odpm-test-project"
         config.user_env.odpm_scenario = scenario
         config.policy = ScenarioPolicy.from_scenario(scenario)
+        config.container_run_mode = constants.RUN_MODE_ODOO
         config.arguments = Namespace(
             d=None,
             translate=None,
@@ -288,9 +291,10 @@ class StartStringBuilderTests(unittest.TestCase):
         config.generate_odoo_conf_docker_data = MagicMock()
         return config
 
-    def test_ci_entrypoint_without_debugpy(self):
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_ci_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
-        StartStringBuilder(config).build()
+        ComposeServiceBuilder(config).build()
         command = config.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
@@ -298,9 +302,10 @@ class StartStringBuilderTests(unittest.TestCase):
         )
         self.assertNotIn("debugpy", command)
 
-    def test_server_entrypoint_without_debugpy(self):
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_server_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
-        StartStringBuilder(config).build()
+        ComposeServiceBuilder(config).build()
         command = config.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
@@ -308,9 +313,12 @@ class StartStringBuilderTests(unittest.TestCase):
         )
         self.assertNotIn("debugpy", command)
 
-    def test_developer_compose_uses_run_odoo_without_debugpy_in_command(self):
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_developer_compose_uses_run_odoo_without_debugpy_in_command(
+        self, _mock_write_runtime_config
+    ):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
-        StartStringBuilder(config).build()
+        ComposeServiceBuilder(config).build()
         command = config.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
@@ -318,30 +326,47 @@ class StartStringBuilderTests(unittest.TestCase):
         )
         self.assertNotIn("debugpy", command)
 
-    def test_start_command_includes_database_name(self):
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_start_command_includes_database_name(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.arguments.d = "my_project"
-        StartStringBuilder(config).build()
+        ComposeServiceBuilder(config).build()
         self.assertIn("-d", config.compose_service.command)
         self.assertIn("my_project", config.compose_service.command)
 
-    def test_start_command_includes_translate_flags_for_odoo_19(self):
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_start_command_includes_translate_flags_for_odoo_19(
+        self, _mock_write_runtime_config
+    ):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.odoo_version = "19.0"
         config.arguments.translate = "ru_RU"
-        StartStringBuilder(config).build()
+        ComposeServiceBuilder(config).build()
         command = config.compose_service.command
         self.assertIn("--load-language", command)
         self.assertIn("ru_RU", command)
         self.assertIn("--i18n-overwrite", command)
 
+    def test_export_po_files_uses_bootstrap_only_run_mode(self):
+        config = self._make_config(constants.SERVER_SCENARIO)
+        config.arguments.export_po_files = "ru_RU"
+        command = ComposeServiceBuilder(config).build_start_command()
+        self.assertEqual(command.run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY)
+        self.assertNotIn("exit", command.to_compose_service().command)
+
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_build_returns_compose_service(self, mock_write_runtime_config):
+        config = self._make_config(constants.CI_SCENARIO)
+        service = ComposeServiceBuilder(config).build()
+        self.assertIs(service, config.compose_service)
+        mock_write_runtime_config.assert_called_once_with(config)
+
     def test_build_start_command_returns_structured_command(self):
         config = self._make_config(constants.CI_SCENARIO)
-        command = StartStringBuilder(config).build_start_command()
+        command = ComposeServiceBuilder(config).build_start_command()
         self.assertTrue(command.odoo_bin[0].endswith("/odoo-bin"))
         service = command.to_compose_service()
         self.assertIn(constants.RUN_ODOO_ENTRYPOINT, service.command)
-        self.assertEqual(StartStringBuilder(config).build(), config.start_string)
 
 
 class ComposeTemplateMigrationTests(unittest.TestCase):
@@ -349,6 +374,7 @@ class ComposeTemplateMigrationTests(unittest.TestCase):
         self.assertIn("{DEBUGGER_PORT_MAP}", constants.DEPRECATED_WORDS)
         self.assertIn("{MAPPED_VOLUMES}", constants.DEPRECATED_WORDS)
         self.assertIn("{START_STRING}", constants.DEPRECATED_WORDS)
+        self.assertIn("ODPM_CONFIG_B64", constants.DEPRECATED_WORDS)
 
     def test_program_template_uses_new_placeholders(self):
         template_path = DEV_PROJECT_DIR / "templates" / "docker-compose.yml"
@@ -356,9 +382,10 @@ class ComposeTemplateMigrationTests(unittest.TestCase):
         self.assertIn("{DEV_EXTRA_PORTS}", content)
         self.assertIn("{ODOO_VOLUMES_BLOCK}", content)
         self.assertIn("{START_COMMAND_BLOCK}", content)
-        self.assertIn("{ODPM_CONFIG_ENV_LINE}", content)
+        self.assertIn("{ODPM_CONFIG_PATH_ENV_LINE}", content)
         self.assertNotIn("{DEBUGGER_PORT_MAP}", content)
         self.assertNotIn("{START_STRING}", content)
+        self.assertNotIn("{ODPM_CONFIG_ENV_LINE}", content)
 
 
 if __name__ == "__main__":

@@ -60,6 +60,7 @@ class ConfigToJson(TypedDict):
     venv_lock_hash: str
     odpm_scenario: str
     venv_mode: str
+    run_mode: str
 
 
 @dataclass

@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING
 from .. import constants, translations
 from ..compose_command_render import (
     render_compose_command_block,
-    render_odpm_config_env_line,
+    render_odpm_config_path_env_line,
 )
+from ..config.payload import runtime_config_path
 from ..inside_docker_app.logger import get_module_logger
 from ..project_dir_manager import template_needs_upgrade
 
@@ -40,20 +41,31 @@ class ComposeGenerator:
         with open(template_path) as template_file:
             return template_file.readlines()
 
+    def _build_odoo_volumes_block(self, compose_service) -> str:
+        volume_lines: list[str] = []
+        if compose_service.include_runtime_config:
+            host_config_path = runtime_config_path(self.config.project_dir)
+            volume_lines.append(
+                " " * 6
+                + f"- {host_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro"
+            )
+        if self.config.policy.include_odoo_volumes:
+            for mapped_volume in self.env.mapped_folders:
+                volume_lines.append(
+                    " " * 6 + f"- {mapped_volume.local}:{mapped_volume.docker}:Z"
+                )
+                if not os.path.exists(mapped_volume.local):
+                    Path(mapped_volume.local).mkdir(parents=True, exist_ok=True)
+        if not volume_lines:
+            return ""
+        return "    volumes:\n" + "\n".join(volume_lines) + "\n"
+
     def generate_docker_compose_file(self) -> None:
         docker_compose_template_path = os.path.join(
             self.config.project_dir,
             constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
         )
         lines = self._ensure_compose_template_current(docker_compose_template_path)
-
-        mapped_volumes = "\n"
-        for mapped_volume in self.env.mapped_folders:
-            mapped_volumes += (
-                " " * 6 + f"- {mapped_volume.local}:{mapped_volume.docker}:Z\n"
-            )
-            if not os.path.exists(mapped_volume.local):
-                Path(mapped_volume.local).mkdir(parents=True, exist_ok=True)
 
         policy = self.config.policy
         odoo_image = getattr(self.config, policy.odoo_image_attr)
@@ -65,23 +77,28 @@ class ComposeGenerator:
         debugger_port = self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
         debugger_port_map = f"{debugger_port}:{constants.DEBUGGER_DOCKER_PORT}"
         dev_extra_ports = policy.build_dev_extra_ports(debugger_port_map)
-        odoo_volumes_block = policy.build_odoo_volumes_block(mapped_volumes)
 
-        legacy_mapped_volumes = (
-            mapped_volumes if policy.include_odoo_volumes else "\n"
-        )
         compose_service = self.config.compose_service
         if compose_service is None:
             raise ValueError(
-                "config.compose_service is required; run StartStringBuilder.build() first"
+                "config.compose_service is required; run ComposeServiceBuilder.build() first"
             )
 
-        odpm_config_env_line = ""
-        if compose_service.include_config_env:
-            odpm_config_env_line = render_odpm_config_env_line(
-                constants.ODPM_CONFIG_B64_ENV,
-                compose_service.config_b64,
+        odoo_volumes_block = self._build_odoo_volumes_block(compose_service)
+
+        odpm_config_path_env_line = ""
+        if compose_service.include_runtime_config:
+            odpm_config_path_env_line = render_odpm_config_path_env_line(
+                constants.ODPM_CONFIG_PATH_ENV,
+                constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
             )
+
+        legacy_mapped_volumes = "\n"
+        if policy.include_odoo_volumes:
+            for mapped_volume in self.env.mapped_folders:
+                legacy_mapped_volumes += (
+                    " " * 6 + f"- {mapped_volume.local}:{mapped_volume.docker}:Z\n"
+                )
 
         content = "".join(lines).format(
             ODOO_IMAGE=odoo_image,
@@ -91,11 +108,12 @@ class ComposeGenerator:
             POSTGRES_PORT_MAP=postgres_port_map,
             GEVENT_PORT=self.user_env.gevent_port or constants.GEVENT_DEFAULT_PORT,
             DOCKER_PROJECT_DIR=compose_service.working_dir,
-            ODPM_CONFIG_ENV_LINE=odpm_config_env_line,
+            ODPM_CONFIG_PATH_ENV_LINE=odpm_config_path_env_line,
             START_COMMAND_BLOCK=render_compose_command_block(
                 compose_service.command
             ),
             START_STRING="",
+            ODPM_CONFIG_ENV_LINE="",
             CURRENT_USER=constants.CURRENT_USER,
             CURRENT_PASSWORD=constants.CURRENT_PASSWORD,
             POSTGRES_ODOO_USER=constants.POSTGRES_ODOO_USER,

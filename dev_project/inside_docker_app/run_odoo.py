@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
-from pathlib import PurePosixPath
+import warnings
+from pathlib import Path, PurePosixPath
 
 from .. import constants
 from ..scenario_policy import ScenarioPolicy
@@ -12,13 +14,42 @@ from .container_bootstrap import decode_config, run_container_bootstrap
 from .exceptions import ContainerError
 
 
-def read_config_from_env() -> dict:
+def read_config_from_file(config_path: str) -> dict:
+    return json.loads(Path(config_path).read_text(encoding="utf-8"))
+
+
+def read_config_from_env_b64() -> dict:
     config_b64 = os.environ.get(constants.ODPM_CONFIG_B64_ENV, "").strip()
     if not config_b64:
         raise ContainerError(
             f"Missing required environment variable {constants.ODPM_CONFIG_B64_ENV}"
         )
     return decode_config(config_b64)
+
+
+def read_config() -> dict:
+    config_path = os.environ.get(
+        constants.ODPM_CONFIG_PATH_ENV,
+        constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
+    )
+    if os.path.isfile(config_path):
+        return read_config_from_file(config_path)
+
+    config_b64 = os.environ.get(constants.ODPM_CONFIG_B64_ENV, "").strip()
+    if config_b64:
+        warnings.warn(
+            f"{constants.ODPM_CONFIG_B64_ENV} is deprecated; "
+            f"mount runtime config at {constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return decode_config(config_b64)
+
+    raise ContainerError(
+        "Missing container config: expected "
+        f"{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH} "
+        f"or deprecated {constants.ODPM_CONFIG_B64_ENV}"
+    )
 
 
 def parse_odoo_argv(argv: list[str] | None = None) -> list[str]:
@@ -29,14 +60,8 @@ def parse_odoo_argv(argv: list[str] | None = None) -> list[str]:
     return args
 
 
-def should_bootstrap_only(odoo_argv: list[str]) -> bool:
-    if not odoo_argv:
-        return False
-    if odoo_argv == ["exit", "0"]:
-        return True
-    if len(odoo_argv) == 1 and odoo_argv[0] == "exit 0":
-        return True
-    return False
+def should_bootstrap_only(config: dict) -> bool:
+    return config.get("run_mode") == constants.RUN_MODE_BOOTSTRAP_ONLY
 
 
 def build_odoo_exec_argv(config: dict, odoo_argv: list[str]) -> list[str]:
@@ -59,11 +84,13 @@ def build_odoo_exec_argv(config: dict, odoo_argv: list[str]) -> list[str]:
 
 
 def run_odoo(argv: list[str] | None = None) -> None:
-    config = read_config_from_env()
+    config = read_config()
     odoo_argv = parse_odoo_argv(argv)
     run_container_bootstrap(config)
-    if should_bootstrap_only(odoo_argv):
+    if should_bootstrap_only(config):
         raise SystemExit(0)
+    if not odoo_argv:
+        raise ContainerError("Missing odoo-bin argv after bootstrap")
     exec_argv = build_odoo_exec_argv(config, odoo_argv)
     project_dir = config.get("docker_project_dir", "")
     if project_dir:

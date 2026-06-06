@@ -191,10 +191,12 @@ class ConfigPayloadTests(unittest.TestCase):
         config.sql_queries = []
         config.update_modules = ""
         config.docker_dirs_with_addons = []
+        config.container_run_mode = constants.RUN_MODE_ODOO
 
         payload = json.loads(config_to_json(config).decode("utf-8"))
         self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)
         self.assertEqual(payload["odpm_scenario"], constants.SERVER_SCENARIO)
+        self.assertEqual(payload["run_mode"], constants.RUN_MODE_ODOO)
 
     def test_config_class_methods_accept_mock_like_test_virtualenv_checker(self):
         base_dict = self._base_config_dict()

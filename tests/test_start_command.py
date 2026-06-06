@@ -1,10 +1,9 @@
 import unittest
-import warnings
 
 from dev_project import constants
 from dev_project.compose_command_render import (
     render_compose_command_block,
-    render_odpm_config_env_line,
+    render_odpm_config_path_env_line,
     yaml_scalar,
 )
 from dev_project.start_command import StartCommand
@@ -15,26 +14,42 @@ class ComposeCommandRenderTests(unittest.TestCase):
         self.assertEqual(yaml_scalar("abc"), "abc")
         self.assertEqual(yaml_scalar(""), '""')
         self.assertEqual(yaml_scalar("has space"), '"has space"')
+        self.assertEqual(yaml_scalar("99999"), '"99999"')
+        self.assertEqual(yaml_scalar("true"), '"true"')
+
+    def test_render_compose_command_block_quotes_numeric_argv(self):
+        block = render_compose_command_block(
+            [
+                "python3",
+                "-m",
+                constants.RUN_ODOO_ENTRYPOINT,
+                "--",
+                "/home/odoo/odoo/odoo-bin",
+                "--limit-time-real",
+                "99999",
+            ]
+        )
+        self.assertIn('      - "99999"\n', block)
 
     def test_render_compose_command_block(self):
         block = render_compose_command_block(
-            ["python3", "-m", constants.RUN_ODOO_ENTRYPOINT, "--", "exit", "0"]
+            ["python3", "-m", constants.RUN_ODOO_ENTRYPOINT, "--"]
         )
         self.assertIn("    command:\n", block)
         self.assertIn("      - python3\n", block)
         self.assertIn(f"      - {constants.RUN_ODOO_ENTRYPOINT}\n", block)
 
-    def test_render_odpm_config_env_line(self):
-        line = render_odpm_config_env_line("ODPM_CONFIG_B64", "abc123")
-        self.assertIn("- ODPM_CONFIG_B64=abc123\n", line)
-        self.assertEqual(render_odpm_config_env_line("ODPM_CONFIG_B64", ""), "")
+    def test_render_odpm_config_path_env_line(self):
+        line = render_odpm_config_path_env_line(
+            "ODPM_CONFIG_PATH", "/run/odpm/config.json"
+        )
+        self.assertIn("- ODPM_CONFIG_PATH=/run/odpm/config.json\n", line)
+        self.assertEqual(render_odpm_config_path_env_line("ODPM_CONFIG_PATH", ""), "")
 
 
 class StartCommandTests(unittest.TestCase):
     def test_to_compose_service_builds_standard_exec_form(self):
         command = StartCommand(
-            kind="standard",
-            config_b64="abc123",
             docker_project_dir="/home/odoo",
             odoo_bin=[
                 "/home/odoo/odoo/odoo-bin",
@@ -46,8 +61,7 @@ class StartCommandTests(unittest.TestCase):
         )
         service = command.to_compose_service()
         self.assertEqual(service.working_dir, "/home/odoo")
-        self.assertEqual(service.config_b64, "abc123")
-        self.assertTrue(service.include_config_env)
+        self.assertTrue(service.include_runtime_config)
         self.assertEqual(
             service.command[:4],
             ["python3", "-m", constants.RUN_ODOO_ENTRYPOINT, "--"],
@@ -55,15 +69,13 @@ class StartCommandTests(unittest.TestCase):
         self.assertEqual(service.command[-2:], ["-d", "demo"])
         self.assertNotIn("debugpy", service.command)
 
-    def test_to_compose_service_bootstrap_only(self):
+    def test_to_compose_service_bootstrap_only_has_empty_odoo_argv(self):
         command = StartCommand(
-            kind="standard",
-            config_b64="abc123",
             docker_project_dir="/home/odoo",
-            bootstrap_only=True,
+            run_mode=constants.RUN_MODE_BOOTSTRAP_ONLY,
         )
         service = command.to_compose_service()
-        self.assertEqual(service.command[-2:], ["exit", "0"])
+        self.assertEqual(service.command[-1:], ["--"])
 
     def test_to_compose_service_pip_install_exec_form(self):
         command = StartCommand(
@@ -72,7 +84,7 @@ class StartCommandTests(unittest.TestCase):
             pip_install_script="cd /home/odoo && python3 -m pip install pre-commit",
         )
         service = command.to_compose_service()
-        self.assertFalse(service.include_config_env)
+        self.assertFalse(service.include_runtime_config)
         self.assertEqual(
             service.command,
             [
@@ -81,14 +93,6 @@ class StartCommandTests(unittest.TestCase):
                 "cd /home/odoo && python3 -m pip install pre-commit",
             ],
         )
-
-    def test_to_compose_shell_is_deprecated(self):
-        command = StartCommand(kind="pip_install", pip_install_script="echo hi")
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            shell = command.to_compose_shell()
-        self.assertTrue(any(issubclass(w.category, DeprecationWarning) for w in caught))
-        self.assertEqual(shell, "bash -c 'echo hi'")
 
 
 if __name__ == "__main__":

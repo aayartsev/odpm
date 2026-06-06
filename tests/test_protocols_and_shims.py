@@ -44,6 +44,10 @@ class DeprecatedShimImportTests(unittest.TestCase):
         caught = self._import_fresh("dev_project.host_project_env")
         self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
 
+    def test_host_start_string_builder_import_emits_deprecation_warning(self):
+        caught = self._import_fresh("dev_project.host_start_string_builder")
+        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
+
     def test_handle_odoo_project_git_link_import_emits_deprecation_warning(self):
         caught = self._import_fresh("dev_project.handle_odoo_project_git_link")
         self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))

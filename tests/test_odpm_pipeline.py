@@ -47,10 +47,12 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         pipeline.project_environment.update_vscode_debugger_launcher.assert_called_once()
         pipeline.project_environment.generate_vscode_settings_json.assert_called_once()
 
-    def test_start_string_builder_uses_same_policy_instance(self):
+    def test_compose_service_builder_uses_same_policy_instance(self):
         config = MagicMock()
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
         config.policy = policy
+        config.project_dir = "/tmp/odpm-test-project"
+        config.container_run_mode = constants.RUN_MODE_ODOO
         config.arguments = Namespace(
             d=None,
             translate=None,
@@ -76,10 +78,11 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
 
-        from dev_project.host_start_string_builder import StartStringBuilder
+        from dev_project.compose_service_builder import ComposeServiceBuilder
 
-        builder = StartStringBuilder(config)
-        builder.build()
+        with patch("dev_project.compose_service_builder.write_runtime_config"):
+            builder = ComposeServiceBuilder(config)
+            builder.build()
         self.assertIs(builder.policy, policy)
 
 
@@ -290,7 +293,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.system_checker = MagicMock()
         return pipeline
 
-    @patch("dev_project.odpm_pipeline.StartStringBuilder")
+    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
     def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
         pipeline.prepare_project_files()
@@ -298,7 +301,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.ensure_git_repos_present.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.StartStringBuilder")
+    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
     def test_prepare_skips_git_when_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(no_git_update=True)
         pipeline.prepare_project_files()

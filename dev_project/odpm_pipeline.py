@@ -13,7 +13,7 @@ from .compose_runtime import should_force_recreate_compose
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
 from .project_env import CreateProjectEnvironment
-from .host_start_string_builder import StartStringBuilder
+from .compose_service_builder import ComposeServiceBuilder
 from .host_user_env import CreateUserEnvironment
 from .inside_docker_app.logger import get_module_logger
 from .project_dir_manager import ProjectDirManager
@@ -70,7 +70,7 @@ class OdpmPipeline:
         system_checker.check_docker()
         system_checker.check_running_containers()
         project_env.generate_config_file()
-        StartStringBuilder(config).build()
+        ComposeServiceBuilder(config).build()
         project_env.generate_docker_compose_file()
         system_checker.check_docker_compose()
         if not skip_git:

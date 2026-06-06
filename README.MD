@@ -164,7 +164,7 @@ For **building and running a baked image** on a CI runner: sources and venv live
 | **Odoo volumes** | No bind-mount of sources |
 | **debugpy / debugger port** | No (debugpy is not installed in `ci`) |
 | **Gevent 8072** | Yes (same as dev/server) |
-| **Entrypoint** | Compose `command` is exec form: `python3 -m dev_project.inside_docker_app.run_odoo` with project config in `ODPM_CONFIG_B64` env (`venv_mode=baked`) |
+| **Entrypoint** | Compose `command` is exec form: `python3 -m dev_project.inside_docker_app.run_odoo`; project config is mounted from `.odpm/runtime/config.json` (`venv_mode=baked`) |
 | **VS Code** | Not configured |
 
 Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker compose up`.
@@ -204,7 +204,7 @@ Requires Docker on the host. Skipped by default in `unittest discover` (fast CI)
 2. Run odpm from the project directory (e.g. `python3 .../odpm.py --skip-start`) so `docker-compose.yml` is regenerated.
 3. Restart containers: `docker compose up -d` (or run odpm without `--skip-start`).
 
-Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_dir`, and `ODPM_CONFIG_B64` in `environment`. Do not edit these lines manually — regenerate with odpm after upgrading odpm or changing scenario/CLI flags.
+Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_dir`, and a read-only mount of `.odpm/runtime/config.json` into the container. That runtime file is auto-generated and gitignored — do not edit compose manually; regenerate with `odpm --skip-start` after upgrading odpm or changing scenario/CLI flags.
 
 ### Recommendations for `server`
 

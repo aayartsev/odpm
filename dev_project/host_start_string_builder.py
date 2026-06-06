@@ -1,17 +1,24 @@
-import base64
-import json
-import pathlib
+"""Deprecated re-export. Prefer ``dev_project.compose_service_builder``."""
+
+from __future__ import annotations
+
 import re
 import warnings
 
-from . import constants
-from .config import Config
-from .inside_docker_app import cli_params
-from .start_command import StartCommand
+warnings.warn(
+    "dev_project.host_start_string_builder is deprecated; "
+    "import ComposeServiceBuilder from dev_project.compose_service_builder",
+    DeprecationWarning,
+    stacklevel=1,
+)
+
+from .compose_service_builder import ComposeServiceBuilder as StartStringBuilder
+
+__all__ = ["StartStringBuilder", "ArgumentParser", "ArgsDictToString"]
 
 
 class ArgumentParser:
-    """Deprecated: prefer ``Namespace.odoo_bin`` list args in ``StartStringBuilder``."""
+    """Deprecated: prefer ``Namespace.odoo_bin`` list args in ``ComposeServiceBuilder``."""
 
     def __init__(self, args_list=None) -> None:
         warnings.warn(
@@ -60,154 +67,3 @@ class ArgsDictToString:
             else:
                 string_with_params = string_with_params + f" {key} {value}"
         return string_with_params.strip()
-
-
-class StartStringBuilder:
-    def __init__(self, config: Config) -> None:
-        self.config = config
-        self.args = self.config.arguments
-        self.policy = config.policy
-
-    def build(self) -> str:
-        start_command = self.build_start_command()
-        compose_service = start_command.to_compose_service()
-        self.config.compose_service = compose_service
-        self.config.start_string = json.dumps(compose_service.command)
-        return self.config.start_string
-
-    def build_start_command(self) -> StartCommand:
-        self.config.generate_odoo_conf_docker_data()
-        odoo_bin_path = (
-            f"{self.config.docker_odoo_dir}/{self.config.platform_name}-bin"
-        )
-
-        if self.args.pip_install:
-            pip_install_command = (
-                f"cd {self.config.docker_project_dir} && python3 -m venv "
-                f"{self.config.docker_venv_dir} && . "
-                f"{pathlib.PurePosixPath(self.config.docker_venv_dir, 'bin', 'activate')} "
-                f"&& wget -O odoo_requirements.txt "
-                f"https://raw.githubusercontent.com/odoo/odoo/{self.config.odoo_version}/requirements.txt "
-                f"&& python3 -m pip install -r odoo_requirements.txt && python3 -m pip install "
-                f"{' '.join([req for req in self.config.requirements_txt])}"
-            )
-            return StartCommand(
-                kind="pip_install",
-                pip_install_script=pip_install_command,
-                docker_project_dir=self.config.docker_project_dir,
-            )
-
-        if self.args.start_precommit:
-            pre_commit_script = (
-                f"cd {self.config.docker_odoo_project_dir_path} && ls && "
-                f"git config --global --add safe.directory "
-                f"{self.config.docker_odoo_project_dir_path} && pre-commit run --all-files"
-            )
-            return StartCommand(
-                kind="pre_commit",
-                pre_commit_script=pre_commit_script,
-                docker_project_dir=self.config.docker_project_dir,
-            )
-
-        if self.args.export_po_files:
-            return StartCommand(
-                kind="standard",
-                config_b64=self.get_base64_string_config(),
-                docker_project_dir=self.config.docker_project_dir,
-                bootstrap_only=True,
-            )
-
-        if cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM in self.args:
-            odoo_bin = [
-                odoo_bin_path,
-                "scaffold",
-                self.args.scaffold_module_name,
-                self.config.docker_odoo_project_dir_path,
-            ]
-            if self.args.scaffold_template_name:
-                odoo_bin.extend(["-t", self.args.scaffold_template_name])
-            return StartCommand(
-                kind="standard",
-                config_b64=self.get_base64_string_config(),
-                docker_project_dir=self.config.docker_project_dir,
-                odoo_bin=odoo_bin,
-            )
-
-        odoo_bin = self._build_odoo_bin_argv(odoo_bin_path)
-        return StartCommand(
-            kind="standard",
-            config_b64=self.get_base64_string_config(),
-            docker_project_dir=self.config.docker_project_dir,
-            odoo_bin=odoo_bin,
-        )
-
-    def get_base64_string_config(self) -> str:
-        data = self.config.config_to_json()
-        config_base64_data = base64.b64encode(data)
-        return config_base64_data.decode()
-
-    def _build_odoo_bin_argv(self, odoo_bin_path: str) -> list[str]:
-        argv = [
-            odoo_bin_path,
-            "-c",
-            f"{self.config.docker_project_dir}/odoo.conf",
-            "--limit-time-real",
-            "99999",
-        ]
-
-        if self.args.d:
-            argv.extend([cli_params.D_PARAM, self.args.d])
-
-        if self.args.i and self.config.init_modules:
-            argv.extend([cli_params.I_PARAM, self.config.init_modules])
-
-        if self.args.u and self.config.update_modules:
-            argv.extend([cli_params.U_PARAM, self.config.update_modules])
-
-        if self.args.test:
-            argv.extend(["--test-enable", "--stop-after-init"])
-            if self.args.screencasts:
-                argv.extend(
-                    [cli_params.SCREENCASTS_PARAM, self.config.docker_temp_tests_dir]
-                )
-
-        if self.args.translate:
-            lang_param = "--language"
-            if float(self.config.odoo_version) >= 19:
-                lang_param = "--load-language"
-            argv.extend(
-                [
-                    lang_param,
-                    self.args.translate,
-                    "--load-language",
-                    self.args.translate,
-                    "--i18n-overwrite",
-                ]
-            )
-
-        dev_mode = self.config.dev_mode or False
-        if dev_mode:
-            argv.extend(["--dev", str(dev_mode)])
-
-        argv.extend(self._extra_odoo_bin_tokens(argv))
-        return argv
-
-    def _extra_odoo_bin_tokens(self, reserved_argv: list[str]) -> list[str]:
-        extra = list(getattr(self.args, "odoo_bin", None) or [])
-        if not extra:
-            return []
-
-        reserved = set(reserved_argv)
-        filtered: list[str] = []
-        index = 0
-        while index < len(extra):
-            token = extra[index]
-            if token in reserved:
-                index += 2 if index + 1 < len(extra) else 1
-                continue
-            filtered.append(token)
-            index += 1
-        return filtered
-
-    def get_start_string(self) -> str:
-        return self.build()

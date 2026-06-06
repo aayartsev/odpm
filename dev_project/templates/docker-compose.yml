@@ -24,7 +24,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONWARNINGS=ignore::DeprecationWarning:docutils
-{ODPM_CONFIG_ENV_LINE}{START_COMMAND_BLOCK}
+{ODPM_CONFIG_PATH_ENV_LINE}{START_COMMAND_BLOCK}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib3; http=urllib3.PoolManager(); r=http.request('GET','http://localhost:{ODOO_PORT}/web'); exit(0 if r.status==200 else 1)"]
       interval: 10s

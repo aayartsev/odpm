@@ -1,4 +1,4 @@
-"""Scenario-specific policy for compose, start string, and odpm pipeline."""
+"""Scenario-specific policy for compose and odpm pipeline."""
 
 from __future__ import annotations
 
@@ -32,7 +32,6 @@ class ScenarioPolicy:
     bind_postgres_localhost: bool
     include_debugpy: bool
     install_debugpy: bool
-    entrypoint_module: str
     skip_vscode: bool
     allow_build_image: bool
     venv_mode: VenvMode
@@ -58,7 +57,6 @@ class ScenarioPolicy:
                 bind_postgres_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
-                entrypoint_module=constants.RUN_ODOO_ENTRYPOINT,
                 skip_vscode=True,
                 allow_build_image=True,
                 venv_mode=constants.VENV_MODE_BAKED,
@@ -72,7 +70,6 @@ class ScenarioPolicy:
                 bind_postgres_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
-                entrypoint_module=constants.RUN_ODOO_ENTRYPOINT,
                 skip_vscode=False,
                 allow_build_image=False,
                 venv_mode=constants.VENV_MODE_FRESH,
@@ -85,7 +82,6 @@ class ScenarioPolicy:
             bind_postgres_localhost=False,
             include_debugpy=True,
             install_debugpy=True,
-            entrypoint_module=constants.RUN_ODOO_ENTRYPOINT,
             skip_vscode=False,
             allow_build_image=False,
             venv_mode=constants.VENV_MODE_FRESH,
@@ -133,6 +129,6 @@ class ScenarioPolicy:
         return port_map
 
     def build_odoo_volumes_block(self, mapped_volumes: str) -> str:
-        if not self.include_odoo_volumes:
+        if not mapped_volumes.strip():
             return ""
         return f"    volumes:{mapped_volumes}\n"

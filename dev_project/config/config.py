@@ -142,7 +142,7 @@ class Config:
         self.dockerfile_path = ""
         self.config_json_loaded = False
         self.compose_service: ComposeOdooService | None = None
-        self.start_string = ""
+        self.container_run_mode = constants.RUN_MODE_ODOO
         self.project_dir = self.pd_manager.project_path
         self.config_home_dir = self.pd_manager.home_config_dir
         self.no_log_prefix = False

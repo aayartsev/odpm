@@ -39,7 +39,6 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         config.odoo_ci_image_name = "odoo-ci:19"
         config.compose_service = ComposeOdooService(
             working_dir="/home/odoo",
-            config_b64="abc123",
             command=[
                 "python3",
                 "-m",
@@ -101,10 +100,33 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             content = self._compose_content(project_dir, constants.DEVELOPER_SCENARIO)
             self.assertIn("working_dir: /home/odoo", content)
-            self.assertIn(f"{constants.ODPM_CONFIG_B64_ENV}=abc123", content)
+            self.assertIn(
+                f"{constants.ODPM_CONFIG_PATH_ENV}={constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}",
+                content,
+            )
+            runtime_config_host = os.path.join(
+                project_dir, constants.ODPM_RUNTIME_CONFIG_REL_PATH
+            )
+            self.assertIn(
+                f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro",
+                content,
+            )
+            self.assertNotIn(f"{constants.ODPM_CONFIG_B64_ENV}=", content)
             self.assertIn(f"- {constants.RUN_ODOO_ENTRYPOINT}", content)
             self.assertNotIn("bash -c", content)
             self.assertIn("    command:", content)
+
+    def test_ci_compose_includes_runtime_config_volume_without_source_mounts(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            content = self._compose_content(project_dir, constants.CI_SCENARIO)
+            runtime_config_host = os.path.join(
+                project_dir, constants.ODPM_RUNTIME_CONFIG_REL_PATH
+            )
+            self.assertIn(
+                f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro",
+                content,
+            )
+            self.assertNotIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
 
     @patch("dev_project.project_env.compose.template_needs_upgrade", return_value=True)
     def test_ensure_compose_template_current_rebuilds_legacy_template(

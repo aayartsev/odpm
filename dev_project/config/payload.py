@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .. import constants
@@ -38,6 +40,7 @@ def compute_venv_lock_hash(config: Config) -> str:
 
 
 def config_to_json(config: Config) -> bytes:
+    run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)
     payload = ConfigToJson(
         docker_odoo_dir=config.docker_odoo_dir,
         odoo_config_data=config.odoo_config_data,
@@ -58,5 +61,31 @@ def config_to_json(config: Config) -> bytes:
         docker_dirs_with_addons=config.docker_dirs_with_addons,
         odpm_scenario=config.user_env.odpm_scenario,
         venv_mode=config.policy.venv_mode,
+        run_mode=run_mode,
     )
     return json.dumps(payload).encode("utf-8")
+
+
+def runtime_config_path(project_dir: str) -> str:
+    return os.path.join(project_dir, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
+
+
+def ensure_runtime_dir_gitignore(project_dir: str) -> None:
+    runtime_dir = os.path.join(project_dir, constants.ODPM_RUNTIME_DIR_REL_PATH)
+    os.makedirs(runtime_dir, exist_ok=True)
+    gitignore_path = os.path.join(runtime_dir, ".gitignore")
+    content = "*\n!.gitignore\n"
+    if not os.path.exists(gitignore_path):
+        Path(gitignore_path).write_text(content, encoding="utf-8")
+        return
+    existing = Path(gitignore_path).read_text(encoding="utf-8")
+    if existing.strip() != content.strip():
+        Path(gitignore_path).write_text(content, encoding="utf-8")
+
+
+def write_runtime_config(config: Config) -> str:
+    path = runtime_config_path(config.project_dir)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    ensure_runtime_dir_gitignore(config.project_dir)
+    Path(path).write_bytes(config_to_json(config))
+    return path
