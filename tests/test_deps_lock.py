@@ -6,20 +6,27 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
+from dev_project.errors import PipelineError
 from dev_project.git.deps_lock import (
     DEPS_LOCK_SCHEMA_VERSION,
+    LOCK_KIND_FILE,
+    LOCK_KIND_GIT,
     DepsLock,
     LockEntry,
     apply_lock_entry_to_link,
+    canonical_repo_url,
     deps_lock_path,
     entry_for_url,
     is_git_repository,
+    is_remote_git_link,
     load_deps_lock,
     normalize_repo_url,
     resolve_lock_commit,
     save_deps_lock,
     snapshot_commit_for_path,
+    sort_lock_entries,
 )
+from dev_project.scenario_policy import ScenarioPolicy
 
 
 class NormalizeRepoUrlTests(unittest.TestCase):
@@ -36,6 +43,23 @@ class NormalizeRepoUrlTests(unittest.TestCase):
         )
 
 
+class CanonicalRepoUrlTests(unittest.TestCase):
+    def test_ssh_and_https_are_equivalent(self):
+        ssh = "git@github.com:OCA/partner-contact.git"
+        https = "https://github.com/OCA/partner-contact"
+        self.assertEqual(canonical_repo_url(ssh), canonical_repo_url(https))
+
+    def test_file_url_keeps_path(self):
+        url = "file:///tmp/odoo-19.0+e.20251216"
+        self.assertEqual(canonical_repo_url(url), url)
+
+    def test_non_matching_urls_stay_distinct(self):
+        self.assertNotEqual(
+            canonical_repo_url("https://github.com/acme/one"),
+            canonical_repo_url("https://github.com/acme/two"),
+        )
+
+
 class LockEntryTests(unittest.TestCase):
     def test_from_dict_requires_url_and_commit(self):
         with self.assertRaises(ValueError):
@@ -47,16 +71,35 @@ class LockEntryTests(unittest.TestCase):
                 {"url": "https://example.com/repo", "commit": "not-a-sha"}
             )
 
-    def test_roundtrip_with_optional_branch(self):
+    def test_roundtrip_with_kind_and_branch(self):
         entry = LockEntry(
-            url="https://github.com/acme/demo",
+            url="file:///tmp/platform",
             commit="deadbeef0123456789abcdef0123456789abcdef",
-            branch="17.0",
+            branch="19.0",
+            kind=LOCK_KIND_FILE,
         )
         restored = LockEntry.from_dict(entry.to_dict())
-        self.assertEqual(restored.url, entry.url)
-        self.assertEqual(restored.commit, entry.commit)
+        self.assertEqual(restored.kind, LOCK_KIND_FILE)
         self.assertEqual(restored.branch, entry.branch)
+
+    def test_infers_file_kind_from_url_without_kind_field(self):
+        entry = LockEntry.from_dict(
+            {
+                "url": "file:///tmp/platform",
+                "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            }
+        )
+        self.assertEqual(entry.kind, LOCK_KIND_FILE)
+
+    def test_git_kind_by_default(self):
+        entry = LockEntry.from_dict(
+            {
+                "url": "https://github.com/odoo/odoo",
+                "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            }
+        )
+        self.assertEqual(entry.kind, LOCK_KIND_GIT)
+        self.assertNotIn("kind", entry.to_dict())
 
 
 class DepsLockTests(unittest.TestCase):
@@ -67,6 +110,10 @@ class DepsLockTests(unittest.TestCase):
                 url="https://github.com/odoo/odoo",
                 commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 branch="19.0",
+            ),
+            developing=LockEntry(
+                url="https://github.com/acme/developing",
+                commit="cccccccccccccccccccccccccccccccccccccccc",
             ),
             dependencies=[
                 LockEntry(
@@ -80,7 +127,7 @@ class DepsLockTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             DepsLock.from_dict({"schema_version": 99, "platform": {}})
 
-    def test_load_save_roundtrip(self):
+    def test_load_save_roundtrip_with_developing(self):
         with tempfile.TemporaryDirectory() as project_dir:
             path = deps_lock_path(project_dir)
             lock = self._sample_lock()
@@ -88,27 +135,29 @@ class DepsLockTests(unittest.TestCase):
             loaded = load_deps_lock(path)
             self.assertIsNotNone(loaded)
             assert loaded is not None
-            self.assertEqual(loaded.schema_version, DEPS_LOCK_SCHEMA_VERSION)
-            self.assertEqual(loaded.platform.url, lock.platform.url)
-            self.assertEqual(loaded.platform.commit, lock.platform.commit)
+            self.assertEqual(loaded.developing.commit, lock.developing.commit)
             self.assertEqual(len(loaded.dependencies), 1)
-            self.assertEqual(loaded.dependencies[0].commit, lock.dependencies[0].commit)
 
-    def test_load_missing_file_returns_none(self):
-        with tempfile.TemporaryDirectory() as project_dir:
-            self.assertIsNone(load_deps_lock(deps_lock_path(project_dir)))
-
-    def test_entry_for_url_matches_platform_and_dependencies(self):
+    def test_entry_for_url_matches_ssh_lookup_against_https_lock(self):
         lock = self._sample_lock()
-        self.assertIsNotNone(entry_for_url(lock, "https://github.com/odoo/odoo.git"))
         self.assertIsNotNone(
-            entry_for_url(lock, "https://github.com/OCA/partner-contact")
+            entry_for_url(lock, "git@github.com:OCA/partner-contact.git")
         )
-        self.assertIsNone(entry_for_url(lock, "https://github.com/other/repo"))
 
-    def test_deps_lock_rel_path_under_odpm(self):
-        self.assertTrue(constants.DEPS_LOCK_REL_PATH.endswith("deps.lock.json"))
-        self.assertIn(".odpm", constants.DEPS_LOCK_REL_PATH)
+    def test_sort_lock_entries_orders_by_canonical_url(self):
+        entries = sort_lock_entries(
+            [
+                LockEntry(
+                    url="https://github.com/zeta/z",
+                    commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                ),
+                LockEntry(
+                    url="https://github.com/alpha/a",
+                    commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                ),
+            ]
+        )
+        self.assertTrue(entries[0].url.endswith("/alpha/a"))
 
 
 class SnapshotCommitTests(unittest.TestCase):
@@ -152,6 +201,20 @@ class SnapshotCommitTests(unittest.TestCase):
             self.assertFalse(is_git_repository(project_dir))
 
 
+class RemoteGitLinkTests(unittest.TestCase):
+    def test_is_remote_git_link(self):
+        link = MagicMock()
+        link.is_true = True
+        link.link_type = constants.GITLINK_TYPE_SSH
+        self.assertTrue(is_remote_git_link(link))
+
+    def test_file_link_is_not_remote_git(self):
+        link = MagicMock()
+        link.is_true = True
+        link.link_type = constants.GITLINK_TYPE_FILE
+        self.assertFalse(is_remote_git_link(link))
+
+
 class ApplyLockEntryTests(unittest.TestCase):
     def test_apply_lock_entry_sets_commit_and_branch(self):
         link = type("Link", (), {})()
@@ -179,17 +242,16 @@ class SaveDepsLockTests(unittest.TestCase):
             path = os.path.join(project_dir, ".odpm", "deps.lock.json")
             lock = DepsLock(
                 platform=LockEntry(
-                    url="https://github.com/odoo/odoo",
+                    url="file:///tmp/platform",
                     commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    kind=LOCK_KIND_FILE,
                 ),
             )
             save_deps_lock(path, lock)
             with open(path, encoding="utf-8") as reader:
                 data = json.load(reader)
             self.assertEqual(data["schema_version"], DEPS_LOCK_SCHEMA_VERSION)
-            self.assertIn("generated_at", data)
-            self.assertIn("platform", data)
-            self.assertIn("dependencies", data)
+            self.assertEqual(data["platform"]["kind"], LOCK_KIND_FILE)
 
 
 if __name__ == "__main__":

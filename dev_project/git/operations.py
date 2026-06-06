@@ -144,12 +144,6 @@ class GitOperations:
             )
         return commit
 
-    def checkout_pinned_commit(self, commit: str) -> None:
-        self._git_fetch_ref(commit)
-        self._git_checkout_ref(commit)
-        self.link.commit = commit
-        self.link.commit_explicit = True
-
     def _git_stash(self) -> None:
         self._run_git(["stash"])
 
@@ -327,11 +321,20 @@ class GitOperations:
         all_remote_branches = self._run_git(["branch", "-r"])
         list_of_versions = []
         for branch_name in all_remote_branches.stdout.strip().split("\n"):
+            if not branch_name.strip():
+                continue
             try:
                 branch_version = float(branch_name.split("/")[1])
                 list_of_versions.append(branch_version)
             except ValueError:
                 continue
+        if not list_of_versions:
+            message = (
+                f"No numeric version branches found in {self.link.project_path}. "
+                "Set an explicit branch or commit in the project git link."
+            )
+            _logger.error(message)
+            raise GitError(message)
         return sorted(list_of_versions)[-1]
 
     def checkout(

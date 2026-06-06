@@ -94,9 +94,6 @@ class HandleOdooProjectLink:
     def resolve_head_sha(self) -> str:
         return self._git.resolve_head_sha()
 
-    def checkout_pinned_commit(self, commit: str) -> None:
-        self._git.checkout_pinned_commit(commit)
-
     def apply_build_date(self, build_date: str, odoo_version: str) -> None:
         self._git.apply_build_date(build_date, odoo_version)
 

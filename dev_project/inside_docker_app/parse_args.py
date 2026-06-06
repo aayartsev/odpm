@@ -211,7 +211,7 @@ arg_parser.add_argument(
 
 arg_parser.add_argument(
     cli_params.UPDATE_LOCK_PARAM,
-    help="""Resolve platform and seed dependency repositories at branch tips, write .odpm/deps.lock.json, and exit without starting containers (implies preparing project files only).""",
+    help="""Resolve platform, developing (remote git), and full OCA-resolved dependency repositories, write .odpm/deps.lock.json, and exit without starting containers.""",
     action="store_true",
 )
 

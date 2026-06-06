@@ -307,7 +307,9 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 
 | Parameter | Description |
 |-----------|-------------|
-| `--skip-start` | Regenerate `Dockerfile`, `.dockerignore`, `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. |
+| `--skip-start` | Regenerate `Dockerfile`, `.dockerignore`, `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. With a committed `.odpm/deps.lock.json`, also checks out pinned git SHAs before compose. |
+| `--update-lock` | Resolve platform, developing (remote git), and **full OCA-resolved** dependency graph; write `.odpm/deps.lock.json`; exit without starting containers (combine with `--skip-start` in CI). |
+| `--no-git-update` | Skip git clone/fetch/checkout. Lock file is **not** read or updated. Requires existing local repos. |
 | `--version` | Print odpm version and exit. |
 | `--config-base64-data STRING` | Decode a base64 JSON config string (advanced / automation). |
 
@@ -345,6 +347,22 @@ Example:
 ```bash
 python3 odpm.py --skip-start --odoo-build-date 20250529
 ```
+
+### Git dependency lock (`.odpm/deps.lock.json`)
+
+Committed lock file with pinned git SHAs (and file-platform fingerprints) for reproducible CI and team sync.
+
+| Command | Behavior |
+|---------|----------|
+| `python3 odpm.py --update-lock --skip-start` | Refresh lock from branch tips / current trees; exit without compose up |
+| `python3 odpm.py --skip-start` | Normal prepare + checkout **by lock** if file exists |
+| `python3 odpm.py --no-git-update --skip-start` | Offline regenerate Docker files; lock ignored |
+
+After changing `dependencies` or `oca_dependencies.txt`, run `--update-lock` and commit `.odpm/deps.lock.json`.
+
+Lock schema (v1): `platform` (required), optional `developing` (remote git only), `dependencies` (full OCA-resolved list). Each entry has `url`, `commit`, optional `branch`, optional `kind` (`git` default, `file` for `file://` platform trees).
+
+Precedence: `--no-git-update` > `--update-lock` > existing lock (pins SHAs, skips `odoo_build_date` for locked platform) > legacy branch tip / build date.
 
 ### Database backup and maintenance
 

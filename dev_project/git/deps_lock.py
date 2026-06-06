@@ -1,4 +1,4 @@
-"""Git dependency lock file (.odpm/deps.lock.json) — schema v1 (P8a: platform + seed deps)."""
+"""Git dependency lock file (.odpm/deps.lock.json) — schema v1."""
 
 from __future__ import annotations
 
@@ -6,14 +6,20 @@ import hashlib
 import json
 import os
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal
+from urllib.parse import urlparse
 
 from .. import constants
 
 DEPS_LOCK_SCHEMA_VERSION = 1
+LOCK_KIND_GIT = "git"
+LOCK_KIND_FILE = "file"
+LockKind = Literal["git", "file"]
+
 _COMMIT_RE = re.compile(r"^[0-9a-fA-F]{7,40}$")
+_SSH_GIT_RE = re.compile(r"^git@([^:]+):(.+)$")
 
 
 @dataclass(frozen=True)
@@ -21,11 +27,14 @@ class LockEntry:
     url: str
     commit: str
     branch: str | None = None
+    kind: LockKind = LOCK_KIND_GIT
 
     def to_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {"url": self.url, "commit": self.commit}
         if self.branch:
             payload["branch"] = self.branch
+        if self.kind != LOCK_KIND_GIT:
+            payload["kind"] = self.kind
         return payload
 
     @classmethod
@@ -37,7 +46,21 @@ class LockEntry:
             raise ValueError("lock entry requires url and commit")
         if not _COMMIT_RE.match(commit):
             raise ValueError(f"invalid commit hash: {commit!r}")
-        return cls(url=url, commit=commit, branch=str(branch) if branch else None)
+        kind_raw = data.get("kind")
+        if kind_raw is None and url.startswith("file://"):
+            kind: LockKind = LOCK_KIND_FILE
+        elif kind_raw is None:
+            kind = LOCK_KIND_GIT
+        else:
+            kind = str(kind_raw)
+            if kind not in (LOCK_KIND_GIT, LOCK_KIND_FILE):
+                raise ValueError(f"unsupported lock entry kind: {kind!r}")
+        return cls(
+            url=url,
+            commit=commit,
+            branch=str(branch) if branch else None,
+            kind=kind,
+        )
 
 
 @dataclass
@@ -45,17 +68,21 @@ class DepsLock:
     schema_version: int = DEPS_LOCK_SCHEMA_VERSION
     generated_at: str = ""
     platform: LockEntry | None = None
+    developing: LockEntry | None = None
     dependencies: list[LockEntry] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         if not self.platform:
             raise ValueError("platform entry is required")
-        return {
+        payload: dict[str, Any] = {
             "schema_version": self.schema_version,
             "generated_at": self.generated_at,
             "platform": self.platform.to_dict(),
             "dependencies": [entry.to_dict() for entry in self.dependencies],
         }
+        if self.developing is not None:
+            payload["developing"] = self.developing.to_dict()
+        return payload
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DepsLock:
@@ -68,10 +95,17 @@ class DepsLock:
         dependencies_raw = data.get("dependencies", [])
         if not isinstance(dependencies_raw, list):
             raise ValueError("dependencies must be a list")
+        developing_raw = data.get("developing")
+        developing = (
+            LockEntry.from_dict(developing_raw)
+            if isinstance(developing_raw, dict)
+            else None
+        )
         return cls(
             schema_version=version,
             generated_at=str(data.get("generated_at", "")),
             platform=LockEntry.from_dict(platform_raw),
+            developing=developing,
             dependencies=[
                 LockEntry.from_dict(item)
                 for item in dependencies_raw
@@ -85,18 +119,52 @@ def deps_lock_path(project_dir: str) -> str:
 
 
 def normalize_repo_url(url: str) -> str:
-    """Normalize git URL for lock lookup (first token, no .git suffix)."""
+    """Normalize git URL token (first word, no .git suffix)."""
     token = (url or "").strip().split()[0]
     return token.rstrip("/").removesuffix(".git")
 
 
+def canonical_repo_url(url: str) -> str:
+    """Canonical URL for lock storage and lookup."""
+    normalized = normalize_repo_url(url)
+    if normalized.startswith("file://"):
+        return normalized.rstrip("/")
+
+    ssh_match = _SSH_GIT_RE.match(normalized)
+    if ssh_match:
+        host, path = ssh_match.groups()
+        return f"https://{host.lower()}/{path.lstrip('/').rstrip('/')}"
+
+    if normalized.startswith("http://"):
+        normalized = "https://" + normalized[len("http://") :]
+    if normalized.startswith("https://"):
+        parsed = urlparse(normalized)
+        return f"https://{parsed.netloc.lower()}{parsed.path.rstrip('/')}"
+
+    return normalized
+
+
 def repo_url_for_link(link) -> str:
     raw = link.gitlink or link.project_link or link.project_string
-    return normalize_repo_url(raw)
+    return canonical_repo_url(raw)
+
+
+def lock_kind_for_link(link) -> LockKind:
+    if link.link_type == constants.GITLINK_TYPE_FILE:
+        return LOCK_KIND_FILE
+    return LOCK_KIND_GIT
 
 
 def is_git_repository(project_path: str) -> bool:
     return os.path.isdir(os.path.join(project_path, ".git"))
+
+
+def is_remote_git_link(link) -> bool:
+    return bool(link) and getattr(link, "is_true", True) and link.link_type in (
+        constants.GITLINK_TYPE_HTTP,
+        constants.GITLINK_TYPE_GIT,
+        constants.GITLINK_TYPE_SSH,
+    )
 
 
 def snapshot_commit_for_path(project_path: str) -> str:
@@ -133,6 +201,10 @@ def resolve_lock_commit(link) -> str:
     )
 
 
+def sort_lock_entries(entries: list[LockEntry]) -> list[LockEntry]:
+    return sorted(entries, key=lambda entry: canonical_repo_url(entry.url))
+
+
 def load_deps_lock(path: str) -> DepsLock | None:
     if not os.path.isfile(path):
         return None
@@ -155,11 +227,13 @@ def save_deps_lock(path: str, lock: DepsLock) -> None:
 
 
 def entry_for_url(lock: DepsLock, url: str) -> LockEntry | None:
-    normalized = normalize_repo_url(url)
-    if lock.platform and normalize_repo_url(lock.platform.url) == normalized:
+    normalized = canonical_repo_url(url)
+    if lock.platform and canonical_repo_url(lock.platform.url) == normalized:
         return lock.platform
+    if lock.developing and canonical_repo_url(lock.developing.url) == normalized:
+        return lock.developing
     for entry in lock.dependencies:
-        if normalize_repo_url(entry.url) == normalized:
+        if canonical_repo_url(entry.url) == normalized:
             return entry
     return None
 

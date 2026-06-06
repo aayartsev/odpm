@@ -12,6 +12,16 @@ if [[ "${ODPM_SCENARIO}" != "ci" ]]; then
     exit 1
 fi
 
+if [[ -n "${ODPM_CI_PROJECT:-}" ]]; then
+    LOCK_FILE="${ODPM_CI_PROJECT}/.odpm/deps.lock.json"
+    if [[ "${ODPM_SKIP_DEPS_LOCK_CHECK:-}" != "1" ]] && [[ ! -f "${LOCK_FILE}" ]]; then
+        echo "Missing ${LOCK_FILE}; run odpm.py --update-lock in the project or set ODPM_SKIP_DEPS_LOCK_CHECK=1" >&2
+        exit 1
+    fi
+    echo "Preparing project (lock checkout) in ${ODPM_CI_PROJECT} ..."
+    (cd "${ODPM_CI_PROJECT}" && python3 "${PROJECT_ROOT}/odpm.py" --skip-start)
+fi
+
 python3 "${PROJECT_ROOT}/odpm.py" --build-image
 docker compose up -d
 

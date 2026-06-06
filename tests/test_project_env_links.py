@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
+from dev_project import constants
 from dev_project.project_env.environment import CreateProjectEnvironment
 from dev_project.project_env.links import ProjectLinks
 
@@ -44,6 +45,59 @@ class ProjectLinksCheckoutTests(unittest.TestCase):
             "17.0",
             clean_git_repos=True,
             update_git_repos=True,
+        )
+
+
+class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
+    def test_checkout_dependencies_skips_developing_without_explicit_branch(self):
+        config = MagicMock()
+        config.odoo_version = "17.0"
+        config.odoo_platform_project = MagicMock()
+        config.dependencies_projects = []
+        developing = MagicMock()
+        developing.link_type = constants.GITLINK_TYPE_SSH
+        developing.is_true = True
+        developing.branch_explicit = False
+        developing.commit_explicit = False
+        config.developing_project = developing
+        env = MagicMock()
+        env.config = config
+        links = ProjectLinks(env)
+        links.checkout_project = MagicMock()
+
+        links.checkout_dependencies()
+
+        links.checkout_project.assert_called_once_with(
+            config.odoo_platform_project,
+            lock_manager=None,
+        )
+
+    def test_checkout_dependencies_includes_pinned_developing(self):
+        config = MagicMock()
+        config.odoo_version = "17.0"
+        config.odoo_platform_project = MagicMock()
+        config.dependencies_projects = []
+        developing = MagicMock()
+        developing.link_type = constants.GITLINK_TYPE_SSH
+        developing.is_true = True
+        developing.branch_explicit = False
+        developing.commit_explicit = False
+        config.developing_project = developing
+        env = MagicMock()
+        env.config = config
+        links = ProjectLinks(env)
+        links.checkout_project = MagicMock()
+        lock_manager = MagicMock()
+        lock_manager.is_pinned.side_effect = (
+            lambda project: project is developing
+        )
+
+        links.checkout_dependencies(lock_manager=lock_manager)
+
+        self.assertEqual(links.checkout_project.call_count, 2)
+        links.checkout_project.assert_any_call(
+            developing,
+            lock_manager=lock_manager,
         )
 
 

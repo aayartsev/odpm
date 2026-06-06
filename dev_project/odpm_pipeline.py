@@ -80,7 +80,8 @@ class OdpmPipeline:
             )
         project_env.map_folders()
         lock_manager.apply_to_platform(config.odoo_platform_project)
-        lock_manager.apply_to_seed_dependencies(config.dependencies_projects)
+        lock_manager.apply_to_developing(config.developing_project)
+        lock_manager.apply_to_dependencies(config.dependencies_projects)
         project_env.generate_dockerfile()
         project_env.generate_dockerignore()
         system_checker.check_docker()
@@ -92,7 +93,15 @@ class OdpmPipeline:
         if not skip_git:
             project_env.checkout_dependencies(lock_manager=lock_manager)
             if update_lock:
-                lock_manager.collect_and_save()
+                lock_manager.collect_and_save(
+                    developing=config.developing_project,
+                )
+            elif lock_manager.apply_mode:
+                lock_manager.verify_after_checkout(
+                    platform=config.odoo_platform_project,
+                    developing=config.developing_project,
+                    dependencies=config.dependencies_projects,
+                )
         project_env.update_links()
 
     def handle_build_image(self) -> bool:

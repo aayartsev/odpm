@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from .. import constants, translations
 from ..dependency_resolver import read_oca_dependency_urls, resolve_dependency_urls
 from ..git import HandleOdooProjectLink
+from ..git.deps_lock import is_remote_git_link
 from ..inside_docker_app.logger import get_module_logger
 from .types import MappedPath, SymlinksSources
 
@@ -174,8 +175,18 @@ class ProjectLinks:
             initial_extra_urls=initial_extra_urls,
         )
 
+    def _should_checkout_developing(self, lock_manager=None) -> bool:
+        developing = self.config.developing_project
+        if not is_remote_git_link(developing):
+            return False
+        if lock_manager is not None and lock_manager.is_pinned(developing):
+            return True
+        return bool(developing.branch_explicit or developing.commit_explicit)
+
     def checkout_dependencies(self, lock_manager=None) -> None:
         list_for_checkout = [self.config.odoo_platform_project]
+        if self._should_checkout_developing(lock_manager):
+            list_for_checkout.append(self.config.developing_project)
         list_for_checkout.extend(self.config.dependencies_projects)
         for project in list_for_checkout:
             self.checkout_project(project, lock_manager=lock_manager)

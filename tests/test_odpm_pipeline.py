@@ -358,7 +358,20 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             pipeline.prepare_project_files()
         manager.load.assert_not_called()
         manager.collect_and_save.assert_called_once()
+        manager.collect_and_save.assert_called_with(
+            developing=pipeline.config.developing_project,
+        )
         pipeline.project_environment.checkout_dependencies.assert_called_once()
+
+    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    def test_prepare_verifies_lock_after_checkout_when_apply_mode(self, _mock_builder):
+        pipeline = self._pipeline_with_mocks()
+        with patch("dev_project.odpm_pipeline.DepsLockManager") as mock_manager_cls:
+            manager = MagicMock()
+            manager.apply_mode = True
+            mock_manager_cls.return_value = manager
+            pipeline.prepare_project_files()
+        manager.verify_after_checkout.assert_called_once()
 
     @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
     def test_prepare_rejects_update_lock_with_no_git_update(self, _mock_builder):

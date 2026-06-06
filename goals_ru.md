@@ -392,7 +392,7 @@ flowchart LR
 
 1. Versioned config contract host↔container
 2. `odpm plan` / idempotent declarative apply
-3. Dependency lock (commit SHAs)
+3. ~~Dependency lock (commit SHAs)~~ — `.odpm/deps.lock.json`, `--update-lock`; OCA resolved graph, developing, CI strict verify
 4. Plugin/hook API
 5. Golden-path E2E
 6. Container-side parity (no chdir/shell, typed config)

@@ -306,8 +306,9 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 
 | Параметр | Описание |
 |----------|----------|
-| `--skip-start` | Пересоздать `Dockerfile`, `.dockerignore`, `docker-compose.yml` и связанные файлы **без** запуска контейнеров. Удобно после смены `.env` или сценария. |
-| `--no-git-update` | Не выполнять git clone/fetch/checkout. Нужны уже существующие локальные каталоги platform и developing project. Удобно с `--skip-start` без сети: `python3 odpm.py --skip-start --no-git-update`. |
+| `--skip-start` | Пересоздать `Dockerfile`, `.dockerignore`, `docker-compose.yml` и связанные файлы **без** запуска контейнеров. При наличии `.odpm/deps.lock.json` выполняет checkout по lock. |
+| `--update-lock` | Зафиксировать platform, developing (remote git) и **полный OCA-resolved** graph в `.odpm/deps.lock.json`; выход без запуска контейнеров. |
+| `--no-git-update` | Не выполнять git clone/fetch/checkout. Lock **не** читается и не обновляется. Нужны локальные каталоги repos. |
 | `--version` | Показать версию odpm и выйти. |
 | `--config-base64-data СТРОКА` | Раскодировать base64 JSON конфигурации (автоматизация). |
 
@@ -345,6 +346,22 @@ python3 odpm.py -d test_db -i --odoo-bin --stop-after-init
 ```bash
 python3 odpm.py --skip-start --odoo-build-date 20250529
 ```
+
+### Git dependency lock (`.odpm/deps.lock.json`)
+
+Файл lock коммитится в репозиторий проекта (как `package-lock.json`).
+
+| Команда | Поведение |
+|---------|-----------|
+| `python3 odpm.py --update-lock --skip-start` | Обновить lock и выйти без compose up |
+| `python3 odpm.py --skip-start` | Prepare + checkout **по lock**, если файл есть |
+| `python3 odpm.py --no-git-update --skip-start` | Offline regenerate; lock игнорируется |
+
+После изменения `dependencies` или `oca_dependencies.txt` — `--update-lock` и commit lock.
+
+Schema v1: `platform`, optional `developing` (только remote git), `dependencies` (полный OCA graph). Поля entry: `url`, `commit`, optional `branch`, optional `kind` (`git` / `file` для `file://` platform).
+
+Приоритет: `--no-git-update` > `--update-lock` > lock (pin SHA, без `odoo_build_date` для platform) > branch tip / build date.
 
 ### Резервное копирование и обслуживание БД
 
