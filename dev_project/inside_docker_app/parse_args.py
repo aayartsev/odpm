@@ -34,11 +34,6 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
-    cli_params.CONFIG_BASE64_DATA,
-    help="Will read base64 string and will try to parse its content as json string",
-)
-
-arg_parser.add_argument(
     cli_params.GET_DB_LIST_PARAM,
     help="Will show list of databases",
 )

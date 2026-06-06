@@ -75,7 +75,7 @@ class ContainerConfigFromDictTests(unittest.TestCase):
 
 
 class ContainerConfigFromHostTests(unittest.TestCase):
-    def test_from_host_config_includes_schema_version_and_run_mode(self):
+    def test_from_odpm_config_includes_schema_version_and_run_mode(self):
         config = MagicMock()
         config.user_env.odpm_scenario = constants.SERVER_SCENARIO
         config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
@@ -101,7 +101,7 @@ class ContainerConfigFromHostTests(unittest.TestCase):
             "dev_project.config.payload.compute_venv_lock_hash",
             return_value="lock-hash",
         ):
-            container_config = ContainerConfig.from_host_config(config)
+            container_config = ContainerConfig.from_odpm_config(config)
 
         self.assertEqual(
             container_config.schema_version, CONTAINER_CONFIG_SCHEMA_VERSION

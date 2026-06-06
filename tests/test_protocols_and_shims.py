@@ -1,7 +1,4 @@
-import importlib
-import sys
 import unittest
-import warnings
 
 from dev_project.check_system import SystemChecker
 from dev_project.project_env import CreateProjectEnvironment
@@ -28,33 +25,31 @@ class ProtocolTypingTests(unittest.TestCase):
         )
 
 
-class DeprecatedShimImportTests(unittest.TestCase):
-    def _import_fresh(self, module_name: str):
-        sys.modules.pop(module_name, None)
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            importlib.import_module(module_name)
-        return caught
+class CanonicalImportSmokeTests(unittest.TestCase):
+    def test_config_package_imports(self):
+        from dev_project import config as config_module
 
-    def test_host_config_import_emits_deprecation_warning(self):
-        caught = self._import_fresh("dev_project.host_config")
-        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
+        self.assertTrue(hasattr(config_module, "Config"))
 
-    def test_host_project_env_import_emits_deprecation_warning(self):
-        caught = self._import_fresh("dev_project.host_project_env")
-        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
+    def test_project_env_package_imports(self):
+        from dev_project import project_env as project_env_module
 
-    def test_host_start_string_builder_import_emits_deprecation_warning(self):
-        caught = self._import_fresh("dev_project.host_start_string_builder")
-        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
+        self.assertTrue(hasattr(project_env_module, "CreateProjectEnvironment"))
 
-    def test_handle_odoo_project_git_link_import_emits_deprecation_warning(self):
-        caught = self._import_fresh("dev_project.handle_odoo_project_git_link")
-        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
+    def test_git_package_imports(self):
+        from dev_project import git as git_module
 
-    def test_inside_docker_main_import_emits_deprecation_warning(self):
-        caught = self._import_fresh("dev_project.inside_docker_app.main")
-        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
+        self.assertTrue(hasattr(git_module, "HandleOdooProjectLink"))
+
+    def test_compose_service_builder_imports(self):
+        from dev_project import compose_service_builder as builder_module
+
+        self.assertTrue(hasattr(builder_module, "ComposeServiceBuilder"))
+
+    def test_run_odoo_entrypoint_imports(self):
+        from dev_project.inside_docker_app import run_odoo as run_odoo_module
+
+        self.assertTrue(callable(run_odoo_module.main))
 
 
 if __name__ == "__main__":

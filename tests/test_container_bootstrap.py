@@ -1,22 +1,15 @@
-import base64
-import json
 import unittest
 from unittest.mock import patch
 
 from dev_project import constants
-from dev_project.inside_docker_app.container_bootstrap import main, prepare_venv
+from dev_project.inside_docker_app.container_bootstrap import (
+    prepare_venv,
+    run_container_bootstrap,
+)
 from dev_project.inside_docker_app.exceptions import VenvError
 from dev_project.inside_docker_app.utils import resolve_venv_is_baked, resolve_venv_mode
 
-from tests.container_config_helpers import (
-    minimal_container_config,
-    minimal_container_config_dict,
-)
-
-
-def _b64_config(**overrides) -> str:
-    payload = minimal_container_config_dict(**overrides)
-    return base64.b64encode(json.dumps(payload).encode()).decode()
+from tests.container_config_helpers import minimal_container_config
 
 
 class ResolveVenvIsBakedTests(unittest.TestCase):
@@ -83,33 +76,27 @@ class PrepareVenvTests(unittest.TestCase):
         checker_cls.assert_called_once_with(config)
 
 
-class ContainerBootstrapMainTests(unittest.TestCase):
-    @patch("dev_project.inside_docker_app.container_bootstrap.run_container_bootstrap")
-    @patch("dev_project.inside_docker_app.container_bootstrap.parse_args")
-    def test_main_exits_with_container_error_code(self, mock_parse_args, mock_bootstrap):
-        from dev_project.inside_docker_app import container_bootstrap
+class RunContainerBootstrapTests(unittest.TestCase):
+    @patch("dev_project.inside_docker_app.container_bootstrap.OdooChecker")
+    @patch("dev_project.inside_docker_app.container_bootstrap.prepare_venv")
+    def test_run_container_bootstrap_runs_prepare_and_odoo_checker(
+        self, mock_prepare, mock_odoo_checker
+    ):
+        config = minimal_container_config()
+        run_container_bootstrap(config)
+        mock_prepare.assert_called_once_with(config)
+        mock_odoo_checker.assert_called_once_with(config)
 
-        mock_parse_args.return_value.config_base64_data = _b64_config()
-        mock_bootstrap.side_effect = VenvError("baked venv missing", exit_code=1)
-
-        with patch.object(container_bootstrap.sys, "exit") as mock_exit:
-            with self.assertWarns(DeprecationWarning):
-                main()
-            mock_exit.assert_called_once_with(1)
-
-    @patch("dev_project.inside_docker_app.container_bootstrap.run_container_bootstrap")
-    @patch("dev_project.inside_docker_app.container_bootstrap.parse_args")
-    def test_main_propagates_custom_exit_code(self, mock_parse_args, mock_bootstrap):
-        from dev_project.inside_docker_app import container_bootstrap
-        from dev_project.inside_docker_app.exceptions import PostgresError
-
-        mock_parse_args.return_value.config_base64_data = _b64_config()
-        mock_bootstrap.side_effect = PostgresError("psycopg2 missing", exit_code=2)
-
-        with patch.object(container_bootstrap.sys, "exit") as mock_exit:
-            with self.assertWarns(DeprecationWarning):
-                main()
-            mock_exit.assert_called_once_with(2)
+    @patch("dev_project.inside_docker_app.container_bootstrap.OdooChecker")
+    @patch("dev_project.inside_docker_app.container_bootstrap.prepare_venv")
+    def test_run_container_bootstrap_propagates_venv_error(
+        self, mock_prepare, _mock_odoo_checker
+    ):
+        config = minimal_container_config()
+        mock_prepare.side_effect = VenvError("baked venv missing", exit_code=1)
+        with self.assertRaises(VenvError) as ctx:
+            run_container_bootstrap(config)
+        self.assertEqual(ctx.exception.exit_code, 1)
 
 
 class PostgresWaiterErrorTests(unittest.TestCase):

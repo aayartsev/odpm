@@ -44,10 +44,10 @@ class ComposeGenerator:
     def _build_odoo_volumes_block(self, compose_service) -> str:
         volume_lines: list[str] = []
         if compose_service.include_runtime_config:
-            host_config_path = runtime_config_path(self.config.project_dir)
+            local_runtime_config_path = runtime_config_path(self.config.project_dir)
             volume_lines.append(
                 " " * 6
-                + f"- {host_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro"
+                + f"- {local_runtime_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro"
             )
         if self.config.policy.include_odoo_volumes:
             for mapped_volume in self.env.mapped_folders:

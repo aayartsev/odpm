@@ -214,7 +214,7 @@ Requires Docker on the host. Skipped by default in `unittest discover` (fast CI)
 2. Run odpm from the project directory (e.g. `python3 .../odpm.py --skip-start`) so `docker-compose.yml` is regenerated.
 3. Restart containers: `docker compose up -d` (or run odpm without `--skip-start`).
 
-Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_dir`, and a read-only mount of `.odpm/runtime/config.json` into the container. That runtime file is auto-generated (JSON with `schema_version: 1`, typed as `ContainerConfig`) and gitignored — do not edit compose manually; regenerate with `odpm --skip-start` after upgrading odpm or changing scenario/CLI flags. Compose passes config via the mount and `ODPM_CONFIG_PATH` only (not `ODPM_CONFIG_B64`). The documented container entrypoint is `python3 -m dev_project.inside_docker_app.run_odoo`. Base64 config (`--config-base64-data`) is deprecated for manual bootstrap-only debugging via `python3 -m dev_project.inside_docker_app.container_bootstrap`; `inside_docker_app.main` is a deprecated alias of `run_odoo`.
+Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_dir`, and a read-only mount of `.odpm/runtime/config.json` into the container. That runtime file is auto-generated (JSON with `schema_version: 1`, typed as `ContainerConfig`) and gitignored — do not edit compose manually; regenerate with `odpm --skip-start` after upgrading odpm or changing scenario/CLI flags. Compose passes config via the mount and `ODPM_CONFIG_PATH`. The container entrypoint is `python3 -m dev_project.inside_docker_app.run_odoo`.
 
 ### Recommendations for `server`
 
@@ -311,7 +311,6 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | `--update-lock` | Resolve platform, developing (remote git), and **full OCA-resolved** dependency graph; write `.odpm/deps.lock.json`; exit without starting containers (combine with `--skip-start` in CI). |
 | `--no-git-update` | Skip git clone/fetch/checkout. Lock file is **not** read or updated. Requires existing local repos. |
 | `--version` | Print odpm version and exit. |
-| `--config-base64-data STRING` | Decode a base64 JSON config string (advanced / automation). |
 
 ### Odoo run: database and modules
 

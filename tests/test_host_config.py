@@ -344,8 +344,6 @@ class ConfigBootstrapTests(unittest.TestCase):
 
             self.assertEqual(config._raw_odpm_json["odoo_version"], "17.0")
             self.assertEqual(config._raw_odpm_json["python_version"], "3.10")
-            with self.assertWarns(DeprecationWarning):
-                self.assertEqual(config.config_dict["odoo_version"], "17.0")
 
     def test_ensure_git_repos_present_raises_when_directories_missing(self):
         config = MagicMock()
@@ -439,21 +437,6 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertEqual(config._project.python_version, "3.12")
         self.assertEqual(config._project.platform_name, "odoo")
         self.assertTrue(config._project_loaded)
-
-    def test_config_dict_emits_deprecation_warning(self):
-        config = Config.__new__(Config)
-        config._raw_user_settings = {"developing_project": "https://example.com/repo.git"}
-        config._raw_odpm_json = {"odoo_version": "17.0"}
-        config._user = UserSettingsState()
-        config._project = ProjectSettingsState()
-        config._user_loaded = False
-        config._project_loaded = False
-
-        with self.assertWarns(DeprecationWarning):
-            view = config.config_dict
-
-        self.assertEqual(view["odoo_version"], "17.0")
-        self.assertEqual(view["developing_project"], "https://example.com/repo.git")
 
 
 if __name__ == "__main__":

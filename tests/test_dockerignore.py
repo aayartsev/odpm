@@ -152,7 +152,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
             dev_project_dest = Path(config.ci_build_context_dir) / "dev_project"
             self.assertTrue((dev_project_dest / "bake_venv.py").is_file())
             self.assertTrue(
-                (dev_project_dest / "inside_docker_app" / "main.py").is_file()
+                (dev_project_dest / "inside_docker_app" / "run_odoo.py").is_file()
             )
             self.assertFalse((dev_project_dest / "templates").exists())
             self.assertFalse((dev_project_dest / "i18n").exists())

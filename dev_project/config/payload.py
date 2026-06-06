@@ -32,7 +32,7 @@ def ensure_runtime_dir_gitignore(project_dir: str) -> None:
 
 
 def config_to_json(config: Config) -> bytes:
-    return ContainerConfig.from_host_config(config).to_json_bytes()
+    return ContainerConfig.from_odpm_config(config).to_json_bytes()
 
 
 def write_runtime_config_to_path(config: Config, path: str) -> str:

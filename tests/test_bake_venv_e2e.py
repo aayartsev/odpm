@@ -69,7 +69,7 @@ if not install.called:
             child = f"""
 import sys
 sys.path.insert(0, {json.dumps(context_dir)})
-import dev_project.inside_docker_app.main
+import dev_project.inside_docker_app.run_odoo
 import dev_project.inside_docker_app.container_bootstrap
 """
             subprocess.run(

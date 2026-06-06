@@ -124,7 +124,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro",
                 content,
             )
-            self.assertNotIn(f"{constants.ODPM_CONFIG_B64_ENV}=", content)
+            self.assertNotIn("ODPM_CONFIG_B64=", content)
             self.assertIn(f"- {constants.RUN_ODOO_ENTRYPOINT}", content)
             self.assertNotIn("bash -c", content)
             self.assertIn("    command:", content)

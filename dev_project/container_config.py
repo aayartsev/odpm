@@ -96,7 +96,7 @@ class ContainerConfig:
     run_mode: str
 
     @classmethod
-    def from_host_config(cls, config: Config) -> ContainerConfig:
+    def from_odpm_config(cls, config: Config) -> ContainerConfig:
         from .config.payload import compute_venv_lock_hash
 
         run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)

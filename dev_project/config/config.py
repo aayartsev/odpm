@@ -21,11 +21,8 @@ from .state import (
     ProjectSettingsState,
     UserSettingsState,
     _slice_property,
-    merged_config_dict_view,
     project_settings_from_raw,
-    split_config_dict,
     user_settings_from_raw,
-    warn_config_dict_access,
 )
 from .types import SubProject
 
@@ -294,25 +291,6 @@ class Config:
 
         self.odoo_config_data = {}
         self._paths.apply_symlink_sources()
-
-    @property
-    def config_dict(self) -> dict:
-        warn_config_dict_access()
-        return merged_config_dict_view(
-            self._raw_user_settings,
-            self._raw_odpm_json,
-            self._user,
-            self._project,
-            user_loaded=self._user_loaded,
-            project_loaded=self._project_loaded,
-        )
-
-    @config_dict.setter
-    def config_dict(self, value: dict) -> None:
-        warn_config_dict_access()
-        user_data, odpm_data = split_config_dict(value)
-        self._raw_user_settings = user_data
-        self._raw_odpm_json = odpm_data
 
     @property
     def user_settings(self) -> UserSettingsState:

@@ -19,10 +19,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
 
 
-def normalize_as_host_config(
+def normalize_project_requirements(
     scenario: str, requirements_txt: list[str], python_version: str = "3.12"
 ) -> list[str]:
-    """Same normalization path as host_config.Config after reading odpm.json."""
+    """Same normalization path as Config after reading odpm.json."""
     policy = ScenarioPolicy.from_scenario(scenario)
     return policy.normalize_requirements(
         requirements_txt, python_version=python_version
@@ -141,7 +141,7 @@ class ScenarioPolicyTests(unittest.TestCase):
 
     def test_server_strips_debugpy_from_odpm_json_like_list(self):
         # User added debugpy in odpm.json on a server deployment — must be removed.
-        normalized = normalize_as_host_config(
+        normalized = normalize_project_requirements(
             constants.SERVER_SCENARIO,
             ["debugpy==1.8.0", "requests==2.31.0", "pre-commit"],
         )
@@ -151,7 +151,7 @@ class ScenarioPolicyTests(unittest.TestCase):
 
     def test_developer_typical_odpm_json_gets_pinned_debugpy(self):
         # Typical developer project: only project tools, no debugpy in odpm.json.
-        normalized = normalize_as_host_config(
+        normalized = normalize_project_requirements(
             constants.DEVELOPER_SCENARIO,
             ["pre-commit", "black"],
             python_version="3.12",
@@ -166,7 +166,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         )
 
     def test_developer_replaces_user_debugpy_with_pinned_version(self):
-        normalized = normalize_as_host_config(
+        normalized = normalize_project_requirements(
             constants.DEVELOPER_SCENARIO,
             ["debugpy==0.0.1", "requests==2.31.0"],
             python_version="3.12",
@@ -178,7 +178,7 @@ class ScenarioPolicyTests(unittest.TestCase):
 
     def test_ci_venv_spec_excludes_debugpy_after_normalization(self):
         # Simulates CreateProjectEnvironment._build_ci_venv_install_spec input.
-        normalized = normalize_as_host_config(
+        normalized = normalize_project_requirements(
             constants.CI_SCENARIO,
             ["debugpy==1.8.0", "requests==2.31.0"],
         )
@@ -211,9 +211,9 @@ class ScenarioPolicyTests(unittest.TestCase):
 
 class CiVenvInstallSpecTests(unittest.TestCase):
     def test_build_ci_venv_install_spec_uses_normalized_requirements(self):
-        """CI bake reads config.requirements_txt after host_config normalization."""
+        """CI bake reads config.requirements_txt after Config normalization."""
         config = MagicMock()
-        config.requirements_txt = normalize_as_host_config(
+        config.requirements_txt = normalize_project_requirements(
             constants.CI_SCENARIO,
             ["debugpy==1.8.0", "requests==2.31.0"],
         )
@@ -265,18 +265,18 @@ class WriteCiVenvInstallSpecTests(unittest.TestCase):
             dest = os.path.join(context_dir, "dev_project")
             self.assertTrue(os.path.isfile(os.path.join(dest, "bake_venv.py")))
             self.assertTrue(
-                os.path.isfile(os.path.join(dest, "inside_docker_app", "main.py"))
+                os.path.isfile(os.path.join(dest, "inside_docker_app", "run_odoo.py"))
             )
             self.assertFalse(os.path.isdir(os.path.join(dest, "templates")))
             self.assertFalse(os.path.isdir(os.path.join(dest, "i18n")))
             self.assertFalse(os.path.isdir(os.path.join(dest, "plugins")))
-            main_path = os.path.join(dest, "inside_docker_app", "main.py")
-            with open(main_path) as main_file:
-                main_source = main_file.read()
+            run_odoo_path = os.path.join(dest, "inside_docker_app", "run_odoo.py")
+            with open(run_odoo_path) as run_odoo_file:
+                run_odoo_source = run_odoo_file.read()
             with open(
-                DEV_PROJECT_DIR / "inside_docker_app" / "main.py"
+                DEV_PROJECT_DIR / "inside_docker_app" / "run_odoo.py"
             ) as src_file:
-                self.assertEqual(main_source, src_file.read())
+                self.assertEqual(run_odoo_source, src_file.read())
 
 
 class ComposeServiceBuilderTests(unittest.TestCase):

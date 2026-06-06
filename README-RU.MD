@@ -214,7 +214,7 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 2. Запустите odpm из каталога проекта (например `python3 .../odpm.py --skip-start`), чтобы пересоздать `docker-compose.yml`.
 3. Перезапустите контейнеры: `docker compose up -d` (или запустите odpm без `--skip-start`).
 
-Сгенерированный `docker-compose.yml` использует exec form `command:` (YAML-список), `working_dir` и read-only mount `.odpm/runtime/config.json` в контейнер. Runtime-файл генерируется автоматически (JSON с `schema_version: 1`, тип `ContainerConfig`) и добавлен в `.gitignore` — не редактируйте compose вручную; пересоздавайте через `odpm --skip-start` после обновления odpm или смены сценария/флагов CLI. В compose конфиг передаётся только через mount и `ODPM_CONFIG_PATH` (не через `ODPM_CONFIG_B64`). Документированный entrypoint контейнера — `python3 -m dev_project.inside_docker_app.run_odoo`. Base64 (`--config-base64-data`) устарел для ручного bootstrap-only debug через `python3 -m dev_project.inside_docker_app.container_bootstrap`; `inside_docker_app.main` — deprecated alias для `run_odoo`.
+Сгенерированный `docker-compose.yml` использует exec form `command:` (YAML-список), `working_dir` и read-only mount `.odpm/runtime/config.json` в контейнер. Runtime-файл генерируется автоматически (JSON с `schema_version: 1`, тип `ContainerConfig`) и добавлен в `.gitignore` — не редактируйте compose вручную; пересоздавайте через `odpm --skip-start` после обновления odpm или смены сценария/флагов CLI. Конфиг передаётся через mount и `ODPM_CONFIG_PATH`. Entrypoint контейнера — `python3 -m dev_project.inside_docker_app.run_odoo`.
 
 ### Рекомендации для `server`
 
@@ -269,11 +269,9 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
         - Python 3.7, 3.10
     - Debian 12 (Bullseye)
         - Python 3.10
-- Экспериментально:
-    - Ubuntu 22.04 (Jammy)
-        - Python 3.10
-    - Ubuntu 20.04 (Focal)
-        - Python 3.8
+    - Debian 13 (Bullseye)
+        - Python 3.10, 3.12
+
 
 ## Параметры командной строки
 
@@ -310,7 +308,6 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | `--update-lock` | Зафиксировать platform, developing (remote git) и **полный OCA-resolved** graph в `.odpm/deps.lock.json`; выход без запуска контейнеров. |
 | `--no-git-update` | Не выполнять git clone/fetch/checkout. Lock **не** читается и не обновляется. Нужны локальные каталоги repos. |
 | `--version` | Показать версию odpm и выйти. |
-| `--config-base64-data СТРОКА` | Раскодировать base64 JSON конфигурации (автоматизация). |
 
 ### Запуск Odoo: база и модули
 

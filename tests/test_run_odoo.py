@@ -2,7 +2,6 @@ import json
 import os
 import tempfile
 import unittest
-import warnings
 from pathlib import Path
 from unittest.mock import patch
 
@@ -103,34 +102,6 @@ class RunOdooTests(unittest.TestCase):
             run_odoo.run_odoo(["--"])
         self.assertEqual(ctx.exception.code, 0)
         mock_bootstrap.assert_called_once()
-
-
-class MainEntrypointTests(unittest.TestCase):
-    def test_main_import_emits_deprecation_warning(self):
-        import importlib
-        import sys
-
-        sys.modules.pop("dev_project.inside_docker_app.main", None)
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            importlib.import_module("dev_project.inside_docker_app.main")
-        self.assertTrue(
-            any(issubclass(item.category, DeprecationWarning) for item in caught)
-        )
-
-    @patch("dev_project.inside_docker_app.run_odoo.main")
-    def test_main_module_delegates_to_run_odoo(self, mock_run_odoo_main):
-        import importlib
-        import sys
-
-        sys.modules.pop("dev_project.inside_docker_app.main", None)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            main_module = importlib.import_module("dev_project.inside_docker_app.main")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            main_module.main()
-        mock_run_odoo_main.assert_called_once()
 
 
 if __name__ == "__main__":
