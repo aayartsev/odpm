@@ -204,7 +204,7 @@ ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_imag
 2. Запустите odpm из каталога проекта (например `python3 .../odpm.py --skip-start`), чтобы пересоздать `docker-compose.yml`.
 3. Перезапустите контейнеры: `docker compose up -d` (или запустите odpm без `--skip-start`).
 
-Сгенерированный `docker-compose.yml` использует exec form `command:` (YAML-список), `working_dir` и read-only mount `.odpm/runtime/config.json` в контейнер. Runtime-файл генерируется автоматически (JSON с `schema_version: 1`, тип `ContainerConfig`) и добавлен в `.gitignore` — не редактируйте compose вручную; пересоздавайте через `odpm --skip-start` после обновления odpm или смены сценария/флагов CLI. В compose конфиг передаётся только через mount и `ODPM_CONFIG_PATH` (не через `ODPM_CONFIG_B64`). Base64 (`--config-base64-data`) — только для ручного bootstrap CLI (`main.py`), не для runtime compose.
+Сгенерированный `docker-compose.yml` использует exec form `command:` (YAML-список), `working_dir` и read-only mount `.odpm/runtime/config.json` в контейнер. Runtime-файл генерируется автоматически (JSON с `schema_version: 1`, тип `ContainerConfig`) и добавлен в `.gitignore` — не редактируйте compose вручную; пересоздавайте через `odpm --skip-start` после обновления odpm или смены сценария/флагов CLI. В compose конфиг передаётся только через mount и `ODPM_CONFIG_PATH` (не через `ODPM_CONFIG_B64`). Документированный entrypoint контейнера — `python3 -m dev_project.inside_docker_app.run_odoo`. Base64 (`--config-base64-data`) устарел для ручного bootstrap-only debug через `python3 -m dev_project.inside_docker_app.container_bootstrap`; `inside_docker_app.main` — deprecated alias для `run_odoo`.
 
 ### Рекомендации для `server`
 

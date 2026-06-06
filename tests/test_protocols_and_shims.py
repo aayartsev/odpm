@@ -52,6 +52,10 @@ class DeprecatedShimImportTests(unittest.TestCase):
         caught = self._import_fresh("dev_project.handle_odoo_project_git_link")
         self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
 
+    def test_inside_docker_main_import_emits_deprecation_warning(self):
+        caught = self._import_fresh("dev_project.inside_docker_app.main")
+        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
+
 
 if __name__ == "__main__":
     unittest.main()

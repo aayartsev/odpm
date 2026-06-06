@@ -93,7 +93,8 @@ class ContainerBootstrapMainTests(unittest.TestCase):
         mock_bootstrap.side_effect = VenvError("baked venv missing", exit_code=1)
 
         with patch.object(container_bootstrap.sys, "exit") as mock_exit:
-            main()
+            with self.assertWarns(DeprecationWarning):
+                main()
             mock_exit.assert_called_once_with(1)
 
     @patch("dev_project.inside_docker_app.container_bootstrap.run_container_bootstrap")
@@ -106,7 +107,8 @@ class ContainerBootstrapMainTests(unittest.TestCase):
         mock_bootstrap.side_effect = PostgresError("psycopg2 missing", exit_code=2)
 
         with patch.object(container_bootstrap.sys, "exit") as mock_exit:
-            main()
+            with self.assertWarns(DeprecationWarning):
+                main()
             mock_exit.assert_called_once_with(2)
 
 

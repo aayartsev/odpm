@@ -204,7 +204,7 @@ Requires Docker on the host. Skipped by default in `unittest discover` (fast CI)
 2. Run odpm from the project directory (e.g. `python3 .../odpm.py --skip-start`) so `docker-compose.yml` is regenerated.
 3. Restart containers: `docker compose up -d` (or run odpm without `--skip-start`).
 
-Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_dir`, and a read-only mount of `.odpm/runtime/config.json` into the container. That runtime file is auto-generated (JSON with `schema_version: 1`, typed as `ContainerConfig`) and gitignored — do not edit compose manually; regenerate with `odpm --skip-start` after upgrading odpm or changing scenario/CLI flags. Compose passes config via the mount and `ODPM_CONFIG_PATH` only (not `ODPM_CONFIG_B64`). Base64 config (`--config-base64-data`) is for manual bootstrap CLI (`main.py`), not for compose runtime.
+Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_dir`, and a read-only mount of `.odpm/runtime/config.json` into the container. That runtime file is auto-generated (JSON with `schema_version: 1`, typed as `ContainerConfig`) and gitignored — do not edit compose manually; regenerate with `odpm --skip-start` after upgrading odpm or changing scenario/CLI flags. Compose passes config via the mount and `ODPM_CONFIG_PATH` only (not `ODPM_CONFIG_B64`). The documented container entrypoint is `python3 -m dev_project.inside_docker_app.run_odoo`. Base64 config (`--config-base64-data`) is deprecated for manual bootstrap-only debugging via `python3 -m dev_project.inside_docker_app.container_bootstrap`; `inside_docker_app.main` is a deprecated alias of `run_odoo`.
 
 ### Recommendations for `server`
 
