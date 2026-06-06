@@ -138,7 +138,7 @@ odpm --init https://github.com/acme/demo.git --skip-start
 | **debugpy** | Включается **внутри контейнера** модулем `run_odoo` при `ODPM_SCENARIO=developer` (не в списке `command` в compose). Слушает `0.0.0.0:5678`; порт отладчика пробрасывается на хост. |
 | **PostgreSQL / отладчик на хосте** | Проброс `ПОРТ_ХОСТА:ПОРТ_КОНТЕЙНЕРА` без привязки только к loopback. |
 | **Odoo / Gevent** | Доступны на хосте на `ODOO_PORT` и `GEVENT_PORT`. |
-| **`dev_mode` в `user_settings.json`** | Подключается при передаче через CLI. Подходит для ежедневной разработки. |
+| **`dev_mode` в `user_settings.json`** | Передаётся в Odoo как `--dev` в compose (отдельного CLI-флага odpm нет). Значения: `reload`, `qweb`, `werkzeug`, `xml`, `access`, `all` или комбинации через запятую. При `reload` или `all` в venv автоматически добавляется `inotify`. После смены `dev_mode` пересоздайте compose через `odpm --skip-start`. |
 
 Типично: `ODPM_SCENARIO=developer`, подключение отладчика из VS Code, `http://127.0.0.1:8069`.
 
@@ -152,7 +152,7 @@ odpm --init https://github.com/acme/demo.git --skip-start
 | **PostgreSQL на хосте** | Только `127.0.0.1:POSTGRES_PORT` (с других машин через этот проброс не подключиться). |
 | **Порт отладчика в compose** | **Не публикуется** (debugpy в процессе Odoo не используется). |
 | **Odoo / Gevent на хосте** | По-прежнему `ODOO_PORT` / `GEVENT_PORT` на всех интерфейсах хоста — для доступа из интернета используйте reverse proxy (nginx, traefik) и firewall. |
-| **`dev_mode`** | Автоматически не отключается; для production оставьте `dev_mode` пустым и не используйте флаги только для разработки. |
+| **`dev_mode`** | **Игнорируется** в сценарии `server` (warning в лог). На production оставьте пустым в `user_settings.json`. |
 
 ### `ci` (CI / DevOps)
 
@@ -166,6 +166,7 @@ odpm --init https://github.com/acme/demo.git --skip-start
 | **Gevent 8072** | Да (как в dev/server) |
 | **Entrypoint** | В compose exec form: `python3 -m dev_project.inside_docker_app.run_odoo`; конфиг проекта монтируется из `.odpm/runtime/config.json` (`venv_mode=baked`) |
 | **VS Code** | Не настраивается |
+| **`dev_mode`** | **Игнорируется** (как в `server`) |
 
 Типично на runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, затем `docker compose up`.
 
@@ -206,6 +207,7 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 | Bind-mount odoo | Да | Да | Нет |
 | Python venv (`venv_mode`) | `fresh` — пересоздаётся при смене lock | `fresh` — как у developer | `baked` — собран в образе, без recreate |
 | `--build-image` | Ошибка | Ошибка | Да |
+| Odoo `--dev` (`dev_mode`) | Да | Нет (игнорируется) | Нет (игнорируется) |
 | Где использовать | Локальный ПК | Сервер / VPS | CI runner |
 
 ### Смена сценария
@@ -218,7 +220,7 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 
 ### Рекомендации для `server`
 
-- Не используйте `dev_mode` на инстансе, доступном из интернета.
+- `dev_mode` в `user_settings.json` на `server` игнорируется; не переключайтесь на `developer` на публичном инстансе ради `--dev`.
 - Задайте надёжные `db_manager_password`, `db_default_admin_*` и пароль PostgreSQL; не оставляйте значения по умолчанию из образа.
 - Выносите HTTPS на reverse proxy; при публикации Odoo настройте `proxy_mode` и `dbfilter` в `odoo.conf`.
 - Ограничьте входящий трафик firewall (SSH, HTTPS; закройте прямой доступ к `8069`/`8072` из интернета, если proxy на той же машине).
@@ -239,7 +241,7 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 - `check_system` - Булево. Указывает на то, будет ли запускаться проверка системы при старте. Полезно для новичков. Проверяет наличие установленного `git`, `docker` и `docker-compose`.
 - `developing_project` - Строка. Ссылка на проект, который вы разрабатываете. Пример: `"git@github.com:aayartsev/odoo_demo_project.git"`
 - `pre_commit_map_files` - Список. Список файлов для системы `pre-commit`, которые выносятся из проекта и пробрасываются туда через сопоставление файлов docker. Нужно для работы не на Linux системах
-- `dev_mode` - Можно указать через запятую [параметры для разработчиков](https://www.odoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev). Смотрите официальную документацию для своей версии odoo
+- `dev_mode` — строка или `false`. [Флаги Odoo `--dev`](https://www.odoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev) через запятую (`reload`, `qweb`, `werkzeug`, `xml`, `access`, `all`). **Применяется только при `ODPM_SCENARIO=developer`**; в `server`/`ci` значение игнорируется с warning. При `reload` или `all` odpm добавляет `inotify` в Python requirements для autoreload. После изменений пересоздайте compose (`odpm --skip-start`).
 - `db_manager_password` - пароль для менеджера баз данных
 - `sql_queries` - Список. Содержит в себе список строк, каждая из которых является sql скриптом, которые будут выполняться при использовании параметра командной строки `--sql-execute`
 - `use_oca_dependencies` - экспериментальное discovery зависимостей (один запуск odpm, по умолчанию `false`): читает `oca_dependencies.txt` из developing-проекта и каждой checkout git-зависимости, **а также** вложенный `odpm.json` в корне repo-зависимости (`dependencies`, `requirements_txt`). Транзитивные git URL попадают в resolved graph и в `.odpm/deps.lock.json` при `--update-lock`. Вложенные `odoo_version` / `python_version` сверяются с host-проектом (warning в developer, error в CI). Не подменяет host `odoo_git_link` и platform.

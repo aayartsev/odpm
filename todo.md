@@ -20,7 +20,7 @@
 - [x] сделать возможным переход по методам системы с помощью Ctrl+Click.
 - [x] сделать автоматический парсер зависимостей oca модулей и автоматическое их добавление к проекту
 - [ ] сделать автоматический поиск python зависимостей и добавление их к проекту
-- [x] dev_mode: при `reload`/`all` в venv автоматически добавляется `inotify`
+- [x] dev_mode: при `reload`/`all` в venv автоматически добавляется `inotify`, используется только в сценарии `developer` (`ScenarioPolicy.apply_dev_mode`); на server/ci — warning и параметр игнорируется
 - [ ] сделать мехнизм сборки финального контейнера со всеми исходными кодами
 - [x] архитектура: single-pass resolver зависимостей (OCA `oca_dependencies.txt` — `dependency_resolver.py`, `map_folders()` использует `_resolve_dependencies()`)
 - [x] dependency resolver: если в git-зависимости из `odpm.json` → `dependencies` есть репозиторий с `odpm.json` в корне, после clone/checkout читать оттуда `dependencies` и `requirements_txt` (по аналогии с `oca_dependencies.txt`), добавлять в resolver graph и merge Python requirements; проверять совместимость `odoo_version`, `python_version` и др. с host-проектом (warn/fail), **без** подмены platform/`odoo_git_link`; transitive URLs попадают в `.odpm/deps.lock.json` при `--update-lock`

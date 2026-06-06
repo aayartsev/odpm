@@ -105,17 +105,20 @@ stateDiagram-v2
 
 - Bind-mount исходников, **fresh venv** при смене lock
 - **debugpy** из коробки, VS Code attach
+- **`dev_mode`** → Odoo `--dev` в compose; при `reload`/`all` auto-`inotify` в venv
 - Postgres на все интерфaces (локальная машина)
 - Быстрый цикл: правка модуля → `-u my_module` без пересборки образа
 
 ### Server (`ODPM_SCENARIO=server`)
 
 - Тот же stack, но **без debugpy**, Postgres только `127.0.0.1`
+- **`dev_mode` игнорируется** (warning в лог), как и `debugpy`
 - Рекомендации hardening в manifest (не auto-enforce, но documented defaults)
 
 ### CI (`ODPM_SCENARIO=ci`)
 
 - **Baked venv + sources в образе**, без bind-mount Odoo
+- **`dev_mode` игнорируется** (как на server)
 - `odpm build-image` → push → `compose up` на runner
 - Тесты: `-i -u --test --stop-after-init`
 
@@ -125,7 +128,7 @@ stateDiagram-v2
 
 ## Идеальный data flow: host → container
 
-Сейчас odpm передаёт config как **base64 JSON**. На хорошем уровне это выглядит так:
+Сейчас odpm передаёт config как **`.odpm/runtime/config.json`** (mount в контейнер, `ODPM_CONFIG_PATH`; в CI — baked в образ). На хорошем уровне это выглядит так:
 
 ```mermaid
 sequenceDiagram

@@ -138,7 +138,7 @@ Use on a **local workstation** when you develop modules, debug code in VS Code, 
 | **debugpy** | Enabled **inside the container** by `run_odoo` when `ODPM_SCENARIO=developer` (not in the compose `command` list). Listens on `0.0.0.0:5678`; the debugger port is published on the host. |
 | **PostgreSQL / debugger on host** | Published as `HOST_PORT:CONTAINER_PORT` (not restricted to loopback on the host). |
 | **Odoo / Gevent** | Published on the host on `ODOO_PORT` and `GEVENT_PORT`. |
-| **`dev_mode` in `user_settings.json`** | Applied when passed on the command line (e.g. assets reload). Suitable for daily development. |
+| **`dev_mode` in `user_settings.json`** | Passed to Odoo as `--dev` in compose (not a separate odpm CLI flag). Values: `reload`, `qweb`, `werkzeug`, `xml`, `access`, `all`, or comma-separated combinations. When `reload` or `all` is set, `inotify` is added to the venv automatically. Regenerate compose with `odpm --skip-start` after changing `dev_mode`. |
 
 Typical workflow: `ODPM_SCENARIO=developer`, attach the debugger from VS Code, open `http://127.0.0.1:8069`.
 
@@ -152,7 +152,7 @@ Use on a **machine that runs Odoo as a service** (staging/production, VPS). Focu
 | **PostgreSQL on host** | Bound to `127.0.0.1:POSTGRES_PORT` only (not reachable from other machines via the published port). |
 | **Debugger port in compose** | **Not published** (Odoo does not use debugpy). |
 | **Odoo / Gevent on host** | Still published as `ODOO_PORT` / `GEVENT_PORT` on all host interfaces — put a reverse proxy (nginx, traefik) and firewall in front for public access. |
-| **`dev_mode`** | Not disabled automatically; for production, leave `dev_mode` empty in `user_settings.json` and do not use developer-only flags. |
+| **`dev_mode`** | **Ignored** when scenario is `server` (logged warning). Leave empty in `user_settings.json` on production. |
 
 ### `ci` (CI / DevOps)
 
@@ -166,6 +166,7 @@ For **building and running a baked image** on a CI runner: sources and venv live
 | **Gevent 8072** | Yes (same as dev/server) |
 | **Entrypoint** | Compose `command` is exec form: `python3 -m dev_project.inside_docker_app.run_odoo`; project config is mounted from `.odpm/runtime/config.json` (`venv_mode=baked`) |
 | **VS Code** | Not configured |
+| **`dev_mode`** | **Ignored** (same as `server`) |
 
 Typical on a runner: `ODPM_SCENARIO=ci`, `odpm --build-image`, then `docker compose up`.
 
@@ -206,6 +207,7 @@ Requires Docker on the host. Skipped by default in `unittest discover` (fast CI)
 | Odoo bind-mount | Yes | Yes | No |
 | Python venv (`venv_mode`) | `fresh` — recreated when lock changes | `fresh` — same as developer | `baked` — pre-built in image, no recreate |
 | `--build-image` | Error | Error | Yes |
+| Odoo `--dev` (`dev_mode`) | Yes | No (ignored) | No (ignored) |
 | Recommended environment | Local PC / laptop | Server / VPS | CI runner |
 
 ### Switching scenario
@@ -218,7 +220,7 @@ Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_d
 
 ### Recommendations for `server`
 
-- Do not use `dev_mode` on a publicly reachable instance.
+- `dev_mode` in `user_settings.json` is ignored on `server`; do not switch to `developer` on a publicly reachable instance just to enable `--dev`.
 - Set strong values for `db_manager_password`, `db_default_admin_*`, and PostgreSQL credentials; do not rely on image defaults.
 - Prefer HTTPS via a reverse proxy; set Odoo `proxy_mode` and `dbfilter` in `odoo.conf` when exposing the instance.
 - Restrict inbound traffic with a host firewall (allow only SSH and HTTPS; block direct access to `8069`/`8072` from the internet if the proxy is on the same host).
@@ -239,7 +241,7 @@ Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_d
 - `check_system` - `type: Boolean`. Indicates whether the system check will be started at startup. Useful for beginners. Checks if `git`, `docker`, and `docker-compose` are installed.
 - `developing_project` - `type: String`.A link to the project you are developing. Example: `"git@github.com:aayartsev/odoo_demo_project.git "`
 - `pre_commit_map_files` - `type: String`. A list of files for the `pre-commit` system that are taken out of the project and pushed there through the docker file mapping. It is necessary to work on non-Linux systems
-- `dev_mode` - `type: String`. You can specify comma-separated [parameters for developers](https://www.oovoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev). See the official documentation for your version of odoo
+- `dev_mode` - `type: String` or `false`. Comma-separated [Odoo `--dev` flags](https://www.odoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev) (`reload`, `qweb`, `werkzeug`, `xml`, `access`, `all`). **Only applied when `ODPM_SCENARIO=developer`**; on `server`/`ci` the value is ignored with a warning. When `reload` or `all` is set, odpm adds `inotify` to Python requirements for code autoreload. Regenerate compose after changes (`odpm --skip-start`).
 - `db_manager_password` - `type: String`. password for the database manager
 - `sql_queries` - `type: List`. Contains a list of strings, each of which is an SQL script that will be executed when using the command line parameter `--sql-execute`
 - `use_oca_dependencies` - experimental dependency discovery (single odpm run, default `false`): reads `oca_dependencies.txt` from the developing project and each checked-out git dependency, **and** nested `odpm.json` at dependency repo roots (`dependencies`, `requirements_txt`). Transitive git URLs are included in the resolved graph and in `.odpm/deps.lock.json` on `--update-lock`. Nested `odoo_version` / `python_version` are checked against the host project (warning in developer scenario, error in CI). Does not override host `odoo_git_link` or platform settings.
