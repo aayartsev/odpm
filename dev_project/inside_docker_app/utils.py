@@ -9,6 +9,7 @@ import zipfile
 from typing import Optional
 
 from .. import constants
+from ..container_config import ContainerConfig
 from .exceptions import ConfigValidationError, VenvError
 from .logger import get_module_logger
 
@@ -146,23 +147,19 @@ def shallow_since_date(build_date: str) -> str:
     return since.strftime("%Y-%m-%d")
 
 
-def resolve_venv_mode(config: dict) -> str:
-    """Return venv_mode from container config (with legacy fallback)."""
-    venv_mode = config.get("venv_mode")
-    if venv_mode is not None:
-        if venv_mode not in constants.VENV_MODE_VALUES:
-            message = (
-                f"Invalid venv_mode {venv_mode!r} in container config; "
-                f"expected one of {', '.join(sorted(constants.VENV_MODE_VALUES))}"
-            )
-            _logger.error(message)
-            raise ConfigValidationError(message)
-        return venv_mode
-    if config.get("odpm_scenario") == constants.CI_SCENARIO:
-        return constants.VENV_MODE_BAKED
-    return constants.VENV_MODE_FRESH
+def resolve_venv_mode(config: ContainerConfig) -> str:
+    """Return venv_mode from container config."""
+    venv_mode = config.venv_mode
+    if venv_mode not in constants.VENV_MODE_VALUES:
+        message = (
+            f"Invalid venv_mode {venv_mode!r} in container config; "
+            f"expected one of {', '.join(sorted(constants.VENV_MODE_VALUES))}"
+        )
+        _logger.error(message)
+        raise ConfigValidationError(message)
+    return venv_mode
 
 
-def resolve_venv_is_baked(config: dict) -> bool:
+def resolve_venv_is_baked(config: ContainerConfig) -> bool:
     """True when virtualenv was pre-installed in the image (CI bake)."""
     return resolve_venv_mode(config) == constants.VENV_MODE_BAKED

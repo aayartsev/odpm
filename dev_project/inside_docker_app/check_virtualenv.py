@@ -14,6 +14,7 @@ from ..bake_venv import (
     install_fresh,
     run_pip_command,
 )
+from ..container_config import ContainerConfig
 from .exceptions import VenvError
 from .logger import get_module_logger
 from .utils import delete_files_in_directory, resolve_venv_mode
@@ -22,18 +23,19 @@ _logger = get_module_logger(__name__)
 
 
 class VirtualenvChecker:
-    def __init__(self, config):
+    def __init__(self, config: ContainerConfig):
+        self.config = config
         self.venv_mode = resolve_venv_mode(config)
-        self.docker_venv_dir = config.get("docker_venv_dir", "")
-        self.docker_project_dir = config["docker_project_dir"]
-        self.requirements_txt = config.get("requirements_txt", [])
+        self.docker_venv_dir = config.docker_venv_dir
+        self.docker_project_dir = config.docker_project_dir
+        self.requirements_txt = config.requirements_txt
         self.odoo_requirements_path = os.path.join(
-            config["docker_odoo_dir"], "requirements.txt"
+            config.docker_odoo_dir, "requirements.txt"
         )
         self.venv_lock_file_path = os.path.join(self.docker_venv_dir, ".lock")
-        self.python_version = config["python_version"]
-        self.venv_lock_hash = config["venv_lock_hash"]
-        self.arch = config["arch"]
+        self.python_version = config.python_version
+        self.venv_lock_hash = config.venv_lock_hash
+        self.arch = config.arch
         self.uv_info = detect_uv_info()
         self.use_uv = self.uv_info["installed"]
         if self.venv_mode == constants.VENV_MODE_BAKED:
@@ -111,15 +113,7 @@ class VirtualenvChecker:
 
     def recreate_uv_venv(self):
         delete_files_in_directory(self.docker_venv_dir)
-        spec = build_spec_from_config(
-            {
-                "docker_project_dir": self.docker_project_dir,
-                "docker_venv_dir": self.docker_venv_dir,
-                "docker_odoo_dir": os.path.dirname(self.odoo_requirements_path),
-                "requirements_txt": self.requirements_txt,
-                "python_version": self.python_version,
-            }
-        )
+        spec = build_spec_from_config(self.config)
         install_fresh(
             spec,
             use_uv=self.use_uv,

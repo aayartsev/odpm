@@ -10,37 +10,29 @@ from dev_project.inside_docker_app.exceptions import ConfigValidationError, Venv
 from dev_project.inside_docker_app.utils import resolve_venv_mode
 from dev_project.scenario_policy import ScenarioPolicy
 
-
-def _config(**overrides) -> dict:
-    base = {
-        "docker_venv_dir": "/home/odoo/.venv",
-        "docker_project_dir": "/home/odoo",
-        "docker_odoo_dir": "/home/odoo/odoo",
-        "requirements_txt": [],
-        "python_version": "3.12",
-        "venv_lock_hash": "expected-hash",
-        "arch": "amd64",
-    }
-    base.update(overrides)
-    return base
+from container_config_helpers import minimal_container_config
 
 
 class ResolveVenvModeTests(unittest.TestCase):
     def test_fresh_mode_from_config(self):
         self.assertEqual(
-            resolve_venv_mode(_config(venv_mode=constants.VENV_MODE_FRESH)),
+            resolve_venv_mode(
+                minimal_container_config(venv_mode=constants.VENV_MODE_FRESH)
+            ),
             constants.VENV_MODE_FRESH,
         )
 
     def test_baked_mode_from_config(self):
         self.assertEqual(
-            resolve_venv_mode(_config(venv_mode=constants.VENV_MODE_BAKED)),
+            resolve_venv_mode(
+                minimal_container_config(venv_mode=constants.VENV_MODE_BAKED)
+            ),
             constants.VENV_MODE_BAKED,
         )
 
     def test_invalid_venv_mode_raises(self):
         with self.assertRaises(ConfigValidationError) as ctx:
-            resolve_venv_mode(_config(venv_mode="invalid"))
+            resolve_venv_mode(minimal_container_config(venv_mode="invalid"))
         self.assertEqual(ctx.exception.exit_code, 1)
 
 
@@ -58,9 +50,10 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as venv_dir:
             lock_path = Path(venv_dir) / ".lock"
             lock_path.write_text("stale-hash\n", encoding="utf-8")
-            config = _config(
+            config = minimal_container_config(
                 docker_venv_dir=venv_dir,
                 venv_mode=constants.VENV_MODE_FRESH,
+                venv_lock_hash="expected-hash",
             )
             VirtualenvChecker(config)
             mock_recreate.assert_called_once()
@@ -80,9 +73,10 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as venv_dir:
             lock_path = Path(venv_dir) / ".lock"
             lock_path.write_text("expected-hash\n", encoding="utf-8")
-            config = _config(
+            config = minimal_container_config(
                 docker_venv_dir=venv_dir,
                 venv_mode=constants.VENV_MODE_FRESH,
+                venv_lock_hash="expected-hash",
             )
             VirtualenvChecker(config)
             mock_recreate.assert_not_called()
@@ -101,9 +95,10 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as venv_dir:
             lock_path = Path(venv_dir) / ".lock"
             lock_path.write_text("expected-hash\n", encoding="utf-8")
-            config = _config(
+            config = minimal_container_config(
                 docker_venv_dir=venv_dir,
                 venv_mode=constants.VENV_MODE_BAKED,
+                venv_lock_hash="expected-hash",
             )
             VirtualenvChecker(config)
             mock_recreate.assert_not_called()
@@ -112,7 +107,7 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
 
 
 class BakedVenvFailureTests(unittest.TestCase):
-    def _assert_baked_init_fails(self, config: dict) -> None:
+    def _assert_baked_init_fails(self, config) -> None:
         with self.assertRaises(VenvError) as ctx:
             VirtualenvChecker(config)
         self.assertEqual(ctx.exception.exit_code, 1)
@@ -121,18 +116,20 @@ class BakedVenvFailureTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as parent:
             missing_dir = str(Path(parent) / "no-venv")
             self._assert_baked_init_fails(
-                _config(
+                minimal_container_config(
                     docker_venv_dir=missing_dir,
                     venv_mode=constants.VENV_MODE_BAKED,
+                    venv_lock_hash="expected-hash",
                 )
             )
 
     def test_baked_missing_lock_file_exits(self):
         with tempfile.TemporaryDirectory() as venv_dir:
             self._assert_baked_init_fails(
-                _config(
+                minimal_container_config(
                     docker_venv_dir=venv_dir,
                     venv_mode=constants.VENV_MODE_BAKED,
+                    venv_lock_hash="expected-hash",
                 )
             )
 
@@ -141,9 +138,10 @@ class BakedVenvFailureTests(unittest.TestCase):
             lock_path = Path(venv_dir) / ".lock"
             lock_path.write_text("wrong-hash\n", encoding="utf-8")
             self._assert_baked_init_fails(
-                _config(
+                minimal_container_config(
                     docker_venv_dir=venv_dir,
                     venv_mode=constants.VENV_MODE_BAKED,
+                    venv_lock_hash="expected-hash",
                 )
             )
 

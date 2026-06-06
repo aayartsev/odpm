@@ -1,3 +1,5 @@
+import base64
+import json
 import unittest
 from unittest.mock import patch
 
@@ -6,50 +8,53 @@ from dev_project.inside_docker_app.container_bootstrap import main, prepare_venv
 from dev_project.inside_docker_app.exceptions import VenvError
 from dev_project.inside_docker_app.utils import resolve_venv_is_baked, resolve_venv_mode
 
+from container_config_helpers import minimal_container_config, minimal_container_config_dict
 
-def _minimal_config(**overrides) -> dict:
-    base = {
-        "docker_venv_dir": "/home/odoo/.venv",
-        "docker_project_dir": "/home/odoo",
-        "docker_odoo_dir": "/home/odoo/odoo",
-        "requirements_txt": [],
-        "python_version": "3.12",
-        "venv_lock_hash": "abc",
-        "arch": "amd64",
-    }
-    base.update(overrides)
-    return base
+
+def _b64_config(**overrides) -> str:
+    payload = minimal_container_config_dict(**overrides)
+    return base64.b64encode(json.dumps(payload).encode()).decode()
 
 
 class ResolveVenvIsBakedTests(unittest.TestCase):
     def test_venv_mode_baked(self):
         self.assertTrue(
-            resolve_venv_is_baked(_minimal_config(venv_mode=constants.VENV_MODE_BAKED))
+            resolve_venv_is_baked(
+                minimal_container_config(venv_mode=constants.VENV_MODE_BAKED)
+            )
         )
 
     def test_venv_mode_fresh(self):
         self.assertFalse(
-            resolve_venv_is_baked(_minimal_config(venv_mode=constants.VENV_MODE_FRESH))
+            resolve_venv_is_baked(
+                minimal_container_config(venv_mode=constants.VENV_MODE_FRESH)
+            )
         )
 
     def test_legacy_ci_scenario_fallback(self):
         self.assertTrue(
             resolve_venv_is_baked(
-                _minimal_config(odpm_scenario=constants.CI_SCENARIO)
+                minimal_container_config(
+                    odpm_scenario=constants.CI_SCENARIO,
+                    venv_mode=None,
+                )
             )
         )
 
     def test_legacy_developer_scenario_fallback(self):
         self.assertFalse(
             resolve_venv_is_baked(
-                _minimal_config(odpm_scenario=constants.DEVELOPER_SCENARIO)
+                minimal_container_config(
+                    odpm_scenario=constants.DEVELOPER_SCENARIO,
+                    venv_mode=None,
+                )
             )
         )
 
     def test_venv_mode_takes_priority_over_legacy_scenario(self):
         self.assertFalse(
             resolve_venv_is_baked(
-                _minimal_config(
+                minimal_container_config(
                     venv_mode=constants.VENV_MODE_FRESH,
                     odpm_scenario=constants.CI_SCENARIO,
                 )
@@ -60,7 +65,9 @@ class ResolveVenvIsBakedTests(unittest.TestCase):
 class ResolveVenvModeTests(unittest.TestCase):
     def test_resolve_venv_mode_matches_policy(self):
         self.assertEqual(
-            resolve_venv_mode(_minimal_config(venv_mode=constants.VENV_MODE_BAKED)),
+            resolve_venv_mode(
+                minimal_container_config(venv_mode=constants.VENV_MODE_BAKED)
+            ),
             constants.VENV_MODE_BAKED,
         )
 
@@ -68,7 +75,7 @@ class ResolveVenvModeTests(unittest.TestCase):
 class PrepareVenvTests(unittest.TestCase):
     @patch("dev_project.inside_docker_app.container_bootstrap.VirtualenvChecker")
     def test_prepare_venv_uses_config_venv_mode(self, checker_cls):
-        config = _minimal_config(venv_mode=constants.VENV_MODE_BAKED)
+        config = minimal_container_config(venv_mode=constants.VENV_MODE_BAKED)
         prepare_venv(config)
         checker_cls.assert_called_once_with(config)
 
@@ -79,7 +86,7 @@ class ContainerBootstrapMainTests(unittest.TestCase):
     def test_main_exits_with_container_error_code(self, mock_parse_args, mock_bootstrap):
         from dev_project.inside_docker_app import container_bootstrap
 
-        mock_parse_args.return_value.config_base64_data = "e30="
+        mock_parse_args.return_value.config_base64_data = _b64_config()
         mock_bootstrap.side_effect = VenvError("baked venv missing", exit_code=1)
 
         with patch.object(container_bootstrap.sys, "exit") as mock_exit:
@@ -92,7 +99,7 @@ class ContainerBootstrapMainTests(unittest.TestCase):
         from dev_project.inside_docker_app import container_bootstrap
         from dev_project.inside_docker_app.exceptions import PostgresError
 
-        mock_parse_args.return_value.config_base64_data = "e30="
+        mock_parse_args.return_value.config_base64_data = _b64_config()
         mock_bootstrap.side_effect = PostgresError("psycopg2 missing", exit_code=2)
 
         with patch.object(container_bootstrap.sys, "exit") as mock_exit:

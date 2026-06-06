@@ -16,6 +16,7 @@ from typing import Any
 from pip._vendor.packaging.markers import Marker, default_environment
 
 from . import constants
+from .container_config import ContainerConfig
 from .inside_docker_app.exceptions import VenvError
 from .inside_docker_app.logger import get_module_logger
 
@@ -291,17 +292,17 @@ def install_fresh(
             lock_file.write(lock_hash)
 
 
-def build_spec_from_config(config: dict[str, Any]) -> VenvInstallSpec:
+def build_spec_from_config(config: ContainerConfig) -> VenvInstallSpec:
     odoo_requirements_path = os.path.join(
-        config["docker_odoo_dir"], "requirements.txt"
+        config.docker_odoo_dir, "requirements.txt"
     )
     return VenvInstallSpec(
-        project_dir=config["docker_project_dir"],
-        venv_dir=config.get("docker_venv_dir", ""),
+        project_dir=config.docker_project_dir,
+        venv_dir=config.docker_venv_dir,
         odoo_requirements_path=odoo_requirements_path,
-        extra_packages=list(config.get("requirements_txt") or []),
-        python_version=config["python_version"],
-        bootstrap_packages=get_venv_bootstrap_packages(config["python_version"]),
+        extra_packages=list(config.requirements_txt),
+        python_version=config.python_version,
+        bootstrap_packages=get_venv_bootstrap_packages(config.python_version),
     )
 
 

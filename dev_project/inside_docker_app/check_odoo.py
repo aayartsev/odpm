@@ -6,6 +6,7 @@ import os
 import sys
 from contextlib import closing, contextmanager
 
+from ..container_config import ContainerConfig
 from . import cli_params
 from .logger import get_module_logger
 from .postgres_waiter import PostgresWaiter
@@ -19,26 +20,22 @@ USED_ODOO_SUBMODULES = ["tools", "api", "service"]
 
 
 class OdooChecker:
-    def __init__(self, config):
+    def __init__(self, config: ContainerConfig):
         _logger.info("Start Odoo Checker")
-        self.odoo_dir = config["docker_odoo_dir"]
-        self.odoo_config_data = config["odoo_config_data"]
-        self.docker_path_odoo_conf = config["docker_path_odoo_conf"]
-        self.args_dict = config["arguments"]
-        self.platform_name = config.get("platform_name", "odoo")
-        self.db_lang = config["db_creation_data"]["db_lang"]
-        self.db_country_code = config["db_creation_data"]["db_country_code"]
-        self.db_default_admin_password = config["db_creation_data"][
-            "db_default_admin_password"
-        ]
-        self.db_default_admin_login = config["db_creation_data"][
-            "db_default_admin_login"
-        ]
-        self.db_create_demo = config["db_creation_data"]["create_demo"]
-        self.db_manager_password = config.get("db_manager_password", False)
-        self.sql_queries = config.get("sql_queries", [])
-        self.modules_to_update = config.get("modules_to_update", [])
-        self.docker_dirs_with_addons = config.get("docker_dirs_with_addons", False)
+        self.odoo_dir = config.docker_odoo_dir
+        self.odoo_config_data = config.odoo_config_data
+        self.docker_path_odoo_conf = config.docker_path_odoo_conf
+        self.args_dict = config.arguments
+        self.platform_name = config.platform_name
+        self.db_lang = config.db_creation_data.db_lang
+        self.db_country_code = config.db_creation_data.db_country_code
+        self.db_default_admin_password = config.db_creation_data.db_default_admin_password
+        self.db_default_admin_login = config.db_creation_data.db_default_admin_login
+        self.db_create_demo = config.db_creation_data.create_demo
+        self.db_manager_password = config.db_manager_password or False
+        self.sql_queries = config.sql_queries
+        self.modules_to_update = config.modules_to_update
+        self.docker_dirs_with_addons = config.docker_dirs_with_addons or False
 
         self.drop_db_name = self.args_dict.get(
             cli_params.DB_DROP_PARAM.replace("-", "_").strip("_"), False

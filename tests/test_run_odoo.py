@@ -2,25 +2,20 @@ import json
 import os
 import tempfile
 import unittest
-import warnings
 from pathlib import Path
 from unittest.mock import patch
 
 from dev_project import constants
+from dev_project.container_config import load_container_config_from_env
 from dev_project.inside_docker_app.exceptions import ContainerError
 from dev_project.inside_docker_app import run_odoo
 
+from container_config_helpers import minimal_container_config, minimal_container_config_dict
+
 
 class RunOdooTests(unittest.TestCase):
-    def _config_payload(self, scenario: str, *, run_mode: str = constants.RUN_MODE_ODOO) -> dict:
-        return {
-            "docker_venv_dir": "/home/odoo/.venv",
-            "docker_project_dir": "/home/odoo",
-            "odpm_scenario": scenario,
-            "run_mode": run_mode,
-        }
-
-    def _write_config_file(self, payload: dict) -> str:
+    def _write_config_file(self, **overrides) -> str:
+        payload = minimal_container_config_dict(**overrides)
         handle, path = tempfile.mkstemp(suffix=".json")
         os.close(handle)
         Path(path).write_text(json.dumps(payload), encoding="utf-8")
@@ -29,28 +24,16 @@ class RunOdooTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         os.environ.pop(constants.ODPM_CONFIG_PATH_ENV, None)
-        os.environ.pop(constants.ODPM_CONFIG_B64_ENV, None)
 
     def test_read_config_from_file(self):
-        path = self._write_config_file(self._config_payload(constants.SERVER_SCENARIO))
+        path = self._write_config_file(odpm_scenario=constants.SERVER_SCENARIO)
         os.environ[constants.ODPM_CONFIG_PATH_ENV] = path
-        config = run_odoo.read_config()
-        self.assertEqual(config["odpm_scenario"], constants.SERVER_SCENARIO)
+        config = load_container_config_from_env()
+        self.assertEqual(config.odpm_scenario, constants.SERVER_SCENARIO)
 
-    def test_read_config_falls_back_to_deprecated_env_b64(self):
-        payload = self._config_payload(constants.CI_SCENARIO)
-        os.environ[constants.ODPM_CONFIG_B64_ENV] = (
-            __import__("base64").b64encode(json.dumps(payload).encode()).decode()
-        )
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            config = run_odoo.read_config()
-        self.assertEqual(config["odpm_scenario"], constants.CI_SCENARIO)
-        self.assertTrue(any(issubclass(item.category, DeprecationWarning) for item in caught))
-
-    def test_read_config_requires_file_or_env(self):
+    def test_read_config_requires_file(self):
         with self.assertRaises(ContainerError):
-            run_odoo.read_config()
+            load_container_config_from_env()
 
     def test_parse_odoo_argv_after_separator(self):
         self.assertEqual(
@@ -63,15 +46,17 @@ class RunOdooTests(unittest.TestCase):
     def test_should_bootstrap_only_from_run_mode(self):
         self.assertTrue(
             run_odoo.should_bootstrap_only(
-                {"run_mode": constants.RUN_MODE_BOOTSTRAP_ONLY}
+                minimal_container_config(run_mode=constants.RUN_MODE_BOOTSTRAP_ONLY)
             )
         )
         self.assertFalse(
-            run_odoo.should_bootstrap_only({"run_mode": constants.RUN_MODE_ODOO})
+            run_odoo.should_bootstrap_only(
+                minimal_container_config(run_mode=constants.RUN_MODE_ODOO)
+            )
         )
 
     def test_build_odoo_exec_argv_includes_debugpy_for_developer(self):
-        config = self._config_payload(constants.DEVELOPER_SCENARIO)
+        config = minimal_container_config(odpm_scenario=constants.DEVELOPER_SCENARIO)
         exec_argv = run_odoo.build_odoo_exec_argv(
             config,
             ["/home/odoo/odoo/odoo-bin", "-d", "demo"],
@@ -80,7 +65,7 @@ class RunOdooTests(unittest.TestCase):
         self.assertIn("debugpy", exec_argv)
 
     def test_build_odoo_exec_argv_without_debugpy_for_server(self):
-        config = self._config_payload(constants.SERVER_SCENARIO)
+        config = minimal_container_config(odpm_scenario=constants.SERVER_SCENARIO)
         exec_argv = run_odoo.build_odoo_exec_argv(
             config,
             ["/home/odoo/odoo/odoo-bin"],
@@ -93,7 +78,7 @@ class RunOdooTests(unittest.TestCase):
     def test_run_odoo_execs_venv_python_with_odoo_argv(
         self, mock_bootstrap, mock_chdir, mock_execv
     ):
-        path = self._write_config_file(self._config_payload(constants.SERVER_SCENARIO))
+        path = self._write_config_file(odpm_scenario=constants.SERVER_SCENARIO)
         os.environ[constants.ODPM_CONFIG_PATH_ENV] = path
         run_odoo.run_odoo(["--", "/home/odoo/odoo/odoo-bin", "-d", "demo"])
         mock_bootstrap.assert_called_once()
@@ -105,10 +90,9 @@ class RunOdooTests(unittest.TestCase):
     @patch("dev_project.inside_docker_app.run_odoo.run_container_bootstrap")
     def test_run_odoo_bootstrap_only_exits_without_exec(self, mock_bootstrap):
         path = self._write_config_file(
-            self._config_payload(
-                constants.CI_SCENARIO,
-                run_mode=constants.RUN_MODE_BOOTSTRAP_ONLY,
-            )
+            odpm_scenario=constants.CI_SCENARIO,
+            run_mode=constants.RUN_MODE_BOOTSTRAP_ONLY,
+            venv_mode=constants.VENV_MODE_BAKED,
         )
         os.environ[constants.ODPM_CONFIG_PATH_ENV] = path
         with self.assertRaises(SystemExit) as ctx:

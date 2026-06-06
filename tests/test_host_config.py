@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
+from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.loader import ConfigLoader
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
@@ -194,6 +195,7 @@ class ConfigPayloadTests(unittest.TestCase):
         config.container_run_mode = constants.RUN_MODE_ODOO
 
         payload = json.loads(config_to_json(config).decode("utf-8"))
+        self.assertEqual(payload["schema_version"], CONTAINER_CONFIG_SCHEMA_VERSION)
         self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)
         self.assertEqual(payload["odpm_scenario"], constants.SERVER_SCENARIO)
         self.assertEqual(payload["run_mode"], constants.RUN_MODE_ODOO)
