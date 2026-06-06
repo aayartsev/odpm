@@ -145,13 +145,17 @@ class BaseImageBuilderTests(unittest.TestCase):
         self.assertTrue(self._builder().base_image_exists())
 
     @patch("dev_project.project_env.base_image.run_logged", return_value=1)
-    @patch("dev_project.project_env.base_image.os.chdir")
-    def test_build_base_image_raises_pipeline_error_on_failure(
-        self, _mock_chdir, _mock_logged
-    ):
+    def test_build_base_image_raises_pipeline_error_on_failure(self, mock_logged):
         with self.assertRaises(PipelineError) as ctx:
             self._builder().build_base_image()
         self.assertEqual(ctx.exception.exit_code, 1)
+
+    @patch("dev_project.project_env.base_image.run_logged", return_value=0)
+    def test_build_base_image_uses_project_dir_as_cwd(self, mock_logged):
+        builder = self._builder()
+        builder.build_base_image()
+        mock_logged.assert_called_once()
+        self.assertEqual(mock_logged.call_args.kwargs["cwd"], builder.config.project_dir)
 
     @patch("dev_project.project_env.base_image.write_base_image_identity")
     @patch.object(BaseImageBuilder, "build_base_image")

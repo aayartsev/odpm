@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
@@ -40,7 +39,6 @@ class BaseImageBuilder:
         return False
 
     def build_base_image(self) -> None:
-        os.chdir(self.config.project_dir)
         returncode = run_logged(
             [
                 "docker",

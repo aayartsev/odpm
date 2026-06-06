@@ -162,7 +162,6 @@ class OdpmPipeline:
             if self.handle_build_image():
                 return
             self.configure_vscode()
-            os.chdir(self._config().project_dir)
             if getattr(self.args, "update_lock", False):
                 _logger.info("Git dependency lock updated; container start skipped")
                 return

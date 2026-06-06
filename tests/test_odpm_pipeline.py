@@ -199,8 +199,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
 
-        with patch("dev_project.odpm_pipeline.os.chdir"):
-            pipeline.run()
+        pipeline.run()
 
         mock_start.assert_not_called()
         mock_vscode.assert_called_once()
@@ -223,8 +222,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
 
-        with patch("dev_project.odpm_pipeline.os.chdir"):
-            pipeline.run()
+        pipeline.run()
 
         mock_start.assert_not_called()
         mock_vscode.assert_called_once()
@@ -247,11 +245,35 @@ class OdpmPipelineRunTests(unittest.TestCase):
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
 
-        with patch("dev_project.odpm_pipeline.os.chdir"):
-            pipeline.run()
+        pipeline.run()
 
         mock_vscode.assert_not_called()
         mock_start.assert_not_called()
+
+    @patch("dev_project.odpm_pipeline.os.chdir")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.start_containers")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.configure_vscode")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.handle_build_image", return_value=False)
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_does_not_chdir(
+        self,
+        mock_setup,
+        mock_prepare,
+        mock_build_image,
+        mock_vscode,
+        mock_start,
+        mock_chdir,
+    ):
+        args = Namespace(build_image=False, skip_start=False, update_lock=False)
+        pipeline = OdpmPipeline(args, "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.project_dir = "/tmp/project"
+
+        pipeline.run()
+
+        mock_chdir.assert_not_called()
+        mock_start.assert_called_once()
 
     @patch("dev_project.odpm_pipeline.sys.exit")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
