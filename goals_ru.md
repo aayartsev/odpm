@@ -335,7 +335,7 @@ Doodba: `custom/` hooks и onbuild. Dev Containers: `features` и `postCreateCom
 | Subprocess           | bake_venv module path                    | ✅           | expand                       |
 | Integration (opt-in) | `docker build` CI + compose HTTP smoke | ✅ opt-in   | maintain                     |
 | E2E (nightly)        | init demo project → `-i base` → HTTP 200 | ✅ opt-in (`ODPM_GOLDEN_PATH_PROJECT`) | full init in CI optional |
-| Contract             | ConfigToJson schema vN                   | ❌           | jsonschema + migration tests |
+| Contract             | `ContainerConfig` v1 + legacy v0 migration | ✅           | maintain; reference JSON spec + migration tests (stdlib, zero deps) |
 
 
 **Золотой путь E2E:** `odoo_demo_project` + `--init` + `-d test -i base --stop-after-init` за <15 мин на CI.
@@ -362,7 +362,7 @@ flowchart LR
 
 
 
-**Идеал:** zero questions при наличии `odpm.json` (non-interactive — уже есть). TTY только для выбора scenario при первом запуске без `.env`.
+**Идеал:** zero questions при наличии `odpm.json` (non-interactive — уже есть). TTY только для выбора scenario при первом запуске без `.env`. Host-CLI odpm — **zero Python deps** (только stdlib + Docker/git), чтобы не отпугивать новичка `pip install` до первого `odpm up`.
 
 ---
 
@@ -393,12 +393,12 @@ flowchart LR
 
 **odpm 4.0 после рефакторинга** — правый верхний квадрант: clean architecture (pipeline, policy, modules, tests). До уровня Doodba/Odoo.sh по automation не хватает:
 
-1. Versioned config contract host↔container
+1. ~~Versioned config contract host↔container~~ — `ContainerConfig` v1, stdlib validation, `container_config.v1.json`; `ConfigToJson` deprecated
 2. `odpm plan` / idempotent declarative apply
 3. ~~Dependency lock (commit SHAs)~~ — `.odpm/deps.lock.json`, `--update-lock`; OCA resolved graph, developing, CI strict verify
 4. Plugin/hook API
 5. Golden-path E2E
-6. Container-side parity (no chdir/shell, typed config)
+6. Container-side parity — ~~typed config (H3)~~, ~~host `os.chdir` (H1)~~; structured entrypoint / меньше shell в compose
 
 ---
 
