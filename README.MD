@@ -27,6 +27,8 @@ You need to download and install the following programs:
 
 ### pip (4.0+)
 
+Requires **Python 3.10+**. On Linux distros with [PEP 668](https://peps.python.org/pep-0668/) (externally managed system Python), install into a virtual environment or use [pipx](https://pipx.pypa.io/) instead of system-wide `pip install`.
+
 From a clone of this repository:
 
 ```bash

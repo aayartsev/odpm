@@ -28,6 +28,8 @@
 
 ### pip (4.0+)
 
+Нужен **Python 3.10 или новее**. На Linux с [PEP 668](https://peps.python.org/pep-0668/) (системный Python «защищён» от pip) устанавливайте odpm в virtualenv или через [pipx](https://pipx.pypa.io/), а не командой `pip install` в систему.
+
 Из клона репозитория:
 
 ```bash
