@@ -15,6 +15,11 @@ from dev_project.plan import (
     runtime_config_stale,
     skip_git_update,
 )
+from dev_project.prepare_registry import (
+    build_prepare_plan,
+    collect_prepare_step_ids,
+    make_prepare_context,
+)
 from dev_project.project_materializer import ProjectMaterializer
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -100,7 +105,8 @@ class OdpmPlannerTests(unittest.TestCase):
             config = self._config(project_dir=tmp)
             plan = OdpmPlanner.build(config, Namespace(update_lock=True))
             step_ids = [step.id for step in plan.steps]
-            self.assertIn("git.update_lock", step_ids)
+            self.assertIn("git.materialize", step_ids)
+            self.assertIn("git.lock_collect", step_ids)
             self.assertNotIn("compose.up", step_ids)
 
     def test_plan_warns_on_update_lock_with_no_git_update(self):
@@ -142,12 +148,83 @@ class OdpmPlannerTests(unittest.TestCase):
         self.assertIn("example warning", text)
 
 
+class PrepareRegistryContractTests(unittest.TestCase):
+    def _config(self, *, project_dir: str) -> MagicMock:
+        config = MagicMock()
+        config.project_dir = project_dir
+        config.arguments = Namespace()
+        config.check_system = True
+        config.create_module_links = True
+        config.dockerfile_template_name = "debian_12_dockerfile"
+        config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        config.compute_venv_lock_hash.return_value = "hash"
+        return config
+
+    def _prepare_step_ids(self, args: Namespace, project_dir: str) -> list[str]:
+        ctx = make_prepare_context(
+            self._config(project_dir=project_dir),
+            MagicMock(),
+            MagicMock(),
+            args,
+        )
+        plan = build_prepare_plan(ctx)
+        return [step.id for step in plan.steps]
+
+    def test_prepare_plan_matches_registry_order(self):
+        scenarios = (
+            Namespace(),
+            Namespace(no_git_update=True),
+            Namespace(update_lock=True),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            for args in scenarios:
+                ctx = make_prepare_context(
+                    self._config(project_dir=tmp),
+                    MagicMock(),
+                    MagicMock(),
+                    args,
+                )
+                plan_ids = [step.id for step in build_prepare_plan(ctx).steps]
+                registry_ids = list(collect_prepare_step_ids(ctx))
+                self.assertEqual(plan_ids, registry_ids)
+
+    def test_lock_apply_follows_map_folders(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            lock_path = Path(tmp) / constants.DEPS_LOCK_REL_PATH
+            lock_path.parent.mkdir(parents=True)
+            lock_path.write_text('{"schema_version": 1}', encoding="utf-8")
+            step_ids = self._prepare_step_ids(Namespace(), tmp)
+            self.assertIn("git.lock_apply", step_ids)
+            self.assertLess(
+                step_ids.index("project.map_folders"),
+                step_ids.index("git.lock_apply"),
+            )
+
+    def test_stale_runtime_config_uses_compose_service_split(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            step_ids = self._prepare_step_ids(Namespace(), tmp)
+            self.assertIn("venv.runtime_config", step_ids)
+            self.assertNotIn("compose.service", step_ids)
+
+    def test_fresh_runtime_config_uses_compose_service_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            runtime_dir = Path(tmp) / constants.ODPM_RUNTIME_DIR_REL_PATH
+            runtime_dir.mkdir(parents=True)
+            (runtime_dir / "config.json").write_text(
+                '{"venv_lock_hash": "hash"}',
+                encoding="utf-8",
+            )
+            step_ids = self._prepare_step_ids(Namespace(), tmp)
+            self.assertIn("compose.service", step_ids)
+            self.assertNotIn("venv.runtime_config", step_ids)
+
+
 class ProjectMaterializerDryRunTests(unittest.TestCase):
-    def test_dry_run_delegates_to_planner(self):
+    def test_dry_run_delegates_to_build_plan(self):
         config = MagicMock()
         args = Namespace()
-        with patch("dev_project.plan.OdpmPlanner") as mock_planner:
-            mock_planner.build.return_value = MagicMock()
+        with patch("dev_project.project_materializer.build_plan") as mock_build_plan:
+            mock_build_plan.return_value = MagicMock()
             result = ProjectMaterializer().run(
                 config,
                 MagicMock(),
@@ -155,8 +232,8 @@ class ProjectMaterializerDryRunTests(unittest.TestCase):
                 args,
                 dry_run=True,
             )
-        mock_planner.build.assert_called_once_with(config, args)
-        self.assertIs(result, mock_planner.build.return_value)
+        mock_build_plan.assert_called_once_with(config, args)
+        self.assertIs(result, mock_build_plan.return_value)
 
 
 class OdpmPipelinePlanTests(unittest.TestCase):

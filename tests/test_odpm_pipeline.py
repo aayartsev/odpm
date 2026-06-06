@@ -1,5 +1,7 @@
+import tempfile
 import unittest
 from argparse import Namespace
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
@@ -358,7 +360,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.system_checker = MagicMock()
         return pipeline
 
-    @patch("dev_project.project_materializer.ComposeServiceBuilder")
+    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
         pipeline.prepare_project_files()
@@ -368,7 +370,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.ensure_git_repos_present.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
-    @patch("dev_project.project_materializer.ComposeServiceBuilder")
+    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_skips_git_when_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(no_git_update=True)
         pipeline.prepare_project_files()
@@ -376,10 +378,10 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.materialize_git_repos.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_not_called()
 
-    @patch("dev_project.project_materializer.ComposeServiceBuilder")
+    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_skips_build_date_when_platform_lock_exists(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
-        with patch("dev_project.project_materializer.DepsLockManager") as mock_manager_cls:
+        with patch("dev_project.prepare_registry.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             manager.has_platform_lock.return_value = True
             mock_manager_cls.return_value = manager
@@ -390,10 +392,10 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         manager.load.assert_called_once()
         manager.enter_apply_mode.assert_called_once()
 
-    @patch("dev_project.project_materializer.ComposeServiceBuilder")
+    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_update_lock_collects_without_loading_lock(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True)
-        with patch("dev_project.project_materializer.DepsLockManager") as mock_manager_cls:
+        with patch("dev_project.prepare_registry.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             mock_manager_cls.return_value = manager
             pipeline.prepare_project_files()
@@ -404,17 +406,25 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         )
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
-    @patch("dev_project.project_materializer.ComposeServiceBuilder")
+    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_verifies_lock_after_checkout_when_apply_mode(self, _mock_builder):
-        pipeline = self._pipeline_with_mocks()
-        with patch("dev_project.project_materializer.DepsLockManager") as mock_manager_cls:
-            manager = MagicMock()
-            manager.apply_mode = True
-            mock_manager_cls.return_value = manager
-            pipeline.prepare_project_files()
-        manager.verify_after_checkout.assert_called_once()
+        with tempfile.TemporaryDirectory() as tmp:
+            lock_path = Path(tmp) / constants.DEPS_LOCK_REL_PATH
+            lock_path.parent.mkdir(parents=True)
+            lock_path.write_text(
+                '{"schema_version": 1, "platform": {"url": "https://example.com/odoo.git", "commit": "abc1234"}, "dependencies": []}',
+                encoding="utf-8",
+            )
+            pipeline = self._pipeline_with_mocks()
+            pipeline.config.project_dir = tmp
+            with patch("dev_project.prepare_registry.DepsLockManager") as mock_manager_cls:
+                manager = MagicMock()
+                manager.apply_mode = True
+                mock_manager_cls.return_value = manager
+                pipeline.prepare_project_files()
+            manager.verify_after_checkout.assert_called_once()
 
-    @patch("dev_project.project_materializer.ComposeServiceBuilder")
+    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_rejects_update_lock_with_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True, no_git_update=True)
         with self.assertRaises(PipelineError):
