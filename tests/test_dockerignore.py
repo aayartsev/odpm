@@ -1,12 +1,15 @@
+import json
 import os
 import tempfile
 import unittest
+from argparse import Namespace
 from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants, translations
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_dir_manager import ProjectDirManager
+from dev_project.scenario_policy import ScenarioPolicy
 
 
 class ProjectDockerignoreTests(unittest.TestCase):
@@ -98,6 +101,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()
             config.program_dir = self._program_dir()
+            config.project_dir = project_dir
             config.ci_build_context_dir = os.path.join(
                 project_dir, constants.CI_BUILD_CONTEXT_DIR
             )
@@ -109,10 +113,22 @@ class ProjectDockerignoreTests(unittest.TestCase):
             config.docker_temp_tests_dir = "/tmp/odoo_tests"
             config.docker_odoo_dir = "/home/odoo/odoo"
             config.docker_extra_addons = "/home/odoo/extra-addons"
+            config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
             config.compute_venv_lock_hash.return_value = "abc"
             config.python_version = "3.12"
             config.requirements_txt = []
             config.arch = "amd64"
+            config.odoo_version = "19.0"
+            config.platform_name = "odoo"
+            config.container_run_mode = constants.RUN_MODE_ODOO
+            config.db_manager_password = ""
+            config.db_creation_data = dict(constants.DEFAULT_DB_CREATION_DATA)
+            config.arguments = Namespace()
+            config.sql_queries = []
+            config.update_modules = ""
+            config.docker_dirs_with_addons = []
+            config.user_env = MagicMock(odpm_scenario=constants.CI_SCENARIO)
+            config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
 
             env = CreateProjectEnvironment(config)
             env.mapped_folders = []
@@ -123,6 +139,15 @@ class ProjectDockerignoreTests(unittest.TestCase):
             content = dockerignore.read_text(encoding="utf-8")
             self.assertIn("**/.git", content)
             self.assertNotIn(".venv", content)
+
+            runtime_config = (
+                Path(config.ci_build_context_dir)
+                / constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH
+            )
+            self.assertTrue(runtime_config.is_file())
+            payload = json.loads(runtime_config.read_text(encoding="utf-8"))
+            self.assertEqual(payload["odpm_scenario"], constants.CI_SCENARIO)
+            self.assertEqual(payload["venv_mode"], constants.VENV_MODE_BAKED)
 
             dev_project_dest = Path(config.ci_build_context_dir) / "dev_project"
             self.assertTrue((dev_project_dest / "bake_venv.py").is_file())

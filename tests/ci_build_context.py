@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 from pathlib import Path, PurePosixPath
@@ -13,10 +14,24 @@ from dev_project.bake_venv import (
     write_ci_venv_install_spec,
 )
 
+from tests.container_config_helpers import minimal_container_config_dict
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
 
 DEFAULT_DOCKER_PROJECT_DIR = "/home/odoo"
+
+
+def write_minimal_ci_runtime_config(context_dir: str, **overrides) -> Path:
+    payload = minimal_container_config_dict(
+        odpm_scenario=constants.CI_SCENARIO,
+        venv_mode=constants.VENV_MODE_BAKED,
+        **overrides,
+    )
+    path = Path(context_dir) / constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
 
 
 def write_minimal_ci_build_context(
@@ -55,4 +70,9 @@ def write_minimal_ci_build_context(
         lock_hash=lock_hash,
     )
     write_ci_venv_install_spec(context_dir, spec)
+    write_minimal_ci_runtime_config(
+        context_dir,
+        docker_project_dir=str(docker_root),
+        venv_lock_hash=lock_hash,
+    )
     return project_dir

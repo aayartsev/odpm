@@ -67,6 +67,9 @@ def _write_ci_dockerfile(context_dir: Path, *, base_image: str) -> Path:
         CONTAINER_USER=constants.CONTAINER_USER,
         CURRENT_USER=constants.CONTAINER_USER,
         CI_VENV_INSTALL_JSON=constants.CI_VENV_INSTALL_JSON,
+        CI_RUNTIME_CONFIG_CONTEXT_REL=constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH,
+        ODPM_CONFIG_PATH_ENV=constants.ODPM_CONFIG_PATH_ENV,
+        ODPM_RUNTIME_CONFIG_CONTAINER_PATH=constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
     )
     content = content.replace(
         constants.MESSAGE_MARKER,

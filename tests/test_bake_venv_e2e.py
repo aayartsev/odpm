@@ -88,6 +88,15 @@ class CiDockerfileTests(unittest.TestCase):
         self.assertNotIn("bake.bake_venv", content)
         self.assertNotIn("bake_venv.py --config", content)
 
+    def test_dockerfile_ci_creates_runtime_dir_as_root(self):
+        content = DOCKERFILE_CI.read_text(encoding="utf-8")
+        root_idx = content.index("USER root")
+        mkdir_idx = content.index("RUN mkdir -p /run/odpm")
+        bake_idx = content.index("python3 -m dev_project.bake_venv")
+        self.assertLess(root_idx, mkdir_idx)
+        self.assertLess(mkdir_idx, bake_idx)
+        self.assertIn("chown {CONTAINER_USER}:{CONTAINER_USER} /run/odpm", content)
+
 
 if __name__ == "__main__":
     unittest.main()

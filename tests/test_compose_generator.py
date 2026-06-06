@@ -39,6 +39,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         config.odoo_ci_image_name = "odoo-ci:19"
         config.compose_service = ComposeOdooService(
             working_dir="/home/odoo",
+            include_runtime_config=policy.mount_runtime_config_from_host(),
             command=[
                 "python3",
                 "-m",
@@ -128,14 +129,18 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertNotIn("bash -c", content)
             self.assertIn("    command:", content)
 
-    def test_ci_compose_includes_runtime_config_volume_without_source_mounts(self):
+    def test_ci_compose_omits_host_runtime_config_volume(self):
         with tempfile.TemporaryDirectory() as project_dir:
             content = self._compose_content(project_dir, constants.CI_SCENARIO)
             runtime_config_host = os.path.join(
                 project_dir, constants.ODPM_RUNTIME_CONFIG_REL_PATH
             )
-            self.assertIn(
+            self.assertNotIn(
                 f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro",
+                content,
+            )
+            self.assertNotIn(
+                f"{constants.ODPM_CONFIG_PATH_ENV}={constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}",
                 content,
             )
             self.assertNotIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)

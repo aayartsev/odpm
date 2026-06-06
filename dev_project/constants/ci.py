@@ -12,6 +12,7 @@ ODPM_RUNTIME_CONFIG_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "runtime"
 ODPM_RUNTIME_CONFIG_CONTAINER_PATH = "/run/odpm/config.json"
 ODPM_CONFIG_PATH_ENV = "ODPM_CONFIG_PATH"
 ODPM_RUNTIME_DIR_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "runtime")
+CI_RUNTIME_CONFIG_CONTEXT_REL_PATH = os.path.join("runtime", "config.json")
 CI_DOCKERFILE = "Dockerfile.ci"
 CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
 # Subdirectories omitted when copying dev_project/ into CI build context.

@@ -104,6 +104,10 @@ class ScenarioPolicy:
     def is_developer(self) -> bool:
         return self.scenario == constants.DEVELOPER_SCENARIO
 
+    def mount_runtime_config_from_host(self) -> bool:
+        """Dev/server mount .odpm/runtime/config.json; CI bakes config into the image."""
+        return not self.is_ci()
+
     def runtime_unix_user(self) -> str:
         """Unix user for compose and base image (host-aligned except CI)."""
         if self.uses_host_identity:

@@ -11,6 +11,7 @@ from ..bake_venv import (
     get_venv_bootstrap_packages,
     write_ci_venv_install_spec,
 )
+from ..config.payload import write_runtime_config_to_path
 from ..errors import PipelineError
 from ..inside_docker_app.logger import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
@@ -114,6 +115,12 @@ class CiImageBuilder:
             self._build_ci_venv_install_spec(),
         )
 
+    def _write_ci_runtime_config(self, context_dir: str) -> None:
+        config_path = os.path.join(
+            context_dir, constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH
+        )
+        write_runtime_config_to_path(self.config, config_path)
+
     def _read_ci_dockerignore_template(self) -> str:
         template_path = os.path.join(
             self.config.program_dir,
@@ -155,14 +162,16 @@ class CiImageBuilder:
 
         self._copy_dev_project_for_ci(context_dir)
         self._write_ci_venv_spec(context_dir)
+        self._write_ci_runtime_config(context_dir)
 
         _logger.info(
-            "prepare_ci_build_context: %s (%s source tree(s), %s, %s, %s)",
+            "prepare_ci_build_context: %s (%s source tree(s), %s, %s, %s, %s)",
             context_dir,
             copied,
             constants.ODOO_CONF_NAME,
             constants.DEV_PROJECT_DIR,
             constants.CI_VENV_INSTALL_JSON,
+            constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH,
         )
 
     def generate_ci_dockerfile(self) -> str:
@@ -177,6 +186,9 @@ class CiImageBuilder:
             CONTAINER_USER=constants.CONTAINER_USER,
             CURRENT_USER=constants.CONTAINER_USER,
             CI_VENV_INSTALL_JSON=constants.CI_VENV_INSTALL_JSON,
+            CI_RUNTIME_CONFIG_CONTEXT_REL=constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH,
+            ODPM_CONFIG_PATH_ENV=constants.ODPM_CONFIG_PATH_ENV,
+            ODPM_RUNTIME_CONFIG_CONTAINER_PATH=constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
         )
         content = content.replace(
             constants.MESSAGE_MARKER,

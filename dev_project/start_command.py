@@ -28,7 +28,9 @@ class StartCommand:
     pre_commit_script: str = ""
     run_mode: str = constants.RUN_MODE_ODOO
 
-    def to_compose_service(self) -> ComposeOdooService:
+    def to_compose_service(
+        self, *, include_runtime_config: bool | None = None
+    ) -> ComposeOdooService:
         if self.kind == "pip_install":
             return ComposeOdooService(
                 working_dir=self.docker_project_dir or "/home/odoo",
@@ -57,8 +59,11 @@ class StartCommand:
             "--",
             *self.odoo_bin,
         ]
+        mount_runtime_config = (
+            True if include_runtime_config is None else include_runtime_config
+        )
         return ComposeOdooService(
             working_dir=self.docker_project_dir,
-            include_runtime_config=True,
+            include_runtime_config=mount_runtime_config,
             command=command,
         )

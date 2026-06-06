@@ -47,6 +47,14 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.is_ci())
         self.assertFalse(policy.is_developer())
 
+    def test_ci_does_not_mount_runtime_config_from_host(self):
+        policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        self.assertFalse(policy.mount_runtime_config_from_host())
+
+    def test_developer_mounts_runtime_config_from_host(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertTrue(policy.mount_runtime_config_from_host())
+
     def test_server_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
         self.assertTrue(policy.uses_host_identity)
@@ -371,10 +379,19 @@ class ComposeServiceBuilderTests(unittest.TestCase):
 
     @patch("dev_project.compose_service_builder.write_runtime_config")
     def test_build_returns_compose_service(self, mock_write_runtime_config):
+        config = self._make_config(constants.SERVER_SCENARIO)
+        service = ComposeServiceBuilder(config).build()
+        self.assertIs(service, config.compose_service)
+        self.assertTrue(service.include_runtime_config)
+        mock_write_runtime_config.assert_called_once_with(config)
+
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_ci_build_skips_host_runtime_config(self, mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
         service = ComposeServiceBuilder(config).build()
         self.assertIs(service, config.compose_service)
-        mock_write_runtime_config.assert_called_once_with(config)
+        self.assertFalse(service.include_runtime_config)
+        mock_write_runtime_config.assert_not_called()
 
     def test_build_start_command_returns_structured_command(self):
         config = self._make_config(constants.CI_SCENARIO)

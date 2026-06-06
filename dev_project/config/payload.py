@@ -35,12 +35,16 @@ def config_to_json(config: Config) -> bytes:
     return ContainerConfig.from_host_config(config).to_json_bytes()
 
 
-def write_runtime_config(config: Config) -> str:
-    path = runtime_config_path(config.project_dir)
+def write_runtime_config_to_path(config: Config, path: str) -> str:
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    ensure_runtime_dir_gitignore(config.project_dir)
     Path(path).write_bytes(config_to_json(config))
     return path
+
+
+def write_runtime_config(config: Config) -> str:
+    path = runtime_config_path(config.project_dir)
+    ensure_runtime_dir_gitignore(config.project_dir)
+    return write_runtime_config_to_path(config, path)
 
 
 def compute_venv_lock_hash(config: Config) -> str:

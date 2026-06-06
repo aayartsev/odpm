@@ -19,10 +19,12 @@ class ComposeServiceBuilder:
 
     def build(self) -> ComposeOdooService:
         start_command = self.build_start_command()
-        compose_service = start_command.to_compose_service()
+        compose_service = start_command.to_compose_service(
+            include_runtime_config=self.policy.mount_runtime_config_from_host(),
+        )
         self.config.compose_service = compose_service
+        self.config.container_run_mode = start_command.run_mode
         if compose_service.include_runtime_config:
-            self.config.container_run_mode = start_command.run_mode
             write_runtime_config(self.config)
         return compose_service
 
