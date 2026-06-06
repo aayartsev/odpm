@@ -20,7 +20,7 @@ from .start_command import ComposeOdooService
 
 if TYPE_CHECKING:
     from .config import Config
-    from .prepare_registry import PrepareContext
+    from .prepare.types import PrepareContext
 
 
 def docker_compose_path(project_dir: str) -> str:

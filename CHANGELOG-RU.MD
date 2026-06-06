@@ -64,15 +64,27 @@ Host больше **не меняет глобальную рабочую дир
 
 odpm можно **установить через pip** — в PATH появится команда `odpm`. По-прежнему поддерживается «legacy»-режим: скопировать `odpm.py` и каталог `dev_project` из репозитория.
 
-**План (dry-run):** команда **`odpm plan`** показывает шаги prepare и runtime, которые выполнились бы при обычном запуске, без git materialize, записи runtime-конфига и корневого compose и без `docker compose up`. Устаревший alias **`--plan`** сохранён. У каждого шага — исход (`run`, `update`, `noop`, `skip`) и причина; для `compose.up` предсказывается, понадобится ли `--force-recreate` (probe локального stack, отключается `--plan-no-docker`). Флаги: `--plan-show-diff` (unified diff для runtime config, compose, dockerignore), `--plan-format json` (вывод в stdout для скриптов), `--plan-strict` (ненулевой код выхода, если обязательные шаги изменят состояние). Таблица идёт в лог, JSON — в stdout. При загрузке конфигурации устаревшие шаблоны в `.odpm/` могут обновиться; без `--plan-no-docker` возможен probe compose.
+**План (dry-run):** команда **`odpm plan`** показывает шаги prepare и runtime, которые выполнились бы при обычном запуске, без git materialize, записи runtime-конфига и корневого compose и без `docker compose up`. Устаревший alias **`--plan`** сохранён. У каждого шага — исход (`run`, `update`, `noop`, `skip`) и причина; для `compose.up` предсказывается, понадобится ли `--force-recreate` (probe локального stack, отключается `--plan-no-docker`). Флаги: `--plan-show-diff` (unified diff для runtime config, compose, dockerignore), `--plan-format json` (вывод в stdout для скриптов), `--plan-strict` (ненулевой код выхода, если обязательные шаги изменят состояние). Таблица идёт в лог, JSON — в stdout. В режиме plan шаблоны в `.odpm/` не обновляются (обычный запуск `odpm` по-прежнему их синхронизирует). Без `--plan-no-docker` odpm может проверить локальный compose stack для предсказания `compose.up`.
 
 Добавлен **режим без интерактивного ввода** для CI и скриптов: если stdin не привязан к терминалу, odpm не задаёт вопросов через `input()`.
 
 Шаблон **`.dockerignore`** хранится в `.odpm/dockerignore` и при каждом запуске копируется в корень проекта; править нужно шаблон, а не сгенерированный файл в корне.
 
+#### Декомпозиция модулей
+
+- **Хост:** пакет `git/` (`GitRepoCoordinator`, операции, deps lock), пакет `project_env/` (шаблоны, compose, CI-образ, ссылки, volume mapper, symlink manager).
+- **Контейнер:** пакет `odoo_checker/` (БД, admin, i18n, SQL), `run_odoo`, `run_pre_commit`, library-only `container_bootstrap`.
+- **Сборка CI-образа** — `Dockerfile.ci`, baked runtime config в build context, `odpm --build-image` (только сценарий ci).
+
 #### Качество и проверки
 
-При запуске `python3 -m unittest discover -s tests` выполняется **531 тест**, из них пять интеграционных с Docker пропускаются, если не задана переменная `ODPM_RUN_DOCKER_INTEGRATION=1`. **GitHub Actions CI** (`.github/workflows/ci.yml`) прогоняет unit-suite при каждом push/PR в ветки `4.0-beta` и `main` (Python 3.10 и 3.12); повторный запуск вручную — через **workflow_dispatch**. Добавлены opt-in проверки сборки CI-образа и «золотого пути» (compose up и HTTP 200 от Odoo), а также shell-скрипты для ручной и полуавтоматической верификации сценариев.
+- **541 тест** в `unittest discover` (по умолчанию 5 opt-in Docker integration tests пропускаются).
+- **Plan-safe setup** — `odpm plan` загружает конфигурацию без обновления шаблонов в `.odpm/`; обычный запуск по-прежнему синхронизирует шаблоны проекта при старте.
+- **Восстановление устаревшего odoo.conf** — `odpm --skip-start` пересоздаёт `odoo.conf`, если в нём нет настроек подключения к БД Docker (например после апгрейда с layout без `db_host`).
+- **Пакет `dev_project/prepare/`** — реестр prepare-фазы вынесен из монолитного `prepare_registry.py`; shim сохраняет существующие импорты и patch-пути в тестах.
+- **GitHub Actions CI** (`.github/workflows/ci.yml`) — unit-suite при каждом push/PR в `4.0-beta` и `main` (Python 3.10 и 3.12); повторный запуск вручную — через **workflow_dispatch**.
+- **Opt-in Docker integration tests:** сборка CI-образа, golden-path compose + HTTP 200 (`ODPM_RUN_DOCKER_INTEGRATION=1`).
+- **Скрипты:** `scripts/verify_ci_scenario.sh`, `scripts/run_golden_path_test.sh`, `scripts/verify_dev_mode_flags.sh`, `scripts/verify_dev_mode_autoreload.sh`.
 
 ### Что изменилось по сравнению с 3.x
 

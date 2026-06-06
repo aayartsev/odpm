@@ -55,7 +55,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 #### Distribution and developer experience
 
 - **pip package** with console script **`odpm`** (`pyproject.toml`); legacy `odpm.py` copy mode still supported via `program_dir` resolution.
-- **Plan (dry-run)** — `odpm plan` previews prepare and runtime steps without git materialization, writing runtime config or root compose, or `docker compose up`; `--plan` remains as a deprecated alias. Step outcomes (`run`, `update`, `noop`, `skip`) with reasons; optional compose stack probe for `compose.up` and `--force-recreate` prediction; `--plan-no-docker`, `--plan-show-diff` (unified diffs for runtime config, compose, dockerignore), `--plan-format json` (stdout for scripting), `--plan-strict` (non-zero exit when required steps would change). Table output is logged; JSON is printed to stdout. Loading configuration may still upgrade outdated `.odpm/` templates and run compose probes unless disabled.
+- **Plan (dry-run)** — `odpm plan` previews prepare and runtime steps without git materialization, writing runtime config or root compose, or `docker compose up`; `--plan` remains as a deprecated alias. Step outcomes (`run`, `update`, `noop`, `skip`) with reasons; optional compose stack probe for `compose.up` and `--force-recreate` prediction; `--plan-no-docker`, `--plan-show-diff` (unified diffs for runtime config, compose, dockerignore), `--plan-format json` (stdout for scripting), `--plan-strict` (non-zero exit when required steps would change). Table output is logged; JSON is printed to stdout. Plan mode does not upgrade templates under `.odpm/` (a normal `odpm` run still syncs them). Unless `--plan-no-docker` is set, odpm may probe the local compose stack to predict `compose.up`.
 - **Non-interactive mode** — documented CI/script workflow when stdin is not a TTY.
 - **`.dockerignore` workflow** — template in `.odpm/dockerignore`, regenerated at project root on each run.
 - **Template auto-upgrade** — marker-based detection; outdated templates renamed to `deprecated_*`.
@@ -68,9 +68,10 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 #### Quality assurance
 
-- **539 tests** in `unittest discover` (5 skipped opt-in Docker integration tests by default).
+- **541 tests** in `unittest discover` (5 skipped opt-in Docker integration tests by default).
 - **Plan-safe setup** — `odpm plan` loads configuration without upgrading `.odpm/` templates; normal runs still sync project templates on startup.
 - **Stale odoo.conf recovery** — `odpm --skip-start` regenerates project `odoo.conf` when Docker DB settings are missing (for example after upgrading from layouts that never wrote `db_host`).
+- **`dev_project/prepare/` package** — prepare-phase registry split from monolithic `prepare_registry.py`; shim re-exports preserve existing imports and test patch paths.
 - **GitHub Actions CI** (`.github/workflows/ci.yml`) — unit suite on every push/PR to `4.0-beta` and `main` (Python 3.10 and 3.12); manual re-run via **workflow_dispatch**.
 - **Opt-in Docker integration tests:** CI image build, golden-path compose + HTTP 200 (`ODPM_RUN_DOCKER_INTEGRATION=1`).
 - **Scripts:** `scripts/verify_ci_scenario.sh`, `scripts/run_golden_path_test.sh`, `scripts/verify_dev_mode_flags.sh`, `scripts/verify_dev_mode_autoreload.sh`.
