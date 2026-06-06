@@ -8,7 +8,10 @@ from dev_project.inside_docker_app.container_bootstrap import main, prepare_venv
 from dev_project.inside_docker_app.exceptions import VenvError
 from dev_project.inside_docker_app.utils import resolve_venv_is_baked, resolve_venv_mode
 
-from container_config_helpers import minimal_container_config, minimal_container_config_dict
+from tests.container_config_helpers import (
+    minimal_container_config,
+    minimal_container_config_dict,
+)
 
 
 def _b64_config(**overrides) -> str:
@@ -82,7 +85,7 @@ class PrepareVenvTests(unittest.TestCase):
 
 class ContainerBootstrapMainTests(unittest.TestCase):
     @patch("dev_project.inside_docker_app.container_bootstrap.run_container_bootstrap")
-    @patch("dev_project.inside_docker_app.parse_args.parse_args")
+    @patch("dev_project.inside_docker_app.container_bootstrap.parse_args")
     def test_main_exits_with_container_error_code(self, mock_parse_args, mock_bootstrap):
         from dev_project.inside_docker_app import container_bootstrap
 
@@ -94,7 +97,7 @@ class ContainerBootstrapMainTests(unittest.TestCase):
             mock_exit.assert_called_once_with(1)
 
     @patch("dev_project.inside_docker_app.container_bootstrap.run_container_bootstrap")
-    @patch("dev_project.inside_docker_app.parse_args.parse_args")
+    @patch("dev_project.inside_docker_app.container_bootstrap.parse_args")
     def test_main_propagates_custom_exit_code(self, mock_parse_args, mock_bootstrap):
         from dev_project.inside_docker_app import container_bootstrap
         from dev_project.inside_docker_app.exceptions import PostgresError

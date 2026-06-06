@@ -10,7 +10,10 @@ from dev_project.container_config import load_container_config_from_env
 from dev_project.inside_docker_app.exceptions import ContainerError
 from dev_project.inside_docker_app import run_odoo
 
-from container_config_helpers import minimal_container_config, minimal_container_config_dict
+from tests.container_config_helpers import (
+    minimal_container_config,
+    minimal_container_config_dict,
+)
 
 
 class RunOdooTests(unittest.TestCase):

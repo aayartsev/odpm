@@ -10,7 +10,7 @@ from dev_project.inside_docker_app.exceptions import ConfigValidationError, Venv
 from dev_project.inside_docker_app.utils import resolve_venv_mode
 from dev_project.scenario_policy import ScenarioPolicy
 
-from container_config_helpers import minimal_container_config
+from tests.container_config_helpers import minimal_container_config
 
 
 class ResolveVenvModeTests(unittest.TestCase):

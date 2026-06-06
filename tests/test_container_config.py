@@ -16,7 +16,7 @@ from dev_project.container_config import (
 from dev_project.inside_docker_app.exceptions import ConfigValidationError, ContainerError
 from dev_project.scenario_policy import ScenarioPolicy
 
-from container_config_helpers import minimal_container_config_dict
+from tests.container_config_helpers import minimal_container_config_dict
 
 
 class ContainerConfigFromDictTests(unittest.TestCase):
