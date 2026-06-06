@@ -141,7 +141,5 @@ dmypy.json
 .cursor
 
 # Local release notes and gate/smoke artifacts (not for public repo yet)
-CHANGELOG.md
-CHANGELOG-RU.MD
 docs/
 
