@@ -96,6 +96,15 @@ def _slice_property(slice_attr: str, field_name: str) -> property:
     return property(getter, setter)
 
 
+def bind_slice_properties(
+    cls: type,
+    slice_attr: str,
+    field_names: tuple[str, ...],
+) -> None:
+    for field_name in field_names:
+        setattr(cls, field_name, _slice_property(slice_attr, field_name))
+
+
 @dataclass
 class UserSettingsState:
     init_modules: str = constants.DEFAULT_LIST_OF_MODULES
@@ -164,3 +173,12 @@ class DockerLayoutState:
     docker_odoo_project_dir_path: str = ""
     list_for_symlinks: list = field(default_factory=list)
     docker_dirs_with_addons: list = field(default_factory=list)
+
+
+USER_SLICE_FIELDS = tuple(UserSettingsState.__dataclass_fields__)
+PROJECT_SLICE_FIELDS = tuple(ProjectSettingsState.__dataclass_fields__)
+DOCKER_SLICE_FIELDS = tuple(
+    name
+    for name in DockerLayoutState.__dataclass_fields__
+    if name != "docker_compose_command"
+)

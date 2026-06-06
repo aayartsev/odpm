@@ -77,6 +77,21 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(hasattr(host_runtime_module, "HostRuntimeState"))
 
+    def test_config_bootstrap_imports(self):
+        from dev_project.config import bootstrap as bootstrap_module
+
+        self.assertTrue(callable(bootstrap_module.bootstrap_config))
+
+    def test_config_layout_imports(self):
+        from dev_project.config import layout as layout_module
+
+        self.assertTrue(callable(layout_module.apply_policy_and_layout))
+
+    def test_config_runtime_facade_imports(self):
+        from dev_project.config.runtime_facade import ConfigRuntimeFacadeMixin
+
+        self.assertTrue(hasattr(ConfigRuntimeFacadeMixin, "compose_service"))
+
     def test_run_odoo_entrypoint_imports(self):
         from dev_project.inside_docker_app import run_odoo as run_odoo_module
 

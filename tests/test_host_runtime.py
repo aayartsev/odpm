@@ -1,7 +1,6 @@
 """Unit tests for HostRuntimeState."""
 
 import unittest
-from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.host_runtime import HostRuntimeState
@@ -25,8 +24,9 @@ class HostRuntimeStateTests(unittest.TestCase):
 
     def test_config_runtime_properties_delegate(self):
         from dev_project.config.config import Config
+        from dev_project.config.state import DockerLayoutState
 
-        config = MagicMock(spec=Config)
+        config = Config.__new__(Config)
         runtime = HostRuntimeState(
             compose_service=ComposeOdooService(
                 working_dir="/home/odoo",
@@ -36,33 +36,26 @@ class HostRuntimeStateTests(unittest.TestCase):
             no_log_prefix=True,
             docker_compose_command="docker compose",
         )
-        config.runtime = runtime
-        config._docker = MagicMock(docker_compose_command="docker-compose")
+        config._runtime = runtime
+        config._docker = DockerLayoutState(docker_compose_command="docker-compose")
 
-        compose_service_getter = Config.compose_service.fget
-        container_run_mode_getter = Config.container_run_mode.fget
-        no_log_prefix_getter = Config.no_log_prefix.fget
-        docker_compose_command_getter = Config.docker_compose_command.fget
-
-        self.assertIs(compose_service_getter(config), runtime.compose_service)
-        self.assertEqual(
-            container_run_mode_getter(config),
-            constants.RUN_MODE_BOOTSTRAP_ONLY,
-        )
-        self.assertTrue(no_log_prefix_getter(config))
-        self.assertEqual(docker_compose_command_getter(config), "docker compose")
+        self.assertIs(config.compose_service, runtime.compose_service)
+        self.assertEqual(config.container_run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY)
+        self.assertTrue(config.no_log_prefix)
+        self.assertEqual(config.docker_compose_command, "docker compose")
 
     def test_config_setters_update_runtime_state(self):
         from dev_project.config.config import Config
+        from dev_project.config.state import DockerLayoutState
 
-        instance = MagicMock()
-        instance.runtime = HostRuntimeState()
-        instance._docker = MagicMock(docker_compose_command="docker-compose")
+        instance = Config.__new__(Config)
+        instance._runtime = HostRuntimeState()
+        instance._docker = DockerLayoutState(docker_compose_command="docker-compose")
 
-        Config.compose_service.fset(instance, None)
-        Config.container_run_mode.fset(instance, constants.RUN_MODE_BOOTSTRAP_ONLY)
-        Config.no_log_prefix.fset(instance, True)
-        Config.docker_compose_command.fset(instance, "docker compose")
+        instance.compose_service = None
+        instance.container_run_mode = constants.RUN_MODE_BOOTSTRAP_ONLY
+        instance.no_log_prefix = True
+        instance.docker_compose_command = "docker compose"
 
         self.assertIsNone(instance.runtime.compose_service)
         self.assertEqual(
