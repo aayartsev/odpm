@@ -42,6 +42,30 @@ class HttpWaitTests(unittest.TestCase):
                 interval=0.1,
             )
 
+    def test_wait_for_http_ok_accepts_multiple_status_codes(self) -> None:
+        class _MultiHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                self.send_response(500)
+                self.end_headers()
+
+            def log_message(self, _format: str, *_args) -> None:
+                return
+
+        server = HTTPServer(("127.0.0.1", 0), _MultiHandler)
+        host, port = server.server_address
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            status = wait_for_http_ok(
+                f"http://{host}:{port}/web/login",
+                timeout=5.0,
+                interval=0.2,
+                accept_status_codes={200, 500},
+            )
+            self.assertEqual(status, 500)
+        finally:
+            server.shutdown()
+
     def test_wait_for_http_ok_retries_connection_reset(self) -> None:
         ready = MagicMock()
         ready.status = 200

@@ -32,6 +32,7 @@ class ScenarioPolicy:
     bind_postgres_localhost: bool
     include_debugpy: bool
     install_debugpy: bool
+    apply_dev_mode: bool
     skip_vscode: bool
     allow_build_image: bool
     venv_mode: VenvMode
@@ -58,6 +59,7 @@ class ScenarioPolicy:
                 bind_postgres_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
+                apply_dev_mode=False,
                 skip_vscode=True,
                 allow_build_image=True,
                 venv_mode=constants.VENV_MODE_BAKED,
@@ -72,6 +74,7 @@ class ScenarioPolicy:
                 bind_postgres_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
+                apply_dev_mode=False,
                 skip_vscode=False,
                 allow_build_image=False,
                 venv_mode=constants.VENV_MODE_FRESH,
@@ -85,6 +88,7 @@ class ScenarioPolicy:
             bind_postgres_localhost=False,
             include_debugpy=True,
             install_debugpy=True,
+            apply_dev_mode=True,
             skip_vscode=False,
             allow_build_image=False,
             venv_mode=constants.VENV_MODE_FRESH,

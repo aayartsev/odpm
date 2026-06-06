@@ -204,6 +204,13 @@ DEFAULT_CLEAN_GIT_REPOS = False
 DEFAULT_CHECK_SYSTEM = False
 DEFAULT_DB_MANAGER_PASSWORD = "1"
 DEFAULT_DEV_MODE = False
+# Odoo ``--dev`` features (comma-separated in user_settings.json ``dev_mode``).
+# ``all`` is an alias for xml,reload,qweb,access on Odoo 19+ (see Odoo CLI docs).
+ODOO_DEV_MODE_ALL = "all"
+ODOO_DEV_MODE_FEATURES = ("reload", "qweb", "werkzeug", "xml", "access")
+# Odoo autoreload (--dev=reload|all) on Linux uses the PyPI ``inotify`` package.
+ODOO_AUTORELOAD_PACKAGE_NAMES = ("inotify", "watchdog")
+ODOO_AUTORELOAD_INOTIFY_REQUIREMENT = "inotify"
 DEFAULT_DEVELOPING_PROJECT = ""
 DEFAULT_PRE_COMMIT_MAP_FILES = []
 DEFAULT_SQL_QUERIES = []

@@ -366,6 +366,7 @@ class ConfigStateSliceTests(unittest.TestCase):
 class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
     def _config(self, *, scenario: str = constants.DEVELOPER_SCENARIO) -> Config:
         config = Config.__new__(Config)
+        config._user = UserSettingsState()
         config._project = ProjectSettingsState(
             odoo_version="17.0",
             python_version="3.12",
@@ -383,6 +384,26 @@ class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
         self.assertEqual(
             config.requirements_txt,
             ["requests==2.31.0", "openupgradelib", expected_debugpy],
+        )
+
+    def test_dev_mode_reload_adds_inotify_to_requirements(self):
+        config = self._config()
+        config._user.dev_mode = "all"
+        normalized = config._normalize_project_requirements(["requests==2.31.0"])
+        self.assertIn(constants.ODOO_AUTORELOAD_INOTIFY_REQUIREMENT, normalized)
+        self.assertIn(
+            config.policy.debugpy_requirement("3.12"),
+            normalized,
+        )
+
+    def test_dev_mode_reload_ignored_in_server_scenario(self):
+        config = self._config(scenario=constants.SERVER_SCENARIO)
+        config._user.dev_mode = "all"
+        normalized = config._normalize_project_requirements(["requests==2.31.0"])
+        self.assertNotIn(constants.ODOO_AUTORELOAD_INOTIFY_REQUIREMENT, normalized)
+        self.assertNotIn(
+            config.policy.debugpy_requirement("3.12"),
+            normalized,
         )
 
     def test_version_mismatch_warns_in_developer_scenario(self):

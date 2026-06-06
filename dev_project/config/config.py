@@ -16,6 +16,7 @@ from ..start_command import ComposeOdooService
 from .loader import ConfigLoader
 from .git_repos import GitRepoCoordinator
 from .nested_compatibility import collect_nested_compatibility_issues
+from ..dev_mode import dev_mode_disabled, effective_dev_mode, merge_autoreload_requirements
 from .odoo_conf import OdooConfBuilder
 from .paths import ConfigPaths
 from .payload import compute_venv_lock_hash, config_to_json
@@ -226,9 +227,8 @@ class Config:
 
     def _apply_policy_and_layout(self) -> None:
         original_requirements_txt = list(self.requirements_txt)
-        normalized_requirements = self.policy.normalize_requirements(
-            self.requirements_txt,
-            python_version=self.python_version,
+        normalized_requirements = self._normalize_project_requirements(
+            self.requirements_txt
         )
         arch = self._raw_odpm_json.get("arch", constants.ARCH)
         if arch == "auto":
@@ -288,6 +288,12 @@ class Config:
                     debugpy_req,
                 )
 
+        if not dev_mode_disabled(self.dev_mode) and not self.policy.apply_dev_mode:
+            _logger.warning(
+                "dev_mode is ignored in scenario %s",
+                self.policy.scenario,
+            )
+
         self._paths.apply_image_names()
         self._paths.apply_docker_layout()
         self._paths.apply_developing_project_docker_path()
@@ -295,6 +301,19 @@ class Config:
 
         self.odoo_config_data = {}
         self._paths.apply_symlink_sources()
+
+    def _normalize_project_requirements(self, requirements_txt: list[str]) -> list[str]:
+        normalized = self.policy.normalize_requirements(
+            requirements_txt,
+            python_version=self.python_version,
+        )
+        return merge_autoreload_requirements(
+            normalized,
+            effective_dev_mode(
+                self.dev_mode,
+                apply_dev_mode=self.policy.apply_dev_mode,
+            ),
+        )
 
     @property
     def user_settings(self) -> UserSettingsState:
@@ -348,10 +367,7 @@ class Config:
             seen.add(text)
             merged.append(text)
 
-        self._project.requirements_txt = self.policy.normalize_requirements(
-            merged,
-            python_version=self.python_version,
-        )
+        self._project.requirements_txt = self._normalize_project_requirements(merged)
 
     def ensure_git_repos_present(self) -> None:
         self._git_repos.ensure_git_repos_present()

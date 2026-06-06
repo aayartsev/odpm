@@ -31,7 +31,7 @@ class OdpmPipeline:
     ) -> None:
         self.args = args
         self.program_dir = program_dir
-        self.start_dir = start_dir or os.environ.get("PWD") or os.getcwd()
+        self.start_dir = start_dir or os.getcwd() or os.environ.get("PWD", "")
         self.pd_manager: ProjectDirManager | None = None
         self.config: Config | None = None
         self.project_environment: CreateProjectEnvironment | None = None

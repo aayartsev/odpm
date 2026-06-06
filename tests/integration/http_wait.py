@@ -17,21 +17,24 @@ def wait_for_http_ok(
     timeout: float = 300.0,
     interval: float = 2.0,
     expected_status: int = 200,
-) -> None:
-    """Block until *url* returns *expected_status* or *timeout* seconds elapse."""
+    accept_status_codes: set[int] | None = None,
+) -> int:
+    """Block until *url* returns an accepted status or *timeout* seconds elapse."""
+    allowed = accept_status_codes if accept_status_codes is not None else {expected_status}
     deadline = time.monotonic() + timeout
     last_error: BaseException | None = None
     while time.monotonic() < deadline:
         try:
             with urllib.request.urlopen(url, timeout=min(interval, 10.0)) as response:
-                if response.status == expected_status:
-                    return
+                if response.status in allowed:
+                    return response.status
                 last_error = RuntimeError(
-                    f"unexpected HTTP status {response.status} for {url}"
+                    f"unexpected HTTP status {response.status} for {url} "
+                    f"(allowed: {sorted(allowed)})"
                 )
         except urllib.error.HTTPError as error:
-            if error.code == expected_status:
-                return
+            if error.code in allowed:
+                return error.code
             last_error = error
         except urllib.error.URLError as error:
             last_error = error.reason if isinstance(error.reason, BaseException) else error
@@ -39,7 +42,8 @@ def wait_for_http_ok(
             # Connection refused / reset while Odoo is still bootstrapping.
             last_error = error
         time.sleep(interval)
-    message = f"Timed out after {timeout}s waiting for HTTP {expected_status} from {url}"
+    allowed_text = ", ".join(str(code) for code in sorted(allowed))
+    message = f"Timed out after {timeout}s waiting for HTTP {{{allowed_text}}} from {url}"
     if last_error is not None:
         raise HttpWaitTimeoutError(f"{message}: {last_error}") from last_error
     raise HttpWaitTimeoutError(message)

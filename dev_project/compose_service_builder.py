@@ -5,6 +5,7 @@ from __future__ import annotations
 from . import constants
 from .config import Config
 from .config.payload import write_runtime_config
+from .dev_mode import effective_dev_mode
 from .inside_docker_app import cli_params
 from .start_command import ComposeOdooService, StartCommand
 
@@ -106,7 +107,10 @@ class ComposeServiceBuilder:
                 ]
             )
 
-        dev_mode = self.config.dev_mode or False
+        dev_mode = effective_dev_mode(
+            self.config.dev_mode,
+            apply_dev_mode=self.config.policy.apply_dev_mode,
+        )
         if dev_mode:
             argv.extend(["--dev", str(dev_mode)])
 
