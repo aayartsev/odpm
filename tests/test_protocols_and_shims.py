@@ -31,6 +31,11 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(hasattr(config_module, "Config"))
 
+    def test_config_has_no_system_checker_backref(self):
+        from dev_project.config import Config
+
+        self.assertFalse(hasattr(Config, "system_checker"))
+
     def test_project_env_package_imports(self):
         from dev_project import project_env as project_env_module
 

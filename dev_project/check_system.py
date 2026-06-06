@@ -29,7 +29,6 @@ class SystemChecker(SystemCheckerProtocol):
     ) -> None:
         self.config = config
         self.project_environment = project_environment
-        self.config.system_checker = self
         if self.config.check_system:
             self.check_git()
         self.check_file_system()

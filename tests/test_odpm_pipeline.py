@@ -327,6 +327,7 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         mock_config_cls.assert_called_once()
         mock_project_env_cls.assert_called_once_with(mock_config)
         mock_checker_cls.assert_called_once_with(mock_config, mock_project_env)
+        mock_project_env.attach_system_checker.assert_called_once_with(mock_checker)
 
 
 class OdpmPipelinePrepareTests(unittest.TestCase):

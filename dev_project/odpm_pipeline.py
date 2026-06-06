@@ -55,6 +55,7 @@ class OdpmPipeline:
         )
         self.project_environment = CreateProjectEnvironment(self.config)
         self.system_checker = SystemChecker(self.config, self.project_environment)
+        self.project_environment.attach_system_checker(self.system_checker)
 
     def prepare_project_files(self) -> None:
         project_env = self._project_environment()

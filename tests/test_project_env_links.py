@@ -463,8 +463,8 @@ class CreateProjectEnvironmentDownloadTests(unittest.TestCase):
     ):
         config = MagicMock()
         config.odoo_src_dir = "/tmp/odoo_projects/odoo"
-        config.system_checker = MagicMock()
-        env = CreateProjectEnvironment(config)
+        checker = MagicMock()
+        env = CreateProjectEnvironment(config, system_checker=checker)
 
         with patch("dev_project.project_env.environment.os.chdir") as mock_chdir:
             env.download_odoo_repository()
@@ -490,8 +490,8 @@ class CreateProjectEnvironmentDownloadTests(unittest.TestCase):
         config.odoo_src_dir = "/tmp/odoo_projects/odoo"
         config.odoo_version = "17.0"
         config.odoo_build_date = "20240101"
-        config.system_checker = MagicMock()
-        env = CreateProjectEnvironment(config)
+        checker = MagicMock()
+        env = CreateProjectEnvironment(config, system_checker=checker)
 
         with patch("dev_project.project_env.environment.os.chdir") as mock_chdir:
             env.download_odoo_nightly_build()

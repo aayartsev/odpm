@@ -10,7 +10,8 @@ from ..inside_docker_app.utils import (
     download_file,
     un_zip_file_to_directory,
 )
-from ..protocols import CreateProjectEnvironmentProtocol
+from ..errors import PipelineError
+from ..protocols import CreateProjectEnvironmentProtocol, SystemCheckerProtocol
 from ..dependency_resolver import DependencyResolutionResult
 from .base_image import BaseImageBuilder
 from .ci_image import CiImageBuilder
@@ -26,16 +27,32 @@ from .types import (
 
 
 class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
-    def __init__(self, config: Config):
+    def __init__(
+        self,
+        config: Config,
+        *,
+        system_checker: SystemCheckerProtocol | None = None,
+    ) -> None:
         self.config = config
         self.user_env = self.config.user_env
         self.odoo_platform_project: HandleOdooProjectLink
         self.mapped_folders: list[MappedPath] = []
+        self._system_checker = system_checker
         self._templates = ProjectTemplates(self)
         self._compose = ComposeGenerator(self)
         self._ci = CiImageBuilder(self)
         self._links = ProjectLinks(self)
         self._base_image = BaseImageBuilder(self)
+
+    def attach_system_checker(self, checker: SystemCheckerProtocol) -> None:
+        self._system_checker = checker
+
+    def _require_system_checker(self) -> SystemCheckerProtocol:
+        if self._system_checker is None:
+            raise PipelineError(
+                "System checker is not attached to CreateProjectEnvironment"
+            )
+        return self._system_checker
 
     def map_folders(self) -> None:
         self._links.map_folders()
@@ -89,7 +106,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         self._templates.update_vscode_debugger_launcher()
 
     def download_odoo_repository(self):
-        self.config.system_checker.check_free_space_for_odoo_developing()
+        self._require_system_checker().check_free_space_for_odoo_developing()
         parent_dir = os.path.dirname(self.config.odoo_src_dir)
         delete_files_in_directory(self.config.odoo_src_dir)
         subprocess.run(
@@ -98,7 +115,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
         )
 
     def download_odoo_nightly_build(self):
-        self.config.system_checker.check_free_space_for_odoo_developing(
+        self._require_system_checker().check_free_space_for_odoo_developing(
             free_space_size=2.0
         )
         parent_dir = os.path.dirname(self.config.odoo_src_dir)

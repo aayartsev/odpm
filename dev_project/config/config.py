@@ -10,7 +10,6 @@ from ..git.developing_repo_materializer import DevelopingRepoMaterializer
 from ..host_user_env import CreateUserEnvironment
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
-from ..protocols import SystemCheckerProtocol
 from ..scenario_policy import ScenarioPolicy, is_debugpy_requirement
 from ..start_command import ComposeOdooService
 from .loader import ConfigLoader
@@ -374,14 +373,6 @@ class Config:
 
     def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
         self._git_repos.materialize_git_repos(skip_build_date=skip_build_date)
-
-    @property
-    def system_checker(self) -> SystemCheckerProtocol:
-        return self._system_checker
-
-    @system_checker.setter
-    def system_checker(self, value: SystemCheckerProtocol) -> None:
-        self._system_checker = value
 
     def get_postgres_data_local_storage_path(self) -> str:
         return self._paths.get_postgres_data_local_storage_path()
