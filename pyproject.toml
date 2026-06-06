@@ -1,2 +1,10 @@
+[project]
+name = "odpm"
+version = "4.0.0"
+requires-python = ">=3.10"
+
+[tool.setuptools.package-data]
+dev_project = ["container_config/schemas/*.json"]
+
 [tool.pyright]
 typeCheckingMode = "standard"

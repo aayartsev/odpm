@@ -8,29 +8,50 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from . import constants
-from .inside_docker_app.exceptions import ConfigValidationError, ContainerError
+from .. import constants
+from ..inside_docker_app.exceptions import ConfigValidationError, ContainerError
+from .schema import CONTAINER_CONFIG_SCHEMA_VERSION, validate_container_config_dict
 
 if TYPE_CHECKING:
-    from .config.config import Config
+    from ..config.config import Config
 
-CONTAINER_CONFIG_SCHEMA_VERSION = 1
 
-_REQUIRED_STRING_FIELDS = (
-    "docker_odoo_dir",
-    "docker_path_odoo_conf",
-    "docker_venv_dir",
-    "docker_project_dir",
-    "odoo_version",
-    "python_version",
-    "platform_name",
-    "arch",
-    "venv_lock_hash",
-    "odpm_scenario",
-    "venv_mode",
-    "run_mode",
-    "db_manager_password",
-)
+def _normalize_legacy_container_config(raw: dict) -> dict:
+    """Apply v0 defaults, then validate against the v1 contract."""
+    data = dict(raw)
+
+    schema_version = data.get("schema_version")
+    if schema_version is None:
+        schema_version = CONTAINER_CONFIG_SCHEMA_VERSION
+    else:
+        schema_version = int(schema_version)
+    data["schema_version"] = schema_version
+
+    if "run_mode" not in data:
+        data["run_mode"] = constants.RUN_MODE_ODOO
+
+    if not data.get("venv_mode"):
+        if data.get("odpm_scenario") == constants.CI_SCENARIO:
+            data["venv_mode"] = constants.VENV_MODE_BAKED
+        else:
+            data["venv_mode"] = constants.VENV_MODE_FRESH
+
+    if not data.get("odpm_scenario"):
+        data["odpm_scenario"] = constants.DEFAULT_ODPM_SCENARIO
+
+    data.setdefault("odoo_config_data", {})
+    data.setdefault("arguments", {})
+    data.setdefault("requirements_txt", [])
+    data.setdefault("sql_queries", [])
+    data.setdefault("modules_to_update", [])
+    data.setdefault("docker_dirs_with_addons", [])
+    data.setdefault("platform_name", constants.PLATFORM_NAME)
+
+    if data.get("db_manager_password") is None:
+        data["db_manager_password"] = ""
+
+    validate_container_config_dict(data)
+    return data
 
 
 @dataclass
@@ -97,7 +118,7 @@ class ContainerConfig:
 
     @classmethod
     def from_odpm_config(cls, config: Config) -> ContainerConfig:
-        from .config.payload import compute_venv_lock_hash
+        from ..config.payload import compute_venv_lock_hash
 
         run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)
         return cls(
@@ -131,56 +152,10 @@ class ContainerConfig:
         if not isinstance(raw, dict):
             raise ConfigValidationError("Container config must be a JSON object")
 
-        data = dict(raw)
-        schema_version = data.get("schema_version")
-        if schema_version is None:
-            schema_version = CONTAINER_CONFIG_SCHEMA_VERSION
-        else:
-            schema_version = int(schema_version)
-        if schema_version != CONTAINER_CONFIG_SCHEMA_VERSION:
-            raise ConfigValidationError(
-                f"Unsupported container config schema_version {schema_version!r}; "
-                f"expected {CONTAINER_CONFIG_SCHEMA_VERSION}"
-            )
-
-        if "run_mode" not in data:
-            data["run_mode"] = constants.RUN_MODE_ODOO
-
-        if not data.get("venv_mode"):
-            if data.get("odpm_scenario") == constants.CI_SCENARIO:
-                data["venv_mode"] = constants.VENV_MODE_BAKED
-            else:
-                data["venv_mode"] = constants.VENV_MODE_FRESH
-
-        if not data.get("odpm_scenario"):
-            data["odpm_scenario"] = constants.DEFAULT_ODPM_SCENARIO
-
-        for field_name in _REQUIRED_STRING_FIELDS:
-            value = data.get(field_name)
-            if value is None or value == "":
-                if field_name == "db_manager_password":
-                    data[field_name] = ""
-                    continue
-                raise ConfigValidationError(
-                    f"Missing required container config field: {field_name}"
-                )
-
-        venv_mode = str(data["venv_mode"])
-        if venv_mode not in constants.VENV_MODE_VALUES:
-            raise ConfigValidationError(
-                f"Invalid venv_mode {venv_mode!r}; "
-                f"expected one of {', '.join(sorted(constants.VENV_MODE_VALUES))}"
-            )
-
-        run_mode = str(data["run_mode"])
-        if run_mode not in constants.RUN_MODE_VALUES:
-            raise ConfigValidationError(
-                f"Invalid run_mode {run_mode!r}; "
-                f"expected one of {', '.join(sorted(constants.RUN_MODE_VALUES))}"
-            )
+        data = _normalize_legacy_container_config(raw)
 
         return cls(
-            schema_version=schema_version,
+            schema_version=data["schema_version"],
             docker_odoo_dir=str(data["docker_odoo_dir"]),
             odoo_config_data=dict(data.get("odoo_config_data") or {}),
             docker_path_odoo_conf=str(data["docker_path_odoo_conf"]),
@@ -199,8 +174,8 @@ class ContainerConfig:
             modules_to_update=list(data.get("modules_to_update") or []),
             docker_dirs_with_addons=list(data.get("docker_dirs_with_addons") or []),
             odpm_scenario=str(data["odpm_scenario"]),
-            venv_mode=venv_mode,
-            run_mode=run_mode,
+            venv_mode=str(data["venv_mode"]),
+            run_mode=str(data["run_mode"]),
         )
 
     def to_dict(self) -> dict[str, Any]:

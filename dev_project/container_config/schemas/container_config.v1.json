@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "odpm://schemas/container_config.v1.json",
+  "title": "ContainerConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "docker_odoo_dir",
+    "odoo_config_data",
+    "docker_path_odoo_conf",
+    "arguments",
+    "db_creation_data",
+    "db_manager_password",
+    "docker_venv_dir",
+    "docker_project_dir",
+    "requirements_txt",
+    "odoo_version",
+    "python_version",
+    "venv_lock_hash",
+    "platform_name",
+    "arch",
+    "sql_queries",
+    "modules_to_update",
+    "docker_dirs_with_addons",
+    "odpm_scenario",
+    "venv_mode",
+    "run_mode"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "docker_odoo_dir": { "type": "string", "minLength": 1 },
+    "odoo_config_data": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "docker_path_odoo_conf": { "type": "string", "minLength": 1 },
+    "arguments": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "db_creation_data": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "db_manager_password": { "type": "string" },
+    "docker_venv_dir": { "type": "string", "minLength": 1 },
+    "docker_project_dir": { "type": "string", "minLength": 1 },
+    "requirements_txt": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "odoo_version": { "type": "string", "minLength": 1 },
+    "python_version": { "type": "string", "minLength": 1 },
+    "venv_lock_hash": { "type": "string", "minLength": 1 },
+    "platform_name": { "type": "string", "minLength": 1 },
+    "arch": { "type": "string", "minLength": 1 },
+    "sql_queries": {
+      "type": "array"
+    },
+    "modules_to_update": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "docker_dirs_with_addons": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "odpm_scenario": {
+      "type": "string",
+      "enum": ["developer", "server", "ci"]
+    },
+    "venv_mode": {
+      "type": "string",
+      "enum": ["fresh", "baked"]
+    },
+    "run_mode": {
+      "type": "string",
+      "enum": ["odoo", "bootstrap_only"]
+    }
+  }
+}

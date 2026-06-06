@@ -42,6 +42,7 @@ class UserSettingsJson(TypedDict):
 
 class ConfigToJson(TypedDict):
     """Deprecated: use ``ContainerConfig`` (``dev_project.container_config``) instead."""
+
     docker_odoo_dir: str
     odoo_config_data: dict
     docker_path_odoo_conf: str
