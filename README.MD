@@ -362,6 +362,8 @@ After changing `dependencies` or `oca_dependencies.txt`, run `--update-lock` and
 
 Lock schema (v1): `platform` (required), optional `developing` (remote git only), `dependencies` (full OCA-resolved list). Each entry has `url`, `commit`, optional `branch`, optional `kind` (`git` default, `file` for `file://` platform trees).
 
+For `file://` platform trees, `commit` is a content fingerprint (not a git SHA). It is stable when `odoo/release.py` and `odoo-bin` are present; otherwise it may differ across machines or after directory metadata changes — prefer git remotes for CI and team sync when reproducibility matters.
+
 Precedence: `--no-git-update` > `--update-lock` > existing lock (pins SHAs, skips `odoo_build_date` for locked platform) > legacy branch tip / build date.
 
 ### Database backup and maintenance

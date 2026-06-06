@@ -329,6 +329,13 @@ class Config:
     def skip_git_update(self) -> bool:
         return bool(getattr(self.arguments, "no_git_update", False))
 
+    def seed_dependency_urls(self) -> list[str]:
+        """Dependency URLs from ``odpm.json`` before OCA resolution."""
+        seeds = self._raw_odpm_json.get("dependencies", [])
+        if not isinstance(seeds, list):
+            return []
+        return [str(url).strip() for url in seeds if url and str(url).strip()]
+
     def ensure_git_repos_present(self) -> None:
         missing: list[str] = []
         for label, path in (

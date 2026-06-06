@@ -187,6 +187,21 @@ def snapshot_commit_for_path(project_path: str) -> str:
     return hasher.hexdigest()[:40]
 
 
+def resolved_checkout_commit(link, entry: LockEntry | None = None) -> str:
+    """Current commit/fingerprint after checkout (ignores explicit pin on link)."""
+    project_path = link.get_project_path()
+    if is_git_repository(project_path):
+        return link.resolve_head_sha()
+    if entry is not None and entry.kind == LOCK_KIND_FILE:
+        return snapshot_commit_for_path(project_path)
+    if link.link_type == constants.GITLINK_TYPE_FILE:
+        return snapshot_commit_for_path(project_path)
+    raise RuntimeError(
+        f"Cannot resolve checkout commit for {link.project_string!r}: "
+        f"not a git repository ({project_path})"
+    )
+
+
 def resolve_lock_commit(link) -> str:
     if link.commit_explicit and link.commit and _COMMIT_RE.match(link.commit):
         return link.commit

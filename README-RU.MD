@@ -361,6 +361,8 @@ python3 odpm.py --skip-start --odoo-build-date 20250529
 
 Schema v1: `platform`, optional `developing` (только remote git), `dependencies` (полный OCA graph). Поля entry: `url`, `commit`, optional `branch`, optional `kind` (`git` / `file` для `file://` platform).
 
+Для `file://` platform `commit` — fingerprint содержимого (не git SHA). Стабилен при наличии `odoo/release.py` и `odoo-bin`; иначе может отличаться на разных машинах или после смены метаданных каталога — для CI и team sync надёжнее git remote.
+
 Приоритет: `--no-git-update` > `--update-lock` > lock (pin SHA, без `odoo_build_date` для platform) > branch tip / build date.
 
 ### Резервное копирование и обслуживание БД

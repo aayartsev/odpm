@@ -30,17 +30,15 @@ def _bare_link(**overrides):
 
 
 def _config_with_policy(project_dir: str, scenario: str, **overrides):
+    seed_dependencies = overrides.get(
+        "seed_dependencies",
+        ["https://github.com/OCA/partner-contact.git"],
+    )
     config = MagicMock()
     config.project_dir = project_dir
     config.policy = ScenarioPolicy.from_scenario(scenario)
-    config.dependencies = overrides.get(
-        "dependencies",
-        ["https://github.com/OCA/partner-contact.git"],
-    )
-    config._raw_odpm_json = overrides.get(
-        "_raw_odpm_json",
-        {"dependencies": ["https://github.com/OCA/partner-contact.git"]},
-    )
+    config.dependencies = overrides.get("dependencies", list(seed_dependencies))
+    config.seed_dependency_urls = MagicMock(return_value=list(seed_dependencies))
     config.odoo_platform_project = overrides.get(
         "odoo_platform_project",
         _bare_link(
@@ -105,10 +103,6 @@ class DepsLockManagerApplyTests(unittest.TestCase):
                     url="https://github.com/odoo/odoo",
                     commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 ),
-                developing=LockEntry(
-                    url="https://github.com/acme/developing",
-                    commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-                ),
             )
             save_deps_lock(
                 os.path.join(project_dir, ".odpm", "deps.lock.json"),
@@ -162,7 +156,7 @@ class DepsLockManagerCollectTests(unittest.TestCase):
             config = _config_with_policy(project_dir, constants.DEVELOPER_SCENARIO)
             config.dependencies = []
             config.dependencies_projects = []
-            config._raw_odpm_json = {"dependencies": []}
+            config.seed_dependency_urls.return_value = []
             platform = MagicMock()
             platform.gitlink = ""
             platform.project_link = f"file://{platform_dir}"
@@ -230,9 +224,9 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
 
     def test_missing_seed_in_lock_fails_ci(self):
         config = _config_with_policy("/tmp/project", constants.CI_SCENARIO)
-        config._raw_odpm_json = {
-            "dependencies": ["https://github.com/OCA/missing.git"]
-        }
+        config.seed_dependency_urls.return_value = [
+            "https://github.com/OCA/missing.git"
+        ]
         lock = DepsLock(
             platform=LockEntry(
                 url="https://github.com/odoo/odoo",
@@ -246,6 +240,60 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
 
         with self.assertRaises(PipelineError):
             manager.apply_to_dependencies([])
+
+
+class DepsLockManagerStaleDevelopingTests(unittest.TestCase):
+    def test_stale_developing_warns_when_project_uses_file_link(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            lock = DepsLock(
+                platform=LockEntry(
+                    url="https://github.com/odoo/odoo",
+                    commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                ),
+                developing=LockEntry(
+                    url="https://github.com/acme/developing",
+                    commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                ),
+            )
+            save_deps_lock(
+                os.path.join(project_dir, ".odpm", "deps.lock.json"),
+                lock,
+            )
+            config = _config_with_policy(project_dir, constants.DEVELOPER_SCENARIO)
+            config.developing_project = _bare_link(
+                project_link="file:///tmp/local-dev",
+                link_type=constants.GITLINK_TYPE_FILE,
+            )
+            manager = DepsLockManager(config)
+            manager.load()
+            manager.enter_apply_mode()
+
+            with self.assertLogs("dev_project.git.deps_lock_manager", level="WARNING"):
+                manager.apply_to_developing(config.developing_project)
+
+            self.assertFalse(config.developing_project.commit_explicit)
+
+    def test_stale_developing_fails_ci_when_url_changed(self):
+        config = _config_with_policy("/tmp/project", constants.CI_SCENARIO)
+        lock = DepsLock(
+            platform=LockEntry(
+                url="https://github.com/odoo/odoo",
+                commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            ),
+            developing=LockEntry(
+                url="https://github.com/acme/old-developing",
+                commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            ),
+        )
+        manager = DepsLockManager(config)
+        manager._lock = lock
+        manager._apply_mode = True
+        config.developing_project = _bare_link(
+            gitlink="https://github.com/acme/new-developing.git",
+        )
+
+        with self.assertRaises(PipelineError):
+            manager.apply_to_developing(config.developing_project)
 
 
 class DepsLockManagerModeTests(unittest.TestCase):

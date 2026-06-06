@@ -20,6 +20,7 @@ from .deps_lock import (
     normalize_repo_url,
     repo_url_for_link,
     resolve_lock_commit,
+    resolved_checkout_commit,
     save_deps_lock,
     sort_lock_entries,
 )
@@ -67,6 +68,7 @@ class DepsLockManager:
     def apply_to_developing(self, developing: HandleOdooProjectLink) -> None:
         if not self._apply_mode or self._lock is None or self._lock.developing is None:
             return
+        self._check_stale_developing_entry(developing)
         if not is_remote_git_link(developing):
             return
         entry = self._lock.developing
@@ -77,7 +79,7 @@ class DepsLockManager:
         if not self._apply_mode or self._lock is None:
             return
         self._check_seed_coverage()
-        self._check_stale_lock_entries(projects)
+        self._check_stale_dependency_entries(projects)
         for project in projects:
             project_url = repo_url_for_link(project)
             entry = entry_for_url(self._lock, project_url)
@@ -143,24 +145,19 @@ class DepsLockManager:
             kind=lock_kind_for_link(project),
         )
 
-    def _seed_dependency_urls(self) -> list[str]:
-        raw = getattr(self._config, "_raw_odpm_json", None) or {}
-        seeds = raw.get("dependencies", [])
-        if not isinstance(seeds, list):
-            return []
-        return [url for url in seeds if url and str(url).strip()]
-
     def _check_seed_coverage(self) -> None:
         if self._lock is None:
             return
-        for seed_url in self._seed_dependency_urls():
+        for seed_url in self._config.seed_dependency_urls():
             if entry_for_url(self._lock, seed_url) is None:
                 self._report_issue(
                     f"Seed dependency {seed_url!r} is missing from deps.lock.json; "
                     "run --update-lock and commit the lock file"
                 )
 
-    def _check_stale_lock_entries(self, projects: list[HandleOdooProjectLink]) -> None:
+    def _check_stale_dependency_entries(
+        self, projects: list[HandleOdooProjectLink]
+    ) -> None:
         if self._lock is None:
             return
         resolved_urls = {repo_url_for_link(project) for project in projects}
@@ -172,6 +169,26 @@ class DepsLockManager:
                     "that is not in the resolved dependency graph; run --update-lock"
                 )
 
+    def _check_stale_developing_entry(
+        self, developing: HandleOdooProjectLink
+    ) -> None:
+        if self._lock is None or self._lock.developing is None:
+            return
+        lock_url = canonical_repo_url(self._lock.developing.url)
+        if not is_remote_git_link(developing):
+            self._report_issue(
+                f"deps.lock.json lists developing {self._lock.developing.url!r} "
+                "but the project no longer uses a remote git developing link; "
+                "run --update-lock"
+            )
+            return
+        developing_url = repo_url_for_link(developing)
+        if developing_url != lock_url:
+            self._report_issue(
+                f"deps.lock.json lists developing {self._lock.developing.url!r} "
+                f"but the project uses {developing.project_link!r}; run --update-lock"
+            )
+
     def _verify_entry(
         self,
         project: HandleOdooProjectLink,
@@ -182,7 +199,7 @@ class DepsLockManager:
         if entry is None:
             return
         try:
-            current = resolve_lock_commit(project)
+            current = resolved_checkout_commit(project, entry)
         except RuntimeError as error:
             self._report_issue(f"Cannot verify {label} lock entry: {error}")
             return

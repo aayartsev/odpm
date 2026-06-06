@@ -374,6 +374,21 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertEqual(config.project_settings.odoo_version, "19.0")
         self.assertEqual(config.docker_layout.docker_project_dir, "/home/odoo")
 
+    def test_seed_dependency_urls_reads_odpm_json(self):
+        config = Config.__new__(Config)
+        config._raw_odpm_json = {
+            "dependencies": [
+                "https://github.com/OCA/partner-contact.git",
+                "  ",
+                "",
+            ]
+        }
+
+        self.assertEqual(
+            config.seed_dependency_urls(),
+            ["https://github.com/OCA/partner-contact.git"],
+        )
+
     def test_load_user_settings_populates_user_slice(self):
         config = Config.__new__(Config)
         config._raw_user_settings = {
