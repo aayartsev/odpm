@@ -176,13 +176,23 @@ export ODPM_SCENARIO=ci
 ./scripts/verify_ci_scenario.sh
 ```
 
-Скрипт запускает `python3 odpm.py --build-image` и `docker compose up -d` из корня проекта.
+Скрипт запускает `python3 odpm.py --build-image`, `docker compose up -d` и ждёт HTTP 200 на `/web`.
 
-**Opt-in integration-тест docker build** (минимальный CI context, без compose):
+**Opt-in integration-тесты docker** (нужен Docker на хосте; по умолчанию пропускаются в `unittest discover`):
 
 ```bash
+# Только сборка CI-образа (minimal context, без compose)
 ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_image_build -v
+
+# Golden path: compose up + HTTP 200 на /web (полностью инициализированный проект)
+export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
+# Запуск из корня репозитория odpm (пакет tests/ там), или через скрипт:
+./scripts/run_golden_path_test.sh
+# Эквивалент:
+# cd /path/to/odoo_dev_project && ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_golden_path -v
 ```
+
+Опционально: `ODPM_GOLDEN_PATH_TIMEOUT=600` (секунды, по умолчанию 300). Сначала остановите основной stack проекта (`docker compose down` в каталоге проекта): golden-path тест использует тот же каталог данных Postgres и ephemeral host-порты (Postgres не публикуется; HTTP Odoo — на свободный порт).
 
 Нужен Docker на хосте. По умолчанию пропускается в `unittest discover` (быстрый CI).
 

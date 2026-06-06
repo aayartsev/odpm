@@ -15,4 +15,15 @@ fi
 python3 "${PROJECT_ROOT}/odpm.py" --build-image
 docker compose up -d
 
-echo "CI image built; stack started with docker compose."
+ODOO_PORT="${ODOO_PORT:-8069}"
+echo "Waiting for Odoo HTTP 200 on http://127.0.0.1:${ODOO_PORT}/web ..."
+for _ in $(seq 1 60); do
+  if curl -sf "http://127.0.0.1:${ODOO_PORT}/web" >/dev/null; then
+    echo "CI image built; stack started; Odoo HTTP OK."
+    exit 0
+  fi
+  sleep 5
+done
+
+echo "Timeout waiting for Odoo HTTP on port ${ODOO_PORT}" >&2
+exit 1

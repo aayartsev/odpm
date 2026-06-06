@@ -330,8 +330,8 @@ Doodba: `custom/` hooks и onbuild. Dev Containers: `features` и `postCreateCom
 | -------------------- | ---------------------------------------- | ----------- | ---------------------------- |
 | Unit                 | policy, config slices, resolver          | ✅ сильно    | maintain                     |
 | Subprocess           | bake_venv module path                    | ✅           | expand                       |
-| Integration (opt-in) | `docker build` CI                        | ✅ фаза 19   | + compose health smoke       |
-| E2E (nightly)        | init demo project → `-i base` → HTTP 200 | ❌           | 1 golden path                |
+| Integration (opt-in) | `docker build` CI + compose HTTP smoke | ✅ opt-in   | maintain                     |
+| E2E (nightly)        | init demo project → `-i base` → HTTP 200 | ✅ opt-in (`ODPM_GOLDEN_PATH_PROJECT`) | full init in CI optional |
 | Contract             | ConfigToJson schema vN                   | ❌           | jsonschema + migration tests |
 
 
