@@ -56,6 +56,11 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(hasattr(materializer_module, "ProjectMaterializer"))
 
+    def test_host_context_imports(self):
+        from dev_project import host_context as host_context_module
+
+        self.assertTrue(hasattr(host_context_module, "HostProjectContext"))
+
     def test_run_odoo_entrypoint_imports(self):
         from dev_project.inside_docker_app import run_odoo as run_odoo_module
 

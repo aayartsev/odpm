@@ -326,6 +326,12 @@ class Config:
     def docker_layout(self) -> DockerLayoutState:
         return self._docker
 
+    @property
+    def host_context(self) -> "HostProjectContext":
+        from ..host_context import HostProjectContext
+
+        return HostProjectContext.from_config(self)
+
     def skip_git_update(self) -> bool:
         return bool(getattr(self.arguments, "no_git_update", False))
 

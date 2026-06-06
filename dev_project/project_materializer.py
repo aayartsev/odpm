@@ -8,6 +8,7 @@ from .compose_service_builder import ComposeServiceBuilder
 from .config import Config
 from .errors import PipelineError
 from .git.deps_lock_manager import DepsLockManager
+from .host_context import HostProjectContext
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
 from .protocols import SystemCheckerProtocol
@@ -25,8 +26,9 @@ class ProjectMaterializer:
         system_checker: SystemCheckerProtocol,
         args: Namespace,
     ) -> None:
-        skip_git = getattr(args, "no_git_update", False)
-        update_lock = getattr(args, "update_lock", False)
+        ctx = HostProjectContext.from_config(config, arguments=args)
+        skip_git = ctx.skip_git_update
+        update_lock = ctx.update_lock
         if update_lock and skip_git:
             message = "--update-lock cannot be used together with --no-git-update"
             _logger.error(message)
