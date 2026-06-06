@@ -51,6 +51,11 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(hasattr(builder_module, "ComposeServiceBuilder"))
 
+    def test_project_materializer_imports(self):
+        from dev_project import project_materializer as materializer_module
+
+        self.assertTrue(hasattr(materializer_module, "ProjectMaterializer"))
+
     def test_run_odoo_entrypoint_imports(self):
         from dev_project.inside_docker_app import run_odoo as run_odoo_module
 

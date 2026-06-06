@@ -331,6 +331,25 @@ class OdpmPipelineSetupTests(unittest.TestCase):
 
 
 class OdpmPipelinePrepareTests(unittest.TestCase):
+    @patch("dev_project.odpm_pipeline.ProjectMaterializer")
+    def test_prepare_delegates_to_project_materializer(self, mock_materializer_cls):
+        pipeline = OdpmPipeline(Namespace(skip_start=True), "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.project_environment = MagicMock()
+        pipeline.system_checker = MagicMock()
+        materializer = MagicMock()
+        mock_materializer_cls.return_value = materializer
+
+        pipeline.prepare_project_files()
+
+        mock_materializer_cls.assert_called_once_with()
+        materializer.run.assert_called_once_with(
+            pipeline.config,
+            pipeline.project_environment,
+            pipeline.system_checker,
+            pipeline.args,
+        )
+
     def _pipeline_with_mocks(self, **args_overrides) -> OdpmPipeline:
         args = Namespace(build_image=False, skip_start=True, **args_overrides)
         pipeline = OdpmPipeline(args, "/opt/odpm")
@@ -339,7 +358,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.system_checker = MagicMock()
         return pipeline
 
-    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    @patch("dev_project.project_materializer.ComposeServiceBuilder")
     def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
         pipeline.prepare_project_files()
@@ -349,7 +368,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.ensure_git_repos_present.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    @patch("dev_project.project_materializer.ComposeServiceBuilder")
     def test_prepare_skips_git_when_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(no_git_update=True)
         pipeline.prepare_project_files()
@@ -357,10 +376,10 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.materialize_git_repos.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_not_called()
 
-    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    @patch("dev_project.project_materializer.ComposeServiceBuilder")
     def test_prepare_skips_build_date_when_platform_lock_exists(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
-        with patch("dev_project.odpm_pipeline.DepsLockManager") as mock_manager_cls:
+        with patch("dev_project.project_materializer.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             manager.has_platform_lock.return_value = True
             mock_manager_cls.return_value = manager
@@ -371,10 +390,10 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         manager.load.assert_called_once()
         manager.enter_apply_mode.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    @patch("dev_project.project_materializer.ComposeServiceBuilder")
     def test_prepare_update_lock_collects_without_loading_lock(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True)
-        with patch("dev_project.odpm_pipeline.DepsLockManager") as mock_manager_cls:
+        with patch("dev_project.project_materializer.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             mock_manager_cls.return_value = manager
             pipeline.prepare_project_files()
@@ -385,17 +404,17 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         )
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    @patch("dev_project.project_materializer.ComposeServiceBuilder")
     def test_prepare_verifies_lock_after_checkout_when_apply_mode(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
-        with patch("dev_project.odpm_pipeline.DepsLockManager") as mock_manager_cls:
+        with patch("dev_project.project_materializer.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             manager.apply_mode = True
             mock_manager_cls.return_value = manager
             pipeline.prepare_project_files()
         manager.verify_after_checkout.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    @patch("dev_project.project_materializer.ComposeServiceBuilder")
     def test_prepare_rejects_update_lock_with_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True, no_git_update=True)
         with self.assertRaises(PipelineError):
