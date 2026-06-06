@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -207,6 +208,106 @@ class VenvLockHashTests(unittest.TestCase):
         dev_hash = Config.compute_venv_lock_hash(dev_config)
         ci_hash = Config.compute_venv_lock_hash(ci_config)
         self.assertNotEqual(dev_hash, ci_hash)
+
+
+class SyncExtraRequirementsHygieneTests(unittest.TestCase):
+    def _checker(self, **overrides) -> VirtualenvChecker:
+        use_uv = overrides.pop("use_uv", True)
+        config = minimal_container_config(
+            requirements_txt=["requests==2.31.0"],
+            **overrides,
+        )
+        checker = VirtualenvChecker.__new__(VirtualenvChecker)
+        checker.config = config
+        checker.docker_project_dir = config.docker_project_dir
+        checker.docker_venv_dir = config.docker_venv_dir
+        checker.requirements_txt = config.requirements_txt
+        checker.use_uv = use_uv
+        checker._run_pip_command = MagicMock()
+        return checker
+
+    def test_list_installed_packages_uv_invalid_json_raises_venv_error(self):
+        checker = self._checker()
+        with patch(
+            "dev_project.inside_docker_app.check_virtualenv.subprocess.run"
+        ) as mock_run:
+            mock_run.return_value = MagicMock(
+                stdout=b"not-json",
+                stderr=b"",
+                returncode=0,
+            )
+            with self.assertRaises(VenvError) as ctx:
+                checker._list_installed_packages()
+        self.assertIn("invalid JSON", str(ctx.exception))
+
+    def test_list_installed_packages_non_uv_uses_freeze_without_subprocess(self):
+        checker = self._checker(use_uv=False)
+        with patch(
+            "dev_project.inside_docker_app.check_virtualenv.freeze",
+            return_value=["requests==2.31.0", "pip==24.0"],
+        ):
+            with patch(
+                "dev_project.inside_docker_app.check_virtualenv.subprocess.run"
+            ) as mock_run:
+                packages = checker._list_installed_packages()
+        mock_run.assert_not_called()
+        self.assertEqual(
+            packages,
+            [
+                {"name": "requests", "version": "2.31.0"},
+                {"name": "pip", "version": "24.0"},
+            ],
+        )
+
+    def test_sync_extra_requirements_non_uv_does_not_chdir_or_run_subprocess(self):
+        checker = self._checker(use_uv=False)
+        with patch(
+            "dev_project.inside_docker_app.check_virtualenv.os.chdir"
+        ) as mock_chdir:
+            with patch(
+                "dev_project.inside_docker_app.check_virtualenv.subprocess.run"
+            ) as mock_run:
+                with patch.object(
+                    checker,
+                    "_list_installed_packages",
+                    return_value=[{"name": "requests", "version": "2.31.0"}],
+                ):
+                    with patch.object(
+                        checker, "check_package_to_install", return_value=[]
+                    ):
+                        checker.sync_extra_requirements()
+        mock_chdir.assert_not_called()
+        mock_run.assert_not_called()
+        checker._run_pip_command.assert_not_called()
+
+    def test_sync_extra_requirements_uv_uses_list_argv_without_chdir(self):
+        checker = self._checker()
+        installed = [{"name": "requests", "version": "2.31.0"}]
+
+        with patch(
+            "dev_project.inside_docker_app.check_virtualenv.os.chdir"
+        ) as mock_chdir:
+            with patch(
+                "dev_project.inside_docker_app.check_virtualenv.subprocess.run"
+            ) as mock_run:
+                mock_run.return_value = MagicMock(
+                    stdout=json.dumps(installed).encode("utf-8"),
+                    stderr=b"",
+                    returncode=0,
+                )
+                with patch.object(
+                    checker, "check_package_to_install", return_value=[]
+                ):
+                    checker.sync_extra_requirements()
+
+        mock_chdir.assert_not_called()
+        mock_run.assert_called_once_with(
+            ["uv", "pip", "list", "--format", "json"],
+            capture_output=True,
+            cwd=checker.docker_project_dir,
+            check=False,
+        )
+        checker._run_pip_command.assert_not_called()
 
 
 if __name__ == "__main__":

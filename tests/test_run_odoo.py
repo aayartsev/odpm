@@ -85,7 +85,7 @@ class RunOdooTests(unittest.TestCase):
         os.environ[constants.ODPM_CONFIG_PATH_ENV] = path
         run_odoo.run_odoo(["--", "/home/odoo/odoo/odoo-bin", "-d", "demo"])
         mock_bootstrap.assert_called_once()
-        mock_chdir.assert_called_once_with("/home/odoo")
+        mock_chdir.assert_not_called()
         exec_argv = mock_execv.call_args[0][1]
         self.assertEqual(exec_argv[0], "/home/odoo/.venv/bin/python3")
         self.assertEqual(exec_argv[-2:], ["-d", "demo"])

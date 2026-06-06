@@ -124,28 +124,47 @@ class VirtualenvChecker:
     def _canonical_package_name(self, name: str) -> str:
         return canonicalize_name(name.strip())
 
+    def _list_installed_packages(self) -> list[dict]:
+        if self.use_uv:
+            result = subprocess.run(
+                ["uv", "pip", "list", "--format", "json"],
+                capture_output=True,
+                cwd=self.docker_project_dir,
+                check=False,
+            )
+            if result.returncode != 0:
+                stderr = result.stderr.decode("utf-8", errors="replace").strip()
+                message = f"uv pip list failed (exit {result.returncode}): {stderr}"
+                self.package_installation_error(message)
+            json_pip_list_string = result.stdout.decode("utf-8").strip()
+            if not json_pip_list_string:
+                return []
+            try:
+                payload = json.loads(json_pip_list_string)
+            except json.JSONDecodeError as exc:
+                self.package_installation_error(
+                    f"uv pip list returned invalid JSON: {exc}"
+                )
+            if not isinstance(payload, list):
+                self.package_installation_error(
+                    "uv pip list returned unexpected JSON (expected a list)"
+                )
+            return payload
+        return [
+            {"name": pkg.split("==")[0], "version": pkg.split("==")[1]}
+            for pkg in freeze()
+        ]
+
     def sync_extra_requirements(self) -> None:
         """Install or adjust only extra packages from requirements_txt (fresh mode)."""
         separator = " "
         if self.use_uv:
             manager_commad = "uv"
             options = "--link-mode=copy"
-            dir_for_venv = os.path.join(self.docker_venv_dir, "..")
-            os.chdir(dir_for_venv)
-            json_pip_list_bytes = subprocess.run(
-                ["uv pip list --format json"],
-                capture_output=True,
-                shell=True,
-            )
-            json_pip_list_string = json_pip_list_bytes.stdout.decode("utf-8").strip()
-            list_of_installed_packages = json.loads(json_pip_list_string)
         else:
             manager_commad = "python3 -m"
             options = ""
-            list_of_installed_packages = [
-                {"name": pkg.split("==")[0], "version": pkg.split("==")[1]}
-                for pkg in freeze()
-            ]
+        list_of_installed_packages = self._list_installed_packages()
         all_instructions = {}
         for package_to_install in self.requirements_txt:
             instructions_for_package = self.check_package_to_install(

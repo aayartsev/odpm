@@ -62,7 +62,9 @@ class OdooChecker:
             cli_params.EXPORT_PO_FILES.replace("-", "_").strip("_"), False
         )
 
-        sys.path.append(self.odoo_dir)
+        odoo_src_dir = os.path.abspath(self.odoo_dir)
+        if odoo_src_dir not in sys.path:
+            sys.path.insert(0, odoo_src_dir)
 
         postgres_waiter = PostgresWaiter(
             host=self.odoo_config_data["options"]["db_host"],  # PostgreSQL host
@@ -115,9 +117,10 @@ class OdooChecker:
         self.odoo.tools.config.parse_config(["-c", self.docker_path_odoo_conf])
         # Enable database manager
         self.odoo_config_object["list_db"] = True
-        os.chdir(self.odoo_dir)
 
-        self.all_backup_file_path = os.path.join(self.odoo_dir, "../backups/")
+        self.all_backup_file_path = os.path.join(
+            os.path.dirname(self.odoo_dir), "backups"
+        )
 
         if self.get_db_list or self.db_name:
             # Start Odoo in environment context

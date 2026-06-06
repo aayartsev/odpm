@@ -53,8 +53,6 @@ def run_odoo(argv: list[str] | None = None) -> None:
     if not odoo_argv:
         raise ContainerError("Missing odoo-bin argv after bootstrap")
     exec_argv = build_odoo_exec_argv(config, odoo_argv)
-    if config.docker_project_dir:
-        os.chdir(config.docker_project_dir)
     os.execv(exec_argv[0], exec_argv)
 
 
