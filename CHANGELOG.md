@@ -68,7 +68,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 #### Quality assurance
 
-- **471 unit tests** (5 skipped opt-in integration tests by default).
+- **471 tests** in `unittest discover` (5 skipped opt-in Docker integration tests by default).
 - **Opt-in Docker integration tests:** CI image build, golden-path compose + HTTP 200 (`ODPM_RUN_DOCKER_INTEGRATION=1`).
 - **Scripts:** `scripts/verify_ci_scenario.sh`, `scripts/run_golden_path_test.sh`, `scripts/verify_dev_mode_flags.sh`, `scripts/verify_dev_mode_autoreload.sh`.
 
@@ -91,7 +91,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 ### Migration Guide (3.x → 4.0)
 
-1. **Install odpm 4.0**
+1. **Install odpm 4.0** (requires Python ≥ 3.10; on PEP 668 systems use a venv or `pipx`)
    ```bash
    pip install /path/to/odoo_dev_project
    # or editable:
@@ -108,7 +108,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 3. **Review generated `docker-compose.yml`:**
    - Odoo `command` must be exec form with `run_odoo`.
-   - Environment must include `ODPM_CONFIG_PATH` (mounted runtime config path).
+   - Environment must include `ODPM_CONFIG_PATH=/run/odpm/config.json` with a read-only mount of `.odpm/runtime/config.json`.
    - No `{START_STRING}`, `{MAPPED_VOLUMES}`, or `{DEBUGGER_PORT_MAP}` placeholders.
 
 4. **Remove imports of deleted shims** from custom scripts.

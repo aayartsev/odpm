@@ -334,6 +334,7 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | `--skip-start` | Пересоздать `Dockerfile`, `.dockerignore`, `docker-compose.yml` и связанные файлы **без** запуска контейнеров. При наличии `.odpm/deps.lock.json` выполняет checkout по lock. |
 | `--update-lock` | Зафиксировать platform, developing (remote git) и **полный resolved** graph (OCA + nested `odpm.json`) в `.odpm/deps.lock.json`; выход без запуска контейнеров. |
 | `--no-git-update` | Не выполнять git clone/fetch/checkout. Lock **не** читается и не обновляется. Нужны локальные каталоги repos. |
+| `--plan` | После загрузки конфигурации вывести таблицу шагов prepare/runtime, которые выполнились бы при обычном запуске, без git pull, записи файлов и `docker compose up`. |
 | `--version` | Показать версию odpm и выйти. |
 
 ### Запуск Odoo: база и модули

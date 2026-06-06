@@ -337,6 +337,7 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | `--skip-start` | Regenerate `Dockerfile`, `.dockerignore`, `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. With a committed `.odpm/deps.lock.json`, also checks out pinned git SHAs before compose. |
 | `--update-lock` | Resolve platform, developing (remote git), and **full resolved** dependency graph (OCA + nested `odpm.json`); write `.odpm/deps.lock.json`; exit without starting containers (combine with `--skip-start` in CI). |
 | `--no-git-update` | Skip git clone/fetch/checkout. Lock file is **not** read or updated. Requires existing local repos. |
+| `--plan` | After loading configuration, print a table of prepare/runtime steps that would run on a normal invocation, without git pull, file writes, or `docker compose up`. |
 | `--version` | Print odpm version and exit. |
 
 ### Odoo run: database and modules
