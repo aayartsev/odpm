@@ -97,6 +97,13 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(callable(main))
 
+    def test_plan_module_imports(self):
+        from dev_project.plan import OdpmPlanner, PlanStep, format_plan
+
+        self.assertTrue(callable(OdpmPlanner.build))
+        self.assertTrue(callable(format_plan))
+        self.assertTrue(hasattr(PlanStep, "__dataclass_fields__"))
+
     def test_program_dir_resolver_imports(self):
         from dev_project.program_dir import resolve_program_dir
 

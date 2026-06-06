@@ -25,7 +25,14 @@ class ProjectMaterializer:
         project_env: CreateProjectEnvironment,
         system_checker: SystemCheckerProtocol,
         args: Namespace,
-    ) -> None:
+        *,
+        dry_run: bool = False,
+    ) -> "OdpmPlan | None":
+        if dry_run:
+            from .plan import OdpmPlanner
+
+            return OdpmPlanner.build(config, args)
+
         ctx = HostProjectContext.from_config(config, arguments=args)
         skip_git = ctx.skip_git_update
         update_lock = ctx.update_lock
@@ -70,3 +77,4 @@ class ProjectMaterializer:
                     dependencies=config.dependencies_projects,
                 )
         project_env.update_links()
+        return None

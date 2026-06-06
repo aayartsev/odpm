@@ -64,6 +64,12 @@ class OdpmPipeline:
             self.args,
         )
 
+    def print_plan(self) -> None:
+        from .plan import OdpmPlanner, format_plan
+
+        plan = OdpmPlanner.build(self._config(), self.args)
+        _logger.info(format_plan(plan))
+
     def handle_build_image(self) -> bool:
         """Run CI image build. Returns True when the pipeline should stop."""
         if not self.args.build_image:
@@ -118,6 +124,9 @@ class OdpmPipeline:
     def run(self) -> None:
         try:
             self.setup()
+            if getattr(self.args, "plan", False):
+                self.print_plan()
+                return
             self.prepare_project_files()
             if self.handle_build_image():
                 return
