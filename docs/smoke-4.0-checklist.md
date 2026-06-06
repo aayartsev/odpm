@@ -35,7 +35,7 @@ python3 -m unittest discover -s tests -p "test_*.py"
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
 | Test suite | All tests OK; 5 skipped (opt-in Docker integration unless `ODPM_RUN_DOCKER_INTEGRATION=1`) | | |
-| Test count | Matches current baseline (see CHANGELOG; re-run after adding tests) | | |
+| Test count | 531 tests OK (5 skipped); re-run after adding tests | | |
 
 ---
 
@@ -73,7 +73,8 @@ Run on the same migrated project as **2B** after templates are in place:
 ```bash
 cd "$ODPM_PROJECT"
 odpm plan --skip-start
-# or: odpm --plan --skip-start  (deprecated alias)
+odpm plan --plan-format json | jq .
+# or: odpm --plan --skip-start  (deprecated alias; logs a warning)
 # or: python3 "$ODPM_REPO/odpm.py" plan --skip-start
 ```
 
@@ -205,7 +206,7 @@ Before release, confirm public docs match behavior:
 | Document | Verify |
 |----------|--------|
 | `CHANGELOG.md` / `CHANGELOG-RU.MD` | 4.0.0 breaking changes, migration, feature list |
-| `README.MD` / `README-RU.MD` | Scenarios, `--plan`, deps lock, pip install, integration test env vars |
+| `README.MD` / `README-RU.MD` | Scenarios, `odpm plan`, deps lock, pip install, integration test env vars |
 | `goals_ru.md` | Architecture / backlog aligned with 4.0 |
 | This checklist | Test count and steps still accurate |
 

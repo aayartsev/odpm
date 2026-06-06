@@ -339,8 +339,31 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | `--skip-start` | Regenerate `Dockerfile`, `.dockerignore`, `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. With a committed `.odpm/deps.lock.json`, also checks out pinned git SHAs before compose. |
 | `--update-lock` | Resolve platform, developing (remote git), and **full resolved** dependency graph (OCA + nested `odpm.json`); write `.odpm/deps.lock.json`; exit without starting containers (combine with `--skip-start` in CI). |
 | `--no-git-update` | Skip git clone/fetch/checkout. Lock file is **not** read or updated. Requires existing local repos. |
-| `--plan` | After loading configuration, print a table of prepare/runtime steps that would run on a normal invocation, without git pull, file writes, or `docker compose up`. |
+| `--plan` | **Deprecated.** Same as `odpm plan` (see [Plan (dry-run)](#plan-dry-run) below). |
 | `--version` | Print odpm version and exit. |
+
+### Plan (dry-run)
+
+Preview which prepare and runtime steps would run on a normal invocation **without** cloning or updating git repositories, writing generated project files (runtime config, root `docker-compose.yml`), or running `docker compose up`.
+
+```bash
+odpm plan --skip-start
+odpm plan --plan-format json | jq .
+odpm plan --plan-show-diff --skip-start
+```
+
+`--plan` is a deprecated alias; all project flags (`--skip-start`, `--no-git-update`, and so on) work the same after `odpm plan`.
+
+| Parameter | Description |
+|-----------|-------------|
+| `--plan-format {table,json}` | Output format. Default `table` (logged). `json` is written to **stdout** for scripts (`jq`, CI). |
+| `--plan-strict` | Exit with code `1` when any **required** step would `run` or `update`; `0` when only noop, skip, or optional steps would change. |
+| `--plan-show-diff` | After the step table, print unified diffs for files that would change: `.odpm/runtime/config.json`, root `docker-compose.yml`, root `.dockerignore`. |
+| `--plan-no-docker` | Skip `docker compose ps` / `inspect` probe; `compose.up` will not predict `--force-recreate` (a warning is shown). |
+
+Each step shows an outcome (`RUN`, `UPDATE`, `NOOP`, `SKIP`), whether it is required, an id (for example `git.materialize`, `compose.service`), and a short reason. When the stack is running and healthy, `compose.up` is planned without `--force-recreate`; otherwise recreate is predicted (unless `--plan-no-docker` or `--skip-start`).
+
+**Limits:** Configuration is still loaded from the project directory. Outdated templates under `.odpm/` may be upgraded during startup. Unless `--plan-no-docker` is set, odpm may probe the local compose stack to predict `compose.up`. Combine with `--skip-start` to omit `compose.up` from the plan.
 
 ### Odoo run: database and modules
 

@@ -1,4 +1,11 @@
-"""Dry-run plan for ``odpm --plan``: predict prepare/runtime steps without side effects."""
+"""Dry-run plan for ``odpm plan`` / ``odpm --plan``.
+
+Predicts prepare and runtime steps without running git materialization,
+writing runtime config or root compose, or ``docker compose up``. Loading
+configuration may still upgrade outdated templates under ``.odpm/`` and,
+unless ``--plan-no-docker`` is set, probe the local compose stack for
+``compose.up`` predictions.
+"""
 
 from __future__ import annotations
 

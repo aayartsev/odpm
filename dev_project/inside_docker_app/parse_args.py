@@ -190,26 +190,26 @@ arg_parser.add_argument(
 
 arg_parser.add_argument(
     cli_params.PLAN_NO_DOCKER_PARAM,
-    help="""With --plan: skip docker compose ps/inspect probe; compose.up will not predict --force-recreate.""",
+    help="""With odpm plan: skip docker compose ps/inspect probe; compose.up will not predict --force-recreate.""",
     action="store_true",
 )
 
 arg_parser.add_argument(
     cli_params.PLAN_SHOW_DIFF_PARAM,
-    help="""With --plan: show unified diffs for generated project files (runtime config, compose, dockerignore).""",
+    help="""With odpm plan: show unified diffs for generated project files (runtime config, compose, dockerignore).""",
     action="store_true",
 )
 
 arg_parser.add_argument(
     cli_params.PLAN_FORMAT_PARAM,
-    help="""With --plan: output format for the plan (table or json).""",
+    help="""With odpm plan: output format for the plan (table or json).""",
     choices=["table", "json"],
     default="table",
 )
 
 arg_parser.add_argument(
     cli_params.PLAN_STRICT_PARAM,
-    help="""With --plan: exit with code 1 when any required step would run or update.""",
+    help="""With odpm plan: exit with code 1 when any required step would run or update.""",
     action="store_true",
 )
 
@@ -271,4 +271,12 @@ def parse_args(argv: list[str] | None = None):
         import sys
 
         argv = sys.argv[1:]
-    return arg_parser.parse_args(normalize_plan_argv(list(argv)))
+    argv_list = list(argv)
+    if cli_params.PLAN_PARAM in argv_list:
+        from ..logging import get_module_logger
+
+        get_module_logger(__name__).warning(
+            '%s is deprecated; use "odpm plan" instead.',
+            cli_params.PLAN_PARAM,
+        )
+    return arg_parser.parse_args(normalize_plan_argv(argv_list))

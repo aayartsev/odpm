@@ -336,8 +336,33 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | `--skip-start` | Пересоздать `Dockerfile`, `.dockerignore`, `docker-compose.yml` и связанные файлы **без** запуска контейнеров. При наличии `.odpm/deps.lock.json` выполняет checkout по lock. |
 | `--update-lock` | Зафиксировать platform, developing (remote git) и **полный resolved** graph (OCA + nested `odpm.json`) в `.odpm/deps.lock.json`; выход без запуска контейнеров. |
 | `--no-git-update` | Не выполнять git clone/fetch/checkout. Lock **не** читается и не обновляется. Нужны локальные каталоги repos. |
-| `--plan` | После загрузки конфигурации вывести таблицу шагов prepare/runtime, которые выполнились бы при обычном запуске, без git pull, записи файлов и `docker compose up`. |
+| `--plan` | **Устарел.** То же, что `odpm plan` (см. [План (dry-run)](#plan-dry-run) ниже). |
 | `--version` | Показать версию odpm и выйти. |
+
+<a id="plan-dry-run"></a>
+
+### План (dry-run)
+
+Показать, какие шаги prepare и runtime выполнились бы при обычном запуске, **без** clone/update git-репозиториев, записи сгенерированных файлов (runtime config, корневой `docker-compose.yml`) и `docker compose up`.
+
+```bash
+odpm plan --skip-start
+odpm plan --plan-format json | jq .
+odpm plan --plan-show-diff --skip-start
+```
+
+`--plan` — устаревший alias; все флаги проекта (`--skip-start`, `--no-git-update` и т.д.) работают так же после `odpm plan`.
+
+| Параметр | Описание |
+|----------|----------|
+| `--plan-format {table,json}` | Формат вывода. По умолчанию `table` (в лог). `json` пишется в **stdout** для скриптов (`jq`, CI). |
+| `--plan-strict` | Код выхода `1`, если любой **обязательный** шаг будет `run` или `update`; `0`, если меняются только noop, skip или необязательные шаги. |
+| `--plan-show-diff` | После таблицы шагов — unified diff файлов, которые изменятся: `.odpm/runtime/config.json`, корневой `docker-compose.yml`, корневой `.dockerignore`. |
+| `--plan-no-docker` | Не вызывать `docker compose ps` / `inspect`; для `compose.up` не предсказывается `--force-recreate` (будет предупреждение). |
+
+У каждого шага — исход (`RUN`, `UPDATE`, `NOOP`, `SKIP`), обязательность, id (например `git.materialize`, `compose.service`) и краткая причина. Если stack уже запущен и здоров, `compose.up` планируется без `--force-recreate`; иначе предсказывается recreate (кроме `--plan-no-docker` или `--skip-start`).
+
+**Ограничения:** конфигурация всё равно читается из каталога проекта. Устаревшие шаблоны в `.odpm/` могут обновиться при старте. Без `--plan-no-docker` odpm может проверить локальный compose stack для предсказания `compose.up`. С `--skip-start` шаг `compose.up` в план не попадает.
 
 ### Запуск Odoo: база и модули
 
