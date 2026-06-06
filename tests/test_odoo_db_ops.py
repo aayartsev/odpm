@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock
 
-from dev_project.inside_docker_app.odoo_db_ops import (
+from dev_project.inside_docker_app.odoo_checker.db_ops import (
     DbCreationParams,
     OdooDbOps,
     sanitize_backup_basename,

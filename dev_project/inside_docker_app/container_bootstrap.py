@@ -12,7 +12,7 @@ import sys
 import warnings
 
 from ..container_config import ContainerConfig
-from .check_odoo import OdooChecker
+from .odoo_checker import OdooChecker
 from .check_virtualenv import VirtualenvChecker
 from .exceptions import ContainerError
 from .logger import get_module_logger

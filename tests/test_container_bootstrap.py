@@ -115,7 +115,7 @@ class ContainerBootstrapMainTests(unittest.TestCase):
 class PostgresWaiterErrorTests(unittest.TestCase):
     def test_wait_for_postgres_timeout_raises_postgres_error(self):
         from dev_project.inside_docker_app.exceptions import PostgresError
-        from dev_project.inside_docker_app.postgres_waiter import PostgresWaiter
+        from dev_project.inside_docker_app.odoo_checker.postgres_waiter import PostgresWaiter
 
         waiter = PostgresWaiter(timeout=0, check_interval=0)
         with patch.object(waiter, "is_postgres_up", return_value=False):
@@ -127,7 +127,7 @@ class PostgresWaiterErrorTests(unittest.TestCase):
         import builtins
 
         from dev_project.inside_docker_app.exceptions import PostgresError
-        from dev_project.inside_docker_app.postgres_waiter import PostgresWaiter
+        from dev_project.inside_docker_app.odoo_checker.postgres_waiter import PostgresWaiter
 
         real_import = builtins.__import__
 
