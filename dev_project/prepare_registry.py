@@ -28,6 +28,10 @@ from .plan_compose_preview import (
     compose_service_needs_update,
     vscode_settings_up_to_date,
 )
+from .plan_compose_runtime import (
+    compose_up_would_run,
+    evaluate_compose_up_plan,
+)
 from .project_env.base_image_identity import base_image_identity_matches
 
 if TYPE_CHECKING:
@@ -661,21 +665,16 @@ def _evaluate_runtime_vscode_settings(config: Config) -> PlanStep | None:
 def _evaluate_runtime_compose_up(
     config: Config, args: Namespace, host_ctx: HostProjectContext
 ) -> PlanStep | None:
-    if getattr(args, "skip_start", False):
+    if not compose_up_would_run(args, host_ctx):
         return None
-    if host_ctx.update_lock:
-        return None
-    if getattr(args, "build_image", False):
-        return None
-    description = (
-        "Run docker compose up (may add --force-recreate if stack is unhealthy)"
-    )
+    description = "Run docker compose up"
+    reason, _extra_warnings = evaluate_compose_up_plan(config, args)
     return _step(
         "compose.up",
         description,
         "run",
         True,
-        "start compose stack",
+        reason,
     )
 
 
@@ -697,16 +696,10 @@ def build_runtime_plan_steps(
 def build_runtime_plan_warnings(
     config: Config, args: Namespace, host_ctx: HostProjectContext
 ) -> tuple[str, ...]:
-    warnings: list[str] = []
-    if (
-        not getattr(args, "skip_start", False)
-        and not host_ctx.update_lock
-        and not getattr(args, "build_image", False)
-    ):
-        warnings.append(
-            "Compose stack health is checked at runtime; unhealthy stacks get --force-recreate"
-        )
-    return tuple(warnings)
+    if not compose_up_would_run(args, host_ctx):
+        return ()
+    _reason, extra_warnings = evaluate_compose_up_plan(config, args)
+    return extra_warnings
 
 
 def build_plan(config: Config, args: Namespace) -> OdpmPlan:

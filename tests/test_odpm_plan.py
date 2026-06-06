@@ -70,6 +70,16 @@ class PlanPredicateTests(unittest.TestCase):
 
 
 class OdpmPlannerTests(unittest.TestCase):
+    def setUp(self):
+        self._recreate_patcher = patch(
+            "dev_project.plan_compose_runtime.should_force_recreate_compose",
+            return_value=False,
+        )
+        self._recreate_patcher.start()
+
+    def tearDown(self):
+        self._recreate_patcher.stop()
+
     def _config(self, *, project_dir: str, args: Namespace | None = None) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
@@ -79,6 +89,7 @@ class OdpmPlannerTests(unittest.TestCase):
         config.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.compute_venv_lock_hash.return_value = "hash"
+        config.docker_compose_command = "docker compose"
         return config
 
     def _step(self, plan, step_id: str) -> PlanStep:
@@ -93,6 +104,10 @@ class OdpmPlannerTests(unittest.TestCase):
             self.assertEqual(materialize.outcome, "run")
             self.assertEqual(ensure.outcome, "skip")
             self.assertEqual(self._step(plan, "compose.up").outcome, "run")
+            self.assertIn(
+                "without --force-recreate",
+                self._step(plan, "compose.up").reason,
+            )
 
     def test_plan_ensure_git_when_no_git_update(self):
         with tempfile.TemporaryDirectory() as tmp:

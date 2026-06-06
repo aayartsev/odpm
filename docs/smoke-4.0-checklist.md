@@ -84,13 +84,15 @@ odpm --plan --skip-start
 | Idle project | `NOOP compose.service` and `NOOP compose.generate` when runtime hash matches and root `docker-compose.yml` exists | | |
 | Stale runtime | `UPDATE compose.service` with reason `venv_lock_hash changed` after venv/scenario change | | |
 | Missing compose | `RUN compose.service` + `UPDATE compose.generate` when root `docker-compose.yml` is absent | | |
-| Warnings | Compose recreate note when `compose.up` would run; lock warnings when applicable | | |
+| Compose probe | `compose.up` reason includes `without --force-recreate (stack healthy)` or `with --force-recreate (stack missing or unhealthy)` | | |
+| `--plan-no-docker` | Warning `Compose stack health was not probed; --force-recreate is unknown`; reason mentions unknown recreate | | |
+| Warnings | Lock warnings when applicable; no generic recreate warning when probe runs | | |
 
 Automated analogue (repository tests):
 
 ```bash
 cd "$ODPM_REPO"
-python3 -m unittest tests.test_odpm_plan_smoke -v
+python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe -v
 ```
 
 ---
