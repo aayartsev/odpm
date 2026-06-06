@@ -160,6 +160,36 @@ class EnsureProjectTemplateTests(unittest.TestCase):
             self.assertIn("{ODOO_VOLUMES_BLOCK}", content)
             self.assertNotIn("{START_STRING}", content)
             self.assertNotIn("{ODPM_CONFIG_ENV_LINE}", content)
+            self.assertNotIn("healthcheck:", content)
+
+    def test_rebuild_docker_compose_removes_odoo_healthcheck(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            project_template = (
+                Path(project_dir)
+                / constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH
+            )
+            project_template.write_text(
+                "\n".join(
+                    [
+                        "services:",
+                        "  odoo:",
+                        "    user: {COMPOSE_USER}",
+                        "    healthcheck:",
+                        "      test: ['CMD', 'curl', '-f', 'http://localhost:8069/web']",
+                        "    ports:",
+                        "      - {ODOO_PORT}:{ODOO_DOCKER_PORT}",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            manager.rebuild_docker_compose_template()
+
+            content = project_template.read_text(encoding="utf-8")
+            self.assertNotIn("healthcheck:", content)
+            self.assertIn("{START_COMMAND_BLOCK}", content)
 
 
 if __name__ == "__main__":

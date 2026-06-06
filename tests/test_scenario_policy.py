@@ -407,6 +407,7 @@ class ComposeTemplateMigrationTests(unittest.TestCase):
         self.assertIn("{MAPPED_VOLUMES}", constants.DEPRECATED_WORDS)
         self.assertIn("{START_STRING}", constants.DEPRECATED_WORDS)
         self.assertIn("ODPM_CONFIG_B64", constants.DEPRECATED_WORDS)
+        self.assertIn("healthcheck:", constants.DEPRECATED_WORDS)
 
     def test_program_template_uses_new_placeholders(self):
         template_path = DEV_PROJECT_DIR / "templates" / "docker-compose.yml"
@@ -418,6 +419,7 @@ class ComposeTemplateMigrationTests(unittest.TestCase):
         self.assertNotIn("{DEBUGGER_PORT_MAP}", content)
         self.assertNotIn("{START_STRING}", content)
         self.assertNotIn("{ODPM_CONFIG_ENV_LINE}", content)
+        self.assertNotIn("healthcheck:", content)
 
 
 if __name__ == "__main__":

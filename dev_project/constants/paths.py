@@ -79,4 +79,5 @@ DEPRECATED_WORDS = [
     "{START_STRING}",
     "ODPM_CONFIG_B64",
     "{ODPM_CONFIG_ENV_LINE}",
+    "healthcheck:",
 ]
