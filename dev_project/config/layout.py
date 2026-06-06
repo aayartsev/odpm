@@ -38,15 +38,17 @@ def apply_policy_and_layout(config: Config) -> None:
         ),
     )
     config._loader.check_file_for_deprecated_words(project_dockerfile_template_path)
-    config.pd_manager.rebuild_dockerfile_template(
-        docker_template_filename=dockerfile_template_name
-    )
+    if config.pd_manager.sync_templates:
+        config.pd_manager.rebuild_dockerfile_template(
+            docker_template_filename=dockerfile_template_name
+        )
 
     project_dockerignore_template_path = os.path.join(
         config.pd_manager.project_path,
         constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
     )
-    config.pd_manager.rebuild_dockerignore_template()
+    if config.pd_manager.sync_templates:
+        config.pd_manager.rebuild_dockerignore_template()
 
     config._project = ProjectSettingsState(
         odoo_version=config.odoo_version,

@@ -120,7 +120,10 @@ def load_project_settings(config: Config) -> None:
     config._loader.check_file_for_deprecated_words(
         config.pd_manager.project_docker_compose_template_path
     )
-    if not os.path.exists(config.pd_manager.project_docker_compose_template_path):
+    if (
+        config.pd_manager.sync_templates
+        and not os.path.exists(config.pd_manager.project_docker_compose_template_path)
+    ):
         config.pd_manager.rebuild_docker_compose_template()
 
     config._loader.check_file_for_deprecated_words(config.repo_odpm_json)

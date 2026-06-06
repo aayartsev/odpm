@@ -2,9 +2,9 @@
 
 Predicts prepare and runtime steps without running git materialization,
 writing runtime config or root compose, or ``docker compose up``. Loading
-configuration may still upgrade outdated templates under ``.odpm/`` and,
-unless ``--plan-no-docker`` is set, probe the local compose stack for
-``compose.up`` predictions.
+configuration does not upgrade templates under ``.odpm/`` (normal runs still
+sync them). Unless ``--plan-no-docker`` is set, odpm may probe the local
+compose stack for ``compose.up`` predictions.
 """
 
 from __future__ import annotations

@@ -36,14 +36,17 @@ class OdpmPipeline:
         self.project_environment: CreateProjectEnvironment | None = None
         self.system_checker: SystemChecker | None = None
 
-    def setup(self) -> None:
+    def setup(self, *, for_plan: bool = False) -> None:
         if getattr(self.args, "version", False):
             _logger.info(
                 f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}"
             )
             raise ConfigError("", exit_code=0)
         self.pd_manager = ProjectDirManager(
-            self.start_dir, self.args, self.program_dir
+            self.start_dir,
+            self.args,
+            self.program_dir,
+            sync_templates=not for_plan,
         )
         user_environment = CreateUserEnvironment(self.pd_manager)
         self.config = Config(
@@ -136,10 +139,12 @@ class OdpmPipeline:
 
     def run(self) -> None:
         try:
-            self.setup()
             from .plan_cli import is_plan_mode
 
-            if is_plan_mode(self.args):
+            for_plan = is_plan_mode(self.args)
+            self.setup(for_plan=for_plan)
+
+            if for_plan:
                 exit_code = self.print_plan()
                 if exit_code:
                     sys.exit(exit_code)

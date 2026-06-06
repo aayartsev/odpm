@@ -378,7 +378,7 @@ odpm plan --plan-show-diff --skip-start
 
 Each step shows an outcome (`RUN`, `UPDATE`, `NOOP`, `SKIP`), whether it is required, an id (for example `git.materialize`, `compose.service`), and a short reason. When the stack is running and healthy, `compose.up` is planned without `--force-recreate`; otherwise recreate is predicted (unless `--plan-no-docker` or `--skip-start`).
 
-**Limits:** Configuration is still loaded from the project directory. Outdated templates under `.odpm/` may be upgraded during startup. Unless `--plan-no-docker` is set, odpm may probe the local compose stack to predict `compose.up`. Combine with `--skip-start` to omit `compose.up` from the plan.
+**Limits:** Configuration is still loaded from the project directory. Plan mode does not upgrade templates under `.odpm/` (a normal `odpm` run still syncs them). Unless `--plan-no-docker` is set, odpm may probe the local compose stack to predict `compose.up`. Combine with `--skip-start` to omit `compose.up` from the plan.
 
 ### Odoo run: database and modules
 

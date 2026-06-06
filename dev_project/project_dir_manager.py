@@ -22,12 +22,20 @@ def template_needs_upgrade(
 
 
 class ProjectDirManager:
-    def __init__(self, start_dir_path: str, args: Namespace, program_dir_path: str):
+    def __init__(
+        self,
+        start_dir_path: str,
+        args: Namespace,
+        program_dir_path: str,
+        *,
+        sync_templates: bool = True,
+    ):
         self.start_dir_path = start_dir_path
         self.project_path = start_dir_path
         self.dir_is_project = False
         self.arguments = args
         self.init = self.arguments.init
+        self.sync_templates = sync_templates
         self.service_directory = os.path.join(
             self.project_path, constants.PROJECT_SERVICE_DIRECTORY
         )
@@ -37,7 +45,9 @@ class ProjectDirManager:
         )
         self.check_odoo_git_link()
         self.check_project_dir()
-        self.rebuild_templates()
+        self.bind_template_paths()
+        if self.sync_templates:
+            self.sync_project_templates()
 
     def find_project_dir_in_parents(self):
         exist_service_directory = os.path.exists(self.service_directory)
@@ -103,9 +113,10 @@ class ProjectDirManager:
 
     def init_project(self):
         os.makedirs(self.service_directory)
-        self.rebuild_templates()
+        self.bind_template_paths()
+        self.sync_project_templates()
 
-    def rebuild_templates(self):
+    def bind_template_paths(self) -> None:
         self.program_docker_compose_template_path = os.path.join(
             self.program_dir_path,
             constants.PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
@@ -121,10 +132,17 @@ class ProjectDirManager:
         self.project_odoo_config_file_template_path = os.path.join(
             self.project_path, constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH
         )
+
+    def sync_project_templates(self) -> None:
         self.rebuild_docker_compose_template()
         self.rebuild_dockerignore_template()
         self.rebuild_odoo_config_file_template()
         self.rebuild_vscode_settings_json_file_template()
+
+    def rebuild_templates(self) -> None:
+        self.bind_template_paths()
+        if self.sync_templates:
+            self.sync_project_templates()
 
     def rebuild_dockerfile_template(
         self, docker_template_filename=constants.DOCKERFILE
@@ -183,6 +201,8 @@ class ProjectDirManager:
         )
 
     def rebuild_vscode_settings_json_file_template(self):
+        if not self.sync_templates:
+            return
         program_vscode_settings_json_file_template = os.path.join(
             self.program_dir_path, constants.PROGRAM_VSCODE_SETTINGS_TEMPLATE
         )
@@ -200,6 +220,8 @@ class ProjectDirManager:
         project_template_file: str,
         required_markers: list[str] | None = None,
     ) -> None:
+        if not self.sync_templates:
+            return
         if required_markers and template_needs_upgrade(
             project_template_file, required_markers
         ):
