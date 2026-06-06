@@ -24,6 +24,31 @@
 - [python3](https://www.python.org/)
 - [Visual Studio Code](https://code.visualstudio.com/)
 
+## Установка
+
+### pip (4.0+)
+
+Из клона репозитория:
+
+```bash
+pip install /path/to/odoo_dev_project
+# editable для разработки odpm:
+pip install -e /path/to/odoo_dev_project
+odpm --version
+```
+
+Консольная команда `odpm` использует шаблоны из установленного пакета `dev_project` (layout site-packages).
+
+### Legacy copy
+
+Скопируйте `odpm.py` и каталог `dev_project/` в рабочее пространство (или клонируйте репозиторий) и запускайте:
+
+```bash
+python3 /path/to/odoo_dev_project/odpm.py --version
+```
+
+Оба способа установки поддерживаются.
+
 
 ## Как начать работать
 

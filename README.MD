@@ -23,6 +23,31 @@ You need to download and install the following programs:
 - [python3](https://www.python.org/)
 - [Visual Studio Code](https://code.visualstudio.com/)
 
+## Installation
+
+### pip (4.0+)
+
+From a clone of this repository:
+
+```bash
+pip install /path/to/odoo_dev_project
+# editable dev install:
+pip install -e /path/to/odoo_dev_project
+odpm --version
+```
+
+The `odpm` console script uses templates from the installed `dev_project` package (site-packages layout).
+
+### Legacy copy
+
+Copy `odpm.py` and the `dev_project/` directory into your workspace (or clone this repo) and run:
+
+```bash
+python3 /path/to/odoo_dev_project/odpm.py --version
+```
+
+Both installation modes are supported.
+
 
 ## How to start work
 

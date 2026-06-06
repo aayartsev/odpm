@@ -1,10 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "odpm"
-version = "4.0.0"
+dynamic = ["version"]
+description = "Odoo Developers Project Manager"
 requires-python = ">=3.10"
+readme = "README.MD"
+
+[project.scripts]
+odpm = "dev_project.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dev_project*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "dev_project.constants.ODPM_VERSION" }
 
 [tool.setuptools.package-data]
-dev_project = ["container_config/schemas/*.json"]
+dev_project = [
+    "container_config/schemas/*.json",
+    "templates/*",
+]
 
 [tool.pyright]
 typeCheckingMode = "standard"

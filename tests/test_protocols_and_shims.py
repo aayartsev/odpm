@@ -92,6 +92,16 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(hasattr(ConfigRuntimeFacadeMixin, "compose_service"))
 
+    def test_cli_entrypoint_imports(self):
+        from dev_project.cli import main
+
+        self.assertTrue(callable(main))
+
+    def test_program_dir_resolver_imports(self):
+        from dev_project.program_dir import resolve_program_dir
+
+        self.assertTrue(callable(resolve_program_dir))
+
     def test_run_odoo_entrypoint_imports(self):
         from dev_project.inside_docker_app import run_odoo as run_odoo_module
 
