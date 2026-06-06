@@ -403,7 +403,7 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             env = MagicMock()
             env.config = config
 
-            with patch("dev_project.project_env.links.os.chdir") as mock_chdir:
+            with patch("dev_project.project_env.symlink_manager.os.chdir") as mock_chdir:
                 ProjectLinks(env).update_links()
 
             mock_chdir.assert_not_called()

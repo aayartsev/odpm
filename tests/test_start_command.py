@@ -77,6 +77,28 @@ class StartCommandTests(unittest.TestCase):
         service = command.to_compose_service()
         self.assertEqual(service.command[-1:], ["--"])
 
+    def test_to_compose_service_pre_commit_uses_exec_form_entrypoint(self):
+        project_dir = "/home/odoo/extra-addons/project"
+        command = StartCommand(
+            kind="pre_commit",
+            pre_commit_project_dir=project_dir,
+        )
+        service = command.to_compose_service()
+
+        self.assertEqual(service.working_dir, project_dir)
+        self.assertFalse(service.include_runtime_config)
+        self.assertEqual(
+            service.command,
+            [
+                "python3",
+                "-m",
+                constants.RUN_PRE_COMMIT_ENTRYPOINT,
+                "--",
+                project_dir,
+            ],
+        )
+        self.assertNotIn("/bin/bash", service.command)
+
 
 if __name__ == "__main__":
     unittest.main()

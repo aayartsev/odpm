@@ -14,6 +14,7 @@ from ..protocols import SystemCheckerProtocol
 from ..scenario_policy import ScenarioPolicy, is_debugpy_requirement
 from ..start_command import ComposeOdooService
 from .loader import ConfigLoader
+from .git_repos import GitRepoCoordinator
 from .nested_compatibility import collect_nested_compatibility_issues
 from .odoo_conf import OdooConfBuilder
 from .paths import ConfigPaths
@@ -153,6 +154,7 @@ class Config:
         self._loader = ConfigLoader(self)
         self._paths = ConfigPaths(self)
         self._odoo_conf = OdooConfBuilder(self)
+        self._git_repos = GitRepoCoordinator(self)
         self.postgres_data_local_storage = (
             self._paths.get_postgres_data_local_storage_path()
         )
@@ -352,29 +354,10 @@ class Config:
         )
 
     def ensure_git_repos_present(self) -> None:
-        missing: list[str] = []
-        for label, path in (
-            ("platform", self.odoo_src_dir),
-            ("developing", self.developing_project_dir_path),
-        ):
-            if not path or not os.path.isdir(path):
-                missing.append(f"{label}: {path or '<unset>'}")
-        if missing:
-            message = (
-                "--no-git-update requires existing local repository directories: "
-                + ", ".join(missing)
-            )
-            _logger.error(message)
-            raise ConfigError(message)
+        self._git_repos.ensure_git_repos_present()
 
     def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
-        self._developing_materializer.materialize_full(self)
-
-        self.odoo_platform_project.build_project()
-        if not skip_build_date:
-            self.apply_odoo_build_date_to_platform()
-
-        self._paths.apply_developing_project_docker_path()
+        self._git_repos.materialize_git_repos(skip_build_date=skip_build_date)
 
     @property
     def system_checker(self) -> SystemCheckerProtocol:
@@ -440,15 +423,11 @@ class Config:
         *,
         materialize: bool = False,
     ) -> HandleOdooProjectLink:
-        odoo_project = HandleOdooProjectLink(
+        return self._git_repos.handle_git_link(
             gitlink,
-            self.user_env.path_to_ssh_key,
-            self.user_env.odoo_projects_dir,
             system_type=system_type,
+            materialize=materialize,
         )
-        if materialize:
-            odoo_project.build_project()
-        return odoo_project
 
     def compute_venv_lock_hash(self) -> str:
         return compute_venv_lock_hash(self)
@@ -463,15 +442,13 @@ class Config:
         return self._loader.get_effective_odoo_build_date()
 
     def apply_odoo_build_date_to_platform(self) -> None:
-        self.odoo_platform_project.apply_build_date(
-            self.odoo_build_date,
-            str(self.odoo_version),
-        )
+        self._git_repos.apply_odoo_build_date_to_platform()
 
     def get_platform_sorces(self) -> None:
-        self._bind_platform_link()
-        self.odoo_platform_project.build_project()
-        self.apply_odoo_build_date_to_platform()
+        self._git_repos.get_platform_sorces()
+
+    def get_platform_sources(self) -> None:
+        self._git_repos.get_platform_sources()
 
     def generate_odoo_conf_docker_data(self) -> None:
         self._odoo_conf.generate_odoo_conf_docker_data()

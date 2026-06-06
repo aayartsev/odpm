@@ -33,15 +33,9 @@ class ComposeServiceBuilder:
         )
 
         if self.args.start_precommit:
-            pre_commit_script = (
-                f"cd {self.config.docker_odoo_project_dir_path} && ls && "
-                f"git config --global --add safe.directory "
-                f"{self.config.docker_odoo_project_dir_path} && pre-commit run --all-files"
-            )
             return StartCommand(
                 kind="pre_commit",
-                pre_commit_script=pre_commit_script,
-                docker_project_dir=self.config.docker_project_dir,
+                pre_commit_project_dir=self.config.docker_odoo_project_dir_path,
             )
 
         if self.args.export_po_files:

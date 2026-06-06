@@ -399,6 +399,26 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         service = command.to_compose_service()
         self.assertIn(constants.RUN_ODOO_ENTRYPOINT, service.command)
 
+    def test_start_precommit_uses_run_pre_commit_entrypoint(self):
+        config = self._make_config(constants.DEVELOPER_SCENARIO)
+        config.arguments.start_precommit = True
+        command = ComposeServiceBuilder(config).build_start_command()
+
+        self.assertEqual(command.kind, "pre_commit")
+        self.assertEqual(
+            command.pre_commit_project_dir,
+            config.docker_odoo_project_dir_path,
+        )
+        service = command.to_compose_service()
+        self.assertEqual(
+            service.working_dir,
+            config.docker_odoo_project_dir_path,
+        )
+        self.assertFalse(service.include_runtime_config)
+        self.assertIn(constants.RUN_PRE_COMMIT_ENTRYPOINT, service.command)
+        self.assertNotIn("/bin/bash", service.command)
+        self.assertNotIn("bash -c", service.command)
+
 
 class ComposeTemplateMigrationTests(unittest.TestCase):
     def test_deprecated_words_include_legacy_placeholders(self):

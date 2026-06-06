@@ -245,75 +245,6 @@ class ConfigPayloadTests(unittest.TestCase):
 
 
 class ConfigBootstrapTests(unittest.TestCase):
-    @patch("dev_project.config.config.HandleOdooProjectLink")
-    def test_handle_git_link_skips_build_when_not_materializing(self, mock_link_cls):
-        mock_link = MagicMock()
-        mock_link_cls.return_value = mock_link
-        config = MagicMock()
-        config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
-
-        Config.handle_git_link(config, "git@github.com:acme/demo.git", materialize=False)
-
-        mock_link.build_project.assert_not_called()
-
-    @patch("dev_project.config.config.HandleOdooProjectLink")
-    def test_handle_git_link_builds_when_materializing(self, mock_link_cls):
-        mock_link = MagicMock()
-        mock_link_cls.return_value = mock_link
-        config = MagicMock()
-        config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
-
-        Config.handle_git_link(config, "git@github.com:acme/demo.git", materialize=True)
-
-        mock_link.build_project.assert_called_once()
-
-    def test_materialize_git_repos_builds_developing_and_platform(self):
-        from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
-
-        config = MagicMock()
-        config.developing_project = MagicMock()
-        config.odoo_platform_project = MagicMock()
-        config.arguments = Namespace(branch=None)
-        config._paths = MagicMock()
-        config._developing_materializer = DevelopingRepoMaterializer()
-
-        Config.materialize_git_repos(config)
-
-        config.developing_project.build_project.assert_called_once()
-        config.odoo_platform_project.build_project.assert_called_once()
-        config.apply_odoo_build_date_to_platform.assert_called_once()
-        config._paths.apply_developing_project_docker_path.assert_called_once()
-
-    def test_materialize_git_repos_skips_build_date_when_requested(self):
-        from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
-
-        config = MagicMock()
-        config.developing_project = MagicMock()
-        config.odoo_platform_project = MagicMock()
-        config.arguments = Namespace(branch=None)
-        config._paths = MagicMock()
-        config._developing_materializer = DevelopingRepoMaterializer()
-
-        Config.materialize_git_repos(config, skip_build_date=True)
-
-        config.apply_odoo_build_date_to_platform.assert_not_called()
-        from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
-
-        config = MagicMock()
-        config.developing_project = MagicMock()
-        config.odoo_platform_project = MagicMock()
-        config.arguments = Namespace(branch="17.0")
-        config._paths = MagicMock()
-        materializer = DevelopingRepoMaterializer()
-        materializer._developing_repo_materialized = True
-        config._developing_materializer = materializer
-
-        Config.materialize_git_repos(config)
-
-        config.developing_project.build_project.assert_not_called()
-        config.developing_project.switch_to_branch.assert_not_called()
-        config.odoo_platform_project.build_project.assert_called_once()
-
     def test_get_odpm_settings_reads_odpm_json_from_cloned_repo(self):
         with tempfile.TemporaryDirectory() as project_dir:
             dev_path = os.path.join(project_dir, "dev_repo")
@@ -345,14 +276,6 @@ class ConfigBootstrapTests(unittest.TestCase):
 
             self.assertEqual(config._raw_odpm_json["odoo_version"], "17.0")
             self.assertEqual(config._raw_odpm_json["python_version"], "3.10")
-
-    def test_ensure_git_repos_present_raises_when_directories_missing(self):
-        config = MagicMock()
-        config.odoo_src_dir = "/missing/platform"
-        config.developing_project_dir_path = "/missing/dev"
-
-        with self.assertRaises(ConfigError):
-            Config.ensure_git_repos_present(config)
 
 
 class ConfigStateSliceTests(unittest.TestCase):

@@ -24,20 +24,23 @@ class StartCommand:
     kind: StartCommandKind = "standard"
     odoo_bin: list[str] = field(default_factory=list)
     docker_project_dir: str = ""
-    pre_commit_script: str = ""
+    pre_commit_project_dir: str = ""
     run_mode: str = constants.RUN_MODE_ODOO
 
     def to_compose_service(
         self, *, include_runtime_config: bool | None = None
     ) -> ComposeOdooService:
         if self.kind == "pre_commit":
+            project_dir = self.pre_commit_project_dir or "/home/odoo"
             return ComposeOdooService(
-                working_dir=self.docker_project_dir or "/home/odoo",
+                working_dir=project_dir,
                 include_runtime_config=False,
                 command=[
-                    "/bin/bash",
-                    "-c",
-                    self.pre_commit_script,
+                    "python3",
+                    "-m",
+                    constants.RUN_PRE_COMMIT_ENTRYPOINT,
+                    "--",
+                    project_dir,
                 ],
             )
 
