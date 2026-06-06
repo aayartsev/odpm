@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
+from dev_project.config.bootstrap import load_project_settings, load_user_settings
 from dev_project.config.loader import ConfigLoader
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
@@ -321,7 +322,7 @@ class ConfigStateSliceTests(unittest.TestCase):
         config._loader = MagicMock()
         config._loader.beautify_module_list.side_effect = ConfigLoader(config).beautify_module_list
 
-        Config._load_user_settings(config)
+        load_user_settings(config)
 
         self.assertEqual(config._user.init_modules, "sale,purchase")
         self.assertEqual(
@@ -355,7 +356,7 @@ class ConfigStateSliceTests(unittest.TestCase):
             project_docker_compose_template_path="/tmp/project/.odpm/docker-compose.yml"
         )
 
-        Config._load_project_settings(config)
+        load_project_settings(config)
 
         self.assertEqual(config._project.odoo_version, "18.0")
         self.assertEqual(config._project.python_version, "3.12")

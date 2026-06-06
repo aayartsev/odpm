@@ -1,32 +1,23 @@
-import os
 from argparse import Namespace
 from typing import Literal
 
-from .. import constants, translations
 from ..dependency_resolver import NestedOdpmFragment
-from ..errors import ConfigError, PipelineError
+from ..errors import PipelineError
 from ..git import HandleOdooProjectLink
-from ..git.developing_repo_materializer import DevelopingRepoMaterializer
 from ..host_runtime import HostRuntimeState
 from ..host_user_env import CreateUserEnvironment
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
-from ..scenario_policy import ScenarioPolicy, is_debugpy_requirement
+from ..scenario_policy import ScenarioPolicy
 from ..start_command import ComposeOdooService
-from .loader import ConfigLoader
-from .git_repos import GitRepoCoordinator
+from .bootstrap import bootstrap_config, normalize_project_requirements
 from .nested_compatibility import collect_nested_compatibility_issues
-from ..dev_mode import dev_mode_disabled, effective_dev_mode, merge_autoreload_requirements
-from .odoo_conf import OdooConfBuilder
-from .paths import ConfigPaths
 from .payload import compute_venv_lock_hash, config_to_json
 from .state import (
     DockerLayoutState,
     ProjectSettingsState,
     UserSettingsState,
     _slice_property,
-    project_settings_from_raw,
-    user_settings_from_raw,
 )
 from .types import SubProject
 
@@ -117,200 +108,10 @@ class Config:
         Full git clone/update for the prepare phase runs later via
         :meth:`materialize_git_repos` (``OdpmPipeline.prepare_project_files``).
         """
-        self._init_context(pd_manager, arguments, program_dir, user_env)
-        self._load_user_settings()
-        self._bind_developing_link()
-        self._load_project_settings()
-        self._bind_platform_link()
-        self._apply_policy_and_layout()
-
-    def _init_context(
-        self,
-        pd_manager: ProjectDirManager,
-        arguments: Namespace,
-        program_dir: str,
-        user_env: CreateUserEnvironment,
-    ) -> None:
-        self.pd_manager = pd_manager
-        self.program_dir = program_dir
-        self.arguments = arguments
-        self._raw_user_settings: dict = {}
-        self._raw_odpm_json: dict = {}
-        self._user_loaded = False
-        self._project_loaded = False
-        self.repo_odpm_json = ""
-        self.dockerfile_path = ""
-        self.config_json_loaded = False
-        self._runtime = HostRuntimeState()
-        self.project_dir = self.pd_manager.project_path
-        self.config_home_dir = self.pd_manager.home_config_dir
-        self.user_env = user_env
-        self.policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
-        self._user = UserSettingsState()
-        self._project = ProjectSettingsState()
-        self._docker = DockerLayoutState()
-        self._loader = ConfigLoader(self)
-        self._paths = ConfigPaths(self)
-        self._odoo_conf = OdooConfBuilder(self)
-        self._git_repos = GitRepoCoordinator(self)
-        self.postgres_data_local_storage = (
-            self._paths.get_postgres_data_local_storage_path()
-        )
-        self.config_json_content = {}
-        self._developing_materializer = DevelopingRepoMaterializer()
-
-    def _load_user_settings(self) -> None:
-        self._loader.check_for_config()
-        self._loader.get_user_settings_json()
-        self._loader.get_user_settings()
-        self._user = user_settings_from_raw(
-            self._raw_user_settings,
-            beautify_module_list=self._loader.beautify_module_list,
-        )
-        self._user_loaded = True
-
-    def _bind_developing_link(self) -> None:
-        if not self.developing_project:
-            message = translations.get_translation(
-                translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT
-            )
-            _logger.error(message)
-            raise ConfigError(message)
-        self.developing_project = self.handle_git_link(
-            self.developing_project,
-            system_type="standart",
-            materialize=False,
-        )
-        self.developing_project_dir_path = self.developing_project.project_path
-        self._developing_materializer.materialize_for_odpm_json(self)
-
-    def _load_project_settings(self) -> None:
-        self._loader.get_project_odpm_json()
-        self._loader.get_odpm_settings()
-
-        self._loader.check_file_for_deprecated_words(
-            self.pd_manager.project_docker_compose_template_path
-        )
-        if not os.path.exists(self.pd_manager.project_docker_compose_template_path):
-            self.pd_manager.rebuild_docker_compose_template()
-
-        self._loader.check_file_for_deprecated_words(self.repo_odpm_json)
-        if not os.path.exists(self.repo_odpm_json):
-            self._loader.rewrite_odpm_json()
-
-        self._project = project_settings_from_raw(
-            self._raw_odpm_json,
-            self.arguments,
-            odoo_build_date=self._loader.get_effective_odoo_build_date(),
-        )
-        if float(self.project_odpm_version) < float(constants.ODPM_VERSION):
-            message = translations.get_translation(
-                translations.PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION
-            ).format(
-                PROJECT_ODPM_VERSION=self.project_odpm_version,
-                ODPM_VERSION=constants.ODPM_VERSION,
-            )
-            _logger.warning(message)
-            raise ConfigError(message)
-        self._project_loaded = True
-
-    def _bind_platform_link(self) -> None:
-        self.odoo_platform_project = self.handle_git_link(
-            self.odoo_git_link,
-            system_type="platform",
-            materialize=False,
-        )
-        self.odoo_src_dir = self.odoo_platform_project.get_project_path()
-
-    def _apply_policy_and_layout(self) -> None:
-        original_requirements_txt = list(self.requirements_txt)
-        normalized_requirements = self._normalize_project_requirements(
-            self.requirements_txt
-        )
-        arch = self._raw_odpm_json.get("arch", constants.ARCH)
-        if arch == "auto":
-            arch = constants.ARCH
-
-        dockerfile_template_name = (
-            f"{self.distro_name}_{self.distro_version.replace('.', '')}_dockerfile"
-        )
-        project_dockerfile_template_path = os.path.join(
-            self.pd_manager.project_path,
-            os.path.join(
-                constants.PROJECT_SERVICE_DIRECTORY, dockerfile_template_name
-            ),
-        )
-        self._loader.check_file_for_deprecated_words(project_dockerfile_template_path)
-        self.pd_manager.rebuild_dockerfile_template(
-            docker_template_filename=dockerfile_template_name
-        )
-
-        project_dockerignore_template_path = os.path.join(
-            self.pd_manager.project_path,
-            constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
-        )
-        self.pd_manager.rebuild_dockerignore_template()
-
-        self._project = ProjectSettingsState(
-            odoo_version=self.odoo_version,
-            python_version=self.python_version,
-            distro_version=self.distro_version,
-            distro_name=self.distro_name,
-            postgres_version=self.postgres_version,
-            distro_version_codename=self.distro_version_codename,
-            dependencies=self.dependencies,
-            requirements_txt=normalized_requirements,
-            odoo_build_date=self.odoo_build_date,
-            odoo_git_link=self.odoo_git_link,
-            platform_name=self.platform_name,
-            project_odpm_version=self.project_odpm_version,
-            arch=arch,
-        )
-        self._docker = DockerLayoutState(
-            dockerfile_template_name=dockerfile_template_name,
-            project_dockerfile_template_path=project_dockerfile_template_path,
-            project_dockerignore_template_path=project_dockerignore_template_path,
-        )
-        if any(is_debugpy_requirement(req) for req in original_requirements_txt):
-            if not self.policy.install_debugpy:
-                _logger.warning(
-                    "debugpy is forbidden in scenario %s and will not be installed",
-                    self.policy.scenario,
-                )
-            else:
-                debugpy_req = self.policy.debugpy_requirement(self.python_version)
-                _logger.info(
-                    "debugpy requirement normalized for scenario %s: %s",
-                    self.policy.scenario,
-                    debugpy_req,
-                )
-
-        if not dev_mode_disabled(self.dev_mode) and not self.policy.apply_dev_mode:
-            _logger.warning(
-                "dev_mode is ignored in scenario %s",
-                self.policy.scenario,
-            )
-
-        self._paths.apply_image_names()
-        self._paths.apply_docker_layout()
-        self._paths.apply_developing_project_docker_path()
-        self._odoo_conf.populate_addons_paths()
-
-        self.odoo_config_data = {}
-        self._paths.apply_symlink_sources()
+        bootstrap_config(self, pd_manager, arguments, program_dir, user_env)
 
     def _normalize_project_requirements(self, requirements_txt: list[str]) -> list[str]:
-        normalized = self.policy.normalize_requirements(
-            requirements_txt,
-            python_version=self.python_version,
-        )
-        return merge_autoreload_requirements(
-            normalized,
-            effective_dev_mode(
-                self.dev_mode,
-                apply_dev_mode=self.policy.apply_dev_mode,
-            ),
-        )
+        return normalize_project_requirements(self, requirements_txt)
 
     @property
     def user_settings(self) -> UserSettingsState:
