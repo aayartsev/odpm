@@ -32,6 +32,7 @@ def normalize_as_host_config(
 class ScenarioPolicyTests(unittest.TestCase):
     def test_ci_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        self.assertFalse(policy.uses_host_identity)
         self.assertEqual(policy.odoo_image_attr, "odoo_ci_image_name")
         self.assertFalse(policy.include_odoo_volumes)
         self.assertFalse(policy.include_debugger_port)
@@ -48,6 +49,7 @@ class ScenarioPolicyTests(unittest.TestCase):
 
     def test_server_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
+        self.assertTrue(policy.uses_host_identity)
         self.assertTrue(policy.include_odoo_volumes)
         self.assertFalse(policy.include_debugger_port)
         self.assertFalse(policy.include_debugpy)
@@ -62,6 +64,7 @@ class ScenarioPolicyTests(unittest.TestCase):
 
     def test_developer_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertTrue(policy.uses_host_identity)
         self.assertTrue(policy.include_debugger_port)
         self.assertTrue(policy.include_debugpy)
         self.assertTrue(policy.install_debugpy)
@@ -71,6 +74,18 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.allows_venv_recreate())
         self.assertFalse(policy.is_ci())
         self.assertTrue(policy.is_developer())
+
+    def test_runtime_identity_developer_matches_host(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertEqual(policy.runtime_unix_user(), constants.HOST_USER)
+        self.assertEqual(policy.runtime_unix_uid(), str(constants.HOST_USER_UID))
+        self.assertEqual(policy.runtime_unix_gid(), str(constants.HOST_USER_GID))
+
+    def test_runtime_identity_ci_uses_fixed_odoo(self):
+        policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        self.assertEqual(policy.runtime_unix_user(), constants.CONTAINER_USER)
+        self.assertEqual(policy.runtime_unix_uid(), constants.CONTAINER_USER_UID)
+        self.assertEqual(policy.runtime_unix_gid(), constants.CONTAINER_USER_GID)
 
     def test_config_to_json_includes_venv_mode(self):
         config = MagicMock()

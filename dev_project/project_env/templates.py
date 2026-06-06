@@ -83,18 +83,19 @@ class ProjectTemplates:
             json.dump(content, outfile, indent=4)
 
     def generate_dockerfile(self) -> None:
+        policy = self.config.policy
         with open(self.config.project_dockerfile_template_path) as reader:
             content = reader.read()
         content = content.format(
             PROCESSOR_ARCH=self.config.arch,
-            CONTAINER_USER_UID=constants.CONTAINER_USER_UID,
-            CONTAINER_USER_GID=constants.CONTAINER_USER_GID,
-            CONTAINER_USER=constants.CONTAINER_USER,
-            CONTAINER_PASSWORD=constants.CONTAINER_PASSWORD,
-            CURRENT_USER_UID=constants.CONTAINER_USER_UID,
-            CURRENT_USER_GID=constants.CONTAINER_USER_GID,
-            CURRENT_USER=constants.CONTAINER_USER,
-            CURRENT_PASSWORD=constants.CONTAINER_PASSWORD,
+            CONTAINER_USER_UID=policy.runtime_unix_uid(),
+            CONTAINER_USER_GID=policy.runtime_unix_gid(),
+            CONTAINER_USER=policy.runtime_unix_user(),
+            CONTAINER_PASSWORD=policy.runtime_unix_password(),
+            CURRENT_USER_UID=policy.runtime_unix_uid(),
+            CURRENT_USER_GID=policy.runtime_unix_gid(),
+            CURRENT_USER=policy.runtime_unix_user(),
+            CURRENT_PASSWORD=policy.runtime_unix_password(),
             PYTHON_VERSION=self.config.python_version,
             DISTRO_NAME=self.config.distro_name,
             DISTRO_VERSION=self.config.distro_version,

@@ -8,6 +8,12 @@ from .. import constants, translations
 from ..errors import PipelineError
 from ..inside_docker_app.logger import get_module_logger
 from ..subprocess_runner import run_checked, run_logged
+from .base_image_identity import (
+    base_image_identity_matches,
+    expected_base_image_identity,
+    read_base_image_identity,
+    write_base_image_identity,
+)
 
 if TYPE_CHECKING:
     from .environment import CreateProjectEnvironment
@@ -56,5 +62,25 @@ class BaseImageBuilder:
             raise PipelineError(message, exit_code=returncode)
 
     def ensure_base_image(self) -> None:
-        if not self.base_image_exists():
-            self.build_base_image()
+        image_exists = self.base_image_exists()
+        identity_matches = base_image_identity_matches(self.config)
+        if image_exists and identity_matches:
+            return
+        if image_exists and not identity_matches:
+            if read_base_image_identity(self.config.project_dir) is None:
+                _logger.info(
+                    "Base image %s has no identity stamp; rebuilding to record "
+                    "runtime identity",
+                    self.config.odoo_image_name,
+                )
+            else:
+                _logger.info(
+                    "Base image %s was built for a different runtime identity; "
+                    "rebuilding",
+                    self.config.odoo_image_name,
+                )
+        self.build_base_image()
+        write_base_image_identity(
+            self.config.project_dir,
+            expected_base_image_identity(self.config),
+        )

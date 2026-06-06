@@ -103,6 +103,38 @@ class ConfigPathsTests(unittest.TestCase):
         self.assertEqual(config.list_for_symlinks.count("/tmp/dev/odpm.json"), 1)
         self.assertEqual(len(config.list_for_symlinks), 4)
 
+    def test_apply_docker_layout_developer_uses_host_identity(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.platform_name = constants.PLATFORM_NAME
+            config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+            runtime_user = config.policy.runtime_unix_user()
+
+            ConfigPaths(config).apply_docker_layout()
+
+            self.assertEqual(config.docker_project_dir, f"/home/{runtime_user}")
+            expected_home = os.path.join(
+                project_dir, "data/odoo", f"home/{runtime_user}"
+            )
+            self.assertEqual(config.dir_for_odoo_container_home, expected_home)
+            self.assertTrue(os.path.isdir(os.path.join(expected_home, ".cache")))
+            self.assertTrue(os.path.isdir(os.path.join(expected_home, ".local")))
+
+    def test_apply_docker_layout_ci_uses_container_identity(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.platform_name = constants.PLATFORM_NAME
+            config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+
+            ConfigPaths(config).apply_docker_layout()
+
+            self.assertEqual(config.docker_project_dir, "/home/odoo")
+            expected_home = os.path.join(project_dir, "data/odoo", "home/odoo")
+            self.assertEqual(config.dir_for_odoo_container_home, expected_home)
+            self.assertTrue(os.path.isdir(os.path.join(expected_home, ".cache")))
+
 
 class ConfigLoaderExtraTests(unittest.TestCase):
     def test_get_developing_project_link_from_legacy_config_json(self):

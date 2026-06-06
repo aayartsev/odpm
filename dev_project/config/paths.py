@@ -42,8 +42,9 @@ class ConfigPaths:
         )
 
     def apply_docker_layout(self) -> None:
+        runtime_user = self.config.policy.runtime_unix_user()
         self.config.docker_project_dir = str(
-            pathlib.PurePosixPath("/home", constants.CONTAINER_USER)
+            pathlib.PurePosixPath("/home", runtime_user)
         )
         self.config.docker_dev_project_dir = str(
             pathlib.PurePosixPath(self.config.docker_project_dir, constants.DEV_PROJECT_DIR)
@@ -72,8 +73,14 @@ class ConfigPaths:
         self.config.docker_temp_tests_dir = str(pathlib.PurePosixPath("/tmp", "odoo_tests"))
         self.config.venv_dir = os.path.join(self.config.project_dir, constants.VENV_DIR_NAME)
         self.config.dir_for_odoo_container_home = os.path.join(
-            self.config.project_dir, "data/odoo", f"home/{constants.CONTAINER_USER}"
+            self.config.project_dir, "data/odoo", f"home/{runtime_user}"
         )
+        os.makedirs(self.config.dir_for_odoo_container_home, exist_ok=True)
+        for subdir in (".cache", ".local"):
+            os.makedirs(
+                os.path.join(self.config.dir_for_odoo_container_home, subdir),
+                exist_ok=True,
+            )
         self.config.dependencies_dir = os.path.join(
             self.config.project_dir, constants.DEPENDENCIES_DIR
         )

@@ -35,6 +35,7 @@ class ScenarioPolicy:
     skip_vscode: bool
     allow_build_image: bool
     venv_mode: VenvMode
+    uses_host_identity: bool
 
     def __post_init__(self) -> None:
         if self.include_debugpy and not self.install_debugpy:
@@ -60,6 +61,7 @@ class ScenarioPolicy:
                 skip_vscode=True,
                 allow_build_image=True,
                 venv_mode=constants.VENV_MODE_BAKED,
+                uses_host_identity=False,
             )
         if normalized == constants.SERVER_SCENARIO:
             return cls(
@@ -73,6 +75,7 @@ class ScenarioPolicy:
                 skip_vscode=False,
                 allow_build_image=False,
                 venv_mode=constants.VENV_MODE_FRESH,
+                uses_host_identity=True,
             )
         return cls(
             scenario=constants.DEVELOPER_SCENARIO,
@@ -85,6 +88,7 @@ class ScenarioPolicy:
             skip_vscode=False,
             allow_build_image=False,
             venv_mode=constants.VENV_MODE_FRESH,
+            uses_host_identity=True,
         )
 
     def venv_is_baked(self) -> bool:
@@ -99,6 +103,26 @@ class ScenarioPolicy:
 
     def is_developer(self) -> bool:
         return self.scenario == constants.DEVELOPER_SCENARIO
+
+    def runtime_unix_user(self) -> str:
+        """Unix user for compose and base image (host-aligned except CI)."""
+        if self.uses_host_identity:
+            return constants.HOST_USER
+        return constants.CONTAINER_USER
+
+    def runtime_unix_uid(self) -> str:
+        if self.uses_host_identity:
+            return str(constants.HOST_USER_UID)
+        return constants.CONTAINER_USER_UID
+
+    def runtime_unix_gid(self) -> str:
+        if self.uses_host_identity:
+            return str(constants.HOST_USER_GID)
+        return constants.CONTAINER_USER_GID
+
+    def runtime_unix_password(self) -> str:
+        """Container login password for Dockerfile useradd (not the host password)."""
+        return constants.CONTAINER_PASSWORD
 
     def debugpy_requirement(self, python_version: str) -> str | None:
         if not self.install_debugpy:

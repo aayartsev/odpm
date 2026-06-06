@@ -86,6 +86,8 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertIn("127.0.0.1:15432:5432", content)
             self.assertNotIn("5678:5678", content)
             self.assertIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
+            policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
+            self.assertIn(f"user: {policy.runtime_unix_user()}", content)
 
     def test_ci_compose_uses_ci_image_without_volumes_or_debugger(self):
         with tempfile.TemporaryDirectory() as project_dir:
@@ -95,6 +97,16 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertIn("127.0.0.1:15432:5432", content)
             self.assertNotIn("5678:5678", content)
             self.assertNotIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
+            self.assertIn(f"user: {constants.CONTAINER_USER}", content)
+
+    def test_developer_compose_user_matches_host_identity(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        expected_user = policy.runtime_unix_user()
+        with tempfile.TemporaryDirectory() as project_dir:
+            content = self._compose_content(project_dir, constants.DEVELOPER_SCENARIO)
+            self.assertIn(f"user: {expected_user}", content)
+            if expected_user != constants.CONTAINER_USER:
+                self.assertNotIn(f"user: {constants.CONTAINER_USER}", content)
 
     def test_compose_uses_exec_form_without_bash_for_standard_path(self):
         with tempfile.TemporaryDirectory() as project_dir:

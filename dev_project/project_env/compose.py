@@ -100,6 +100,7 @@ class ComposeGenerator:
                     " " * 6 + f"- {mapped_volume.local}:{mapped_volume.docker}:Z\n"
                 )
 
+        compose_user = policy.runtime_unix_user()
         content = "".join(lines).format(
             ODOO_IMAGE=odoo_image,
             DEV_EXTRA_PORTS=dev_extra_ports,
@@ -114,9 +115,10 @@ class ComposeGenerator:
             ),
             START_STRING="",
             ODPM_CONFIG_ENV_LINE="",
-            CONTAINER_USER=constants.CONTAINER_USER,
+            COMPOSE_USER=compose_user,
+            CONTAINER_USER=compose_user,
             CONTAINER_PASSWORD=constants.CONTAINER_PASSWORD,
-            CURRENT_USER=constants.CONTAINER_USER,
+            CURRENT_USER=compose_user,
             CURRENT_PASSWORD=constants.CONTAINER_PASSWORD,
             POSTGRES_ODOO_USER=constants.POSTGRES_ODOO_USER,
             POSTGRES_ODOO_PASS=constants.POSTGRES_ODOO_PASS,

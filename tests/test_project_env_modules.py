@@ -10,6 +10,7 @@ from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.base_image import BaseImageBuilder
 from dev_project.project_env.ci_image import CiImageBuilder
 from dev_project.project_dir_manager import ProjectDirManager
+from dev_project.scenario_policy import ScenarioPolicy
 
 
 class ProjectTemplatesTests(unittest.TestCase):
@@ -67,6 +68,63 @@ class ProjectTemplatesTests(unittest.TestCase):
             self.assertTrue(os.path.isdir(vscode_dir))
             self.assertEqual(vscode_dir, os.path.join(project_dir, ".vscode"))
 
+    def test_generate_dockerfile_uses_policy_runtime_identity(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            manager.rebuild_dockerfile_template(
+                docker_template_filename="debian_13_dockerfile"
+            )
+            template_path = os.path.join(
+                project_dir, ".odpm", "debian_13_dockerfile"
+            )
+            policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.project_dockerfile_template_path = template_path
+            config.policy = policy
+            config.arch = "amd64"
+            config.python_version = "3.12"
+            config.distro_name = "debian"
+            config.distro_version = "13"
+            config.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
+            env = CreateProjectEnvironment(config)
+            env._templates.generate_dockerfile()
+
+            dockerfile = Path(project_dir, constants.DOCKERFILE).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(f"ARG USER_UID={policy.runtime_unix_uid()}", dockerfile)
+            self.assertIn(f"ARG USER_GID={policy.runtime_unix_gid()}", dockerfile)
+            self.assertIn(f"ARG USER_NAME={policy.runtime_unix_user()}", dockerfile)
+
+    def test_generate_dockerfile_ci_uses_container_identity(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            manager.rebuild_dockerfile_template(
+                docker_template_filename="debian_13_dockerfile"
+            )
+            template_path = os.path.join(
+                project_dir, ".odpm", "debian_13_dockerfile"
+            )
+            policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.project_dockerfile_template_path = template_path
+            config.policy = policy
+            config.arch = "amd64"
+            config.python_version = "3.12"
+            config.distro_name = "debian"
+            config.distro_version = "13"
+            config.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
+            env = CreateProjectEnvironment(config)
+            env._templates.generate_dockerfile()
+
+            dockerfile = Path(project_dir, constants.DOCKERFILE).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(f"ARG USER_UID={constants.CONTAINER_USER_UID}", dockerfile)
+            self.assertIn(f"ARG USER_NAME={constants.CONTAINER_USER}", dockerfile)
+
 
 class BaseImageBuilderTests(unittest.TestCase):
     def _builder(self) -> BaseImageBuilder:
@@ -95,13 +153,101 @@ class BaseImageBuilderTests(unittest.TestCase):
             self._builder().build_base_image()
         self.assertEqual(ctx.exception.exit_code, 1)
 
+    @patch("dev_project.project_env.base_image.write_base_image_identity")
     @patch.object(BaseImageBuilder, "build_base_image")
     @patch.object(BaseImageBuilder, "base_image_exists", return_value=False)
+    @patch(
+        "dev_project.project_env.base_image.base_image_identity_matches",
+        return_value=False,
+    )
     def test_ensure_base_image_builds_when_missing(
-        self, _mock_exists, mock_build
+        self, _mock_matches, _mock_exists, mock_build, mock_write_identity
     ):
         self._builder().ensure_base_image()
         mock_build.assert_called_once()
+        mock_write_identity.assert_called_once()
+
+    @patch("dev_project.project_env.base_image.write_base_image_identity")
+    @patch.object(BaseImageBuilder, "build_base_image")
+    @patch.object(BaseImageBuilder, "base_image_exists", return_value=True)
+    @patch(
+        "dev_project.project_env.base_image.base_image_identity_matches",
+        return_value=False,
+    )
+    @patch(
+        "dev_project.project_env.base_image.read_base_image_identity",
+        return_value=None,
+    )
+    def test_ensure_base_image_logs_missing_stamp(
+        self,
+        _mock_read,
+        _mock_matches,
+        _mock_exists,
+        mock_build,
+        _mock_write_identity,
+    ):
+        with self.assertLogs("dev_project.project_env.base_image", level="INFO") as logs:
+            self._builder().ensure_base_image()
+        self.assertTrue(
+            any("no identity stamp" in message for message in logs.output)
+        )
+        mock_build.assert_called_once()
+
+    @patch("dev_project.project_env.base_image.write_base_image_identity")
+    @patch.object(BaseImageBuilder, "build_base_image")
+    @patch.object(BaseImageBuilder, "base_image_exists", return_value=True)
+    @patch(
+        "dev_project.project_env.base_image.base_image_identity_matches",
+        return_value=False,
+    )
+    @patch(
+        "dev_project.project_env.base_image.read_base_image_identity",
+        return_value={"user": "odoo", "uid": "9999", "gid": "9999"},
+    )
+    def test_ensure_base_image_logs_identity_mismatch(
+        self,
+        _mock_read,
+        _mock_matches,
+        _mock_exists,
+        mock_build,
+        _mock_write_identity,
+    ):
+        with self.assertLogs("dev_project.project_env.base_image", level="INFO") as logs:
+            self._builder().ensure_base_image()
+        self.assertTrue(
+            any("different runtime identity" in message for message in logs.output)
+        )
+        mock_build.assert_called_once()
+
+    @patch("dev_project.project_env.base_image.write_base_image_identity")
+    @patch.object(BaseImageBuilder, "build_base_image")
+    @patch.object(BaseImageBuilder, "base_image_exists", return_value=True)
+    @patch(
+        "dev_project.project_env.base_image.base_image_identity_matches",
+        return_value=False,
+    )
+    @patch(
+        "dev_project.project_env.base_image.read_base_image_identity",
+        return_value={"user": "odoo", "uid": "9999", "gid": "9999"},
+    )
+    def test_ensure_base_image_rebuilds_when_identity_mismatch(
+        self, _mock_read, _mock_matches, _mock_exists, mock_build, mock_write_identity
+    ):
+        self._builder().ensure_base_image()
+        mock_build.assert_called_once()
+        mock_write_identity.assert_called_once()
+
+    @patch.object(BaseImageBuilder, "build_base_image")
+    @patch.object(BaseImageBuilder, "base_image_exists", return_value=True)
+    @patch(
+        "dev_project.project_env.base_image.base_image_identity_matches",
+        return_value=True,
+    )
+    def test_ensure_base_image_skips_when_image_and_identity_match(
+        self, _mock_matches, _mock_exists, mock_build
+    ):
+        self._builder().ensure_base_image()
+        mock_build.assert_not_called()
 
 
 class CiImageBuilderPipelineTests(unittest.TestCase):

@@ -9,6 +9,9 @@ PROJECT_CONFIG_FILE_NAME = f"{PROJECT_NAME.lower()}.json"
 USER_CONFIG_FILE_NAME = "user_settings.json"
 CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
 PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
+BASE_IMAGE_IDENTITY_REL_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "base_image_identity.json"
+)
 
 DOCKERIGNORE = ".dockerignore"
 DOCKERIGNORE_TEMPLATE = "dockerignore"
@@ -27,6 +30,7 @@ COMPOSE_TEMPLATE_MARKERS = [
     "{DEV_EXTRA_PORTS}",
     "{START_COMMAND_BLOCK}",
     "{ODPM_CONFIG_PATH_ENV_LINE}",
+    "{COMPOSE_USER}",
 ]
 
 ENV_FILE_NAME = ".env"
