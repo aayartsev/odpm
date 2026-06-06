@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ...container_config import ContainerConfig
-from ..logger import get_module_logger
+from ...logging import get_module_logger
 from .admin_ops import OdooAdminOps, encrypt_odoo_password
 from .db_ops import DbCreationParams, OdooDbOps
 from .dispatch import checker_cli_flags, run_checker_operations, wait_for_postgres

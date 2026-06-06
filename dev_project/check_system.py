@@ -8,7 +8,7 @@ from . import constants, translations
 from .errors import SystemCheckError
 from .config import Config
 from .inside_docker_app import utils
-from .inside_docker_app.logger import get_module_logger
+from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
 from .protocols import SystemCheckerProtocol
 from .subprocess_runner import run_checked, run_logged

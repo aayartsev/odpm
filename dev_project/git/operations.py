@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from .. import constants, translations
 from ..errors import GitError
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from ..inside_docker_app.utils import (
     commit_before_timestamp,
     is_actionable_build_date,

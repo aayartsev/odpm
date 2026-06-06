@@ -16,7 +16,7 @@ from ..bake_venv import (
 )
 from ..container_config import ContainerConfig
 from .exceptions import VenvError
-from .logger import get_module_logger
+from ..logging import get_module_logger
 from .utils import delete_files_in_directory, resolve_venv_mode
 
 _logger = get_module_logger(__name__)

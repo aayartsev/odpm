@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from ..errors import ConfigError
 from ..git import HandleOdooProjectLink
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 
 if TYPE_CHECKING:
     from .config import Config

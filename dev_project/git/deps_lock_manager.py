@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..errors import PipelineError
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from .deps_lock import (
     LOCK_KIND_FILE,
     DepsLock,

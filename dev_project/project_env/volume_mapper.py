@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from .. import constants, translations
 from ..dependency_resolver import DependencyResolutionResult
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from .types import MappedPath
 
 if TYPE_CHECKING:

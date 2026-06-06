@@ -15,7 +15,7 @@ from ..git import (
     HTTP_MARKER,
     SSH_MARKER,
 )
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from .types import DbCreationData, OdpmJson, UserSettingsJson
 
 if TYPE_CHECKING:

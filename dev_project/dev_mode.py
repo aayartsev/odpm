@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from . import constants
-from .inside_docker_app.logger import get_module_logger
+from .logging import get_module_logger
 
 _logger = get_module_logger(__name__)
 

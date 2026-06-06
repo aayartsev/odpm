@@ -10,7 +10,7 @@ from ..compose_command_render import (
     render_odpm_config_path_env_line,
 )
 from ..config.payload import runtime_config_path
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from ..project_dir_manager import template_needs_upgrade
 
 if TYPE_CHECKING:

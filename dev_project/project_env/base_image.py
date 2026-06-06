@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from .. import constants, translations
 from ..errors import PipelineError
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from ..subprocess_runner import run_checked, run_logged
 from .base_image_identity import (
     base_image_identity_matches,

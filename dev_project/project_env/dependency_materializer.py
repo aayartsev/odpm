@@ -12,7 +12,7 @@ from ..dependency_resolver import (
     resolve_dependencies,
 )
 from ..git import HandleOdooProjectLink
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 
 if TYPE_CHECKING:
     from ..config.config import Config

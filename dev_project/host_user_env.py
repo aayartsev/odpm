@@ -8,7 +8,7 @@ from dev_project.project_dir_manager import ProjectDirManager
 
 from . import constants, translations
 from .errors import ConfigError
-from .inside_docker_app.logger import get_module_logger
+from .logging import get_module_logger
 from .interactive import prompt_input, stdin_is_interactive
 
 _logger = get_module_logger(__name__)

@@ -6,7 +6,7 @@ from pathlib import Path
 from . import constants, translations
 from .errors import ProjectDirError
 from .inside_docker_app import cli_params
-from .inside_docker_app.logger import get_module_logger
+from .logging import get_module_logger
 
 _logger = get_module_logger(__name__)
 

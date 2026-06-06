@@ -13,7 +13,7 @@ from ..bake_venv import (
 )
 from ..config.payload import write_runtime_config_to_path
 from ..errors import PipelineError
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
 from ..subprocess_runner import run_logged
 from .types import MappedPath

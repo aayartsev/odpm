@@ -8,7 +8,7 @@ from ..errors import ConfigError, PipelineError
 from ..git import HandleOdooProjectLink
 from ..git.developing_repo_materializer import DevelopingRepoMaterializer
 from ..host_user_env import CreateUserEnvironment
-from ..inside_docker_app.logger import get_module_logger
+from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..protocols import SystemCheckerProtocol
 from ..scenario_policy import ScenarioPolicy, is_debugpy_requirement

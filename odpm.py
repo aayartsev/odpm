@@ -3,7 +3,7 @@ import os
 import sys
 
 import dev_project.translations as translations
-from dev_project.inside_docker_app.logger import get_module_logger
+from dev_project.logging import get_module_logger
 from dev_project.inside_docker_app.parse_args import parse_args
 from dev_project.odpm_pipeline import OdpmPipeline
 

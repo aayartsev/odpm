@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 
 from . import constants
 from . import translations
-from .inside_docker_app.logger import get_module_logger
+from .logging import get_module_logger
 
 _logger = get_module_logger(__name__)
 

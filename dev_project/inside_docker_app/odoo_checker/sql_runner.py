@@ -5,7 +5,7 @@ from __future__ import annotations
 from contextlib import closing
 from typing import Any
 
-from ..logger import get_module_logger
+from ...logging import get_module_logger
 
 _logger = get_module_logger(__name__)
 

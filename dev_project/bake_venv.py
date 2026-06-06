@@ -18,7 +18,7 @@ from pip._vendor.packaging.markers import Marker, default_environment
 from . import constants
 from .container_config import ContainerConfig
 from .inside_docker_app.exceptions import VenvError
-from .inside_docker_app.logger import get_module_logger
+from .logging import get_module_logger
 
 
 _logger = get_module_logger(__name__)

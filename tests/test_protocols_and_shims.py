@@ -51,6 +51,13 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(callable(run_odoo_module.main))
 
+    def test_inside_docker_app_logger_reexports_canonical_logging(self):
+        from dev_project import logging as canonical_logging
+        from dev_project.inside_docker_app import logger as legacy_logger
+
+        self.assertIs(legacy_logger.get_module_logger, canonical_logging.get_module_logger)
+        self.assertIs(legacy_logger.CustomFormatter, canonical_logging.CustomFormatter)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,7 +11,7 @@ from typing import Optional
 from .. import constants
 from ..container_config import ContainerConfig
 from .exceptions import ConfigValidationError, VenvError
-from .logger import get_module_logger
+from ..logging import get_module_logger
 
 _logger = get_module_logger(__name__)
 

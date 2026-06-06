@@ -16,7 +16,7 @@ from .project_env import CreateProjectEnvironment
 from .compose_service_builder import ComposeServiceBuilder
 from .git.deps_lock_manager import DepsLockManager
 from .host_user_env import CreateUserEnvironment
-from .inside_docker_app.logger import get_module_logger
+from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .subprocess_runner import run_logged
 
