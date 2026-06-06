@@ -174,17 +174,22 @@ class ProjectLinks:
             initial_extra_urls=initial_extra_urls,
         )
 
-    def checkout_dependencies(self) -> None:
+    def checkout_dependencies(self, lock_manager=None) -> None:
         list_for_checkout = [self.config.odoo_platform_project]
         list_for_checkout.extend(self.config.dependencies_projects)
         for project in list_for_checkout:
-            self.checkout_project(project)
+            self.checkout_project(project, lock_manager=lock_manager)
 
-    def checkout_project(self, project: HandleOdooProjectLink) -> None:
+    def checkout_project(
+        self, project: HandleOdooProjectLink, *, lock_manager=None
+    ) -> None:
+        update_git_repos = self.config.update_git_repos
+        if lock_manager is not None and lock_manager.is_pinned(project):
+            update_git_repos = False
         project.checkout_repository(
             self.config.odoo_version,
             clean_git_repos=self.config.clean_git_repos,
-            update_git_repos=self.config.update_git_repos,
+            update_git_repos=update_git_repos,
         )
 
     def update_links(self) -> None:

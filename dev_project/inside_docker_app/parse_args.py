@@ -210,6 +210,12 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.UPDATE_LOCK_PARAM,
+    help="""Resolve platform and seed dependency repositories at branch tips, write .odpm/deps.lock.json, and exit without starting containers (implies preparing project files only).""",
+    action="store_true",
+)
+
+arg_parser.add_argument(
     cli_params.ODOO_BIN_PARAM,
     nargs=argparse.REMAINDER,
     help="""Command to pass through as a single string""",

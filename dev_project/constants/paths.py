@@ -9,6 +9,7 @@ PROJECT_CONFIG_FILE_NAME = f"{PROJECT_NAME.lower()}.json"
 USER_CONFIG_FILE_NAME = "user_settings.json"
 CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
 PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
+DEPS_LOCK_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "deps.lock.json")
 BASE_IMAGE_IDENTITY_REL_PATH = os.path.join(
     PROJECT_SERVICE_DIRECTORY, "base_image_identity.json"
 )

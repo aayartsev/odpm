@@ -131,6 +131,25 @@ class GitOperations:
         expected_url = expected_url.rstrip(".git").rstrip("/")
         return actual_url == expected_url
 
+    def resolve_head_sha(self) -> str:
+        if not os.path.exists(os.path.join(self.link.project_path, ".git")):
+            raise RuntimeError(
+                f"Cannot resolve HEAD: not a git repository: {self.link.project_path}"
+            )
+        result = self._run_git(["rev-parse", "HEAD"])
+        commit = result.stdout.strip()
+        if result.returncode != 0 or not commit:
+            raise RuntimeError(
+                f"git rev-parse HEAD failed in {self.link.project_path}"
+            )
+        return commit
+
+    def checkout_pinned_commit(self, commit: str) -> None:
+        self._git_fetch_ref(commit)
+        self._git_checkout_ref(commit)
+        self.link.commit = commit
+        self.link.commit_explicit = True
+
     def _git_stash(self) -> None:
         self._run_git(["stash"])
 
@@ -341,7 +360,7 @@ class GitOperations:
         if odoo_version_sync:
             self.checkout_parsed_or_version(odoo_version)
 
-        if update:
+        if update and not self.link.commit_explicit:
             self._git_pull()
 
     def checkout_repository(

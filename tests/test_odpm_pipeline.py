@@ -208,6 +208,30 @@ class OdpmPipelineRunTests(unittest.TestCase):
 
     @patch("dev_project.odpm_pipeline.OdpmPipeline.start_containers")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.configure_vscode")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.handle_build_image", return_value=False)
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_skips_compose_when_update_lock(
+        self,
+        mock_setup,
+        mock_prepare,
+        mock_build_image,
+        mock_vscode,
+        mock_start,
+    ):
+        args = Namespace(build_image=False, skip_start=False, update_lock=True)
+        pipeline = OdpmPipeline(args, "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.project_dir = "/tmp/project"
+
+        with patch("dev_project.odpm_pipeline.os.chdir"):
+            pipeline.run()
+
+        mock_start.assert_not_called()
+        mock_vscode.assert_called_once()
+
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.start_containers")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.configure_vscode")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.handle_build_image", return_value=True)
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
@@ -297,7 +321,9 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
         pipeline.prepare_project_files()
-        pipeline.config.materialize_git_repos.assert_called_once()
+        pipeline.config.materialize_git_repos.assert_called_once_with(
+            skip_build_date=False
+        )
         pipeline.config.ensure_git_repos_present.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
@@ -308,6 +334,37 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.ensure_git_repos_present.assert_called_once()
         pipeline.config.materialize_git_repos.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_not_called()
+
+    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    def test_prepare_skips_build_date_when_platform_lock_exists(self, _mock_builder):
+        pipeline = self._pipeline_with_mocks()
+        with patch("dev_project.odpm_pipeline.DepsLockManager") as mock_manager_cls:
+            manager = MagicMock()
+            manager.has_platform_lock.return_value = True
+            mock_manager_cls.return_value = manager
+            pipeline.prepare_project_files()
+        pipeline.config.materialize_git_repos.assert_called_once_with(
+            skip_build_date=True
+        )
+        manager.load.assert_called_once()
+        manager.enter_apply_mode.assert_called_once()
+
+    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    def test_prepare_update_lock_collects_without_loading_lock(self, _mock_builder):
+        pipeline = self._pipeline_with_mocks(update_lock=True)
+        with patch("dev_project.odpm_pipeline.DepsLockManager") as mock_manager_cls:
+            manager = MagicMock()
+            mock_manager_cls.return_value = manager
+            pipeline.prepare_project_files()
+        manager.load.assert_not_called()
+        manager.collect_and_save.assert_called_once()
+        pipeline.project_environment.checkout_dependencies.assert_called_once()
+
+    @patch("dev_project.odpm_pipeline.ComposeServiceBuilder")
+    def test_prepare_rejects_update_lock_with_no_git_update(self, _mock_builder):
+        pipeline = self._pipeline_with_mocks(update_lock=True, no_git_update=True)
+        with self.assertRaises(PipelineError):
+            pipeline.prepare_project_files()
 
 
 if __name__ == "__main__":

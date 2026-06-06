@@ -345,11 +345,12 @@ class Config:
             _logger.error(message)
             raise ConfigError(message)
 
-    def materialize_git_repos(self) -> None:
+    def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
         self._developing_materializer.materialize_full(self)
 
         self.odoo_platform_project.build_project()
-        self.apply_odoo_build_date_to_platform()
+        if not skip_build_date:
+            self.apply_odoo_build_date_to_platform()
 
         self._paths.apply_developing_project_docker_path()
 

@@ -51,11 +51,11 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
     def generate_docker_compose_file(self) -> None:
         self._compose.generate_docker_compose_file()
 
-    def checkout_dependencies(self) -> None:
-        self._links.checkout_dependencies()
+    def checkout_dependencies(self, lock_manager=None) -> None:
+        self._links.checkout_dependencies(lock_manager=lock_manager)
 
-    def checkout_project(self, project: HandleOdooProjectLink) -> None:
-        self._links.checkout_project(project)
+    def checkout_project(self, project: HandleOdooProjectLink, *, lock_manager=None) -> None:
+        self._links.checkout_project(project, lock_manager=lock_manager)
 
     def update_links(self) -> None:
         self._links.update_links()

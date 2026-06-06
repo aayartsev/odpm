@@ -283,7 +283,19 @@ class ConfigBootstrapTests(unittest.TestCase):
         config.apply_odoo_build_date_to_platform.assert_called_once()
         config._paths.apply_developing_project_docker_path.assert_called_once()
 
-    def test_materialize_git_repos_skips_developing_when_already_materialized(self):
+    def test_materialize_git_repos_skips_build_date_when_requested(self):
+        from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
+
+        config = MagicMock()
+        config.developing_project = MagicMock()
+        config.odoo_platform_project = MagicMock()
+        config.arguments = Namespace(branch=None)
+        config._paths = MagicMock()
+        config._developing_materializer = DevelopingRepoMaterializer()
+
+        Config.materialize_git_repos(config, skip_build_date=True)
+
+        config.apply_odoo_build_date_to_platform.assert_not_called()
         from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
 
         config = MagicMock()

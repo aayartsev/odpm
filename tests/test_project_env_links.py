@@ -7,6 +7,46 @@ from dev_project.project_env.environment import CreateProjectEnvironment
 from dev_project.project_env.links import ProjectLinks
 
 
+class ProjectLinksCheckoutTests(unittest.TestCase):
+    def test_checkout_project_disables_update_when_pinned(self):
+        config = MagicMock()
+        config.update_git_repos = True
+        config.clean_git_repos = False
+        config.odoo_version = "19.0"
+        env = MagicMock()
+        env.config = config
+        project = MagicMock()
+        lock_manager = MagicMock()
+        lock_manager.is_pinned.return_value = True
+
+        ProjectLinks(env).checkout_project(project, lock_manager=lock_manager)
+
+        project.checkout_repository.assert_called_once_with(
+            "19.0",
+            clean_git_repos=False,
+            update_git_repos=False,
+        )
+
+    def test_checkout_project_keeps_update_when_not_pinned(self):
+        config = MagicMock()
+        config.update_git_repos = True
+        config.clean_git_repos = True
+        config.odoo_version = "17.0"
+        env = MagicMock()
+        env.config = config
+        project = MagicMock()
+        lock_manager = MagicMock()
+        lock_manager.is_pinned.return_value = False
+
+        ProjectLinks(env).checkout_project(project, lock_manager=lock_manager)
+
+        project.checkout_repository.assert_called_once_with(
+            "17.0",
+            clean_git_repos=True,
+            update_git_repos=True,
+        )
+
+
 class ProjectLinksDependencyTests(unittest.TestCase):
     def test_resolve_dependencies_skips_oca_when_no_git_update(self):
         env = MagicMock()

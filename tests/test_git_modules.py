@@ -135,6 +135,25 @@ class GitOperationsTests(unittest.TestCase):
         return GitOperations(link)
 
     @patch("dev_project.git.operations.run_checked")
+    def test_resolve_head_sha_returns_rev_parse_head(self, mock_run_checked):
+        mock_run_checked.return_value = MagicMock(
+            stdout="abc123def456\n",
+            returncode=0,
+            stderr="",
+        )
+        ops = self._operations()
+        with patch("dev_project.git.operations.os.path.exists", return_value=True):
+            self.assertEqual(ops.resolve_head_sha(), "abc123def456")
+
+    @patch("dev_project.git.operations.GitOperations._git_pull")
+    @patch("dev_project.git.operations.GitOperations.checkout_parsed_or_version")
+    def test_checkout_skips_pull_when_commit_explicit(self, mock_parsed, mock_pull):
+        ops = self._operations(commit_explicit=True, commit="deadbeef")
+        ops.checkout("19.0", update=True, odoo_version_sync=True)
+        mock_pull.assert_not_called()
+        mock_parsed.assert_called_once()
+
+    @patch("dev_project.git.operations.run_checked")
     def test_check_repo_url_normalizes_git_suffix(self, mock_run_checked):
         mock_run_checked.return_value = MagicMock(
             stdout="https://github.com/acme/demo.git\n",
