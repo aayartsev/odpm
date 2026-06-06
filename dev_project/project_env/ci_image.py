@@ -174,7 +174,8 @@ class CiImageBuilder:
         content = content.format(
             BASE_IMAGE=self.config.odoo_image_name,
             DOCKER_PROJECT_DIR=self.config.docker_project_dir,
-            CURRENT_USER=constants.CURRENT_USER,
+            CONTAINER_USER=constants.CONTAINER_USER,
+            CURRENT_USER=constants.CONTAINER_USER,
             CI_VENV_INSTALL_JSON=constants.CI_VENV_INSTALL_JSON,
         )
         content = content.replace(

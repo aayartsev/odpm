@@ -16,7 +16,7 @@ services:
 
   odoo:
     image: {ODOO_IMAGE}
-    user: {CURRENT_USER}
+    user: {CONTAINER_USER}
     tty: true
     depends_on:
       - {DATABASE_NAME_INSTANCE}

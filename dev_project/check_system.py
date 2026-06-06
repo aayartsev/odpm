@@ -52,12 +52,12 @@ class SystemChecker(SystemCheckerProtocol):
 
     def check_docker(self) -> None:
         if platform.system() == "Linux":
-            groups = self.get_system_groups(constants.CURRENT_USER)
+            groups = self.get_system_groups(constants.HOST_USER)
             if constants.LINUX_DOCKER_GROUPNAME not in groups:
                 message = translations.get_translation(
                     translations.USER_NOT_IN_DOCKER_GROUP
                 ).format(
-                    CURRENT_USER=constants.CURRENT_USER,
+                    CURRENT_USER=constants.HOST_USER,
                     LINUX_DOCKER_GROUPNAME=constants.LINUX_DOCKER_GROUPNAME,
                 )
                 _logger.error(message)

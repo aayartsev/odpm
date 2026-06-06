@@ -23,8 +23,6 @@ DOCKERFILE_CI_TEMPLATE = (
 
 RUN_DOCKER_INTEGRATION = os.environ.get("ODPM_RUN_DOCKER_INTEGRATION") == "1"
 BASE_IMAGE_TAG = "odpm-ci-integration-base:test"
-# Inside CI images the runtime user is always odoo (see constants on non-Linux defaults).
-CI_CONTAINER_USER = "odoo"
 
 
 def _docker_available() -> bool:
@@ -66,7 +64,8 @@ def _write_ci_dockerfile(context_dir: Path, *, base_image: str) -> Path:
     content = content.format(
         BASE_IMAGE=base_image,
         DOCKER_PROJECT_DIR=DEFAULT_DOCKER_PROJECT_DIR,
-        CURRENT_USER=CI_CONTAINER_USER,
+        CONTAINER_USER=constants.CONTAINER_USER,
+        CURRENT_USER=constants.CONTAINER_USER,
         CI_VENV_INSTALL_JSON=constants.CI_VENV_INSTALL_JSON,
     )
     content = content.replace(

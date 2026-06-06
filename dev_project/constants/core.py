@@ -20,10 +20,18 @@ GITLINK_TYPE_SSH = "ssh"
 GITLINK_TYPE_FILE = "local_filesystem"
 TYPE_PROJECT_PROJECT = "project"
 TYPE_PROJECT_MODULE = "module"
-CURRENT_USER_UID = "9999"
-CURRENT_USER_GID = CURRENT_USER_UID
-CURRENT_USER = "odoo"
-CURRENT_PASSWORD = CURRENT_USER
+
+# Identity inside Odoo/Postgres Docker containers (never tied to the host login).
+CONTAINER_USER_UID = "9999"
+CONTAINER_USER_GID = CONTAINER_USER_UID
+CONTAINER_USER = "odoo"
+CONTAINER_PASSWORD = CONTAINER_USER
+
+# Host OS user (Linux: real uid/name for docker group checks and permissions).
+HOST_USER = CONTAINER_USER
+HOST_USER_UID = CONTAINER_USER_UID
+HOST_USER_GID = CONTAINER_USER_GID
+
 LINUX_DOCKER_GROUPNAME = "docker"
 if ARCH == "x86_64":
     ARCH = "amd64"
@@ -33,16 +41,20 @@ if ARCH == "aarch64":
 if platform.system() == "Linux":
     import pwd
 
-    CURRENT_USER_UID = os.getuid()
-    CURRENT_USER_GID = os.getgid()
-    CURRENT_USER = pwd.getpwuid(CURRENT_USER_UID)[0]
+    HOST_USER_UID = os.getuid()
+    HOST_USER_GID = os.getgid()
+    HOST_USER = pwd.getpwuid(HOST_USER_UID)[0]
 
-# If you have already used this image of postgres, you can have situation when your variables are not enabled
+# Backward-compatible aliases for container identity (always odoo / 9999).
+CURRENT_USER_UID = CONTAINER_USER_UID
+CURRENT_USER_GID = CONTAINER_USER_GID
+CURRENT_USER = CONTAINER_USER
+CURRENT_PASSWORD = CONTAINER_PASSWORD
 # https://github.com/docker-library/docs/blob/master/postgres/README.md
 # Warning: the Docker specific variables will only have an effect if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup.
 # In this case you need to delete old data or use old variables
-POSTGRES_ODOO_USER = CURRENT_USER
-POSTGRES_ODOO_PASS = CURRENT_PASSWORD
+POSTGRES_ODOO_USER = CONTAINER_USER
+POSTGRES_ODOO_PASS = CONTAINER_PASSWORD
 POSTGRES_ODOO_HOST = DATABASE_NAME_INSTANCE
 POSTGRES_ODOO_PORT = POSTGRES_DOCKER_PORT
 
