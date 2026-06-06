@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pathlib
-
 from . import constants
 from .config import Config
 from .config.payload import write_runtime_config
@@ -33,22 +31,6 @@ class ComposeServiceBuilder:
         odoo_bin_path = (
             f"{self.config.docker_odoo_dir}/{self.config.platform_name}-bin"
         )
-
-        if self.args.pip_install:
-            pip_install_command = (
-                f"cd {self.config.docker_project_dir} && python3 -m venv "
-                f"{self.config.docker_venv_dir} && . "
-                f"{pathlib.PurePosixPath(self.config.docker_venv_dir, 'bin', 'activate')} "
-                f"&& wget -O odoo_requirements.txt "
-                f"https://raw.githubusercontent.com/odoo/odoo/{self.config.odoo_version}/requirements.txt "
-                f"&& python3 -m pip install -r odoo_requirements.txt && python3 -m pip install "
-                f"{' '.join([req for req in self.config.requirements_txt])}"
-            )
-            return StartCommand(
-                kind="pip_install",
-                pip_install_script=pip_install_command,
-                docker_project_dir=self.config.docker_project_dir,
-            )
 
         if self.args.start_precommit:
             pre_commit_script = (

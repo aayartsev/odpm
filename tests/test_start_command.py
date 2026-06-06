@@ -77,23 +77,6 @@ class StartCommandTests(unittest.TestCase):
         service = command.to_compose_service()
         self.assertEqual(service.command[-1:], ["--"])
 
-    def test_to_compose_service_pip_install_exec_form(self):
-        command = StartCommand(
-            kind="pip_install",
-            docker_project_dir="/home/odoo",
-            pip_install_script="cd /home/odoo && python3 -m pip install pre-commit",
-        )
-        service = command.to_compose_service()
-        self.assertFalse(service.include_runtime_config)
-        self.assertEqual(
-            service.command,
-            [
-                "/bin/bash",
-                "-c",
-                "cd /home/odoo && python3 -m pip install pre-commit",
-            ],
-        )
-
 
 if __name__ == "__main__":
     unittest.main()

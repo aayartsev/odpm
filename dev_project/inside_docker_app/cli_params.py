@@ -1,4 +1,3 @@
-INSTALL_PIP_PARAM = "--pip-install"
 BUILD_IMAGE_PARAM = "--build-image"
 IMAGE_TAG_PARAM = "--image-tag"
 GET_DB_LIST_PARAM = "--get-dbs-list"

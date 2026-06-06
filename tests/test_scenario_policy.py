@@ -289,7 +289,6 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         config.arguments = Namespace(
             d=None,
             translate=None,
-            pip_install=False,
             start_precommit=False,
             export_po_files=None,
             i=False,

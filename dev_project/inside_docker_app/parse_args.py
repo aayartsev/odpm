@@ -14,14 +14,6 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
-    cli_params.INSTALL_PIP_PARAM,
-    help="Will start install of all python packages from odoo "
-    "requirements.txt and from requirements_txt param to "
-    "environment inside docker container",
-    action="store_true",
-)
-
-arg_parser.add_argument(
     cli_params.BUILD_IMAGE_PARAM,
     help="Build CI image with platform sources, extra-addons, venv, and odoo.conf",
     action="store_true",

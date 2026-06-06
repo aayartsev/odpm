@@ -7,7 +7,7 @@ from typing import Literal
 
 from . import constants
 
-StartCommandKind = Literal["standard", "pip_install", "pre_commit"]
+StartCommandKind = Literal["standard", "pre_commit"]
 
 
 @dataclass
@@ -24,23 +24,12 @@ class StartCommand:
     kind: StartCommandKind = "standard"
     odoo_bin: list[str] = field(default_factory=list)
     docker_project_dir: str = ""
-    pip_install_script: str = ""
     pre_commit_script: str = ""
     run_mode: str = constants.RUN_MODE_ODOO
 
     def to_compose_service(
         self, *, include_runtime_config: bool | None = None
     ) -> ComposeOdooService:
-        if self.kind == "pip_install":
-            return ComposeOdooService(
-                working_dir=self.docker_project_dir or "/home/odoo",
-                include_runtime_config=False,
-                command=[
-                    "/bin/bash",
-                    "-c",
-                    self.pip_install_script,
-                ],
-            )
         if self.kind == "pre_commit":
             return ComposeOdooService(
                 working_dir=self.docker_project_dir or "/home/odoo",
