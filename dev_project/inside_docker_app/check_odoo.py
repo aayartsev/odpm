@@ -1,5 +1,3 @@
-import configparser
-import datetime
 import importlib
 import io
 import os
@@ -9,13 +7,12 @@ from contextlib import closing, contextmanager
 from ..container_config import ContainerConfig
 from . import cli_params
 from .logger import get_module_logger
+from .odoo_db_ops import DbCreationParams, OdooDbOps
 from .postgres_waiter import PostgresWaiter
 from .utils import write_odoo_config_data_to_file
 
 _logger = get_module_logger(__name__)
 
-DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"
-DEFAULT_DB_BACKUP_FORMAT = "zip"
 USED_ODOO_SUBMODULES = ["tools", "api", "service"]
 
 
@@ -67,14 +64,11 @@ class OdooChecker:
             sys.path.insert(0, odoo_src_dir)
 
         postgres_waiter = PostgresWaiter(
-            host=self.odoo_config_data["options"]["db_host"],  # PostgreSQL host
-            port=int(self.odoo_config_data["options"]["db_port"]),  # PostgreSQL port
-            timeout=60,  # Maximum waiting time in seconds
-            check_interval=1,  # Check interval in seconds
+            host=self.odoo_config_data["options"]["db_host"],
+            port=int(self.odoo_config_data["options"]["db_port"]),
+            timeout=60,
+            check_interval=1,
         )
-        # TODO will add this commands for deleting cache file
-        """find . -name "*.pyc" -delete"""
-        """find . -name "__pycache__" -type d -exec rm -rf {} +"""
         postgres_waiter.wait_for_postgres()
         if self.db_name:
             postgres_waiter.wait_for_postgres_db(
@@ -104,8 +98,6 @@ class OdooChecker:
 
             @contextmanager
             def environment_manage():
-                # Environment.manage is a no-op in Odoo 15+, but it
-                # emits a noisy warning so let's avoid it.
                 yield
 
         self.environment_manage = environment_manage
@@ -115,38 +107,38 @@ class OdooChecker:
             )
         self.create_config_file()
         self.odoo.tools.config.parse_config(["-c", self.docker_path_odoo_conf])
-        # Enable database manager
         self.odoo_config_object["list_db"] = True
 
-        self.all_backup_file_path = os.path.join(
-            os.path.dirname(self.odoo_dir), "backups"
+        self.db_ops = OdooDbOps(
+            self.odoo,
+            odoo_dir=self.odoo_dir,
+            creation=DbCreationParams(
+                create_demo=self.db_create_demo,
+                db_lang=self.db_lang,
+                db_default_admin_password=self.db_default_admin_password,
+                db_default_admin_login=self.db_default_admin_login,
+                db_country_code=self.db_country_code,
+            ),
         )
 
         if self.get_db_list or self.db_name:
-            # Start Odoo in environment context
             with self.environment_manage():
-                # Show list of current databases in system
                 if self.get_db_list:
-                    self.get_list_of_databases()
-                # Create archive of database
+                    self.db_ops.get_list_of_databases()
                 if self.db_backup and self.db_name:
-                    self.backup_database()
-                # Drop database
+                    self.db_ops.backup_database(self.db_name, self.db_backup)
                 if self.drop_db_name:
-                    self.drop_database()
-                # Restore database from archive
+                    self.db_ops.drop_database(self.drop_db_name, self.db_name)
                 if self.db_restore_file_path and self.db_name:
-                    self.restore_database()
-                # Check if database is exist and if not, system will create it
+                    self.db_ops.restore_database(
+                        self.db_name, self.db_restore_file_path
+                    )
                 if self.db_name:
-                    self.check_if_exist_database()
-                # change password and login to default for admin account
+                    self.db_ops.ensure_database_exists(self.db_name)
                 if self.set_admin_pass and self.db_name:
                     self.set_admin_password()
-                # Execute sql queries
                 if self.sql_execute and self.sql_queries and self.db_name:
                     self.execute_sql_queries()
-                # Export po for selected language with pot files list of modules is getting from "update_modules"
                 if self.export_po_files_lang:
                     self.export_po_files_to_modules()
 
@@ -202,14 +194,6 @@ class OdooChecker:
             )
 
     def create_config_file(self):
-        # odoo_conf = configparser.ConfigParser()
-        # for section in self.odoo_config_data:
-        #     odoo_conf[section] = {}
-        #     for key in self.odoo_config_data[section]:
-        #         odoo_conf[section][key] = self.odoo_config_data[section][key]
-        # # Now we will create config file from received data threw current script argument
-        # with open(self.docker_path_odoo_conf, "w") as odoo_config_file:
-        #     odoo_conf.write(odoo_config_file)
         write_odoo_config_data_to_file(self.odoo_config_data, self.docker_path_odoo_conf)
 
     def get_id_from_ir_model_data_by_xml_id(self, xml_id):
@@ -229,61 +213,6 @@ class OdooChecker:
             password_crypt = crypt_context.encrypt(text_password)
 
         return password_crypt
-
-    def change_symbols(self, string):
-        new_string_name = string
-        for del_symbol in ["-", " ", ":"]:
-            new_string_name = new_string_name.replace(del_symbol, "_")
-        return new_string_name
-
-    def backup_database(self):
-        time_stamp = datetime.datetime.now().strftime(DEFAULT_TIMESTAMP_FORMAT)
-        new_db_name = self.change_symbols(self.db_name)
-        backup_filename = self.db_backup
-        if isinstance(self.db_backup, bool):
-            backup_filename = f"{new_db_name}_{time_stamp}"
-        full_path_backup_filename = os.path.join(
-            self.all_backup_file_path, backup_filename
-        )
-        dump_stream = self.odoo.service.db.dump_db(
-            self.db_name, None, DEFAULT_DB_BACKUP_FORMAT
-        )
-        file_arch = open(full_path_backup_filename, "wb")
-        for line in dump_stream.readlines():
-            file_arch.write(line)
-        file_arch.close()
-
-    def restore_database(self):
-        self.db_restore_file_path = os.path.join(
-            self.all_backup_file_path, self.db_restore_file_path
-        )
-        self.odoo.service.db.restore_db(self.db_name, self.db_restore_file_path)
-
-    def drop_database(self):
-        if isinstance(self.drop_db_name, bool) and self.db_name:
-            self.drop_db_name = self.db_name
-        db_exist = self.odoo.service.db.exp_db_exist(self.drop_db_name)
-        if db_exist:
-            self.odoo.service.db.exp_drop(self.drop_db_name)
-
-    def get_list_of_databases(self):
-        list = self.odoo.service.db.list_dbs(force=True)
-        final_string = ""
-        for database_name in list:
-            final_string += database_name + "\n"
-        final_string = final_string.strip("\n")
-
-    def check_if_exist_database(self):
-        db_exist = self.odoo.service.db.exp_db_exist(self.db_name)
-        if not db_exist:
-            self.odoo.service.db.exp_create_database(
-                self.db_name,
-                self.db_create_demo,
-                self.db_lang,
-                user_password=self.db_default_admin_password,
-                login=self.db_default_admin_login,
-                country_code=self.db_country_code,
-            )
 
     def set_admin_password(self):
         new_password = self.db_default_admin_password
