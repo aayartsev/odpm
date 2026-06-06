@@ -219,54 +219,8 @@ class Config:
     def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
         self._git_repos.materialize_git_repos(skip_build_date=skip_build_date)
 
-    def get_postgres_data_local_storage_path(self) -> str:
-        return self._paths.get_postgres_data_local_storage_path()
-
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
         return self._odoo_conf.check_project_for_subprojects(project_path)
-
-    def get_names_of_python_packages_from_manifest(
-        self, path_to_manifest: str
-    ) -> list[str]:
-        return self._odoo_conf.get_names_of_python_packages_from_manifest(
-            path_to_manifest
-        )
-
-    def get_manifest_data(self, path_to_manifest: str) -> dict:
-        return self._odoo_conf.get_manifest_data(path_to_manifest)
-
-    def check_file_for_deprecated_words(self, file_path: str) -> None:
-        self._loader.check_file_for_deprecated_words(file_path)
-
-    def get_project_odpm_json(self) -> None:
-        self._loader.get_project_odpm_json()
-
-    def rewrite_odpm_json(self) -> None:
-        self._loader.rewrite_odpm_json()
-
-    def get_user_settings_json(self) -> None:
-        self._loader.get_user_settings_json()
-
-    def create_default_odpm_json_content(self):
-        return self._loader.create_default_odpm_json_content()
-
-    def get_user_settings(self) -> None:
-        self._loader.get_user_settings()
-
-    def get_odpm_settings(self) -> None:
-        self._loader.get_odpm_settings()
-
-    def check_for_config(self) -> None:
-        self._loader.check_for_config()
-
-    def beautify_module_list(self, modules) -> str:
-        return self._loader.beautify_module_list(modules)
-
-    def create_default_user_setting_json_content(self):
-        return self._loader.create_default_user_setting_json_content()
-
-    def get_developing_project_link(self) -> str:
-        return self._loader.get_developing_project_link()
 
     def handle_git_link(
         self,
@@ -286,21 +240,6 @@ class Config:
 
     def config_to_json(self) -> bytes:
         return config_to_json(self)
-
-    def get_odoo_ci_image_name(self) -> str:
-        return self._paths.get_odoo_ci_image_name()
-
-    def get_effective_odoo_build_date(self) -> str:
-        return self._loader.get_effective_odoo_build_date()
-
-    def apply_odoo_build_date_to_platform(self) -> None:
-        self._git_repos.apply_odoo_build_date_to_platform()
-
-    def get_platform_sorces(self) -> None:
-        self._git_repos.get_platform_sorces()
-
-    def get_platform_sources(self) -> None:
-        self._git_repos.get_platform_sources()
 
     def generate_odoo_conf_docker_data(self) -> None:
         self._odoo_conf.generate_odoo_conf_docker_data()
