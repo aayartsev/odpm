@@ -67,7 +67,11 @@ class OdpmPipeline:
     def print_plan(self) -> None:
         from .plan import OdpmPlanner, format_plan
 
-        plan = OdpmPlanner.build(self._config(), self.args)
+        plan = OdpmPlanner.build(
+            self._config(),
+            self.args,
+            self._project_environment(),
+        )
         _logger.info(format_plan(plan))
 
     def handle_build_image(self) -> bool:

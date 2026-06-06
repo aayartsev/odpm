@@ -320,12 +320,17 @@ class OdpmPipelinePlanTests(unittest.TestCase):
 
         pipeline = OdpmPipeline(Namespace(plan=True), "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.project_environment = MagicMock()
         mock_planner.build.return_value = MagicMock()
 
         pipeline.run()
 
         mock_prepare.assert_not_called()
-        mock_planner.build.assert_called_once_with(pipeline.config, pipeline.args)
+        mock_planner.build.assert_called_once_with(
+            pipeline.config,
+            pipeline.args,
+            pipeline.project_environment,
+        )
         mock_format_plan.assert_called_once()
 
 

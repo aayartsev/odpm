@@ -17,6 +17,8 @@ from .project_env.base_image_identity import base_image_identity_matches
 
 if TYPE_CHECKING:
     from .config import Config
+    from .plan_diff import PlanFileDiff
+    from .project_env import CreateProjectEnvironment
 
 PlanStepOutcome = Literal["run", "update", "noop", "skip"]
 
@@ -42,6 +44,7 @@ class PlanStep:
 class OdpmPlan:
     steps: tuple[PlanStep, ...]
     warnings: tuple[str, ...] = ()
+    diffs: tuple["PlanFileDiff", ...] = ()
 
 
 def skip_git_update(arguments: Namespace) -> bool:
@@ -87,10 +90,26 @@ def dockerfile_template_relative(config: Config) -> str:
 
 class OdpmPlanner:
     @classmethod
-    def build(cls, config: Config, args: Namespace) -> OdpmPlan:
+    def build(
+        cls,
+        config: Config,
+        args: Namespace,
+        project_env: CreateProjectEnvironment | None = None,
+    ) -> OdpmPlan:
+        from .plan_diff import build_plan_diffs
+        from .plan_runtime_preview import clear_runtime_config_preview_cache
         from .prepare_registry import build_plan
 
-        return build_plan(config, args)
+        clear_runtime_config_preview_cache(config)
+        plan = build_plan(config, args)
+        diffs = build_plan_diffs(plan, config, args, project_env)
+        if not diffs:
+            return plan
+        return OdpmPlan(
+            steps=plan.steps,
+            warnings=plan.warnings,
+            diffs=diffs,
+        )
 
 
 def _format_required(step: PlanStep) -> str:
@@ -111,4 +130,18 @@ def format_plan(plan: OdpmPlan) -> str:
         lines.append("Warnings:")
         for warning in plan.warnings:
             lines.append(f"- {warning}")
+    if plan.diffs:
+        lines.append("")
+        lines.append("Planned changes:")
+        for file_diff in plan.diffs:
+            if file_diff.unified_diff:
+                header = file_diff.path
+                if file_diff.summary:
+                    header = f"{header} ({file_diff.summary})"
+                lines.append(header)
+                lines.extend(file_diff.unified_diff.rstrip("\n").splitlines())
+            elif file_diff.summary:
+                lines.append(f"{file_diff.path}: {file_diff.summary}")
+            else:
+                lines.append(file_diff.path)
     return "\n".join(lines)

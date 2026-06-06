@@ -9,7 +9,11 @@ from unittest.mock import patch
 
 from . import constants
 from .compose_service_builder import ComposeServiceBuilder
-from .config.payload import config_to_json, runtime_config_path
+from .config.payload import runtime_config_path
+from .plan_runtime_preview import (
+    normalized_runtime_config_text_from_disk,
+    preview_runtime_config_text,
+)
 from .inside_docker_app.exceptions import ConfigValidationError
 from .plan import project_template_needs_upgrade, runtime_config_stale
 from .start_command import ComposeOdooService
@@ -45,8 +49,12 @@ def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
     runtime_path = runtime_config_path(ctx.config.project_dir)
     if os.path.isfile(runtime_path):
         try:
-            on_disk = Path(runtime_path).read_bytes()
-            if on_disk != config_to_json(ctx.config):
+            preview = preview_runtime_config_text(ctx.config)
+            on_disk = normalized_runtime_config_text_from_disk(
+                ctx.config.project_dir,
+                config=ctx.config,
+            )
+            if preview is not None and preview != on_disk:
                 return True, "runtime config payload changed"
         except (OSError, TypeError, ValueError, ConfigValidationError):
             pass

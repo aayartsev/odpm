@@ -194,6 +194,12 @@ arg_parser.add_argument(
 )
 
 arg_parser.add_argument(
+    cli_params.PLAN_SHOW_DIFF_PARAM,
+    help="""With --plan: show unified diffs for generated project files (runtime config, compose, dockerignore).""",
+    action="store_true",
+)
+
+arg_parser.add_argument(
     cli_params.SKIP_START_PARAM,
     help="""Will generate docker-compose.yaml and exit without lounching odoo instance. After this command you can start instace with "docker compose up -d" for example""",
     nargs="?",

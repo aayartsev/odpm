@@ -30,6 +30,35 @@ class PlanComposePreviewTests(unittest.TestCase):
         config.python_version = "3.12"
         return config
 
+    @patch(
+        "dev_project.plan_compose_preview.preview_runtime_config_text",
+        return_value='{\n  "arguments": {"branch": "dev"},\n  "schema_version": 1\n}\n',
+    )
+    @patch(
+        "dev_project.plan_compose_preview.normalized_runtime_config_text_from_disk",
+        return_value='{\n  "arguments": {"branch": "dev"},\n  "schema_version": 1\n}\n',
+    )
+    def test_compose_service_noop_when_normalized_runtime_matches(
+        self, _mock_disk, _mock_preview
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            runtime_dir = tmp + "/" + constants.ODPM_RUNTIME_DIR_REL_PATH
+            Path(runtime_dir).mkdir(parents=True)
+            Path(runtime_dir, "config.json").write_text(
+                '{"arguments": {"plan": true, "branch": "dev"}, '
+                '"schema_version": 1, "venv_lock_hash": "hash"}',
+                encoding="utf-8",
+            )
+            ctx = make_prepare_context(
+                self._config(tmp),
+                MagicMock(),
+                MagicMock(),
+                Namespace(),
+            )
+            needs_update, reason = compose_service_needs_update(ctx)
+            self.assertFalse(needs_update)
+            self.assertIn("unchanged", reason)
+
     def test_compose_service_noop_when_runtime_hash_matches(self):
         with tempfile.TemporaryDirectory() as tmp:
             runtime_dir = tmp + "/" + constants.ODPM_RUNTIME_DIR_REL_PATH

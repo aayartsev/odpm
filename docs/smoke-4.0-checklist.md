@@ -86,13 +86,14 @@ odpm --plan --skip-start
 | Missing compose | `RUN compose.service` + `UPDATE compose.generate` when root `docker-compose.yml` is absent | | |
 | Compose probe | `compose.up` reason includes `without --force-recreate (stack healthy)` or `with --force-recreate (stack missing or unhealthy)` | | |
 | `--plan-no-docker` | Warning `Compose stack health was not probed; --force-recreate is unknown`; reason mentions unknown recreate | | |
+| `--plan-show-diff` | Section `Planned changes:` with pretty-printed unified diff for runtime config (compose.service path), compose, dockerignore; plan-only CLI flags excluded from comparison | | |
 | Warnings | Lock warnings when applicable; no generic recreate warning when probe runs | | |
 
 Automated analogue (repository tests):
 
 ```bash
 cd "$ODPM_REPO"
-python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe -v
+python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe tests.test_plan_diff -v
 ```
 
 ---
