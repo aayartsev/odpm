@@ -30,6 +30,18 @@ def compose_up_would_run(args: Namespace, host_ctx: HostProjectContext) -> bool:
     return True
 
 
+def compose_up_force_recreate_value(
+    config: Config, args: Namespace
+) -> bool | None:
+    """Return probe result, or None when recreate cannot be determined."""
+    if not plan_probes_compose_stack(args):
+        return None
+    compose_cmd = getattr(config, "docker_compose_command", "")
+    if not isinstance(compose_cmd, str) or not compose_cmd.strip():
+        return None
+    return should_force_recreate_compose(config)
+
+
 def evaluate_compose_up_plan(
     config: Config, args: Namespace
 ) -> tuple[str, tuple[str, ...]]:

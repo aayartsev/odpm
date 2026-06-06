@@ -87,13 +87,15 @@ odpm --plan --skip-start
 | Compose probe | `compose.up` reason includes `without --force-recreate (stack healthy)` or `with --force-recreate (stack missing or unhealthy)` | | |
 | `--plan-no-docker` | Warning `Compose stack health was not probed; --force-recreate is unknown`; reason mentions unknown recreate | | |
 | `--plan-show-diff` | Section `Planned changes:` with pretty-printed unified diff for runtime config (compose.service path), compose, dockerignore; plan-only CLI flags excluded from comparison | | |
+| `--plan-format json` | Valid JSON with `plan_version`, `steps[]` (`outcome`, not `action`), `warnings`, optional `compose_up.force_recreate`, optional `diffs` | | |
+| `--plan-strict` | Exit code 1 when any required step is `run` or `update`; 0 when only noop/skip/optional run | | |
 | Warnings | Lock warnings when applicable; no generic recreate warning when probe runs | | |
 
 Automated analogue (repository tests):
 
 ```bash
 cd "$ODPM_REPO"
-python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe tests.test_plan_diff -v
+python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe tests.test_plan_diff tests.test_plan_format -v
 ```
 
 ---

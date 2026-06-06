@@ -112,36 +112,11 @@ class OdpmPlanner:
         )
 
 
-def _format_required(step: PlanStep) -> str:
-    if step.outcome in ("noop", "skip"):
-        return "-"
-    return "yes" if step.required else "no"
+def format_plan(
+    plan: OdpmPlan,
+    args: Namespace | None = None,
+    config: "Config | None" = None,
+) -> str:
+    from .plan_format import format_plan as format_plan_output
 
-
-def format_plan(plan: OdpmPlan) -> str:
-    lines = ["Action   Required  ID                    Reason", "-" * 72]
-    for step in plan.steps:
-        lines.append(
-            f"{step.outcome.upper():<8} {_format_required(step):<8}  "
-            f"{step.id:<22} {step.reason}"
-        )
-    if plan.warnings:
-        lines.append("")
-        lines.append("Warnings:")
-        for warning in plan.warnings:
-            lines.append(f"- {warning}")
-    if plan.diffs:
-        lines.append("")
-        lines.append("Planned changes:")
-        for file_diff in plan.diffs:
-            if file_diff.unified_diff:
-                header = file_diff.path
-                if file_diff.summary:
-                    header = f"{header} ({file_diff.summary})"
-                lines.append(header)
-                lines.extend(file_diff.unified_diff.rstrip("\n").splitlines())
-            elif file_diff.summary:
-                lines.append(f"{file_diff.path}: {file_diff.summary}")
-            else:
-                lines.append(file_diff.path)
-    return "\n".join(lines)
+    return format_plan_output(plan, args, config)

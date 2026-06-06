@@ -331,7 +331,11 @@ class OdpmPipelinePlanTests(unittest.TestCase):
             pipeline.args,
             pipeline.project_environment,
         )
-        mock_format_plan.assert_called_once()
+        mock_format_plan.assert_called_once_with(
+            mock_planner.build.return_value,
+            pipeline.args,
+            pipeline.config,
+        )
 
 
 if __name__ == "__main__":
