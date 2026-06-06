@@ -75,6 +75,34 @@ class VolumeMapperTests(unittest.TestCase):
         self.assertEqual(len(env.mapped_folders), 1)
         self.assertEqual(env.mapped_folders[0].local, "/tmp/dep")
 
+    def test_append_dependency_mounts_probes_repo_when_skip_materialize(self):
+        env = self._make_env()
+        url = "https://github.com/acme/A.git"
+        dependency = MagicMock(
+            is_cloned=False,
+            project_path="/tmp/dep",
+            inside_docker_path="dep",
+        )
+        dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
+        dependency.build_project = MagicMock(side_effect=lambda: setattr(dependency, "is_cloned", True))
+        env.config.handle_git_link = MagicMock(return_value=dependency)
+        resolution = DependencyResolutionResult(
+            urls=[url],
+            transitive_requirements=[],
+            nested_fragments=[],
+        )
+
+        VolumeMapper(env).append_dependency_mounts(
+            resolution,
+            materialize_deps=True,
+            skip_materialize=True,
+        )
+
+        env.config.handle_git_link.assert_called_once_with(url, materialize=False)
+        dependency.build_project.assert_called_once()
+        self.assertEqual(len(env.mapped_folders), 1)
+        self.assertEqual(env.mapped_folders[0].local, "/tmp/dep")
+
     def test_map_pre_commit_files_copies_and_mounts_existing_file(self):
         with tempfile.TemporaryDirectory() as project_dir:
             env = self._make_env()

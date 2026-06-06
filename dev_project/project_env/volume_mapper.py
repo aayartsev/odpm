@@ -75,10 +75,13 @@ class VolumeMapper:
         skip_materialize: bool,
     ) -> None:
         for dependency_string in resolution.urls:
+            materialize = materialize_deps and not skip_materialize
             dependency_project = self.config.handle_git_link(
                 dependency_string,
-                materialize=materialize_deps and not skip_materialize,
+                materialize=materialize,
             )
+            if skip_materialize and not dependency_project.is_cloned:
+                dependency_project.build_project()
             if not dependency_project.is_cloned:
                 continue
             list_of_subprojects = self.config.check_project_for_subprojects(
