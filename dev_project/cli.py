@@ -6,7 +6,7 @@ import os
 import sys
 
 from . import translations
-from .inside_docker_app.parse_args import parse_args
+from .host_cli.parse_args import parse_args
 from .logging import get_module_logger
 from .odpm_pipeline import OdpmPipeline
 from .program_dir import resolve_program_dir

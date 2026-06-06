@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.inside_docker_app import parse_args as parse_args_module
+import dev_project.host_cli.parse_args as parse_args_module
 from dev_project.plan import OdpmPlan, OdpmPlanner, PlanStep, format_plan
 from dev_project.plan_diff import (
     PlanFileDiff,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from argparse import Namespace
 
-from .inside_docker_app import cli_params
+from .host_cli import params as cli_params
 
 
 def normalize_plan_argv(argv: list[str]) -> list[str]:

@@ -6,7 +6,7 @@ from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.inside_docker_app import parse_args as parse_args_module
+import dev_project.host_cli.parse_args as parse_args_module
 from dev_project.plan import OdpmPlanner, format_plan
 from dev_project.plan_compose_runtime import (
     PLAN_NO_DOCKER_WARNING,
