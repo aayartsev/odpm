@@ -3,7 +3,8 @@ from argparse import Namespace
 from typing import Literal
 
 from .. import constants, translations
-from ..errors import ConfigError
+from ..dependency_resolver import NestedOdpmFragment
+from ..errors import ConfigError, PipelineError
 from ..git import HandleOdooProjectLink
 from ..git.developing_repo_materializer import DevelopingRepoMaterializer
 from ..host_user_env import CreateUserEnvironment
@@ -13,6 +14,7 @@ from ..protocols import SystemCheckerProtocol
 from ..scenario_policy import ScenarioPolicy, is_debugpy_requirement
 from ..start_command import ComposeOdooService
 from .loader import ConfigLoader
+from .nested_compatibility import collect_nested_compatibility_issues
 from .odoo_conf import OdooConfBuilder
 from .paths import ConfigPaths
 from .payload import compute_venv_lock_hash, config_to_json
@@ -313,6 +315,41 @@ class Config:
         if not isinstance(seeds, list):
             return []
         return [str(url).strip() for url in seeds if url and str(url).strip()]
+
+    def apply_transitive_requirements(
+        self,
+        transitive_requirements: list[str],
+        *,
+        nested_fragments: list[NestedOdpmFragment] | None = None,
+    ) -> None:
+        """Merge transitive Python requirements and validate nested manifest versions."""
+        fragments = list(nested_fragments or [])
+        for message in collect_nested_compatibility_issues(
+            self.odoo_version,
+            self.python_version,
+            fragments,
+        ):
+            if self.policy.is_ci():
+                _logger.error(message)
+                raise PipelineError(message, exit_code=1)
+            _logger.warning(message)
+
+        if not transitive_requirements:
+            return
+
+        merged = list(self.requirements_txt)
+        seen = set(merged)
+        for requirement in transitive_requirements:
+            text = (requirement or "").strip()
+            if not text or text in seen:
+                continue
+            seen.add(text)
+            merged.append(text)
+
+        self._project.requirements_txt = self.policy.normalize_requirements(
+            merged,
+            python_version=self.python_version,
+        )
 
     def ensure_git_repos_present(self) -> None:
         missing: list[str] = []

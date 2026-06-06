@@ -242,7 +242,7 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 - `dev_mode` - Можно указать через запятую [параметры для разработчиков](https://www.odoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev). Смотрите официальную документацию для своей версии odoo
 - `db_manager_password` - пароль для менеджера баз данных
 - `sql_queries` - Список. Содержит в себе список строк, каждая из которых является sql скриптом, которые будут выполняться при использовании параметра командной строки `--sql-execute`
-- `use_oca_dependencies` - экспериментальная функция: автоматически разрешает зависимости из `"oca_dependencies.txt"` (включая транзитивные OCA-репозитории из developing-проекта и из каждой зависимости) за **один запуск odpm** — повторный запуск не нужен. Значение по умолчанию `false`
+- `use_oca_dependencies` - экспериментальное discovery зависимостей (один запуск odpm, по умолчанию `false`): читает `oca_dependencies.txt` из developing-проекта и каждой checkout git-зависимости, **а также** вложенный `odpm.json` в корне repo-зависимости (`dependencies`, `requirements_txt`). Транзитивные git URL попадают в resolved graph и в `.odpm/deps.lock.json` при `--update-lock`. Вложенные `odoo_version` / `python_version` сверяются с host-проектом (warning в developer, error в CI). Не подменяет host `odoo_git_link` и platform.
 - `create_module_links` - добавлена экспериментальная функция, добавляет мягкие ссылки всех модулей, которые участвуют в проекте в каталог `odoo/odoo/addons`. Это позволяет языковому серверу самостоятельно считывать пути импортов. Значение по умолчанию `false`
 
 ## Параметры odpm.json:
@@ -305,7 +305,7 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | Параметр | Описание |
 |----------|----------|
 | `--skip-start` | Пересоздать `Dockerfile`, `.dockerignore`, `docker-compose.yml` и связанные файлы **без** запуска контейнеров. При наличии `.odpm/deps.lock.json` выполняет checkout по lock. |
-| `--update-lock` | Зафиксировать platform, developing (remote git) и **полный OCA-resolved** graph в `.odpm/deps.lock.json`; выход без запуска контейнеров. |
+| `--update-lock` | Зафиксировать platform, developing (remote git) и **полный resolved** graph (OCA + nested `odpm.json`) в `.odpm/deps.lock.json`; выход без запуска контейнеров. |
 | `--no-git-update` | Не выполнять git clone/fetch/checkout. Lock **не** читается и не обновляется. Нужны локальные каталоги repos. |
 | `--version` | Показать версию odpm и выйти. |
 
@@ -350,13 +350,13 @@ python3 odpm.py --skip-start --odoo-build-date 20250529
 
 | Команда | Поведение |
 |---------|-----------|
-| `python3 odpm.py --update-lock --skip-start` | Обновить lock и выйти без compose up |
+| `python3 odpm.py --update-lock --skip-start` | Обновить lock (полный graph: OCA + nested `odpm.json`) и выйти без compose up |
 | `python3 odpm.py --skip-start` | Prepare + checkout **по lock**, если файл есть |
 | `python3 odpm.py --no-git-update --skip-start` | Offline regenerate; lock игнорируется |
 
-После изменения `dependencies` или `oca_dependencies.txt` — `--update-lock` и commit lock.
+После изменения `dependencies`, `oca_dependencies.txt` или nested `odpm.json` в зависимостях — `--update-lock` и commit lock.
 
-Schema v1: `platform`, optional `developing` (только remote git), `dependencies` (полный OCA graph). Поля entry: `url`, `commit`, optional `branch`, optional `kind` (`git` / `file` для `file://` platform).
+Schema v1: `platform`, optional `developing` (только remote git), `dependencies` (полный resolved graph: seeds, OCA transitive, nested `odpm.json`). Поля entry: `url`, `commit`, optional `branch`, optional `kind` (`git` / `file` для `file://` platform).
 
 Для `file://` platform `commit` — fingerprint содержимого (не git SHA). Стабилен при наличии `odoo/release.py` и `odoo-bin`; иначе может отличаться на разных машинах или после смены метаданных каталога — для CI и team sync надёжнее git remote.
 

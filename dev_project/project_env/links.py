@@ -6,7 +6,13 @@ import shutil
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
-from ..dependency_resolver import read_oca_dependency_urls, resolve_dependency_urls
+from ..dependency_resolver import (
+    DependencyDiscovery,
+    DependencyResolutionResult,
+    read_nested_odpm_fragment,
+    read_oca_dependency_urls,
+    resolve_dependencies,
+)
 from ..git import HandleOdooProjectLink
 from ..git.deps_lock import is_remote_git_link
 from ..inside_docker_app.logger import get_module_logger
@@ -21,6 +27,7 @@ _logger = get_module_logger(__name__)
 class ProjectLinks:
     def __init__(self, env: CreateProjectEnvironment) -> None:
         self.env = env
+        self._dependency_resolution: DependencyResolutionResult | None = None
 
     @property
     def config(self):
@@ -67,13 +74,22 @@ class ProjectLinks:
                     docker=self.config.docker_odoo_project_dir_path,
                 ),
             )
-        resolved_dependencies = self._resolve_dependencies()
-        self.config.dependencies = resolved_dependencies
+        resolution = self._resolve_dependencies()
+        self._dependency_resolution = resolution
+        self.config.dependencies = resolution.urls
+        if resolution.transitive_requirements or resolution.nested_fragments:
+            self.config.apply_transitive_requirements(
+                resolution.transitive_requirements,
+                nested_fragments=resolution.nested_fragments,
+            )
         materialize_deps = not self.config.skip_git_update()
-        for dependency_string in resolved_dependencies:
+        deps_materialized_during_discovery = (
+            materialize_deps and self.config.use_oca_dependencies
+        )
+        for dependency_string in resolution.urls:
             dependency_project = self.config.handle_git_link(
                 dependency_string,
-                materialize=materialize_deps,
+                materialize=materialize_deps and not deps_materialized_during_discovery,
             )
             if not dependency_project.is_cloned:
                 continue
@@ -145,22 +161,47 @@ class ProjectLinks:
                     )
                 )
 
-    def _get_oca_urls_for_dependency(self, dependency_string: str) -> list[str]:
-        project = self.config.handle_git_link(dependency_string)
+    def _discover_dependency_extensions(
+        self, dependency_string: str
+    ) -> DependencyDiscovery:
+        materialize = not self.config.skip_git_update()
+        project = self.config.handle_git_link(
+            dependency_string,
+            materialize=materialize,
+        )
         if not project.is_cloned:
             _logger.warning(
                 translations.get_translation(
                     translations.OCA_DEPENDENCY_NOT_CLONED
                 ).format(DEPENDENCY_URL=dependency_string)
             )
-            return []
+            return DependencyDiscovery()
         self.checkout_project(project)
-        return read_oca_dependency_urls(project.project_path)
+        urls = read_oca_dependency_urls(project.project_path)
+        nested = read_nested_odpm_fragment(project.project_path)
+        if nested is None:
+            return DependencyDiscovery(urls=urls)
+        merged_urls = list(urls)
+        seen_urls = set(urls)
+        for dependency_url in nested.dependencies:
+            if dependency_url in seen_urls:
+                continue
+            seen_urls.add(dependency_url)
+            merged_urls.append(dependency_url)
+        return DependencyDiscovery(
+            urls=merged_urls,
+            requirements=list(nested.requirements_txt),
+            nested_fragment=nested,
+        )
 
-    def _resolve_dependencies(self) -> list[str]:
+    def _resolve_dependencies(self) -> DependencyResolutionResult:
         seed_urls = list(self.config.dependencies)
         if self.config.skip_git_update() or not self.config.use_oca_dependencies:
-            return seed_urls
+            return DependencyResolutionResult(
+                urls=seed_urls,
+                transitive_requirements=[],
+                nested_fragments=[],
+            )
 
         initial_extra_urls: list[str] = []
         if self.config.developing_project.project_path:
@@ -169,9 +210,9 @@ class ProjectLinks:
                 self.config.developing_project.project_path
             )
 
-        return resolve_dependency_urls(
+        return resolve_dependencies(
             seed_urls,
-            self._get_oca_urls_for_dependency,
+            self._discover_dependency_extensions,
             initial_extra_urls=initial_extra_urls,
         )
 

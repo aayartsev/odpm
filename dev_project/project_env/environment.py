@@ -11,6 +11,7 @@ from ..inside_docker_app.utils import (
     un_zip_file_to_directory,
 )
 from ..protocols import CreateProjectEnvironmentProtocol
+from ..dependency_resolver import DependencyResolutionResult
 from .base_image import BaseImageBuilder
 from .ci_image import CiImageBuilder
 from .compose import ComposeGenerator
@@ -72,7 +73,7 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
     def build_ci_image(self) -> None:
         self._ci.build_ci_image()
 
-    def _resolve_dependencies(self) -> list[str]:
+    def _resolve_dependencies(self) -> DependencyResolutionResult:
         return self._links._resolve_dependencies()
 
     def _read_ci_dockerignore_template(self) -> str:

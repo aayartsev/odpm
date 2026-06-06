@@ -1,11 +1,14 @@
+import json
 import os
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.project_env.environment import CreateProjectEnvironment
 from dev_project.project_env.links import ProjectLinks
+from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 
 
 class ProjectLinksCheckoutTests(unittest.TestCase):
@@ -112,9 +115,276 @@ class ProjectLinksDependencyTests(unittest.TestCase):
         resolved = ProjectLinks(env)._resolve_dependencies()
 
         self.assertEqual(
-            resolved,
+            resolved.urls,
             ["https://github.com/OCA/partner-contact.git"],
         )
+        self.assertEqual(resolved.transitive_requirements, [])
+        self.assertEqual(resolved.nested_fragments, [])
+
+
+class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
+    def _make_links(self, config):
+        env = MagicMock()
+        env.config = config
+        links = ProjectLinks(env)
+        links.checkout_project = MagicMock()
+        return links
+
+    def test_discover_dependency_extensions_reads_nested_odpm_json(self):
+        with tempfile.TemporaryDirectory() as base:
+            dep_a = Path(base) / "dep_a"
+            dep_b = Path(base) / "dep_b"
+            dep_a.mkdir()
+            dep_b.mkdir()
+            (dep_a / "odpm.json").write_text(
+                json.dumps(
+                    {
+                        "dependencies": ["https://github.com/acme/B.git"],
+                        "requirements_txt": ["openupgradelib"],
+                        "odoo_version": "17.0",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            url_a = "https://github.com/acme/A.git"
+            url_b = "https://github.com/acme/B.git"
+
+            def handle_git_link(dependency_string, materialize=False):
+                link = MagicMock()
+                link.is_cloned = dependency_string in (url_a, url_b)
+                if dependency_string == url_a:
+                    link.project_path = str(dep_a)
+                elif dependency_string == url_b:
+                    link.project_path = str(dep_b)
+                else:
+                    link.project_path = ""
+                return link
+
+            config = MagicMock()
+            config.dependencies = [url_a]
+            config.use_oca_dependencies = True
+            config.skip_git_update.return_value = False
+            config.developing_project = MagicMock(project_path="")
+            config.handle_git_link = MagicMock(side_effect=handle_git_link)
+
+            result = self._make_links(config)._resolve_dependencies()
+
+            self.assertEqual(result.urls, [url_a, url_b])
+            self.assertEqual(result.transitive_requirements, ["openupgradelib"])
+            self.assertEqual(len(result.nested_fragments), 1)
+            config.handle_git_link.assert_any_call(url_a, materialize=True)
+
+    def test_discover_dependency_extensions_merges_oca_and_nested_urls(self):
+        with tempfile.TemporaryDirectory() as base:
+            dep_a = Path(base) / "dep_a"
+            dep_a.mkdir()
+            (dep_a / "oca_dependencies.txt").write_text(
+                "https://github.com/OCA/B.git\n",
+                encoding="utf-8",
+            )
+            (dep_a / "odpm.json").write_text(
+                json.dumps(
+                    {
+                        "dependencies": ["https://github.com/acme/C.git"],
+                        "requirements_txt": ["requests"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            url_a = "https://github.com/acme/A.git"
+            url_b = "https://github.com/OCA/B.git"
+            url_c = "https://github.com/acme/C.git"
+
+            def handle_git_link(dependency_string, materialize=False):
+                link = MagicMock()
+                link.is_cloned = dependency_string == url_a
+                link.project_path = str(dep_a) if dependency_string == url_a else ""
+                return link
+
+            config = MagicMock()
+            config.dependencies = [url_a]
+            config.use_oca_dependencies = True
+            config.skip_git_update.return_value = False
+            config.developing_project = MagicMock(project_path="")
+            config.handle_git_link = MagicMock(side_effect=handle_git_link)
+
+            result = self._make_links(config)._resolve_dependencies()
+
+            self.assertEqual(result.urls, [url_a, url_b, url_c])
+            self.assertEqual(result.transitive_requirements, ["requests"])
+
+    def test_discover_dependency_extensions_skips_materialize_when_no_git_update(self):
+        config = MagicMock()
+        config.dependencies = ["https://github.com/acme/A.git"]
+        config.use_oca_dependencies = True
+        config.skip_git_update.return_value = True
+        links = self._make_links(config)
+
+        result = links._resolve_dependencies()
+
+        self.assertEqual(result.urls, config.dependencies)
+        config.handle_git_link.assert_not_called()
+
+    def test_map_folders_skips_rematerialize_when_discovery_enabled(self):
+        url = "https://github.com/acme/A.git"
+        config = MagicMock()
+        config.use_oca_dependencies = True
+        config.skip_git_update.return_value = False
+        config.developing_project = MagicMock(project_path="")
+        config.pre_commit_map_files = []
+        config.odoo_src_dir = "/tmp/odoo"
+        config.venv_dir = "/tmp/venv"
+        config.odoo_tests_dir = "/tmp/tests"
+        config.program_dir = "/tmp/program"
+        config.docker_odoo_dir = "/docker/odoo"
+        config.docker_venv_dir = "/docker/venv"
+        config.docker_temp_tests_dir = "/docker/tests"
+        config.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_backups_dir = "/docker/backups"
+        config.docker_project_dir = "/docker/project"
+        config.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_odoo_project_dir_path = "/docker/project"
+        config.developing_project_dir_path = "/tmp/developing"
+        config.docker_extra_addons = "/docker/addons"
+        config.dependencies_projects = []
+        config.dependencies_dirs = []
+        config.catalogs_of_modules_data = []
+        config.docker_dirs_with_addons = []
+        config.check_project_for_subprojects = MagicMock(return_value=[])
+        dependency = MagicMock(
+            is_cloned=True,
+            project_path="/tmp/dep",
+            inside_docker_path="dep",
+        )
+        dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
+        config.handle_git_link = MagicMock(return_value=dependency)
+        env = MagicMock()
+        env.config = config
+        env.mapped_folders = []
+        links = ProjectLinks(env)
+        links._resolve_dependencies = MagicMock(
+            return_value=DependencyResolutionResult(
+                urls=[url],
+                transitive_requirements=[],
+                nested_fragments=[],
+            )
+        )
+
+        links.map_folders()
+
+        config.handle_git_link.assert_called_once_with(url, materialize=False)
+
+    def test_map_folders_applies_transitive_requirements_from_resolution(self):
+        url = "https://github.com/acme/A.git"
+        fragment = NestedOdpmFragment(
+            dependencies=[],
+            requirements_txt=["openupgradelib"],
+            odoo_version="17.0",
+            python_version="3.12",
+            source_path="/tmp/framework/odpm.json",
+        )
+        config = MagicMock()
+        config.use_oca_dependencies = True
+        config.skip_git_update.return_value = False
+        config.developing_project = MagicMock(project_path="")
+        config.pre_commit_map_files = []
+        config.odoo_src_dir = "/tmp/odoo"
+        config.venv_dir = "/tmp/venv"
+        config.odoo_tests_dir = "/tmp/tests"
+        config.program_dir = "/tmp/program"
+        config.docker_odoo_dir = "/docker/odoo"
+        config.docker_venv_dir = "/docker/venv"
+        config.docker_temp_tests_dir = "/docker/tests"
+        config.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_backups_dir = "/docker/backups"
+        config.docker_project_dir = "/docker/project"
+        config.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_odoo_project_dir_path = "/docker/project"
+        config.developing_project_dir_path = "/tmp/developing"
+        config.docker_extra_addons = "/docker/addons"
+        config.dependencies_projects = []
+        config.dependencies_dirs = []
+        config.catalogs_of_modules_data = []
+        config.docker_dirs_with_addons = []
+        config.check_project_for_subprojects = MagicMock(return_value=[])
+        config.apply_transitive_requirements = MagicMock()
+        dependency = MagicMock(
+            is_cloned=True,
+            project_path="/tmp/dep",
+            inside_docker_path="dep",
+        )
+        dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
+        config.handle_git_link = MagicMock(return_value=dependency)
+        env = MagicMock()
+        env.config = config
+        env.mapped_folders = []
+        links = ProjectLinks(env)
+        links._resolve_dependencies = MagicMock(
+            return_value=DependencyResolutionResult(
+                urls=[url],
+                transitive_requirements=["openupgradelib"],
+                nested_fragments=[fragment],
+            )
+        )
+
+        links.map_folders()
+
+        config.apply_transitive_requirements.assert_called_once_with(
+            ["openupgradelib"],
+            nested_fragments=[fragment],
+        )
+
+    def test_map_folders_skips_apply_when_resolution_has_no_transitive_data(self):
+        url = "https://github.com/acme/A.git"
+        config = MagicMock()
+        config.use_oca_dependencies = False
+        config.skip_git_update.return_value = False
+        config.developing_project = MagicMock(project_path="")
+        config.pre_commit_map_files = []
+        config.odoo_src_dir = "/tmp/odoo"
+        config.venv_dir = "/tmp/venv"
+        config.odoo_tests_dir = "/tmp/tests"
+        config.program_dir = "/tmp/program"
+        config.docker_odoo_dir = "/docker/odoo"
+        config.docker_venv_dir = "/docker/venv"
+        config.docker_temp_tests_dir = "/docker/tests"
+        config.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_backups_dir = "/docker/backups"
+        config.docker_project_dir = "/docker/project"
+        config.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_odoo_project_dir_path = "/docker/project"
+        config.developing_project_dir_path = "/tmp/developing"
+        config.docker_extra_addons = "/docker/addons"
+        config.dependencies_projects = []
+        config.dependencies_dirs = []
+        config.catalogs_of_modules_data = []
+        config.docker_dirs_with_addons = []
+        config.check_project_for_subprojects = MagicMock(return_value=[])
+        config.apply_transitive_requirements = MagicMock()
+        dependency = MagicMock(
+            is_cloned=True,
+            project_path="/tmp/dep",
+            inside_docker_path="dep",
+        )
+        dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
+        config.handle_git_link = MagicMock(return_value=dependency)
+        env = MagicMock()
+        env.config = config
+        env.mapped_folders = []
+        links = ProjectLinks(env)
+        links._resolve_dependencies = MagicMock(
+            return_value=DependencyResolutionResult(
+                urls=[url],
+                transitive_requirements=[],
+                nested_fragments=[],
+            )
+        )
+
+        links.map_folders()
+
+        config.apply_transitive_requirements.assert_not_called()
 
 
 class ProjectLinksUpdateTests(unittest.TestCase):

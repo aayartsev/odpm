@@ -242,7 +242,7 @@ Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_d
 - `dev_mode` - `type: String`. You can specify comma-separated [parameters for developers](https://www.oovoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev). See the official documentation for your version of odoo
 - `db_manager_password` - `type: String`. password for the database manager
 - `sql_queries` - `type: List`. Contains a list of strings, each of which is an SQL script that will be executed when using the command line parameter `--sql-execute`
-- `use_oca_dependencies` - experimental: automatically resolves dependencies from `"oca_dependencies.txt"` (including transitive OCA repos from your developing project and from each dependency) in a **single odpm run**—no second run is required. The default value is `false`
+- `use_oca_dependencies` - experimental dependency discovery (single odpm run, default `false`): reads `oca_dependencies.txt` from the developing project and each checked-out git dependency, **and** nested `odpm.json` at dependency repo roots (`dependencies`, `requirements_txt`). Transitive git URLs are included in the resolved graph and in `.odpm/deps.lock.json` on `--update-lock`. Nested `odoo_version` / `python_version` are checked against the host project (warning in developer scenario, error in CI). Does not override host `odoo_git_link` or platform settings.
 - `create_module_links` - an experimental feature that adds soft links for all modules involved in the project to the `odoo/odoo/addons` directory. This allows the language server to automatically resolve import paths. The default value is `false`.
 
 ## Parameters in odpm.json:
@@ -308,7 +308,7 @@ python3 odpm.py --init git@github.com/org/my_addons.git --branch 17.0 \
 | Parameter | Description |
 |-----------|-------------|
 | `--skip-start` | Regenerate `Dockerfile`, `.dockerignore`, `docker-compose.yml` (and related files) and **do not** start containers. Useful after changing `.env` or scenario. With a committed `.odpm/deps.lock.json`, also checks out pinned git SHAs before compose. |
-| `--update-lock` | Resolve platform, developing (remote git), and **full OCA-resolved** dependency graph; write `.odpm/deps.lock.json`; exit without starting containers (combine with `--skip-start` in CI). |
+| `--update-lock` | Resolve platform, developing (remote git), and **full resolved** dependency graph (OCA + nested `odpm.json`); write `.odpm/deps.lock.json`; exit without starting containers (combine with `--skip-start` in CI). |
 | `--no-git-update` | Skip git clone/fetch/checkout. Lock file is **not** read or updated. Requires existing local repos. |
 | `--version` | Print odpm version and exit. |
 
@@ -353,13 +353,13 @@ Committed lock file with pinned git SHAs (and file-platform fingerprints) for re
 
 | Command | Behavior |
 |---------|----------|
-| `python3 odpm.py --update-lock --skip-start` | Refresh lock from branch tips / current trees; exit without compose up |
+| `python3 odpm.py --update-lock --skip-start` | Refresh lock from branch tips / current trees (full dependency graph including OCA and nested `odpm.json`); exit without compose up |
 | `python3 odpm.py --skip-start` | Normal prepare + checkout **by lock** if file exists |
 | `python3 odpm.py --no-git-update --skip-start` | Offline regenerate Docker files; lock ignored |
 
-After changing `dependencies` or `oca_dependencies.txt`, run `--update-lock` and commit `.odpm/deps.lock.json`.
+After changing `dependencies`, `oca_dependencies.txt`, or nested dependency `odpm.json`, run `--update-lock` and commit `.odpm/deps.lock.json`.
 
-Lock schema (v1): `platform` (required), optional `developing` (remote git only), `dependencies` (full OCA-resolved list). Each entry has `url`, `commit`, optional `branch`, optional `kind` (`git` default, `file` for `file://` platform trees).
+Lock schema (v1): `platform` (required), optional `developing` (remote git only), `dependencies` (full resolved list: seeds, OCA transitive, nested `odpm.json` transitive). Each entry has `url`, `commit`, optional `branch`, optional `kind` (`git` default, `file` for `file://` platform trees).
 
 For `file://` platform trees, `commit` is a content fingerprint (not a git SHA). It is stable when `odoo/release.py` and `odoo-bin` are present; otherwise it may differ across machines or after directory metadata changes — prefer git remotes for CI and team sync when reproducibility matters.
 

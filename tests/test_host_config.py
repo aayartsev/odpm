@@ -12,8 +12,9 @@ from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.loader import ConfigLoader
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
-from dev_project.errors import ConfigError
+from dev_project.errors import ConfigError, PipelineError
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.dependency_resolver import NestedOdpmFragment
 
 
 class ConfigLoaderTests(unittest.TestCase):
@@ -437,6 +438,55 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertEqual(config._project.python_version, "3.12")
         self.assertEqual(config._project.platform_name, "odoo")
         self.assertTrue(config._project_loaded)
+
+
+class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
+    def _config(self, *, scenario: str = constants.DEVELOPER_SCENARIO) -> Config:
+        config = Config.__new__(Config)
+        config._project = ProjectSettingsState(
+            odoo_version="17.0",
+            python_version="3.12",
+            requirements_txt=["requests==2.31.0"],
+        )
+        config.policy = ScenarioPolicy.from_scenario(scenario)
+        return config
+
+    def test_merges_transitive_requirements_and_renormalizes(self):
+        config = self._config()
+        config.apply_transitive_requirements(
+            ["openupgradelib", "requests==2.31.0"],
+        )
+        expected_debugpy = config.policy.debugpy_requirement("3.12")
+        self.assertEqual(
+            config.requirements_txt,
+            ["requests==2.31.0", "openupgradelib", expected_debugpy],
+        )
+
+    def test_version_mismatch_warns_in_developer_scenario(self):
+        config = self._config()
+        fragment = NestedOdpmFragment(
+            dependencies=[],
+            requirements_txt=[],
+            odoo_version="19.0",
+            python_version=None,
+            source_path="/tmp/framework/odpm.json",
+        )
+        with patch("dev_project.config.config._logger") as mock_logger:
+            config.apply_transitive_requirements([], nested_fragments=[fragment])
+        mock_logger.warning.assert_called_once()
+        mock_logger.error.assert_not_called()
+
+    def test_version_mismatch_fails_in_ci_scenario(self):
+        config = self._config(scenario=constants.CI_SCENARIO)
+        fragment = NestedOdpmFragment(
+            dependencies=[],
+            requirements_txt=[],
+            odoo_version="19.0",
+            python_version=None,
+            source_path="/tmp/framework/odpm.json",
+        )
+        with self.assertRaises(PipelineError):
+            config.apply_transitive_requirements([], nested_fragments=[fragment])
 
 
 if __name__ == "__main__":

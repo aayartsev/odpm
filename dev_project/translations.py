@@ -96,8 +96,22 @@ BUILD_IMAGE_REQUIRES_CI_SCENARIO = (
 COMPOSE_UP_FAILED = "docker compose up failed with exit code {EXIT_CODE}"
 DOCKER_BUILD_FAILED = "docker build failed with exit code {EXIT_CODE}"
 OCA_DEPENDENCY_NOT_CLONED = (
-    "OCA dependency {DEPENDENCY_URL} is not available locally; "
-    "transitive oca_dependencies.txt entries will be skipped"
+    "Git dependency {DEPENDENCY_URL} is not available locally; "
+    "transitive entries from oca_dependencies.txt and nested odpm.json will be skipped"
+)
+NESTED_ODPM_ODOO_VERSION_MISMATCH = (
+    "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, "
+    "host project uses {HOST_VERSION}"
+)
+NESTED_ODPM_PYTHON_VERSION_MISMATCH = (
+    "Nested odpm.json at {MANIFEST_PATH} declares python_version {NESTED_VERSION}, "
+    "host project uses {HOST_VERSION}"
+)
+NESTED_ODPM_READ_FAILED = (
+    "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
+)
+NESTED_ODPM_NOT_OBJECT = (
+    "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object"
 )
 PROJECT_PATH_IN_START_DIR_PATH = """Directory {START_DIR_PATH} is not a valid odpm project directory. Please run "cd {PROJECT_PATH}" to navigate to the correct location."""
 
@@ -264,8 +278,31 @@ translations = {
     },
     OCA_DEPENDENCY_NOT_CLONED: {
         "ru_RU": (
-            "OCA-зависимость {DEPENDENCY_URL} недоступна локально; "
-            "транзитивные записи из oca_dependencies.txt будут пропущены"
+            "Git-зависимость {DEPENDENCY_URL} недоступна локально; "
+            "транзитивные записи из oca_dependencies.txt и вложенного odpm.json "
+            "будут пропущены"
+        ),
+    },
+    NESTED_ODPM_ODOO_VERSION_MISMATCH: {
+        "ru_RU": (
+            "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, "
+            "в host-проекте используется {HOST_VERSION}"
+        ),
+    },
+    NESTED_ODPM_PYTHON_VERSION_MISMATCH: {
+        "ru_RU": (
+            "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_version {NESTED_VERSION}, "
+            "в host-проекте используется {HOST_VERSION}"
+        ),
+    },
+    NESTED_ODPM_READ_FAILED: {
+        "ru_RU": (
+            "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
+        ),
+    },
+    NESTED_ODPM_NOT_OBJECT: {
+        "ru_RU": (
+            "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен быть JSON-объектом"
         ),
     },
     PROJECT_PATH_IN_START_DIR_PATH: {
