@@ -25,7 +25,9 @@ Use `odpm` after `pip install`, or `python3 "$ODPM_REPO/odpm.py"` in legacy copy
 
 ## 2A — Unit baseline (odpm repository)
 
-Run from **`$ODPM_REPO`**:
+Automated on every push/PR to `4.0-beta` or `main`: GitHub Actions workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Python 3.10 and 3.12).
+
+Run locally from **`$ODPM_REPO`**:
 
 ```bash
 cd "$ODPM_REPO"
@@ -34,6 +36,7 @@ python3 -m unittest discover -s tests -p "test_*.py"
 
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
+| GitHub Actions `CI` | Green on push/PR; same command as local §2A | | |
 | Test suite | All tests OK; 5 skipped (opt-in Docker integration unless `ODPM_RUN_DOCKER_INTEGRATION=1`) | | |
 | Test count | 531 tests OK (5 skipped); re-run after adding tests | | |
 

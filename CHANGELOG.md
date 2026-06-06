@@ -69,6 +69,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 #### Quality assurance
 
 - **531 tests** in `unittest discover` (5 skipped opt-in Docker integration tests by default).
+- **GitHub Actions CI** (`.github/workflows/ci.yml`) — unit suite on every push/PR to `4.0-beta` and `main` (Python 3.10 and 3.12); manual re-run via **workflow_dispatch**.
 - **Opt-in Docker integration tests:** CI image build, golden-path compose + HTTP 200 (`ODPM_RUN_DOCKER_INTEGRATION=1`).
 - **Scripts:** `scripts/verify_ci_scenario.sh`, `scripts/run_golden_path_test.sh`, `scripts/verify_dev_mode_flags.sh`, `scripts/verify_dev_mode_autoreload.sh`.
 

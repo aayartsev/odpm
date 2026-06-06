@@ -1,3 +1,4 @@
+[![CI](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml)
 [![ru](https://img.shields.io/badge/lang-ru-green.svg)](https://github.com/aayartsev/odoo_dev_project/blob/3.0/README-RU.MD)
 
 # Odoo Developers Project Manager
@@ -49,6 +50,20 @@ python3 /path/to/odoo_dev_project/odpm.py --version
 ```
 
 Both installation modes are supported.
+
+## Repository tests
+
+Unit tests run on every push and pull request to `4.0-beta` and `main` via [GitHub Actions](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml) (Python 3.10 and 3.12). The status badge at the top of this file reflects the latest run on `4.0-beta` after the workflow has been pushed at least once.
+
+Local run (same command as CI):
+
+```bash
+cd /path/to/odoo_dev_project
+pip install -e .
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+Expect **531** tests passed and **5** skipped (Docker integration tests unless `ODPM_RUN_DOCKER_INTEGRATION=1`). Re-run manually in GitHub: **Actions → CI → Run workflow**.
 
 
 ## How to start work

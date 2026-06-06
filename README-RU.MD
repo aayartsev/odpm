@@ -1,3 +1,4 @@
+[![CI](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml)
 [![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/aayartsev/odoo_dev_project/blob/3.0/README.MD)
 
 # Менеджер для разработки проектов на odoo (Odoo Developer Project Manager)
@@ -50,6 +51,20 @@ python3 /path/to/odoo_dev_project/odpm.py --version
 ```
 
 Оба способа установки поддерживаются.
+
+## Тесты репозитория
+
+Unit-тесты запускаются при каждом push и pull request в ветки `4.0-beta` и `main` через [GitHub Actions](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml) (Python 3.10 и 3.12). Badge в начале файла показывает статус последнего прогона на `4.0-beta` после того, как workflow хотя бы раз отработал на удалённой ветке.
+
+Локально (та же команда, что в CI):
+
+```bash
+cd /path/to/odoo_dev_project
+pip install -e .
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+Ожидается **531** passed и **5** skipped (интеграционные Docker-тесты без `ODPM_RUN_DOCKER_INTEGRATION=1`). Повторный запуск в GitHub: **Actions → CI → Run workflow**.
 
 
 ## Как начать работать
