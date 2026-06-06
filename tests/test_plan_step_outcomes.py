@@ -1,0 +1,123 @@
+"""Tests for plan step outcome evaluation helpers."""
+
+import tempfile
+import unittest
+from argparse import Namespace
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from dev_project import constants
+from dev_project.plan import PlanStep
+from dev_project.plan_compose_preview import (
+    compose_service_needs_update,
+    vscode_settings_up_to_date,
+)
+from dev_project.prepare_registry import (
+    _evaluate_compose_generate,
+    _evaluate_compose_service,
+    make_prepare_context,
+)
+from dev_project.scenario_policy import ScenarioPolicy
+
+
+class PlanComposePreviewTests(unittest.TestCase):
+    def _config(self, project_dir: str) -> MagicMock:
+        config = MagicMock()
+        config.project_dir = project_dir
+        config.arguments = Namespace()
+        config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        config.compute_venv_lock_hash.return_value = "hash"
+        config.python_version = "3.12"
+        return config
+
+    def test_compose_service_noop_when_runtime_hash_matches(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            runtime_dir = tmp + "/" + constants.ODPM_RUNTIME_DIR_REL_PATH
+            import os
+            from pathlib import Path
+
+            Path(runtime_dir).mkdir(parents=True)
+            Path(runtime_dir, "config.json").write_text(
+                '{"venv_lock_hash": "hash"}',
+                encoding="utf-8",
+            )
+            ctx = make_prepare_context(
+                self._config(tmp),
+                MagicMock(),
+                MagicMock(),
+                Namespace(),
+            )
+            needs_update, reason = compose_service_needs_update(ctx)
+            self.assertFalse(needs_update)
+            self.assertIn("unchanged", reason)
+
+    def test_vscode_settings_noop_when_files_exist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            from pathlib import Path
+
+            vscode_dir = Path(tmp) / ".vscode"
+            vscode_dir.mkdir()
+            (vscode_dir / "settings.json").write_text('{"python": "3.12"}', encoding="utf-8")
+            (vscode_dir / "launch.json").write_text("{}", encoding="utf-8")
+            config = self._config(tmp)
+            self.assertTrue(vscode_settings_up_to_date(config))
+
+
+class ComposeGenerateOutcomeTests(unittest.TestCase):
+    @patch(
+        "dev_project.prepare_registry.compose_generate_needs_execute",
+        return_value=(False, "docker-compose.yml matches preview"),
+    )
+    def test_compose_generate_noop_when_preview_matches(self, _mock_generate):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = MagicMock()
+            config.project_dir = tmp
+            ctx = make_prepare_context(
+                config,
+                MagicMock(),
+                MagicMock(),
+                Namespace(),
+            )
+            step = _evaluate_compose_generate(ctx)
+            self.assertEqual(step.outcome, "noop")
+            self.assertEqual(step.reason, "docker-compose.yml matches preview")
+
+
+class ComposeServiceGenerateAlignmentTests(unittest.TestCase):
+    def test_compose_service_runs_when_generate_needs_missing_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            from tests.plan_smoke_helpers import seed_migrated_project_layout
+
+            seed_migrated_project_layout(Path(tmp), include_root_compose=False)
+            config = MagicMock()
+            config.project_dir = tmp
+            config.arguments = Namespace()
+            config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+            config.compute_venv_lock_hash.return_value = "hash"
+            ctx = make_prepare_context(config, MagicMock(), MagicMock(), Namespace())
+            service = _evaluate_compose_service(ctx)
+            generate = _evaluate_compose_generate(ctx)
+            self.assertEqual(service.outcome, "run")
+            self.assertEqual(generate.outcome, "update")
+            self.assertTrue(service.should_execute())
+            self.assertTrue(generate.should_execute())
+
+
+class PlanStepTests(unittest.TestCase):
+    def test_should_execute_for_run_and_update_only(self):
+        self.assertTrue(
+            PlanStep("id", "desc", "run", True, "reason").should_execute()
+        )
+        self.assertTrue(
+            PlanStep("id", "desc", "update", True, "reason").should_execute()
+        )
+        self.assertFalse(
+            PlanStep("id", "desc", "noop", True, "reason").should_execute()
+        )
+        self.assertFalse(
+            PlanStep("id", "desc", "skip", False, "reason").should_execute()
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

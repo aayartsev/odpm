@@ -7,7 +7,7 @@ import os
 from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
 from . import constants
 from .config.payload import runtime_config_path
@@ -18,12 +18,24 @@ from .project_env.base_image_identity import base_image_identity_matches
 if TYPE_CHECKING:
     from .config import Config
 
+PlanStepOutcome = Literal["run", "update", "noop", "skip"]
+
 
 @dataclass(frozen=True)
 class PlanStep:
     id: str
-    action: str
+    description: str
+    outcome: PlanStepOutcome
     required: bool
+    reason: str
+
+    @property
+    def action(self) -> str:
+        """Backward-compatible alias for the step description."""
+        return self.description
+
+    def should_execute(self) -> bool:
+        return self.outcome in ("run", "update")
 
 
 @dataclass(frozen=True)
@@ -81,11 +93,19 @@ class OdpmPlanner:
         return build_plan(config, args)
 
 
+def _format_required(step: PlanStep) -> str:
+    if step.outcome in ("noop", "skip"):
+        return "-"
+    return "yes" if step.required else "no"
+
+
 def format_plan(plan: OdpmPlan) -> str:
-    lines = ["ID                     Required  Action", "-" * 72]
+    lines = ["Action   Required  ID                    Reason", "-" * 72]
     for step in plan.steps:
-        flag = "yes" if step.required else "no"
-        lines.append(f"{step.id:<22} {flag:<8}  {step.action}")
+        lines.append(
+            f"{step.outcome.upper():<8} {_format_required(step):<8}  "
+            f"{step.id:<22} {step.reason}"
+        )
     if plan.warnings:
         lines.append("")
         lines.append("Warnings:")

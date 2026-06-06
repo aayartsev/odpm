@@ -60,7 +60,7 @@ class ComposeGenerator:
             return ""
         return "    volumes:\n" + "\n".join(volume_lines) + "\n"
 
-    def generate_docker_compose_file(self) -> None:
+    def render_docker_compose_content(self) -> str:
         docker_compose_template_path = os.path.join(
             self.config.project_dir,
             constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
@@ -122,10 +122,13 @@ class ComposeGenerator:
             POSTGRES_DATA_LOCAL_STORAGE=self.config.postgres_data_local_storage,
             DEBUGGER_PORT_MAP=debugger_port_map,
         )
-        content = content.replace(
+        return content.replace(
             constants.MESSAGE_MARKER,
             translations.get_translation(translations.DO_NOT_CHANGE_FILE),
         )
+
+    def generate_docker_compose_file(self) -> None:
+        content = self.render_docker_compose_content()
         docker_compose_path = os.path.join(self.config.project_dir, "docker-compose.yml")
         with open(docker_compose_path, "w") as writer:
             writer.write(content)

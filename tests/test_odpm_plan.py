@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.plan import (
     OdpmPlanner,
+    PlanStep,
     deps_lock_file_exists,
     format_plan,
     project_template_needs_upgrade,
@@ -17,7 +18,8 @@ from dev_project.plan import (
 )
 from dev_project.prepare_registry import (
     build_prepare_plan,
-    collect_prepare_step_ids,
+    collect_execute_step_ids,
+    evaluate_prepare_plan,
     make_prepare_context,
 )
 from dev_project.project_materializer import ProjectMaterializer
@@ -79,14 +81,18 @@ class OdpmPlannerTests(unittest.TestCase):
         config.compute_venv_lock_hash.return_value = "hash"
         return config
 
+    def _step(self, plan, step_id: str) -> PlanStep:
+        return next(step for step in plan.steps if step.id == step_id)
+
     def test_plan_materialize_git_by_default(self):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
             plan = OdpmPlanner.build(config, Namespace())
-            step_ids = [step.id for step in plan.steps]
-            self.assertIn("git.materialize", step_ids)
-            self.assertNotIn("git.ensure_present", step_ids)
-            self.assertIn("compose.up", step_ids)
+            materialize = self._step(plan, "git.materialize")
+            ensure = self._step(plan, "git.ensure_present")
+            self.assertEqual(materialize.outcome, "run")
+            self.assertEqual(ensure.outcome, "skip")
+            self.assertEqual(self._step(plan, "compose.up").outcome, "run")
 
     def test_plan_ensure_git_when_no_git_update(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -95,19 +101,17 @@ class OdpmPlannerTests(unittest.TestCase):
                 args=Namespace(no_git_update=True),
             )
             plan = OdpmPlanner.build(config, Namespace(no_git_update=True))
-            step_ids = [step.id for step in plan.steps]
-            self.assertIn("git.ensure_present", step_ids)
-            self.assertNotIn("git.materialize", step_ids)
-            self.assertNotIn("git.checkout", step_ids)
+            self.assertEqual(self._step(plan, "git.ensure_present").outcome, "run")
+            self.assertEqual(self._step(plan, "git.materialize").outcome, "skip")
+            self.assertEqual(self._step(plan, "git.checkout").outcome, "skip")
 
     def test_plan_update_lock_step(self):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
             plan = OdpmPlanner.build(config, Namespace(update_lock=True))
-            step_ids = [step.id for step in plan.steps]
-            self.assertIn("git.materialize", step_ids)
-            self.assertIn("git.lock_collect", step_ids)
-            self.assertNotIn("compose.up", step_ids)
+            self.assertEqual(self._step(plan, "git.materialize").outcome, "run")
+            self.assertEqual(self._step(plan, "git.lock_collect").outcome, "update")
+            self.assertFalse(any(step.id == "compose.up" for step in plan.steps))
 
     def test_plan_warns_on_update_lock_with_no_git_update(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -120,7 +124,7 @@ class OdpmPlannerTests(unittest.TestCase):
                 any("cannot be used together" in warning for warning in plan.warnings)
             )
 
-    def test_plan_includes_lock_apply_when_lock_file_exists(self):
+    def test_plan_lock_apply_is_run_when_lock_file_exists(self):
         with tempfile.TemporaryDirectory() as tmp:
             lock_path = Path(tmp) / constants.DEPS_LOCK_REL_PATH
             lock_path.parent.mkdir(parents=True)
@@ -128,23 +132,47 @@ class OdpmPlannerTests(unittest.TestCase):
             self.assertTrue(deps_lock_file_exists(tmp))
             config = self._config(project_dir=tmp)
             plan = OdpmPlanner.build(config, Namespace())
-            self.assertIn("git.lock_apply", [step.id for step in plan.steps])
+            self.assertEqual(self._step(plan, "git.lock_apply").outcome, "run")
+
+    def test_plan_shows_compose_noop_when_runtime_fresh_and_compose_present(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            from tests.plan_smoke_helpers import seed_migrated_project_layout
+
+            seed_migrated_project_layout(Path(tmp))
+            config = self._config(project_dir=tmp)
+            plan = OdpmPlanner.build(config, Namespace())
+            self.assertEqual(self._step(plan, "template.dockerfile").outcome, "update")
+            self.assertEqual(self._step(plan, "compose.service").outcome, "noop")
+            self.assertEqual(self._step(plan, "compose.generate").outcome, "noop")
 
     def test_format_plan_renders_table(self):
-        from dev_project.plan import OdpmPlan, PlanStep
+        from dev_project.plan import OdpmPlan
 
         text = format_plan(
             OdpmPlan(
                 steps=(
-                    PlanStep("git.materialize", "Clone git repos", True),
-                    PlanStep("vscode.settings", "Update VS Code", False),
+                    PlanStep(
+                        "git.materialize",
+                        "Clone git repos",
+                        "run",
+                        True,
+                        "clone or update git repos",
+                    ),
+                    PlanStep(
+                        "vscode.settings",
+                        "Update VS Code",
+                        "noop",
+                        False,
+                        "VS Code settings already present",
+                    ),
                 ),
                 warnings=("example warning",),
             )
         )
+        self.assertIn("Action   Required  ID", text)
+        self.assertIn("RUN", text)
+        self.assertIn("NOOP", text)
         self.assertIn("git.materialize", text)
-        self.assertIn("yes", text)
-        self.assertIn("no", text)
         self.assertIn("example warning", text)
 
 
@@ -160,17 +188,15 @@ class PrepareRegistryContractTests(unittest.TestCase):
         config.compute_venv_lock_hash.return_value = "hash"
         return config
 
-    def _prepare_step_ids(self, args: Namespace, project_dir: str) -> list[str]:
-        ctx = make_prepare_context(
+    def _ctx(self, args: Namespace, project_dir: str):
+        return make_prepare_context(
             self._config(project_dir=project_dir),
             MagicMock(),
             MagicMock(),
             args,
         )
-        plan = build_prepare_plan(ctx)
-        return [step.id for step in plan.steps]
 
-    def test_prepare_plan_matches_registry_order(self):
+    def test_execute_ids_are_run_or_update_subset_of_plan(self):
         scenarios = (
             Namespace(),
             Namespace(no_git_update=True),
@@ -178,45 +204,72 @@ class PrepareRegistryContractTests(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmp:
             for args in scenarios:
-                ctx = make_prepare_context(
-                    self._config(project_dir=tmp),
-                    MagicMock(),
-                    MagicMock(),
-                    args,
+                ctx = self._ctx(args, tmp)
+                plan_steps = evaluate_prepare_plan(ctx)
+                execute_ids = list(collect_execute_step_ids(ctx))
+                plan_by_id = {step.id: step for step in plan_steps}
+                self.assertEqual(len(plan_steps), len(PREPARE_STEP_IDS))
+                for step_id in execute_ids:
+                    self.assertIn(step_id, plan_by_id)
+                    self.assertTrue(plan_by_id[step_id].should_execute())
+                self.assertEqual(
+                    execute_ids,
+                    [step.id for step in plan_steps if step.should_execute()],
                 )
-                plan_ids = [step.id for step in build_prepare_plan(ctx).steps]
-                registry_ids = list(collect_prepare_step_ids(ctx))
-                self.assertEqual(plan_ids, registry_ids)
 
     def test_lock_apply_follows_map_folders(self):
         with tempfile.TemporaryDirectory() as tmp:
             lock_path = Path(tmp) / constants.DEPS_LOCK_REL_PATH
             lock_path.parent.mkdir(parents=True)
             lock_path.write_text('{"schema_version": 1}', encoding="utf-8")
-            step_ids = self._prepare_step_ids(Namespace(), tmp)
-            self.assertIn("git.lock_apply", step_ids)
+            ctx = self._ctx(Namespace(), tmp)
+            step_ids = [step.id for step in evaluate_prepare_plan(ctx)]
+            self.assertEqual(self._step_outcome(ctx, "git.lock_apply"), "run")
             self.assertLess(
                 step_ids.index("project.map_folders"),
                 step_ids.index("git.lock_apply"),
             )
 
-    def test_stale_runtime_config_uses_compose_service_split(self):
+    def test_stale_runtime_config_marks_compose_service_update(self):
         with tempfile.TemporaryDirectory() as tmp:
-            step_ids = self._prepare_step_ids(Namespace(), tmp)
-            self.assertIn("venv.runtime_config", step_ids)
-            self.assertNotIn("compose.service", step_ids)
+            ctx = self._ctx(Namespace(), tmp)
+            self.assertEqual(self._step_outcome(ctx, "compose.service"), "update")
+            self.assertNotIn("venv.runtime_config", collect_execute_step_ids(ctx))
 
-    def test_fresh_runtime_config_uses_compose_service_only(self):
+    def test_fresh_runtime_config_marks_compose_service_noop(self):
         with tempfile.TemporaryDirectory() as tmp:
-            runtime_dir = Path(tmp) / constants.ODPM_RUNTIME_DIR_REL_PATH
-            runtime_dir.mkdir(parents=True)
-            (runtime_dir / "config.json").write_text(
-                '{"venv_lock_hash": "hash"}',
-                encoding="utf-8",
-            )
-            step_ids = self._prepare_step_ids(Namespace(), tmp)
-            self.assertIn("compose.service", step_ids)
-            self.assertNotIn("venv.runtime_config", step_ids)
+            from tests.plan_smoke_helpers import seed_migrated_project_layout
+
+            seed_migrated_project_layout(Path(tmp))
+            ctx = self._ctx(Namespace(), tmp)
+            self.assertEqual(self._step_outcome(ctx, "compose.service"), "noop")
+            self.assertEqual(self._step_outcome(ctx, "compose.generate"), "noop")
+
+    def _step_outcome(self, ctx, step_id: str) -> str:
+        return next(
+            step.outcome for step in evaluate_prepare_plan(ctx) if step.id == step_id
+        )
+
+
+PREPARE_STEP_IDS = [
+    "git.lock_load",
+    "git.ensure_present",
+    "git.materialize",
+    "project.map_folders",
+    "git.lock_apply",
+    "template.dockerfile",
+    "template.dockerignore",
+    "docker.engine.check",
+    "template.odoo_conf",
+    "compose.template",
+    "compose.service",
+    "compose.generate",
+    "compose.validate",
+    "git.checkout",
+    "git.lock_collect",
+    "git.lock_verify",
+    "project.update_links",
+]
 
 
 class ProjectMaterializerDryRunTests(unittest.TestCase):

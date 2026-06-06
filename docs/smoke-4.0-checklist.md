@@ -66,6 +66,35 @@ curl -sf "http://127.0.0.1:${ODOO_PORT:-8069}/web"
 
 ---
 
+## 2B+ — Plan dry-run (`odpm --plan`)
+
+Run on the same migrated project as **2B** after templates are in place:
+
+```bash
+cd "$ODPM_PROJECT"
+odpm --plan --skip-start
+# or: python3 "$ODPM_REPO/odpm.py" --plan --skip-start
+```
+
+| Check | Expected | Result | Date |
+|-------|----------|--------|------|
+| Exit code | 0 | | |
+| Table header | `Action   Required  ID                    Reason` | | |
+| Git branch | `RUN git.materialize` or `SKIP`/`RUN` for `--no-git-update` / `--update-lock` | | |
+| Idle project | `NOOP compose.service` and `NOOP compose.generate` when runtime hash matches and root `docker-compose.yml` exists | | |
+| Stale runtime | `UPDATE compose.service` with reason `venv_lock_hash changed` after venv/scenario change | | |
+| Missing compose | `RUN compose.service` + `UPDATE compose.generate` when root `docker-compose.yml` is absent | | |
+| Warnings | Compose recreate note when `compose.up` would run; lock warnings when applicable | | |
+
+Automated analogue (repository tests):
+
+```bash
+cd "$ODPM_REPO"
+python3 -m unittest tests.test_odpm_plan_smoke -v
+```
+
+---
+
 ## 2C — Golden path E2E (opt-in integration)
 
 Requires Docker and an **initialized** project at `$ODPM_GOLDEN_PATH_PROJECT` (same as `$ODPM_PROJECT`).
