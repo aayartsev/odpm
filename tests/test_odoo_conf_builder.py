@@ -5,7 +5,10 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
-from dev_project.config.odoo_conf import OdooConfBuilder
+from dev_project.config.odoo_conf import (
+    OdooConfBuilder,
+    odoo_conf_on_disk_needs_regeneration,
+)
 from dev_project.config.types import SubProject
 
 
@@ -64,6 +67,30 @@ class OdooConfBuilderTests(unittest.TestCase):
                 config.odoo_config_data["options"]["data_dir"],
                 "/home/odoo/.local/share/Odoo",
             )
+
+    def test_odoo_conf_on_disk_needs_regeneration_when_db_host_missing(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            conf_path = Path(project_dir) / constants.ODOO_CONF_NAME
+            conf_path.write_text("[options]\nadmin_passwd = admin\n", encoding="utf-8")
+            self.assertTrue(odoo_conf_on_disk_needs_regeneration(str(conf_path)))
+
+    def test_odoo_conf_on_disk_needs_regeneration_when_db_settings_present(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            conf_path = Path(project_dir) / constants.ODOO_CONF_NAME
+            conf_path.write_text(
+                "\n".join(
+                    [
+                        "[options]",
+                        "db_host = db",
+                        "db_port = 5432",
+                        "db_user = odoo",
+                        "db_password = odoo",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertFalse(odoo_conf_on_disk_needs_regeneration(str(conf_path)))
 
     def test_populate_addons_paths_without_subprojects_uses_project_dir(self):
         config = MagicMock()

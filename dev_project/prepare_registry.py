@@ -271,25 +271,34 @@ def _evaluate_docker_engine_check(ctx: PrepareContext) -> PlanStep:
 
 
 def _evaluate_template_odoo_conf(ctx: PrepareContext) -> PlanStep:
-    description = "Regenerate .odpm/dev_odoo_docker_config_file.conf template"
-    if project_template_needs_upgrade(
+    from .config.odoo_conf import odoo_conf_on_disk_needs_regeneration
+
+    description = "Regenerate project odoo.conf from .odpm template"
+    template_stale = project_template_needs_upgrade(
         ctx.config.project_dir,
         constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH,
         constants.ODOO_CONFIG_TEMPLATE_MARKERS,
-    ):
+    )
+    conf_stale = odoo_conf_on_disk_needs_regeneration(ctx.config.path_odoo_conf)
+    if template_stale or conf_stale:
+        reason = (
+            "odoo config template stale"
+            if template_stale
+            else "odoo.conf missing db settings"
+        )
         return _step(
             "template.odoo_conf",
             description,
             "update",
             True,
-            "odoo config template stale",
+            reason,
         )
     return _step(
         "template.odoo_conf",
         description,
         "noop",
         True,
-        "odoo config template up to date",
+        "odoo.conf and template up to date",
     )
 
 

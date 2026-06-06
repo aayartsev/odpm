@@ -12,6 +12,32 @@ from .types import SubProject
 if TYPE_CHECKING:
     from .config import Config
 
+_REQUIRED_DB_OPTION_KEYS = ("db_host", "db_port", "db_user", "db_password")
+_UNRESOLVED_DB_MARKERS = (
+    constants.POSTGRES_ODOO_HOST_MARKER,
+    constants.POSTGRES_ODOO_USER_MARKER,
+    constants.POSTGRES_ODOO_PASS_MARKER,
+    constants.POSTGRES_ODOO_PORT_MARKER,
+)
+
+
+def odoo_conf_on_disk_needs_regeneration(path: str) -> bool:
+    if not isinstance(path, str) or not path or not os.path.isfile(path):
+        return True
+    try:
+        with open(path, encoding="utf-8") as reader:
+            content = reader.read()
+    except OSError:
+        return True
+    if any(marker in content for marker in _UNRESOLVED_DB_MARKERS):
+        return True
+    parser = configparser.ConfigParser()
+    parser.read(path)
+    if "options" not in parser:
+        return True
+    options = parser["options"]
+    return any(not options.get(key) for key in _REQUIRED_DB_OPTION_KEYS)
+
 
 class OdooConfBuilder:
     def __init__(self, config: Config) -> None:

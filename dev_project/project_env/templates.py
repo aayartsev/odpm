@@ -5,6 +5,7 @@ import os
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
+from ..config.odoo_conf import odoo_conf_on_disk_needs_regeneration
 from .types import DebuggerPathRecord, DebuggerUnit
 
 if TYPE_CHECKING:
@@ -145,7 +146,7 @@ class ProjectTemplates:
             constants.ODOO_PORT_MARKER: str(constants.ODOO_DOCKER_PORT),
         }.items():
             content = content.replace(replace_phrase[0], replace_phrase[1])
-        if not os.path.exists(
+        if odoo_conf_on_disk_needs_regeneration(
             self.config.path_odoo_conf
         ) or self.config.pd_manager.check_project_odoo_config_template(
             config_file_template_path
