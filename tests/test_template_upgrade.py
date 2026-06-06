@@ -57,6 +57,36 @@ class TemplateNeedsUpgradeTests(unittest.TestCase):
                 template_needs_upgrade(str(path), constants.DOCKERFILE_TEMPLATE_MARKERS)
             )
 
+    def test_current_compose_template_does_not_need_upgrade(self):
+        program_template = (
+            Path(__file__).resolve().parent.parent
+            / constants.PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH
+        )
+        self.assertFalse(
+            template_needs_upgrade(
+                str(program_template), constants.COMPOSE_TEMPLATE_MARKERS
+            )
+        )
+
+    def test_legacy_compose_template_needs_upgrade(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "docker-compose.yml"
+            path.write_text(
+                "\n".join(
+                    [
+                        "services:",
+                        "  odoo:",
+                        "    command: {START_STRING}",
+                        "{MAPPED_VOLUMES}",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(
+                template_needs_upgrade(str(path), constants.COMPOSE_TEMPLATE_MARKERS)
+            )
+
 
 class EnsureProjectTemplateTests(unittest.TestCase):
     def _program_dir(self) -> str:
@@ -100,6 +130,36 @@ class EnsureProjectTemplateTests(unittest.TestCase):
 
             content = project_template.read_text(encoding="utf-8")
             self.assertIn("{PYTHON_VERSION}", content)
+
+    def test_rebuild_docker_compose_upgrades_legacy_project_template(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            project_template = (
+                Path(project_dir)
+                / constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH
+            )
+            project_template.write_text(
+                "\n".join(
+                    [
+                        "services:",
+                        "  odoo:",
+                        "    user: {COMPOSE_USER}",
+                        "    command: {START_STRING}",
+                        "{MAPPED_VOLUMES}",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            manager.rebuild_docker_compose_template()
+
+            content = project_template.read_text(encoding="utf-8")
+            self.assertIn("{START_COMMAND_BLOCK}", content)
+            self.assertIn("{ODPM_CONFIG_PATH_ENV_LINE}", content)
+            self.assertIn("{ODOO_VOLUMES_BLOCK}", content)
+            self.assertNotIn("{START_STRING}", content)
+            self.assertNotIn("{ODPM_CONFIG_ENV_LINE}", content)
 
 
 if __name__ == "__main__":

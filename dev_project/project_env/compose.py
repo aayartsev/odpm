@@ -93,13 +93,6 @@ class ComposeGenerator:
                 constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
             )
 
-        legacy_mapped_volumes = "\n"
-        if policy.include_odoo_volumes:
-            for mapped_volume in self.env.mapped_folders:
-                legacy_mapped_volumes += (
-                    " " * 6 + f"- {mapped_volume.local}:{mapped_volume.docker}:Z\n"
-                )
-
         compose_user = policy.runtime_unix_user()
         content = "".join(lines).format(
             ODOO_IMAGE=odoo_image,
@@ -113,8 +106,6 @@ class ComposeGenerator:
             START_COMMAND_BLOCK=render_compose_command_block(
                 compose_service.command
             ),
-            START_STRING="",
-            ODPM_CONFIG_ENV_LINE="",
             COMPOSE_USER=compose_user,
             CONTAINER_USER=compose_user,
             CONTAINER_PASSWORD=constants.CONTAINER_PASSWORD,
@@ -130,7 +121,6 @@ class ComposeGenerator:
             POSTGRES_VERSION=self.config.postgres_version,
             POSTGRES_DATA_LOCAL_STORAGE=self.config.postgres_data_local_storage,
             DEBUGGER_PORT_MAP=debugger_port_map,
-            MAPPED_VOLUMES=legacy_mapped_volumes,
         )
         content = content.replace(
             constants.MESSAGE_MARKER,
