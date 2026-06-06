@@ -36,6 +36,17 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertFalse(hasattr(Config, "system_checker"))
 
+    def test_config_runtime_fields_are_properties(self):
+        from dev_project.config import Config
+
+        for name in (
+            "compose_service",
+            "container_run_mode",
+            "no_log_prefix",
+            "docker_compose_command",
+        ):
+            self.assertIsInstance(getattr(Config, name), property)
+
     def test_project_env_package_imports(self):
         from dev_project import project_env as project_env_module
 
@@ -60,6 +71,11 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         from dev_project import host_context as host_context_module
 
         self.assertTrue(hasattr(host_context_module, "HostProjectContext"))
+
+    def test_host_runtime_imports(self):
+        from dev_project import host_runtime as host_runtime_module
+
+        self.assertTrue(hasattr(host_runtime_module, "HostRuntimeState"))
 
     def test_run_odoo_entrypoint_imports(self):
         from dev_project.inside_docker_app import run_odoo as run_odoo_module

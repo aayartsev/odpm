@@ -7,6 +7,7 @@ from ..dependency_resolver import NestedOdpmFragment
 from ..errors import ConfigError, PipelineError
 from ..git import HandleOdooProjectLink
 from ..git.developing_repo_materializer import DevelopingRepoMaterializer
+from ..host_runtime import HostRuntimeState
 from ..host_user_env import CreateUserEnvironment
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
@@ -93,7 +94,6 @@ class Config:
     dependencies_dir = _slice_property("_docker", "dependencies_dir")
     odoo_tests_dir = _slice_property("_docker", "odoo_tests_dir")
     compose_file_version = _slice_property("_docker", "compose_file_version")
-    docker_compose_command = _slice_property("_docker", "docker_compose_command")
     docker_odoo_project_dir_path = _slice_property("_docker", "docker_odoo_project_dir_path")
     list_for_symlinks = _slice_property("_docker", "list_for_symlinks")
     docker_dirs_with_addons = _slice_property("_docker", "docker_dirs_with_addons")
@@ -141,11 +141,9 @@ class Config:
         self.repo_odpm_json = ""
         self.dockerfile_path = ""
         self.config_json_loaded = False
-        self.compose_service: ComposeOdooService | None = None
-        self.container_run_mode = constants.RUN_MODE_ODOO
+        self._runtime = HostRuntimeState()
         self.project_dir = self.pd_manager.project_path
         self.config_home_dir = self.pd_manager.home_config_dir
-        self.no_log_prefix = False
         self.user_env = user_env
         self.policy = ScenarioPolicy.from_scenario(self.user_env.odpm_scenario)
         self._user = UserSettingsState()
@@ -327,10 +325,50 @@ class Config:
         return self._docker
 
     @property
+    def runtime(self) -> HostRuntimeState:
+        if not hasattr(self, "_runtime"):
+            self._runtime = HostRuntimeState()
+        return self._runtime
+
+    @property
     def host_context(self) -> "HostProjectContext":
         from ..host_context import HostProjectContext
 
         return HostProjectContext.from_config(self)
+
+    @property
+    def compose_service(self) -> ComposeOdooService | None:
+        return self.runtime.compose_service
+
+    @compose_service.setter
+    def compose_service(self, value: ComposeOdooService | None) -> None:
+        self.runtime.compose_service = value
+
+    @property
+    def container_run_mode(self) -> str:
+        return self.runtime.container_run_mode
+
+    @container_run_mode.setter
+    def container_run_mode(self, value: str) -> None:
+        self.runtime.container_run_mode = value
+
+    @property
+    def no_log_prefix(self) -> bool:
+        return self.runtime.no_log_prefix
+
+    @no_log_prefix.setter
+    def no_log_prefix(self, value: bool) -> None:
+        self.runtime.no_log_prefix = value
+
+    @property
+    def docker_compose_command(self) -> str:
+        return self.runtime.resolved_docker_compose_command(
+            self._docker.docker_compose_command
+        )
+
+    @docker_compose_command.setter
+    def docker_compose_command(self, value: str) -> None:
+        self.runtime.docker_compose_command = value
 
     def skip_git_update(self) -> bool:
         return bool(getattr(self.arguments, "no_git_update", False))

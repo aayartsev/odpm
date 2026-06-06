@@ -88,7 +88,7 @@ class ConfigPaths:
             self.config.project_dir, "data/odoo", "tmp/odoo_tests"
         )
         self.config.compose_file_version = constants.DOCKER_COMPOSE_DEFAULT_FILE_VERSION
-        self.config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+        self.config._docker.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
 
     def apply_developing_project_docker_path(self) -> None:
         if not self.config.developing_project:
