@@ -66,7 +66,7 @@ class OdpmPipeline:
 
     def print_plan(self) -> int:
         from .plan import OdpmPlanner, format_plan
-        from .plan_format import plan_has_required_changes
+        from .plan_format import plan_has_required_changes, resolve_plan_format
 
         config = self._config()
         plan = OdpmPlanner.build(
@@ -74,7 +74,11 @@ class OdpmPipeline:
             self.args,
             self._project_environment(),
         )
-        _logger.info(format_plan(plan, self.args, config))
+        text = format_plan(plan, self.args, config)
+        if resolve_plan_format(self.args) == "json":
+            print(text, flush=True)
+        else:
+            _logger.info(text)
         if getattr(self.args, "plan_strict", False) and plan_has_required_changes(plan):
             return 1
         return 0
@@ -133,7 +137,9 @@ class OdpmPipeline:
     def run(self) -> None:
         try:
             self.setup()
-            if getattr(self.args, "plan", False):
+            from .plan_cli import is_plan_mode
+
+            if is_plan_mode(self.args):
                 exit_code = self.print_plan()
                 if exit_code:
                     sys.exit(exit_code)

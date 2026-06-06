@@ -1,5 +1,6 @@
 import argparse
 
+from ..plan_cli import normalize_plan_argv
 from . import cli_params
 
 arg_parser = argparse.ArgumentParser(
@@ -183,7 +184,7 @@ arg_parser.add_argument(
 
 arg_parser.add_argument(
     cli_params.PLAN_PARAM,
-    help="""Show planned prepare/runtime steps without git pull, file writes, or docker compose up.""",
+    help="""Show planned prepare/runtime steps without git pull, file writes, or docker compose up. Deprecated: use "odpm plan".""",
     action="store_true",
 )
 
@@ -239,10 +240,16 @@ arg_parser.add_argument(
     help="""Command to pass through as a single string""",
 )
 
-### SCAFFOLD SUBPARSER ###
-scaffold_subparser = arg_parser.add_subparsers(help="Scaffold help")
+### SUBCOMMANDS ###
+command_subparsers = arg_parser.add_subparsers(help="Commands")
 
-parser_scaffold = scaffold_subparser.add_parser(
+command_subparsers.add_parser(
+    cli_params.PLAN_SUBCOMMAND,
+    help="""Dry-run: show planned prepare/runtime steps (same as --plan). Example: odpm plan --skip-start""",
+    add_help=False,
+)
+
+parser_scaffold = command_subparsers.add_parser(
     cli_params.SCAFFOLD_SUBPARSER_PARAM,
     help="""Will create module from default template. Use it without any other parameters""",
 )
@@ -260,4 +267,8 @@ parser_scaffold.add_argument(
 
 
 def parse_args(argv: list[str] | None = None):
-    return arg_parser.parse_args(argv)
+    if argv is None:
+        import sys
+
+        argv = sys.argv[1:]
+    return arg_parser.parse_args(normalize_plan_argv(list(argv)))

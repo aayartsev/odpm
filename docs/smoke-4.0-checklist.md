@@ -66,14 +66,15 @@ curl -sf "http://127.0.0.1:${ODOO_PORT:-8069}/web"
 
 ---
 
-## 2B+ — Plan dry-run (`odpm --plan`)
+## 2B+ — Plan dry-run (`odpm plan` / `odpm --plan`)
 
 Run on the same migrated project as **2B** after templates are in place:
 
 ```bash
 cd "$ODPM_PROJECT"
-odpm --plan --skip-start
-# or: python3 "$ODPM_REPO/odpm.py" --plan --skip-start
+odpm plan --skip-start
+# or: odpm --plan --skip-start  (deprecated alias)
+# or: python3 "$ODPM_REPO/odpm.py" plan --skip-start
 ```
 
 | Check | Expected | Result | Date |
@@ -89,13 +90,14 @@ odpm --plan --skip-start
 | `--plan-show-diff` | Section `Planned changes:` with pretty-printed unified diff for runtime config (compose.service path), compose, dockerignore; plan-only CLI flags excluded from comparison | | |
 | `--plan-format json` | Valid JSON with `plan_version`, `steps[]` (`outcome`, not `action`), `warnings`, optional `compose_up.force_recreate`, optional `diffs` | | |
 | `--plan-strict` | Exit code 1 when any required step is `run` or `update`; 0 when only noop/skip/optional run | | |
+| `odpm plan` | Same output and flags as `--plan`; project flags work after subcommand | | |
 | Warnings | Lock warnings when applicable; no generic recreate warning when probe runs | | |
 
 Automated analogue (repository tests):
 
 ```bash
 cd "$ODPM_REPO"
-python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe tests.test_plan_diff tests.test_plan_format -v
+python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe tests.test_plan_diff tests.test_plan_format tests.test_plan_cli -v
 ```
 
 ---
