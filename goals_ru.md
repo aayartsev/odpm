@@ -41,8 +41,8 @@ flowchart TB
 
     subgraph cli [CLI odpm — тонкий оркестратор]
         cmd[odpm init / up / down / db / test]
-        plan[Planner: что изменилось?]
-        apply[Applier: docker / git / templates]
+        plan[Planner: odpm --plan]
+        apply[Applier: prepare + docker compose]
     end
 
     subgraph manifest [Declarative layer]
@@ -80,7 +80,7 @@ flowchart TB
 
 
 
-**Принцип:** CLI не «делает всё сам», а **читает manifest → строит plan → применяет diff**. Как Terraform для dev-окружения, только локально и быстро.
+**Принцип:** CLI не «делает всё сам», а **читает manifest → при `--plan` показывает шаги → иначе материализует prepare и поднимает stack**. Как Terraform для dev-окружения, только локально и быстро.
 
 ---
 
@@ -105,20 +105,20 @@ stateDiagram-v2
 
 - Bind-mount исходников, **fresh venv** при смене lock
 - **debugpy** из коробки, VS Code attach
-- **`dev_mode`** → Odoo `--dev` в compose; при `reload`/`all` auto-`inotify` в venv
+- `**dev_mode`** → Odoo `--dev` в compose; при `reload`/`all` auto-`inotify` в venv
 - Postgres на все интерфaces (локальная машина)
 - Быстрый цикл: правка модуля → `-u my_module` без пересборки образа
 
 ### Server (`ODPM_SCENARIO=server`)
 
 - Тот же stack, но **без debugpy**, Postgres только `127.0.0.1`
-- **`dev_mode` игнорируется** (warning в лог), как и `debugpy`
+- `**dev_mode` игнорируется** (warning в лог), как и `debugpy`
 - Рекомендации hardening в manifest (не auto-enforce, но documented defaults)
 
 ### CI (`ODPM_SCENARIO=ci`)
 
 - **Baked venv + sources в образе**, без bind-mount Odoo
-- **`dev_mode` игнорируется** (как на server)
+- `**dev_mode` игнорируется** (как на server)
 - `odpm build-image` → push → `compose up` на runner
 - Тесты: `-i -u --test --stop-after-init`
 
@@ -128,7 +128,7 @@ stateDiagram-v2
 
 ## Идеальный data flow: host → container
 
-Сейчас odpm передаёт config как **`.odpm/runtime/config.json`** (mount в контейнер, `ODPM_CONFIG_PATH`; в CI — baked в образ). На хорошем уровне это выглядит так:
+Сейчас odpm передаёт config как `**.odpm/runtime/config.json`** (mount в контейнер, `ODPM_CONFIG_PATH`; в CI — baked в образ). На хорошем уровне это выглядит так:
 
 ```mermaid
 sequenceDiagram
@@ -139,10 +139,10 @@ sequenceDiagram
     participant Venv as venv manager
     participant Odoo as odoo-bin
 
-    Host->>Manifest: read and validate schema v2
-    Host->>Host: compute plan
+    Host->>Manifest: read and validate schema v1
+    Host->>Host: odpm --plan or materialize prepare
     Host->>Compose: render compose + start command
-    Compose->>Entry: start with CONFIG v2
+    Compose->>Entry: start with typed config v1
     Entry->>Venv: fresh or baked
     Venv->>Odoo: ensure deps, lock match
     Odoo->>Odoo: -d -i/-u per args
@@ -153,12 +153,12 @@ sequenceDiagram
 **Что улучшить относительно «идеала»:**
 
 
-| Сейчас (odpm 4.0)                      | Идеал                                                               |
-| -------------------------------------- | ------------------------------------------------------------------- |
-| base64 JSON без `schema_version`       | ~~Versioned schema + migration~~ — `ContainerConfig` v1 + legacy v0 migration |
-| `bash -c 'cd && ... && odoo-bin ...'`  | ~~Structured entrypoint (argv list)~~ — `run_odoo` + exec form в compose |
-| dict в container checkers              | ~~Typed `ContainerConfig` dataclass~~ — PR1 |
-| Host user vs container `odoo` mismatch | Явные `HOST_USER` / `CONTAINER_USER`                                |
+| Сейчас (odpm 4.0)                          | Идеал                                                                |
+| ------------------------------------------ | -------------------------------------------------------------------- |
+| ~~base64 JSON без `schema_version`~~       | Versioned schema + migration — `ContainerConfig` v1 + legacy v0      |
+| ~~`bash -c 'cd && ... && odoo-bin ...'`~~  | Structured entrypoint (argv list) — `run_odoo` + exec form в compose |
+| ~~dict в container checkers~~              | Typed `ContainerConfig` dataclass                                    |
+| ~~Host user vs container `odoo` mismatch~~ | Явные `HOST_USER` / `CONTAINER_USER`                                 |
 
 
 Референс: Doodba кладёт конфиг в **файлы внутри образа** (`auto/` addons, `conf.d/`), а не в одну гигантскую shell-строку.
@@ -233,7 +233,7 @@ flowchart LR
 
 - **Один resolver** для init и для `up` (у вас `DevelopingRepoMaterializer` + `dependency_resolver` — правильное направление)
 - **Shallow clone** по умолчанию, deepen только для `build_date`
-- **Dry-run mode**: `odpm plan --show-repos` без clone
+- **Dry-run:** `odpm --plan` — таблица шагов prepare/runtime без git pull, записи файлов и `docker compose up` (MVP; без `apply` и diff по файлам)
 - **Lock file** зависимостей (commit SHAs) для CI reproducibility — как `package-lock.json`
 
 Doodba делает это через **Git aggregator** и pinned commits в repos.yaml.
@@ -278,7 +278,7 @@ flowchart TB
 
 ## Идеальный CLI: команды, а не флаги
 
-Сейчас odpm — один `odpm.py` с большим argparse. На зрелом уровне:
+Сейчас odpm — entry point `odpm` (pip) или `odpm.py` (legacy) с большим argparse. На зрелом уровне:
 
 ```bash
 odpm init https://github.com/acme/demo.git
@@ -293,6 +293,10 @@ odpm shell                 # exec into odoo container
 odpm logs -f odoo
 odpm plan                  # что изменится (git, venv, compose)
 ```
+
+**Уже в 4.0-beta:** `odpm --plan` — dry-run: после загрузки конфигурации выводит, какие шаги prepare и runtime выполнились бы при обычном запуске (git materialize, шаблоны, runtime config, compose up и т.д.), без side-effects.
+
+**Установка:** `pip install` (console script `odpm`) или копия `odpm.py` + `dev_project/` — оба режима поддерживаются; шаблоны берутся из установленного пакета или локальной копии.
 
 Референсы: **docker compose**, **kubectl**, **doodba-qa** subcommands — предсказуемый vocabulary.
 
@@ -326,19 +330,11 @@ Doodba: `custom/` hooks и onbuild. Dev Containers: `features` и `postCreateCom
 
 ---
 
-## Идеальное тестирование инструмента
+## Идеальное качество инструмента (vision)
 
+На зрелом уровне odpm проверяется на всех слоях: unit-логика policy и resolver, subprocess-скрипты venv, opt-in docker smoke на CI, nightly golden path `init → HTTP 200`, контракт `ContainerConfig` с миграцией legacy v0.
 
-| Уровень              | Что проверяет                            | odpm сейчас | Идеал                        |
-| -------------------- | ---------------------------------------- | ----------- | ---------------------------- |
-| Unit                 | policy, config slices, resolver          | ✅ сильно    | maintain                     |
-| Subprocess           | bake_venv module path                    | ✅           | expand                       |
-| Integration (opt-in) | `docker build` CI + compose HTTP smoke | ✅ opt-in   | maintain                     |
-| E2E (nightly)        | init demo project → `-i base` → HTTP 200 | ✅ opt-in (`ODPM_GOLDEN_PATH_PROJECT`) | full init in CI optional |
-| Contract             | `ContainerConfig` v1 + legacy v0 migration | ✅           | maintain; reference JSON spec + migration tests (stdlib, zero deps) |
-
-
-**Золотой путь E2E:** `odoo_demo_project` + `--init` + `-d test -i base --stop-after-init` за <15 мин на CI.
+**Золотой путь:** demo-проект + `--init` + `-d test -i base --stop-after-init` за разумное время на CI.
 
 ---
 
@@ -362,7 +358,7 @@ flowchart LR
 
 
 
-**Идеал:** zero questions при наличии `odpm.json` (non-interactive — уже есть). TTY только для выбора scenario при первом запуске без `.env`. Host-CLI odpm — **zero Python deps** (только stdlib + Docker/git), чтобы не отпугивать новичка `pip install` до первого `odpm up`.
+**Идеал:** zero questions при наличии `odpm.json` (non-interactive — уже есть). TTY только для выбора scenario при первом запуске без `.env`. Host-CLI odpm — **zero runtime Python deps** (stdlib + Docker/git); установка через `pip install` или legacy-копию репозитория.
 
 ---
 
@@ -391,19 +387,32 @@ flowchart LR
               ad-hoc arch                          clean arch
 ```
 
-**odpm 4.0 после рефакторинга** — правый верхний квадрант: clean architecture (pipeline, policy, modules, tests). До уровня Doodba/Odoo.sh по automation не хватает:
+**odpm 4.0 после рефакторинга** — правый верхний квадрант: clean architecture (pipeline, policy, modules). Host-слой разделён по ответственности:
 
-1. ~~Versioned config contract host↔container~~ — `ContainerConfig` v1, stdlib validation, `container_config.v1.json`; `ConfigToJson` deprecated
-2. `odpm plan` / idempotent declarative apply
+- **Prepare и запуск:** pipeline загружает конфигурацию, при обычном запуске материализует проект и поднимает compose; подготовка (git, шаблоны, runtime config) отделена от runtime
+- **Конфигурация:** тонкий facade; фазы bootstrap, docker layout и runtime-опции — в отдельных модулях; slice-поля через typed state
+- **Read-only snapshot:** неизменяемый снимок paths, policy и user settings для prepare и plan
+- **Runtime state:** compose service, run mode и опции docker-compose отдельно от JSON-манifest
+- **Logging:** единый модуль на host; container re-export без циклических import
+- **DI:** system checker передаётся в create-project flow, без обратной ссылки на config
+- **Subprocess:** host не меняет global CWD — только `cwd=` в subprocess
+- **Контракт host↔container:** typed `ContainerConfig` v1, stdlib validation, reference schema, миграция legacy v0
+- **Дистрибуция:** pip-пакет с console script `odpm`; dual-mode поиск шаблонов (site-packages или legacy-копия репозитория)
+- **Plan (MVP):** `odpm --plan` — таблица шагов prepare/runtime без git pull, записи файлов и `docker compose up`
+
+До уровня Doodba/Odoo.sh по automation не хватает:
+
+1. ~~Versioned config contract host↔container~~ — typed config, stdlib validation, reference JSON spec
+2. ~~Dry-run plan (MVP)~~ — есть; полный declarative apply и diff по файлам — в backlog
 3. ~~Dependency lock (commit SHAs)~~ — `.odpm/deps.lock.json`, `--update-lock`; OCA resolved graph, developing, CI strict verify
 4. Plugin/hook API
-5. Golden-path E2E
-6. Container-side parity — ~~typed config (H3)~~, ~~host `os.chdir` (H1)~~; structured entrypoint / меньше shell в compose
+5. Golden-path E2E как обязательный CI gate
+6. Меньше shell в compose; plan с probe compose health на этапе dry-run
 
 ---
 
-## Практический «идеал v5» в одном абзаце
+## Практический «идеал v4» в одном абзаце
 
-**odpm** — это **declarative Odoo environment manager**: `odpm.json` описывает platform, deps и Python; scenario выбирает profile (dev/server/ci); CLI строит plan и материализует Docker stack; container entrypoint — typed, versioned, без bash-магии; venv либо fresh (dev), либо baked (CI); IDE и DB-tools — thin wrappers; extensibility — hooks и plugins; CI проверяет golden path от `init` до HTTP 200.
+**odpm** — это **declarative Odoo environment manager**: `odpm.json` описывает platform, deps и Python; scenario выбирает profile (dev/server/ci); CLI загружает конфигурацию, при необходимости строит plan (`--plan`) и материализует Docker stack; container entrypoint — typed, versioned, без bash-магии; venv либо fresh (dev), либо baked (CI); IDE и DB-tools — thin wrappers; extensibility — hooks и plugins; CI проверяет golden path от `init` до HTTP 200.
 
-Инструмент не «изобретает велосипед» — он **собирает Odoo-specific Dev Container**, которого в экосистеме не хватает между «голым docker odoo» и «тяжёлым Doodba». README прямо говорит про extensibility — это и есть следующий горизонт после стабилизации 4.0.
+Инструмент не «изобретает велосипед» — он **собирает Odoo-specific Dev Container**, которого в экосистеме не хватает между «голым docker odoo» и «тяжёлым Doodba». README прямо говорит про extensibility — это и есть следующий горизонт после стабилизации
