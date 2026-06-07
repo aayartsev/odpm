@@ -10,7 +10,9 @@ from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.bootstrap import load_project_settings, load_user_settings
+from dev_project.config.defaults import ConfigDefaultsFactory
 from dev_project.config.loader import ConfigLoader
+from dev_project.config.manifests import OdpmJsonReader, UserSettingsReader
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
 from dev_project.errors import ConfigError, PipelineError
@@ -138,22 +140,55 @@ class ConfigPathsTests(unittest.TestCase):
             self.assertTrue(os.path.isdir(os.path.join(expected_home, ".cache")))
 
 
-class ConfigLoaderExtraTests(unittest.TestCase):
+class ConfigDefaultsFactoryTests(unittest.TestCase):
     def test_get_developing_project_link_from_legacy_config_json(self):
         config = MagicMock()
         config.config_json_content = {
             "developing_project": "https://github.com/acme/demo.git"
         }
         config.pd_manager = MagicMock(init=".", project_path="/tmp/project")
-        link = ConfigLoader(config).get_developing_project_link()
+        link = ConfigDefaultsFactory(config).get_developing_project_link()
         self.assertEqual(link, "https://github.com/acme/demo.git")
 
     def test_get_developing_project_link_wraps_relative_init_path(self):
         config = MagicMock()
         config.config_json_content = {}
         config.pd_manager = MagicMock(init="my_repo", project_path="/tmp/project")
-        link = ConfigLoader(config).get_developing_project_link()
+        link = ConfigDefaultsFactory(config).get_developing_project_link()
         self.assertEqual(link, "file:///tmp/project/my_repo")
+
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
+    def test_create_default_odpm_json_raises_without_odoo_version(self, _mock_tty):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.arguments = OdpmCliArgs(odoo_version=None)
+        config._raw_odpm_json = {}
+
+        with self.assertRaises(ConfigError):
+            ConfigDefaultsFactory(config).create_default_odpm_json_content()
+
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
+    def test_create_default_odpm_json_uses_cli_odoo_version(self, _mock_tty):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.arguments = OdpmCliArgs(
+            odoo_version="18.0",
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+            odoo_git_link=None,
+            platform_name=None,
+        )
+        config._raw_odpm_json = {"odpm_version": constants.ODPM_VERSION}
+
+        content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
+
+        self.assertEqual(content["odoo_version"], "18.0")
+
+
+class ConfigLoaderExtraTests(unittest.TestCase):
 
     def test_check_file_for_deprecated_words_renames_file(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -245,7 +280,7 @@ class ConfigPayloadTests(unittest.TestCase):
         self.assertTrue(Config.compute_venv_lock_hash(mock_config))
 
 
-class ConfigBootstrapTests(unittest.TestCase):
+class OdpmJsonReaderTests(unittest.TestCase):
     def test_get_odpm_settings_reads_odpm_json_from_cloned_repo(self):
         with tempfile.TemporaryDirectory() as project_dir:
             dev_path = os.path.join(project_dir, "dev_repo")
@@ -258,25 +293,108 @@ class ConfigBootstrapTests(unittest.TestCase):
             odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
             Path(odpm_path).write_text(json.dumps(odpm_content), encoding="utf-8")
 
-            config = Config.__new__(Config)
-            config._raw_user_settings = {}
+            config = MagicMock()
             config._raw_odpm_json = {}
-            config._user = UserSettingsState()
-            config._project = ProjectSettingsState()
-            config._user_loaded = False
-            config._project_loaded = False
             config.project_dir = project_dir
             config.developing_project = MagicMock(project_path=dev_path)
             config.repo_odpm_json = ""
             config.project_odpm_json = os.path.join(
                 project_dir, constants.PROJECT_CONFIG_FILE_NAME
             )
+            rewrite_mock = MagicMock()
 
-            ConfigLoader(config).get_project_odpm_json()
-            ConfigLoader(config).get_odpm_settings()
+            reader = OdpmJsonReader(config, rewrite_odpm_json=rewrite_mock)
+            reader.get_project_odpm_json()
+            reader.get_odpm_settings()
 
+            rewrite_mock.assert_not_called()
+            self.assertEqual(config.repo_odpm_json, odpm_path)
             self.assertEqual(config._raw_odpm_json["odoo_version"], "17.0")
             self.assertEqual(config._raw_odpm_json["python_version"], "3.10")
+
+    def test_get_project_odpm_json_invokes_rewrite_when_manifests_missing(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            dev_path = os.path.join(project_dir, "dev_repo")
+            os.makedirs(dev_path)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.developing_project = MagicMock(project_path=dev_path)
+            rewrite_mock = MagicMock()
+
+            OdpmJsonReader(config, rewrite_odpm_json=rewrite_mock).get_project_odpm_json()
+
+            rewrite_mock.assert_called_once()
+
+
+class UserSettingsReaderTests(unittest.TestCase):
+    def test_get_user_settings_loads_existing_json(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            settings_path = os.path.join(
+                project_dir, constants.USER_CONFIG_FILE_NAME
+            )
+            Path(settings_path).write_text(
+                json.dumps({"init_modules": ["sale"]}),
+                encoding="utf-8",
+            )
+            config = Config.__new__(Config)
+            config.project_dir = project_dir
+            config._raw_user_settings = {}
+            config.user_settings_json = settings_path
+
+            UserSettingsReader(
+                config,
+                create_default_user_settings=MagicMock(),
+            ).get_user_settings()
+
+            self.assertEqual(config._raw_user_settings, {"init_modules": ["sale"]})
+
+    def test_get_user_settings_json_creates_file_via_default_factory(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = Config.__new__(Config)
+            config.project_dir = project_dir
+            create_default = MagicMock(return_value={"init_modules": "sale"})
+
+            UserSettingsReader(
+                config,
+                create_default_user_settings=create_default,
+            ).get_user_settings_json()
+
+            create_default.assert_called_once()
+            settings_path = os.path.join(
+                project_dir, constants.USER_CONFIG_FILE_NAME
+            )
+            self.assertTrue(os.path.exists(settings_path))
+            self.assertEqual(
+                json.loads(Path(settings_path).read_text(encoding="utf-8")),
+                {"init_modules": "sale"},
+            )
+
+
+class ConfigLoaderManifestDelegationTests(unittest.TestCase):
+    def test_loader_delegates_defaults_factory_for_developing_link(self):
+        config = MagicMock()
+        loader = ConfigLoader(config)
+        with patch.object(
+            loader._defaults, "get_developing_project_link", return_value="file:///x"
+        ) as mock_link:
+            self.assertEqual(loader.get_developing_project_link(), "file:///x")
+        mock_link.assert_called_once()
+
+    def test_loader_delegates_odpm_manifest_reads_to_reader(self):
+        config = MagicMock()
+        loader = ConfigLoader(config)
+        with patch.object(loader._odpm_json_reader, "get_odpm_settings") as mock_read:
+            loader.get_odpm_settings()
+        mock_read.assert_called_once()
+
+    def test_loader_delegates_user_settings_reads_to_reader(self):
+        config = MagicMock()
+        loader = ConfigLoader(config)
+        with patch.object(
+            loader._user_settings_reader, "get_user_settings"
+        ) as mock_read:
+            loader.get_user_settings()
+        mock_read.assert_called_once()
 
 
 class ConfigStateSliceTests(unittest.TestCase):

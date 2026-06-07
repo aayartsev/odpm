@@ -28,7 +28,7 @@ def _make_pd_manager(project_dir: str, *, home_dir: str) -> ProjectDirManager:
 
 
 class NonInteractiveOdpmJsonTests(unittest.TestCase):
-    @patch("dev_project.config.loader.stdin_is_interactive", return_value=False)
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
     def test_create_default_odpm_json_raises_without_odoo_version(self, _mock_tty):
         config = MagicMock()
         config.config_json_content = {}
@@ -38,7 +38,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             ConfigLoader(config).create_default_odpm_json_content()
 
-    @patch("dev_project.config.loader.stdin_is_interactive", return_value=False)
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
     def test_create_default_odpm_json_uses_cli_odoo_version(self, _mock_tty):
         config = MagicMock()
         config.config_json_content = {}
