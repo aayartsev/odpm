@@ -12,6 +12,7 @@
 
 - **`dev_project/git/runner.py`** — `GitRunner` вынесен из `GitOperations`: сборка git-argv (в т.ч. SSH) и вызов `run_checked`; `GitOperations` делегирует через `_build_git_cmd` / `_run_git`. Unit-тесты проверяют argv, cwd по умолчанию и явный cwd.
 - **`dev_project/git/clone.py`** — `RepoCloneService` вынесен из `GitOperations`: жизненный цикл клонирования (`check_project`, `force_clone_repo`, `clone_repo`, `check_repo_url`); `GitOperations` делегирует через тонкие обёртки. Изолированные unit-тесты проверяют нормализацию URL, cwd при clone, shallow clone для platform и отсутствие `chdir` в `check_project`.
+- **`dev_project/git/checkout.py`** — `CheckoutService` вынесен из `GitOperations`: оркестрация checkout (`checkout*`, `switch_to_branch`, low-level `_git_*`); `GitOperations` делегирует через тонкие обёртки. `apply_build_date` использует `CheckoutService.ensure_branch_exists`. Изолированные unit-тесты проверяют пропуск pull при явном commit, hard `switch_to_branch`, флаги `checkout_repository` и fetch для explicit commit.
 
 ---
 

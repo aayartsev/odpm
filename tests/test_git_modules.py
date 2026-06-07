@@ -250,6 +250,88 @@ class RepoCloneServiceTests(unittest.TestCase):
         mock_clone.assert_called_once()
 
 
+class CheckoutServiceTests(unittest.TestCase):
+    def _service(self, **link_overrides):
+        from dev_project.git.checkout import CheckoutService
+        from dev_project.git.runner import GitRunner
+
+        link = object.__new__(HandleOdooProjectLink)
+        link.project_path = "/tmp/repo"
+        link.gitlink = "https://github.com/acme/demo.git"
+        link.project_link = link.gitlink
+        link.path_to_ssh_key = ""
+        link.project_string = link.gitlink
+        link.dir_to_clone = "/tmp/clone_base"
+        link.system_type = "standart"
+        link.link_type = constants.GITLINK_TYPE_GIT
+        link.branch = ""
+        link.commit = ""
+        link.branch_explicit = False
+        link.commit_explicit = False
+        for key, value in link_overrides.items():
+            setattr(link, key, value)
+        return CheckoutService(link, GitRunner(link))
+
+    @patch("dev_project.git.checkout.CheckoutService._git_pull")
+    @patch("dev_project.git.checkout.CheckoutService.checkout_parsed_or_version")
+    def test_checkout_skips_pull_when_commit_explicit(self, mock_parsed, mock_pull):
+        service = self._service(commit_explicit=True, commit="deadbeef")
+        service.checkout("19.0", update=True, odoo_version_sync=True)
+        mock_pull.assert_not_called()
+        mock_parsed.assert_called_once_with("19.0")
+
+    @patch("dev_project.git.checkout.CheckoutService.checkout")
+    def test_switch_to_branch_uses_hard_checkout(self, mock_checkout):
+        service = self._service()
+        service.switch_to_branch("18.0")
+        mock_checkout.assert_called_once_with("18.0", hard=True)
+
+    @patch("dev_project.git.checkout.CheckoutService.checkout")
+    def test_checkout_repository_enables_version_sync(self, mock_checkout):
+        service = self._service()
+        service.checkout_repository(
+            "19.0",
+            clean_git_repos=True,
+            update_git_repos=True,
+        )
+        mock_checkout.assert_called_once_with(
+            "19.0",
+            clean=True,
+            update=True,
+            odoo_version="19.0",
+            odoo_version_sync=True,
+        )
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_ensure_branch_exists_skips_fetch_when_local_branch_present(
+        self, mock_run_checked
+    ):
+        mock_run_checked.return_value = MagicMock(
+            stdout="  19.0\n",
+            returncode=0,
+            stderr="",
+        )
+        service = self._service()
+        service.ensure_branch_exists("19.0", "19.0")
+        mock_run_checked.assert_called_once()
+        self.assertEqual(mock_run_checked.call_args.args[0], ["git", "branch"])
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_checkout_parsed_or_version_fetches_explicit_commit(self, mock_run_checked):
+        mock_run_checked.side_effect = [
+            MagicMock(stdout="", returncode=1, stderr=""),
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="", returncode=0, stderr=""),
+        ]
+        service = self._service(commit_explicit=True, commit="deadbeef")
+        with patch("dev_project.git.checkout.os.path.exists", return_value=True):
+            service.checkout_parsed_or_version("19.0")
+        self.assertEqual(mock_run_checked.call_count, 3)
+        fetch_call = mock_run_checked.call_args_list[1]
+        self.assertIn("fetch", fetch_call.args[0])
+        self.assertIn("deadbeef", fetch_call.args[0])
+
+
 class GitOperationsTests(unittest.TestCase):
     def _operations(self, **link_overrides):
         from dev_project.git.operations import GitOperations
@@ -278,13 +360,19 @@ class GitOperationsTests(unittest.TestCase):
         with patch("dev_project.git.operations.os.path.exists", return_value=True):
             self.assertEqual(ops.resolve_head_sha(), "abc123def456")
 
-    @patch("dev_project.git.operations.GitOperations._git_pull")
-    @patch("dev_project.git.operations.GitOperations.checkout_parsed_or_version")
-    def test_checkout_skips_pull_when_commit_explicit(self, mock_parsed, mock_pull):
-        ops = self._operations(commit_explicit=True, commit="deadbeef")
+    @patch("dev_project.git.checkout.CheckoutService.checkout")
+    def test_checkout_delegates_to_checkout_service(self, mock_checkout):
+        ops = self._operations()
         ops.checkout("19.0", update=True, odoo_version_sync=True)
-        mock_pull.assert_not_called()
-        mock_parsed.assert_called_once()
+        mock_checkout.assert_called_once_with(
+            "19.0",
+            commit=None,
+            hard=False,
+            clean=False,
+            update=True,
+            odoo_version=None,
+            odoo_version_sync=True,
+        )
 
     @patch("dev_project.git.clone.RepoCloneService.check_repo_url", return_value=True)
     def test_check_project_delegates_to_clone_service(self, mock_check_url):
