@@ -1,4 +1,7 @@
+import importlib
+import sys
 import unittest
+import warnings
 
 from dev_project.check_system import SystemChecker
 from dev_project.project_env import CreateProjectEnvironment
@@ -247,6 +250,55 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertIs(legacy_logger.get_module_logger, canonical_logging.get_module_logger)
         self.assertIs(legacy_logger.CustomFormatter, canonical_logging.CustomFormatter)
+
+
+ROOT_SHIM_DEPRECATIONS = (
+    ("dev_project.prepare_registry", "dev_project.prepare"),
+    ("dev_project.plan_compose_preview", "dev_project.plan.compose_preview"),
+    ("dev_project.plan_runtime_preview", "dev_project.plan.runtime_preview"),
+    ("dev_project.plan_compose_runtime", "dev_project.plan.compose_runtime"),
+    ("dev_project.plan_diff", "dev_project.plan.diff"),
+    ("dev_project.plan_format", "dev_project.plan.format"),
+    ("dev_project.plan_cli", "dev_project.plan.cli"),
+    ("dev_project.compose_service_builder", "dev_project.compose.service_builder"),
+    ("dev_project.compose_runtime", "dev_project.compose.runtime"),
+    ("dev_project.compose_command_render", "dev_project.compose.command_render"),
+    ("dev_project.start_command", "dev_project.compose.start_command"),
+    ("dev_project.host_context", "dev_project.host.context"),
+    ("dev_project.host_runtime", "dev_project.host.runtime"),
+    ("dev_project.host_user_env", "dev_project.host.user_env"),
+    ("dev_project.host_cli", "dev_project.host.cli"),
+    ("dev_project.host_cli.args", "dev_project.host.cli.args"),
+    ("dev_project.host_cli.parse_args", "dev_project.host.cli.parse_args"),
+    ("dev_project.host_cli.params", "dev_project.host.cli.params"),
+    (
+        "dev_project.inside_docker_app.cli_params",
+        "dev_project.host.cli.params",
+    ),
+    (
+        "dev_project.inside_docker_app.parse_args",
+        "dev_project.host.cli.parse_args",
+    ),
+    (
+        "dev_project.project_env.compose",
+        "dev_project.compose.ComposeGenerator",
+    ),
+)
+
+
+class ShimDeprecationTests(unittest.TestCase):
+    def test_root_shims_emit_deprecation_warning(self):
+        for module_name, canonical in ROOT_SHIM_DEPRECATIONS:
+            with self.subTest(module=module_name):
+                sys.modules.pop(module_name, None)
+                with warnings.catch_warnings(record=True) as caught:
+                    warnings.simplefilter("always", DeprecationWarning)
+                    importlib.import_module(module_name)
+                self.assertEqual(len(caught), 1, caught)
+                self.assertEqual(caught[0].category, DeprecationWarning)
+                message = str(caught[0].message)
+                self.assertIn(module_name, message)
+                self.assertIn(canonical, message)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,8 @@
 """Backward-compatible shim for ``dev_project.plan.compose_runtime``."""
+from dev_project.shim_deprecation import warn_shim_deprecated
+
+warn_shim_deprecated(__name__, "dev_project.plan.compose_runtime")
+
 
 from dev_project.compose.runtime import should_force_recreate_compose
 from dev_project.plan.compose_runtime import (

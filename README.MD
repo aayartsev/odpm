@@ -64,7 +64,7 @@ pip install -e .
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Expect **555** tests passed and **7** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
+Expect **590** tests passed and **7** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
 
 ### Docker CI
 
@@ -85,6 +85,40 @@ Local compose smoke:
 ```bash
 ./scripts/run_compose_smoke_test.sh
 # ODPM_COMPOSE_SMOKE_TIMEOUT=900 ./scripts/run_compose_smoke_test.sh
+```
+
+### Migration 4.0→4.1 imports
+
+Root-level shim modules under `dev_project/` remain importable in 4.0 but emit **`DeprecationWarning`** on import. Switch custom scripts and extensions to the canonical paths below before **4.1.0**, when shims are removed.
+
+| Deprecated import | Use instead |
+|---|---|
+| `dev_project.prepare_registry` | `dev_project.prepare` |
+| `dev_project.plan_compose_preview` | `dev_project.plan.compose_preview` |
+| `dev_project.plan_runtime_preview` | `dev_project.plan.runtime_preview` |
+| `dev_project.plan_compose_runtime` | `dev_project.plan.compose_runtime` |
+| `dev_project.plan_diff` | `dev_project.plan.diff` |
+| `dev_project.plan_format` | `dev_project.plan.format` |
+| `dev_project.plan_cli` | `dev_project.plan.cli` |
+| `dev_project.compose_service_builder` | `dev_project.compose.service_builder` |
+| `dev_project.compose_runtime` | `dev_project.compose.runtime` |
+| `dev_project.compose_command_render` | `dev_project.compose.command_render` |
+| `dev_project.start_command` | `dev_project.compose.start_command` |
+| `dev_project.host_context` | `dev_project.host.context` |
+| `dev_project.host_runtime` | `dev_project.host.runtime` |
+| `dev_project.host_user_env` | `dev_project.host.user_env` |
+| `dev_project.host_cli` | `dev_project.host.cli` |
+| `dev_project.host_cli.args` | `dev_project.host.cli.args` |
+| `dev_project.host_cli.parse_args` | `dev_project.host.cli.parse_args` |
+| `dev_project.host_cli.params` | `dev_project.host.cli.params` |
+| `dev_project.inside_docker_app.cli_params` | `dev_project.host.cli.params` |
+| `dev_project.inside_docker_app.parse_args` | `dev_project.host.cli.parse_args` |
+| `dev_project.project_env.compose` | `dev_project.compose.ComposeGenerator` |
+
+To surface warnings while testing migrations:
+
+```bash
+python3 -Wdefault::DeprecationWarning -m unittest discover -s tests -p 'test_*.py'
 ```
 
 

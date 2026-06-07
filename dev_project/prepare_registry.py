@@ -1,6 +1,9 @@
 """Backward-compatible shim for ``dev_project.prepare``."""
-
 from __future__ import annotations
+
+from dev_project.shim_deprecation import warn_shim_deprecated
+
+warn_shim_deprecated(__name__, "dev_project.prepare")
 
 from .compose.service_builder import ComposeServiceBuilder
 from .git.deps_lock_manager import DepsLockManager

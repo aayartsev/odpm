@@ -78,7 +78,7 @@ odpm можно **установить через pip** — в PATH появит
 
 #### Качество и проверки
 
-- **584 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
+- **590 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
 - **Plan-safe setup** — `odpm plan` загружает конфигурацию без обновления шаблонов в `.odpm/`; обычный запуск по-прежнему синхронизирует шаблоны проекта при старте.
 - **Восстановление устаревшего odoo.conf** — `odpm --skip-start` пересоздаёт `odoo.conf`, если в нём нет настроек подключения к БД Docker (например после апгрейда с layout без `db_host`).
 - **Пакет `dev_project/prepare/`** — реестр prepare-фазы вынесен из монолитного `prepare_registry.py`; shim сохраняет существующие импорты и patch-пути в тестах.
@@ -94,7 +94,18 @@ odpm можно **установить через pip** — в PATH появит
 
 ### Что изменилось по сравнению с 3.x
 
-Runtime-конфигурация всегда лежит в `.odpm/runtime/config.json` (или запекается в CI-образ). Git-операции сосредоточены в **`GitRepoCoordinator`**. Разрешение зависимостей выполняется одним обходом графа (BFS). Compose может стартовать **без принудительного `--force-recreate`**, если текущий stack уже здоров. Устаревшие артефакты проекта переименовываются в `deprecated_*`. **Освобождение портов в developer отделено от `check_system`:** prepare-шаг `docker.ports.release` всегда останавливает контейнеры на портах odoo/debugger/postgres/gevent перед compose; beginner-проверки Docker остаются за флагом `check_system`. **Production-импорты переведены на канонические пути:** `ProjectMaterializer`, `OdpmPlanner`, `prepare/execute` и `plan/runtime_preview` используют `dev_project.prepare`, `dev_project.git.deps_lock_manager` и `dev_project.plan.compose_preview` вместо root-shim `prepare_registry`, `plan_compose_preview` и `plan_runtime_preview`. **Unit-тесты патчат канонические модули:** `@patch` переведены с root-shim на `dev_project.compose.*`, `dev_project.plan.*`, `dev_project.prepare.*` и `dev_project.config.payload`; связанные call site в compose/plan/prepare больше не ходят через self-shim. **Preview-слой plan унифицирован:** `preview_runtime_config_text` и `prepare_runtime_config_for_compose_preview` в `plan/compose_preview.py`; фасад `plan/preview.py`. `prepare/steps_compose.py` и `prepare/runtime.py` импортируют plan/compose напрямую, без `prepare_registry` в `prepare/`. **`SystemCheckPolicy` централизует gating проверок:** модуль `dev_project/system_check_policy.py` задаёт `beginner_git`, `beginner_docker`, `developer_port_release`, `compose_validate` и `file_system_on_init`; `SystemChecker`, prepare docker steps и pipeline setup читают policy вместо разрозненных проверок `check_system`/scenario.
+- Runtime-конфигурация записывается в `.odpm/runtime/config.json` на хосте (developer/server) или запекается в CI-образ.
+- Git materialization и обработка build-date платформы сосредоточены в **`GitRepoCoordinator`**.
+- Разрешение зависимостей — один проход BFS через `DependencyMaterializer` и `dependency_resolver.py`.
+- Compose stack может стартовать **без `--force-recreate`**, если текущий stack уже здоров (`compose/runtime`).
+- Устаревшие артефакты проекта (`config.json`, старые маркеры compose/dockerfile) переименовываются в `deprecated_*` с предупреждением.
+- Единое host-логирование в `dev_project.logging` (container re-export shim временно сохранён).
+- **Освобождение портов в developer отделено от `check_system`.** Prepare-шаг `docker.ports.release` всегда выполняется в developer-сценарии перед compose и останавливает контейнеры на портах odoo/debugger/postgres/gevent; `docker.engine.check` (beginner-проверки git/docker) остаётся за флагом `check_system`.
+- **Production-импорты переведены на канонические пути.** `ProjectMaterializer`, `OdpmPlanner`, `prepare/execute` и `plan/runtime_preview` используют `dev_project.prepare`, `dev_project.git.deps_lock_manager` и `dev_project.plan.compose_preview` вместо root-shim `prepare_registry`, `plan_compose_preview` и `plan_runtime_preview`.
+- **Unit-тесты патчат канонические модули.** `@patch` переведены с root-shim (`prepare_registry`, `compose_runtime`, `plan_format`, …) на `dev_project.compose.*`, `dev_project.plan.*`, `dev_project.prepare.*` и `dev_project.config.payload`; связанные call site в compose/plan/prepare больше не ходят через self-shim.
+- **Preview-слой plan унифицирован.** `preview_runtime_config_text` и `prepare_runtime_config_for_compose_preview` в `plan/compose_preview.py`; `plan/preview.py` re-export compose/runtime preview helpers. `prepare/steps_compose.py` и `prepare/runtime.py` импортируют plan/compose напрямую, без `prepare_registry` в `prepare/`.
+- **`SystemCheckPolicy` централизует gating проверок.** Модуль `dev_project/system_check_policy.py` задаёт `beginner_git`, `beginner_docker`, `developer_port_release`, `compose_validate` и `file_system_on_init`; `SystemChecker`, prepare docker steps и pipeline setup читают policy вместо разрозненных проверок `check_system`/scenario.
+- **Root-shim импорты выдают `DeprecationWarning`.** Backward-compatible модули (`prepare_registry`, `plan_*`, `compose_*`, `host_*`, `host_cli/*`, `inside_docker_app/cli_params`, `inside_docker_app/parse_args`, `project_env.compose`) предупреждают при import с указанием канонического пути; см. README **Миграция импортов 4.0→4.1**. Shims будут удалены в 4.1.0.
 
 ### Исправлено
 

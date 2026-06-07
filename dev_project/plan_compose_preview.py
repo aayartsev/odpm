@@ -1,4 +1,8 @@
 """Backward-compatible shim for ``dev_project.plan.compose_preview``."""
+from dev_project.shim_deprecation import warn_shim_deprecated
+
+warn_shim_deprecated(__name__, "dev_project.plan.compose_preview")
+
 
 from dev_project.plan.compose_preview import (
     compose_generate_needs_execute,
