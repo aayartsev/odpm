@@ -600,7 +600,7 @@ class ConfigStateSliceTests(unittest.TestCase):
             project_docker_compose_template_path="/tmp/project/.odpm/docker-compose.yml"
         )
 
-        with patch("dev_project.config.bootstrap.os.path.exists", return_value=True):
+        with patch("dev_project.config.bootstrap_phases.os.path.exists", return_value=True):
             load_project_settings(config)
 
         ctx.odpm_json.get_project_odpm_json.assert_called_once()

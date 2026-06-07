@@ -10,7 +10,7 @@ from .errors import SubprocessError, SystemCheckError
 from .inside_docker_app import utils
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
-from .project_env.services import BaseImageService
+from .project_env.services import BaseImageService, PlatformSourcesService
 from .protocols import SystemCheckerProtocol
 from .subprocess_runner import run_checked, run_logged, run_or_raise
 from .system_check_policy import SystemCheckPolicy
@@ -162,6 +162,44 @@ class SystemChecker(SystemCheckerProtocol):
             _logger.error(message)
             raise SystemCheckError(message)
 
+    def _platform_git_repo_ready(self) -> bool:
+        odoo_src_dir = self.config.odoo_src_dir
+        if not odoo_src_dir or not os.path.isdir(odoo_src_dir):
+            return False
+        if not os.path.exists(os.path.join(odoo_src_dir, ".git")):
+            return False
+        try:
+            result = run_or_raise(
+                ["git", "rev-parse", "--is-inside-work-tree"],
+                cwd=odoo_src_dir,
+            )
+        except SubprocessError:
+            return False
+        return "true" in result.stdout
+
+    def _ensure_platform_sources(self) -> None:
+        policy = self.config.policy
+        if policy.is_ci():
+            return
+        if policy.is_developer():
+            if not self._platform_git_repo_ready():
+                self.config._git_repos.get_platform_sources()
+            return
+        if policy.scenario != constants.SERVER_SCENARIO:
+            return
+        odoo_bin = os.path.join(self.config.odoo_src_dir, "odoo-bin")
+        if os.path.exists(odoo_bin):
+            return
+        clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+        if clone_odoo and clone_odoo.lower() == "y":
+            PlatformSourcesService(self.project_environment).download_odoo_nightly_build()
+            return
+        message = translations.get_translation(translations.CHECK_ODOO_REPO).format(
+            odoo_src_dir=self.config.odoo_src_dir,
+        )
+        _logger.error(message)
+        raise SystemCheckError(message)
+
     def check_file_system(self) -> None:
         for dir_path in [
             self.config.user_env.backups,
@@ -178,7 +216,7 @@ class SystemChecker(SystemCheckerProtocol):
                     )
                     _logger.error(message)
                     raise SystemCheckError(message)
-        # todo сделать переключатель
+        self._ensure_platform_sources()
 
     def check_free_space_for_odoo_developing(
         self, free_space_size: float = constants.FREE_SPACE_FOR_USAGE

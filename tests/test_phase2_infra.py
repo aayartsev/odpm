@@ -182,6 +182,58 @@ class SystemCheckerExtraTests(unittest.TestCase):
         with self.assertRaises(SystemCheckError):
             checker.check_docker_compose()
 
+    @patch.object(SystemChecker, "_platform_git_repo_ready", return_value=False)
+    @patch("dev_project.check_system.os.path.exists", return_value=True)
+    @patch("dev_project.check_system.os.makedirs")
+    def test_check_file_system_developer_calls_get_platform_sources(
+        self, _mock_mkdir, _mock_exists, _mock_platform_ready
+    ):
+        config = self._config()
+        config.policy = MagicMock()
+        config.policy.is_ci.return_value = False
+        config.policy.is_developer.return_value = True
+        config.policy.scenario = constants.DEVELOPER_SCENARIO
+        config.odoo_src_dir = "/tmp/odoo"
+        config._git_repos = MagicMock()
+        project_environment = MagicMock()
+
+        SystemChecker(config, project_environment)
+
+        config._git_repos.get_platform_sources.assert_called_once_with()
+
+    @patch("dev_project.check_system.os.path.exists")
+    @patch("dev_project.check_system.os.makedirs")
+    @patch("dev_project.check_system.PlatformSourcesService")
+    @patch("builtins.input", return_value="y")
+    def test_check_file_system_server_downloads_nightly_when_odoo_bin_missing(
+        self,
+        _mock_input,
+        mock_platform_sources,
+        _mock_mkdir,
+        mock_exists,
+    ):
+        config = self._config()
+        config.policy = MagicMock()
+        config.policy.is_ci.return_value = False
+        config.policy.is_developer.return_value = False
+        config.policy.scenario = constants.SERVER_SCENARIO
+        config.odoo_src_dir = "/tmp/odoo"
+        project_environment = MagicMock()
+
+        def exists_side_effect(path):
+            if path in ("/tmp/backups", "/tmp/odoo-projects"):
+                return True
+            if path == "/tmp/odoo/odoo-bin":
+                return False
+            return False
+
+        mock_exists.side_effect = exists_side_effect
+
+        SystemChecker(config, project_environment)
+
+        mock_platform_sources.assert_called_once_with(project_environment)
+        mock_platform_sources.return_value.download_odoo_nightly_build.assert_called_once_with()
+
     @patch("dev_project.check_system.os.makedirs", side_effect=OSError("denied"))
     @patch("dev_project.check_system.os.path.exists", return_value=False)
     def test_check_file_system_raises_system_check_error(self, _mock_exists, _mock_mkdir):

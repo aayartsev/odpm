@@ -104,7 +104,7 @@ class PlanSafeBootstrapTests(unittest.TestCase):
         )
         return config
 
-    @patch("dev_project.config.bootstrap.os.path.exists")
+    @patch("dev_project.config.bootstrap_phases.os.path.exists")
     def test_load_project_settings_skips_compose_rebuild_when_not_syncing(
         self, mock_exists
     ):
@@ -115,7 +115,7 @@ class PlanSafeBootstrapTests(unittest.TestCase):
 
         config.pd_manager.rebuild_docker_compose_template.assert_not_called()
 
-    @patch("dev_project.config.bootstrap.os.path.exists")
+    @patch("dev_project.config.bootstrap_phases.os.path.exists")
     def test_load_project_settings_rebuilds_missing_compose_when_syncing(
         self, mock_exists
     ):

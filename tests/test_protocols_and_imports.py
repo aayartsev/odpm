@@ -4,7 +4,6 @@ from dev_project.check_system import SystemChecker
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.protocols import (
     PrepareProjectServicesProtocol,
-    RuntimeProjectServicesProtocol,
     SystemCheckerProtocol,
 )
 
@@ -12,11 +11,6 @@ from dev_project.protocols import (
 class ProtocolTypingTests(unittest.TestCase):
     def test_system_checker_satisfies_protocol(self):
         self.assertTrue(issubclass(SystemChecker, SystemCheckerProtocol))
-
-    def test_create_project_environment_is_not_runtime_services_protocol(self):
-        self.assertFalse(
-            issubclass(CreateProjectEnvironment, RuntimeProjectServicesProtocol)
-        )
 
     def test_project_env_services_are_importable(self):
         from dev_project.project_env.services import (
@@ -62,9 +56,6 @@ class ProtocolTypingTests(unittest.TestCase):
     def test_runtime_checkable_protocols(self):
         self.assertTrue(isinstance(SystemCheckerProtocol, type))
         self.assertTrue(getattr(SystemCheckerProtocol, "_is_runtime_protocol", False))
-        self.assertTrue(
-            getattr(RuntimeProjectServicesProtocol, "_is_runtime_protocol", False)
-        )
         self.assertTrue(
             getattr(PrepareProjectServicesProtocol, "_is_runtime_protocol", False)
         )
@@ -142,8 +133,10 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
     def test_config_bootstrap_imports(self):
         from dev_project.config import bootstrap as bootstrap_module
+        from dev_project.config import bootstrap_phases as bootstrap_phases_module
 
         self.assertTrue(callable(bootstrap_module.bootstrap_config))
+        self.assertTrue(callable(bootstrap_phases_module.load_user_settings))
 
     def test_config_layout_imports(self):
         from dev_project.config import layout as layout_module
