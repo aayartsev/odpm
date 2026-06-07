@@ -3,10 +3,14 @@ from ..config import Config
 from ..errors import PipelineError
 from ..protocols import RuntimeProjectServicesProtocol, SystemCheckerProtocol
 from ..dependency_resolver import DependencyResolutionResult
-from .base_image import BaseImageBuilder
 from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
-from .services import CiImageBuildService, PlatformSourcesService, VscodeConfigurator
+from .services import (
+    BaseImageService,
+    CiImageBuildService,
+    PlatformSourcesService,
+    VscodeConfigurator,
+)
 from .templates import ProjectTemplates
 from .types import MappedPath, SymlinksSources
 
@@ -27,7 +31,7 @@ class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
         self._compose = ComposeGenerator(self)
         self._ci_build = CiImageBuildService(self)
         self._links = ProjectLinks(self)
-        self._base_image = BaseImageBuilder(self)
+        self._base_image = BaseImageService(self)
         self._platform_sources = PlatformSourcesService(self)
         self._vscode = VscodeConfigurator(self)
 

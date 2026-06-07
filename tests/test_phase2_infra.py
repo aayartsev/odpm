@@ -76,11 +76,12 @@ class SystemCheckerDockerTests(unittest.TestCase):
         with self.assertRaises(SystemCheckError):
             checker.check_docker()
 
+    @patch("dev_project.check_system.BaseImageService")
     @patch.object(SystemChecker, "check_file_system")
     @patch("dev_project.check_system.platform.system", return_value="Darwin")
     @patch("dev_project.check_system.run_or_raise")
-    def test_check_docker_calls_ensure_base_image_when_docker_ok(
-        self, mock_run_or_raise, _mock_platform, _mock_fs
+    def test_check_docker_calls_base_image_service_when_docker_ok(
+        self, mock_run_or_raise, _mock_platform, _mock_fs, mock_base_image_service
     ):
         config = self._config()
         project_environment = MagicMock()
@@ -91,7 +92,9 @@ class SystemCheckerDockerTests(unittest.TestCase):
             stderr="",
         )
         checker.check_docker()
-        project_environment.ensure_base_image.assert_called_once()
+        mock_base_image_service.assert_called_once_with(project_environment)
+        mock_base_image_service.return_value.ensure_base_image.assert_called_once()
+        project_environment.ensure_base_image.assert_not_called()
 
 
 class SystemCheckerExtraTests(unittest.TestCase):

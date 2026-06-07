@@ -10,7 +10,7 @@ from dev_project.errors import PipelineError
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.base_image import BaseImageBuilder
 from dev_project.project_env.ci_image import CiImageBuilder
-from dev_project.project_env.services import CiImageBuildService
+from dev_project.project_env.services import BaseImageService, CiImageBuildService
 from dev_project.project_dir_manager import ProjectDirManager
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -256,6 +256,30 @@ class BaseImageBuilderTests(unittest.TestCase):
         mock_build.assert_not_called()
 
 
+class BaseImageServiceTests(unittest.TestCase):
+    def test_environment_delegates_ensure_base_image_to_service(self):
+        config = MagicMock()
+        env = CreateProjectEnvironment(config)
+        with patch.object(env._base_image, "ensure_base_image") as mock_ensure:
+            env.ensure_base_image()
+        mock_ensure.assert_called_once()
+
+    def test_environment_delegates_build_base_image_to_service(self):
+        config = MagicMock()
+        env = CreateProjectEnvironment(config)
+        with patch.object(env._base_image, "build_base_image") as mock_build:
+            env.build_base_image()
+        mock_build.assert_called_once()
+
+    @patch.object(BaseImageBuilder, "ensure_base_image")
+    def test_ensure_base_image_delegates_to_builder(self, mock_ensure):
+        config = MagicMock()
+        env = MagicMock()
+        env.config = config
+        BaseImageService(env).ensure_base_image()
+        mock_ensure.assert_called_once()
+
+
 class CiImageBuildServiceTests(unittest.TestCase):
     def _service(self) -> CiImageBuildService:
         config = MagicMock()
@@ -266,21 +290,26 @@ class CiImageBuildServiceTests(unittest.TestCase):
         config.ci_build_context_dir = "/tmp/project/.odpm/ci-build-context"
         env = MagicMock()
         env.config = config
-        env.ensure_base_image = MagicMock()
         env.mapped_folders = []
         return CiImageBuildService(env)
 
+    @patch("dev_project.project_env.ci_image.BaseImageService")
     @patch("dev_project.project_env.ci_image.run_logged", return_value=2)
     @patch.object(CiImageBuilder, "generate_ci_dockerfile", return_value="/ctx/Dockerfile.ci")
     @patch.object(CiImageBuilder, "prepare_ci_build_context")
     def test_build_ci_image_raises_pipeline_error_on_failure(
-        self, _mock_prepare, _mock_dockerfile, _mock_logged
+        self,
+        _mock_prepare,
+        _mock_dockerfile,
+        _mock_logged,
+        mock_base_image_service,
     ):
         service = self._service()
         with self.assertRaises(PipelineError) as ctx:
             service.build_ci_image()
         self.assertEqual(ctx.exception.exit_code, 2)
-        service.env.ensure_base_image.assert_called_once()
+        mock_base_image_service.assert_called_once_with(service.env)
+        mock_base_image_service.return_value.ensure_base_image.assert_called_once()
 
     def test_environment_delegates_build_ci_image_to_service(self):
         config = MagicMock()

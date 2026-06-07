@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`dev_project/project_env/services/platform_sources.py`** — `PlatformSourcesService` extracts `download_odoo_repository` and `download_odoo_nightly_build` from `CreateProjectEnvironment`; env delegates via thin wrappers. `PlatformSourcesServiceTests` in `test_project_env_links`.
 - **`dev_project/project_env/services/vscode_configurator.py`** — `VscodeConfigurator` extracts VS Code boundary (`get_vscode_dir_path`, `build_debugger_path_mappings`, `update_vscode_debugger_launcher`, `generate_vscode_settings_json`) from `ProjectTemplates`; env delegates via thin wrappers. `VscodeDebuggerMappingsTests` target the service; delegation tests added.
 - **`dev_project/project_env/services/ci_image_build.py`** — `CiImageBuildService` extracts CI image build orchestration over `CiImageBuilder`; `OdpmPipeline.handle_build_image` calls the service directly instead of `env.build_ci_image`. Env delegates via thin wrappers. `CiImageBuildServiceTests` in `test_project_env_modules`; pipeline tests patch `CiImageBuildService`.
+- **`dev_project/project_env/services/docker_base_image.py`** — `BaseImageService` extracts base image orchestration over `BaseImageBuilder`; `SystemChecker.check_docker` and `CiImageBuilder.build_ci_image` call the service directly instead of `env.ensure_base_image`. Env delegates via thin wrappers. `BaseImageServiceTests` in `test_project_env_modules`; `test_phase2_infra` patches `BaseImageService`.
 
 ---
 

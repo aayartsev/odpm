@@ -16,6 +16,7 @@ from ..errors import PipelineError
 from ..logging import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
 from ..subprocess_runner import run_logged
+from .services.docker_base_image import BaseImageService
 from .types import MappedPath
 
 if TYPE_CHECKING:
@@ -202,7 +203,7 @@ class CiImageBuilder:
         return dockerfile_path
 
     def build_ci_image(self) -> None:
-        self.env.ensure_base_image()
+        BaseImageService(self.env).ensure_base_image()
         self.prepare_ci_build_context()
         ci_dockerfile = self.generate_ci_dockerfile()
         context_dir = self.config.ci_build_context_dir

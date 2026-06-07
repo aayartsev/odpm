@@ -10,6 +10,7 @@ from .errors import SubprocessError, SystemCheckError
 from .inside_docker_app import utils
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
+from .project_env.services import BaseImageService
 from .protocols import SystemCheckerProtocol
 from .subprocess_runner import run_checked, run_logged, run_or_raise
 from .system_check_policy import SystemCheckPolicy
@@ -87,7 +88,7 @@ class SystemChecker(SystemCheckerProtocol):
             error_message=message,
         )
 
-        self.project_environment.ensure_base_image()
+        BaseImageService(self.project_environment).ensure_base_image()
 
     def check_running_containers(self) -> None:
         ports_to_check = [
