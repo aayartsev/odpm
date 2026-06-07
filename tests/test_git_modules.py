@@ -332,6 +332,96 @@ class CheckoutServiceTests(unittest.TestCase):
         self.assertIn("deadbeef", fetch_call.args[0])
 
 
+class BuildDateResolverTests(unittest.TestCase):
+    def _resolver(self, **link_overrides):
+        from dev_project.git.build_date import BuildDateResolver
+        from dev_project.git.checkout import CheckoutService
+        from dev_project.git.runner import GitRunner
+
+        link = object.__new__(HandleOdooProjectLink)
+        link.project_path = "/tmp/repo"
+        link.gitlink = "https://github.com/acme/demo.git"
+        link.project_link = link.gitlink
+        link.path_to_ssh_key = ""
+        link.project_string = link.gitlink
+        link.dir_to_clone = "/tmp/clone_base"
+        link.system_type = "standart"
+        link.link_type = constants.GITLINK_TYPE_GIT
+        link.branch = "17.0"
+        link.commit = ""
+        link.branch_explicit = False
+        link.commit_explicit = False
+        for key, value in link_overrides.items():
+            setattr(link, key, value)
+        runner = GitRunner(link)
+        checkout = CheckoutService(link, runner)
+        return BuildDateResolver(link, runner, checkout)
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_resolve_head_sha_returns_rev_parse_head(self, mock_run_checked):
+        mock_run_checked.return_value = MagicMock(
+            stdout="abc123def456\n",
+            returncode=0,
+            stderr="",
+        )
+        resolver = self._resolver()
+        with patch("dev_project.git.build_date.os.path.exists", return_value=True):
+            self.assertEqual(resolver.resolve_head_sha(), "abc123def456")
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_resolve_commit_by_build_date_uses_rev_list(self, mock_run_checked):
+        mock_run_checked.side_effect = [
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="deadbeef\n", returncode=0, stderr=""),
+        ]
+        resolver = self._resolver()
+        self.assertEqual(
+            resolver.resolve_commit_by_build_date("17.0", "20250528"),
+            "deadbeef",
+        )
+        rev_list_call = mock_run_checked.call_args_list[1]
+        self.assertIn("rev-list", rev_list_call.args[0])
+        self.assertIn("--before=", rev_list_call.args[0][3])
+
+    def test_apply_build_date_skips_when_commit_explicit(self):
+        resolver = self._resolver(commit_explicit=True, commit="abc123")
+        with patch.object(
+            resolver, "resolve_commit_with_fetch"
+        ) as mock_resolve:
+            resolver.apply_build_date("20250528", "17.0")
+        mock_resolve.assert_not_called()
+
+    @patch("dev_project.git.checkout.CheckoutService.ensure_branch_exists")
+    @patch("dev_project.git.build_date.BuildDateResolver.resolve_commit_with_fetch")
+    def test_apply_build_date_sets_commit_on_link(
+        self, mock_resolve, mock_ensure_branch
+    ):
+        mock_resolve.return_value = "resolved_sha_1234567890"
+        resolver = self._resolver()
+        with patch("dev_project.git.build_date.os.path.exists", return_value=True):
+            resolver.apply_build_date("20250528", "17.0")
+        mock_ensure_branch.assert_called_once_with("17.0", "17.0")
+        mock_resolve.assert_called_once_with("17.0", "20250528")
+        self.assertEqual(resolver.link.commit, "resolved_sha_1234567890")
+        self.assertTrue(resolver.link.commit_explicit)
+
+    @patch("dev_project.git.build_date.BuildDateResolver.fetch_history_for_build_date")
+    @patch("dev_project.git.build_date.BuildDateResolver.resolve_commit_by_build_date")
+    def test_resolve_commit_with_fetch_invokes_link_fetch_callback(
+        self, mock_resolve, mock_fetch
+    ):
+        mock_resolve.side_effect = [RuntimeError("missing"), "sha_after_fetch"]
+        resolver = self._resolver()
+        link_fetch = MagicMock()
+        resolver.link._fetch_history_for_build_date = link_fetch
+        self.assertEqual(
+            resolver.resolve_commit_with_fetch("17.0", "20250528"),
+            "sha_after_fetch",
+        )
+        link_fetch.assert_called_once_with("17.0", "20250528")
+        self.assertEqual(mock_resolve.call_count, 2)
+
+
 class GitOperationsTests(unittest.TestCase):
     def _operations(self, **link_overrides):
         from dev_project.git.operations import GitOperations
@@ -349,16 +439,11 @@ class GitOperationsTests(unittest.TestCase):
             setattr(link, key, value)
         return GitOperations(link)
 
-    @patch("dev_project.git.runner.run_checked")
-    def test_resolve_head_sha_returns_rev_parse_head(self, mock_run_checked):
-        mock_run_checked.return_value = MagicMock(
-            stdout="abc123def456\n",
-            returncode=0,
-            stderr="",
-        )
+    @patch("dev_project.git.build_date.BuildDateResolver.apply_build_date")
+    def test_apply_build_date_delegates_to_build_date_resolver(self, mock_apply):
         ops = self._operations()
-        with patch("dev_project.git.operations.os.path.exists", return_value=True):
-            self.assertEqual(ops.resolve_head_sha(), "abc123def456")
+        ops.apply_build_date("20250528", "17.0")
+        mock_apply.assert_called_once_with("20250528", "17.0")
 
     @patch("dev_project.git.checkout.CheckoutService.checkout")
     def test_checkout_delegates_to_checkout_service(self, mock_checkout):
