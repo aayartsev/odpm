@@ -422,10 +422,8 @@ class BuildDateResolverTests(unittest.TestCase):
         self.assertEqual(mock_resolve.call_count, 2)
 
 
-class GitOperationsTests(unittest.TestCase):
-    def _operations(self, **link_overrides):
-        from dev_project.git.operations import GitOperations
-
+class HandleOdooProjectLinkGitServicesTests(unittest.TestCase):
+    def _link(self, **link_overrides):
         link = object.__new__(HandleOdooProjectLink)
         link.project_path = "/tmp/repo"
         link.gitlink = "https://github.com/acme/demo.git"
@@ -435,20 +433,22 @@ class GitOperationsTests(unittest.TestCase):
         link.dir_to_clone = "/tmp/clone_base"
         link.system_type = "standart"
         link.link_type = constants.GITLINK_TYPE_GIT
+        link.is_cloned = False
         for key, value in link_overrides.items():
             setattr(link, key, value)
-        return GitOperations(link)
+        link._wire_git_services()
+        return link
 
     @patch("dev_project.git.build_date.BuildDateResolver.apply_build_date")
     def test_apply_build_date_delegates_to_build_date_resolver(self, mock_apply):
-        ops = self._operations()
-        ops.apply_build_date("20250528", "17.0")
+        link = self._link()
+        link.apply_build_date("20250528", "17.0")
         mock_apply.assert_called_once_with("20250528", "17.0")
 
     @patch("dev_project.git.checkout.CheckoutService.checkout")
     def test_checkout_delegates_to_checkout_service(self, mock_checkout):
-        ops = self._operations()
-        ops.checkout("19.0", update=True, odoo_version_sync=True)
+        link = self._link()
+        link.checkout("19.0", update=True, odoo_version_sync=True)
         mock_checkout.assert_called_once_with(
             "19.0",
             commit=None,
@@ -461,15 +461,30 @@ class GitOperationsTests(unittest.TestCase):
 
     @patch("dev_project.git.clone.RepoCloneService.check_repo_url", return_value=True)
     def test_check_project_delegates_to_clone_service(self, mock_check_url):
-        ops = self._operations()
+        link = self._link()
         with patch("dev_project.git.clone.os.path.exists", return_value=True):
             with patch(
                 "dev_project.git.runner.run_checked",
                 return_value=MagicMock(stdout="true\n", returncode=0, stderr=""),
             ):
-                ops.check_project()
+                link.check_project()
         mock_check_url.assert_called_once()
-        self.assertTrue(ops.link.is_cloned)
+        self.assertTrue(link.is_cloned)
+
+    def test_wire_git_services_composes_runner_clone_checkout_build_date(self):
+        link = self._link()
+        from dev_project.git.build_date import BuildDateResolver
+        from dev_project.git.checkout import CheckoutService
+        from dev_project.git.clone import RepoCloneService
+        from dev_project.git.runner import GitRunner
+
+        self.assertIsInstance(link._runner, GitRunner)
+        self.assertIsInstance(link._clone, RepoCloneService)
+        self.assertIsInstance(link._checkout, CheckoutService)
+        self.assertIsInstance(link._build_date, BuildDateResolver)
+        self.assertIs(link._clone._runner, link._runner)
+        self.assertIs(link._checkout._runner, link._runner)
+        self.assertIs(link._build_date._checkout, link._checkout)
 
 
 class HandleOdooProjectLinkInitTests(unittest.TestCase):

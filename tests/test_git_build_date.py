@@ -23,7 +23,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from dev_project import constants
 from dev_project.git import HandleOdooProjectLink
-from dev_project.git.operations import GitOperations
 from dev_project.inside_docker_app.utils import (
     commit_before_timestamp,
     is_actionable_build_date,
@@ -37,7 +36,7 @@ def _link_for_repo(repo: Path) -> HandleOdooProjectLink:
     link.project_path = str(repo)
     link.path_to_ssh_key = ""
     link.project_string = str(repo)
-    link._git = GitOperations(link)
+    link._wire_git_services()
     return link
 
 

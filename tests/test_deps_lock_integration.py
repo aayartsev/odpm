@@ -11,7 +11,6 @@ from dev_project.errors import PipelineError
 from dev_project.git import HandleOdooProjectLink
 from dev_project.git.deps_lock import DepsLock, LockEntry, save_deps_lock
 from dev_project.git.deps_lock_manager import DepsLockManager
-from dev_project.git.operations import GitOperations
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -61,7 +60,7 @@ def _git_link_at(
     link.path_to_ssh_key = ""
     link.dir_to_clone = os.path.dirname(repo_path)
     link.system_type = "standart"
-    link._git = GitOperations(link)
+    link._wire_git_services()
     return link
 
 

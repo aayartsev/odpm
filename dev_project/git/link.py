@@ -1,9 +1,12 @@
 from typing import Literal, Optional
 
 from .. import constants
+from .build_date import BuildDateResolver
+from .checkout import CheckoutService
+from .clone import RepoCloneService
 from .discovery import ProjectDiscovery
-from .operations import GitOperations
 from .parser import LinkParser
+from .runner import GitRunner
 from .types import (
     FILE_SYSTEM_MARKER,
     GIT_MARKER,
@@ -41,13 +44,19 @@ class HandleOdooProjectLink:
 
         self._parser = LinkParser(self)
         self._discovery = ProjectDiscovery(self)
-        self._git = GitOperations(self)
+        self._wire_git_services()
 
         self._parser.parse_project_string()
         self.link_type = self._parser.get_git_link_type()
         self.project_data = self._parser.parse_link_by_type()
         self.project_path = self._parser.get_project_path()
         self._discovery.update_project_type()
+
+    def _wire_git_services(self) -> None:
+        self._runner = GitRunner(self)
+        self._clone = RepoCloneService(self, self._runner)
+        self._checkout = CheckoutService(self, self._runner)
+        self._build_date = BuildDateResolver(self, self._runner, self._checkout)
 
     def build_project(self) -> None:
         if self.link_type in [
@@ -56,7 +65,7 @@ class HandleOdooProjectLink:
             constants.GITLINK_TYPE_SSH,
         ]:
             self._parser.get_dir_to_clone()
-            self._git.check_project()
+            self._clone.check_project()
         if self.link_type in [constants.GITLINK_TYPE_FILE]:
             self.is_cloned = True
         self._discovery.apply_inside_docker_path()
@@ -74,28 +83,28 @@ class HandleOdooProjectLink:
         self._parser.get_dir_to_clone()
 
     def check_project(self) -> None:
-        self._git.check_project()
+        self._clone.check_project()
 
     def force_clone_repo(self) -> None:
-        self._git.force_clone_repo()
+        self._clone.force_clone_repo()
 
     def clone_repo(self) -> None:
-        self._git.clone_repo()
+        self._clone.clone_repo()
 
     def check_repo_url(self, repo_path: str, expected_url: str) -> bool:
-        return self._git.check_repo_url(repo_path, expected_url)
+        return self._clone.check_repo_url(repo_path, expected_url)
 
     def resolve_commit_by_build_date(self, branch: str, build_date: str) -> str:
-        return self._git.resolve_commit_by_build_date(branch, build_date)
+        return self._build_date.resolve_commit_by_build_date(branch, build_date)
 
     def resolve_commit_with_fetch(self, branch: str, build_date: str) -> str:
-        return self._git.resolve_commit_with_fetch(branch, build_date)
+        return self._build_date.resolve_commit_with_fetch(branch, build_date)
 
     def resolve_head_sha(self) -> str:
-        return self._git.resolve_head_sha()
+        return self._build_date.resolve_head_sha()
 
     def apply_build_date(self, build_date: str, odoo_version: str) -> None:
-        self._git.apply_build_date(build_date, odoo_version)
+        self._build_date.apply_build_date(build_date, odoo_version)
 
     def checkout_repository(
         self,
@@ -104,14 +113,14 @@ class HandleOdooProjectLink:
         clean_git_repos: bool = False,
         update_git_repos: bool = False,
     ) -> None:
-        self._git.checkout_repository(
+        self._checkout.checkout_repository(
             odoo_version,
             clean_git_repos=clean_git_repos,
             update_git_repos=update_git_repos,
         )
 
     def switch_to_branch(self, branch_name: str) -> None:
-        self._git.switch_to_branch(branch_name)
+        self._checkout.switch_to_branch(branch_name)
 
     def checkout(
         self,
@@ -124,7 +133,7 @@ class HandleOdooProjectLink:
         odoo_version: Optional[str] = None,
         odoo_version_sync: bool = False,
     ) -> None:
-        self._git.checkout(
+        self._checkout.checkout(
             branch,
             commit=commit,
             hard=hard,
@@ -135,16 +144,16 @@ class HandleOdooProjectLink:
         )
 
     def checkout_parsed_or_version(self, odoo_version: str) -> None:
-        self._git.checkout_parsed_or_version(odoo_version)
+        self._checkout.checkout_parsed_or_version(odoo_version)
 
     def ensure_branch_exists(self, branch_name: str, odoo_version: str) -> None:
-        self._git.ensure_branch_exists(branch_name, odoo_version)
+        self._checkout.ensure_branch_exists(branch_name, odoo_version)
 
     def get_odoo_latest_version(self) -> float:
-        return self._git.get_odoo_latest_version()
+        return self._checkout.get_odoo_latest_version()
 
     def _fetch_history_for_build_date(self, branch: str, build_date: str) -> None:
-        self._git._fetch_history_for_build_date(branch, build_date)
+        self._build_date.fetch_history_for_build_date(branch, build_date)
 
     def _run_git(
         self,
@@ -153,7 +162,7 @@ class HandleOdooProjectLink:
         capture: bool = True,
         check: bool = False,
     ):
-        return self._git._run_git(args, capture=capture, check=check)
+        return self._runner.run_git(args, capture=capture)
 
     def __bool__(self) -> bool:
         return self.is_true
