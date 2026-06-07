@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from .artifacts import DeprecatedConfigHandler
 from .defaults import ConfigDefaultsFactory
 from .manifests import OdpmJsonReader, UserSettingsReader
-from .manifests.odpm_json_writer import rewrite_odpm_json
+from .manifests.odpm_json_writer import rewrite_odpm_json as write_odpm_json
 from .transforms import OdooBuildDateResolver
 
 if TYPE_CHECKING:
@@ -29,11 +29,11 @@ class ConfigBootstrapContext:
         )
         self.odpm_json = OdpmJsonReader(
             self.config,
-            rewrite_odpm_json=self._rewrite_odpm_json,
+            rewrite_odpm_json=self.rewrite_odpm_json,
         )
 
-    def _rewrite_odpm_json(self) -> None:
-        rewrite_odpm_json(
+    def rewrite_odpm_json(self) -> None:
+        write_odpm_json(
             self.config,
             create_default=self.defaults.create_default_odpm_json_content,
         )

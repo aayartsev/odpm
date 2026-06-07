@@ -11,6 +11,7 @@ from dev_project.config import Config, compute_venv_lock_hash, config_to_json
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.bootstrap import (
     bind_developing_link,
+    bind_platform_link,
     load_project_settings,
     load_user_settings,
 )
@@ -468,9 +469,9 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
         config = MagicMock()
         ctx = ConfigBootstrapContext(config)
         with patch(
-            "dev_project.config.bootstrap_context.rewrite_odpm_json"
+            "dev_project.config.bootstrap_context.write_odpm_json"
         ) as mock_rewrite:
-            ctx._rewrite_odpm_json()
+            ctx.rewrite_odpm_json()
         mock_rewrite.assert_called_once_with(
             config,
             create_default=ctx.defaults.create_default_odpm_json_content,
@@ -485,6 +486,26 @@ class BindDevelopingLinkTests(unittest.TestCase):
 
         with self.assertRaises(ConfigError):
             bind_developing_link(config)
+
+
+class BindPlatformLinkTests(unittest.TestCase):
+    def test_bind_platform_link_sets_platform_project_and_src_dir(self):
+        config = Config.__new__(Config)
+        config._project = ProjectSettingsState()
+        config.odoo_git_link = "https://github.com/odoo/odoo.git"
+        platform_link = MagicMock()
+        platform_link.get_project_path.return_value = "/tmp/odoo/src"
+        config.handle_git_link = MagicMock(return_value=platform_link)
+
+        bind_platform_link(config)
+
+        config.handle_git_link.assert_called_once_with(
+            config.odoo_git_link,
+            system_type="platform",
+            materialize=False,
+        )
+        self.assertIs(config.odoo_platform_project, platform_link)
+        self.assertEqual(config.odoo_src_dir, "/tmp/odoo/src")
 
 
 class ConfigStateSliceTests(unittest.TestCase):
@@ -554,16 +575,22 @@ class ConfigStateSliceTests(unittest.TestCase):
             requirements_txt="",
         )
         config._project = ProjectSettingsState()
-        config._bootstrap_ctx = MagicMock()
-        config._bootstrap_ctx.build_date = OdooBuildDateResolver(config)
+        ctx = MagicMock()
+        ctx.build_date = OdooBuildDateResolver(config)
+        config._bootstrap_ctx = ctx
         config._raw_odpm_json["odoo_build_date"] = constants.ODOO_DEFAULT_BUILD_DATE
         config.repo_odpm_json = "/tmp/project/odpm.json"
         config.pd_manager = MagicMock(
             project_docker_compose_template_path="/tmp/project/.odpm/docker-compose.yml"
         )
 
-        load_project_settings(config)
+        with patch("dev_project.config.bootstrap.os.path.exists", return_value=True):
+            load_project_settings(config)
 
+        ctx.odpm_json.get_project_odpm_json.assert_called_once()
+        ctx.odpm_json.get_odpm_settings.assert_called_once()
+        self.assertEqual(ctx.deprecated.check_file_for_deprecated_words.call_count, 2)
+        ctx.rewrite_odpm_json.assert_not_called()
         self.assertEqual(config._project.odoo_version, "18.0")
         self.assertEqual(config._project.python_version, "3.12")
         self.assertEqual(config._project.platform_name, "odoo")

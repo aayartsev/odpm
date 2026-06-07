@@ -132,7 +132,7 @@ def load_project_settings(config: Config) -> None:
 
     ctx.deprecated.check_file_for_deprecated_words(config.repo_odpm_json)
     if not os.path.exists(config.repo_odpm_json):
-        ctx._rewrite_odpm_json()
+        ctx.rewrite_odpm_json()
 
     config._project = project_settings_from_raw(
         config._raw_odpm_json,
