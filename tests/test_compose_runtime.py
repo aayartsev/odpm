@@ -37,16 +37,16 @@ class ComposeStackHealthTests(unittest.TestCase):
         config.project_dir = "/tmp/project"
         return config
 
-    @patch("dev_project.compose_runtime.container_is_running_and_healthy", return_value=True)
-    @patch("dev_project.compose_runtime._running_container_id")
+    @patch("dev_project.compose.runtime.container_is_running_and_healthy", return_value=True)
+    @patch("dev_project.compose.runtime._running_container_id")
     def test_compose_stack_is_healthy_when_both_services_up(
         self, mock_running_id, _mock_health
     ):
         mock_running_id.side_effect = ["odoo-id", "db-id"]
         self.assertTrue(compose_stack_is_healthy(self._config()))
 
-    @patch("dev_project.compose_runtime.container_is_running_and_healthy")
-    @patch("dev_project.compose_runtime._running_container_id")
+    @patch("dev_project.compose.runtime.container_is_running_and_healthy")
+    @patch("dev_project.compose.runtime._running_container_id")
     def test_compose_stack_unhealthy_when_odoo_unhealthy(
         self, mock_running_id, mock_health
     ):
@@ -54,15 +54,15 @@ class ComposeStackHealthTests(unittest.TestCase):
         mock_health.side_effect = [False, True]
         self.assertFalse(compose_stack_is_healthy(self._config()))
 
-    @patch("dev_project.compose_runtime._running_container_id", return_value=None)
+    @patch("dev_project.compose.runtime._running_container_id", return_value=None)
     def test_compose_stack_unhealthy_when_service_missing(self, _mock_running_id):
         self.assertFalse(compose_stack_is_healthy(self._config()))
 
-    @patch("dev_project.compose_runtime.compose_stack_is_healthy", return_value=True)
+    @patch("dev_project.compose.runtime.compose_stack_is_healthy", return_value=True)
     def test_should_not_force_recreate_when_healthy(self, _mock_stack):
         self.assertFalse(should_force_recreate_compose(self._config()))
 
-    @patch("dev_project.compose_runtime.compose_stack_is_healthy", return_value=False)
+    @patch("dev_project.compose.runtime.compose_stack_is_healthy", return_value=False)
     def test_should_force_recreate_when_unhealthy(self, _mock_stack):
         self.assertTrue(should_force_recreate_compose(self._config()))
 

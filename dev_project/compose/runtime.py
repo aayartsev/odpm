@@ -58,19 +58,15 @@ def container_is_running_and_healthy(container_id: str) -> bool:
 
 def compose_stack_is_healthy(config: Config) -> bool:
     """True when odoo and postgres compose services are up (and healthy if probed)."""
-    from dev_project import compose_runtime as shim
-
     for service in COMPOSE_STACK_SERVICES:
-        container_id = shim._running_container_id(config, service)
+        container_id = _running_container_id(config, service)
         if not container_id:
             return False
-        if not shim.container_is_running_and_healthy(container_id):
+        if not container_is_running_and_healthy(container_id):
             return False
     return True
 
 
 def should_force_recreate_compose(config: Config) -> bool:
     """Recreate only when the stack is missing or not healthy."""
-    from dev_project import compose_runtime as shim
-
-    return not shim.compose_stack_is_healthy(config)
+    return not compose_stack_is_healthy(config)

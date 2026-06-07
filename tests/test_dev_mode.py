@@ -128,7 +128,7 @@ class ComposeDevModeTests(unittest.TestCase):
         self.assertLess(index + 1, len(command), "missing value after --dev")
         return command[index + 1]
 
-    @patch("dev_project.compose_service_builder.write_runtime_config")
+    @patch("dev_project.config.payload.write_runtime_config")
     def test_compose_dev_mode_matrix(self, _mock_write_runtime_config):
         for case_id, dev_mode_value, expected_argv in iter_dev_mode_compose_cases():
             with self.subTest(case_id=case_id, dev_mode=dev_mode_value):
@@ -138,7 +138,7 @@ class ComposeDevModeTests(unittest.TestCase):
                 actual = self._dev_flag_from_command(config.compose_service.command)
                 self.assertEqual(actual, expected_argv)
 
-    @patch("dev_project.compose_service_builder.write_runtime_config")
+    @patch("dev_project.config.payload.write_runtime_config")
     def test_dev_mode_applies_only_in_developer_scenario(
         self, _mock_write_runtime_config
     ):
@@ -156,7 +156,7 @@ class ComposeDevModeTests(unittest.TestCase):
                     expected,
                 )
 
-    @patch("dev_project.compose_service_builder.write_runtime_config")
+    @patch("dev_project.config.payload.write_runtime_config")
     def test_pre_commit_start_omits_dev_mode(self, _mock_write_runtime_config):
         config = self._make_config()
         config.dev_mode = "reload,qweb"

@@ -72,7 +72,7 @@ class PlanPredicateTests(unittest.TestCase):
 class OdpmPlannerTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.plan_compose_runtime.should_force_recreate_compose",
+            "dev_project.compose.runtime.should_force_recreate_compose",
             return_value=False,
         )
         self._recreate_patcher.start()

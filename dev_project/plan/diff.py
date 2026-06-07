@@ -96,12 +96,10 @@ def preview_dockerignore_content(config: Config) -> str:
 
 
 def diff_runtime_config(config: Config) -> PlanFileDiff | None:
-    from dev_project import plan_diff as shim
-
-    preview = shim.preview_runtime_config_text(config)
+    preview = preview_runtime_config_text(config)
     if preview is None:
         return None
-    on_disk = shim.normalized_runtime_config_text_from_disk(
+    on_disk = normalized_runtime_config_text_from_disk(
         config.project_dir,
         config=config,
     )
@@ -160,16 +158,14 @@ def build_plan_diffs(
 ) -> tuple[PlanFileDiff, ...]:
     if not args.plan_show_diff:
         return ()
-    from dev_project import plan_diff as shim
-
     diffs: list[PlanFileDiff] = []
     if _step_would_change(plan, "compose.service"):
-        runtime_diff = shim.diff_runtime_config(config)
+        runtime_diff = diff_runtime_config(config)
         if runtime_diff is not None:
             diffs.append(runtime_diff)
     if _step_would_change(plan, "compose.generate"):
         with patch("dev_project.project_env.compose.Path.mkdir"):
-            compose_diff = shim.diff_docker_compose(config, project_env)
+            compose_diff = diff_docker_compose(config, project_env)
         if compose_diff is not None:
             diffs.append(compose_diff)
     if _step_would_change(plan, "template.dockerignore"):

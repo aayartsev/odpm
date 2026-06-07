@@ -29,9 +29,9 @@ def compose_up_info_from_plan(
 ) -> dict[str, Any] | None:
     if not any(step.id == "compose.up" for step in plan.steps):
         return None
-    from dev_project import plan_format as shim
+    from .compose_runtime import compose_up_force_recreate_value
 
-    return {"force_recreate": shim.compose_up_force_recreate_value(config, args)}
+    return {"force_recreate": compose_up_force_recreate_value(config, args)}
 
 
 def plan_step_to_dict(step: PlanStep) -> dict[str, Any]:

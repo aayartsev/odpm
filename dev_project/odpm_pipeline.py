@@ -70,7 +70,7 @@ class OdpmPipeline:
 
     def print_plan(self) -> int:
         from .plan import OdpmPlanner, format_plan
-        from .plan_format import plan_has_required_changes, resolve_plan_format
+        from .plan.format import plan_has_required_changes, resolve_plan_format
 
         config = self._config()
         plan = OdpmPlanner.build(

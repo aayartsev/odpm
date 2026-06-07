@@ -16,9 +16,9 @@ PLAN_NO_DOCKER_WARNING = (
 
 
 def _should_force_recreate_compose(config: Config) -> bool:
-    from dev_project import plan_compose_runtime as shim
+    from ..compose.runtime import should_force_recreate_compose
 
-    return shim.should_force_recreate_compose(config)
+    return should_force_recreate_compose(config)
 
 
 def plan_probes_compose_stack(args: OdpmCliArgs) -> bool:

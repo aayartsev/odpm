@@ -28,7 +28,7 @@ def docker_compose_path(project_dir: str) -> str:
 
 
 def preview_compose_service(config: Config):
-    with patch("dev_project.compose_service_builder.write_runtime_config"):
+    with patch("dev_project.config.payload.write_runtime_config"):
         return ComposeServiceBuilder(config).build()
 
 

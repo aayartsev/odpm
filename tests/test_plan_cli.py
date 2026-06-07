@@ -71,7 +71,7 @@ class PlanSubcommandParseTests(unittest.TestCase):
 class PlanSubcommandPipelineTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.plan_compose_runtime.should_force_recreate_compose",
+            "dev_project.compose.runtime.should_force_recreate_compose",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -110,7 +110,7 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
             self.assertEqual(payload["plan_version"], 1)
 
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
-    @patch("dev_project.plan_format.plan_has_required_changes", return_value=False)
+    @patch("dev_project.plan.format.plan_has_required_changes", return_value=False)
     def test_plan_subcommand_equivalent_to_plan_flag(
         self, _mock_required, _mock_setup
     ):

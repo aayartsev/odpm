@@ -29,7 +29,7 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         self.assertFalse(plan_probes_compose_stack(OdpmCliArgs(plan_no_docker=True)))
 
     @patch(
-        "dev_project.plan_compose_runtime.should_force_recreate_compose",
+        "dev_project.compose.runtime.should_force_recreate_compose",
         return_value=False,
     )
     def test_compose_up_reason_without_force_recreate_when_healthy(self, _mock):
@@ -39,7 +39,7 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         self.assertEqual(warnings, ())
 
     @patch(
-        "dev_project.plan_compose_runtime.should_force_recreate_compose",
+        "dev_project.compose.runtime.should_force_recreate_compose",
         return_value=True,
     )
     def test_compose_up_reason_with_force_recreate_when_unhealthy(self, _mock):
@@ -56,9 +56,9 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         self.assertIn("unknown", reason)
         self.assertEqual(warnings, (PLAN_NO_DOCKER_WARNING,))
 
-    @patch("dev_project.prepare_registry.compose_up_would_run", return_value=True)
+    @patch("dev_project.plan.compose_runtime.compose_up_would_run", return_value=True)
     @patch(
-        "dev_project.prepare_registry.evaluate_compose_up_plan",
+        "dev_project.plan.compose_runtime.evaluate_compose_up_plan",
         return_value=("start compose stack with --force-recreate", ()),
     )
     def test_runtime_warnings_empty_when_probe_runs(self, _mock_eval, _mock_would_run):
@@ -67,9 +67,9 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         warnings = build_runtime_plan_warnings(config, OdpmCliArgs(), host_ctx)
         self.assertEqual(warnings, ())
 
-    @patch("dev_project.prepare_registry.compose_up_would_run", return_value=True)
+    @patch("dev_project.plan.compose_runtime.compose_up_would_run", return_value=True)
     @patch(
-        "dev_project.prepare_registry.evaluate_compose_up_plan",
+        "dev_project.plan.compose_runtime.evaluate_compose_up_plan",
         return_value=("unknown", (PLAN_NO_DOCKER_WARNING,)),
     )
     def test_runtime_warnings_include_plan_no_docker_message(
@@ -99,7 +99,7 @@ class PlanComposeProbeIntegrationTests(unittest.TestCase):
         return config
 
     @patch(
-        "dev_project.plan_compose_runtime.should_force_recreate_compose",
+        "dev_project.compose.runtime.should_force_recreate_compose",
         return_value=True,
     )
     def test_plan_table_shows_force_recreate_reason(self, _mock):

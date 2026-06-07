@@ -61,17 +61,17 @@ class PlanComposePreviewTests(unittest.TestCase):
         config.generate_odoo_conf_docker_data = MagicMock()
         return config
 
-    @patch("dev_project.compose_service_builder.write_runtime_config")
+    @patch("dev_project.config.payload.write_runtime_config")
     def test_preview_compose_service_does_not_write_runtime_config(self, mock_write):
         preview_compose_service(self._developer_compose_config())
         mock_write.assert_not_called()
 
     @patch(
-        "dev_project.plan_compose_preview.preview_runtime_config_text",
+        "dev_project.plan.runtime_preview.preview_runtime_config_text",
         return_value='{\n  "arguments": {"branch": "dev"},\n  "schema_version": 1\n}\n',
     )
     @patch(
-        "dev_project.plan_compose_preview.normalized_runtime_config_text_from_disk",
+        "dev_project.plan.runtime_preview.normalized_runtime_config_text_from_disk",
         return_value='{\n  "arguments": {"branch": "dev"},\n  "schema_version": 1\n}\n',
     )
     def test_compose_service_noop_when_normalized_runtime_matches(
@@ -130,7 +130,7 @@ class PlanComposePreviewTests(unittest.TestCase):
 
 class ComposeGenerateOutcomeTests(unittest.TestCase):
     @patch(
-        "dev_project.prepare_registry.compose_generate_needs_execute",
+        "dev_project.plan.compose_preview.compose_generate_needs_execute",
         return_value=(False, "docker-compose.yml matches preview"),
     )
     def test_compose_generate_noop_when_preview_matches(self, _mock_generate):

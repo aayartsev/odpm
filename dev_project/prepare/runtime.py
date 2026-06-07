@@ -46,9 +46,9 @@ def evaluate_runtime_vscode_settings(config: Config) -> PlanStep | None:
 
 
 def _compose_runtime():
-    from .. import prepare_registry
+    from ..plan import compose_runtime
 
-    return prepare_registry
+    return compose_runtime
 
 
 def evaluate_runtime_compose_up(

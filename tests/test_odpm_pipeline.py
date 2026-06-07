@@ -81,7 +81,7 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
 
         from dev_project.compose_service_builder import ComposeServiceBuilder
 
-        with patch("dev_project.compose_service_builder.write_runtime_config"):
+        with patch("dev_project.config.payload.write_runtime_config"):
             builder = ComposeServiceBuilder(config)
             builder.build()
         self.assertIs(builder.policy, policy)
@@ -384,7 +384,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.system_checker = MagicMock()
         return pipeline
 
-    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
+    @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
         pipeline.prepare_project_files()
@@ -394,7 +394,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.ensure_git_repos_present.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
-    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
+    @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_skips_git_when_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(no_git_update=True)
         pipeline.prepare_project_files()
@@ -402,7 +402,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline.config.materialize_git_repos.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_not_called()
 
-    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
+    @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_skips_build_date_when_platform_lock_exists(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
         with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
@@ -416,7 +416,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         manager.load.assert_called_once()
         manager.enter_apply_mode.assert_called_once()
 
-    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
+    @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_update_lock_collects_without_loading_lock(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True)
         with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
@@ -430,7 +430,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         )
         pipeline.project_environment.checkout_dependencies.assert_called_once()
 
-    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
+    @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_verifies_lock_after_checkout_when_apply_mode(self, _mock_builder):
         with tempfile.TemporaryDirectory() as tmp:
             lock_path = Path(tmp) / constants.DEPS_LOCK_REL_PATH
@@ -448,7 +448,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
                 pipeline.prepare_project_files()
             manager.verify_after_checkout.assert_called_once()
 
-    @patch("dev_project.prepare_registry.ComposeServiceBuilder")
+    @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_rejects_update_lock_with_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True, no_git_update=True)
         with self.assertRaises(PipelineError):

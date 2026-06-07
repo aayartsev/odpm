@@ -35,11 +35,11 @@ class PlanDiffHelperTests(unittest.TestCase):
 
 class PlanRuntimeConfigDiffTests(unittest.TestCase):
     @patch(
-        "dev_project.plan_diff.preview_runtime_config_text",
+        "dev_project.plan.diff.preview_runtime_config_text",
         return_value='{\n  "preview": true\n}\n',
     )
     @patch(
-        "dev_project.plan_diff.normalized_runtime_config_text_from_disk",
+        "dev_project.plan.diff.normalized_runtime_config_text_from_disk",
         return_value='{\n  "on_disk": true\n}\n',
     )
     def test_diff_runtime_config_when_payload_differs(self, _mock_disk, _mock_preview):
@@ -53,11 +53,11 @@ class PlanRuntimeConfigDiffTests(unittest.TestCase):
         self.assertIn('"preview": true', diff.unified_diff or "")
 
     @patch(
-        "dev_project.plan_diff.preview_runtime_config_text",
+        "dev_project.plan.diff.preview_runtime_config_text",
         return_value='{\n  "same": true\n}\n',
     )
     @patch(
-        "dev_project.plan_diff.normalized_runtime_config_text_from_disk",
+        "dev_project.plan.diff.normalized_runtime_config_text_from_disk",
         return_value='{\n  "same": true\n}\n',
     )
     def test_diff_runtime_config_none_when_unchanged(self, _mock_disk, _mock_preview):
@@ -107,7 +107,7 @@ class BuildPlanDiffsTests(unittest.TestCase):
         self.assertEqual(build_plan_diffs(plan, config, OdpmCliArgs()), ())
 
     @patch(
-        "dev_project.plan_diff.diff_runtime_config",
+        "dev_project.plan.diff.diff_runtime_config",
         return_value=PlanFileDiff(
             path=constants.ODPM_RUNTIME_CONFIG_REL_PATH,
             unified_diff="---\n+++",
@@ -147,7 +147,7 @@ class BuildPlanDiffsTests(unittest.TestCase):
         )
 
     @patch(
-        "dev_project.plan_diff.diff_docker_compose",
+        "dev_project.plan.diff.diff_docker_compose",
         return_value=PlanFileDiff(
             path="docker-compose.yml",
             unified_diff="---\n+++",
@@ -198,7 +198,7 @@ class PlanDiffFormatTests(unittest.TestCase):
 class PlanDiffIntegrationTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.plan_compose_runtime.should_force_recreate_compose",
+            "dev_project.compose.runtime.should_force_recreate_compose",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -223,7 +223,7 @@ class PlanDiffIntegrationTests(unittest.TestCase):
         return config
 
     @patch(
-        "dev_project.plan_diff.diff_runtime_config",
+        "dev_project.plan.diff.diff_runtime_config",
         return_value=PlanFileDiff(
             path=constants.ODPM_RUNTIME_CONFIG_REL_PATH,
             unified_diff="---\n+++",

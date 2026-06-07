@@ -23,9 +23,9 @@ class ComposeServiceBuilder:
         self.config.compose_service = compose_service
         self.config.container_run_mode = start_command.run_mode
         if compose_service.include_runtime_config:
-            from dev_project import compose_service_builder as shim
+            from ..config.payload import write_runtime_config
 
-            shim.write_runtime_config(self.config)
+            write_runtime_config(self.config)
         return compose_service
 
     def build_start_command(self) -> StartCommand:

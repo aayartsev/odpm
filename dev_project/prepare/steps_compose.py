@@ -9,9 +9,9 @@ from .types import PrepareContext
 
 
 def _compose_preview():
-    from .. import prepare_registry
+    from ..plan import compose_preview
 
-    return prepare_registry
+    return compose_preview
 
 
 def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
