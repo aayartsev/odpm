@@ -150,3 +150,15 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
 
     def build_base_image(self) -> None:
         self._base_image.build_base_image()
+
+    @property
+    def templates(self) -> ProjectTemplates:
+        return self._templates
+
+    @property
+    def compose_generator(self) -> ComposeGenerator:
+        return self._compose
+
+    @property
+    def links(self) -> ProjectLinks:
+        return self._links

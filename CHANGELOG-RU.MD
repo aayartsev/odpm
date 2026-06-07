@@ -78,7 +78,7 @@ odpm можно **установить через pip** — в PATH появит
 
 #### Качество и проверки
 
-- **590 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
+- **592 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
 - **Plan-safe setup** — `odpm plan` загружает конфигурацию без обновления шаблонов в `.odpm/`; обычный запуск по-прежнему синхронизирует шаблоны проекта при старте.
 - **Восстановление устаревшего odoo.conf** — `odpm --skip-start` пересоздаёт `odoo.conf`, если в нём нет настроек подключения к БД Docker (например после апгрейда с layout без `db_host`).
 - **Пакет `dev_project/prepare/`** — реестр prepare-фазы вынесен из монолитного `prepare_registry.py`; shim сохраняет существующие импорты и patch-пути в тестах.
@@ -106,6 +106,7 @@ odpm можно **установить через pip** — в PATH появит
 - **Preview-слой plan унифицирован.** `preview_runtime_config_text` и `prepare_runtime_config_for_compose_preview` в `plan/compose_preview.py`; `plan/preview.py` re-export compose/runtime preview helpers. `prepare/steps_compose.py` и `prepare/runtime.py` импортируют plan/compose напрямую, без `prepare_registry` в `prepare/`.
 - **`SystemCheckPolicy` централизует gating проверок.** Модуль `dev_project/system_check_policy.py` задаёт `beginner_git`, `beginner_docker`, `developer_port_release`, `compose_validate` и `file_system_on_init`; `SystemChecker`, prepare docker steps и pipeline setup читают policy вместо разрозненных проверок `check_system`/scenario.
 - **Root-shim импорты выдают `DeprecationWarning`.** Backward-compatible модули (`prepare_registry`, `plan_*`, `compose_*`, `host_*`, `host_cli/*`, `inside_docker_app/cli_params`, `inside_docker_app/parse_args`, `project_env.compose`) предупреждают при import с указанием канонического пути; см. README **Миграция импортов 4.0→4.1**. Shims будут удалены в 4.1.0.
+- **`PrepareContext` injectит prepare-сервисы.** `ProjectTemplates`, `ComposeGenerator` и `ProjectLinks` создаются в `make_prepare_context` из `CreateProjectEnvironment` (или для plan-only/mock env). Prepare steps пока делегируют через `project_env` до PR-11.
 
 ### Исправлено
 

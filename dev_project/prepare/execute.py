@@ -13,7 +13,10 @@ from .helpers import skip_git, update_lock
 from .registry import PREPARE_STEPS
 from .runtime import build_runtime_plan_steps, build_runtime_plan_warnings
 from ..config import Config
+from ..compose.generator import ComposeGenerator
 from ..project_env import CreateProjectEnvironment
+from ..project_env.links import ProjectLinks
+from ..project_env.templates import ProjectTemplates
 from ..protocols import SystemCheckerProtocol
 from .types import PrepareContext, PrepareStepDef
 
@@ -32,15 +35,34 @@ def evaluate_prepare_step(step_def: PrepareStepDef, ctx: PrepareContext) -> Plan
     return step_def.evaluate(ctx)
 
 
+def _resolve_prepare_services(
+    project_env: CreateProjectEnvironment,
+) -> tuple[ProjectTemplates, ComposeGenerator, ProjectLinks]:
+    if isinstance(project_env, CreateProjectEnvironment):
+        return (
+            project_env.templates,
+            project_env.compose_generator,
+            project_env.links,
+        )
+    templates = ProjectTemplates(project_env)
+    compose_generator = ComposeGenerator(project_env)
+    links = ProjectLinks(project_env)
+    return templates, compose_generator, links
+
+
 def make_prepare_context(
     config: Config,
     project_env: CreateProjectEnvironment,
     system_checker: SystemCheckerProtocol,
     args: OdpmCliArgs,
 ) -> PrepareContext:
+    templates, compose_generator, links = _resolve_prepare_services(project_env)
     return PrepareContext(
         config=config,
         project_env=project_env,
+        templates=templates,
+        compose_generator=compose_generator,
+        links=links,
         system_checker=system_checker,
         args=args,
         host_ctx=HostProjectContext.from_config(config, arguments=args),

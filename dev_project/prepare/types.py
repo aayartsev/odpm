@@ -6,10 +6,13 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..compose.generator import ComposeGenerator
 from ..git.deps_lock_manager import DepsLockManager
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..plan import PlanStep
+from ..project_env.links import ProjectLinks
+from ..project_env.templates import ProjectTemplates
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -21,6 +24,9 @@ if TYPE_CHECKING:
 class PrepareContext:
     config: Config
     project_env: CreateProjectEnvironment
+    templates: ProjectTemplates
+    compose_generator: ComposeGenerator
+    links: ProjectLinks
     system_checker: SystemCheckerProtocol
     args: OdpmCliArgs
     host_ctx: HostProjectContext
