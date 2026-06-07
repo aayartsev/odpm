@@ -1,15 +1,5 @@
-import os
-import subprocess
-from pathlib import Path
-
-from .. import constants
 from ..git import HandleOdooProjectLink
 from ..config import Config
-from ..inside_docker_app.utils import (
-    delete_files_in_directory,
-    download_file,
-    un_zip_file_to_directory,
-)
 from ..errors import PipelineError
 from ..protocols import RuntimeProjectServicesProtocol, SystemCheckerProtocol
 from ..dependency_resolver import DependencyResolutionResult
@@ -17,6 +7,7 @@ from .base_image import BaseImageBuilder
 from .ci_image import CiImageBuilder
 from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
+from .services import PlatformSourcesService
 from .templates import ProjectTemplates
 from .types import (
     DebuggerPathRecord,
@@ -43,6 +34,7 @@ class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
         self._ci = CiImageBuilder(self)
         self._links = ProjectLinks(self)
         self._base_image = BaseImageBuilder(self)
+        self._platform_sources = PlatformSourcesService(self)
 
     def attach_system_checker(self, checker: SystemCheckerProtocol) -> None:
         self._system_checker = checker
@@ -81,42 +73,11 @@ class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
     def update_vscode_debugger_launcher(self) -> None:
         self._templates.update_vscode_debugger_launcher()
 
-    def download_odoo_repository(self):
-        self._require_system_checker().check_free_space_for_odoo_developing()
-        parent_dir = os.path.dirname(self.config.odoo_src_dir)
-        delete_files_in_directory(self.config.odoo_src_dir)
-        subprocess.run(
-            ["git", "clone", "--depth", "1", constants.ODOO_GIT_LINK],
-            cwd=parent_dir,
-        )
+    def download_odoo_repository(self) -> None:
+        self._platform_sources.download_odoo_repository()
 
-    def download_odoo_nightly_build(self):
-        self._require_system_checker().check_free_space_for_odoo_developing(
-            free_space_size=2.0
-        )
-        parent_dir = os.path.dirname(self.config.odoo_src_dir)
-        delete_files_in_directory(self.config.odoo_src_dir)
-        odoo_version = self.config.odoo_version
-        odoo_build_date = (
-            self.config.odoo_build_date or constants.ODOO_DEFAULT_BUILD_DATE
-        )
-        link_to_download = f"https://nightly.odoo.com/{odoo_version}/nightly/src/odoo_{odoo_version}.{odoo_build_date}.zip"
-        filepath_to_save = os.path.join(Path.home(), "odoo.zip.download")
-        download_file(
-            link_to_download=link_to_download,
-            filepath_to_save=filepath_to_save,
-        )
-        un_zip_file_to_directory(
-            parent_dir,
-            filepath_to_save,
-            rename_first_part_of_path="odoo",
-        )
-        os.replace(
-            os.path.join(self.config.odoo_src_dir, "setup", "odoo"),
-            os.path.join(self.config.odoo_src_dir, "odoo-bin"),
-        )
-        if os.path.exists(filepath_to_save):
-            os.remove(filepath_to_save)
+    def download_odoo_nightly_build(self) -> None:
+        self._platform_sources.download_odoo_nightly_build()
 
     def base_image_exists(self) -> bool:
         return self._base_image.base_image_exists()

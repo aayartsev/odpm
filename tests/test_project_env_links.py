@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.project_env.environment import CreateProjectEnvironment
 from dev_project.project_env.links import ProjectLinks
+from dev_project.project_env.services import PlatformSourcesService
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 
 
@@ -455,9 +456,11 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             self.assertFalse(os.path.lexists(stale_link))
 
 
-class CreateProjectEnvironmentDownloadTests(unittest.TestCase):
-    @patch("dev_project.project_env.environment.subprocess.run")
-    @patch("dev_project.project_env.environment.delete_files_in_directory")
+class PlatformSourcesServiceTests(unittest.TestCase):
+    @patch("dev_project.project_env.services.platform_sources.subprocess.run")
+    @patch(
+        "dev_project.project_env.services.platform_sources.delete_files_in_directory"
+    )
     def test_download_odoo_repository_uses_cwd_not_chdir(
         self, _mock_delete, mock_run
     ):
@@ -466,18 +469,25 @@ class CreateProjectEnvironmentDownloadTests(unittest.TestCase):
         checker = MagicMock()
         env = CreateProjectEnvironment(config, system_checker=checker)
 
-        with patch("dev_project.project_env.environment.os.chdir") as mock_chdir:
-            env.download_odoo_repository()
+        with patch(
+            "dev_project.project_env.services.platform_sources.os.chdir"
+        ) as mock_chdir:
+            PlatformSourcesService(env).download_odoo_repository()
 
         mock_chdir.assert_not_called()
         mock_run.assert_called_once()
         self.assertEqual(mock_run.call_args.kwargs.get("cwd"), "/tmp/odoo_projects")
+        checker.check_free_space_for_odoo_developing.assert_called_once()
 
-    @patch("dev_project.project_env.environment.os.remove")
-    @patch("dev_project.project_env.environment.os.replace")
-    @patch("dev_project.project_env.environment.un_zip_file_to_directory")
-    @patch("dev_project.project_env.environment.download_file")
-    @patch("dev_project.project_env.environment.delete_files_in_directory")
+    @patch("dev_project.project_env.services.platform_sources.os.remove")
+    @patch("dev_project.project_env.services.platform_sources.os.replace")
+    @patch(
+        "dev_project.project_env.services.platform_sources.un_zip_file_to_directory"
+    )
+    @patch("dev_project.project_env.services.platform_sources.download_file")
+    @patch(
+        "dev_project.project_env.services.platform_sources.delete_files_in_directory"
+    )
     def test_download_odoo_nightly_build_uses_parent_dir_not_chdir(
         self,
         _mock_delete,
@@ -493,12 +503,35 @@ class CreateProjectEnvironmentDownloadTests(unittest.TestCase):
         checker = MagicMock()
         env = CreateProjectEnvironment(config, system_checker=checker)
 
-        with patch("dev_project.project_env.environment.os.chdir") as mock_chdir:
-            env.download_odoo_nightly_build()
+        with patch(
+            "dev_project.project_env.services.platform_sources.os.chdir"
+        ) as mock_chdir:
+            PlatformSourcesService(env).download_odoo_nightly_build()
 
         mock_chdir.assert_not_called()
         mock_unzip.assert_called_once()
         self.assertEqual(mock_unzip.call_args.args[0], "/tmp/odoo_projects")
+        checker.check_free_space_for_odoo_developing.assert_called_once_with(
+            free_space_size=2.0
+        )
+
+    def test_environment_delegates_download_odoo_repository_to_service(self):
+        config = MagicMock()
+        env = CreateProjectEnvironment(config, system_checker=MagicMock())
+        with patch.object(
+            env._platform_sources, "download_odoo_repository"
+        ) as mock_download:
+            env.download_odoo_repository()
+        mock_download.assert_called_once()
+
+    def test_environment_delegates_download_odoo_nightly_build_to_service(self):
+        config = MagicMock()
+        env = CreateProjectEnvironment(config, system_checker=MagicMock())
+        with patch.object(
+            env._platform_sources, "download_odoo_nightly_build"
+        ) as mock_download:
+            env.download_odoo_nightly_build()
+        mock_download.assert_called_once()
 
 
 if __name__ == "__main__":
