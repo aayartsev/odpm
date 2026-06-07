@@ -17,10 +17,7 @@ from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
 from .bootstrap_context import ConfigBootstrapContext
-from .git_repos import GitRepoCoordinator
 from .layout import apply_policy_and_layout
-from .odoo_conf import OdooConfBuilder
-from .paths import ConfigPaths
 from .transforms import beautify_module_list
 from .state import (
     DockerLayoutState,
@@ -77,12 +74,15 @@ def init_context(
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()
     config._docker = DockerLayoutState()
-    config._bootstrap_ctx = ConfigBootstrapContext(config)
-    config._paths = ConfigPaths(config)
-    config._odoo_conf = OdooConfBuilder(config)
-    config._git_repos = GitRepoCoordinator(config)
+    config._bootstrap_ctx = ConfigBootstrapContext(
+        config,
+        bind_platform_link=bind_platform_link,
+    )
+    config._paths = config._bootstrap_ctx.paths
+    config._odoo_conf = config._bootstrap_ctx.odoo_conf
+    config._git_repos = config._bootstrap_ctx.git_repos
     config.postgres_data_local_storage = (
-        config._paths.get_postgres_data_local_storage_path()
+        config._bootstrap_ctx.paths.get_postgres_data_local_storage_path()
     )
     config.config_json_content = {}
     config._developing_materializer = DevelopingRepoMaterializer()

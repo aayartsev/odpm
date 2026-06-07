@@ -18,7 +18,7 @@ class GitRepoCoordinatorHandleLinkTests(unittest.TestCase):
         config = MagicMock()
         config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
 
-        GitRepoCoordinator(config).handle_git_link(
+        GitRepoCoordinator(config, paths=MagicMock()).handle_git_link(
             "git@github.com:acme/demo.git",
             materialize=False,
         )
@@ -32,7 +32,7 @@ class GitRepoCoordinatorHandleLinkTests(unittest.TestCase):
         config = MagicMock()
         config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
 
-        GitRepoCoordinator(config).handle_git_link(
+        GitRepoCoordinator(config, paths=MagicMock()).handle_git_link(
             "git@github.com:acme/demo.git",
             materialize=True,
         )
@@ -47,14 +47,14 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
             config.developing_project = MagicMock()
             config.odoo_platform_project = MagicMock()
             config.arguments = OdpmCliArgs(branch=None)
-            config._paths = MagicMock()
             config._developing_materializer = DevelopingRepoMaterializer()
             config.odoo_build_date = "20240101"
             config.odoo_version = "17.0"
-        return GitRepoCoordinator(config), config
+        paths = MagicMock()
+        return GitRepoCoordinator(config, paths=paths), config, paths
 
     def test_materialize_git_repos_builds_developing_and_platform(self):
-        coordinator, config = self._coordinator()
+        coordinator, config, paths = self._coordinator()
 
         coordinator.materialize_git_repos()
 
@@ -64,10 +64,10 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
             "20240101",
             "17.0",
         )
-        config._paths.apply_developing_project_docker_path.assert_called_once()
+        paths.apply_developing_project_docker_path.assert_called_once()
 
     def test_materialize_git_repos_skips_build_date_when_requested(self):
-        coordinator, config = self._coordinator()
+        coordinator, config, _paths = self._coordinator()
 
         coordinator.materialize_git_repos(skip_build_date=True)
 
@@ -77,7 +77,7 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
     def test_materialize_git_repos_skips_developing_rebuild_when_already_materialized(
         self,
     ):
-        coordinator, config = self._coordinator()
+        coordinator, config, _paths = self._coordinator()
         config.arguments = OdpmCliArgs(branch="17.0")
         materializer = DevelopingRepoMaterializer()
         materializer._developing_repo_materialized = True
@@ -97,7 +97,7 @@ class GitRepoCoordinatorEnsurePresentTests(unittest.TestCase):
         config.developing_project_dir_path = "/missing/dev"
 
         with self.assertRaises(ConfigError):
-            GitRepoCoordinator(config).ensure_git_repos_present()
+            GitRepoCoordinator(config, paths=MagicMock()).ensure_git_repos_present()
 
     def test_ensure_git_repos_present_passes_when_directories_exist(self):
         with tempfile.TemporaryDirectory() as platform_dir, tempfile.TemporaryDirectory() as dev_dir:
@@ -105,7 +105,7 @@ class GitRepoCoordinatorEnsurePresentTests(unittest.TestCase):
             config.odoo_src_dir = platform_dir
             config.developing_project_dir_path = dev_dir
 
-            GitRepoCoordinator(config).ensure_git_repos_present()
+            GitRepoCoordinator(config, paths=MagicMock()).ensure_git_repos_present()
 
 
 class GitRepoCoordinatorPlatformSourcesTests(unittest.TestCase):
@@ -113,35 +113,47 @@ class GitRepoCoordinatorPlatformSourcesTests(unittest.TestCase):
         config = MagicMock()
         config.odoo_build_date = "20240501"
         config.odoo_version = "19.0"
+        bind_platform_link = MagicMock()
 
-        GitRepoCoordinator(config).get_platform_sources()
+        GitRepoCoordinator(
+            config,
+            paths=MagicMock(),
+            bind_platform_link=bind_platform_link,
+        ).get_platform_sources()
 
-        config._bind_platform_link.assert_called_once()
+        bind_platform_link.assert_called_once_with(config)
         config.odoo_platform_project.build_project.assert_called_once()
         config.odoo_platform_project.apply_build_date.assert_called_once_with(
             "20240501",
             "19.0",
         )
 
+    def test_get_platform_sources_requires_bind_platform_link(self):
+        config = MagicMock()
+
+        with self.assertRaises(ConfigError):
+            GitRepoCoordinator(config, paths=MagicMock()).get_platform_sources()
+
 
 class ConfigGitRepoDelegationTests(unittest.TestCase):
-    def test_config_delegates_handle_git_link_to_coordinator(self):
+    @patch("dev_project.config.git_repos.HandleOdooProjectLink")
+    def test_config_handle_git_link_uses_context_coordinator(self, mock_link_cls):
+        from dev_project.config.bootstrap_context import ConfigBootstrapContext
+
+        mock_link = MagicMock()
+        mock_link_cls.return_value = mock_link
         config = Config.__new__(Config)
-        config._git_repos = MagicMock()
-        expected = MagicMock()
-        config._git_repos.handle_git_link.return_value = expected
+        config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
+        ctx = ConfigBootstrapContext(config, bind_platform_link=MagicMock())
+        config._git_repos = ctx.git_repos
 
         result = config.handle_git_link(
             "git@github.com:acme/demo.git",
             materialize=True,
         )
 
-        config._git_repos.handle_git_link.assert_called_once_with(
-            "git@github.com:acme/demo.git",
-            system_type="standart",
-            materialize=True,
-        )
-        self.assertIs(result, expected)
+        mock_link.build_project.assert_called_once()
+        self.assertIs(result, mock_link)
 
 
 if __name__ == "__main__":

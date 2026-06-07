@@ -92,10 +92,11 @@ def apply_policy_and_layout(config: Config) -> None:
             config.policy.scenario,
         )
 
-    config._paths.apply_image_names()
-    config._paths.apply_docker_layout()
-    config._paths.apply_developing_project_docker_path()
-    config._odoo_conf.populate_addons_paths()
+    ctx = config._bootstrap_ctx
+    ctx.paths.apply_image_names()
+    ctx.paths.apply_docker_layout()
+    ctx.paths.apply_developing_project_docker_path()
+    ctx.odoo_conf.populate_addons_paths()
 
     config.odoo_config_data = {}
-    config._paths.apply_symlink_sources()
+    ctx.paths.apply_symlink_sources()

@@ -20,6 +20,8 @@ from dev_project.config.bootstrap_context import ConfigBootstrapContext
 from dev_project.config.defaults import ConfigDefaultsFactory
 from dev_project.config.manifests import OdpmJsonReader, UserSettingsReader, rewrite_odpm_json
 from dev_project.config.transforms import OdooBuildDateResolver, beautify_module_list
+from dev_project.config.git_repos import GitRepoCoordinator
+from dev_project.config.odoo_conf import OdooConfBuilder
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
 from dev_project.errors import ConfigError, PipelineError
@@ -476,6 +478,20 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
             config,
             create_default=ctx.defaults.create_default_odpm_json_content,
         )
+
+    def test_bootstrap_context_wires_host_services(self):
+        config = MagicMock()
+        bind_platform_link = MagicMock()
+        ctx = ConfigBootstrapContext(
+            config,
+            bind_platform_link=bind_platform_link,
+        )
+
+        self.assertIsInstance(ctx.paths, ConfigPaths)
+        self.assertIsInstance(ctx.odoo_conf, OdooConfBuilder)
+        self.assertIsInstance(ctx.git_repos, GitRepoCoordinator)
+        self.assertIs(ctx.git_repos._paths, ctx.paths)
+        self.assertIs(ctx.git_repos._bind_platform_link, bind_platform_link)
 
 
 class BindDevelopingLinkTests(unittest.TestCase):

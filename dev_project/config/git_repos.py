@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
 from ..errors import ConfigError
@@ -9,13 +10,22 @@ from ..logging import get_module_logger
 
 if TYPE_CHECKING:
     from .config import Config
+    from .paths import ConfigPaths
 
 _logger = get_module_logger(__name__)
 
 
 class GitRepoCoordinator:
-    def __init__(self, config: Config) -> None:
+    def __init__(
+        self,
+        config: Config,
+        *,
+        paths: ConfigPaths,
+        bind_platform_link: Callable[[Config], None] | None = None,
+    ) -> None:
         self.config = config
+        self._paths = paths
+        self._bind_platform_link = bind_platform_link
 
     def handle_git_link(
         self,
@@ -57,7 +67,7 @@ class GitRepoCoordinator:
         if not skip_build_date:
             self.apply_odoo_build_date_to_platform()
 
-        self.config._paths.apply_developing_project_docker_path()
+        self._paths.apply_developing_project_docker_path()
 
     def apply_odoo_build_date_to_platform(self) -> None:
         self.config.odoo_platform_project.apply_build_date(
@@ -66,7 +76,9 @@ class GitRepoCoordinator:
         )
 
     def get_platform_sources(self) -> None:
-        self.config._bind_platform_link()
+        if self._bind_platform_link is None:
+            raise ConfigError("bind_platform_link is not configured")
+        self._bind_platform_link(self.config)
         self.config.odoo_platform_project.build_project()
         self.apply_odoo_build_date_to_platform()
 
