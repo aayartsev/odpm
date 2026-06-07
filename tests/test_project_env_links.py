@@ -515,24 +515,6 @@ class PlatformSourcesServiceTests(unittest.TestCase):
             free_space_size=2.0
         )
 
-    def test_environment_delegates_download_odoo_repository_to_service(self):
-        config = MagicMock()
-        env = CreateProjectEnvironment(config, system_checker=MagicMock())
-        with patch.object(
-            env._platform_sources, "download_odoo_repository"
-        ) as mock_download:
-            env.download_odoo_repository()
-        mock_download.assert_called_once()
-
-    def test_environment_delegates_download_odoo_nightly_build_to_service(self):
-        config = MagicMock()
-        env = CreateProjectEnvironment(config, system_checker=MagicMock())
-        with patch.object(
-            env._platform_sources, "download_odoo_nightly_build"
-        ) as mock_download:
-            env.download_odoo_nightly_build()
-        mock_download.assert_called_once()
-
 
 if __name__ == "__main__":
     unittest.main()

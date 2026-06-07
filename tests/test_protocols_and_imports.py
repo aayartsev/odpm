@@ -13,10 +13,26 @@ class ProtocolTypingTests(unittest.TestCase):
     def test_system_checker_satisfies_protocol(self):
         self.assertTrue(issubclass(SystemChecker, SystemCheckerProtocol))
 
-    def test_create_project_environment_satisfies_runtime_protocol(self):
-        self.assertTrue(
+    def test_create_project_environment_is_not_runtime_services_protocol(self):
+        self.assertFalse(
             issubclass(CreateProjectEnvironment, RuntimeProjectServicesProtocol)
         )
+
+    def test_project_env_services_are_importable(self):
+        from dev_project.project_env.services import (
+            BaseImageService,
+            CiImageBuildService,
+            PlatformSourcesService,
+            VscodeConfigurator,
+        )
+
+        for service in (
+            BaseImageService,
+            CiImageBuildService,
+            PlatformSourcesService,
+            VscodeConfigurator,
+        ):
+            self.assertTrue(callable(service))
 
     def test_create_project_environment_is_not_prepare_services_protocol(self):
         self.assertFalse(

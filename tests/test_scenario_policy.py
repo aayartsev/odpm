@@ -13,6 +13,7 @@ from dev_project import constants
 from dev_project.bake_venv import VenvInstallSpec, write_ci_venv_install_spec
 from dev_project.config import Config
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.project_env.services import CiImageBuildService
 from dev_project.project_env.ci_image import CiImageBuilder
 from dev_project.compose.service_builder import ComposeServiceBuilder
 from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
@@ -182,7 +183,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertNotIn("debugpy==0.0.1", normalized)
 
     def test_ci_venv_spec_excludes_debugpy_after_normalization(self):
-        # Simulates CreateProjectEnvironment._build_ci_venv_install_spec input.
+        # Simulates CiImageBuildService.build_ci_venv_install_spec input.
         normalized = normalize_project_requirements(
             constants.CI_SCENARIO,
             ["debugpy==1.8.0", "requests==2.31.0"],
@@ -228,7 +229,7 @@ class CiVenvInstallSpecTests(unittest.TestCase):
         config.python_version = "3.12"
         config.compute_venv_lock_hash.return_value = "abc123"
 
-        spec = CreateProjectEnvironment(config)._build_ci_venv_install_spec()
+        spec = CiImageBuildService(CreateProjectEnvironment(config)).build_ci_venv_install_spec()
 
         self.assertIn("requests==2.31.0", spec.extra_packages)
         self.assertFalse(

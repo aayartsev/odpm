@@ -6,10 +6,9 @@ import json
 import os
 import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from dev_project import constants
-from dev_project.project_env.environment import CreateProjectEnvironment
 from dev_project.project_env.services import VscodeConfigurator
 from dev_project.project_env.types import MappedPath
 
@@ -77,28 +76,6 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
                 mapping["localRoot"] for mapping in odoo_unit["pathMappings"]
             ]
             self.assertEqual(local_roots, [os.path.abspath(odoo_src)])
-
-    def test_environment_delegates_update_vscode_debugger_launcher_to_service(
-        self,
-    ) -> None:
-        config = MagicMock()
-        env = CreateProjectEnvironment(config)
-        with patch.object(
-            env._vscode, "update_vscode_debugger_launcher"
-        ) as mock_update:
-            env.update_vscode_debugger_launcher()
-        mock_update.assert_called_once()
-
-    def test_environment_delegates_generate_vscode_settings_json_to_service(
-        self,
-    ) -> None:
-        config = MagicMock()
-        env = CreateProjectEnvironment(config)
-        with patch.object(
-            env._vscode, "generate_vscode_settings_json"
-        ) as mock_generate:
-            env.generate_vscode_settings_json()
-        mock_generate.assert_called_once()
 
 
 if __name__ == "__main__":

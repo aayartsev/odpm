@@ -38,21 +38,23 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         mock_ci_service.return_value.build_ci_image.assert_called_once()
         pipeline.project_environment.build_ci_image.assert_not_called()
 
-    def test_configure_vscode_skipped_when_policy_says_so(self):
+    @patch("dev_project.odpm_pipeline.VscodeConfigurator")
+    def test_configure_vscode_skipped_when_policy_says_so(self, mock_vscode_cls):
         pipeline = self._pipeline()
         pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         pipeline.configure_vscode()
-        pipeline.project_environment.update_vscode_debugger_launcher.assert_not_called()
-        pipeline.project_environment.generate_vscode_settings_json.assert_not_called()
+        mock_vscode_cls.assert_not_called()
 
-    def test_configure_vscode_runs_for_developer_policy(self):
+    @patch("dev_project.odpm_pipeline.VscodeConfigurator")
+    def test_configure_vscode_runs_for_developer_policy(self, mock_vscode_cls):
         pipeline = self._pipeline()
         pipeline.config.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         )
         pipeline.configure_vscode()
-        pipeline.project_environment.update_vscode_debugger_launcher.assert_called_once()
-        pipeline.project_environment.generate_vscode_settings_json.assert_called_once()
+        mock_vscode_cls.assert_called_once_with(pipeline.project_environment)
+        mock_vscode_cls.return_value.update_vscode_debugger_launcher.assert_called_once()
+        mock_vscode_cls.return_value.generate_vscode_settings_json.assert_called_once()
 
     def test_compose_service_builder_uses_same_policy_instance(self):
         config = MagicMock()

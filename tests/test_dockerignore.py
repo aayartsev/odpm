@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 
 from dev_project import constants, translations
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.project_env.services import CiImageBuildService
 from dev_project.project_dir_manager import ProjectDirManager
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -90,7 +91,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
         config = MagicMock()
         config.program_dir = program_dir
         env = CreateProjectEnvironment(config)
-        content = env._read_ci_dockerignore_template()
+        content = CiImageBuildService(env).read_ci_dockerignore_template()
         self.assertIn("**/.git", content)
         self.assertIn("dev_project/templates/**", content)
         self.assertIn("dev_project/i18n/**", content)
@@ -132,7 +133,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
 
             env = CreateProjectEnvironment(config)
             env.mapped_folders = []
-            env.prepare_ci_build_context()
+            CiImageBuildService(env).prepare_ci_build_context()
 
             dockerignore = Path(config.ci_build_context_dir) / constants.DOCKERIGNORE
             self.assertTrue(dockerignore.is_file())

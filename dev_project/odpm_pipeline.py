@@ -12,7 +12,7 @@ from .compose.runtime import should_force_recreate_compose
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
 from .project_env import CreateProjectEnvironment
-from .project_env.services import CiImageBuildService
+from .project_env.services import CiImageBuildService, VscodeConfigurator
 from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
@@ -109,9 +109,9 @@ class OdpmPipeline:
     def configure_vscode(self) -> None:
         if self._config().policy.skip_vscode:
             return
-        project_env = self._project_environment()
-        project_env.update_vscode_debugger_launcher()
-        project_env.generate_vscode_settings_json()
+        vscode = VscodeConfigurator(self._project_environment())
+        vscode.update_vscode_debugger_launcher()
+        vscode.generate_vscode_settings_json()
 
     def build_compose_up_argv(
         self, config: Config, *, force_recreate: bool | None = None

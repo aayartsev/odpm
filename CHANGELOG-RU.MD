@@ -25,6 +25,7 @@
 - **`dev_project/project_env/services/vscode_configurator.py`** — `VscodeConfigurator` вынесен из `ProjectTemplates`: граница VS Code (`get_vscode_dir_path`, `build_debugger_path_mappings`, `update_vscode_debugger_launcher`, `generate_vscode_settings_json`); env делегирует через тонкие обёртки. `VscodeDebuggerMappingsTests` бьют сервис напрямую; добавлены delegation tests.
 - **`dev_project/project_env/services/ci_image_build.py`** — `CiImageBuildService` вынесена оркестрация CI image build поверх `CiImageBuilder`; `OdpmPipeline.handle_build_image` вызывает сервис напрямую, а не `env.build_ci_image`. Env делегирует через тонкие обёртки. `CiImageBuildServiceTests` в `test_project_env_modules`; pipeline tests патчат `CiImageBuildService`.
 - **`dev_project/project_env/services/docker_base_image.py`** — `BaseImageService` вынесена оркестрация base image поверх `BaseImageBuilder`; `SystemChecker.check_docker` и `CiImageBuilder.build_ci_image` вызывают сервис напрямую, а не `env.ensure_base_image`. Env делегирует через тонкие обёртки. `BaseImageServiceTests` в `test_project_env_modules`; `test_phase2_infra` патчит `BaseImageService`.
+- **`dev_project/project_env/environment.py` (E-5)** — `CreateProjectEnvironment` ужат до prepare wiring (`templates`, `compose_generator`, `links`, `mapped_folders`, attach system checker); runtime delegates удалены. `OdpmPipeline.configure_vscode` использует `VscodeConfigurator` напрямую. `RuntimeProjectServicesProtocol` deprecated; env больше его не реализует. `test_protocols_and_imports` обновлён.
 
 ---
 

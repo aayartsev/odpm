@@ -355,7 +355,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
 
-            resolved = self._make_env(config)._resolve_dependencies()
+            resolved = self._make_env(config).links._resolve_dependencies()
 
             self.assertEqual(resolved.urls, [url_a, url_b])
             config.handle_git_link.assert_any_call(url_a, materialize=True)
@@ -374,7 +374,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
         with patch(
             "dev_project.project_env.dependency_materializer._logger"
         ) as mock_logger:
-            resolved = env._resolve_dependencies()
+            resolved = env.links._resolve_dependencies()
 
         self.assertEqual(resolved.urls, ["https://github.com/OCA/missing.git"])
         mock_logger.warning.assert_called_once()

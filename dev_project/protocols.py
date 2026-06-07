@@ -41,6 +41,8 @@ class PrepareProjectServicesProtocol(Protocol):
 
 @runtime_checkable
 class RuntimeProjectServicesProtocol(Protocol):
+    """Deprecated: runtime lives in project_env.services; env is prepare-only."""
+
     def update_vscode_debugger_launcher(self) -> None: ...
 
     def generate_vscode_settings_json(self) -> None: ...
