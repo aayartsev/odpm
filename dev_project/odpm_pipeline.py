@@ -16,6 +16,7 @@ from .project_env import CreateProjectEnvironment
 from .host_user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
+from .host_cli.args import OdpmCliArgs, as_cli_args
 from .project_materializer import ProjectMaterializer
 from .subprocess_runner import run_logged
 
@@ -24,11 +25,12 @@ _logger = get_module_logger(__name__)
 class OdpmPipeline:
     def __init__(
         self,
-        args: Namespace,
+        args: Namespace | OdpmCliArgs,
         program_dir: str,
         start_dir: str | None = None,
     ) -> None:
-        self.args = args
+        self.cli_args = as_cli_args(args)
+        self.args = args if isinstance(args, Namespace) else args.to_namespace()
         self.program_dir = program_dir
         self.start_dir = start_dir or os.getcwd() or os.environ.get("PWD", "")
         self.pd_manager: ProjectDirManager | None = None
@@ -82,7 +84,7 @@ class OdpmPipeline:
             print(text, flush=True)
         else:
             _logger.info(text)
-        if getattr(self.args, "plan_strict", False) and plan_has_required_changes(plan):
+        if self.cli_args.plan_strict and plan_has_required_changes(plan):
             return 1
         return 0
 
@@ -141,7 +143,7 @@ class OdpmPipeline:
         try:
             from .plan_cli import is_plan_mode
 
-            for_plan = is_plan_mode(self.args)
+            for_plan = is_plan_mode(self.cli_args)
             self.setup(for_plan=for_plan)
 
             if for_plan:
@@ -156,7 +158,7 @@ class OdpmPipeline:
             if getattr(self.args, "update_lock", False):
                 _logger.info("Git dependency lock updated; container start skipped")
                 return
-            if self.args.skip_start:
+            if self.cli_args.skip_start:
                 _logger.info("Start of instace will be skipped")
                 return
             try:

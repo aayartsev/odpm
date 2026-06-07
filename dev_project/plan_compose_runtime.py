@@ -6,6 +6,7 @@ from argparse import Namespace
 from typing import TYPE_CHECKING
 
 from .compose_runtime import should_force_recreate_compose
+from .host_cli.args import as_cli_args
 from .host_context import HostProjectContext
 
 if TYPE_CHECKING:
@@ -21,7 +22,7 @@ def plan_probes_compose_stack(args: Namespace) -> bool:
 
 
 def compose_up_would_run(args: Namespace, host_ctx: HostProjectContext) -> bool:
-    if getattr(args, "skip_start", False):
+    if as_cli_args(args).skip_start:
         return False
     if host_ctx.update_lock:
         return False

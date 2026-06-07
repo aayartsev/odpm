@@ -5,6 +5,7 @@ from __future__ import annotations
 from argparse import Namespace
 
 from .host_cli import params as cli_params
+from .host_cli.args import OdpmCliArgs, as_cli_args
 
 
 def normalize_plan_argv(argv: list[str]) -> list[str]:
@@ -13,5 +14,5 @@ def normalize_plan_argv(argv: list[str]) -> list[str]:
     return argv
 
 
-def is_plan_mode(args: Namespace) -> bool:
-    return bool(getattr(args, "plan", False))
+def is_plan_mode(args: Namespace | OdpmCliArgs) -> bool:
+    return as_cli_args(args).plan

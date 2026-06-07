@@ -6,7 +6,7 @@ import os
 import sys
 
 from . import translations
-from .host_cli.parse_args import parse_args
+from .host_cli.parse_args import parse_cli_args
 from .logging import get_module_logger
 from .odpm_pipeline import OdpmPipeline
 from .program_dir import resolve_program_dir
@@ -19,4 +19,4 @@ def main(program_dir: str | None = None) -> None:
         _logger.error(translations.get_translation(translations.RUNNING_AS_ROOT_DISABLED))
         sys.exit(1)
 
-    OdpmPipeline(parse_args(), resolve_program_dir(program_dir)).run()
+    OdpmPipeline(parse_cli_args(), resolve_program_dir(program_dir)).run()

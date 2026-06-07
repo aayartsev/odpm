@@ -280,3 +280,9 @@ def parse_args(argv: list[str] | None = None):
             params.PLAN_PARAM,
         )
     return arg_parser.parse_args(normalize_plan_argv(argv_list))
+
+
+def parse_cli_args(argv: list[str] | None = None):
+    from .args import OdpmCliArgs
+
+    return OdpmCliArgs.from_namespace(parse_args(argv))
