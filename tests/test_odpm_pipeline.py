@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.odpm_pipeline import OdpmPipeline, PipelineError
 from dev_project.scenario_policy import ScenarioPolicy
+from tests.prepare_test_helpers import stub_prepare_service_executions
 
 
 class OdpmPipelinePolicyTests(unittest.TestCase):
@@ -387,7 +388,8 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
-        pipeline.prepare_project_files()
+        with stub_prepare_service_executions():
+            pipeline.prepare_project_files()
         pipeline.config.materialize_git_repos.assert_called_once_with(
             skip_build_date=False
         )
@@ -397,7 +399,8 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_skips_git_when_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(no_git_update=True)
-        pipeline.prepare_project_files()
+        with stub_prepare_service_executions():
+            pipeline.prepare_project_files()
         pipeline.config.ensure_git_repos_present.assert_called_once()
         pipeline.config.materialize_git_repos.assert_not_called()
         pipeline.project_environment.checkout_dependencies.assert_not_called()
@@ -409,7 +412,8 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             manager = MagicMock()
             manager.has_platform_lock.return_value = True
             mock_manager_cls.return_value = manager
-            pipeline.prepare_project_files()
+            with stub_prepare_service_executions():
+                pipeline.prepare_project_files()
         pipeline.config.materialize_git_repos.assert_called_once_with(
             skip_build_date=True
         )
@@ -422,7 +426,8 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             mock_manager_cls.return_value = manager
-            pipeline.prepare_project_files()
+            with stub_prepare_service_executions():
+                pipeline.prepare_project_files()
         manager.load.assert_not_called()
         manager.collect_and_save.assert_called_once()
         manager.collect_and_save.assert_called_with(
@@ -445,7 +450,8 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
                 manager = MagicMock()
                 manager.apply_mode = True
                 mock_manager_cls.return_value = manager
-                pipeline.prepare_project_files()
+                with stub_prepare_service_executions():
+                    pipeline.prepare_project_files()
             manager.verify_after_checkout.assert_called_once()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")

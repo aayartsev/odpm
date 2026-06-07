@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from dev_project.compose.generator import ComposeGenerator
 from dev_project.host.cli.args import OdpmCliArgs
@@ -43,6 +43,35 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
         self.assertIs(ctx.system_checker, system_checker)
         self.assertIs(ctx.args, args)
         self.assertIsInstance(ctx.host_ctx, HostProjectContext)
+
+
+class PrepareStepServiceExecutionTests(unittest.TestCase):
+    @patch("dev_project.project_env.templates.ProjectTemplates.generate_dockerfile")
+    def test_exec_template_dockerfile_uses_ctx_templates(self, mock_generate):
+        from dev_project.prepare.steps_template import exec_template_dockerfile
+
+        config = MagicMock()
+        ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
+        exec_template_dockerfile(ctx)
+        mock_generate.assert_called_once()
+
+    @patch("dev_project.project_env.links.ProjectLinks.map_folders")
+    def test_exec_map_folders_uses_ctx_links(self, mock_map_folders):
+        from dev_project.prepare.steps_project import exec_map_folders
+
+        ctx = make_prepare_context(MagicMock(), MagicMock(), MagicMock(), OdpmCliArgs())
+        exec_map_folders(ctx)
+        mock_map_folders.assert_called_once()
+
+    @patch(
+        "dev_project.compose.generator.ComposeGenerator.generate_docker_compose_file"
+    )
+    def test_exec_compose_generate_uses_ctx_compose_generator(self, mock_generate):
+        from dev_project.prepare.steps_compose import exec_compose_generate
+
+        ctx = make_prepare_context(MagicMock(), MagicMock(), MagicMock(), OdpmCliArgs())
+        exec_compose_generate(ctx)
+        mock_generate.assert_called_once()
 
 
 if __name__ == "__main__":

@@ -97,7 +97,7 @@ def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
 
 
 def _project_env_has_volume_map(ctx: PrepareContext) -> bool:
-    mapped = getattr(ctx.project_env, "mapped_folders", None)
+    mapped = getattr(ctx.links.env, "mapped_folders", None)
     return isinstance(mapped, list)
 
 
@@ -129,9 +129,7 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
         return False
     try:
         preview_compose_service(ctx.config)
-        from ..project_env.compose import ComposeGenerator
-
-        preview = ComposeGenerator(ctx.project_env).render_docker_compose_content()
+        preview = ctx.compose_generator.render_docker_compose_content()
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         return False
     try:

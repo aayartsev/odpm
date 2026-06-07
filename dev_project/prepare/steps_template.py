@@ -97,3 +97,15 @@ def evaluate_template_odoo_conf(ctx: PrepareContext) -> PlanStep:
         True,
         "odoo.conf and template up to date",
     )
+
+
+def exec_template_dockerfile(ctx: PrepareContext) -> None:
+    ctx.templates.generate_dockerfile()
+
+
+def exec_template_dockerignore(ctx: PrepareContext) -> None:
+    ctx.templates.generate_dockerignore()
+
+
+def exec_template_odoo_conf(ctx: PrepareContext) -> None:
+    ctx.templates.generate_config_file()

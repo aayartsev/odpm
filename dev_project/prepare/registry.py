@@ -7,6 +7,7 @@ from .steps_compose import (
     evaluate_compose_service,
     evaluate_compose_template,
     evaluate_compose_validate,
+    exec_compose_generate,
     exec_compose_service,
     exec_compose_template,
 )
@@ -32,11 +33,19 @@ from .steps_git import (
     exec_lock_load,
     exec_lock_verify,
 )
-from .steps_project import evaluate_map_folders, evaluate_update_links, exec_map_folders
+from .steps_project import (
+    evaluate_map_folders,
+    evaluate_update_links,
+    exec_map_folders,
+    exec_update_links,
+)
 from .steps_template import (
     evaluate_template_dockerfile,
     evaluate_template_dockerignore,
     evaluate_template_odoo_conf,
+    exec_template_dockerfile,
+    exec_template_dockerignore,
+    exec_template_odoo_conf,
 )
 from .types import PrepareStepDef
 
@@ -56,13 +65,13 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "template.dockerfile",
         "",
         evaluate_template_dockerfile,
-        lambda ctx: ctx.project_env.generate_dockerfile(),
+        exec_template_dockerfile,
     ),
     PrepareStepDef(
         "template.dockerignore",
         "",
         evaluate_template_dockerignore,
-        lambda ctx: ctx.project_env.generate_dockerignore(),
+        exec_template_dockerignore,
     ),
     PrepareStepDef(
         "docker.engine.check", "", evaluate_docker_engine_check, exec_docker_engine_check
@@ -77,7 +86,7 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "template.odoo_conf",
         "",
         evaluate_template_odoo_conf,
-        lambda ctx: ctx.project_env.generate_config_file(),
+        exec_template_odoo_conf,
     ),
     PrepareStepDef(
         "compose.template", "", evaluate_compose_template, exec_compose_template
@@ -89,7 +98,7 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "compose.generate",
         "",
         evaluate_compose_generate,
-        lambda ctx: ctx.project_env.generate_docker_compose_file(),
+        exec_compose_generate,
     ),
     PrepareStepDef(
         "compose.validate",
@@ -108,6 +117,6 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "project.update_links",
         "",
         evaluate_update_links,
-        lambda ctx: ctx.project_env.update_links(),
+        exec_update_links,
     ),
 )

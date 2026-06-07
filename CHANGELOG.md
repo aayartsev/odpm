@@ -68,7 +68,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 #### Quality assurance
 
-- **592 tests** in `unittest discover` (7 skipped opt-in Docker integration tests by default).
+- **595 tests** in `unittest discover` (7 skipped opt-in Docker integration tests by default).
 - **Plan-safe setup** — `odpm plan` loads configuration without upgrading `.odpm/` templates; normal runs still sync project templates on startup.
 - **Stale odoo.conf recovery** — `odpm --skip-start` regenerates project `odoo.conf` when Docker DB settings are missing (for example after upgrading from layouts that never wrote `db_host`).
 - **`dev_project/prepare/` package** — prepare-phase registry split from monolithic `prepare_registry.py`; shim re-exports preserve existing imports and test patch paths.
@@ -96,7 +96,8 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 - **Plan preview layer unified.** `preview_runtime_config_text` and `prepare_runtime_config_for_compose_preview` live in `plan/compose_preview.py`; `plan/preview.py` re-exports compose and runtime preview helpers. `prepare/steps_compose.py` and `prepare/runtime.py` import canonical plan/compose modules directly (no `prepare_registry` in `prepare/`).
 - **`SystemCheckPolicy` centralizes host check gating.** New `dev_project/system_check_policy.py` defines `beginner_git`, `beginner_docker`, `developer_port_release`, `compose_validate`, and `file_system_on_init`; `SystemChecker`, prepare docker steps, and pipeline setup read the policy instead of ad-hoc `check_system` / scenario checks.
 - **Root shim imports emit `DeprecationWarning`.** Backward-compatible modules (`prepare_registry`, `plan_*`, `compose_*`, `host_*`, `host_cli/*`, `inside_docker_app/cli_params`, `inside_docker_app/parse_args`, `project_env.compose`) warn on import with the canonical replacement path; see README section **Migration 4.0→4.1 imports**. Shims are removed in 4.1.0.
-- **`PrepareContext` injects prepare services.** `ProjectTemplates`, `ComposeGenerator`, and `ProjectLinks` are wired in `make_prepare_context` from `CreateProjectEnvironment` (or built for plan-only/mocked envs). Prepare steps still delegate via `project_env` until PR-11.
+- **`PrepareContext` injects prepare services.** `ProjectTemplates`, `ComposeGenerator`, and `ProjectLinks` are wired in `make_prepare_context` from `CreateProjectEnvironment` (or built for plan-only/mocked envs).
+- **Prepare steps call injected services directly.** Template, compose, and project prepare steps execute via `ctx.templates`, `ctx.compose_generator`, and `ctx.links`; compose preview reads volume map and generator from the same context. Git checkout still uses `project_env` until PR-12.
 
 ### Fixed
 

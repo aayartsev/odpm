@@ -108,3 +108,7 @@ def exec_compose_template(ctx: PrepareContext) -> None:
 
 def exec_compose_service(ctx: PrepareContext) -> None:
     ComposeServiceBuilder(ctx.config).build()
+
+
+def exec_compose_generate(ctx: PrepareContext) -> None:
+    ctx.compose_generator.generate_docker_compose_file()

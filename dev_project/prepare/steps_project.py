@@ -28,4 +28,8 @@ def evaluate_update_links(ctx: PrepareContext) -> PlanStep:
 
 
 def exec_map_folders(ctx: PrepareContext) -> None:
-    ctx.project_env.map_folders()
+    ctx.links.map_folders()
+
+
+def exec_update_links(ctx: PrepareContext) -> None:
+    ctx.links.update_links()
