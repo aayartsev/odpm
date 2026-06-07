@@ -39,14 +39,14 @@ class ParseArgsLazyTests(unittest.TestCase):
         mock_parse.assert_called_once_with(["--skip-start"])
         self.assertIsInstance(result, Namespace)
 
-    def test_parse_args_rewrites_plan_subcommand(self):
+    def test_parse_args_plan_subcommand_parses_natively(self):
         with patch.object(
             parse_args_module.arg_parser,
             "parse_args",
             return_value=Namespace(plan=True),
         ) as mock_parse:
             parse_args_module.parse_args(["plan", "--skip-start"])
-        mock_parse.assert_called_once_with(["--plan", "--skip-start"])
+        mock_parse.assert_called_once_with(["plan", "--skip-start"])
 
 
 class SystemCheckerDockerTests(unittest.TestCase):

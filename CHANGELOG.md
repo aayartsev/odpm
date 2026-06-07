@@ -68,11 +68,13 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 #### Quality assurance
 
-- **544 tests** in `unittest discover` (5 skipped opt-in Docker integration tests by default).
+- **554 tests** in `unittest discover` (5 skipped opt-in Docker integration tests by default).
 - **Plan-safe setup** — `odpm plan` loads configuration without upgrading `.odpm/` templates; normal runs still sync project templates on startup.
 - **Stale odoo.conf recovery** — `odpm --skip-start` regenerates project `odoo.conf` when Docker DB settings are missing (for example after upgrading from layouts that never wrote `db_host`).
 - **`dev_project/prepare/` package** — prepare-phase registry split from monolithic `prepare_registry.py`; shim re-exports preserve existing imports and test patch paths.
 - **`dev_project/host_cli/` package** — host argparse and CLI flag constants moved from `inside_docker_app`; shim re-exports preserve container `cli_params` and backward-compatible imports.
+- **`OdpmCliArgs` typed CLI** — frozen dataclass with `from_namespace` / `to_namespace` bridge and `parse_cli_args()`; host pipeline begins migrating plan mode, strict, and skip-start flags through the dataclass.
+- **Native `odpm plan` subparser** — shared argparse parent parser; `odpm plan --skip-start` parses without argv rewrite; global `--plan` remains a deprecated alias with a warning.
 - **GitHub Actions CI** (`.github/workflows/ci.yml`) — unit suite on every push/PR to `4.0-beta` and `main` (Python 3.10 and 3.12); manual re-run via **workflow_dispatch**.
 - **Opt-in Docker integration tests:** CI image build, golden-path compose + HTTP 200 (`ODPM_RUN_DOCKER_INTEGRATION=1`).
 - **Scripts:** `scripts/verify_ci_scenario.sh`, `scripts/run_golden_path_test.sh`, `scripts/verify_dev_mode_flags.sh`, `scripts/verify_dev_mode_autoreload.sh`.

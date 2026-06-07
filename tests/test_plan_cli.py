@@ -1,6 +1,8 @@
 """Tests for odpm plan subcommand and plan CLI helpers."""
 
+import io
 import json
+import sys
 import tempfile
 import unittest
 from argparse import Namespace
@@ -9,6 +11,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 import dev_project.host_cli.parse_args as parse_args_module
+from dev_project.host_cli import params
 from dev_project.plan_cli import is_plan_mode, normalize_plan_argv
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
@@ -57,6 +60,20 @@ class PlanSubcommandParseTests(unittest.TestCase):
         args = parse_args_module.parse_args(["--plan", "--plan-no-docker"])
         self.assertTrue(args.plan)
         self.assertTrue(args.plan_no_docker)
+
+    def test_parse_args_plan_subcommand_sets_command_dest(self):
+        args = parse_args_module.parse_args(["plan", "--skip-start"])
+        self.assertEqual(args.command, params.PLAN_SUBCOMMAND)
+
+    def test_plan_subcommand_help_shows_plan_description(self):
+        stdout = io.StringIO()
+        with patch.object(sys, "stdout", stdout):
+            with self.assertRaises(SystemExit) as ctx:
+                parse_args_module.parse_args(["plan", "-h"])
+        self.assertEqual(ctx.exception.code, 0)
+        help_text = stdout.getvalue()
+        self.assertIn("plan", help_text)
+        self.assertIn("prepare", help_text.lower())
 
 
 class PlanSubcommandPipelineTests(unittest.TestCase):
