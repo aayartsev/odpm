@@ -48,10 +48,10 @@ class PlanRuntimePreviewTests(unittest.TestCase):
         self.assertIn("\n", normalized)
 
     @patch(
-        "dev_project.plan_runtime_preview.runtime_config_payload_from_config",
+        "dev_project.plan.runtime_preview.runtime_config_payload_from_config",
         return_value={"arguments": {"branch": "dev"}, "schema_version": 1},
     )
-    @patch("dev_project.plan_compose_preview.preview_compose_service")
+    @patch("dev_project.plan.compose_preview.preview_compose_service")
     def test_preview_runtime_config_text_uses_compose_service_path(
         self, mock_preview, _mock_payload
     ):
@@ -64,10 +64,10 @@ class PlanRuntimePreviewTests(unittest.TestCase):
         self.assertEqual(payload["arguments"]["branch"], "dev")
 
     @patch(
-        "dev_project.plan_runtime_preview.runtime_config_payload_from_config",
+        "dev_project.plan.runtime_preview.runtime_config_payload_from_config",
         return_value={"arguments": {"branch": "dev"}, "schema_version": 1},
     )
-    @patch("dev_project.plan_compose_preview.preview_compose_service")
+    @patch("dev_project.plan.compose_preview.preview_compose_service")
     def test_preview_runtime_config_text_is_cached_per_plan_build(
         self, mock_preview, _mock_payload
     ):

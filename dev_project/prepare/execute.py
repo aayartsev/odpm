@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..git.deps_lock_manager import DepsLockManager
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
 from ..git.deps_lock import deps_lock_path, load_deps_lock
@@ -105,10 +106,8 @@ def validate_prepare_context(ctx: PrepareContext) -> None:
 
 
 def execute_prepare(ctx: PrepareContext) -> None:
-    from .. import prepare_registry
-
     validate_prepare_context(ctx)
-    ctx.lock_manager = prepare_registry.DepsLockManager(ctx.config)
+    ctx.lock_manager = DepsLockManager(ctx.config)
     for step_def in PREPARE_STEPS:
         outcome = step_def.evaluate(ctx)
         if outcome.should_execute():

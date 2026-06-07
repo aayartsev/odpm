@@ -6,8 +6,6 @@ import json
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
-from unittest.mock import patch
-
 from ..config.payload import runtime_config_path
 from ..inside_docker_app.exceptions import ConfigValidationError
 
@@ -70,11 +68,10 @@ def normalize_runtime_config_text(raw_text: str) -> str:
 
 def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
     """Populate runtime fields the same way compose.service execute would."""
-    from dev_project import plan_compose_preview as compose_preview_shim
+    from . import compose_preview
 
     try:
-        with patch("dev_project.compose_service_builder.write_runtime_config"):
-            compose_preview_shim.preview_compose_service(config)
+        compose_preview.preview_compose_service(config)
         return True
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         try:
@@ -92,10 +89,8 @@ def preview_runtime_config_text(config: Config) -> str | None:
         cache["preview"] = None
         return None
     try:
-        from dev_project import plan_runtime_preview as shim
-
         text = format_runtime_config_payload(
-            shim.runtime_config_payload_from_config(config)
+            runtime_config_payload_from_config(config)
         )
     except (TypeError, ValueError, ConfigValidationError):
         cache["preview"] = None

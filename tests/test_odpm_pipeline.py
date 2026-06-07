@@ -405,7 +405,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_skips_build_date_when_platform_lock_exists(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
-        with patch("dev_project.prepare_registry.DepsLockManager") as mock_manager_cls:
+        with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             manager.has_platform_lock.return_value = True
             mock_manager_cls.return_value = manager
@@ -419,7 +419,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.prepare_registry.ComposeServiceBuilder")
     def test_prepare_update_lock_collects_without_loading_lock(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True)
-        with patch("dev_project.prepare_registry.DepsLockManager") as mock_manager_cls:
+        with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             mock_manager_cls.return_value = manager
             pipeline.prepare_project_files()
@@ -441,7 +441,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             )
             pipeline = self._pipeline_with_mocks()
             pipeline.config.project_dir = tmp
-            with patch("dev_project.prepare_registry.DepsLockManager") as mock_manager_cls:
+            with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
                 manager = MagicMock()
                 manager.apply_mode = True
                 mock_manager_cls.return_value = manager

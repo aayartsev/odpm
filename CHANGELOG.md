@@ -91,6 +91,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 - Deprecated project artifacts (`config.json`, old compose/dockerfile markers) are renamed to `deprecated_*` with warnings.
 - Unified host logging in `dev_project.logging` (container re-export shim retained temporarily).
 - **Developer port release decoupled from `check_system`.** New prepare step `docker.ports.release` always runs in the developer scenario before compose and stops containers occupying configured odoo/debugger/postgres/gevent ports; `docker.engine.check` (git/docker beginner checks) remains gated by `check_system`.
+- **Production imports use canonical package paths.** `ProjectMaterializer`, `OdpmPlanner`, `prepare/execute`, and `plan/runtime_preview` import from `dev_project.prepare`, `dev_project.git.deps_lock_manager`, and `dev_project.plan.compose_preview` instead of root shims `prepare_registry`, `plan_compose_preview`, and `plan_runtime_preview`.
 
 ### Fixed
 

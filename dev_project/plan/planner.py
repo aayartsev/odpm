@@ -20,7 +20,7 @@ class OdpmPlanner:
         args: OdpmCliArgs,
         project_env: CreateProjectEnvironment | None = None,
     ) -> OdpmPlan:
-        from ..prepare_registry import build_plan
+        from ..prepare import build_plan
 
         from .diff import build_plan_diffs
         from .runtime_preview import clear_runtime_config_preview_cache
