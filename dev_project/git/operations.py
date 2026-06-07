@@ -12,7 +12,8 @@ from ..inside_docker_app.utils import (
     is_actionable_build_date,
     shallow_since_date,
 )
-from ..subprocess_runner import CommandResult, run_checked, run_logged
+from ..subprocess_runner import CommandResult, run_logged
+from .runner import GitRunner
 
 if TYPE_CHECKING:
     from .link import HandleOdooProjectLink
@@ -23,16 +24,10 @@ _logger = get_module_logger(__name__)
 class GitOperations:
     def __init__(self, link: HandleOdooProjectLink) -> None:
         self.link = link
+        self._runner = GitRunner(link)
 
     def _build_git_cmd(self, args: list[str]) -> list[str]:
-        if self.link.path_to_ssh_key:
-            return [
-                "git",
-                "-c",
-                f"core.sshCommand=ssh -i {self.link.path_to_ssh_key}",
-                *args,
-            ]
-        return ["git", *args]
+        return self._runner.build_git_cmd(args)
 
     def _run_git(
         self,
@@ -41,13 +36,7 @@ class GitOperations:
         cwd: str | None = None,
         capture: bool = True,
     ) -> CommandResult:
-        cmd = self._build_git_cmd(args)
-        workdir = self.link.project_path if cwd is None else cwd
-        if not capture:
-            _logger.info(
-                f"""running command: → git {" ".join(args)} for {self.link.project_string}"""
-            )
-        return run_checked(cmd, cwd=workdir, capture=capture)
+        return self._runner.run_git(args, cwd=cwd, capture=capture)
 
     def check_project(self) -> None:
         inside_work_tree = False

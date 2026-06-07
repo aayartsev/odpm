@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- **`dev_project/git/runner.py`** — `GitRunner` extracts git subprocess command building and `run_checked` invocation from `GitOperations`; `GitOperations` delegates via thin `_build_git_cmd` / `_run_git` wrappers. Unit tests cover SSH argv, default cwd, and explicit cwd.
+
+---
+
 ## [4.1.0] - 2026-06-06
 
 Minor release that completes the package layout started in 4.0: **root import shims are removed**. Use canonical paths under `dev_project.prepare`, `dev_project.plan`, `dev_project.compose`, and `dev_project.host`.

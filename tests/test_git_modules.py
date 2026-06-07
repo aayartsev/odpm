@@ -117,6 +117,65 @@ class ProjectDiscoveryTests(unittest.TestCase):
         self.assertEqual(link.inside_docker_path, "my_module/my_module")
 
 
+class GitRunnerTests(unittest.TestCase):
+    def _runner(self, **link_overrides):
+        from dev_project.git.runner import GitRunner
+
+        link = object.__new__(HandleOdooProjectLink)
+        link.project_path = "/tmp/repo"
+        link.path_to_ssh_key = ""
+        link.project_string = "https://github.com/acme/demo.git"
+        for key, value in link_overrides.items():
+            setattr(link, key, value)
+        return GitRunner(link)
+
+    def test_build_git_cmd_without_ssh_key(self):
+        runner = self._runner()
+        self.assertEqual(
+            runner.build_git_cmd(["status"]),
+            ["git", "status"],
+        )
+
+    def test_build_git_cmd_with_ssh_key(self):
+        runner = self._runner(path_to_ssh_key="/home/user/.ssh/id_rsa")
+        self.assertEqual(
+            runner.build_git_cmd(["fetch"]),
+            [
+                "git",
+                "-c",
+                "core.sshCommand=ssh -i /home/user/.ssh/id_rsa",
+                "fetch",
+            ],
+        )
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_run_git_uses_project_path_as_default_cwd(self, mock_run_checked):
+        mock_run_checked.return_value = MagicMock(
+            stdout="",
+            returncode=0,
+            stderr="",
+        )
+        runner = self._runner()
+        runner.run_git(["rev-parse", "HEAD"])
+        mock_run_checked.assert_called_once()
+        self.assertEqual(mock_run_checked.call_args.kwargs["cwd"], "/tmp/repo")
+        self.assertEqual(
+            mock_run_checked.call_args.args[0],
+            ["git", "rev-parse", "HEAD"],
+        )
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_run_git_honors_explicit_cwd(self, mock_run_checked):
+        mock_run_checked.return_value = MagicMock(
+            stdout="",
+            returncode=0,
+            stderr="",
+        )
+        runner = self._runner()
+        runner.run_git(["remote", "get-url", "origin"], cwd="/other/path")
+        self.assertEqual(mock_run_checked.call_args.kwargs["cwd"], "/other/path")
+
+
 class GitOperationsTests(unittest.TestCase):
     def _operations(self, **link_overrides):
         from dev_project.git.operations import GitOperations
@@ -134,7 +193,7 @@ class GitOperationsTests(unittest.TestCase):
             setattr(link, key, value)
         return GitOperations(link)
 
-    @patch("dev_project.git.operations.run_checked")
+    @patch("dev_project.git.runner.run_checked")
     def test_resolve_head_sha_returns_rev_parse_head(self, mock_run_checked):
         mock_run_checked.return_value = MagicMock(
             stdout="abc123def456\n",
@@ -153,7 +212,7 @@ class GitOperationsTests(unittest.TestCase):
         mock_pull.assert_not_called()
         mock_parsed.assert_called_once()
 
-    @patch("dev_project.git.operations.run_checked")
+    @patch("dev_project.git.runner.run_checked")
     def test_check_repo_url_normalizes_git_suffix(self, mock_run_checked):
         mock_run_checked.return_value = MagicMock(
             stdout="https://github.com/acme/demo.git\n",

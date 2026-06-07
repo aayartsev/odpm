@@ -6,6 +6,14 @@
 
 ---
 
+## [Unreleased]
+
+### Изменено
+
+- **`dev_project/git/runner.py`** — `GitRunner` вынесен из `GitOperations`: сборка git-argv (в т.ч. SSH) и вызов `run_checked`; `GitOperations` делегирует через `_build_git_cmd` / `_run_git`. Unit-тесты проверяют argv, cwd по умолчанию и явный cwd.
+
+---
+
 ## [4.1.0] — 6 июня 2026 г.
 
 Небольшой релиз, завершающий раскладку пакетов, начатую в 4.0: **root-shim модули удалены**. Используйте канонические пути под `dev_project.prepare`, `dev_project.plan`, `dev_project.compose` и `dev_project.host`.
