@@ -40,12 +40,17 @@ class SymlinkManager:
             if self.config.create_module_links:
                 self._create_new_links(odoo_src_addons_dir, list_of_all_modules)
 
+    @staticmethod
+    def _link_names(current_links) -> set[str]:
+        return {os.path.basename(path) for path in current_links}
+
     def _delete_old_links(self, dir_to_clean: str, current_links) -> None:
         if not os.path.isdir(dir_to_clean):
             return
+        expected_names = self._link_names(current_links)
         for item in os.listdir(dir_to_clean):
             link_path = os.path.join(dir_to_clean, item)
-            if os.path.islink(link_path) and item not in current_links:
+            if os.path.islink(link_path) and item not in expected_names:
                 os.unlink(link_path)
 
     def _create_new_links(self, dir_to_create: str, current_links) -> None:
@@ -58,7 +63,7 @@ class SymlinkManager:
                 self.config.symlinks_sources.append(
                     SymlinksSources(
                         source_path=dep_for_link,
-                        link_path=os.path.join(dep_for_link, link_path),
+                        link_path=link_path,
                     )
                 )
             except FileExistsError:

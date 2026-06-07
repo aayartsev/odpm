@@ -311,7 +311,7 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 - `db_manager_password` - пароль для менеджера баз данных
 - `sql_queries` - Список. Содержит в себе список строк, каждая из которых является sql скриптом, которые будут выполняться при использовании параметра командной строки `--sql-execute`
 - `use_oca_dependencies` - экспериментальное discovery зависимостей (один запуск odpm, по умолчанию `false`): читает `oca_dependencies.txt` из developing-проекта и каждой checkout git-зависимости, **а также** вложенный `odpm.json` в корне repo-зависимости (`dependencies`, `requirements_txt`). Транзитивные git URL попадают в resolved graph и в `.odpm/deps.lock.json` при `--update-lock`. Вложенные `odoo_version` / `python_version` сверяются с host-проектом (warning в developer, error в CI). Не подменяет host `odoo_git_link` и platform.
-- `create_module_links` - добавлена экспериментальная функция, добавляет мягкие ссылки всех модулей, которые участвуют в проекте в каталог `odoo/odoo/addons`. Это позволяет языковому серверу самостоятельно считывать пути импортов. Значение по умолчанию `false`
+- `create_module_links` — опциональная experimental-функция: симлинки модулей в `odoo/addons` под `odoo_src_dir` для language server. Симлинки в корне odpm-проекта (`odoo`, `developing` и т.д.) обновляются при каждом запуске `odpm`. VS Code debugger `pathMappings` указывают абсолютные пути к реальным каталогам. По умолчанию `false`.
 
 ## Параметры odpm.json:
 - `python_version` - Строка. Версия python, указывается в текстовом виде его номер, например `"3.10"` или `"3.7"`,

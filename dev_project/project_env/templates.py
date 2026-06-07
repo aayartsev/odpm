@@ -26,26 +26,23 @@ class ProjectTemplates:
             os.mkdir(vscode_dir)
         return vscode_dir
 
+    def _build_debugger_path_mappings(self) -> list[DebuggerPathRecord]:
+        backups = os.path.abspath(self.env.user_env.backups)
+        mappings: list[DebuggerPathRecord] = []
+        for mapped_folder in self.env.mapped_folders:
+            local_root = os.path.abspath(mapped_folder.local)
+            if local_root == backups:
+                continue
+            mappings.append(
+                DebuggerPathRecord(
+                    localRoot=local_root,
+                    remoteRoot=mapped_folder.docker,
+                )
+            )
+        return mappings
+
     def update_vscode_debugger_launcher(self) -> None:
-        def get_list_of_mapped_sources() -> None:
-            list_for_links = [
-                symlink_item for symlink_item in self.config.symlinks_sources
-            ]
-            for linking_dir in list_for_links:
-                dir_name_to_link = os.path.basename(linking_dir.link_path)
-                for mapped_folder in self.env.mapped_folders:
-                    mapped_dir_name = os.path.basename(mapped_folder.local)
-                    if (
-                        dir_name_to_link == mapped_dir_name
-                        and linking_dir.source_path
-                        not in [self.env.user_env.backups]
-                    ):
-                        self.config.debugger_path_mappings.append(
-                            DebuggerPathRecord(
-                                localRoot=linking_dir.link_path,
-                                remoteRoot=mapped_folder.docker,
-                            )
-                        )
+        self.config.debugger_path_mappings = self._build_debugger_path_mappings()
 
         launch_json = os.path.join(self.get_vscode_dir_path(), "launch.json")
         if not os.path.exists(launch_json):
@@ -54,7 +51,6 @@ class ProjectTemplates:
             with open(launch_json, "r") as open_file:
                 content = json.load(open_file)
         debugger_unit_exists = False
-        get_list_of_mapped_sources()
         port = self.env.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
         odoo_debugger_uint = DebuggerUnit(
             name=constants.DEBUGGER_UNIT_NAME,

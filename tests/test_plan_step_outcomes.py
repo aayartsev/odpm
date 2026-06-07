@@ -12,6 +12,7 @@ from dev_project.plan_compose_preview import (
     compose_service_needs_update,
     vscode_settings_up_to_date,
 )
+from dev_project.prepare.steps_project import evaluate_update_links
 from dev_project.prepare_registry import (
     _evaluate_compose_generate,
     _evaluate_compose_service,
@@ -130,6 +131,17 @@ class ComposeServiceGenerateAlignmentTests(unittest.TestCase):
             self.assertEqual(generate.outcome, "update")
             self.assertTrue(service.should_execute())
             self.assertTrue(generate.should_execute())
+
+
+class EvaluateUpdateLinksTests(unittest.TestCase):
+    def test_runs_when_create_module_links_disabled(self) -> None:
+        ctx = MagicMock()
+        ctx.config.create_module_links = False
+
+        step = evaluate_update_links(ctx)
+
+        self.assertEqual(step.outcome, "run")
+        self.assertTrue(step.should_execute())
 
 
 class PlanStepTests(unittest.TestCase):
