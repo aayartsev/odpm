@@ -34,6 +34,11 @@ class ProtocolTypingTests(unittest.TestCase):
         ):
             self.assertTrue(callable(service))
 
+    def test_runtime_coordinator_is_importable(self):
+        from dev_project.runtime_coordinator import RuntimeCoordinator
+
+        self.assertTrue(callable(RuntimeCoordinator))
+
     def test_create_project_environment_is_not_prepare_services_protocol(self):
         self.assertFalse(
             issubclass(CreateProjectEnvironment, PrepareProjectServicesProtocol)

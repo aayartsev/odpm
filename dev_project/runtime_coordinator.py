@@ -1,0 +1,98 @@
+"""Post-prepare runtime: CI image build, VS Code, compose up."""
+
+from __future__ import annotations
+
+import shlex
+import sys
+from typing import TYPE_CHECKING
+
+from . import translations
+from .compose.runtime import should_force_recreate_compose
+from .errors import PipelineError
+from .host.cli.args import OdpmCliArgs
+from .logging import get_module_logger
+from .project_env.services import CiImageBuildService, VscodeConfigurator
+from .subprocess_runner import run_logged
+
+if TYPE_CHECKING:
+    from .config import Config
+    from .project_env import CreateProjectEnvironment
+
+_logger = get_module_logger(__name__)
+
+
+class RuntimeCoordinator:
+    def __init__(
+        self,
+        cli_args: OdpmCliArgs,
+        config: Config,
+        project_env: CreateProjectEnvironment,
+    ) -> None:
+        self.cli_args = cli_args
+        self.config = config
+        self.project_env = project_env
+
+    def handle_build_image(self) -> bool:
+        """Run CI image build. Returns True when the pipeline should stop."""
+        if not self.cli_args.build_image:
+            return False
+        if not self.config.policy.allow_build_image:
+            message = translations.get_translation(
+                translations.BUILD_IMAGE_REQUIRES_CI_SCENARIO
+            )
+            _logger.error(message)
+            raise PipelineError(message, exit_code=1)
+        CiImageBuildService(self.project_env).build_ci_image()
+        return True
+
+    def configure_vscode(self) -> None:
+        if self.config.policy.skip_vscode:
+            return
+        vscode = VscodeConfigurator(self.project_env)
+        vscode.update_vscode_debugger_launcher()
+        vscode.generate_vscode_settings_json()
+
+    def build_compose_up_argv(
+        self, *, force_recreate: bool | None = None
+    ) -> list[str]:
+        if force_recreate is None:
+            force_recreate = should_force_recreate_compose(self.config)
+        argv = shlex.split(self.config.docker_compose_command) + ["up"]
+        if self.config.no_log_prefix:
+            argv.append("--no-log-prefix")
+        argv.append("--abort-on-container-exit")
+        if force_recreate:
+            argv.append("--force-recreate")
+        else:
+            _logger.info(
+                "Compose stack is healthy; starting without --force-recreate"
+            )
+        return argv
+
+    def start_containers(self) -> None:
+        returncode = run_logged(
+            self.build_compose_up_argv(),
+            cwd=self.config.project_dir,
+        )
+        if returncode != 0:
+            message = translations.get_translation(
+                translations.COMPOSE_UP_FAILED
+            ).format(EXIT_CODE=returncode)
+            _logger.error(message)
+            raise PipelineError(message, exit_code=returncode)
+
+    def run_after_prepare(self) -> None:
+        if self.handle_build_image():
+            return
+        self.configure_vscode()
+        if self.cli_args.update_lock:
+            _logger.info("Git dependency lock updated; container start skipped")
+            return
+        if self.cli_args.skip_start:
+            _logger.info("Start of instace will be skipped")
+            return
+        try:
+            self.start_containers()
+        except KeyboardInterrupt:
+            _logger.info("Control+C pressed")
+            sys.exit()

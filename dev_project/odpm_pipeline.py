@@ -3,25 +3,23 @@
 from __future__ import annotations
 
 import os
-import shlex
 import sys
 
 from . import constants, translations
 from .check_system import SystemChecker
-from .compose.runtime import should_force_recreate_compose
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
 from .project_env import CreateProjectEnvironment
-from .project_env.services import CiImageBuildService, VscodeConfigurator
+from .runtime_coordinator import RuntimeCoordinator
 from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
 from .project_materializer import ProjectMaterializer
-from .subprocess_runner import run_logged
 from .system_check_policy import SystemCheckPolicy
 
 _logger = get_module_logger(__name__)
+
 
 class OdpmPipeline:
     def __init__(
@@ -92,56 +90,26 @@ class OdpmPipeline:
             return 1
         return 0
 
+    def _runtime(self) -> RuntimeCoordinator:
+        return RuntimeCoordinator(
+            self.cli_args,
+            self._config(),
+            self._project_environment(),
+        )
+
     def handle_build_image(self) -> bool:
-        """Run CI image build. Returns True when the pipeline should stop."""
-        if not self.cli_args.build_image:
-            return False
-        config = self._config()
-        if not config.policy.allow_build_image:
-            message = translations.get_translation(
-                translations.BUILD_IMAGE_REQUIRES_CI_SCENARIO
-            )
-            _logger.error(message)
-            raise PipelineError(message, exit_code=1)
-        CiImageBuildService(self._project_environment()).build_ci_image()
-        return True
+        return self._runtime().handle_build_image()
 
     def configure_vscode(self) -> None:
-        if self._config().policy.skip_vscode:
-            return
-        vscode = VscodeConfigurator(self._project_environment())
-        vscode.update_vscode_debugger_launcher()
-        vscode.generate_vscode_settings_json()
+        self._runtime().configure_vscode()
 
-    def build_compose_up_argv(
-        self, config: Config, *, force_recreate: bool | None = None
-    ) -> list[str]:
-        if force_recreate is None:
-            force_recreate = should_force_recreate_compose(config)
-        argv = shlex.split(config.docker_compose_command) + ["up"]
-        if config.no_log_prefix:
-            argv.append("--no-log-prefix")
-        argv.append("--abort-on-container-exit")
-        if force_recreate:
-            argv.append("--force-recreate")
-        else:
-            _logger.info(
-                "Compose stack is healthy; starting without --force-recreate"
-            )
-        return argv
+    def build_compose_up_argv(self, config: Config, *, force_recreate: bool | None = None) -> list[str]:
+        return RuntimeCoordinator(
+            self.cli_args, config, self._project_environment()
+        ).build_compose_up_argv(force_recreate=force_recreate)
 
     def start_containers(self) -> None:
-        config = self._config()
-        returncode = run_logged(
-            self.build_compose_up_argv(config),
-            cwd=config.project_dir,
-        )
-        if returncode != 0:
-            message = translations.get_translation(
-                translations.COMPOSE_UP_FAILED
-            ).format(EXIT_CODE=returncode)
-            _logger.error(message)
-            raise PipelineError(message, exit_code=returncode)
+        self._runtime().start_containers()
 
     def run(self) -> None:
         try:
@@ -156,20 +124,7 @@ class OdpmPipeline:
                     sys.exit(exit_code)
                 return
             self.prepare_project_files()
-            if self.handle_build_image():
-                return
-            self.configure_vscode()
-            if self.cli_args.update_lock:
-                _logger.info("Git dependency lock updated; container start skipped")
-                return
-            if self.cli_args.skip_start:
-                _logger.info("Start of instace will be skipped")
-                return
-            try:
-                self.start_containers()
-            except KeyboardInterrupt:
-                _logger.info("Control+C pressed")
-                sys.exit()
+            self._runtime().run_after_prepare()
         except OdpmError as exc:
             sys.exit(exc.exit_code)
 

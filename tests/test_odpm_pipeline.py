@@ -6,8 +6,54 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.odpm_pipeline import OdpmPipeline, PipelineError
+from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.prepare_test_helpers import stub_prepare_service_executions
+
+
+class RuntimeCoordinatorPolicyTests(unittest.TestCase):
+    def _coordinator(self, **args_overrides) -> RuntimeCoordinator:
+        args = OdpmCliArgs(**{"build_image": False, "skip_start": False, **args_overrides})
+        config = MagicMock()
+        project_env = MagicMock()
+        return RuntimeCoordinator(args, config, project_env)
+
+    @patch("dev_project.runtime_coordinator.CiImageBuildService")
+    def test_handle_build_image_rejects_non_ci_policy(self, mock_ci_service):
+        coordinator = self._coordinator(build_image=True)
+        coordinator.config.policy = ScenarioPolicy.from_scenario(
+            constants.DEVELOPER_SCENARIO
+        )
+        with self.assertRaises(PipelineError) as ctx:
+            coordinator.handle_build_image()
+        self.assertEqual(ctx.exception.exit_code, 1)
+        mock_ci_service.assert_not_called()
+
+    @patch("dev_project.runtime_coordinator.CiImageBuildService")
+    def test_handle_build_image_runs_for_ci_policy(self, mock_ci_service):
+        coordinator = self._coordinator(build_image=True)
+        coordinator.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        self.assertTrue(coordinator.handle_build_image())
+        mock_ci_service.assert_called_once_with(coordinator.project_env)
+        mock_ci_service.return_value.build_ci_image.assert_called_once()
+
+    @patch("dev_project.runtime_coordinator.VscodeConfigurator")
+    def test_configure_vscode_skipped_when_policy_says_so(self, mock_vscode_cls):
+        coordinator = self._coordinator()
+        coordinator.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        coordinator.configure_vscode()
+        mock_vscode_cls.assert_not_called()
+
+    @patch("dev_project.runtime_coordinator.VscodeConfigurator")
+    def test_configure_vscode_runs_for_developer_policy(self, mock_vscode_cls):
+        coordinator = self._coordinator()
+        coordinator.config.policy = ScenarioPolicy.from_scenario(
+            constants.DEVELOPER_SCENARIO
+        )
+        coordinator.configure_vscode()
+        mock_vscode_cls.assert_called_once_with(coordinator.project_env)
+        mock_vscode_cls.return_value.update_vscode_debugger_launcher.assert_called_once()
+        mock_vscode_cls.return_value.generate_vscode_settings_json.assert_called_once()
 
 
 class OdpmPipelinePolicyTests(unittest.TestCase):
@@ -18,43 +64,21 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         pipeline.project_environment = MagicMock()
         return pipeline
 
-    @patch("dev_project.odpm_pipeline.CiImageBuildService")
-    def test_handle_build_image_rejects_non_ci_policy(self, mock_ci_service):
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
+    def test_handle_build_image_delegates_to_runtime_coordinator(self, mock_runtime_cls):
         pipeline = self._pipeline(build_image=True)
-        pipeline.config.policy = ScenarioPolicy.from_scenario(
-            constants.DEVELOPER_SCENARIO
-        )
-        with self.assertRaises(PipelineError) as ctx:
-            pipeline.handle_build_image()
-        self.assertEqual(ctx.exception.exit_code, 1)
-        mock_ci_service.assert_not_called()
-
-    @patch("dev_project.odpm_pipeline.CiImageBuildService")
-    def test_handle_build_image_runs_for_ci_policy(self, mock_ci_service):
-        pipeline = self._pipeline(build_image=True)
-        pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        mock_runtime_cls.return_value.handle_build_image.return_value = True
         self.assertTrue(pipeline.handle_build_image())
-        mock_ci_service.assert_called_once_with(pipeline.project_environment)
-        mock_ci_service.return_value.build_ci_image.assert_called_once()
-        pipeline.project_environment.build_ci_image.assert_not_called()
-
-    @patch("dev_project.odpm_pipeline.VscodeConfigurator")
-    def test_configure_vscode_skipped_when_policy_says_so(self, mock_vscode_cls):
-        pipeline = self._pipeline()
-        pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
-        pipeline.configure_vscode()
-        mock_vscode_cls.assert_not_called()
-
-    @patch("dev_project.odpm_pipeline.VscodeConfigurator")
-    def test_configure_vscode_runs_for_developer_policy(self, mock_vscode_cls):
-        pipeline = self._pipeline()
-        pipeline.config.policy = ScenarioPolicy.from_scenario(
-            constants.DEVELOPER_SCENARIO
+        mock_runtime_cls.assert_called_once_with(
+            pipeline.cli_args, pipeline.config, pipeline.project_environment
         )
+        mock_runtime_cls.return_value.handle_build_image.assert_called_once()
+
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
+    def test_configure_vscode_delegates_to_runtime_coordinator(self, mock_runtime_cls):
+        pipeline = self._pipeline()
         pipeline.configure_vscode()
-        mock_vscode_cls.assert_called_once_with(pipeline.project_environment)
-        mock_vscode_cls.return_value.update_vscode_debugger_launcher.assert_called_once()
-        mock_vscode_cls.return_value.generate_vscode_settings_json.assert_called_once()
+        mock_runtime_cls.return_value.configure_vscode.assert_called_once()
 
     def test_compose_service_builder_uses_same_policy_instance(self):
         config = MagicMock()
@@ -94,14 +118,16 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         self.assertIs(builder.policy, policy)
 
 
-class OdpmPipelineComposeTests(unittest.TestCase):
+class RuntimeCoordinatorComposeTests(unittest.TestCase):
+    def _coordinator(self, config: MagicMock) -> RuntimeCoordinator:
+        return RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
+
     def test_build_compose_up_argv_force_recreate_explicit(self):
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
-        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         self.assertEqual(
-            pipeline.build_compose_up_argv(config, force_recreate=True),
+            self._coordinator(config).build_compose_up_argv(force_recreate=True),
             [
                 "docker",
                 "compose",
@@ -115,9 +141,8 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
-        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         self.assertEqual(
-            pipeline.build_compose_up_argv(config, force_recreate=False),
+            self._coordinator(config).build_compose_up_argv(force_recreate=False),
             [
                 "docker",
                 "compose",
@@ -130,9 +155,8 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         config = MagicMock()
         config.docker_compose_command = "docker-compose"
         config.no_log_prefix = True
-        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         self.assertEqual(
-            pipeline.build_compose_up_argv(config, force_recreate=True),
+            self._coordinator(config).build_compose_up_argv(force_recreate=True),
             [
                 "docker-compose",
                 "up",
@@ -143,165 +167,164 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         )
 
     @patch(
-        "dev_project.odpm_pipeline.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose",
         return_value=True,
     )
     def test_build_compose_up_argv_auto_detects_force_recreate(self, _mock_should):
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
-        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
-        argv = pipeline.build_compose_up_argv(config)
+        argv = self._coordinator(config).build_compose_up_argv()
         self.assertIn("--force-recreate", argv)
 
     @patch(
-        "dev_project.odpm_pipeline.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose",
         return_value=False,
     )
     def test_start_containers_uses_subprocess(self, _mock_should):
-        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
-        pipeline.config = MagicMock()
-        pipeline.config.project_dir = "/tmp/project"
-        pipeline.config.docker_compose_command = "docker compose"
-        pipeline.config.no_log_prefix = False
-        with patch("dev_project.odpm_pipeline.run_logged", return_value=0) as mock_run:
-            pipeline.start_containers()
+        config = MagicMock()
+        config.project_dir = "/tmp/project"
+        config.docker_compose_command = "docker compose"
+        config.no_log_prefix = False
+        with patch("dev_project.runtime_coordinator.run_logged", return_value=0) as mock_run:
+            self._coordinator(config).start_containers()
         mock_run.assert_called_once_with(
             ["docker", "compose", "up", "--abort-on-container-exit"],
             cwd="/tmp/project",
         )
 
     @patch(
-        "dev_project.odpm_pipeline.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose",
         return_value=False,
     )
     def test_start_containers_raises_pipeline_error_on_compose_failure(
         self, _mock_should
     ):
-        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
-        pipeline.config = MagicMock()
-        pipeline.config.project_dir = "/tmp/project"
-        pipeline.config.docker_compose_command = "docker compose"
-        pipeline.config.no_log_prefix = False
-        with patch("dev_project.odpm_pipeline.run_logged", return_value=17):
+        config = MagicMock()
+        config.project_dir = "/tmp/project"
+        config.docker_compose_command = "docker compose"
+        config.no_log_prefix = False
+        with patch("dev_project.runtime_coordinator.run_logged", return_value=17):
             with self.assertRaises(PipelineError) as ctx:
-                pipeline.start_containers()
+                self._coordinator(config).start_containers()
         self.assertEqual(ctx.exception.exit_code, 17)
 
 
+class OdpmPipelineComposeTests(unittest.TestCase):
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
+    def test_build_compose_up_argv_delegates_to_runtime_coordinator(self, mock_runtime_cls):
+        config = MagicMock()
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
+        pipeline.project_environment = MagicMock()
+        mock_runtime_cls.return_value.build_compose_up_argv.return_value = ["docker", "compose", "up"]
+        argv = pipeline.build_compose_up_argv(config, force_recreate=True)
+        mock_runtime_cls.assert_called_once_with(
+            pipeline.cli_args, config, pipeline.project_environment
+        )
+        mock_runtime_cls.return_value.build_compose_up_argv.assert_called_once_with(
+            force_recreate=True
+        )
+        self.assertEqual(argv, ["docker", "compose", "up"])
+
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
+    def test_start_containers_delegates_to_runtime_coordinator(self, mock_runtime_cls):
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.project_environment = MagicMock()
+        pipeline.start_containers()
+        mock_runtime_cls.return_value.start_containers.assert_called_once()
+
+
 class OdpmPipelineRunTests(unittest.TestCase):
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.start_containers")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.configure_vscode")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.handle_build_image", return_value=False)
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     def test_run_skips_compose_when_skip_start(
         self,
         mock_setup,
         mock_prepare,
-        mock_build_image,
-        mock_vscode,
-        mock_start,
+        mock_runtime_cls,
     ):
         args = OdpmCliArgs(build_image=False, skip_start=True)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
-        pipeline.config.project_dir = "/tmp/project"
+        pipeline.project_environment = MagicMock()
 
         pipeline.run()
 
-        mock_start.assert_not_called()
-        mock_vscode.assert_called_once()
+        mock_runtime_cls.return_value.run_after_prepare.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.start_containers")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.configure_vscode")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.handle_build_image", return_value=False)
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     def test_run_skips_compose_when_update_lock(
         self,
         mock_setup,
         mock_prepare,
-        mock_build_image,
-        mock_vscode,
-        mock_start,
+        mock_runtime_cls,
     ):
         args = OdpmCliArgs(build_image=False, skip_start=False, update_lock=True)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
-        pipeline.config.project_dir = "/tmp/project"
+        pipeline.project_environment = MagicMock()
 
         pipeline.run()
 
-        mock_start.assert_not_called()
-        mock_vscode.assert_called_once()
+        mock_runtime_cls.return_value.run_after_prepare.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.start_containers")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.configure_vscode")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.handle_build_image", return_value=True)
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     def test_run_stops_after_build_image(
         self,
         mock_setup,
         mock_prepare,
-        mock_build_image,
-        mock_vscode,
-        mock_start,
+        mock_runtime_cls,
     ):
         args = OdpmCliArgs(build_image=True, skip_start=False)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
-        pipeline.config.project_dir = "/tmp/project"
+        pipeline.project_environment = MagicMock()
 
         pipeline.run()
 
-        mock_vscode.assert_not_called()
-        mock_start.assert_not_called()
+        mock_runtime_cls.return_value.run_after_prepare.assert_called_once()
 
     @patch("dev_project.odpm_pipeline.os.chdir")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.start_containers")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.configure_vscode")
-    @patch("dev_project.odpm_pipeline.OdpmPipeline.handle_build_image", return_value=False)
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     def test_run_does_not_chdir(
         self,
         mock_setup,
         mock_prepare,
-        mock_build_image,
-        mock_vscode,
-        mock_start,
+        mock_runtime_cls,
         mock_chdir,
     ):
         args = OdpmCliArgs(build_image=False, skip_start=False, update_lock=False)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
-        pipeline.config.project_dir = "/tmp/project"
+        pipeline.project_environment = MagicMock()
 
         pipeline.run()
 
         mock_chdir.assert_not_called()
-        mock_start.assert_called_once()
+        mock_runtime_cls.return_value.run_after_prepare.assert_called_once()
 
-    @patch("dev_project.odpm_pipeline.sys.exit")
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    @patch("dev_project.odpm_pipeline.sys.exit")
     def test_run_exits_on_pipeline_error(
-        self, mock_setup, mock_prepare, mock_exit
+        self, mock_exit, mock_setup, mock_prepare, mock_runtime_cls
     ):
         pipeline = OdpmPipeline(OdpmCliArgs(build_image=True), "/opt/odpm")
         pipeline.config = MagicMock()
-        pipeline.config.policy = ScenarioPolicy.from_scenario(
-            constants.DEVELOPER_SCENARIO
-        )
         pipeline.project_environment = MagicMock()
-        with patch.object(
-            pipeline,
-            "handle_build_image",
-            side_effect=PipelineError("forbidden", exit_code=1),
-        ):
-            pipeline.run()
+        mock_runtime_cls.return_value.run_after_prepare.side_effect = PipelineError(
+            "forbidden", exit_code=1
+        )
+        pipeline.run()
         mock_exit.assert_called_once_with(1)
 
 
