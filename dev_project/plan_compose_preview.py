@@ -8,15 +8,15 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 from . import constants
-from .compose_service_builder import ComposeServiceBuilder
+from .compose.service_builder import ComposeServiceBuilder
+from .compose.start_command import ComposeOdooService
 from .config.payload import runtime_config_path
+from .inside_docker_app.exceptions import ConfigValidationError
+from .plan import project_template_needs_upgrade, runtime_config_stale
 from .plan_runtime_preview import (
     normalized_runtime_config_text_from_disk,
     preview_runtime_config_text,
 )
-from .inside_docker_app.exceptions import ConfigValidationError
-from .plan import project_template_needs_upgrade, runtime_config_stale
-from .start_command import ComposeOdooService
 
 if TYPE_CHECKING:
     from .config import Config
@@ -28,7 +28,7 @@ def docker_compose_path(project_dir: str) -> str:
 
 
 def preview_compose_service(config: Config):
-    with patch("dev_project.compose_service_builder.write_runtime_config"):
+    with patch("dev_project.compose.service_builder.write_runtime_config"):
         return ComposeServiceBuilder(config).build()
 
 

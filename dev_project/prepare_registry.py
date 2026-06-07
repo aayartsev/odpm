@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .compose_service_builder import ComposeServiceBuilder
+from .compose.service_builder import ComposeServiceBuilder
 from .git.deps_lock_manager import DepsLockManager
 from .plan_compose_preview import (
     compose_generate_needs_execute,

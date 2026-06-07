@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .. import constants
-from ..start_command import ComposeOdooService
+from ..compose.start_command import ComposeOdooService
 
 
 @dataclass

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .compose_runtime import should_force_recreate_compose
+from .compose.runtime import should_force_recreate_compose
 from .host.cli.args import OdpmCliArgs
 from .host.context import HostProjectContext
 

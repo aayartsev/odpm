@@ -1,64 +1,19 @@
-"""Docker Compose runtime helpers: stack health and up options."""
+"""Backward-compatible shim for ``dev_project.compose.runtime``."""
 
-from __future__ import annotations
+from dev_project.subprocess_runner import run_checked
+from dev_project.compose.runtime import (
+    COMPOSE_STACK_SERVICES,
+    _running_container_id,
+    compose_stack_is_healthy,
+    container_is_running_and_healthy,
+    should_force_recreate_compose,
+)
 
-import shlex
-
-from . import constants
-from .config import Config
-from .subprocess_runner import run_checked
-
-COMPOSE_STACK_SERVICES = ("odoo", constants.DATABASE_NAME_INSTANCE)
-
-
-def _compose_base_argv(config: Config) -> list[str]:
-    return shlex.split(config.docker_compose_command)
-
-
-def _running_container_id(
-    config: Config, service: str
-) -> str | None:
-    result = run_checked(
-        _compose_base_argv(config) + ["ps", "-q", service],
-        cwd=config.project_dir,
-    )
-    if result.returncode != 0:
-        return None
-    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-    return lines[0] if lines else None
-
-
-def container_is_running_and_healthy(container_id: str) -> bool:
-    result = run_checked(
-        [
-            "docker",
-            "inspect",
-            "-f",
-            "{{.State.Running}} {{if .State.Health}}{{.State.Health.Status}}{{end}}",
-            container_id,
-        ],
-    )
-    if result.returncode != 0:
-        return False
-    parts = result.stdout.strip().split()
-    if not parts or parts[0] != "true":
-        return False
-    if len(parts) > 1 and parts[1] not in ("healthy", ""):
-        return False
-    return True
-
-
-def compose_stack_is_healthy(config: Config) -> bool:
-    """True when odoo and postgres compose services are up (and healthy if probed)."""
-    for service in COMPOSE_STACK_SERVICES:
-        container_id = _running_container_id(config, service)
-        if not container_id:
-            return False
-        if not container_is_running_and_healthy(container_id):
-            return False
-    return True
-
-
-def should_force_recreate_compose(config: Config) -> bool:
-    """Recreate only when the stack is missing or not healthy."""
-    return not compose_stack_is_healthy(config)
+__all__ = [
+    "COMPOSE_STACK_SERVICES",
+    "_running_container_id",
+    "compose_stack_is_healthy",
+    "container_is_running_and_healthy",
+    "run_checked",
+    "should_force_recreate_compose",
+]

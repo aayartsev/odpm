@@ -78,11 +78,12 @@ odpm можно **установить через pip** — в PATH появит
 
 #### Качество и проверки
 
-- **555 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
+- **565 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
 - **Plan-safe setup** — `odpm plan` загружает конфигурацию без обновления шаблонов в `.odpm/`; обычный запуск по-прежнему синхронизирует шаблоны проекта при старте.
 - **Восстановление устаревшего odoo.conf** — `odpm --skip-start` пересоздаёт `odoo.conf`, если в нём нет настроек подключения к БД Docker (например после апгрейда с layout без `db_host`).
 - **Пакет `dev_project/prepare/`** — реестр prepare-фазы вынесен из монолитного `prepare_registry.py`; shim сохраняет существующие импорты и patch-пути в тестах.
 - **Пакет `dev_project/host/`** — host context, runtime, user `.env` и CLI (`host/cli/`); legacy-пути `host_cli/` и `host_*.py` сохранены как shims.
+- **Пакет `dev_project/compose/`** — compose service builder, start command, YAML render, generator и runtime helpers; legacy-пути `compose_*.py`, `start_command.py` и `project_env.compose` сохранены как shims.
 - **`OdpmCliArgs` typed CLI** — frozen dataclass с bridge `from_namespace` и `parse_cli_args()`; host pipeline (`OdpmPipeline`, prepare/plan/config) использует `OdpmCliArgs` целиком; `Namespace` остаётся только в `parse_args()` и container dispatch shim.
 - **Нативный subcommand `odpm plan`** — общий argparse parent parser; `odpm plan --skip-start` парсится без rewrite argv; глобальный `--plan` остаётся deprecated alias с предупреждением.
 - **GitHub Actions CI** (`.github/workflows/ci.yml`) — unit-suite при каждом push/PR в `4.0-beta` и `main` (Python 3.10 и 3.12); повторный запуск вручную — через **workflow_dispatch**.

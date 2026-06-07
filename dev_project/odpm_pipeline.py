@@ -8,7 +8,7 @@ import sys
 
 from . import constants, translations
 from .check_system import SystemChecker
-from .compose_runtime import should_force_recreate_compose
+from .compose.runtime import should_force_recreate_compose
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
 from .project_env import CreateProjectEnvironment

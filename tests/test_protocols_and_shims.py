@@ -59,8 +59,54 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
     def test_compose_service_builder_imports(self):
         from dev_project import compose_service_builder as builder_module
+        from dev_project.compose import ComposeServiceBuilder as canonical_builder
 
         self.assertTrue(hasattr(builder_module, "ComposeServiceBuilder"))
+        self.assertIs(builder_module.ComposeServiceBuilder, canonical_builder)
+
+    def test_compose_package_imports(self):
+        from dev_project import compose as compose_module
+        from dev_project.compose import (
+            ComposeGenerator,
+            ComposeOdooService,
+            ComposeServiceBuilder,
+            StartCommand,
+            should_force_recreate_compose,
+        )
+
+        self.assertTrue(hasattr(compose_module, "ComposeServiceBuilder"))
+        self.assertTrue(hasattr(compose_module, "ComposeGenerator"))
+        self.assertTrue(hasattr(compose_module, "StartCommand"))
+        self.assertTrue(callable(should_force_recreate_compose))
+        self.assertTrue(hasattr(ComposeOdooService, "__dataclass_fields__"))
+        self.assertTrue(hasattr(ComposeServiceBuilder, "build"))
+        self.assertTrue(hasattr(ComposeGenerator, "render_docker_compose_content"))
+        self.assertTrue(hasattr(StartCommand, "__dataclass_fields__"))
+
+    def test_compose_shim_imports(self):
+        from dev_project import compose_runtime as compose_runtime_module
+        from dev_project import compose_command_render as command_render_module
+        from dev_project import start_command as start_command_module
+        from dev_project.compose.runtime import should_force_recreate_compose
+        from dev_project.compose.command_render import yaml_scalar
+        from dev_project.compose.start_command import StartCommand
+
+        self.assertTrue(hasattr(compose_runtime_module, "should_force_recreate_compose"))
+        self.assertIs(
+            compose_runtime_module.should_force_recreate_compose,
+            should_force_recreate_compose,
+        )
+        self.assertTrue(hasattr(command_render_module, "yaml_scalar"))
+        self.assertIs(command_render_module.yaml_scalar, yaml_scalar)
+        self.assertTrue(hasattr(start_command_module, "StartCommand"))
+        self.assertIs(start_command_module.StartCommand, StartCommand)
+
+    def test_compose_generator_shim_imports(self):
+        from dev_project.project_env import compose as compose_shim_module
+        from dev_project.compose import ComposeGenerator as canonical_generator
+
+        self.assertTrue(hasattr(compose_shim_module, "ComposeGenerator"))
+        self.assertIs(compose_shim_module.ComposeGenerator, canonical_generator)
 
     def test_project_materializer_imports(self):
         from dev_project import project_materializer as materializer_module
