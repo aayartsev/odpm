@@ -68,7 +68,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 #### Quality assurance
 
-- **565 tests** in `unittest discover` (7 skipped opt-in Docker integration tests by default).
+- **568 tests** in `unittest discover` (7 skipped opt-in Docker integration tests by default).
 - **Plan-safe setup** — `odpm plan` loads configuration without upgrading `.odpm/` templates; normal runs still sync project templates on startup.
 - **Stale odoo.conf recovery** — `odpm --skip-start` regenerates project `odoo.conf` when Docker DB settings are missing (for example after upgrading from layouts that never wrote `db_host`).
 - **`dev_project/prepare/` package** — prepare-phase registry split from monolithic `prepare_registry.py`; shim re-exports preserve existing imports and test patch paths.
@@ -86,7 +86,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 - Runtime configuration is written to `.odpm/runtime/config.json` on the host (developer/server) or embedded in CI images.
 - Git materialization and platform build-date handling centralized in `GitRepoCoordinator`.
 - Dependency resolution is a single-pass BFS via `DependencyMaterializer` and `dependency_resolver.py`.
-- Compose stack may start without `--force-recreate` when the existing stack is healthy (`compose_runtime`).
+- Compose stack may start without `--force-recreate` when the existing stack is healthy (`compose/runtime`).
 - Deprecated project artifacts (`config.json`, old compose/dockerfile markers) are renamed to `deprecated_*` with warnings.
 - Unified host logging in `dev_project.logging` (container re-export shim retained temporarily).
 

@@ -10,8 +10,10 @@ from dev_project import constants
 from dev_project.plan import PlanStep
 from dev_project.plan_compose_preview import (
     compose_service_needs_update,
+    preview_compose_service,
     vscode_settings_up_to_date,
 )
+from dev_project.prepare.steps_docker import evaluate_docker_engine_check
 from dev_project.prepare.steps_project import evaluate_update_links
 from dev_project.prepare_registry import (
     _evaluate_compose_generate,
@@ -30,6 +32,34 @@ class PlanComposePreviewTests(unittest.TestCase):
         config.compute_venv_lock_hash.return_value = "hash"
         config.python_version = "3.12"
         return config
+
+    def _developer_compose_config(self) -> MagicMock:
+        config = MagicMock()
+        config.project_dir = "/tmp/odpm-test-project"
+        config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
+        config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.arguments = OdpmCliArgs()
+        config.dev_mode = False
+        config.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_project_dir = "/home/odoo"
+        config.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
+        config.docker_venv_dir = "/home/odoo/.venv"
+        config.platform_name = "odoo"
+        config.odoo_version = "19.0"
+        config.init_modules = ""
+        config.update_modules = ""
+        config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
+        config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
+        config.requirements_txt = []
+        config.config_to_json.return_value = b"{}"
+        config.generate_odoo_conf_docker_data = MagicMock()
+        return config
+
+    @patch("dev_project.compose_service_builder.write_runtime_config")
+    def test_preview_compose_service_does_not_write_runtime_config(self, mock_write):
+        preview_compose_service(self._developer_compose_config())
+        mock_write.assert_not_called()
 
     @patch(
         "dev_project.plan_compose_preview.preview_runtime_config_text",
@@ -131,6 +161,29 @@ class ComposeServiceGenerateAlignmentTests(unittest.TestCase):
             self.assertEqual(generate.outcome, "update")
             self.assertTrue(service.should_execute())
             self.assertTrue(generate.should_execute())
+
+
+class EvaluateDockerEngineCheckTests(unittest.TestCase):
+    def test_skips_when_check_system_disabled(self) -> None:
+        ctx = MagicMock()
+        ctx.config.check_system = False
+
+        step = evaluate_docker_engine_check(ctx)
+
+        self.assertEqual(step.outcome, "skip")
+        self.assertFalse(step.required)
+        self.assertFalse(step.should_execute())
+        self.assertIn("skipped", step.reason)
+
+    def test_runs_when_check_system_enabled(self) -> None:
+        ctx = MagicMock()
+        ctx.config.check_system = True
+
+        step = evaluate_docker_engine_check(ctx)
+
+        self.assertEqual(step.outcome, "run")
+        self.assertTrue(step.required)
+        self.assertTrue(step.should_execute())
 
 
 class EvaluateUpdateLinksTests(unittest.TestCase):
