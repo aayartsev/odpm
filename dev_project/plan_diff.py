@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import difflib
 import os
-from .host_cli.args import OdpmCliArgs
+from .host.cli.args import OdpmCliArgs
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING

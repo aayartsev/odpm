@@ -12,10 +12,10 @@ from .compose_runtime import should_force_recreate_compose
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
 from .project_env import CreateProjectEnvironment
-from .host_user_env import CreateUserEnvironment
+from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
-from .host_cli.args import OdpmCliArgs
+from .host.cli.args import OdpmCliArgs
 from .project_materializer import ProjectMaterializer
 from .subprocess_runner import run_logged
 

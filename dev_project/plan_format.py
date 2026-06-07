@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
-from .host_cli.args import OdpmCliArgs
+from .host.cli.args import OdpmCliArgs
 from .plan import OdpmPlan, PlanStep
 from .plan_compose_runtime import compose_up_force_recreate_value
 

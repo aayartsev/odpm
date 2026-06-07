@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ..git.deps_lock_manager import DepsLockManager
-from ..host_cli.args import OdpmCliArgs
-from ..host_context import HostProjectContext
+from ..host.cli.args import OdpmCliArgs
+from ..host.context import HostProjectContext
 from ..plan import PlanStep
 
 if TYPE_CHECKING:

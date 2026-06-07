@@ -5,14 +5,14 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from ..host_cli.args import OdpmCliArgs
+from ..host.cli.args import OdpmCliArgs
 
 from .. import constants, translations
 from ..dev_mode import effective_dev_mode, merge_autoreload_requirements
 from ..errors import ConfigError
 from ..git.developing_repo_materializer import DevelopingRepoMaterializer
-from ..host_runtime import HostRuntimeState
-from ..host_user_env import CreateUserEnvironment
+from ..host.runtime import HostRuntimeState
+from ..host.user_env import CreateUserEnvironment
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from ..host_cli.args import OdpmCliArgs
+from ..host.cli.args import OdpmCliArgs
 from typing import Any, Callable, Union
 
 from .. import constants

@@ -6,7 +6,7 @@ import os
 import sys
 
 from . import translations
-from .host_cli.parse_args import parse_cli_args
+from .host.cli.parse_args import parse_cli_args
 from .logging import get_module_logger
 from .odpm_pipeline import OdpmPipeline
 from .program_dir import resolve_program_dir

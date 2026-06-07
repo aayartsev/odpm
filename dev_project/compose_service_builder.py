@@ -6,7 +6,7 @@ from . import constants
 from .config import Config
 from .config.payload import write_runtime_config
 from .dev_mode import effective_dev_mode
-from .host_cli import params as cli_params
+from .host.cli import params as cli_params
 from .start_command import ComposeOdooService, StartCommand
 
 

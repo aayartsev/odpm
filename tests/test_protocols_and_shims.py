@@ -69,13 +69,35 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
     def test_host_context_imports(self):
         from dev_project import host_context as host_context_module
+        from dev_project import host as host_module
 
         self.assertTrue(hasattr(host_context_module, "HostProjectContext"))
+        self.assertTrue(hasattr(host_module, "HostProjectContext"))
 
     def test_host_runtime_imports(self):
         from dev_project import host_runtime as host_runtime_module
+        from dev_project import host as host_module
 
         self.assertTrue(hasattr(host_runtime_module, "HostRuntimeState"))
+        self.assertTrue(hasattr(host_module, "HostRuntimeState"))
+
+    def test_host_package_imports(self):
+        from dev_project import host as host_module
+        from dev_project.host.cli import OdpmCliArgs, parse_cli_args
+
+        self.assertTrue(hasattr(host_module, "CreateUserEnvironment"))
+        self.assertTrue(hasattr(host_module, "HostProjectContext"))
+        self.assertTrue(callable(parse_cli_args))
+        self.assertTrue(hasattr(OdpmCliArgs, "__dataclass_fields__"))
+
+    def test_host_cli_shim_imports(self):
+        from dev_project import host_cli as host_cli_module
+        from dev_project.host_cli.args import OdpmCliArgs
+        from dev_project.host_cli.parse_args import parse_cli_args
+
+        self.assertTrue(hasattr(host_cli_module, "OdpmCliArgs"))
+        self.assertTrue(callable(parse_cli_args))
+        self.assertTrue(hasattr(OdpmCliArgs, "__dataclass_fields__"))
 
     def test_config_bootstrap_imports(self):
         from dev_project.config import bootstrap as bootstrap_module

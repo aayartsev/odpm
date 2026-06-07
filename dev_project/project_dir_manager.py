@@ -4,9 +4,9 @@ from dataclasses import replace
 from pathlib import Path
 
 from . import constants, translations
-from .host_cli.args import OdpmCliArgs
+from .host.cli.args import OdpmCliArgs
 from .errors import ProjectDirError
-from .host_cli import params as cli_params
+from .host.cli import params as cli_params
 from .logging import get_module_logger
 
 _logger = get_module_logger(__name__)

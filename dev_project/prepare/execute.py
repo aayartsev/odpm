@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from ..errors import PipelineError
-from ..host_cli.args import OdpmCliArgs
+from ..host.cli.args import OdpmCliArgs
 from ..git.deps_lock import deps_lock_path, load_deps_lock
-from ..host_context import HostProjectContext
+from ..host.context import HostProjectContext
 from ..logging import get_module_logger
 from ..plan import OdpmPlan, PlanStep, deps_lock_file_exists
 from .helpers import skip_git, update_lock

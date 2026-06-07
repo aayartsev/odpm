@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .compose_runtime import should_force_recreate_compose
-from .host_cli.args import OdpmCliArgs
-from .host_context import HostProjectContext
+from .host.cli.args import OdpmCliArgs
+from .host.context import HostProjectContext
 
 if TYPE_CHECKING:
     from .config import Config

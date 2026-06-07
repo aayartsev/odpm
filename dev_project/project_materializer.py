@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .config import Config
-from .host_cli.args import OdpmCliArgs
+from .host.cli.args import OdpmCliArgs
 from .plan import OdpmPlan
 from .prepare_registry import build_plan, execute_prepare, make_prepare_context
 from .protocols import SystemCheckerProtocol

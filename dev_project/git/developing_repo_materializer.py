@@ -9,7 +9,7 @@ from .. import constants
 from .link import HandleOdooProjectLink
 
 if TYPE_CHECKING:
-    from ..host_cli.args import OdpmCliArgs
+    from ..host.cli.args import OdpmCliArgs
 
 
 class DevelopingRepoConfig(Protocol):

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from .host_cli import params as cli_params
-from .host_cli.args import OdpmCliArgs
+from .host.cli import params as cli_params
+from .host.cli.args import OdpmCliArgs
 
 
 def is_plan_mode(args: OdpmCliArgs) -> bool:

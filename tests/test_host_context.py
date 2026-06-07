@@ -63,7 +63,7 @@ class HostProjectContextTests(unittest.TestCase):
 
         config = self._make_config()
         with patch(
-            "dev_project.host_context.HostProjectContext.from_config",
+            "dev_project.host.context.HostProjectContext.from_config",
             wraps=HostProjectContext.from_config,
         ) as mock_from_config:
             ctx = Config.host_context.fget(config)

@@ -1,11 +1,11 @@
 from typing import Literal
 
-from ..host_cli.args import OdpmCliArgs
+from ..host.cli.args import OdpmCliArgs
 
 from ..dependency_resolver import NestedOdpmFragment
 from ..errors import PipelineError
 from ..git import HandleOdooProjectLink
-from ..host_user_env import CreateUserEnvironment
+from ..host.user_env import CreateUserEnvironment
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
@@ -68,7 +68,7 @@ class Config(ConfigRuntimeFacadeMixin):
 
     @property
     def host_context(self) -> "HostProjectContext":
-        from ..host_context import HostProjectContext
+        from ..host.context import HostProjectContext
 
         return HostProjectContext.from_config(self)
 

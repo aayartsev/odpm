@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..host_runtime import HostRuntimeState
+from ..host.runtime import HostRuntimeState
 from ..start_command import ComposeOdooService
 
 if TYPE_CHECKING:

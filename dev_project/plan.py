@@ -17,8 +17,8 @@ from typing import Literal, TYPE_CHECKING
 
 from . import constants
 from .config.payload import runtime_config_path
-from .host_cli.args import OdpmCliArgs
-from .host_context import HostProjectContext
+from .host.cli.args import OdpmCliArgs
+from .host.context import HostProjectContext
 from .project_dir_manager import template_needs_upgrade
 from .project_env.base_image_identity import base_image_identity_matches
 

@@ -1,4 +1,4 @@
-"""Container runtime must not depend on host_cli directly."""
+"""Container runtime must not depend on host CLI packages directly."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from pathlib import Path
 
 _CONTAINER_ROOT = Path(__file__).resolve().parents[1] / "dev_project" / "inside_docker_app"
 _SHIM_FILES = {"parse_args.py", "cli_params.py"}
+_FORBIDDEN_ROOTS = ("host", "host_cli")
 
 
 def _iter_container_python_files() -> list[Path]:
@@ -18,46 +19,46 @@ def _iter_container_python_files() -> list[Path]:
     )
 
 
-def _imports_host_cli(source: str) -> list[str]:
+def _imports_forbidden_host_modules(source: str) -> list[str]:
     tree = ast.parse(source)
     hits: list[str] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                if alias.name == "host_cli" or alias.name.startswith("host_cli."):
+                root = alias.name.split(".", 1)[0]
+                if root in _FORBIDDEN_ROOTS:
                     hits.append(f"import {alias.name}")
         elif isinstance(node, ast.ImportFrom):
-            if node.module and (
-                node.module == "host_cli" or node.module.startswith("host_cli.")
-            ):
-                hits.append(f"from {node.module} import ...")
+            if node.module:
+                root = node.module.split(".", 1)[0]
+                if root in _FORBIDDEN_ROOTS:
+                    hits.append(f"from {node.module} import ...")
             elif node.level and any(
-                part == "host_cli"
-                for part in (node.module or "").split(".")
+                part in _FORBIDDEN_ROOTS for part in (node.module or "").split(".")
             ):
                 hits.append(f"relative from {node.module!r}")
     return hits
 
 
 class HostCliIsolationTests(unittest.TestCase):
-    def test_container_modules_do_not_import_host_cli(self):
+    def test_container_modules_do_not_import_host_packages(self):
         violations: list[str] = []
         for path in _iter_container_python_files():
-            hits = _imports_host_cli(path.read_text(encoding="utf-8"))
+            hits = _imports_forbidden_host_modules(path.read_text(encoding="utf-8"))
             if hits:
                 rel = path.relative_to(_CONTAINER_ROOT.parent.parent)
                 violations.append(f"{rel}: {', '.join(hits)}")
         self.assertEqual(violations, [])
 
-    def test_container_bootstrap_entry_does_not_import_host_cli(self):
+    def test_container_bootstrap_entry_does_not_import_host_packages(self):
         source = (
             _CONTAINER_ROOT / "container_bootstrap.py"
         ).read_text(encoding="utf-8")
-        self.assertEqual(_imports_host_cli(source), [])
+        self.assertEqual(_imports_forbidden_host_modules(source), [])
 
-    def test_run_odoo_entry_does_not_import_host_cli(self):
+    def test_run_odoo_entry_does_not_import_host_packages(self):
         source = (_CONTAINER_ROOT / "run_odoo.py").read_text(encoding="utf-8")
-        self.assertEqual(_imports_host_cli(source), [])
+        self.assertEqual(_imports_forbidden_host_modules(source), [])
 
 
 if __name__ == "__main__":
