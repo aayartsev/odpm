@@ -11,6 +11,7 @@
 ### Изменено
 
 - **`dev_project/git/runner.py`** — `GitRunner` вынесен из `GitOperations`: сборка git-argv (в т.ч. SSH) и вызов `run_checked`; `GitOperations` делегирует через `_build_git_cmd` / `_run_git`. Unit-тесты проверяют argv, cwd по умолчанию и явный cwd.
+- **`dev_project/git/clone.py`** — `RepoCloneService` вынесен из `GitOperations`: жизненный цикл клонирования (`check_project`, `force_clone_repo`, `clone_repo`, `check_repo_url`); `GitOperations` делегирует через тонкие обёртки. Изолированные unit-тесты проверяют нормализацию URL, cwd при clone, shallow clone для platform и отсутствие `chdir` в `check_project`.
 
 ---
 

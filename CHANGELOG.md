@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **`dev_project/git/runner.py`** — `GitRunner` extracts git subprocess command building and `run_checked` invocation from `GitOperations`; `GitOperations` delegates via thin `_build_git_cmd` / `_run_git` wrappers. Unit tests cover SSH argv, default cwd, and explicit cwd.
+- **`dev_project/git/clone.py`** — `RepoCloneService` extracts clone lifecycle (`check_project`, `force_clone_repo`, `clone_repo`, `check_repo_url`) from `GitOperations`; `GitOperations` delegates via thin wrappers. Isolated unit tests cover URL normalization, clone cwd, platform shallow clone, and `check_project` without `chdir`.
 
 ---
 

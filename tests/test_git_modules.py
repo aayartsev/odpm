@@ -176,6 +176,80 @@ class GitRunnerTests(unittest.TestCase):
         self.assertEqual(mock_run_checked.call_args.kwargs["cwd"], "/other/path")
 
 
+class RepoCloneServiceTests(unittest.TestCase):
+    def _service(self, **link_overrides):
+        from dev_project.git.clone import RepoCloneService
+        from dev_project.git.runner import GitRunner
+
+        link = object.__new__(HandleOdooProjectLink)
+        link.project_path = "/tmp/repo"
+        link.gitlink = "https://github.com/acme/demo.git"
+        link.project_link = link.gitlink
+        link.path_to_ssh_key = ""
+        link.project_string = link.gitlink
+        link.dir_to_clone = "/tmp/clone_base"
+        link.system_type = "standart"
+        link.link_type = constants.GITLINK_TYPE_GIT
+        link.is_cloned = False
+        for key, value in link_overrides.items():
+            setattr(link, key, value)
+        return RepoCloneService(link, GitRunner(link))
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_check_repo_url_normalizes_git_suffix(self, mock_run_checked):
+        mock_run_checked.return_value = MagicMock(
+            stdout="https://github.com/acme/demo.git\n",
+            returncode=0,
+            stderr="",
+        )
+        service = self._service()
+        self.assertTrue(
+            service.check_repo_url("/tmp/repo", "https://github.com/acme/demo")
+        )
+        mock_run_checked.assert_called_once()
+
+    @patch("dev_project.git.clone.run_logged", return_value=0)
+    def test_clone_repo_uses_dir_to_clone_as_cwd(self, mock_run_logged):
+        service = self._service()
+        service.clone_repo()
+        mock_run_logged.assert_called_once()
+        self.assertEqual(mock_run_logged.call_args.kwargs["cwd"], "/tmp/clone_base")
+        self.assertTrue(service.link.is_cloned)
+
+    @patch("dev_project.git.clone.run_logged", return_value=128)
+    def test_clone_repo_raises_git_error_on_failure(self, _mock_run_logged):
+        from dev_project.errors import GitError
+
+        service = self._service()
+        with self.assertRaises(GitError):
+            service.clone_repo()
+        self.assertFalse(service.link.is_cloned)
+
+    @patch("dev_project.git.clone.run_logged", return_value=0)
+    def test_clone_repo_platform_uses_shallow_depth(self, mock_run_logged):
+        service = self._service(
+            system_type="platform",
+            branch_explicit=True,
+            branch="19.0",
+            commit_explicit=False,
+        )
+        service.clone_repo()
+        clone_cmd = mock_run_logged.call_args.args[0]
+        self.assertIn("--depth", clone_cmd)
+        self.assertIn("-b", clone_cmd)
+        self.assertIn("19.0", clone_cmd)
+
+    @patch("dev_project.git.clone.RepoCloneService.clone_repo")
+    @patch("dev_project.git.clone.os.makedirs")
+    @patch("dev_project.git.clone.os.path.exists", return_value=False)
+    def test_check_project_does_not_chdir(self, _mock_exists, _mock_makedirs, mock_clone):
+        service = self._service()
+        with patch("dev_project.git.clone.os.chdir") as mock_chdir:
+            service.check_project()
+        mock_chdir.assert_not_called()
+        mock_clone.assert_called_once()
+
+
 class GitOperationsTests(unittest.TestCase):
     def _operations(self, **link_overrides):
         from dev_project.git.operations import GitOperations
@@ -212,43 +286,17 @@ class GitOperationsTests(unittest.TestCase):
         mock_pull.assert_not_called()
         mock_parsed.assert_called_once()
 
-    @patch("dev_project.git.runner.run_checked")
-    def test_check_repo_url_normalizes_git_suffix(self, mock_run_checked):
-        mock_run_checked.return_value = MagicMock(
-            stdout="https://github.com/acme/demo.git\n",
-            returncode=0,
-            stderr="",
-        )
+    @patch("dev_project.git.clone.RepoCloneService.check_repo_url", return_value=True)
+    def test_check_project_delegates_to_clone_service(self, mock_check_url):
         ops = self._operations()
-        self.assertTrue(
-            ops.check_repo_url("/tmp/repo", "https://github.com/acme/demo")
-        )
-        mock_run_checked.assert_called_once()
-
-    @patch("dev_project.git.operations.run_logged", return_value=0)
-    def test_clone_repo_uses_dir_to_clone_as_cwd(self, mock_run_logged):
-        ops = self._operations()
-        ops.clone_repo()
-        mock_run_logged.assert_called_once()
-        self.assertEqual(mock_run_logged.call_args.kwargs["cwd"], "/tmp/clone_base")
-
-    @patch("dev_project.git.operations.run_logged", return_value=128)
-    def test_clone_repo_raises_git_error_on_failure(self, _mock_run_logged):
-        from dev_project.errors import GitError
-
-        ops = self._operations()
-        with self.assertRaises(GitError):
-            ops.clone_repo()
-
-    @patch("dev_project.git.operations.GitOperations.clone_repo")
-    @patch("dev_project.git.operations.os.makedirs")
-    @patch("dev_project.git.operations.os.path.exists", return_value=False)
-    def test_check_project_does_not_chdir(self, _mock_exists, _mock_makedirs, mock_clone):
-        ops = self._operations()
-        with patch("dev_project.git.operations.os.chdir") as mock_chdir:
-            ops.check_project()
-        mock_chdir.assert_not_called()
-        mock_clone.assert_called_once()
+        with patch("dev_project.git.clone.os.path.exists", return_value=True):
+            with patch(
+                "dev_project.git.runner.run_checked",
+                return_value=MagicMock(stdout="true\n", returncode=0, stderr=""),
+            ):
+                ops.check_project()
+        mock_check_url.assert_called_once()
+        self.assertTrue(ops.link.is_cloned)
 
 
 class HandleOdooProjectLinkInitTests(unittest.TestCase):
