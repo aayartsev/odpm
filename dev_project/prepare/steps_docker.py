@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from ..plan import PlanStep
+from ..system_check_policy import SystemCheckPolicy
 from .helpers import make_plan_step
 from .types import PrepareContext
 
 
 def evaluate_docker_engine_check(ctx: PrepareContext) -> PlanStep:
     description = "Check Docker engine"
-    if not ctx.config.check_system:
+    policy = SystemCheckPolicy.from_config(ctx.config)
+    if not policy.beginner_docker:
         return make_plan_step(
             "docker.engine.check",
             description,
@@ -32,7 +34,8 @@ def exec_docker_engine_check(ctx: PrepareContext) -> None:
 
 def evaluate_docker_ports_release(ctx: PrepareContext) -> PlanStep:
     description = "Stop containers occupying odpm ports"
-    if not ctx.config.policy.is_developer():
+    policy = SystemCheckPolicy.from_config(ctx.config)
+    if not policy.developer_port_release:
         return make_plan_step(
             "docker.ports.release",
             description,

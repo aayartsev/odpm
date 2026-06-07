@@ -12,6 +12,7 @@ from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
 from .protocols import SystemCheckerProtocol
 from .subprocess_runner import run_checked, run_logged, run_or_raise
+from .system_check_policy import SystemCheckPolicy
 
 _logger = get_module_logger(__name__)
 
@@ -29,9 +30,9 @@ class SystemChecker(SystemCheckerProtocol):
     ) -> None:
         self.config = config
         self.project_environment = project_environment
-        if self.config.check_system:
-            self.check_git()
-        self.check_file_system()
+        policy = SystemCheckPolicy.from_config(config)
+        if policy.file_system_on_init:
+            self.check_file_system()
 
     def check_git(self) -> None:
         message = translations.get_translation(translations.IS_GIT_INSTALLED)

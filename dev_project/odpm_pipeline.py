@@ -18,6 +18,7 @@ from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
 from .project_materializer import ProjectMaterializer
 from .subprocess_runner import run_logged
+from .system_check_policy import SystemCheckPolicy
 
 _logger = get_module_logger(__name__)
 
@@ -58,6 +59,9 @@ class OdpmPipeline:
         )
         self.project_environment = CreateProjectEnvironment(self.config)
         self.system_checker = SystemChecker(self.config, self.project_environment)
+        policy = SystemCheckPolicy.from_config(self.config)
+        if policy.beginner_git:
+            self.system_checker.check_git()
         self.project_environment.attach_system_checker(self.system_checker)
 
     def prepare_project_files(self) -> None:
