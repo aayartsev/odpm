@@ -4,10 +4,10 @@ import json
 import pathlib
 from typing import TYPE_CHECKING
 
-from .. import constants
 from .artifacts import DeprecatedConfigHandler
 from .defaults import ConfigDefaultsFactory
 from .manifests import OdpmJsonReader, UserSettingsReader
+from .transforms import OdooBuildDateResolver, beautify_module_list
 from .types import OdpmJson, UserSettingsJson
 
 if TYPE_CHECKING:
@@ -19,6 +19,7 @@ class ConfigLoader:
         self.config = config
         self._deprecated = DeprecatedConfigHandler(config)
         self._defaults = ConfigDefaultsFactory(config)
+        self._build_date = OdooBuildDateResolver(config)
         self._user_settings_reader = UserSettingsReader(
             config,
             create_default_user_settings=self._defaults.create_default_user_setting_json_content,
@@ -57,21 +58,10 @@ class ConfigLoader:
         self._deprecated.check_file_for_deprecated_words(file_path)
 
     def beautify_module_list(self, modules) -> str:
-        if not modules:
-            return constants.DEFAULT_LIST_OF_MODULES
-        if isinstance(modules, list):
-            modules = ",".join(modules)
-        if isinstance(modules, str):
-            modules = modules.split(",")
-            modules = [module.strip() for module in modules]
-            modules = ",".join(modules)
-        return modules
+        return beautify_module_list(modules)
 
     def get_effective_odoo_build_date(self) -> str:
-        cli_date = getattr(self.config.arguments, "odoo_build_date", None)
-        if cli_date:
-            return cli_date.strip()
-        return (self.config._raw_odpm_json.get("odoo_build_date") or "").strip()
+        return self._build_date.get_effective_odoo_build_date()
 
     def get_developing_project_link(self) -> str:
         return self._defaults.get_developing_project_link()

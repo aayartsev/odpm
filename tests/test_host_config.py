@@ -14,6 +14,7 @@ from dev_project.config.artifacts import DeprecatedConfigHandler
 from dev_project.config.defaults import ConfigDefaultsFactory
 from dev_project.config.loader import ConfigLoader
 from dev_project.config.manifests import OdpmJsonReader, UserSettingsReader
+from dev_project.config.transforms import OdooBuildDateResolver, beautify_module_list
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
 from dev_project.errors import ConfigError, PipelineError
@@ -21,22 +22,102 @@ from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.dependency_resolver import NestedOdpmFragment
 
 
-class ConfigLoaderTests(unittest.TestCase):
+class ConfigTransformsTests(unittest.TestCase):
     def test_beautify_module_list_from_comma_string(self):
-        config = MagicMock()
-        loader = ConfigLoader(config)
         self.assertEqual(
-            loader.beautify_module_list(" sale , purchase "),
+            beautify_module_list(" sale , purchase "),
             "sale,purchase",
         )
 
     def test_beautify_module_list_empty_returns_default(self):
-        config = MagicMock()
-        loader = ConfigLoader(config)
         self.assertEqual(
-            loader.beautify_module_list(None),
+            beautify_module_list(None),
             constants.DEFAULT_LIST_OF_MODULES,
         )
+
+    def test_beautify_module_list_from_list(self):
+        self.assertEqual(
+            beautify_module_list([" sale ", "purchase"]),
+            "sale,purchase",
+        )
+
+    def test_get_effective_odoo_build_date_prefers_cli(self):
+        config = MagicMock()
+        config.arguments = OdpmCliArgs(
+            odoo_build_date=" 2024-01-15 ",
+            odoo_version=None,
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+        )
+        config._raw_odpm_json = {"odoo_build_date": "2023-01-01"}
+        self.assertEqual(
+            OdooBuildDateResolver(config).get_effective_odoo_build_date(),
+            "2024-01-15",
+        )
+
+    def test_get_effective_odoo_build_date_falls_back_to_raw_json(self):
+        config = MagicMock()
+        config.arguments = OdpmCliArgs(
+            odoo_version=None,
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+        )
+        config._raw_odpm_json = {"odoo_build_date": " 2023-06-01 "}
+        self.assertEqual(
+            OdooBuildDateResolver(config).get_effective_odoo_build_date(),
+            "2023-06-01",
+        )
+
+    def test_get_effective_odoo_build_date_empty_when_unset(self):
+        config = MagicMock()
+        config.arguments = OdpmCliArgs(
+            odoo_version=None,
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+        )
+        config._raw_odpm_json = {}
+        self.assertEqual(
+            OdooBuildDateResolver(config).get_effective_odoo_build_date(),
+            "",
+        )
+
+
+class ConfigLoaderRewriteOdpmJsonTests(unittest.TestCase):
+    def test_rewrite_odpm_json_writes_default_manifest(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            dev_path = os.path.join(project_dir, "dev_repo")
+            config = MagicMock()
+            config.developing_project = MagicMock(project_path=dev_path)
+            config.repo_odpm_json = os.path.join(
+                dev_path, constants.PROJECT_CONFIG_FILE_NAME
+            )
+            default_content = {
+                "odoo_version": "19.0",
+                "odpm_version": constants.ODPM_VERSION,
+            }
+            loader = ConfigLoader(config)
+            with patch.object(
+                loader._defaults,
+                "create_default_odpm_json_content",
+                return_value=default_content,
+            ):
+                loader.rewrite_odpm_json()
+
+            self.assertTrue(os.path.exists(config.repo_odpm_json))
+            self.assertEqual(
+                json.loads(Path(config.repo_odpm_json).read_text(encoding="utf-8")),
+                default_content,
+            )
+
 
 class ConfigPathsTests(unittest.TestCase):
     def test_get_odoo_ci_image_name_uses_image_tag_when_set(self):
@@ -414,6 +495,27 @@ class ConfigLoaderManifestDelegationTests(unittest.TestCase):
             loader.get_user_settings()
         mock_read.assert_called_once()
 
+    def test_loader_delegates_build_date_resolver(self):
+        config = MagicMock()
+        loader = ConfigLoader(config)
+        with patch.object(
+            loader._build_date,
+            "get_effective_odoo_build_date",
+            return_value="2024-01-01",
+        ) as mock_resolve:
+            self.assertEqual(loader.get_effective_odoo_build_date(), "2024-01-01")
+        mock_resolve.assert_called_once()
+
+    def test_loader_delegates_module_list_transform(self):
+        config = MagicMock()
+        loader = ConfigLoader(config)
+        with patch(
+            "dev_project.config.loader.beautify_module_list",
+            return_value="sale",
+        ) as mock_transform:
+            self.assertEqual(loader.beautify_module_list(["sale"]), "sale")
+        mock_transform.assert_called_once_with(["sale"])
+
 
 class ConfigStateSliceTests(unittest.TestCase):
     def test_slice_property_facade_reads_and_writes(self):
@@ -456,7 +558,6 @@ class ConfigStateSliceTests(unittest.TestCase):
         }
         config._user = UserSettingsState()
         config._loader = MagicMock()
-        config._loader.beautify_module_list.side_effect = ConfigLoader(config).beautify_module_list
 
         load_user_settings(config)
 
@@ -484,9 +585,8 @@ class ConfigStateSliceTests(unittest.TestCase):
         )
         config._project = ProjectSettingsState()
         config._loader = MagicMock()
-        config._loader.get_effective_odoo_build_date.return_value = (
-            constants.ODOO_DEFAULT_BUILD_DATE
-        )
+        config._build_date = OdooBuildDateResolver(config)
+        config._raw_odpm_json["odoo_build_date"] = constants.ODOO_DEFAULT_BUILD_DATE
         config.repo_odpm_json = "/tmp/project/odpm.json"
         config.pd_manager = MagicMock(
             project_docker_compose_template_path="/tmp/project/.odpm/docker-compose.yml"

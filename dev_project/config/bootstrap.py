@@ -21,6 +21,7 @@ from .layout import apply_policy_and_layout
 from .loader import ConfigLoader
 from .odoo_conf import OdooConfBuilder
 from .paths import ConfigPaths
+from .transforms import OdooBuildDateResolver, beautify_module_list
 from .state import (
     DockerLayoutState,
     ProjectSettingsState,
@@ -77,6 +78,7 @@ def init_context(
     config._project = ProjectSettingsState()
     config._docker = DockerLayoutState()
     config._loader = ConfigLoader(config)
+    config._build_date = OdooBuildDateResolver(config)
     config._paths = ConfigPaths(config)
     config._odoo_conf = OdooConfBuilder(config)
     config._git_repos = GitRepoCoordinator(config)
@@ -93,7 +95,7 @@ def load_user_settings(config: Config) -> None:
     config._loader.get_user_settings()
     config._user = user_settings_from_raw(
         config._raw_user_settings,
-        beautify_module_list=config._loader.beautify_module_list,
+        beautify_module_list=beautify_module_list,
     )
     config._user_loaded = True
 
@@ -134,7 +136,7 @@ def load_project_settings(config: Config) -> None:
     config._project = project_settings_from_raw(
         config._raw_odpm_json,
         config.arguments,
-        odoo_build_date=config._loader.get_effective_odoo_build_date(),
+        odoo_build_date=config._build_date.get_effective_odoo_build_date(),
     )
     if float(config.project_odpm_version) < float(constants.ODPM_VERSION):
         message = translations.get_translation(
