@@ -94,8 +94,8 @@ class PlanSafeBootstrapTests(unittest.TestCase):
         from dev_project.config.transforms import OdooBuildDateResolver
 
         config._project = ProjectSettingsState()
-        config._loader = MagicMock()
-        config._build_date = OdooBuildDateResolver(config)
+        config._bootstrap_ctx = MagicMock()
+        config._bootstrap_ctx.build_date = OdooBuildDateResolver(config)
         config._raw_odpm_json["odoo_build_date"] = constants.ODOO_DEFAULT_BUILD_DATE
         config.repo_odpm_json = "/tmp/project/odpm.json"
         config.pd_manager = MagicMock(

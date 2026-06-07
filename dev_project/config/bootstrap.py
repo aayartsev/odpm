@@ -16,12 +16,12 @@ from ..host.user_env import CreateUserEnvironment
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
+from .bootstrap_context import ConfigBootstrapContext
 from .git_repos import GitRepoCoordinator
 from .layout import apply_policy_and_layout
-from .loader import ConfigLoader
 from .odoo_conf import OdooConfBuilder
 from .paths import ConfigPaths
-from .transforms import OdooBuildDateResolver, beautify_module_list
+from .transforms import beautify_module_list
 from .state import (
     DockerLayoutState,
     ProjectSettingsState,
@@ -77,8 +77,7 @@ def init_context(
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()
     config._docker = DockerLayoutState()
-    config._loader = ConfigLoader(config)
-    config._build_date = OdooBuildDateResolver(config)
+    config._bootstrap_ctx = ConfigBootstrapContext(config)
     config._paths = ConfigPaths(config)
     config._odoo_conf = OdooConfBuilder(config)
     config._git_repos = GitRepoCoordinator(config)
@@ -90,9 +89,10 @@ def init_context(
 
 
 def load_user_settings(config: Config) -> None:
-    config._loader.check_for_config()
-    config._loader.get_user_settings_json()
-    config._loader.get_user_settings()
+    ctx = config._bootstrap_ctx
+    ctx.deprecated.check_for_config()
+    ctx.user_settings.get_user_settings_json()
+    ctx.user_settings.get_user_settings()
     config._user = user_settings_from_raw(
         config._raw_user_settings,
         beautify_module_list=beautify_module_list,
@@ -117,10 +117,11 @@ def bind_developing_link(config: Config) -> None:
 
 
 def load_project_settings(config: Config) -> None:
-    config._loader.get_project_odpm_json()
-    config._loader.get_odpm_settings()
+    ctx = config._bootstrap_ctx
+    ctx.odpm_json.get_project_odpm_json()
+    ctx.odpm_json.get_odpm_settings()
 
-    config._loader.check_file_for_deprecated_words(
+    ctx.deprecated.check_file_for_deprecated_words(
         config.pd_manager.project_docker_compose_template_path
     )
     if (
@@ -129,14 +130,14 @@ def load_project_settings(config: Config) -> None:
     ):
         config.pd_manager.rebuild_docker_compose_template()
 
-    config._loader.check_file_for_deprecated_words(config.repo_odpm_json)
+    ctx.deprecated.check_file_for_deprecated_words(config.repo_odpm_json)
     if not os.path.exists(config.repo_odpm_json):
-        config._loader.rewrite_odpm_json()
+        ctx._rewrite_odpm_json()
 
     config._project = project_settings_from_raw(
         config._raw_odpm_json,
         config.arguments,
-        odoo_build_date=config._build_date.get_effective_odoo_build_date(),
+        odoo_build_date=ctx.build_date.get_effective_odoo_build_date(),
     )
     if float(config.project_odpm_version) < float(constants.ODPM_VERSION):
         message = translations.get_translation(

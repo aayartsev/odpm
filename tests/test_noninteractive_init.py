@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.config.loader import ConfigLoader
+from dev_project.config.defaults import ConfigDefaultsFactory
 from dev_project.errors import ConfigError
 from dev_project.host.user_env import CreateUserEnvironment
 from dev_project.project_dir_manager import ProjectDirManager
@@ -36,7 +36,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
         config._raw_odpm_json = {}
 
         with self.assertRaises(ConfigError):
-            ConfigLoader(config).create_default_odpm_json_content()
+            ConfigDefaultsFactory(config).create_default_odpm_json_content()
 
     @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
     def test_create_default_odpm_json_uses_cli_odoo_version(self, _mock_tty):
@@ -54,7 +54,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
         )
         config._raw_odpm_json = {"odpm_version": constants.ODPM_VERSION}
 
-        content = ConfigLoader(config).create_default_odpm_json_content()
+        content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
 
         self.assertEqual(content["odoo_version"], "18.0")
 

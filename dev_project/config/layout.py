@@ -37,7 +37,9 @@ def apply_policy_and_layout(config: Config) -> None:
             constants.PROJECT_SERVICE_DIRECTORY, dockerfile_template_name
         ),
     )
-    config._loader.check_file_for_deprecated_words(project_dockerfile_template_path)
+    config._bootstrap_ctx.deprecated.check_file_for_deprecated_words(
+        project_dockerfile_template_path
+    )
     if config.pd_manager.sync_templates:
         config.pd_manager.rebuild_dockerfile_template(
             docker_template_filename=dockerfile_template_name

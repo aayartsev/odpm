@@ -9,11 +9,15 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
-from dev_project.config.bootstrap import load_project_settings, load_user_settings
+from dev_project.config.bootstrap import (
+    bind_developing_link,
+    load_project_settings,
+    load_user_settings,
+)
 from dev_project.config.artifacts import DeprecatedConfigHandler
+from dev_project.config.bootstrap_context import ConfigBootstrapContext
 from dev_project.config.defaults import ConfigDefaultsFactory
-from dev_project.config.loader import ConfigLoader
-from dev_project.config.manifests import OdpmJsonReader, UserSettingsReader
+from dev_project.config.manifests import OdpmJsonReader, UserSettingsReader, rewrite_odpm_json
 from dev_project.config.transforms import OdooBuildDateResolver, beautify_module_list
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
@@ -91,7 +95,7 @@ class ConfigTransformsTests(unittest.TestCase):
         )
 
 
-class ConfigLoaderRewriteOdpmJsonTests(unittest.TestCase):
+class OdpmJsonWriterTests(unittest.TestCase):
     def test_rewrite_odpm_json_writes_default_manifest(self):
         with tempfile.TemporaryDirectory() as project_dir:
             dev_path = os.path.join(project_dir, "dev_repo")
@@ -104,14 +108,10 @@ class ConfigLoaderRewriteOdpmJsonTests(unittest.TestCase):
                 "odoo_version": "19.0",
                 "odpm_version": constants.ODPM_VERSION,
             }
-            loader = ConfigLoader(config)
-            with patch.object(
-                loader._defaults,
-                "create_default_odpm_json_content",
-                return_value=default_content,
-            ):
-                loader.rewrite_odpm_json()
+            create_default = MagicMock(return_value=default_content)
+            rewrite_odpm_json(config, create_default=create_default)
 
+            create_default.assert_called_once()
             self.assertTrue(os.path.exists(config.repo_odpm_json))
             self.assertEqual(
                 json.loads(Path(config.repo_odpm_json).read_text(encoding="utf-8")),
@@ -453,68 +453,38 @@ class UserSettingsReaderTests(unittest.TestCase):
             )
 
 
-class ConfigLoaderManifestDelegationTests(unittest.TestCase):
-    def test_loader_delegates_deprecated_handler_for_legacy_config(self):
+class ConfigBootstrapContextWiringTests(unittest.TestCase):
+    def test_bootstrap_context_wires_all_services(self):
         config = MagicMock()
-        loader = ConfigLoader(config)
-        with patch.object(loader._deprecated, "check_for_config") as mock_check:
-            loader.check_for_config()
-        mock_check.assert_called_once()
+        ctx = ConfigBootstrapContext(config)
 
-    def test_loader_delegates_deprecated_handler_for_template_scan(self):
-        config = MagicMock()
-        loader = ConfigLoader(config)
-        with patch.object(
-            loader._deprecated, "check_file_for_deprecated_words"
-        ) as mock_check:
-            loader.check_file_for_deprecated_words("/tmp/docker-compose.yml")
-        mock_check.assert_called_once_with("/tmp/docker-compose.yml")
+        self.assertIsInstance(ctx.defaults, ConfigDefaultsFactory)
+        self.assertIsInstance(ctx.deprecated, DeprecatedConfigHandler)
+        self.assertIsInstance(ctx.build_date, OdooBuildDateResolver)
+        self.assertIsInstance(ctx.user_settings, UserSettingsReader)
+        self.assertIsInstance(ctx.odpm_json, OdpmJsonReader)
 
-    def test_loader_delegates_defaults_factory_for_developing_link(self):
+    def test_bootstrap_context_rewrite_odpm_json_delegates_to_writer(self):
         config = MagicMock()
-        loader = ConfigLoader(config)
-        with patch.object(
-            loader._defaults, "get_developing_project_link", return_value="file:///x"
-        ) as mock_link:
-            self.assertEqual(loader.get_developing_project_link(), "file:///x")
-        mock_link.assert_called_once()
-
-    def test_loader_delegates_odpm_manifest_reads_to_reader(self):
-        config = MagicMock()
-        loader = ConfigLoader(config)
-        with patch.object(loader._odpm_json_reader, "get_odpm_settings") as mock_read:
-            loader.get_odpm_settings()
-        mock_read.assert_called_once()
-
-    def test_loader_delegates_user_settings_reads_to_reader(self):
-        config = MagicMock()
-        loader = ConfigLoader(config)
-        with patch.object(
-            loader._user_settings_reader, "get_user_settings"
-        ) as mock_read:
-            loader.get_user_settings()
-        mock_read.assert_called_once()
-
-    def test_loader_delegates_build_date_resolver(self):
-        config = MagicMock()
-        loader = ConfigLoader(config)
-        with patch.object(
-            loader._build_date,
-            "get_effective_odoo_build_date",
-            return_value="2024-01-01",
-        ) as mock_resolve:
-            self.assertEqual(loader.get_effective_odoo_build_date(), "2024-01-01")
-        mock_resolve.assert_called_once()
-
-    def test_loader_delegates_module_list_transform(self):
-        config = MagicMock()
-        loader = ConfigLoader(config)
+        ctx = ConfigBootstrapContext(config)
         with patch(
-            "dev_project.config.loader.beautify_module_list",
-            return_value="sale",
-        ) as mock_transform:
-            self.assertEqual(loader.beautify_module_list(["sale"]), "sale")
-        mock_transform.assert_called_once_with(["sale"])
+            "dev_project.config.bootstrap_context.rewrite_odpm_json"
+        ) as mock_rewrite:
+            ctx._rewrite_odpm_json()
+        mock_rewrite.assert_called_once_with(
+            config,
+            create_default=ctx.defaults.create_default_odpm_json_content,
+        )
+
+
+class BindDevelopingLinkTests(unittest.TestCase):
+    def test_bind_developing_link_raises_when_developing_project_missing(self):
+        config = Config.__new__(Config)
+        config._user = UserSettingsState()
+        config.developing_project = ""
+
+        with self.assertRaises(ConfigError):
+            bind_developing_link(config)
 
 
 class ConfigStateSliceTests(unittest.TestCase):
@@ -557,7 +527,7 @@ class ConfigStateSliceTests(unittest.TestCase):
             "developing_project": "https://github.com/acme/demo.git",
         }
         config._user = UserSettingsState()
-        config._loader = MagicMock()
+        config._bootstrap_ctx = MagicMock()
 
         load_user_settings(config)
 
@@ -584,8 +554,8 @@ class ConfigStateSliceTests(unittest.TestCase):
             requirements_txt="",
         )
         config._project = ProjectSettingsState()
-        config._loader = MagicMock()
-        config._build_date = OdooBuildDateResolver(config)
+        config._bootstrap_ctx = MagicMock()
+        config._bootstrap_ctx.build_date = OdooBuildDateResolver(config)
         config._raw_odpm_json["odoo_build_date"] = constants.ODOO_DEFAULT_BUILD_DATE
         config.repo_odpm_json = "/tmp/project/odpm.json"
         config.pd_manager = MagicMock(
