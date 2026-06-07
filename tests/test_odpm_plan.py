@@ -260,6 +260,33 @@ class PrepareRegistryContractTests(unittest.TestCase):
             self.assertEqual(self._step_outcome(ctx, "compose.service"), "noop")
             self.assertEqual(self._step_outcome(ctx, "compose.generate"), "noop")
 
+    def test_developer_plan_releases_ports_when_check_system_disabled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self._config(project_dir=tmp)
+            config.check_system = False
+            ctx = make_prepare_context(
+                config,
+                MagicMock(),
+                MagicMock(),
+                OdpmCliArgs(),
+            )
+            self.assertEqual(self._step_outcome(ctx, "docker.engine.check"), "skip")
+            self.assertEqual(self._step_outcome(ctx, "docker.ports.release"), "run")
+            self.assertIn("docker.ports.release", collect_execute_step_ids(ctx))
+
+    def test_server_plan_skips_port_release(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self._config(project_dir=tmp)
+            config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
+            ctx = make_prepare_context(
+                config,
+                MagicMock(),
+                MagicMock(),
+                OdpmCliArgs(),
+            )
+            self.assertEqual(self._step_outcome(ctx, "docker.ports.release"), "skip")
+            self.assertNotIn("docker.ports.release", collect_execute_step_ids(ctx))
+
     def _step_outcome(self, ctx, step_id: str) -> str:
         return next(
             step.outcome for step in evaluate_prepare_plan(ctx) if step.id == step_id
@@ -275,6 +302,7 @@ PREPARE_STEP_IDS = [
     "template.dockerfile",
     "template.dockerignore",
     "docker.engine.check",
+    "docker.ports.release",
     "template.odoo_conf",
     "compose.template",
     "compose.service",

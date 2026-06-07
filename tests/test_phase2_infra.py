@@ -97,10 +97,47 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config.check_system = False
         config.user_env.backups = "/tmp/backups"
         config.user_env.odoo_projects_dir = "/tmp/odoo-projects"
+        config.user_env.odoo_port = 8069
+        config.user_env.debugger_port = 5678
+        config.user_env.postgres_port = 5432
+        config.user_env.gevent_port = 8072
         return config
 
     def _checker(self, config: MagicMock | None = None) -> SystemChecker:
         return SystemChecker(config or self._config(), MagicMock())
+
+    @patch("dev_project.check_system.run_logged")
+    @patch("dev_project.check_system.run_checked")
+    def test_check_running_containers_stops_postgres_conflict_when_check_system_disabled(
+        self, mock_checked, mock_logged
+    ):
+        container_json = (
+            '{"ID":"abc123","Ports":"0.0.0.0:5432->5432/tcp, '
+            '0.0.0.0:8069->8069/tcp"}'
+        )
+        mock_checked.return_value = MagicMock(
+            returncode=0,
+            stdout=f"'{container_json}'",
+            stderr="",
+        )
+        checker = self._checker()
+        checker.check_running_containers()
+        mock_logged.assert_called_once_with(["docker", "stop", "abc123"])
+
+    @patch("dev_project.check_system.run_logged")
+    @patch("dev_project.check_system.run_checked")
+    def test_check_running_containers_stops_gevent_port_conflict(
+        self, mock_checked, mock_logged
+    ):
+        container_json = '{"ID":"geo456","Ports":"0.0.0.0:8072->8072/tcp"}'
+        mock_checked.return_value = MagicMock(
+            returncode=0,
+            stdout=f"'{container_json}'",
+            stderr="",
+        )
+        checker = self._checker()
+        checker.check_running_containers()
+        mock_logged.assert_called_once_with(["docker", "stop", "geo456"])
 
     @patch.object(SystemChecker, "check_file_system")
     @patch("dev_project.check_system.run_checked")

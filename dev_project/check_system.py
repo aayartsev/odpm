@@ -76,6 +76,7 @@ class SystemChecker(SystemCheckerProtocol):
             self.config.user_env.odoo_port,
             self.config.user_env.debugger_port,
             self.config.user_env.postgres_port,
+            self.config.user_env.gevent_port,
         ]
 
         def get_ports(data_port_string):

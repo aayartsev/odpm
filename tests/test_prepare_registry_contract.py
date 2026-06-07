@@ -13,6 +13,7 @@ PREPARE_STEP_IDS = [
     "template.dockerfile",
     "template.dockerignore",
     "docker.engine.check",
+    "docker.ports.release",
     "template.odoo_conf",
     "compose.template",
     "compose.service",

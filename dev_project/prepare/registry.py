@@ -10,7 +10,12 @@ from .steps_compose import (
     exec_compose_service,
     exec_compose_template,
 )
-from .steps_docker import evaluate_docker_engine_check, exec_docker_engine_check
+from .steps_docker import (
+    evaluate_docker_engine_check,
+    evaluate_docker_ports_release,
+    exec_docker_engine_check,
+    exec_docker_ports_release,
+)
 from .steps_git import (
     evaluate_git_checkout,
     evaluate_git_ensure_present,
@@ -61,6 +66,12 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     ),
     PrepareStepDef(
         "docker.engine.check", "", evaluate_docker_engine_check, exec_docker_engine_check
+    ),
+    PrepareStepDef(
+        "docker.ports.release",
+        "",
+        evaluate_docker_ports_release,
+        exec_docker_ports_release,
     ),
     PrepareStepDef(
         "template.odoo_conf",

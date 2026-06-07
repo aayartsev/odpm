@@ -13,7 +13,12 @@ from dev_project.plan_compose_preview import (
     preview_compose_service,
     vscode_settings_up_to_date,
 )
-from dev_project.prepare.steps_docker import evaluate_docker_engine_check
+from dev_project.prepare.steps_docker import (
+    evaluate_docker_engine_check,
+    evaluate_docker_ports_release,
+    exec_docker_engine_check,
+    exec_docker_ports_release,
+)
 from dev_project.prepare.steps_project import evaluate_update_links
 from dev_project.prepare_registry import (
     _evaluate_compose_generate,
@@ -184,6 +189,58 @@ class EvaluateDockerEngineCheckTests(unittest.TestCase):
         self.assertEqual(step.outcome, "run")
         self.assertTrue(step.required)
         self.assertTrue(step.should_execute())
+
+    def test_exec_docker_engine_check_does_not_release_ports(self) -> None:
+        ctx = MagicMock()
+        exec_docker_engine_check(ctx)
+        ctx.system_checker.check_docker.assert_called_once_with()
+        ctx.system_checker.check_running_containers.assert_not_called()
+
+
+class EvaluateDockerPortsReleaseTests(unittest.TestCase):
+    def _ctx(self, *, check_system: bool, scenario: str) -> MagicMock:
+        ctx = MagicMock()
+        ctx.config.check_system = check_system
+        ctx.config.policy = ScenarioPolicy.from_scenario(scenario)
+        return ctx
+
+    def test_runs_in_developer_even_when_check_system_disabled(self) -> None:
+        step = evaluate_docker_ports_release(
+            self._ctx(
+                check_system=False,
+                scenario=constants.DEVELOPER_SCENARIO,
+            )
+        )
+
+        self.assertEqual(step.outcome, "run")
+        self.assertTrue(step.should_execute())
+
+    def test_skips_outside_developer_scenario(self) -> None:
+        step = evaluate_docker_ports_release(
+            self._ctx(
+                check_system=True,
+                scenario=constants.CI_SCENARIO,
+            )
+        )
+
+        self.assertEqual(step.outcome, "skip")
+        self.assertFalse(step.should_execute())
+
+    def test_skips_in_server_scenario(self) -> None:
+        step = evaluate_docker_ports_release(
+            self._ctx(
+                check_system=False,
+                scenario=constants.SERVER_SCENARIO,
+            )
+        )
+
+        self.assertEqual(step.outcome, "skip")
+        self.assertFalse(step.should_execute())
+
+    def test_exec_calls_check_running_containers(self) -> None:
+        ctx = MagicMock()
+        exec_docker_ports_release(ctx)
+        ctx.system_checker.check_running_containers.assert_called_once_with()
 
 
 class EvaluateUpdateLinksTests(unittest.TestCase):
