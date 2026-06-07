@@ -26,6 +26,9 @@ concurrency:
   group: ci-docker-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  ODPM_COMPOSE_SMOKE_IMAGE: odoo-amd64-python-3.12-debian-12:latest
+
 jobs:
   compose-smoke:
     runs-on: ubuntu-latest
@@ -41,18 +44,48 @@ jobs:
       - name: Install odpm (editable)
         run: pip install -e .
 
+      - name: Restore odpm base image cache
+        id: docker-image-cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/odpm-ci-docker-cache
+          key: odpm-compose-smoke-v1-${{ hashFiles('dev_project/templates/**', 'tests/fixtures/minimal_odpm_project/**') }}
+          restore-keys: |
+            odpm-compose-smoke-v1-
+
+      - name: Load cached odpm base image
+        if: steps.docker-image-cache.outputs.cache-hit == 'true'
+        run: |
+          if [[ -f /tmp/odpm-ci-docker-cache/odoo-base.tar ]]; then
+            docker load -i /tmp/odpm-ci-docker-cache/odoo-base.tar
+          fi
+
       - name: Run compose smoke integration test
         env:
           ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
           ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
         run: python -m unittest tests.integration.test_compose_smoke -v
 
+      - name: Save odpm base image to cache
+        if: steps.docker-image-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/odpm-ci-docker-cache
+          if docker image inspect "${ODPM_COMPOSE_SMOKE_IMAGE}" >/dev/null 2>&1; then
+            docker save "${ODPM_COMPOSE_SMOKE_IMAGE}" -o /tmp/odpm-ci-docker-cache/odoo-base.tar
+          fi
+
   golden-path:
     needs: compose-smoke
     if: >-
-      github.event_name == 'schedule'
-      || (github.event_name == 'workflow_dispatch' && inputs.run_golden)
-      || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-docker'))
+      secrets.ODPM_GOLDEN_PATH_PROJECT != ''
+      && (
+        github.event_name == 'schedule'
+        || (github.event_name == 'workflow_dispatch' && inputs.run_golden)
+        || (
+          github.event_name == 'pull_request'
+          && contains(github.event.pull_request.labels.*.name, 'run-docker')
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -71,9 +104,4 @@ jobs:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
           ODPM_GOLDEN_PATH_TIMEOUT: "900"
-        run: |
-          if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
-            echo "ODPM_GOLDEN_PATH_PROJECT secret is not configured; skipping golden-path."
-            exit 0
-          fi
-          python -m unittest tests.integration.test_golden_path -v
+        run: python -m unittest tests.integration.test_golden_path -v

@@ -1,4 +1,5 @@
 [![CI](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml)
+[![CI Docker](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml)
 [![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/aayartsev/odoo_dev_project/blob/3.0/README.MD)
 
 # Менеджер для разработки проектов на odoo (Odoo Developer Project Manager)
@@ -64,13 +65,21 @@ pip install -e .
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Ожидается **553** passed и **6** skipped (opt-in Docker integration tests). Повторный запуск в GitHub: **Actions → CI → Run workflow**.
+Ожидается **555** passed и **7** skipped (opt-in Docker integration tests). Повторный запуск в GitHub: **Actions → CI → Run workflow**.
 
 ### Docker CI
 
-Compose smoke на каждом push/PR: [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) параллельно с [unit CI](.github/workflows/ci.yml) — minimal fixture, `odpm --skip-start --no-git-update`, `docker compose config`. Первый прогон на чистом runner может занять несколько минут (сборка base image).
+Compose smoke на каждом push/PR: [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) параллельно с [unit CI](.github/workflows/ci.yml) — minimal fixture, `odpm --skip-start --no-git-update`, `docker compose config`. Compose smoke только на **Python 3.12** (unit CI — 3.10 и 3.12). Workflow кэширует base Docker-образ между прогонами; первый запуск без кэша может занять несколько минут.
 
-Full golden-path (compose up + HTTP 200 `/web`) — **nightly**, **workflow_dispatch** с флагом golden, или label PR **`run-docker`**. Нужен secret `ODPM_GOLDEN_PATH_PROJECT`.
+Full golden-path (compose up + HTTP 200 `/web`) — **nightly**, **workflow_dispatch** с флагом golden, или label PR **`run-docker`**, только если настроен secret `ODPM_GOLDEN_PATH_PROJECT`. После добавления label **`run-docker`** нужен **повторный запуск** workflow **CI Docker**.
+
+#### CI secrets и branch protection
+
+| Имя | Для чего | Примечание |
+|-----|----------|------------|
+| `ODPM_GOLDEN_PATH_PROJECT` | Job golden-path | Абсолютный путь к инициализированному odpm-проекту на runner (обычно **self-hosted**). Без secret job **пропускается**, а не считается успешным. |
+
+Рекомендуется branch protection на `4.0-beta` / `main`: обязательные checks **CI** и **CI Docker** (`compose-smoke`).
 
 Локально:
 

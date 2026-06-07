@@ -1,4 +1,5 @@
 [![CI](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml)
+[![CI Docker](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml)
 [![ru](https://img.shields.io/badge/lang-ru-green.svg)](https://github.com/aayartsev/odoo_dev_project/blob/3.0/README-RU.MD)
 
 # Odoo Developers Project Manager
@@ -63,13 +64,21 @@ pip install -e .
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Expect **553** tests passed and **6** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
+Expect **555** tests passed and **7** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
 
 ### Docker CI
 
-Compose smoke runs on every push/PR via [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) in parallel with [unit CI](.github/workflows/ci.yml): minimal fixture project, `odpm --skip-start --no-git-update`, then `docker compose config`. The first run on a clean runner may take several minutes while the project base image is built; later runs reuse the cached image.
+Compose smoke runs on every push/PR via [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) in parallel with [unit CI](.github/workflows/ci.yml): minimal fixture project, `odpm --skip-start --no-git-update`, then `docker compose config`. Compose smoke uses **Python 3.12** only (unit CI also runs 3.10). The workflow caches the project base Docker image between runs; the first run on a clean cache may take several minutes while the image is built.
 
-Full golden-path (`docker compose up` + HTTP 200 on `/web`) runs on a **nightly schedule**, on **workflow_dispatch** with **Run full golden-path HTTP test**, or when a pull request has the **`run-docker`** label. Configure the `ODPM_GOLDEN_PATH_PROJECT` repository secret to an initialized odpm project path on the runner (self-hosted or mounted workspace).
+Full golden-path (`docker compose up` + HTTP 200 on `/web`) runs on a **nightly schedule**, on **workflow_dispatch** with **Run full golden-path HTTP test**, or when a pull request has the **`run-docker`** label — only when the `ODPM_GOLDEN_PATH_PROJECT` repository secret is configured. After adding the `run-docker` label to a PR, **re-run** the **CI Docker** workflow (labels do not trigger a new run automatically).
+
+#### CI secrets and branch protection
+
+| Name | Required for | Notes |
+|------|----------------|-------|
+| `ODPM_GOLDEN_PATH_PROJECT` | Full golden-path job | Absolute path to an initialized odpm project on the runner (typically a **self-hosted** runner with Docker and a real Odoo tree). Without this secret the golden job is **skipped**, not a false pass. |
+
+Recommended GitHub branch protection on `4.0-beta` / `main`: require status checks **CI** and **CI Docker** (`compose-smoke`) before merge.
 
 Local compose smoke:
 

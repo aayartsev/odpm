@@ -78,7 +78,7 @@ odpm можно **установить через pip** — в PATH появит
 
 #### Качество и проверки
 
-- **553 теста** в `unittest discover` (по умолчанию 6 opt-in Docker integration tests пропускаются).
+- **555 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
 - **Plan-safe setup** — `odpm plan` загружает конфигурацию без обновления шаблонов в `.odpm/`; обычный запуск по-прежнему синхронизирует шаблоны проекта при старте.
 - **Восстановление устаревшего odoo.conf** — `odpm --skip-start` пересоздаёт `odoo.conf`, если в нём нет настроек подключения к БД Docker (например после апгрейда с layout без `db_host`).
 - **Пакет `dev_project/prepare/`** — реестр prepare-фазы вынесен из монолитного `prepare_registry.py`; shim сохраняет существующие импорты и patch-пути в тестах.

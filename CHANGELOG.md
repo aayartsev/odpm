@@ -68,7 +68,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 #### Quality assurance
 
-- **553 tests** in `unittest discover` (6 skipped opt-in Docker integration tests by default).
+- **555 tests** in `unittest discover` (7 skipped opt-in Docker integration tests by default).
 - **Plan-safe setup** — `odpm plan` loads configuration without upgrading `.odpm/` templates; normal runs still sync project templates on startup.
 - **Stale odoo.conf recovery** — `odpm --skip-start` regenerates project `odoo.conf` when Docker DB settings are missing (for example after upgrading from layouts that never wrote `db_host`).
 - **`dev_project/prepare/` package** — prepare-phase registry split from monolithic `prepare_registry.py`; shim re-exports preserve existing imports and test patch paths.

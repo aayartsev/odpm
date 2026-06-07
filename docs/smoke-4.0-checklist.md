@@ -37,8 +37,10 @@ python3 -m unittest discover -s tests -p "test_*.py"
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
 | GitHub Actions `CI` | Green on push/PR; same command as local §2A | | |
-| Test suite | All tests OK; 6 skipped (opt-in Docker integration unless `ODPM_RUN_DOCKER_*` env) | | |
-| Test count | 553 tests OK (6 skipped by default); re-run after adding tests | | |
+| Test suite | All tests OK; 7 skipped (opt-in Docker unless `ODPM_RUN_DOCKER_*` env) | | |
+| Test count | 555 tests OK (7 skipped by default); re-run after adding tests | | |
+
+**Branch protection (recommended):** require GitHub status checks **CI** and **CI Docker** (`compose-smoke`) on `4.0-beta` / `main` before merge.
 
 ---
 
@@ -59,7 +61,16 @@ cd "$ODPM_REPO"
 | `odpm --skip-start` on minimal fixture | Exit 0 | | |
 | `docker compose config` | Exit 0; `services:` in output | | |
 
-Full golden-path (compose up + HTTP 200): nightly schedule, **workflow_dispatch** with golden flag, or PR label **`run-docker`** (requires `ODPM_GOLDEN_PATH_PROJECT` secret).
+Full golden-path (compose up + HTTP 200): nightly schedule, **workflow_dispatch** with golden flag, or PR label **`run-docker`** (requires `ODPM_GOLDEN_PATH_PROJECT` secret). Without the secret the golden job is **skipped**. After adding `run-docker` to a PR, re-run **CI Docker** manually.
+
+**Troubleshooting compose smoke**
+
+| Symptom | Likely cause | Action |
+|---------|----------------|--------|
+| First CI run > 10 min | Cold Docker cache; base image build | Normal; later runs use `actions/cache` image tar |
+| `set ODPM_RUN_DOCKER_COMPOSE_SMOKE=1` skip locally | Opt-in env not set | `./scripts/run_compose_smoke_test.sh` |
+| `docker not available` | Docker daemon not running | Start Docker; re-run |
+| Timeout on CI | Slow image build | Raise `ODPM_COMPOSE_SMOKE_TIMEOUT` or fix cache key paths |
 
 ---
 
