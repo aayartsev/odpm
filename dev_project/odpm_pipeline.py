@@ -12,6 +12,7 @@ from .compose.runtime import should_force_recreate_compose
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
 from .project_env import CreateProjectEnvironment
+from .project_env.services import CiImageBuildService
 from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
@@ -102,7 +103,7 @@ class OdpmPipeline:
             )
             _logger.error(message)
             raise PipelineError(message, exit_code=1)
-        self._project_environment().build_ci_image()
+        CiImageBuildService(self._project_environment()).build_ci_image()
         return True
 
     def configure_vscode(self) -> None:

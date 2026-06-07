@@ -23,6 +23,7 @@
 - **`dev_project/config/bootstrap_context.py` (C-6)** — `ConfigPaths`, `OdooConfBuilder` и `GitRepoCoordinator` подключены в `ConfigBootstrapContext`; `init_context` алиасит `config._paths` / `_odoo_conf` / `_git_repos` из context; `layout` использует `ctx.paths` и `ctx.odoo_conf`; `GitRepoCoordinator` получает injected `paths` и callback `bind_platform_link`. Тест host-services в `ConfigBootstrapContextWiringTests`; mocks `config._git_repos` убраны из `test_git_repos`.
 - **`dev_project/project_env/services/platform_sources.py`** — `PlatformSourcesService` вынесен из `CreateProjectEnvironment`: `download_odoo_repository` и `download_odoo_nightly_build`; env делегирует через тонкие обёртки. `PlatformSourcesServiceTests` в `test_project_env_links`.
 - **`dev_project/project_env/services/vscode_configurator.py`** — `VscodeConfigurator` вынесен из `ProjectTemplates`: граница VS Code (`get_vscode_dir_path`, `build_debugger_path_mappings`, `update_vscode_debugger_launcher`, `generate_vscode_settings_json`); env делегирует через тонкие обёртки. `VscodeDebuggerMappingsTests` бьют сервис напрямую; добавлены delegation tests.
+- **`dev_project/project_env/services/ci_image_build.py`** — `CiImageBuildService` вынесена оркестрация CI image build поверх `CiImageBuilder`; `OdpmPipeline.handle_build_image` вызывает сервис напрямую, а не `env.build_ci_image`. Env делегирует через тонкие обёртки. `CiImageBuildServiceTests` в `test_project_env_modules`; pipeline tests патчат `CiImageBuildService`.
 
 ---
 

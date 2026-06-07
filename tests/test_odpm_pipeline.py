@@ -18,7 +18,8 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         pipeline.project_environment = MagicMock()
         return pipeline
 
-    def test_handle_build_image_rejects_non_ci_policy(self):
+    @patch("dev_project.odpm_pipeline.CiImageBuildService")
+    def test_handle_build_image_rejects_non_ci_policy(self, mock_ci_service):
         pipeline = self._pipeline(build_image=True)
         pipeline.config.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
@@ -26,13 +27,16 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         with self.assertRaises(PipelineError) as ctx:
             pipeline.handle_build_image()
         self.assertEqual(ctx.exception.exit_code, 1)
-        pipeline.project_environment.build_ci_image.assert_not_called()
+        mock_ci_service.assert_not_called()
 
-    def test_handle_build_image_runs_for_ci_policy(self):
+    @patch("dev_project.odpm_pipeline.CiImageBuildService")
+    def test_handle_build_image_runs_for_ci_policy(self, mock_ci_service):
         pipeline = self._pipeline(build_image=True)
         pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         self.assertTrue(pipeline.handle_build_image())
-        pipeline.project_environment.build_ci_image.assert_called_once()
+        mock_ci_service.assert_called_once_with(pipeline.project_environment)
+        mock_ci_service.return_value.build_ci_image.assert_called_once()
+        pipeline.project_environment.build_ci_image.assert_not_called()
 
     def test_configure_vscode_skipped_when_policy_says_so(self):
         pipeline = self._pipeline()
