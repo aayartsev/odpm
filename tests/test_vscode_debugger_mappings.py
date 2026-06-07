@@ -6,15 +6,16 @@ import json
 import os
 import tempfile
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.project_env.templates import ProjectTemplates
+from dev_project.project_env.environment import CreateProjectEnvironment
+from dev_project.project_env.services import VscodeConfigurator
 from dev_project.project_env.types import MappedPath
 
 
 class VscodeDebuggerMappingsTests(unittest.TestCase):
-    def _templates(self, *, mapped_folders: list[MappedPath]) -> ProjectTemplates:
+    def _configurator(self, *, mapped_folders: list[MappedPath]) -> VscodeConfigurator:
         env = MagicMock()
         config = MagicMock()
         config.project_dir = "/proj"
@@ -22,10 +23,10 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
         env.config = config
         env.user_env.backups = "/proj/backups"
         env.mapped_folders = mapped_folders
-        return ProjectTemplates(env)
+        return VscodeConfigurator(env)
 
     def test_build_debugger_path_mappings_uses_absolute_real_paths(self) -> None:
-        templates = self._templates(
+        configurator = self._configurator(
             mapped_folders=[
                 MappedPath(local="/proj/sources/odoo", docker="/home/odoo/odoo"),
                 MappedPath(local="/proj/backups", docker="/home/odoo/backups"),
@@ -36,7 +37,7 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
             ]
         )
 
-        mappings = templates._build_debugger_path_mappings()
+        mappings = configurator.build_debugger_path_mappings()
 
         local_roots = [record["localRoot"] for record in mappings]
         self.assertIn(os.path.abspath("/proj/sources/odoo"), local_roots)
@@ -62,7 +63,7 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
                 MappedPath(local=backups, docker="/home/odoo/backups"),
             ]
 
-            ProjectTemplates(env).update_vscode_debugger_launcher()
+            VscodeConfigurator(env).update_vscode_debugger_launcher()
 
             launch_json = os.path.join(project_dir, ".vscode", "launch.json")
             with open(launch_json, encoding="utf-8") as launch_file:
@@ -76,6 +77,28 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
                 mapping["localRoot"] for mapping in odoo_unit["pathMappings"]
             ]
             self.assertEqual(local_roots, [os.path.abspath(odoo_src)])
+
+    def test_environment_delegates_update_vscode_debugger_launcher_to_service(
+        self,
+    ) -> None:
+        config = MagicMock()
+        env = CreateProjectEnvironment(config)
+        with patch.object(
+            env._vscode, "update_vscode_debugger_launcher"
+        ) as mock_update:
+            env.update_vscode_debugger_launcher()
+        mock_update.assert_called_once()
+
+    def test_environment_delegates_generate_vscode_settings_json_to_service(
+        self,
+    ) -> None:
+        config = MagicMock()
+        env = CreateProjectEnvironment(config)
+        with patch.object(
+            env._vscode, "generate_vscode_settings_json"
+        ) as mock_generate:
+            env.generate_vscode_settings_json()
+        mock_generate.assert_called_once()
 
 
 if __name__ == "__main__":

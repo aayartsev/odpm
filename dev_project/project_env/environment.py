@@ -7,14 +7,9 @@ from .base_image import BaseImageBuilder
 from .ci_image import CiImageBuilder
 from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
-from .services import PlatformSourcesService
+from .services import PlatformSourcesService, VscodeConfigurator
 from .templates import ProjectTemplates
-from .types import (
-    DebuggerPathRecord,
-    DebuggerUnit,
-    MappedPath,
-    SymlinksSources,
-)
+from .types import MappedPath, SymlinksSources
 
 
 class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
@@ -35,6 +30,7 @@ class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
         self._links = ProjectLinks(self)
         self._base_image = BaseImageBuilder(self)
         self._platform_sources = PlatformSourcesService(self)
+        self._vscode = VscodeConfigurator(self)
 
     def attach_system_checker(self, checker: SystemCheckerProtocol) -> None:
         self._system_checker = checker
@@ -47,7 +43,7 @@ class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
         return self._system_checker
 
     def generate_vscode_settings_json(self) -> None:
-        self._templates.generate_vscode_settings_json()
+        self._vscode.generate_vscode_settings_json()
 
     def prepare_ci_build_context(self) -> None:
         self._ci.prepare_ci_build_context()
@@ -68,10 +64,10 @@ class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
         return self._ci._build_ci_venv_install_spec()
 
     def get_vscode_dir_path(self) -> str:
-        return self._templates.get_vscode_dir_path()
+        return self._vscode.get_vscode_dir_path()
 
     def update_vscode_debugger_launcher(self) -> None:
-        self._templates.update_vscode_debugger_launcher()
+        self._vscode.update_vscode_debugger_launcher()
 
     def download_odoo_repository(self) -> None:
         self._platform_sources.download_odoo_repository()

@@ -65,7 +65,7 @@ class ProjectTemplatesTests(unittest.TestCase):
     def test_get_vscode_dir_path_creates_directory(self):
         with tempfile.TemporaryDirectory() as project_dir:
             env = self._make_env(project_dir)
-            vscode_dir = env._templates.get_vscode_dir_path()
+            vscode_dir = env.get_vscode_dir_path()
             self.assertTrue(os.path.isdir(vscode_dir))
             self.assertEqual(vscode_dir, os.path.join(project_dir, ".vscode"))
 
