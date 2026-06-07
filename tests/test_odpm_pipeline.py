@@ -388,22 +388,24 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_calls_materialize_git_repos_by_default(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
-        with stub_prepare_service_executions():
+        with stub_prepare_service_executions() as service_mocks:
             pipeline.prepare_project_files()
+            checkout_dependencies = service_mocks[-1]
         pipeline.config.materialize_git_repos.assert_called_once_with(
             skip_build_date=False
         )
         pipeline.config.ensure_git_repos_present.assert_not_called()
-        pipeline.project_environment.checkout_dependencies.assert_called_once()
+        checkout_dependencies.assert_called_once()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_skips_git_when_no_git_update(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(no_git_update=True)
-        with stub_prepare_service_executions():
+        with stub_prepare_service_executions() as service_mocks:
             pipeline.prepare_project_files()
+            checkout_dependencies = service_mocks[-1]
         pipeline.config.ensure_git_repos_present.assert_called_once()
         pipeline.config.materialize_git_repos.assert_not_called()
-        pipeline.project_environment.checkout_dependencies.assert_not_called()
+        checkout_dependencies.assert_not_called()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_skips_build_date_when_platform_lock_exists(self, _mock_builder):
@@ -426,14 +428,15 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
             manager = MagicMock()
             mock_manager_cls.return_value = manager
-            with stub_prepare_service_executions():
+            with stub_prepare_service_executions() as service_mocks:
                 pipeline.prepare_project_files()
+                checkout_dependencies = service_mocks[-1]
         manager.load.assert_not_called()
         manager.collect_and_save.assert_called_once()
         manager.collect_and_save.assert_called_with(
             developing=pipeline.config.developing_project,
         )
-        pipeline.project_environment.checkout_dependencies.assert_called_once()
+        checkout_dependencies.assert_called_once()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_verifies_lock_after_checkout_when_apply_mode(self, _mock_builder):

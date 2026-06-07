@@ -11,7 +11,7 @@ from ..inside_docker_app.utils import (
     un_zip_file_to_directory,
 )
 from ..errors import PipelineError
-from ..protocols import CreateProjectEnvironmentProtocol, SystemCheckerProtocol
+from ..protocols import RuntimeProjectServicesProtocol, SystemCheckerProtocol
 from ..dependency_resolver import DependencyResolutionResult
 from .base_image import BaseImageBuilder
 from .ci_image import CiImageBuilder
@@ -26,7 +26,7 @@ from .types import (
 )
 
 
-class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
+class CreateProjectEnvironment(RuntimeProjectServicesProtocol):
     def __init__(
         self,
         config: Config,
@@ -53,30 +53,6 @@ class CreateProjectEnvironment(CreateProjectEnvironmentProtocol):
                 "System checker is not attached to CreateProjectEnvironment"
             )
         return self._system_checker
-
-    def map_folders(self) -> None:
-        self._links.map_folders()
-
-    def generate_dockerfile(self) -> None:
-        self._templates.generate_dockerfile()
-
-    def generate_dockerignore(self) -> None:
-        self._templates.generate_dockerignore()
-
-    def generate_config_file(self) -> None:
-        self._templates.generate_config_file()
-
-    def generate_docker_compose_file(self) -> None:
-        self._compose.generate_docker_compose_file()
-
-    def checkout_dependencies(self, lock_manager=None) -> None:
-        self._links.checkout_dependencies(lock_manager=lock_manager)
-
-    def checkout_project(self, project: HandleOdooProjectLink, *, lock_manager=None) -> None:
-        self._links.checkout_project(project, lock_manager=lock_manager)
-
-    def update_links(self) -> None:
-        self._links.update_links()
 
     def generate_vscode_settings_json(self) -> None:
         self._templates.generate_vscode_settings_json()

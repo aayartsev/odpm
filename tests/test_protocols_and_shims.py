@@ -6,7 +6,8 @@ import warnings
 from dev_project.check_system import SystemChecker
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.protocols import (
-    CreateProjectEnvironmentProtocol,
+    PrepareProjectServicesProtocol,
+    RuntimeProjectServicesProtocol,
     SystemCheckerProtocol,
 )
 
@@ -15,16 +16,39 @@ class ProtocolTypingTests(unittest.TestCase):
     def test_system_checker_satisfies_protocol(self):
         self.assertTrue(issubclass(SystemChecker, SystemCheckerProtocol))
 
-    def test_create_project_environment_satisfies_protocol(self):
+    def test_create_project_environment_satisfies_runtime_protocol(self):
         self.assertTrue(
-            issubclass(CreateProjectEnvironment, CreateProjectEnvironmentProtocol)
+            issubclass(CreateProjectEnvironment, RuntimeProjectServicesProtocol)
         )
+
+    def test_create_project_environment_is_not_prepare_services_protocol(self):
+        self.assertFalse(
+            issubclass(CreateProjectEnvironment, PrepareProjectServicesProtocol)
+        )
+
+    def test_prepare_service_modules_expose_prepare_operations(self):
+        from dev_project.compose.generator import ComposeGenerator
+        from dev_project.project_env.links import ProjectLinks
+        from dev_project.project_env.templates import ProjectTemplates
+
+        for name in ("map_folders", "checkout_dependencies", "update_links"):
+            self.assertTrue(callable(getattr(ProjectLinks, name)))
+        for name in (
+            "generate_dockerfile",
+            "generate_dockerignore",
+            "generate_config_file",
+        ):
+            self.assertTrue(callable(getattr(ProjectTemplates, name)))
+        self.assertTrue(callable(ComposeGenerator.generate_docker_compose_file))
 
     def test_runtime_checkable_protocols(self):
         self.assertTrue(isinstance(SystemCheckerProtocol, type))
         self.assertTrue(getattr(SystemCheckerProtocol, "_is_runtime_protocol", False))
         self.assertTrue(
-            getattr(CreateProjectEnvironmentProtocol, "_is_runtime_protocol", False)
+            getattr(RuntimeProjectServicesProtocol, "_is_runtime_protocol", False)
+        )
+        self.assertTrue(
+            getattr(PrepareProjectServicesProtocol, "_is_runtime_protocol", False)
         )
 
 

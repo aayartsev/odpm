@@ -78,7 +78,7 @@ odpm можно **установить через pip** — в PATH появит
 
 #### Качество и проверки
 
-- **595 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
+- **597 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
 - **Plan-safe setup** — `odpm plan` загружает конфигурацию без обновления шаблонов в `.odpm/`; обычный запуск по-прежнему синхронизирует шаблоны проекта при старте.
 - **Восстановление устаревшего odoo.conf** — `odpm --skip-start` пересоздаёт `odoo.conf`, если в нём нет настроек подключения к БД Docker (например после апгрейда с layout без `db_host`).
 - **Пакет `dev_project/prepare/`** — реестр prepare-фазы вынесен из монолитного `prepare_registry.py`; shim сохраняет существующие импорты и patch-пути в тестах.
@@ -107,7 +107,8 @@ odpm можно **установить через pip** — в PATH появит
 - **`SystemCheckPolicy` централизует gating проверок.** Модуль `dev_project/system_check_policy.py` задаёт `beginner_git`, `beginner_docker`, `developer_port_release`, `compose_validate` и `file_system_on_init`; `SystemChecker`, prepare docker steps и pipeline setup читают policy вместо разрозненных проверок `check_system`/scenario.
 - **Root-shim импорты выдают `DeprecationWarning`.** Backward-compatible модули (`prepare_registry`, `plan_*`, `compose_*`, `host_*`, `host_cli/*`, `inside_docker_app/cli_params`, `inside_docker_app/parse_args`, `project_env.compose`) предупреждают при import с указанием канонического пути; см. README **Миграция импортов 4.0→4.1**. Shims будут удалены в 4.1.0.
 - **`PrepareContext` injectит prepare-сервисы.** `ProjectTemplates`, `ComposeGenerator` и `ProjectLinks` создаются в `make_prepare_context` из `CreateProjectEnvironment` (или для plan-only/mock env).
-- **Prepare steps вызывают inject-сервисы напрямую.** Template, compose и project steps выполняются через `ctx.templates`, `ctx.compose_generator` и `ctx.links`; compose preview читает volume map и generator из того же context. Git checkout пока через `project_env` до PR-12.
+- **Prepare steps вызывают inject-сервисы напрямую.** Template, compose и project steps выполняются через `ctx.templates`, `ctx.compose_generator` и `ctx.links`; compose preview читает volume map и generator из того же context. Git checkout через `ctx.links`.
+- **`CreateProjectEnvironment` только runtime; protocols split.** Prepare-операции на `ProjectTemplates`, `ComposeGenerator` и `ProjectLinks`; `CreateProjectEnvironment` реализует только `RuntimeProjectServicesProtocol` (`PrepareProjectServicesProtocol` описывает prepare surface). Prepare-делегаты удалены из `CreateProjectEnvironment`.
 
 ### Исправлено
 

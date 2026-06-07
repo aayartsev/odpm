@@ -50,7 +50,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
                 constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
             )
             env = CreateProjectEnvironment(config)
-            env.generate_dockerignore()
+            env.templates.generate_dockerignore()
 
             dockerignore = Path(project_dir) / constants.DOCKERIGNORE
             self.assertTrue(dockerignore.is_file())
@@ -78,7 +78,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
             config.project_dir = project_dir
             config.project_dockerignore_template_path = str(project_template)
             env = CreateProjectEnvironment(config)
-            env.generate_dockerignore()
+            env.templates.generate_dockerignore()
 
             content = (Path(project_dir) / constants.DOCKERIGNORE).read_text(
                 encoding="utf-8"

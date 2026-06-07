@@ -190,7 +190,7 @@ def exec_lock_apply(ctx: PrepareContext) -> None:
 
 def exec_git_checkout(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.project_env.checkout_dependencies(lock_manager=ctx.lock_manager)
+    ctx.links.checkout_dependencies(lock_manager=ctx.lock_manager)
 
 
 def exec_lock_collect(ctx: PrepareContext) -> None:

@@ -120,12 +120,10 @@ def preview_docker_compose_content(
 ) -> str | None:
     mapped = getattr(project_env, "mapped_folders", None)
     if not isinstance(mapped, list) or not mapped:
-        project_env.map_folders()
+        project_env.links.map_folders()
     try:
         preview_compose_service(config)
-        from ..project_env.compose import ComposeGenerator
-
-        return ComposeGenerator(project_env).render_docker_compose_content()
+        return project_env.compose_generator.render_docker_compose_content()
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         return None
 
