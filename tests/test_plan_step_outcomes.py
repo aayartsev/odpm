@@ -67,11 +67,11 @@ class PlanComposePreviewTests(unittest.TestCase):
         mock_write.assert_not_called()
 
     @patch(
-        "dev_project.plan.runtime_preview.preview_runtime_config_text",
+        "dev_project.plan.compose_preview.preview_runtime_config_text",
         return_value='{\n  "arguments": {"branch": "dev"},\n  "schema_version": 1\n}\n',
     )
     @patch(
-        "dev_project.plan.runtime_preview.normalized_runtime_config_text_from_disk",
+        "dev_project.plan.compose_preview.normalized_runtime_config_text_from_disk",
         return_value='{\n  "arguments": {"branch": "dev"},\n  "schema_version": 1\n}\n',
     )
     def test_compose_service_noop_when_normalized_runtime_matches(
@@ -130,7 +130,7 @@ class PlanComposePreviewTests(unittest.TestCase):
 
 class ComposeGenerateOutcomeTests(unittest.TestCase):
     @patch(
-        "dev_project.plan.compose_preview.compose_generate_needs_execute",
+        "dev_project.prepare.steps_compose.compose_generate_needs_execute",
         return_value=(False, "docker-compose.yml matches preview"),
     )
     def test_compose_generate_noop_when_preview_matches(self, _mock_generate):

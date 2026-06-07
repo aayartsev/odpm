@@ -66,39 +66,6 @@ def normalize_runtime_config_text(raw_text: str) -> str:
     return format_runtime_config_payload(payload)
 
 
-def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
-    """Populate runtime fields the same way compose.service execute would."""
-    from . import compose_preview
-
-    try:
-        compose_preview.preview_compose_service(config)
-        return True
-    except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
-        try:
-            config.generate_odoo_conf_docker_data()
-            return True
-        except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
-            return False
-
-
-def preview_runtime_config_text(config: Config) -> str | None:
-    cache = _runtime_preview_cache(config)
-    if "preview" in cache:
-        return cache["preview"]
-    if not prepare_runtime_config_for_compose_preview(config):
-        cache["preview"] = None
-        return None
-    try:
-        text = format_runtime_config_payload(
-            runtime_config_payload_from_config(config)
-        )
-    except (TypeError, ValueError, ConfigValidationError):
-        cache["preview"] = None
-        return None
-    cache["preview"] = text
-    return text
-
-
 def normalized_runtime_config_text_from_disk(
     project_dir: str, *, config: Config | None = None
 ) -> str:
@@ -117,3 +84,17 @@ def normalized_runtime_config_text_from_disk(
     if config is not None:
         _runtime_preview_cache(config)["on_disk"] = text
     return text
+
+
+def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
+    from .compose_preview import (
+        prepare_runtime_config_for_compose_preview as prepare,
+    )
+
+    return prepare(config)
+
+
+def preview_runtime_config_text(config: Config) -> str | None:
+    from .compose_preview import preview_runtime_config_text as preview
+
+    return preview(config)

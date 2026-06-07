@@ -14,8 +14,10 @@ from ..config.payload import runtime_config_path
 from ..inside_docker_app.exceptions import ConfigValidationError
 from .core import project_template_needs_upgrade, runtime_config_stale
 from .runtime_preview import (
+    format_runtime_config_payload,
     normalized_runtime_config_text_from_disk,
-    preview_runtime_config_text,
+    runtime_config_payload_from_config,
+    _runtime_preview_cache,
 )
 
 if TYPE_CHECKING:
@@ -30,6 +32,37 @@ def docker_compose_path(project_dir: str) -> str:
 def preview_compose_service(config: Config):
     with patch("dev_project.config.payload.write_runtime_config"):
         return ComposeServiceBuilder(config).build()
+
+
+def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
+    """Populate runtime fields the same way compose.service execute would."""
+    try:
+        preview_compose_service(config)
+        return True
+    except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
+        try:
+            config.generate_odoo_conf_docker_data()
+            return True
+        except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
+            return False
+
+
+def preview_runtime_config_text(config: Config) -> str | None:
+    cache = _runtime_preview_cache(config)
+    if "preview" in cache:
+        return cache["preview"]
+    if not prepare_runtime_config_for_compose_preview(config):
+        cache["preview"] = None
+        return None
+    try:
+        text = format_runtime_config_payload(
+            runtime_config_payload_from_config(config)
+        )
+    except (TypeError, ValueError, ConfigValidationError):
+        cache["preview"] = None
+        return None
+    cache["preview"] = text
+    return text
 
 
 def compose_start_command_changed(config: Config) -> bool:

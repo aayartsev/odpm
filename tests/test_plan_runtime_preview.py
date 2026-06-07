@@ -48,7 +48,7 @@ class PlanRuntimePreviewTests(unittest.TestCase):
         self.assertIn("\n", normalized)
 
     @patch(
-        "dev_project.plan.runtime_preview.runtime_config_payload_from_config",
+        "dev_project.plan.compose_preview.runtime_config_payload_from_config",
         return_value={"arguments": {"branch": "dev"}, "schema_version": 1},
     )
     @patch("dev_project.plan.compose_preview.preview_compose_service")
@@ -64,7 +64,7 @@ class PlanRuntimePreviewTests(unittest.TestCase):
         self.assertEqual(payload["arguments"]["branch"], "dev")
 
     @patch(
-        "dev_project.plan.runtime_preview.runtime_config_payload_from_config",
+        "dev_project.plan.compose_preview.runtime_config_payload_from_config",
         return_value={"arguments": {"branch": "dev"}, "schema_version": 1},
     )
     @patch("dev_project.plan.compose_preview.preview_compose_service")

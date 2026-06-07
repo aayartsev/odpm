@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 from .. import constants
+from ..compose.service_builder import ComposeServiceBuilder
 from ..plan import PlanStep, project_template_needs_upgrade
+from ..plan.compose_preview import (
+    compose_generate_needs_execute,
+    compose_service_needs_update,
+)
 from .helpers import make_plan_step
 from .types import PrepareContext
-
-
-def _compose_preview():
-    from ..plan import compose_preview
-
-    return compose_preview
 
 
 def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
@@ -41,11 +40,10 @@ def evaluate_compose_service(ctx: PrepareContext) -> PlanStep:
     description = (
         "Build compose start command and write .odpm/runtime/config.json when stale"
     )
-    preview = _compose_preview()
-    needs_update, svc_reason = preview.compose_service_needs_update(ctx)
+    needs_update, svc_reason = compose_service_needs_update(ctx)
     if needs_update:
         return make_plan_step("compose.service", description, "update", True, svc_reason)
-    gen_needs, gen_reason = preview.compose_generate_needs_execute(ctx)
+    gen_needs, gen_reason = compose_generate_needs_execute(ctx)
     if gen_needs:
         return make_plan_step(
             "compose.service",
@@ -65,7 +63,7 @@ def evaluate_compose_service(ctx: PrepareContext) -> PlanStep:
 
 def evaluate_compose_generate(ctx: PrepareContext) -> PlanStep:
     description = "Render docker-compose.yml from project template"
-    gen_needs, gen_reason = _compose_preview().compose_generate_needs_execute(ctx)
+    gen_needs, gen_reason = compose_generate_needs_execute(ctx)
     if gen_needs:
         return make_plan_step(
             "compose.generate",
@@ -99,6 +97,4 @@ def exec_compose_template(ctx: PrepareContext) -> None:
 
 
 def exec_compose_service(ctx: PrepareContext) -> None:
-    from .. import prepare_registry
-
-    prepare_registry.ComposeServiceBuilder(ctx.config).build()
+    ComposeServiceBuilder(ctx.config).build()

@@ -56,9 +56,9 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         self.assertIn("unknown", reason)
         self.assertEqual(warnings, (PLAN_NO_DOCKER_WARNING,))
 
-    @patch("dev_project.plan.compose_runtime.compose_up_would_run", return_value=True)
+    @patch("dev_project.prepare.runtime.compose_up_would_run", return_value=True)
     @patch(
-        "dev_project.plan.compose_runtime.evaluate_compose_up_plan",
+        "dev_project.prepare.runtime.evaluate_compose_up_plan",
         return_value=("start compose stack with --force-recreate", ()),
     )
     def test_runtime_warnings_empty_when_probe_runs(self, _mock_eval, _mock_would_run):
@@ -67,9 +67,9 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         warnings = build_runtime_plan_warnings(config, OdpmCliArgs(), host_ctx)
         self.assertEqual(warnings, ())
 
-    @patch("dev_project.plan.compose_runtime.compose_up_would_run", return_value=True)
+    @patch("dev_project.prepare.runtime.compose_up_would_run", return_value=True)
     @patch(
-        "dev_project.plan.compose_runtime.evaluate_compose_up_plan",
+        "dev_project.prepare.runtime.evaluate_compose_up_plan",
         return_value=("unknown", (PLAN_NO_DOCKER_WARNING,)),
     )
     def test_runtime_warnings_include_plan_no_docker_message(

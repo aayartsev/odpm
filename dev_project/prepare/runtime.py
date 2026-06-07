@@ -6,6 +6,7 @@ from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..plan import PlanStep
 from ..plan.compose_preview import vscode_settings_up_to_date
+from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
 from ..config import Config
 from .helpers import make_plan_step
 
@@ -45,20 +46,13 @@ def evaluate_runtime_vscode_settings(config: Config) -> PlanStep | None:
     )
 
 
-def _compose_runtime():
-    from ..plan import compose_runtime
-
-    return compose_runtime
-
-
 def evaluate_runtime_compose_up(
     config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
 ) -> PlanStep | None:
-    runtime = _compose_runtime()
-    if not runtime.compose_up_would_run(args, host_ctx):
+    if not compose_up_would_run(args, host_ctx):
         return None
     description = "Run docker compose up"
-    reason, _extra_warnings = runtime.evaluate_compose_up_plan(config, args)
+    reason, _extra_warnings = evaluate_compose_up_plan(config, args)
     return make_plan_step(
         "compose.up",
         description,
@@ -86,8 +80,7 @@ def build_runtime_plan_steps(
 def build_runtime_plan_warnings(
     config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
 ) -> tuple[str, ...]:
-    runtime = _compose_runtime()
-    if not runtime.compose_up_would_run(args, host_ctx):
+    if not compose_up_would_run(args, host_ctx):
         return ()
-    _reason, extra_warnings = runtime.evaluate_compose_up_plan(config, args)
+    _reason, extra_warnings = evaluate_compose_up_plan(config, args)
     return extra_warnings

@@ -93,6 +93,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 - **Developer port release decoupled from `check_system`.** New prepare step `docker.ports.release` always runs in the developer scenario before compose and stops containers occupying configured odoo/debugger/postgres/gevent ports; `docker.engine.check` (git/docker beginner checks) remains gated by `check_system`.
 - **Production imports use canonical package paths.** `ProjectMaterializer`, `OdpmPlanner`, `prepare/execute`, and `plan/runtime_preview` import from `dev_project.prepare`, `dev_project.git.deps_lock_manager`, and `dev_project.plan.compose_preview` instead of root shims `prepare_registry`, `plan_compose_preview`, and `plan_runtime_preview`.
 - **Unit tests patch canonical modules.** Migrated `@patch` targets from root shims (`prepare_registry`, `compose_runtime`, `plan_format`, …) to `dev_project.compose.*`, `dev_project.plan.*`, `dev_project.prepare.*`, and `dev_project.config.payload`; supporting call sites in compose/plan/prepare packages now resolve stack health and runtime config without self-shim hops.
+- **Plan preview layer unified.** `preview_runtime_config_text` and `prepare_runtime_config_for_compose_preview` live in `plan/compose_preview.py`; `plan/preview.py` re-exports compose and runtime preview helpers. `prepare/steps_compose.py` and `prepare/runtime.py` import canonical plan/compose modules directly (no `prepare_registry` in `prepare/`).
 
 ### Fixed
 

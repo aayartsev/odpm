@@ -27,6 +27,12 @@ PREPARE_STEP_IDS = [
 
 
 class PrepareRegistryContractTests(unittest.TestCase):
+    def test_prepare_package_imports_without_cycle(self):
+        import dev_project.prepare as prepare_pkg
+
+        self.assertTrue(hasattr(prepare_pkg, "PREPARE_STEPS"))
+        self.assertTrue(callable(prepare_pkg.execute_prepare))
+
     def test_prepare_steps_ids_and_order_unchanged(self):
         self.assertEqual([step.id for step in PREPARE_STEPS], PREPARE_STEP_IDS)
 
