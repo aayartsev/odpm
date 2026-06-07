@@ -78,7 +78,7 @@ odpm можно **установить через pip** — в PATH появит
 
 #### Качество и проверки
 
-- **579 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
+- **584 тестов** в `unittest discover` (по умолчанию 7 opt-in Docker integration tests пропускаются).
 - **Plan-safe setup** — `odpm plan` загружает конфигурацию без обновления шаблонов в `.odpm/`; обычный запуск по-прежнему синхронизирует шаблоны проекта при старте.
 - **Восстановление устаревшего odoo.conf** — `odpm --skip-start` пересоздаёт `odoo.conf`, если в нём нет настроек подключения к БД Docker (например после апгрейда с layout без `db_host`).
 - **Пакет `dev_project/prepare/`** — реестр prepare-фазы вынесен из монолитного `prepare_registry.py`; shim сохраняет существующие импорты и patch-пути в тестах.
@@ -99,6 +99,7 @@ Runtime-конфигурация всегда лежит в `.odpm/runtime/confi
 ### Исправлено
 
 - **`check_system: false` больше не пропускает освобождение портов.** Регрессия после plan-safe docker check: занятые порты (например PostgreSQL на 5432) приводили к ошибке bind при переключении между odpm-проектами с отключёнными проверками.
+- **Ошибки subprocess больше не игнорируются на обязательных командах.** Добавлены `SubprocessError` и `run_or_raise()`; system checks и probe base image завершаются явной ошибкой; сбой `docker container ls` даёт `SystemCheckError` при освобождении портов.
 
 ### Что удалено
 

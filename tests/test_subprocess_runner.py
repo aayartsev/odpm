@@ -7,9 +7,10 @@ from dev_project.errors import (
     OdpmError,
     PipelineError,
     ProjectDirError,
+    SubprocessError,
     SystemCheckError,
 )
-from dev_project.subprocess_runner import CommandResult, run_checked, run_logged
+from dev_project.subprocess_runner import CommandResult, run_checked, run_logged, run_or_raise
 
 
 class OdpmErrorHierarchyTests(unittest.TestCase):
@@ -30,6 +31,18 @@ class OdpmErrorHierarchyTests(unittest.TestCase):
     def test_project_dir_error_supports_exit_code_zero(self):
         error = ProjectDirError("", exit_code=0)
         self.assertEqual(error.exit_code, 0)
+
+    def test_subprocess_error_is_odpm_error(self):
+        error = SubprocessError(
+            "failed",
+            argv=["git", "status"],
+            returncode=2,
+            stdout="",
+            stderr="fatal",
+        )
+        self.assertIsInstance(error, OdpmError)
+        self.assertEqual(error.returncode, 2)
+        self.assertEqual(error.argv, ["git", "status"])
 
 
 class SubprocessRunnerTests(unittest.TestCase):
@@ -55,6 +68,25 @@ class SubprocessRunnerTests(unittest.TestCase):
             ["docker", "compose", "up"],
             cwd="/proj",
         )
+
+    @patch("dev_project.subprocess_runner.subprocess.run")
+    def test_run_or_raise_returns_result_on_success(self, mock_run):
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="ok", stderr=""
+        )
+        result = run_or_raise(["echo", "ok"], cwd="/tmp")
+        self.assertEqual(result, CommandResult(0, "ok", ""))
+
+    @patch("dev_project.subprocess_runner.subprocess.run")
+    def test_run_or_raise_raises_subprocess_error_on_failure(self, mock_run):
+        mock_run.return_value = MagicMock(
+            returncode=127, stdout="", stderr="not found"
+        )
+        with self.assertRaises(SubprocessError) as ctx:
+            run_or_raise(["missing", "cmd"])
+        self.assertEqual(ctx.exception.returncode, 127)
+        self.assertEqual(ctx.exception.argv, ["missing", "cmd"])
+        self.assertIn("not found", str(ctx.exception))
 
 
 if __name__ == "__main__":

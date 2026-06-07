@@ -5,13 +5,13 @@ from pathlib import Path
 from typing import NamedTuple
 
 from . import constants, translations
-from .errors import SystemCheckError
 from .config import Config
+from .errors import SubprocessError, SystemCheckError
 from .inside_docker_app import utils
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
 from .protocols import SystemCheckerProtocol
-from .subprocess_runner import run_checked, run_logged
+from .subprocess_runner import run_checked, run_logged, run_or_raise
 
 _logger = get_module_logger(__name__)
 
@@ -34,11 +34,29 @@ class SystemChecker(SystemCheckerProtocol):
         self.check_file_system()
 
     def check_git(self) -> None:
-        process_result = run_checked(["git", "--version"])
-        if constants.GIT_WORKING_MESSAGE not in process_result.stdout:
-            message = translations.get_translation(translations.IS_GIT_INSTALLED)
-            _logger.error(message)
-            raise SystemCheckError(message)
+        message = translations.get_translation(translations.IS_GIT_INSTALLED)
+        self._run_required_command(
+            ["git", "--version"],
+            expected_in_stdout=constants.GIT_WORKING_MESSAGE,
+            error_message=message,
+        )
+
+    def _run_required_command(
+        self,
+        argv: list[str],
+        *,
+        expected_in_stdout: str,
+        error_message: str,
+    ):
+        try:
+            result = run_or_raise(argv)
+        except SubprocessError as exc:
+            _logger.error(error_message)
+            raise SystemCheckError(error_message) from exc
+        if expected_in_stdout not in result.stdout:
+            _logger.error(error_message)
+            raise SystemCheckError(error_message)
+        return result
 
     def get_system_groups(self, user: str) -> list:
         import grp
@@ -61,13 +79,12 @@ class SystemChecker(SystemCheckerProtocol):
                 )
                 _logger.error(message)
                 raise SystemCheckError(message)
-        process_result = run_checked(["docker", "info"])
-        if constants.DOCKER_WORKING_MESSAGE not in process_result.stdout:
-            message = translations.get_translation(
-                translations.CAN_NOT_CONNECT_DOCKER
-            )
-            _logger.error(message)
-            raise SystemCheckError(message)
+        message = translations.get_translation(translations.CAN_NOT_CONNECT_DOCKER)
+        self._run_required_command(
+            ["docker", "info"],
+            expected_in_stdout=constants.DOCKER_WORKING_MESSAGE,
+            error_message=message,
+        )
 
         self.project_environment.ensure_base_image()
 
@@ -95,9 +112,16 @@ class SystemChecker(SystemCheckerProtocol):
                     busy_ports.append(int(host_port))
             return busy_ports
 
-        process_result = run_checked(
-            ["docker", "container", "ls", "--format", "'{{json .}}'"],
-        )
+        try:
+            process_result = run_or_raise(
+                ["docker", "container", "ls", "--format", "'{{json .}}'"],
+            )
+        except SubprocessError as exc:
+            message = translations.get_translation(
+                translations.CAN_NOT_LIST_DOCKER_CONTAINERS
+            ).format(DETAILS=str(exc))
+            _logger.error(message)
+            raise SystemCheckError(message) from exc
         output_string = process_result.stdout
         result_list = []
         for record in output_string.split("\n"):

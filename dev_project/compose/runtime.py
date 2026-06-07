@@ -14,9 +14,9 @@ COMPOSE_STACK_SERVICES = ("odoo", constants.DATABASE_NAME_INSTANCE)
 
 
 def _run_checked(*args, **kwargs):
-    from dev_project import compose_runtime as shim
+    from ..subprocess_runner import run_checked
 
-    return shim.run_checked(*args, **kwargs)
+    return run_checked(*args, **kwargs)
 
 
 def _compose_base_argv(config: Config) -> list[str]:

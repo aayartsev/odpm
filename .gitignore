@@ -146,4 +146,5 @@ docs/smoke-local*.md
 docs/smoke-4.0-*.md
 !docs/smoke-4.0-checklist.md
 docs/post-4.0-hardening-plan.md
+docs/cross-cutting-debt-plan.md
 

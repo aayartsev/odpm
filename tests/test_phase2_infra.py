@@ -14,6 +14,7 @@ from dev_project.errors import (
     GitError,
     OdpmError,
     ProjectDirError,
+    SubprocessError,
     SystemCheckError,
 )
 from dev_project.inside_docker_app import parse_args as parse_args_module
@@ -64,25 +65,27 @@ class SystemCheckerDockerTests(unittest.TestCase):
 
     @patch.object(SystemChecker, "check_file_system")
     @patch("dev_project.check_system.platform.system", return_value="Darwin")
-    @patch("dev_project.check_system.run_checked")
+    @patch("dev_project.check_system.run_or_raise")
     def test_check_docker_raises_system_check_error_when_docker_unavailable(
-        self, mock_checked, _mock_platform, _mock_fs
+        self, mock_run_or_raise, _mock_platform, _mock_fs
     ):
         checker = self._checker()
-        mock_checked.return_value = MagicMock(returncode=0, stdout="broken", stderr="")
+        mock_run_or_raise.return_value = MagicMock(
+            returncode=0, stdout="broken", stderr=""
+        )
         with self.assertRaises(SystemCheckError):
             checker.check_docker()
 
     @patch.object(SystemChecker, "check_file_system")
     @patch("dev_project.check_system.platform.system", return_value="Darwin")
-    @patch("dev_project.check_system.run_checked")
+    @patch("dev_project.check_system.run_or_raise")
     def test_check_docker_calls_ensure_base_image_when_docker_ok(
-        self, mock_checked, _mock_platform, _mock_fs
+        self, mock_run_or_raise, _mock_platform, _mock_fs
     ):
         config = self._config()
         project_environment = MagicMock()
         checker = SystemChecker(config, project_environment)
-        mock_checked.return_value = MagicMock(
+        mock_run_or_raise.return_value = MagicMock(
             returncode=0,
             stdout="Server:\n Version 24.0",
             stderr="",
@@ -107,15 +110,15 @@ class SystemCheckerExtraTests(unittest.TestCase):
         return SystemChecker(config or self._config(), MagicMock())
 
     @patch("dev_project.check_system.run_logged")
-    @patch("dev_project.check_system.run_checked")
+    @patch("dev_project.check_system.run_or_raise")
     def test_check_running_containers_stops_postgres_conflict_when_check_system_disabled(
-        self, mock_checked, mock_logged
+        self, mock_run_or_raise, mock_logged
     ):
         container_json = (
             '{"ID":"abc123","Ports":"0.0.0.0:5432->5432/tcp, '
             '0.0.0.0:8069->8069/tcp"}'
         )
-        mock_checked.return_value = MagicMock(
+        mock_run_or_raise.return_value = MagicMock(
             returncode=0,
             stdout=f"'{container_json}'",
             stderr="",
@@ -125,12 +128,12 @@ class SystemCheckerExtraTests(unittest.TestCase):
         mock_logged.assert_called_once_with(["docker", "stop", "abc123"])
 
     @patch("dev_project.check_system.run_logged")
-    @patch("dev_project.check_system.run_checked")
+    @patch("dev_project.check_system.run_or_raise")
     def test_check_running_containers_stops_gevent_port_conflict(
-        self, mock_checked, mock_logged
+        self, mock_run_or_raise, mock_logged
     ):
         container_json = '{"ID":"geo456","Ports":"0.0.0.0:8072->8072/tcp"}'
-        mock_checked.return_value = MagicMock(
+        mock_run_or_raise.return_value = MagicMock(
             returncode=0,
             stdout=f"'{container_json}'",
             stderr="",
@@ -139,12 +142,29 @@ class SystemCheckerExtraTests(unittest.TestCase):
         checker.check_running_containers()
         mock_logged.assert_called_once_with(["docker", "stop", "geo456"])
 
-    @patch.object(SystemChecker, "check_file_system")
-    @patch("dev_project.check_system.run_checked")
-    def test_check_git_raises_system_check_error_when_git_missing(
-        self, mock_checked, _mock_fs
+    @patch("dev_project.check_system.run_or_raise")
+    def test_check_running_containers_raises_when_docker_list_fails(
+        self, mock_run_or_raise
     ):
-        mock_checked.return_value = MagicMock(returncode=0, stdout="broken", stderr="")
+        from dev_project.errors import SubprocessError
+
+        mock_run_or_raise.side_effect = SubprocessError(
+            "docker down",
+            argv=["docker", "container", "ls"],
+            returncode=1,
+            stderr="denied",
+        )
+        checker = self._checker()
+        with self.assertRaises(SystemCheckError) as ctx:
+            checker.check_running_containers()
+        self.assertIn("docker down", str(ctx.exception))
+
+    @patch.object(SystemChecker, "check_file_system")
+    @patch("dev_project.check_system.run_or_raise")
+    def test_check_git_raises_system_check_error_when_git_missing(
+        self, mock_run_or_raise, _mock_fs
+    ):
+        mock_run_or_raise.return_value = MagicMock(returncode=0, stdout="broken", stderr="")
         checker = self._checker()
         with self.assertRaises(SystemCheckError):
             checker.check_git()
@@ -218,6 +238,12 @@ class OdpmPipelineErrorHandlingTests(unittest.TestCase):
     def test_git_error_and_project_dir_error_are_odpm_errors(self):
         self.assertIsInstance(GitError("git"), OdpmError)
         self.assertIsInstance(ProjectDirError("dir", exit_code=0), OdpmError)
+
+    def test_subprocess_error_is_odpm_error(self):
+        self.assertIsInstance(
+            SubprocessError("failed", argv=["docker"], returncode=1),
+            OdpmError,
+        )
 
 
 if __name__ == "__main__":

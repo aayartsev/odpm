@@ -138,9 +138,9 @@ class BaseImageBuilderTests(unittest.TestCase):
         env.config = config
         return BaseImageBuilder(env)
 
-    @patch("dev_project.project_env.base_image.run_checked")
-    def test_base_image_exists_when_repository_matches(self, mock_checked):
-        mock_checked.return_value = MagicMock(
+    @patch("dev_project.project_env.base_image.run_or_raise")
+    def test_base_image_exists_when_repository_matches(self, mock_run_or_raise):
+        mock_run_or_raise.return_value = MagicMock(
             stdout='{"Repository":"odoo-base:test","Tag":"latest"}\n'
         )
         self.assertTrue(self._builder().base_image_exists())

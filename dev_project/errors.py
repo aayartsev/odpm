@@ -25,3 +25,21 @@ class ProjectDirError(OdpmError):
 
 class GitError(OdpmError):
     pass
+
+
+class SubprocessError(OdpmError):
+    def __init__(
+        self,
+        message: str,
+        *,
+        argv: list[str],
+        returncode: int,
+        stdout: str = "",
+        stderr: str = "",
+        exit_code: int = 1,
+    ) -> None:
+        self.argv = argv
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+        super().__init__(message, exit_code=exit_code)

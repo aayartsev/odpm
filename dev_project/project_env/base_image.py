@@ -4,9 +4,9 @@ import json
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
-from ..errors import PipelineError
+from ..errors import PipelineError, SubprocessError
 from ..logging import get_module_logger
-from ..subprocess_runner import run_checked, run_logged
+from ..subprocess_runner import run_logged, run_or_raise
 from .base_image_identity import (
     base_image_identity_matches,
     expected_base_image_identity,
@@ -29,7 +29,10 @@ class BaseImageBuilder:
         return self.env.config
 
     def base_image_exists(self) -> bool:
-        result = run_checked(["docker", "images", "--format", "'{{json .}}'"])
+        try:
+            result = run_or_raise(["docker", "images", "--format", "'{{json .}}'"])
+        except SubprocessError:
+            return False
         for record in result.stdout.split("\n"):
             if not record:
                 continue

@@ -68,7 +68,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 #### Quality assurance
 
-- **579 tests** in `unittest discover` (7 skipped opt-in Docker integration tests by default).
+- **584 tests** in `unittest discover` (7 skipped opt-in Docker integration tests by default).
 - **Plan-safe setup** — `odpm plan` loads configuration without upgrading `.odpm/` templates; normal runs still sync project templates on startup.
 - **Stale odoo.conf recovery** — `odpm --skip-start` regenerates project `odoo.conf` when Docker DB settings are missing (for example after upgrading from layouts that never wrote `db_host`).
 - **`dev_project/prepare/` package** — prepare-phase registry split from monolithic `prepare_registry.py`; shim re-exports preserve existing imports and test patch paths.
@@ -95,6 +95,7 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 ### Fixed
 
 - **`check_system: false` no longer skips port cleanup.** Regression after plan-safe docker check: occupied host ports (for example PostgreSQL on 5432) caused `compose up` bind failures when switching between odpm projects with `check_system` disabled.
+- **Subprocess failures no longer silent on required commands.** Added `SubprocessError` and `run_or_raise()`; system checks and base image probe use fail-loud semantics; `docker container ls` errors surface as `SystemCheckError` during port release.
 
 ### Removed
 

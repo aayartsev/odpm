@@ -36,6 +36,7 @@ IS_GIT_INSTALLED = "Did you install git?"
 CAN_NOT_CONNECT_DOCKER = (
     "Cannot connect to the Docker daemon. Is the docker daemon running?"
 )
+CAN_NOT_LIST_DOCKER_CONTAINERS = "Cannot list Docker containers: {DETAILS}"
 CAN_NOT_GET_DOCKER_COMPOSE_INFO = "Cannot get docker-compose info, did you install it?"
 CAN_NOT_CREATE_DIR = "Cannot create dir, {dir_path}, please check it"
 MESSAGE_FOR_TEMPLATES = "If you want drop this file to default values, just delete it"
@@ -136,6 +137,9 @@ translations = {
     IS_GIT_INSTALLED: {"ru_RU": "Вы установили git?"},
     CAN_NOT_CONNECT_DOCKER: {
         "ru_RU": "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
+    },
+    CAN_NOT_LIST_DOCKER_CONTAINERS: {
+        "ru_RU": "Не удалось получить список контейнеров Docker: {DETAILS}",
     },
     CAN_NOT_GET_DOCKER_COMPOSE_INFO: {
         "ru_RU": "Не удалось получить информацию о Docker Compose. Проверьте установлен ли он."
