@@ -64,7 +64,19 @@ pip install -e .
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Ожидается **531** passed и **5** skipped (интеграционные Docker-тесты без `ODPM_RUN_DOCKER_INTEGRATION=1`). Повторный запуск в GitHub: **Actions → CI → Run workflow**.
+Ожидается **553** passed и **6** skipped (opt-in Docker integration tests). Повторный запуск в GitHub: **Actions → CI → Run workflow**.
+
+### Docker CI
+
+Compose smoke на каждом push/PR: [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) параллельно с [unit CI](.github/workflows/ci.yml) — minimal fixture, `odpm --skip-start --no-git-update`, `docker compose config`. Первый прогон на чистом runner может занять несколько минут (сборка base image).
+
+Full golden-path (compose up + HTTP 200 `/web`) — **nightly**, **workflow_dispatch** с флагом golden, или label PR **`run-docker`**. Нужен secret `ODPM_GOLDEN_PATH_PROJECT`.
+
+Локально:
+
+```bash
+./scripts/run_compose_smoke_test.sh
+```
 
 
 ## Как начать работать
@@ -224,6 +236,9 @@ export ODPM_SCENARIO=ci
 **Opt-in integration-тесты docker** (нужен Docker на хосте; по умолчанию пропускаются в `unittest discover`):
 
 ```bash
+# Compose smoke: minimal fixture + odpm --skip-start + docker compose config
+./scripts/run_compose_smoke_test.sh
+
 # Только сборка CI-образа (minimal context, без compose)
 ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_image_build -v
 

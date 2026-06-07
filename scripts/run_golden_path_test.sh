@@ -12,5 +12,8 @@ if [[ -z "${ODPM_GOLDEN_PATH_PROJECT:-}" ]]; then
 fi
 
 export ODPM_RUN_DOCKER_INTEGRATION=1
+export ODPM_ODPM_PY="${ODPM_ODPM_PY:-${REPO_ROOT}/odpm.py}"
+export ODPM_GOLDEN_PATH_TIMEOUT="${ODPM_GOLDEN_PATH_TIMEOUT:-300}"
+
 cd "${REPO_ROOT}"
 exec python3 -m unittest tests.integration.test_golden_path -v "$@"

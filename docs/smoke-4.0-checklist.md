@@ -37,8 +37,29 @@ python3 -m unittest discover -s tests -p "test_*.py"
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
 | GitHub Actions `CI` | Green on push/PR; same command as local §2A | | |
-| Test suite | All tests OK; 5 skipped (opt-in Docker integration unless `ODPM_RUN_DOCKER_INTEGRATION=1`) | | |
-| Test count | 531 tests OK (5 skipped); re-run after adding tests | | |
+| Test suite | All tests OK; 6 skipped (opt-in Docker integration unless `ODPM_RUN_DOCKER_*` env) | | |
+| Test count | 553 tests OK (6 skipped by default); re-run after adding tests | | |
+
+---
+
+## 2A+ — Compose smoke (repository, Docker)
+
+Automated on every push/PR in parallel with unit CI: [`.github/workflows/ci-docker.yml`](../.github/workflows/ci-docker.yml) (`compose-smoke` job; [`ci.yml`](../.github/workflows/ci.yml) runs unit tests separately).
+
+Local run from **`$ODPM_REPO`** (requires Docker):
+
+```bash
+cd "$ODPM_REPO"
+./scripts/run_compose_smoke_test.sh
+```
+
+| Check | Expected | Result | Date |
+|-------|----------|--------|------|
+| GitHub Actions `CI Docker` → compose-smoke | Green on push/PR | | |
+| `odpm --skip-start` on minimal fixture | Exit 0 | | |
+| `docker compose config` | Exit 0; `services:` in output | | |
+
+Full golden-path (compose up + HTTP 200): nightly schedule, **workflow_dispatch** with golden flag, or PR label **`run-docker`** (requires `ODPM_GOLDEN_PATH_PROJECT` secret).
 
 ---
 

@@ -1,0 +1,6 @@
+{
+  "check_system": false,
+  "create_module_links": false,
+  "update_git_repos": false,
+  "use_oca_dependencies": false
+}

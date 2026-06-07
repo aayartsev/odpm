@@ -1,0 +1,79 @@
+name: CI Docker
+
+on:
+  push:
+    branches:
+      - 4.0-beta
+      - main
+  pull_request:
+    branches:
+      - 4.0-beta
+      - main
+  schedule:
+    # Nightly full golden-path (requires ODPM_GOLDEN_PATH_PROJECT secret).
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      run_golden:
+        description: Run full golden-path HTTP test
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-docker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install odpm (editable)
+        run: pip install -e .
+
+      - name: Run compose smoke integration test
+        env:
+          ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+        run: python -m unittest tests.integration.test_compose_smoke -v
+
+  golden-path:
+    needs: compose-smoke
+    if: >-
+      github.event_name == 'schedule'
+      || (github.event_name == 'workflow_dispatch' && inputs.run_golden)
+      || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-docker'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install odpm (editable)
+        run: pip install -e .
+
+      - name: Run golden-path integration test
+        env:
+          ODPM_RUN_DOCKER_INTEGRATION: "1"
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+          ODPM_GOLDEN_PATH_TIMEOUT: "900"
+        run: |
+          if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
+            echo "ODPM_GOLDEN_PATH_PROJECT secret is not configured; skipping golden-path."
+            exit 0
+          fi
+          python -m unittest tests.integration.test_golden_path -v

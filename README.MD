@@ -63,7 +63,20 @@ pip install -e .
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Expect **531** tests passed and **5** skipped (Docker integration tests unless `ODPM_RUN_DOCKER_INTEGRATION=1`). Re-run manually in GitHub: **Actions → CI → Run workflow**.
+Expect **553** tests passed and **6** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
+
+### Docker CI
+
+Compose smoke runs on every push/PR via [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) in parallel with [unit CI](.github/workflows/ci.yml): minimal fixture project, `odpm --skip-start --no-git-update`, then `docker compose config`. The first run on a clean runner may take several minutes while the project base image is built; later runs reuse the cached image.
+
+Full golden-path (`docker compose up` + HTTP 200 on `/web`) runs on a **nightly schedule**, on **workflow_dispatch** with **Run full golden-path HTTP test**, or when a pull request has the **`run-docker`** label. Configure the `ODPM_GOLDEN_PATH_PROJECT` repository secret to an initialized odpm project path on the runner (self-hosted or mounted workspace).
+
+Local compose smoke:
+
+```bash
+./scripts/run_compose_smoke_test.sh
+# ODPM_COMPOSE_SMOKE_TIMEOUT=900 ./scripts/run_compose_smoke_test.sh
+```
 
 
 ## How to start work
@@ -224,6 +237,9 @@ The script runs `python3 odpm.py --build-image`, `docker compose up -d`, and wai
 **Opt-in docker integration tests** (require Docker on the host; skipped by default in `unittest discover`):
 
 ```bash
+# Compose smoke: minimal fixture + odpm --skip-start + docker compose config
+./scripts/run_compose_smoke_test.sh
+
 # CI image bake only (minimal context, no compose)
 ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_image_build -v
 
