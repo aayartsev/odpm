@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from argparse import Namespace
 from dataclasses import dataclass, field
+
+from ..host_cli.args import OdpmCliArgs
 from typing import Any, Callable, Union
 
 from .. import constants
@@ -45,7 +46,7 @@ def user_settings_from_raw(
 
 def project_settings_from_raw(
     raw: dict,
-    arguments: Namespace,
+    arguments: OdpmCliArgs,
     *,
     odoo_build_date: str,
 ) -> ProjectSettingsState:

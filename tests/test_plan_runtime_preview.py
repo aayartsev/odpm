@@ -3,7 +3,7 @@
 import json
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -56,7 +56,7 @@ class PlanRuntimePreviewTests(unittest.TestCase):
         self, mock_preview, _mock_payload
     ):
         config = MagicMock()
-        config.arguments = Namespace(plan=True, branch="dev")
+        config.arguments = OdpmCliArgs(plan=True, branch="dev")
         text = preview_runtime_config_text(config)
         mock_preview.assert_called_once_with(config)
         self.assertIsNotNone(text)
@@ -72,7 +72,7 @@ class PlanRuntimePreviewTests(unittest.TestCase):
         self, mock_preview, _mock_payload
     ):
         config = MagicMock()
-        config.arguments = Namespace(branch="dev")
+        config.arguments = OdpmCliArgs(branch="dev")
         clear_runtime_config_preview_cache(config)
         first = preview_runtime_config_text(config)
         second = preview_runtime_config_text(config)

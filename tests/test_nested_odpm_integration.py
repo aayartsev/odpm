@@ -7,7 +7,7 @@ import os
 import subprocess
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -51,7 +51,7 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
     )
     config._user = UserSettingsState(use_oca_dependencies=True)
     config.policy = ScenarioPolicy.from_scenario(scenario)
-    config.arguments = Namespace(no_git_update=False)
+    config.arguments = OdpmCliArgs(no_git_update=False)
     config.skip_git_update = Config.skip_git_update.__get__(config, Config)
     config.apply_transitive_requirements = Config.apply_transitive_requirements.__get__(
         config, Config

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from argparse import Namespace
-from dataclasses import asdict, dataclass, fields
+from dataclasses import dataclass, fields
+
+
 @dataclass(frozen=True)
 class OdpmCliArgs:
     """Frozen snapshot of host-side odpm CLI flags."""
@@ -51,14 +53,7 @@ class OdpmCliArgs:
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:
-        kwargs = {field.name: getattr(ns, field.name, field.default) for field in fields(cls)}
+        kwargs = {
+            field.name: getattr(ns, field.name, field.default) for field in fields(cls)
+        }
         return cls(**kwargs)
-
-    def to_namespace(self) -> Namespace:
-        return Namespace(**asdict(self))
-
-
-def as_cli_args(args: Namespace | OdpmCliArgs) -> OdpmCliArgs:
-    if isinstance(args, OdpmCliArgs):
-        return args
-    return OdpmCliArgs.from_namespace(args)

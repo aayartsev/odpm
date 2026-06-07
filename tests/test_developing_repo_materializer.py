@@ -1,7 +1,7 @@
 import os
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -22,7 +22,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             config._project = ProjectSettingsState()
             config._docker = DockerLayoutState()
             config.project_dir = project_dir
-            config.arguments = Namespace(branch="17.0", no_git_update=False)
+            config.arguments = OdpmCliArgs(branch="17.0", no_git_update=False)
             config.developing_project = MagicMock(
                 project_path=os.path.join(project_dir, "cloned_repo"),
                 link_type=constants.GITLINK_TYPE_HTTP,
@@ -48,7 +48,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             config._project = ProjectSettingsState()
             config._docker = DockerLayoutState()
             config.project_dir = project_dir
-            config.arguments = Namespace(branch=None, no_git_update=False)
+            config.arguments = OdpmCliArgs(branch=None, no_git_update=False)
             config.developing_project = MagicMock(
                 project_path=dev_path,
                 link_type=constants.GITLINK_TYPE_GIT,
@@ -67,7 +67,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
         config._project = ProjectSettingsState()
         config._docker = DockerLayoutState()
         config.project_dir = "/tmp/project"
-        config.arguments = Namespace(no_git_update=False)
+        config.arguments = OdpmCliArgs(no_git_update=False)
         config.developing_project = MagicMock(
             project_path="/tmp/local_dev",
             link_type=constants.GITLINK_TYPE_FILE,
@@ -85,7 +85,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
         config._project = ProjectSettingsState()
         config._docker = DockerLayoutState()
         config.project_dir = "/tmp/project"
-        config.arguments = Namespace(no_git_update=True)
+        config.arguments = OdpmCliArgs(no_git_update=True)
         config.developing_project = MagicMock(
             project_path="/tmp/missing_repo",
             link_type=constants.GITLINK_TYPE_HTTP,
@@ -99,7 +99,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
 
     def test_materialize_full_builds_when_not_yet_materialized(self):
         config = MagicMock()
-        config.arguments = Namespace(branch="18.0")
+        config.arguments = OdpmCliArgs(branch="18.0")
         config.developing_project = MagicMock()
 
         self.materializer.materialize_full(config)
@@ -110,7 +110,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
 
     def test_materialize_full_skips_when_already_materialized(self):
         config = MagicMock()
-        config.arguments = Namespace(branch="17.0")
+        config.arguments = OdpmCliArgs(branch="17.0")
         config.developing_project = MagicMock()
         self.materializer._developing_repo_materialized = True
 

@@ -3,7 +3,7 @@
 import json
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -80,7 +80,7 @@ class PlanJsonFormatTests(unittest.TestCase):
     def test_plan_to_dict_includes_version_steps_warnings_compose_up_and_diffs(
         self, _mock_force
     ):
-        payload = plan_to_dict(self._plan(), self._config(), Namespace())
+        payload = plan_to_dict(self._plan(), self._config(), OdpmCliArgs())
         self.assertEqual(payload["plan_version"], PLAN_JSON_VERSION)
         self.assertEqual(payload["steps"][0]["outcome"], "run")
         self.assertEqual(payload["steps"][0]["id"], "compose.up")
@@ -95,7 +95,7 @@ class PlanJsonFormatTests(unittest.TestCase):
     )
     def test_plan_to_dict_omits_compose_up_when_step_missing(self, _mock_force):
         plan = OdpmPlan(steps=())
-        payload = plan_to_dict(plan, self._config(), Namespace(plan_no_docker=True))
+        payload = plan_to_dict(plan, self._config(), OdpmCliArgs(plan_no_docker=True))
         self.assertNotIn("compose_up", payload)
 
     @patch(
@@ -103,7 +103,7 @@ class PlanJsonFormatTests(unittest.TestCase):
         return_value=False,
     )
     def test_format_plan_json_is_valid_json(self, _mock_force):
-        text = format_plan_json(self._plan(), self._config(), Namespace())
+        text = format_plan_json(self._plan(), self._config(), OdpmCliArgs())
         payload = json.loads(text)
         self.assertEqual(payload["plan_version"], PLAN_JSON_VERSION)
 
@@ -124,7 +124,7 @@ class PlanJsonFormatTests(unittest.TestCase):
     def test_format_plan_json_mode(self, _mock_force):
         plan = self._plan()
         config = self._config()
-        text = format_plan(plan, Namespace(plan_format="json"), config)
+        text = format_plan(plan, OdpmCliArgs(plan_format="json"), config)
         payload = json.loads(text)
         self.assertEqual(payload["compose_up"]["force_recreate"], True)
 
@@ -143,7 +143,7 @@ class PlanStrictPipelineTests(unittest.TestCase):
     def _config(self, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
@@ -159,7 +159,7 @@ class PlanStrictPipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp))
             pipeline = OdpmPipeline(
-                Namespace(plan=True, plan_strict=True, skip_start=True),
+                OdpmCliArgs(plan=True, plan_strict=True, skip_start=True),
                 "/opt/odpm",
             )
             pipeline.config = self._config(tmp)
@@ -175,7 +175,7 @@ class PlanStrictPipelineTests(unittest.TestCase):
     ):
         from dev_project.odpm_pipeline import OdpmPipeline
 
-        pipeline = OdpmPipeline(Namespace(plan=True, plan_strict=True), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(plan=True, plan_strict=True), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.project_environment = MagicMock()
         with patch("sys.exit") as mock_exit:

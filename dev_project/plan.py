@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import json
 import os
-from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TYPE_CHECKING
 
 from . import constants
 from .config.payload import runtime_config_path
+from .host_cli.args import OdpmCliArgs
 from .host_context import HostProjectContext
 from .project_dir_manager import template_needs_upgrade
 from .project_env.base_image_identity import base_image_identity_matches
@@ -54,12 +54,12 @@ class OdpmPlan:
     diffs: tuple["PlanFileDiff", ...] = ()
 
 
-def skip_git_update(arguments: Namespace) -> bool:
-    return bool(getattr(arguments, "no_git_update", False))
+def skip_git_update(arguments: OdpmCliArgs) -> bool:
+    return bool(arguments.no_git_update)
 
 
-def update_lock_requested(arguments: Namespace) -> bool:
-    return bool(getattr(arguments, "update_lock", False))
+def update_lock_requested(arguments: OdpmCliArgs) -> bool:
+    return bool(arguments.update_lock)
 
 
 def deps_lock_file_exists(project_dir: str) -> bool:
@@ -100,7 +100,7 @@ class OdpmPlanner:
     def build(
         cls,
         config: Config,
-        args: Namespace,
+        args: OdpmCliArgs,
         project_env: CreateProjectEnvironment | None = None,
     ) -> OdpmPlan:
         from .plan_diff import build_plan_diffs
@@ -121,7 +121,7 @@ class OdpmPlanner:
 
 def format_plan(
     plan: OdpmPlan,
-    args: Namespace | None = None,
+    args: OdpmCliArgs | None = None,
     config: "Config | None" = None,
 ) -> str:
     from .plan_format import format_plan as format_plan_output

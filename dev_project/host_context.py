@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from argparse import Namespace
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from .host_cli.args import OdpmCliArgs
 from .host_user_env import CreateUserEnvironment
 from .scenario_policy import ScenarioPolicy
 from .config.state import (
@@ -27,7 +27,7 @@ class HostProjectContext:
     config_home_dir: str
     policy: ScenarioPolicy
     user_env: CreateUserEnvironment
-    arguments: Namespace
+    arguments: OdpmCliArgs
     user_settings: UserSettingsState
     project_settings: ProjectSettingsState
     docker_layout: DockerLayoutState
@@ -37,7 +37,7 @@ class HostProjectContext:
         cls,
         config: Config,
         *,
-        arguments: Namespace | None = None,
+        arguments: OdpmCliArgs | None = None,
     ) -> HostProjectContext:
         return cls(
             project_dir=config.project_dir,
@@ -53,8 +53,8 @@ class HostProjectContext:
 
     @property
     def skip_git_update(self) -> bool:
-        return bool(getattr(self.arguments, "no_git_update", False))
+        return bool(self.arguments.no_git_update)
 
     @property
     def update_lock(self) -> bool:
-        return bool(getattr(self.arguments, "update_lock", False))
+        return bool(self.arguments.update_lock)

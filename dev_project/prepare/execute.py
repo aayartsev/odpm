@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from argparse import Namespace
-
 from ..errors import PipelineError
+from ..host_cli.args import OdpmCliArgs
 from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..host_context import HostProjectContext
 from ..logging import get_module_logger
@@ -36,7 +35,7 @@ def make_prepare_context(
     config: Config,
     project_env: CreateProjectEnvironment,
     system_checker: SystemCheckerProtocol,
-    args: Namespace,
+    args: OdpmCliArgs,
 ) -> PrepareContext:
     return PrepareContext(
         config=config,
@@ -82,7 +81,7 @@ def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
     )
 
 
-def build_plan(config: Config, args: Namespace) -> OdpmPlan:
+def build_plan(config: Config, args: OdpmCliArgs) -> OdpmPlan:
     ctx = make_prepare_context(
         config,
         PlanOnlyProjectEnv(),  # type: ignore[arg-type]

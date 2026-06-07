@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from argparse import Namespace
-
+from ..host_cli.args import OdpmCliArgs
 from ..host_context import HostProjectContext
 from ..plan import PlanStep
 from ..plan_compose_preview import vscode_settings_up_to_date
@@ -12,9 +11,9 @@ from .helpers import make_plan_step
 
 
 def evaluate_runtime_ci_build_image(
-    config: Config, args: Namespace
+    config: Config, args: OdpmCliArgs
 ) -> PlanStep | None:
-    if not getattr(args, "build_image", False):
+    if not args.build_image:
         return None
     return make_plan_step(
         "ci.build_image",
@@ -53,7 +52,7 @@ def _compose_runtime():
 
 
 def evaluate_runtime_compose_up(
-    config: Config, args: Namespace, host_ctx: HostProjectContext
+    config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
 ) -> PlanStep | None:
     runtime = _compose_runtime()
     if not runtime.compose_up_would_run(args, host_ctx):
@@ -70,7 +69,7 @@ def evaluate_runtime_compose_up(
 
 
 def build_runtime_plan_steps(
-    config: Config, args: Namespace, host_ctx: HostProjectContext
+    config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
 ) -> tuple[PlanStep, ...]:
     steps: list[PlanStep] = []
     for evaluator in (
@@ -85,7 +84,7 @@ def build_runtime_plan_steps(
 
 
 def build_runtime_plan_warnings(
-    config: Config, args: Namespace, host_ctx: HostProjectContext
+    config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
 ) -> tuple[str, ...]:
     runtime = _compose_runtime()
     if not runtime.compose_up_would_run(args, host_ctx):

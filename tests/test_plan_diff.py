@@ -3,7 +3,7 @@
 import os
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -104,7 +104,7 @@ class BuildPlanDiffsTests(unittest.TestCase):
     def test_build_plan_diffs_empty_without_flag(self):
         plan = self._plan_with_step("compose.service", "update")
         config = MagicMock()
-        self.assertEqual(build_plan_diffs(plan, config, Namespace()), ())
+        self.assertEqual(build_plan_diffs(plan, config, OdpmCliArgs()), ())
 
     @patch(
         "dev_project.plan_diff.diff_runtime_config",
@@ -120,7 +120,7 @@ class BuildPlanDiffsTests(unittest.TestCase):
         diffs = build_plan_diffs(
             plan,
             config,
-            Namespace(plan_show_diff=True),
+            OdpmCliArgs(plan_show_diff=True),
         )
         self.assertEqual(len(diffs), 1)
         self.assertEqual(diffs[0].path, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
@@ -131,7 +131,7 @@ class BuildPlanDiffsTests(unittest.TestCase):
         diffs = build_plan_diffs(
             plan,
             config,
-            Namespace(plan_show_diff=True),
+            OdpmCliArgs(plan_show_diff=True),
         )
         self.assertEqual(len(diffs), 1)
         self.assertEqual(diffs[0].path, constants.DEPS_LOCK_REL_PATH)
@@ -142,7 +142,7 @@ class BuildPlanDiffsTests(unittest.TestCase):
         plan = self._plan_with_step("compose.service", "noop")
         config = MagicMock()
         self.assertEqual(
-            build_plan_diffs(plan, config, Namespace(plan_show_diff=True)),
+            build_plan_diffs(plan, config, OdpmCliArgs(plan_show_diff=True)),
             (),
         )
 
@@ -160,7 +160,7 @@ class BuildPlanDiffsTests(unittest.TestCase):
         diffs = build_plan_diffs(
             plan,
             config,
-            Namespace(plan_show_diff=True),
+            OdpmCliArgs(plan_show_diff=True),
             MagicMock(),
         )
         self.assertEqual(len(diffs), 1)
@@ -209,7 +209,7 @@ class PlanDiffIntegrationTests(unittest.TestCase):
     def _config(self, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
@@ -236,7 +236,7 @@ class PlanDiffIntegrationTests(unittest.TestCase):
             config = self._config(tmp)
             plan = OdpmPlanner.build(
                 config,
-                Namespace(plan_show_diff=True, skip_start=True),
+                OdpmCliArgs(plan_show_diff=True, skip_start=True),
             )
             self.assertTrue(plan.diffs)
             self.assertEqual(plan.diffs[0].path, constants.ODPM_RUNTIME_CONFIG_REL_PATH)

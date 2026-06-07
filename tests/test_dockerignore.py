@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -23,7 +23,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
         )
         return ProjectDirManager(
             project_dir,
-            MagicMock(init=False, odoo_git_link=None),
+            OdpmCliArgs(),
             self._program_dir(),
         )
 
@@ -123,7 +123,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
             config.container_run_mode = constants.RUN_MODE_ODOO
             config.db_manager_password = ""
             config.db_creation_data = dict(constants.DEFAULT_DB_CREATION_DATA)
-            config.arguments = Namespace()
+            config.arguments = OdpmCliArgs()
             config.sql_queries = []
             config.update_modules = ""
             config.docker_dirs_with_addons = []

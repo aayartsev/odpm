@@ -9,14 +9,14 @@ from .. import constants
 from .link import HandleOdooProjectLink
 
 if TYPE_CHECKING:
-    from argparse import Namespace
+    from ..host_cli.args import OdpmCliArgs
 
 
 class DevelopingRepoConfig(Protocol):
     project_dir: str
     developing_project_dir_path: str
     developing_project: HandleOdooProjectLink
-    arguments: Namespace
+    arguments: OdpmCliArgs
 
     def skip_git_update(self) -> bool: ...
 

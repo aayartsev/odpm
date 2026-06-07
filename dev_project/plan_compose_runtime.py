@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from argparse import Namespace
 from typing import TYPE_CHECKING
 
 from .compose_runtime import should_force_recreate_compose
-from .host_cli.args import as_cli_args
+from .host_cli.args import OdpmCliArgs
 from .host_context import HostProjectContext
 
 if TYPE_CHECKING:
@@ -17,22 +16,22 @@ PLAN_NO_DOCKER_WARNING = (
 )
 
 
-def plan_probes_compose_stack(args: Namespace) -> bool:
-    return not getattr(args, "plan_no_docker", False)
+def plan_probes_compose_stack(args: OdpmCliArgs) -> bool:
+    return not args.plan_no_docker
 
 
-def compose_up_would_run(args: Namespace, host_ctx: HostProjectContext) -> bool:
-    if as_cli_args(args).skip_start:
+def compose_up_would_run(args: OdpmCliArgs, host_ctx: HostProjectContext) -> bool:
+    if args.skip_start:
         return False
     if host_ctx.update_lock:
         return False
-    if getattr(args, "build_image", False):
+    if args.build_image:
         return False
     return True
 
 
 def compose_up_force_recreate_value(
-    config: Config, args: Namespace
+    config: Config, args: OdpmCliArgs
 ) -> bool | None:
     """Return probe result, or None when recreate cannot be determined."""
     if not plan_probes_compose_stack(args):
@@ -44,7 +43,7 @@ def compose_up_force_recreate_value(
 
 
 def evaluate_compose_up_plan(
-    config: Config, args: Namespace
+    config: Config, args: OdpmCliArgs
 ) -> tuple[str, tuple[str, ...]]:
     if not plan_probes_compose_stack(args):
         return (

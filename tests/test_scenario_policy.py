@@ -3,9 +3,11 @@ import os
 import shutil
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
-from argparse import Namespace
 from unittest.mock import MagicMock, patch
+
+from dev_project.host_cli.args import OdpmCliArgs
 
 from dev_project import constants
 from dev_project.bake_venv import VenvInstallSpec, write_ci_venv_install_spec
@@ -105,7 +107,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         config.docker_odoo_dir = "/home/odoo/odoo"
         config.odoo_config_data = {}
         config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.db_creation_data = {}
         config.db_manager_password = ""
         config.docker_venv_dir = "/home/odoo/.venv"
@@ -289,7 +291,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         config.user_env.odpm_scenario = scenario
         config.policy = ScenarioPolicy.from_scenario(scenario)
         config.container_run_mode = constants.RUN_MODE_ODOO
-        config.arguments = Namespace(
+        config.arguments = OdpmCliArgs(
             d=None,
             translate=None,
             start_precommit=False,
@@ -354,7 +356,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     @patch("dev_project.compose_service_builder.write_runtime_config")
     def test_start_command_includes_database_name(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
-        config.arguments.d = "my_project"
+        config.arguments = replace(config.arguments, d="my_project")
         ComposeServiceBuilder(config).build()
         self.assertIn("-d", config.compose_service.command)
         self.assertIn("my_project", config.compose_service.command)
@@ -365,7 +367,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     ):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.odoo_version = "19.0"
-        config.arguments.translate = "ru_RU"
+        config.arguments = replace(config.arguments, translate="ru_RU")
         ComposeServiceBuilder(config).build()
         command = config.compose_service.command
         self.assertIn("--load-language", command)
@@ -374,7 +376,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
 
     def test_export_po_files_uses_bootstrap_only_run_mode(self):
         config = self._make_config(constants.SERVER_SCENARIO)
-        config.arguments.export_po_files = "ru_RU"
+        config.arguments = replace(config.arguments, export_po_files="ru_RU")
         command = ComposeServiceBuilder(config).build_start_command()
         self.assertEqual(command.run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY)
         self.assertNotIn("exit", command.to_compose_service().command)
@@ -404,7 +406,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
 
     def test_start_precommit_uses_run_pre_commit_entrypoint(self):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
-        config.arguments.start_precommit = True
+        config.arguments = replace(config.arguments, start_precommit=True)
         command = ComposeServiceBuilder(config).build_start_command()
 
         self.assertEqual(command.kind, "pre_commit")

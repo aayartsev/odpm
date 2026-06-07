@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import difflib
 import os
-from argparse import Namespace
+from .host_cli.args import OdpmCliArgs
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -153,10 +153,10 @@ def diff_deps_lock_summary() -> PlanFileDiff:
 def build_plan_diffs(
     plan: OdpmPlan,
     config: Config,
-    args: Namespace,
+    args: OdpmCliArgs,
     project_env: CreateProjectEnvironment | None = None,
 ) -> tuple[PlanFileDiff, ...]:
-    if not getattr(args, "plan_show_diff", False):
+    if not args.plan_show_diff:
         return ()
     diffs: list[PlanFileDiff] = []
     if _step_would_change(plan, "compose.service"):

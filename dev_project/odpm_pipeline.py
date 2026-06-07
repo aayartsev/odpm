@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import shlex
 import sys
-from argparse import Namespace
 
 from . import constants, translations
 from .check_system import SystemChecker
@@ -16,7 +15,7 @@ from .project_env import CreateProjectEnvironment
 from .host_user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
-from .host_cli.args import OdpmCliArgs, as_cli_args
+from .host_cli.args import OdpmCliArgs
 from .project_materializer import ProjectMaterializer
 from .subprocess_runner import run_logged
 
@@ -25,12 +24,11 @@ _logger = get_module_logger(__name__)
 class OdpmPipeline:
     def __init__(
         self,
-        args: Namespace | OdpmCliArgs,
+        cli_args: OdpmCliArgs,
         program_dir: str,
         start_dir: str | None = None,
     ) -> None:
-        self.cli_args = as_cli_args(args)
-        self.args = args if isinstance(args, Namespace) else args.to_namespace()
+        self.cli_args = cli_args
         self.program_dir = program_dir
         self.start_dir = start_dir or os.getcwd() or os.environ.get("PWD", "")
         self.pd_manager: ProjectDirManager | None = None
@@ -39,21 +37,22 @@ class OdpmPipeline:
         self.system_checker: SystemChecker | None = None
 
     def setup(self, *, for_plan: bool = False) -> None:
-        if getattr(self.args, "version", False):
+        if self.cli_args.version:
             _logger.info(
                 f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}"
             )
             raise ConfigError("", exit_code=0)
         self.pd_manager = ProjectDirManager(
             self.start_dir,
-            self.args,
+            self.cli_args,
             self.program_dir,
             sync_templates=not for_plan,
         )
+        self.cli_args = self.pd_manager.arguments
         user_environment = CreateUserEnvironment(self.pd_manager)
         self.config = Config(
             self.pd_manager,
-            self.args,
+            self.cli_args,
             self.program_dir,
             user_environment,
         )
@@ -66,7 +65,7 @@ class OdpmPipeline:
             self._config(),
             self._project_environment(),
             self._system_checker(),
-            self.args,
+            self.cli_args,
         )
 
     def print_plan(self) -> int:
@@ -76,11 +75,11 @@ class OdpmPipeline:
         config = self._config()
         plan = OdpmPlanner.build(
             config,
-            self.args,
+            self.cli_args,
             self._project_environment(),
         )
-        text = format_plan(plan, self.args, config)
-        if resolve_plan_format(self.args) == "json":
+        text = format_plan(plan, self.cli_args, config)
+        if resolve_plan_format(self.cli_args) == "json":
             print(text, flush=True)
         else:
             _logger.info(text)
@@ -90,7 +89,7 @@ class OdpmPipeline:
 
     def handle_build_image(self) -> bool:
         """Run CI image build. Returns True when the pipeline should stop."""
-        if not self.args.build_image:
+        if not self.cli_args.build_image:
             return False
         config = self._config()
         if not config.policy.allow_build_image:
@@ -155,7 +154,7 @@ class OdpmPipeline:
             if self.handle_build_image():
                 return
             self.configure_vscode()
-            if getattr(self.args, "update_lock", False):
+            if self.cli_args.update_lock:
                 _logger.info("Git dependency lock updated; container start skipped")
                 return
             if self.cli_args.skip_start:

@@ -1,7 +1,7 @@
 """Unit tests for ProjectMaterializer."""
 
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
 from dev_project.errors import PipelineError
@@ -10,7 +10,7 @@ from dev_project.project_materializer import ProjectMaterializer
 
 class ProjectMaterializerTests(unittest.TestCase):
     def _run_with_mocks(self, **args_overrides):
-        args = Namespace(build_image=False, skip_start=True, **args_overrides)
+        args = OdpmCliArgs(build_image=False, skip_start=True, **args_overrides)
         config = MagicMock()
         project_env = MagicMock()
         system_checker = MagicMock()
@@ -43,7 +43,7 @@ class ProjectMaterializerTests(unittest.TestCase):
                 MagicMock(),
                 MagicMock(),
                 MagicMock(),
-                Namespace(update_lock=True, no_git_update=True),
+                OdpmCliArgs(update_lock=True, no_git_update=True),
             )
 
 

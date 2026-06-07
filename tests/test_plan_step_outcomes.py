@@ -2,7 +2,7 @@
 
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -24,7 +24,7 @@ class PlanComposePreviewTests(unittest.TestCase):
     def _config(self, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.compute_venv_lock_hash.return_value = "hash"
         config.python_version = "3.12"
@@ -53,7 +53,7 @@ class PlanComposePreviewTests(unittest.TestCase):
                 self._config(tmp),
                 MagicMock(),
                 MagicMock(),
-                Namespace(),
+                OdpmCliArgs(),
             )
             needs_update, reason = compose_service_needs_update(ctx)
             self.assertFalse(needs_update)
@@ -74,7 +74,7 @@ class PlanComposePreviewTests(unittest.TestCase):
                 self._config(tmp),
                 MagicMock(),
                 MagicMock(),
-                Namespace(),
+                OdpmCliArgs(),
             )
             needs_update, reason = compose_service_needs_update(ctx)
             self.assertFalse(needs_update)
@@ -105,7 +105,7 @@ class ComposeGenerateOutcomeTests(unittest.TestCase):
                 config,
                 MagicMock(),
                 MagicMock(),
-                Namespace(),
+                OdpmCliArgs(),
             )
             step = _evaluate_compose_generate(ctx)
             self.assertEqual(step.outcome, "noop")
@@ -120,10 +120,10 @@ class ComposeServiceGenerateAlignmentTests(unittest.TestCase):
             seed_migrated_project_layout(Path(tmp), include_root_compose=False)
             config = MagicMock()
             config.project_dir = tmp
-            config.arguments = Namespace()
+            config.arguments = OdpmCliArgs()
             config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
             config.compute_venv_lock_hash.return_value = "hash"
-            ctx = make_prepare_context(config, MagicMock(), MagicMock(), Namespace())
+            ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
             service = _evaluate_compose_service(ctx)
             generate = _evaluate_compose_generate(ctx)
             self.assertEqual(service.outcome, "run")

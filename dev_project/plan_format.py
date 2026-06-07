@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-from argparse import Namespace
 from typing import TYPE_CHECKING, Any
 
+from .host_cli.args import OdpmCliArgs
 from .plan import OdpmPlan, PlanStep
 from .plan_compose_runtime import compose_up_force_recreate_value
 
@@ -26,7 +26,7 @@ def _format_required(step: PlanStep) -> str:
 
 
 def compose_up_info_from_plan(
-    plan: OdpmPlan, config: Config, args: Namespace
+    plan: OdpmPlan, config: Config, args: OdpmCliArgs
 ) -> dict[str, Any] | None:
     if not any(step.id == "compose.up" for step in plan.steps):
         return None
@@ -52,7 +52,7 @@ def plan_diff_to_dict(file_diff) -> dict[str, Any]:
     return payload
 
 
-def plan_to_dict(plan: OdpmPlan, config: Config, args: Namespace) -> dict[str, Any]:
+def plan_to_dict(plan: OdpmPlan, config: Config, args: OdpmCliArgs) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "plan_version": PLAN_JSON_VERSION,
         "steps": [plan_step_to_dict(step) for step in plan.steps],
@@ -95,7 +95,7 @@ def format_plan_table(plan: OdpmPlan) -> str:
     return "\n".join(lines)
 
 
-def format_plan_json(plan: OdpmPlan, config: Config, args: Namespace) -> str:
+def format_plan_json(plan: OdpmPlan, config: Config, args: OdpmCliArgs) -> str:
     return json.dumps(
         plan_to_dict(plan, config, args),
         ensure_ascii=False,
@@ -103,8 +103,8 @@ def format_plan_json(plan: OdpmPlan, config: Config, args: Namespace) -> str:
     )
 
 
-def resolve_plan_format(args: Namespace | None) -> str:
-    plan_format = getattr(args, "plan_format", "table") if args is not None else "table"
+def resolve_plan_format(args: OdpmCliArgs | None) -> str:
+    plan_format = args.plan_format if args is not None else "table"
     if plan_format not in ("table", "json"):
         return "table"
     return plan_format
@@ -112,11 +112,11 @@ def resolve_plan_format(args: Namespace | None) -> str:
 
 def format_plan(
     plan: OdpmPlan,
-    args: Namespace | None = None,
+    args: OdpmCliArgs | None = None,
     config: Config | None = None,
 ) -> str:
     if resolve_plan_format(args) == "json":
         if config is None:
             raise ValueError("config is required for JSON plan output")
-        return format_plan_json(plan, config, args or Namespace())
+        return format_plan_json(plan, config, args or OdpmCliArgs())
     return format_plan_table(plan)

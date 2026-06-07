@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
+from dev_project.host_cli.args import OdpmCliArgs
 from dev_project.project_dir_manager import (
     ProjectDirManager,
     template_needs_upgrade,
@@ -99,7 +100,7 @@ class EnsureProjectTemplateTests(unittest.TestCase):
         )
         return ProjectDirManager(
             project_dir,
-            MagicMock(init=False, odoo_git_link=None),
+            OdpmCliArgs(),
             self._program_dir(),
         )
 

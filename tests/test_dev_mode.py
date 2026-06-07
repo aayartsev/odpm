@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import unittest
-from argparse import Namespace
+from dataclasses import replace
 from unittest.mock import MagicMock, patch
+
+from dev_project.host_cli.args import OdpmCliArgs
 
 from dev_project import constants
 from dev_project.compose_service_builder import ComposeServiceBuilder
@@ -92,7 +94,7 @@ class ComposeDevModeTests(unittest.TestCase):
         config.user_env.odpm_scenario = scenario
         config.policy = ScenarioPolicy.from_scenario(scenario)
         config.container_run_mode = constants.RUN_MODE_ODOO
-        config.arguments = Namespace(
+        config.arguments = OdpmCliArgs(
             d=None,
             translate=None,
             start_precommit=False,
@@ -158,7 +160,7 @@ class ComposeDevModeTests(unittest.TestCase):
     def test_pre_commit_start_omits_dev_mode(self, _mock_write_runtime_config):
         config = self._make_config()
         config.dev_mode = "reload,qweb"
-        config.arguments.start_precommit = True
+        config.arguments = replace(config.arguments, start_precommit=True)
         ComposeServiceBuilder(config).build()
         service = config.compose_service
         self.assertNotIn("--dev", service.command)

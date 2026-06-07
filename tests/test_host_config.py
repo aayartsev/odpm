@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -59,7 +59,7 @@ class ConfigLoaderTests(unittest.TestCase):
 class ConfigPathsTests(unittest.TestCase):
     def test_get_odoo_ci_image_name_uses_image_tag_when_set(self):
         config = MagicMock()
-        config.arguments = Namespace(image_tag=" custom:tag ")
+        config.arguments = OdpmCliArgs(image_tag=" custom:tag ")
         config.odoo_version = "19.0"
         config.platform_name = "odoo"
         self.assertEqual(
@@ -69,7 +69,7 @@ class ConfigPathsTests(unittest.TestCase):
 
     def test_get_odoo_ci_image_name_default_pattern(self):
         config = MagicMock()
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.odoo_version = "19.0"
         config.platform_name = "odoo"
         self.assertEqual(
@@ -213,7 +213,7 @@ class ConfigPayloadTests(unittest.TestCase):
         config.docker_odoo_dir = "/home/odoo/odoo"
         config.odoo_config_data = {}
         config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
         config.db_manager_password = ""
         config.docker_venv_dir = "/home/odoo/.venv"
@@ -338,7 +338,7 @@ class ConfigStateSliceTests(unittest.TestCase):
             "platform_name": "odoo",
             "odpm_version": constants.ODPM_VERSION,
         }
-        config.arguments = Namespace(
+        config.arguments = OdpmCliArgs(
             odoo_version=None,
             python_version=None,
             distro_name=None,

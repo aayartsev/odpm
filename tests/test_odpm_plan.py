@@ -2,7 +2,7 @@
 
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -28,8 +28,8 @@ from dev_project.scenario_policy import ScenarioPolicy
 
 class PlanPredicateTests(unittest.TestCase):
     def test_skip_git_update_reads_no_git_update_flag(self):
-        self.assertFalse(skip_git_update(Namespace(no_git_update=False)))
-        self.assertTrue(skip_git_update(Namespace(no_git_update=True)))
+        self.assertFalse(skip_git_update(OdpmCliArgs(no_git_update=False)))
+        self.assertTrue(skip_git_update(OdpmCliArgs(no_git_update=True)))
 
     def test_project_template_needs_upgrade_when_file_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -80,10 +80,10 @@ class OdpmPlannerTests(unittest.TestCase):
     def tearDown(self):
         self._recreate_patcher.stop()
 
-    def _config(self, *, project_dir: str, args: Namespace | None = None) -> MagicMock:
+    def _config(self, *, project_dir: str, args: OdpmCliArgs | None = None) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.arguments = args or Namespace()
+        config.arguments = args or OdpmCliArgs()
         config.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
@@ -98,7 +98,7 @@ class OdpmPlannerTests(unittest.TestCase):
     def test_plan_materialize_git_by_default(self):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
-            plan = OdpmPlanner.build(config, Namespace())
+            plan = OdpmPlanner.build(config, OdpmCliArgs())
             materialize = self._step(plan, "git.materialize")
             ensure = self._step(plan, "git.ensure_present")
             self.assertEqual(materialize.outcome, "run")
@@ -113,9 +113,9 @@ class OdpmPlannerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(
                 project_dir=tmp,
-                args=Namespace(no_git_update=True),
+                args=OdpmCliArgs(no_git_update=True),
             )
-            plan = OdpmPlanner.build(config, Namespace(no_git_update=True))
+            plan = OdpmPlanner.build(config, OdpmCliArgs(no_git_update=True))
             self.assertEqual(self._step(plan, "git.ensure_present").outcome, "run")
             self.assertEqual(self._step(plan, "git.materialize").outcome, "skip")
             self.assertEqual(self._step(plan, "git.checkout").outcome, "skip")
@@ -123,7 +123,7 @@ class OdpmPlannerTests(unittest.TestCase):
     def test_plan_update_lock_step(self):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
-            plan = OdpmPlanner.build(config, Namespace(update_lock=True))
+            plan = OdpmPlanner.build(config, OdpmCliArgs(update_lock=True))
             self.assertEqual(self._step(plan, "git.materialize").outcome, "run")
             self.assertEqual(self._step(plan, "git.lock_collect").outcome, "update")
             self.assertFalse(any(step.id == "compose.up" for step in plan.steps))
@@ -133,7 +133,7 @@ class OdpmPlannerTests(unittest.TestCase):
             config = self._config(project_dir=tmp)
             plan = OdpmPlanner.build(
                 config,
-                Namespace(update_lock=True, no_git_update=True),
+                OdpmCliArgs(update_lock=True, no_git_update=True),
             )
             self.assertTrue(
                 any("cannot be used together" in warning for warning in plan.warnings)
@@ -146,7 +146,7 @@ class OdpmPlannerTests(unittest.TestCase):
             lock_path.write_text('{"schema_version": 1}', encoding="utf-8")
             self.assertTrue(deps_lock_file_exists(tmp))
             config = self._config(project_dir=tmp)
-            plan = OdpmPlanner.build(config, Namespace())
+            plan = OdpmPlanner.build(config, OdpmCliArgs())
             self.assertEqual(self._step(plan, "git.lock_apply").outcome, "run")
 
     def test_plan_shows_compose_noop_when_runtime_fresh_and_compose_present(self):
@@ -155,7 +155,7 @@ class OdpmPlannerTests(unittest.TestCase):
 
             seed_migrated_project_layout(Path(tmp))
             config = self._config(project_dir=tmp)
-            plan = OdpmPlanner.build(config, Namespace())
+            plan = OdpmPlanner.build(config, OdpmCliArgs())
             self.assertEqual(self._step(plan, "template.dockerfile").outcome, "update")
             self.assertEqual(self._step(plan, "compose.service").outcome, "noop")
             self.assertEqual(self._step(plan, "compose.generate").outcome, "noop")
@@ -195,7 +195,7 @@ class PrepareRegistryContractTests(unittest.TestCase):
     def _config(self, *, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
@@ -203,7 +203,7 @@ class PrepareRegistryContractTests(unittest.TestCase):
         config.compute_venv_lock_hash.return_value = "hash"
         return config
 
-    def _ctx(self, args: Namespace, project_dir: str):
+    def _ctx(self, args: OdpmCliArgs, project_dir: str):
         return make_prepare_context(
             self._config(project_dir=project_dir),
             MagicMock(),
@@ -213,9 +213,9 @@ class PrepareRegistryContractTests(unittest.TestCase):
 
     def test_execute_ids_are_run_or_update_subset_of_plan(self):
         scenarios = (
-            Namespace(),
-            Namespace(no_git_update=True),
-            Namespace(update_lock=True),
+            OdpmCliArgs(),
+            OdpmCliArgs(no_git_update=True),
+            OdpmCliArgs(update_lock=True),
         )
         with tempfile.TemporaryDirectory() as tmp:
             for args in scenarios:
@@ -237,7 +237,7 @@ class PrepareRegistryContractTests(unittest.TestCase):
             lock_path = Path(tmp) / constants.DEPS_LOCK_REL_PATH
             lock_path.parent.mkdir(parents=True)
             lock_path.write_text('{"schema_version": 1}', encoding="utf-8")
-            ctx = self._ctx(Namespace(), tmp)
+            ctx = self._ctx(OdpmCliArgs(), tmp)
             step_ids = [step.id for step in evaluate_prepare_plan(ctx)]
             self.assertEqual(self._step_outcome(ctx, "git.lock_apply"), "run")
             self.assertLess(
@@ -247,7 +247,7 @@ class PrepareRegistryContractTests(unittest.TestCase):
 
     def test_stale_runtime_config_marks_compose_service_update(self):
         with tempfile.TemporaryDirectory() as tmp:
-            ctx = self._ctx(Namespace(), tmp)
+            ctx = self._ctx(OdpmCliArgs(), tmp)
             self.assertEqual(self._step_outcome(ctx, "compose.service"), "update")
             self.assertNotIn("venv.runtime_config", collect_execute_step_ids(ctx))
 
@@ -256,7 +256,7 @@ class PrepareRegistryContractTests(unittest.TestCase):
             from tests.plan_smoke_helpers import seed_migrated_project_layout
 
             seed_migrated_project_layout(Path(tmp))
-            ctx = self._ctx(Namespace(), tmp)
+            ctx = self._ctx(OdpmCliArgs(), tmp)
             self.assertEqual(self._step_outcome(ctx, "compose.service"), "noop")
             self.assertEqual(self._step_outcome(ctx, "compose.generate"), "noop")
 
@@ -290,7 +290,7 @@ PREPARE_STEP_IDS = [
 class ProjectMaterializerDryRunTests(unittest.TestCase):
     def test_dry_run_delegates_to_build_plan(self):
         config = MagicMock()
-        args = Namespace()
+        args = OdpmCliArgs()
         with patch("dev_project.project_materializer.build_plan") as mock_build_plan:
             mock_build_plan.return_value = MagicMock()
             result = ProjectMaterializer().run(
@@ -318,7 +318,7 @@ class OdpmPipelinePlanTests(unittest.TestCase):
     ):
         from dev_project.odpm_pipeline import OdpmPipeline
 
-        pipeline = OdpmPipeline(Namespace(plan=True), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(plan=True), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.project_environment = MagicMock()
         mock_planner.build.return_value = MagicMock()
@@ -328,12 +328,12 @@ class OdpmPipelinePlanTests(unittest.TestCase):
         mock_prepare.assert_not_called()
         mock_planner.build.assert_called_once_with(
             pipeline.config,
-            pipeline.args,
+            pipeline.cli_args,
             pipeline.project_environment,
         )
         mock_format_plan.assert_called_once_with(
             mock_planner.build.return_value,
-            pipeline.args,
+            pipeline.cli_args,
             pipeline.config,
         )
 

@@ -99,12 +99,11 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
     def test_plan_module_imports(self):
         from dev_project.plan import OdpmPlanner, PlanStep, format_plan
-        from dev_project.plan_cli import is_plan_mode, normalize_plan_argv
+        from dev_project.plan_cli import is_plan_mode
         from dev_project.plan_format import format_plan_json, format_plan_table
 
         self.assertTrue(callable(OdpmPlanner.build))
         self.assertTrue(callable(is_plan_mode))
-        self.assertTrue(callable(normalize_plan_argv))
         self.assertTrue(callable(format_plan))
         self.assertTrue(callable(format_plan_table))
         self.assertTrue(callable(format_plan_json))

@@ -1,6 +1,6 @@
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -11,7 +11,7 @@ from dev_project.scenario_policy import ScenarioPolicy
 
 class OdpmPipelinePolicyTests(unittest.TestCase):
     def _pipeline(self, **args_overrides) -> OdpmPipeline:
-        args = Namespace(**{"build_image": False, "skip_start": False, **args_overrides})
+        args = OdpmCliArgs(**{"build_image": False, "skip_start": False, **args_overrides})
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.project_environment = MagicMock()
@@ -55,7 +55,7 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         config.policy = policy
         config.project_dir = "/tmp/odpm-test-project"
         config.container_run_mode = constants.RUN_MODE_ODOO
-        config.arguments = Namespace(
+        config.arguments = OdpmCliArgs(
             d=None,
             translate=None,
             start_precommit=False,
@@ -92,7 +92,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         self.assertEqual(
             pipeline.build_compose_up_argv(config, force_recreate=True),
             [
@@ -108,7 +108,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         self.assertEqual(
             pipeline.build_compose_up_argv(config, force_recreate=False),
             [
@@ -123,7 +123,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         config = MagicMock()
         config.docker_compose_command = "docker-compose"
         config.no_log_prefix = True
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         self.assertEqual(
             pipeline.build_compose_up_argv(config, force_recreate=True),
             [
@@ -143,7 +143,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         argv = pipeline.build_compose_up_argv(config)
         self.assertIn("--force-recreate", argv)
 
@@ -152,7 +152,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
         return_value=False,
     )
     def test_start_containers_uses_subprocess(self, _mock_should):
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
         pipeline.config.docker_compose_command = "docker compose"
@@ -171,7 +171,7 @@ class OdpmPipelineComposeTests(unittest.TestCase):
     def test_start_containers_raises_pipeline_error_on_compose_failure(
         self, _mock_should
     ):
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
         pipeline.config.docker_compose_command = "docker compose"
@@ -196,7 +196,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_vscode,
         mock_start,
     ):
-        args = Namespace(build_image=False, skip_start=True)
+        args = OdpmCliArgs(build_image=False, skip_start=True)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
@@ -219,7 +219,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_vscode,
         mock_start,
     ):
-        args = Namespace(build_image=False, skip_start=False, update_lock=True)
+        args = OdpmCliArgs(build_image=False, skip_start=False, update_lock=True)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
@@ -242,7 +242,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_vscode,
         mock_start,
     ):
-        args = Namespace(build_image=True, skip_start=False)
+        args = OdpmCliArgs(build_image=True, skip_start=False)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
@@ -267,7 +267,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_start,
         mock_chdir,
     ):
-        args = Namespace(build_image=False, skip_start=False, update_lock=False)
+        args = OdpmCliArgs(build_image=False, skip_start=False, update_lock=False)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.project_dir = "/tmp/project"
@@ -283,7 +283,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
     def test_run_exits_on_pipeline_error(
         self, mock_setup, mock_prepare, mock_exit
     ):
-        pipeline = OdpmPipeline(Namespace(build_image=True), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(build_image=True), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.config.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
@@ -320,7 +320,7 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         mock_checker = MagicMock()
         mock_checker_cls.return_value = mock_checker
 
-        pipeline = OdpmPipeline(Namespace(build_image=False, skip_start=False), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(build_image=False, skip_start=False), "/opt/odpm")
         pipeline.setup()
 
         self.assertIs(pipeline.config, mock_config)
@@ -331,11 +331,35 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         mock_checker_cls.assert_called_once_with(mock_config, mock_project_env)
         mock_project_env.attach_system_checker.assert_called_once_with(mock_checker)
 
+    @patch("dev_project.odpm_pipeline.SystemChecker")
+    @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
+    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
+    @patch("dev_project.odpm_pipeline.ProjectDirManager")
+    def test_setup_syncs_cli_args_with_pd_manager_arguments(
+        self,
+        mock_pd_manager_cls,
+        _mock_user_env_cls,
+        mock_config_cls,
+        _mock_project_env_cls,
+        _mock_checker_cls,
+    ):
+        normalized = OdpmCliArgs(odoo_git_link="https://example.com/odoo.git")
+        mock_pd = MagicMock()
+        mock_pd.arguments = normalized
+        mock_pd_manager_cls.return_value = mock_pd
+
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
+        pipeline.setup()
+
+        self.assertIs(pipeline.cli_args, normalized)
+        self.assertIs(mock_config_cls.call_args[0][1], normalized)
+
 
 class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.ProjectMaterializer")
     def test_prepare_delegates_to_project_materializer(self, mock_materializer_cls):
-        pipeline = OdpmPipeline(Namespace(skip_start=True), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(skip_start=True), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.project_environment = MagicMock()
         pipeline.system_checker = MagicMock()
@@ -349,11 +373,11 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             pipeline.config,
             pipeline.project_environment,
             pipeline.system_checker,
-            pipeline.args,
+            pipeline.cli_args,
         )
 
     def _pipeline_with_mocks(self, **args_overrides) -> OdpmPipeline:
-        args = Namespace(build_image=False, skip_start=True, **args_overrides)
+        args = OdpmCliArgs(build_image=False, skip_start=True, **args_overrides)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.project_environment = MagicMock()

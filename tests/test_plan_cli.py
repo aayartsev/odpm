@@ -5,36 +5,28 @@ import json
 import sys
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 import dev_project.host_cli.parse_args as parse_args_module
 from dev_project.host_cli import params
-from dev_project.plan_cli import is_plan_mode, normalize_plan_argv
+from dev_project.host_cli.parse_args import parse_cli_args
+from dev_project.plan_cli import is_plan_mode
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 
 
 class PlanCliHelperTests(unittest.TestCase):
-    def test_normalize_plan_argv_rewrites_subcommand(self):
-        self.assertEqual(
-            normalize_plan_argv(["plan", "--skip-start"]),
-            ["--plan", "--skip-start"],
-        )
-
-    def test_normalize_plan_argv_passthrough(self):
-        self.assertEqual(
-            normalize_plan_argv(["--plan", "--skip-start"]),
-            ["--plan", "--skip-start"],
-        )
-
     def test_is_plan_mode_true_when_plan_flag_set(self):
-        self.assertTrue(is_plan_mode(Namespace(plan=True)))
+        self.assertTrue(is_plan_mode(OdpmCliArgs(plan=True)))
+
+    def test_is_plan_mode_true_when_plan_subcommand_selected(self):
+        self.assertTrue(is_plan_mode(OdpmCliArgs(command="plan")))
 
     def test_is_plan_mode_false_otherwise(self):
-        self.assertFalse(is_plan_mode(Namespace()))
+        self.assertFalse(is_plan_mode(OdpmCliArgs()))
 
 
 class PlanSubcommandParseTests(unittest.TestCase):
@@ -90,7 +82,7 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
     def _config(self, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
@@ -106,7 +98,7 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp))
             pipeline = OdpmPipeline(
-                parse_args_module.parse_args(["plan", "--plan-format", "json"]),
+                parse_cli_args(["plan", "--plan-format", "json"]),
                 "/opt/odpm",
             )
             pipeline.config = self._config(tmp)
@@ -131,7 +123,7 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
             with patch("dev_project.plan.OdpmPlanner") as mock_planner:
                 mock_planner.build.return_value = MagicMock(steps=(), warnings=(), diffs=())
                 pipeline_sub = OdpmPipeline(
-                    parse_args_module.parse_args(["plan", "--skip-start"]),
+                    parse_cli_args(["plan", "--skip-start"]),
                     "/opt/odpm",
                 )
                 pipeline_sub.config = config
@@ -139,7 +131,7 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
                 pipeline_sub.run()
 
                 pipeline_flag = OdpmPipeline(
-                    parse_args_module.parse_args(["--plan", "--skip-start"]),
+                    parse_cli_args(["--plan", "--skip-start"]),
                     "/opt/odpm",
                 )
                 pipeline_flag.config = config

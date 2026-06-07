@@ -1,7 +1,7 @@
 """Unit tests for HostProjectContext."""
 
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
 from dev_project.host_context import HostProjectContext
@@ -17,7 +17,7 @@ class HostProjectContextTests(unittest.TestCase):
         config.config_home_dir = "/tmp/project/.odpm"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.user_env = MagicMock()
-        config.arguments = Namespace(
+        config.arguments = OdpmCliArgs(
             no_git_update=False,
             update_lock=False,
             **argument_overrides,
@@ -45,14 +45,14 @@ class HostProjectContextTests(unittest.TestCase):
         config = self._make_config()
         ctx = HostProjectContext.from_config(
             config,
-            arguments=Namespace(no_git_update=True, update_lock=True),
+            arguments=OdpmCliArgs(no_git_update=True, update_lock=True),
         )
         self.assertTrue(ctx.skip_git_update)
         self.assertTrue(ctx.update_lock)
 
     def test_from_config_uses_explicit_arguments_override(self):
         config = self._make_config()
-        args = Namespace(no_git_update=True, update_lock=False)
+        args = OdpmCliArgs(no_git_update=True, update_lock=False)
         ctx = HostProjectContext.from_config(config, arguments=args)
         self.assertIs(ctx.arguments, args)
         self.assertTrue(ctx.skip_git_update)

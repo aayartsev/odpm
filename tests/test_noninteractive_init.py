@@ -1,7 +1,8 @@
 import os
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
+from tests.cli_test_helpers import cli_args
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -21,7 +22,7 @@ def _make_pd_manager(project_dir: str, *, home_dir: str) -> ProjectDirManager:
         os.path.join(project_dir, constants.PROJECT_SERVICE_DIRECTORY),
         exist_ok=True,
     )
-    args = Namespace(init=False, odoo_git_link=None)
+    args = cli_args(odoo_git_link=None)
     with patch.dict(os.environ, {"HOME": home_dir}, clear=False):
         return ProjectDirManager(project_dir, args, _program_dir())
 
@@ -31,7 +32,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
     def test_create_default_odpm_json_raises_without_odoo_version(self, _mock_tty):
         config = MagicMock()
         config.config_json_content = {}
-        config.arguments = Namespace(odoo_version=None)
+        config.arguments = OdpmCliArgs(odoo_version=None)
         config._raw_odpm_json = {}
 
         with self.assertRaises(ConfigError):
@@ -41,7 +42,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
     def test_create_default_odpm_json_uses_cli_odoo_version(self, _mock_tty):
         config = MagicMock()
         config.config_json_content = {}
-        config.arguments = Namespace(
+        config.arguments = OdpmCliArgs(
             odoo_version="18.0",
             python_version=None,
             distro_name=None,
@@ -109,7 +110,7 @@ class NonInteractiveEnvFileTests(unittest.TestCase):
             with patch.dict(os.environ, {"HOME": home_dir}, clear=True):
                 pd_manager = ProjectDirManager(
                     project_dir,
-                    Namespace(init=False, odoo_git_link=None),
+                    cli_args(odoo_git_link=None),
                     _program_dir(),
                 )
                 user_env = CreateUserEnvironment(pd_manager)

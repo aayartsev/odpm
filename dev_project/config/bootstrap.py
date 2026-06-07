@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import os
-from argparse import Namespace
 from typing import TYPE_CHECKING
+
+from ..host_cli.args import OdpmCliArgs
 
 from .. import constants, translations
 from ..dev_mode import effective_dev_mode, merge_autoreload_requirements
@@ -37,7 +38,7 @@ _logger = get_module_logger(__name__)
 def bootstrap_config(
     config: Config,
     pd_manager: ProjectDirManager,
-    arguments: Namespace,
+    arguments: OdpmCliArgs,
     program_dir: str,
     user_env: CreateUserEnvironment,
 ) -> None:
@@ -53,7 +54,7 @@ def bootstrap_config(
 def init_context(
     config: Config,
     pd_manager: ProjectDirManager,
-    arguments: Namespace,
+    arguments: OdpmCliArgs,
     program_dir: str,
     user_env: CreateUserEnvironment,
 ) -> None:

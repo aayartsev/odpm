@@ -46,7 +46,7 @@ class ComposeServiceBuilder:
                 run_mode=constants.RUN_MODE_BOOTSTRAP_ONLY,
             )
 
-        if cli_params.SCAFFOLD_SUBPARSER_MODULE_NAME_PARAM in self.args:
+        if self.args.scaffold_module_name is not None:
             odoo_bin = [
                 odoo_bin_path,
                 "scaffold",
@@ -118,7 +118,7 @@ class ComposeServiceBuilder:
         return argv
 
     def _extra_odoo_bin_tokens(self, reserved_argv: list[str]) -> list[str]:
-        extra = list(getattr(self.args, "odoo_bin", None) or [])
+        extra = list(self.args.odoo_bin or [])
         if not extra:
             return []
 

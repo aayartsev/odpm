@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from argparse import Namespace
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ..git.deps_lock_manager import DepsLockManager
+from ..host_cli.args import OdpmCliArgs
 from ..host_context import HostProjectContext
 from ..plan import PlanStep
 
@@ -22,7 +22,7 @@ class PrepareContext:
     config: Config
     project_env: CreateProjectEnvironment
     system_checker: SystemCheckerProtocol
-    args: Namespace
+    args: OdpmCliArgs
     host_ctx: HostProjectContext
     lock_manager: DepsLockManager | None = None
 

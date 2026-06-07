@@ -1,5 +1,6 @@
-from argparse import Namespace
 from typing import Literal
+
+from ..host_cli.args import OdpmCliArgs
 
 from ..dependency_resolver import NestedOdpmFragment
 from ..errors import PipelineError
@@ -32,7 +33,7 @@ class Config(ConfigRuntimeFacadeMixin):
     def __init__(
         self,
         pd_manager: ProjectDirManager,
-        arguments: Namespace,
+        arguments: OdpmCliArgs,
         program_dir: str,
         user_env: CreateUserEnvironment,
     ) -> None:
@@ -72,7 +73,7 @@ class Config(ConfigRuntimeFacadeMixin):
         return HostProjectContext.from_config(self)
 
     def skip_git_update(self) -> bool:
-        return bool(getattr(self.arguments, "no_git_update", False))
+        return bool(self.arguments.no_git_update)
 
     def seed_dependency_urls(self) -> list[str]:
         """Dependency URLs from ``odpm.json`` before OCA resolution."""

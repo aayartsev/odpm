@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
+from tests.cli_test_helpers import cli_args
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -32,8 +33,8 @@ def _odpm_snapshot(project_dir: Path) -> dict[str, tuple[int, bytes]]:
 
 
 class PlanSafeProjectDirManagerTests(unittest.TestCase):
-    def _args(self) -> Namespace:
-        return Namespace(init=False, odoo_git_link=None)
+    def _args(self) -> OdpmCliArgs:
+        return cli_args(odoo_git_link=None)
 
     def test_sync_templates_false_preserves_odpm_tree(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -82,7 +83,7 @@ class PlanSafeBootstrapTests(unittest.TestCase):
             "python_version": "3.12",
             "odpm_version": constants.ODPM_VERSION,
         }
-        config.arguments = Namespace(
+        config.arguments = OdpmCliArgs(
             odoo_version=None,
             python_version=None,
             distro_name=None,
@@ -139,8 +140,9 @@ class PlanSafePipelineSetupTests(unittest.TestCase):
         _mock_project_env_cls,
         _mock_checker_cls,
     ):
+        pipeline_args = OdpmCliArgs(plan=True)
         pipeline = OdpmPipeline(
-            Namespace(plan=True),
+            pipeline_args,
             "/opt/odpm",
             start_dir="/tmp/project",
         )
@@ -149,10 +151,11 @@ class PlanSafePipelineSetupTests(unittest.TestCase):
 
         mock_pd_manager_cls.assert_called_once_with(
             "/tmp/project",
-            pipeline.args,
+            pipeline_args,
             "/opt/odpm",
             sync_templates=False,
         )
+        self.assertIs(pipeline.cli_args, mock_pd_manager_cls.return_value.arguments)
 
     @patch("dev_project.odpm_pipeline.SystemChecker")
     @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
@@ -167,8 +170,9 @@ class PlanSafePipelineSetupTests(unittest.TestCase):
         _mock_project_env_cls,
         _mock_checker_cls,
     ):
+        pipeline_args = OdpmCliArgs(build_image=False)
         pipeline = OdpmPipeline(
-            Namespace(build_image=False),
+            pipeline_args,
             "/opt/odpm",
             start_dir="/tmp/project",
         )
@@ -177,10 +181,11 @@ class PlanSafePipelineSetupTests(unittest.TestCase):
 
         mock_pd_manager_cls.assert_called_once_with(
             "/tmp/project",
-            pipeline.args,
+            pipeline_args,
             "/opt/odpm",
             sync_templates=True,
         )
+        self.assertIs(pipeline.cli_args, mock_pd_manager_cls.return_value.arguments)
 
 
 if __name__ == "__main__":

@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from argparse import Namespace
-
 from .config import Config
+from .host_cli.args import OdpmCliArgs
 from .plan import OdpmPlan
 from .prepare_registry import build_plan, execute_prepare, make_prepare_context
 from .protocols import SystemCheckerProtocol
@@ -19,7 +18,7 @@ class ProjectMaterializer:
         config: Config,
         project_env: CreateProjectEnvironment,
         system_checker: SystemCheckerProtocol,
-        args: Namespace,
+        args: OdpmCliArgs,
         *,
         dry_run: bool = False,
     ) -> OdpmPlan | None:

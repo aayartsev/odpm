@@ -1,9 +1,10 @@
 import os
 import shlex
-from argparse import Namespace
+from dataclasses import replace
 from pathlib import Path
 
 from . import constants, translations
+from .host_cli.args import OdpmCliArgs
 from .errors import ProjectDirError
 from .host_cli import params as cli_params
 from .logging import get_module_logger
@@ -25,7 +26,7 @@ class ProjectDirManager:
     def __init__(
         self,
         start_dir_path: str,
-        args: Namespace,
+        args: OdpmCliArgs,
         program_dir_path: str,
         *,
         sync_templates: bool = True,
@@ -261,7 +262,9 @@ class ProjectDirManager:
             _logger.error(message)
             raise ProjectDirError(message)
         if not self.arguments.odoo_git_link:
-            self.arguments.odoo_git_link = constants.ODOO_GIT_LINK
+            self.arguments = replace(
+                self.arguments, odoo_git_link=constants.ODOO_GIT_LINK
+            )
 
     def get_shortest_cd_command(self, current_dir: str, target_dir: str) -> str:
         """

@@ -1,7 +1,7 @@
 import os
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
 from dev_project.config.config import Config
@@ -46,7 +46,7 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
             config = MagicMock()
             config.developing_project = MagicMock()
             config.odoo_platform_project = MagicMock()
-            config.arguments = Namespace(branch=None)
+            config.arguments = OdpmCliArgs(branch=None)
             config._paths = MagicMock()
             config._developing_materializer = DevelopingRepoMaterializer()
             config.odoo_build_date = "20240101"
@@ -78,7 +78,7 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
         self,
     ):
         coordinator, config = self._coordinator()
-        config.arguments = Namespace(branch="17.0")
+        config.arguments = OdpmCliArgs(branch="17.0")
         materializer = DevelopingRepoMaterializer()
         materializer._developing_repo_materialized = True
         config._developing_materializer = materializer

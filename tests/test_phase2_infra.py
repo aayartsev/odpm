@@ -6,6 +6,8 @@ from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
+from dev_project.host_cli.args import OdpmCliArgs
+from tests.cli_test_helpers import cli_args
 from dev_project.check_system import SystemChecker
 from dev_project.errors import (
     ConfigError,
@@ -43,7 +45,7 @@ class ParseArgsLazyTests(unittest.TestCase):
         with patch.object(
             parse_args_module.arg_parser,
             "parse_args",
-            return_value=Namespace(plan=True),
+            return_value=Namespace(command="plan"),
         ) as mock_parse:
             parse_args_module.parse_args(["plan", "--skip-start"])
         mock_parse.assert_called_once_with(["plan", "--skip-start"])
@@ -132,7 +134,7 @@ class SystemCheckerExtraTests(unittest.TestCase):
 class ProjectDirManagerErrorTests(unittest.TestCase):
     def test_not_project_directory_raises_project_dir_error_exit_zero(self):
         with tempfile.TemporaryDirectory() as project_dir:
-            args = Namespace(init=False, odoo_git_link=None)
+            args = cli_args(odoo_git_link=None)
             with self.assertRaises(ProjectDirError) as ctx:
                 ProjectDirManager(project_dir, args, "/opt/odpm")
             self.assertEqual(ctx.exception.exit_code, 0)
@@ -141,7 +143,7 @@ class ProjectDirManagerErrorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             service_dir = os.path.join(project_dir, constants.PROJECT_SERVICE_DIRECTORY)
             os.makedirs(service_dir)
-            args = Namespace(init=False, odoo_git_link="git@github.com:org/odoo.git")
+            args = cli_args(odoo_git_link="git@github.com:org/odoo.git")
             with self.assertRaises(ProjectDirError) as ctx:
                 ProjectDirManager(project_dir, args, "/opt/odpm")
             self.assertEqual(ctx.exception.exit_code, 1)
@@ -155,7 +157,7 @@ class OdpmPipelineErrorHandlingTests(unittest.TestCase):
         self, mock_prepare, _mock_setup, mock_exit
     ):
         mock_prepare.side_effect = SystemCheckError("docker down", exit_code=1)
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         pipeline.run()
         mock_exit.assert_called_once_with(1)
 
@@ -164,7 +166,7 @@ class OdpmPipelineErrorHandlingTests(unittest.TestCase):
 
     @patch("dev_project.odpm_pipeline.sys.exit")
     def test_run_exits_zero_on_version(self, mock_exit):
-        pipeline = OdpmPipeline(Namespace(version=True), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(version=True), "/opt/odpm")
         pipeline.run()
         mock_exit.assert_called_once_with(0)
 
@@ -172,7 +174,7 @@ class OdpmPipelineErrorHandlingTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     def test_run_exits_zero_on_config_error_exit_code_zero(self, mock_setup, mock_exit):
         mock_setup.side_effect = ConfigError("", exit_code=0)
-        pipeline = OdpmPipeline(Namespace(), "/opt/odpm")
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         pipeline.run()
         mock_exit.assert_called_once_with(0)
 

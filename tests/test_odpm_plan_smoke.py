@@ -2,7 +2,7 @@
 
 import tempfile
 import unittest
-from argparse import Namespace
+from dev_project.host_cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -23,7 +23,7 @@ class OdpmPlanSmokeTests(unittest.TestCase):
     def _config(self, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.arguments = Namespace()
+        config.arguments = OdpmCliArgs()
         config.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
@@ -35,7 +35,7 @@ class OdpmPlanSmokeTests(unittest.TestCase):
     def test_plan_table_on_migrated_project_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp))
-            plan = OdpmPlanner.build(self._config(tmp), Namespace(skip_start=True))
+            plan = OdpmPlanner.build(self._config(tmp), OdpmCliArgs(skip_start=True))
             text = format_plan(plan)
             self.assertIn("Action   Required  ID", text)
             self.assertIn("git.materialize", text)
@@ -52,7 +52,7 @@ class OdpmPlanSmokeTests(unittest.TestCase):
                 self._config(tmp),
                 MagicMock(),
                 MagicMock(),
-                Namespace(skip_start=True),
+                OdpmCliArgs(skip_start=True),
             )
             service = next(
                 step for step in evaluate_prepare_plan(ctx) if step.id == "compose.service"
@@ -70,7 +70,7 @@ class OdpmPlanSmokeTests(unittest.TestCase):
                 self._config(tmp),
                 MagicMock(),
                 MagicMock(),
-                Namespace(),
+                OdpmCliArgs(),
             )
             service = _evaluate_compose_service(ctx)
             generate = _evaluate_compose_generate(ctx)
