@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants, translations
 from dev_project.project_env import CreateProjectEnvironment
-from dev_project.project_env.compose import ComposeGenerator
+from dev_project.compose.generator import ComposeGenerator
 from dev_project.project_env.types import MappedPath
-from dev_project.start_command import ComposeOdooService
+from dev_project.compose.start_command import ComposeOdooService
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -145,7 +145,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             )
             self.assertNotIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
 
-    @patch("dev_project.project_env.compose.template_needs_upgrade", return_value=True)
+    @patch("dev_project.compose.generator.template_needs_upgrade", return_value=True)
     def test_ensure_compose_template_current_rebuilds_legacy_template(
         self, _mock_needs_upgrade
     ):

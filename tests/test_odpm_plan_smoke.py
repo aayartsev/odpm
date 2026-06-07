@@ -2,18 +2,20 @@
 
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.plan import OdpmPlanner, format_plan
-from dev_project.prepare_registry import (
-    _evaluate_compose_generate,
-    _evaluate_compose_service,
+from dev_project.prepare import (
     collect_execute_step_ids,
     evaluate_prepare_plan,
     make_prepare_context,
+)
+from dev_project.prepare.steps_compose import (
+    evaluate_compose_generate,
+    evaluate_compose_service,
 )
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
@@ -72,8 +74,8 @@ class OdpmPlanSmokeTests(unittest.TestCase):
                 MagicMock(),
                 OdpmCliArgs(),
             )
-            service = _evaluate_compose_service(ctx)
-            generate = _evaluate_compose_generate(ctx)
+            service = evaluate_compose_service(ctx)
+            generate = evaluate_compose_generate(ctx)
             self.assertTrue(service.should_execute())
             self.assertTrue(generate.should_execute())
             self.assertIn("compose.generate", service.reason)

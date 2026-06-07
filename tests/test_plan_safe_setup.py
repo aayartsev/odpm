@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from tests.cli_test_helpers import cli_args
 from pathlib import Path
 from unittest.mock import MagicMock, patch

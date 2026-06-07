@@ -1,7 +1,7 @@
 import os
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from tests.cli_test_helpers import cli_args
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.config.loader import ConfigLoader
 from dev_project.errors import ConfigError
-from dev_project.host_user_env import CreateUserEnvironment
+from dev_project.host.user_env import CreateUserEnvironment
 from dev_project.project_dir_manager import ProjectDirManager
 
 

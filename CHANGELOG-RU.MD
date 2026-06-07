@@ -6,6 +6,46 @@
 
 ---
 
+## [4.1.0] — 6 июня 2026 г.
+
+Небольшой релиз, завершающий раскладку пакетов, начатую в 4.0: **root-shim модули удалены**. Используйте канонические пути под `dev_project.prepare`, `dev_project.plan`, `dev_project.compose` и `dev_project.host`.
+
+### Критические изменения (несовместимость с 4.0 shims)
+
+- **Удалены root-shim модули.** Следующие пути импорта больше не существуют; см. таблицу в README **Миграция импортов 4.0→4.1** и раздел Migration Guide ниже:
+  - `dev_project.prepare_registry` → `dev_project.prepare`
+  - `dev_project.plan_*` → `dev_project.plan.*`
+  - `dev_project.compose_*`, `start_command` → `dev_project.compose.*`
+  - `dev_project.host_*`, `host_cli/*` → `dev_project.host.*` / `dev_project.host.cli.*`
+  - `dev_project.project_env.compose` → `dev_project.compose.generator.ComposeGenerator`
+  - `dev_project.inside_docker_app.cli_params`, `parse_args` — удалены; checker использует `inside_docker_app.params`, host CLI — `dev_project.host.cli.*`
+- **`DeprecationWarning` при import shim больше не выдаётся** — устаревшие импорты завершатся `ModuleNotFoundError`.
+
+### Изменено
+
+- **Production и тесты — только канонические импорты.** `ComposeGenerator` импортируется из `compose.generator`; обновление compose-шаблона — через `project_dir_manager.template_needs_upgrade`.
+- **Имена CLI-флагов checker в контейнере** — модуль `dev_project.inside_docker_app.params` (без зависимости от host-пакетов).
+- **590 тестов** в `unittest discover` (7 skipped — opt-in Docker integration); тесты deprecation и дублирующие shim smoke удалены.
+
+### Migration Guide (4.0 → 4.1)
+
+Если вы уже перевели импорты, когда shims в 4.0 выдавали `DeprecationWarning`, **дополнительных действий не требуется**.
+
+1. **Замените оставшиеся root-shim импорты** в своих скриптах, CI и форках — по таблице в README **Миграция импортов 4.0→4.1**.
+2. **Пример замены:**
+   ```python
+   # Было (shim 4.0 — удалён в 4.1)
+   from dev_project.prepare_registry import make_prepare_context
+   from dev_project.host_cli.args import OdpmCliArgs
+
+   # Стало (4.1)
+   from dev_project.prepare import make_prepare_context
+   from dev_project.host.cli.args import OdpmCliArgs
+   ```
+3. **Перезапустите тесты расширений**; `@patch` должен указывать на канонический модуль (например `dev_project.compose.generator.template_needs_upgrade`).
+
+---
+
 ## [4.0.0] — 6 июня 2026 г.
 
 Четвёртая версия — это **крупное обновление архитектуры**, а не новый продукт с другой целью. Задача odpm остаётся прежней: по манифесту проекта воспроизвести рабочее окружение Odoo на любой машине. Изменился способ, которым это делается: вместо одного длинного сценария в `odpm.py` появился управляемый pipeline, типизированный контракт между хостом и контейнером, три режима использования, фиксация git-зависимостей и возможность установки через pip.

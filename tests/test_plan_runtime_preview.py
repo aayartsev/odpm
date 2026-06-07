@@ -3,12 +3,12 @@
 import json
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.plan_runtime_preview import (
+from dev_project.plan.runtime_preview import (
     clear_runtime_config_preview_cache,
     normalize_runtime_config_text,
     preview_runtime_config_text,

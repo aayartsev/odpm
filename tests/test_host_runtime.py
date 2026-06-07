@@ -3,8 +3,8 @@
 import unittest
 
 from dev_project import constants
-from dev_project.host_runtime import HostRuntimeState
-from dev_project.start_command import ComposeOdooService
+from dev_project.host.runtime import HostRuntimeState
+from dev_project.compose.start_command import ComposeOdooService
 
 
 class HostRuntimeStateTests(unittest.TestCase):

@@ -1,6 +1,6 @@
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -80,7 +80,7 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
 
-        from dev_project.compose_service_builder import ComposeServiceBuilder
+        from dev_project.compose.service_builder import ComposeServiceBuilder
 
         with patch("dev_project.config.payload.write_runtime_config"):
             builder = ComposeServiceBuilder(config)

@@ -7,16 +7,11 @@ import unittest
 from pathlib import Path
 
 _CONTAINER_ROOT = Path(__file__).resolve().parents[1] / "dev_project" / "inside_docker_app"
-_SHIM_FILES = {"parse_args.py", "cli_params.py"}
 _FORBIDDEN_ROOTS = ("host", "host_cli")
 
 
 def _iter_container_python_files() -> list[Path]:
-    return sorted(
-        path
-        for path in _CONTAINER_ROOT.rglob("*.py")
-        if path.name not in _SHIM_FILES
-    )
+    return sorted(_CONTAINER_ROOT.rglob("*.py"))
 
 
 def _imports_forbidden_host_modules(source: str) -> list[str]:

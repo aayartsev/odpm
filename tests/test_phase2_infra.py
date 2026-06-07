@@ -6,7 +6,7 @@ from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from tests.cli_test_helpers import cli_args
 from dev_project.check_system import SystemChecker
 from dev_project.errors import (
@@ -17,7 +17,7 @@ from dev_project.errors import (
     SubprocessError,
     SystemCheckError,
 )
-from dev_project.inside_docker_app import parse_args as parse_args_module
+from dev_project.host.cli import parse_args as parse_args_module
 from dev_project.odpm_pipeline import OdpmPipeline
 from dev_project.project_dir_manager import ProjectDirManager
 

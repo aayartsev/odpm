@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [4.1.0] - 2026-06-06
+
+Minor release that completes the package layout started in 4.0: **root import shims are removed**. Use canonical paths under `dev_project.prepare`, `dev_project.plan`, `dev_project.compose`, and `dev_project.host`.
+
+### Breaking Changes
+
+- **Removed root import shims.** The following modules no longer exist; import from the canonical package paths instead (see Migration Guide 4.0→4.1 below and README **Migration 4.0→4.1 imports**):
+  - `dev_project.prepare_registry` → `dev_project.prepare`
+  - `dev_project.plan_compose_preview`, `plan_runtime_preview`, `plan_compose_runtime`, `plan_diff`, `plan_format`, `plan_cli` → `dev_project.plan.*`
+  - `dev_project.compose_service_builder`, `compose_runtime`, `compose_command_render`, `start_command` → `dev_project.compose.*`
+  - `dev_project.host_context`, `host_runtime`, `host_user_env`, `host_cli/*` → `dev_project.host.*` / `dev_project.host.cli.*`
+  - `dev_project.project_env.compose` → `dev_project.compose.ComposeGenerator` (from `dev_project.compose.generator`)
+  - `dev_project.inside_docker_app.cli_params`, `inside_docker_app.parse_args` → container checker uses `inside_docker_app.params`; host CLI uses `dev_project.host.cli.*`
+- **`DeprecationWarning` on shim import is gone** — shims no longer exist; stale imports fail with `ModuleNotFoundError`.
+
+### Changed
+
+- **Production and tests use canonical imports only.** `CreateProjectEnvironment` imports `ComposeGenerator` from `compose.generator`; compose template upgrade uses `project_dir_manager.template_needs_upgrade`.
+- **Container checker CLI flag names** live in `dev_project.inside_docker_app.params` (no host-package dependency).
+- **590 tests** in `unittest discover` (7 skipped opt-in Docker integration tests); shim deprecation and duplicate shim smoke tests removed.
+
+### Migration Guide (4.0 → 4.1)
+
+If you already migrated imports when 4.0 shims emitted `DeprecationWarning`, **no further action is required**.
+
+1. **Replace any remaining root shim imports** in custom scripts, CI, or forked modules. Use the mapping table in README **Migration 4.0→4.1 imports** (same paths as the 4.0 deprecation messages).
+2. **Typical replacements:**
+   ```python
+   # Before (4.0 shim — removed in 4.1)
+   from dev_project.prepare_registry import make_prepare_context
+   from dev_project.host_cli.args import OdpmCliArgs
+   from dev_project.project_env.compose import ComposeGenerator
+
+   # After (4.1 canonical)
+   from dev_project.prepare import make_prepare_context
+   from dev_project.host.cli.args import OdpmCliArgs
+   from dev_project.compose.generator import ComposeGenerator
+   ```
+3. **Re-run your extension tests** after updating imports; `@patch` targets must use canonical module paths (e.g. `dev_project.compose.generator.template_needs_upgrade`, not `dev_project.project_env.compose.*`).
+
+See also [CHANGELOG-RU.MD](CHANGELOG-RU.MD) for the Russian version.
+
+---
+
 ## [4.0.0] - 2026-06-06
 
 Version 4.0 is a major architectural release. The user-facing goal is unchanged: prepare a reproducible Odoo development environment from `odpm.json`. The implementation was rebuilt around a host pipeline, typed container configuration, three usage scenarios, reproducible git dependency locking, and an installable Python package.

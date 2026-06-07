@@ -5,15 +5,15 @@ import json
 import sys
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-import dev_project.host_cli.parse_args as parse_args_module
-from dev_project.host_cli import params
-from dev_project.host_cli.parse_args import parse_cli_args
-from dev_project.plan_cli import is_plan_mode
+import dev_project.host.cli.parse_args as parse_args_module
+from dev_project.host.cli import params
+from dev_project.host.cli.parse_args import parse_cli_args
+from dev_project.plan.cli import is_plan_mode
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 

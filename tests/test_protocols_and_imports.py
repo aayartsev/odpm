@@ -1,7 +1,4 @@
-import importlib
-import sys
 import unittest
-import warnings
 
 from dev_project.check_system import SystemChecker
 from dev_project.project_env import CreateProjectEnvironment
@@ -84,13 +81,6 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(hasattr(git_module, "HandleOdooProjectLink"))
 
-    def test_compose_service_builder_imports(self):
-        from dev_project import compose_service_builder as builder_module
-        from dev_project.compose import ComposeServiceBuilder as canonical_builder
-
-        self.assertTrue(hasattr(builder_module, "ComposeServiceBuilder"))
-        self.assertIs(builder_module.ComposeServiceBuilder, canonical_builder)
-
     def test_compose_package_imports(self):
         from dev_project import compose as compose_module
         from dev_project.compose import (
@@ -100,59 +90,24 @@ class CanonicalImportSmokeTests(unittest.TestCase):
             StartCommand,
             should_force_recreate_compose,
         )
+        from dev_project.compose.command_render import yaml_scalar
+        from dev_project.compose.runtime import should_force_recreate_compose as runtime_fn
 
         self.assertTrue(hasattr(compose_module, "ComposeServiceBuilder"))
         self.assertTrue(hasattr(compose_module, "ComposeGenerator"))
         self.assertTrue(hasattr(compose_module, "StartCommand"))
         self.assertTrue(callable(should_force_recreate_compose))
+        self.assertIs(should_force_recreate_compose, runtime_fn)
+        self.assertTrue(callable(yaml_scalar))
         self.assertTrue(hasattr(ComposeOdooService, "__dataclass_fields__"))
         self.assertTrue(hasattr(ComposeServiceBuilder, "build"))
         self.assertTrue(hasattr(ComposeGenerator, "render_docker_compose_content"))
         self.assertTrue(hasattr(StartCommand, "__dataclass_fields__"))
 
-    def test_compose_shim_imports(self):
-        from dev_project import compose_runtime as compose_runtime_module
-        from dev_project import compose_command_render as command_render_module
-        from dev_project import start_command as start_command_module
-        from dev_project.compose.runtime import should_force_recreate_compose
-        from dev_project.compose.command_render import yaml_scalar
-        from dev_project.compose.start_command import StartCommand
-
-        self.assertTrue(hasattr(compose_runtime_module, "should_force_recreate_compose"))
-        self.assertIs(
-            compose_runtime_module.should_force_recreate_compose,
-            should_force_recreate_compose,
-        )
-        self.assertTrue(hasattr(command_render_module, "yaml_scalar"))
-        self.assertIs(command_render_module.yaml_scalar, yaml_scalar)
-        self.assertTrue(hasattr(start_command_module, "StartCommand"))
-        self.assertIs(start_command_module.StartCommand, StartCommand)
-
-    def test_compose_generator_shim_imports(self):
-        from dev_project.project_env import compose as compose_shim_module
-        from dev_project.compose import ComposeGenerator as canonical_generator
-
-        self.assertTrue(hasattr(compose_shim_module, "ComposeGenerator"))
-        self.assertIs(compose_shim_module.ComposeGenerator, canonical_generator)
-
     def test_project_materializer_imports(self):
         from dev_project import project_materializer as materializer_module
 
         self.assertTrue(hasattr(materializer_module, "ProjectMaterializer"))
-
-    def test_host_context_imports(self):
-        from dev_project import host_context as host_context_module
-        from dev_project import host as host_module
-
-        self.assertTrue(hasattr(host_context_module, "HostProjectContext"))
-        self.assertTrue(hasattr(host_module, "HostProjectContext"))
-
-    def test_host_runtime_imports(self):
-        from dev_project import host_runtime as host_runtime_module
-        from dev_project import host as host_module
-
-        self.assertTrue(hasattr(host_runtime_module, "HostRuntimeState"))
-        self.assertTrue(hasattr(host_module, "HostRuntimeState"))
 
     def test_host_package_imports(self):
         from dev_project import host as host_module
@@ -160,15 +115,7 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertTrue(hasattr(host_module, "CreateUserEnvironment"))
         self.assertTrue(hasattr(host_module, "HostProjectContext"))
-        self.assertTrue(callable(parse_cli_args))
-        self.assertTrue(hasattr(OdpmCliArgs, "__dataclass_fields__"))
-
-    def test_host_cli_shim_imports(self):
-        from dev_project import host_cli as host_cli_module
-        from dev_project.host_cli.args import OdpmCliArgs
-        from dev_project.host_cli.parse_args import parse_cli_args
-
-        self.assertTrue(hasattr(host_cli_module, "OdpmCliArgs"))
+        self.assertTrue(hasattr(host_module, "HostRuntimeState"))
         self.assertTrue(callable(parse_cli_args))
         self.assertTrue(hasattr(OdpmCliArgs, "__dataclass_fields__"))
 
@@ -194,18 +141,14 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
     def test_plan_module_imports(self):
         from dev_project.plan import OdpmPlanner, PlanStep, format_plan
-        from dev_project.plan.cli import is_plan_mode as canonical_is_plan_mode
+        from dev_project.plan.cli import is_plan_mode
         from dev_project.plan.format import format_plan_json, format_plan_table
-        from dev_project.plan_cli import is_plan_mode
-        from dev_project.plan_format import format_plan_json as shim_format_plan_json
 
         self.assertTrue(callable(OdpmPlanner.build))
         self.assertTrue(callable(is_plan_mode))
-        self.assertIs(is_plan_mode, canonical_is_plan_mode)
         self.assertTrue(callable(format_plan))
         self.assertTrue(callable(format_plan_table))
         self.assertTrue(callable(format_plan_json))
-        self.assertIs(format_plan_json, shim_format_plan_json)
         self.assertTrue(hasattr(PlanStep, "__dataclass_fields__"))
 
     def test_plan_package_imports(self):
@@ -234,29 +177,22 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         self.assertTrue(callable(build_plan_diffs))
         self.assertTrue(callable(preview_runtime_config_text))
 
-    def test_plan_shim_imports(self):
-        from dev_project import plan_compose_preview as compose_preview_shim
-        from dev_project import plan_compose_runtime as compose_runtime_shim
-        from dev_project import plan_diff as diff_shim
-        from dev_project import plan_runtime_preview as runtime_preview_shim
-        from dev_project.plan.compose_preview import compose_service_needs_update
-        from dev_project.plan.compose_runtime import evaluate_compose_up_plan
-        from dev_project.plan.diff import PlanFileDiff
-        from dev_project.plan.runtime_preview import clear_runtime_config_preview_cache
+    def test_prepare_package_imports(self):
+        from dev_project import prepare as prepare_module
+        from dev_project.prepare import (
+            PREPARE_STEPS,
+            PrepareContext,
+            build_prepare_plan,
+            evaluate_prepare_plan,
+            make_prepare_context,
+        )
 
-        self.assertIs(
-            compose_preview_shim.compose_service_needs_update,
-            compose_service_needs_update,
-        )
-        self.assertIs(
-            compose_runtime_shim.evaluate_compose_up_plan,
-            evaluate_compose_up_plan,
-        )
-        self.assertIs(diff_shim.PlanFileDiff, PlanFileDiff)
-        self.assertIs(
-            runtime_preview_shim.clear_runtime_config_preview_cache,
-            clear_runtime_config_preview_cache,
-        )
+        self.assertTrue(hasattr(prepare_module, "make_prepare_context"))
+        self.assertTrue(hasattr(PREPARE_STEPS, "__len__"))
+        self.assertTrue(hasattr(PrepareContext, "__dataclass_fields__"))
+        self.assertTrue(callable(build_prepare_plan))
+        self.assertTrue(callable(evaluate_prepare_plan))
+        self.assertTrue(callable(make_prepare_context))
 
     def test_program_dir_resolver_imports(self):
         from dev_project.program_dir import resolve_program_dir
@@ -274,55 +210,6 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
         self.assertIs(legacy_logger.get_module_logger, canonical_logging.get_module_logger)
         self.assertIs(legacy_logger.CustomFormatter, canonical_logging.CustomFormatter)
-
-
-ROOT_SHIM_DEPRECATIONS = (
-    ("dev_project.prepare_registry", "dev_project.prepare"),
-    ("dev_project.plan_compose_preview", "dev_project.plan.compose_preview"),
-    ("dev_project.plan_runtime_preview", "dev_project.plan.runtime_preview"),
-    ("dev_project.plan_compose_runtime", "dev_project.plan.compose_runtime"),
-    ("dev_project.plan_diff", "dev_project.plan.diff"),
-    ("dev_project.plan_format", "dev_project.plan.format"),
-    ("dev_project.plan_cli", "dev_project.plan.cli"),
-    ("dev_project.compose_service_builder", "dev_project.compose.service_builder"),
-    ("dev_project.compose_runtime", "dev_project.compose.runtime"),
-    ("dev_project.compose_command_render", "dev_project.compose.command_render"),
-    ("dev_project.start_command", "dev_project.compose.start_command"),
-    ("dev_project.host_context", "dev_project.host.context"),
-    ("dev_project.host_runtime", "dev_project.host.runtime"),
-    ("dev_project.host_user_env", "dev_project.host.user_env"),
-    ("dev_project.host_cli", "dev_project.host.cli"),
-    ("dev_project.host_cli.args", "dev_project.host.cli.args"),
-    ("dev_project.host_cli.parse_args", "dev_project.host.cli.parse_args"),
-    ("dev_project.host_cli.params", "dev_project.host.cli.params"),
-    (
-        "dev_project.inside_docker_app.cli_params",
-        "dev_project.host.cli.params",
-    ),
-    (
-        "dev_project.inside_docker_app.parse_args",
-        "dev_project.host.cli.parse_args",
-    ),
-    (
-        "dev_project.project_env.compose",
-        "dev_project.compose.ComposeGenerator",
-    ),
-)
-
-
-class ShimDeprecationTests(unittest.TestCase):
-    def test_root_shims_emit_deprecation_warning(self):
-        for module_name, canonical in ROOT_SHIM_DEPRECATIONS:
-            with self.subTest(module=module_name):
-                sys.modules.pop(module_name, None)
-                with warnings.catch_warnings(record=True) as caught:
-                    warnings.simplefilter("always", DeprecationWarning)
-                    importlib.import_module(module_name)
-                self.assertEqual(len(caught), 1, caught)
-                self.assertEqual(caught[0].category, DeprecationWarning)
-                message = str(caught[0].message)
-                self.assertIn(module_name, message)
-                self.assertIn(canonical, message)
 
 
 if __name__ == "__main__":

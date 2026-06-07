@@ -3,14 +3,14 @@
 import json
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-import dev_project.host_cli.parse_args as parse_args_module
+import dev_project.host.cli.parse_args as parse_args_module
 from dev_project.plan import OdpmPlan, PlanStep, format_plan
-from dev_project.plan_format import (
+from dev_project.plan.format import (
     PLAN_JSON_VERSION,
     format_plan_json,
     format_plan_table,
@@ -46,7 +46,7 @@ class PlanFormatHelperTests(unittest.TestCase):
 
 class PlanJsonFormatTests(unittest.TestCase):
     def _plan(self) -> OdpmPlan:
-        from dev_project.plan_diff import PlanFileDiff
+        from dev_project.plan.diff import PlanFileDiff
 
         return OdpmPlan(
             steps=(

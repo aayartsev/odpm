@@ -15,7 +15,7 @@ from ..protocols import RuntimeProjectServicesProtocol, SystemCheckerProtocol
 from ..dependency_resolver import DependencyResolutionResult
 from .base_image import BaseImageBuilder
 from .ci_image import CiImageBuilder
-from .compose import ComposeGenerator
+from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
 from .templates import ProjectTemplates
 from .types import (

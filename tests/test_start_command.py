@@ -1,12 +1,12 @@
 import unittest
 
 from dev_project import constants
-from dev_project.compose_command_render import (
+from dev_project.compose.command_render import (
     render_compose_command_block,
     render_odpm_config_path_env_line,
     yaml_scalar,
 )
-from dev_project.start_command import StartCommand
+from dev_project.compose.start_command import StartCommand
 
 
 class ComposeCommandRenderTests(unittest.TestCase):

@@ -7,14 +7,14 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 
 from dev_project import constants
 from dev_project.bake_venv import VenvInstallSpec, write_ci_venv_install_spec
 from dev_project.config import Config
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.ci_image import CiImageBuilder
-from dev_project.compose_service_builder import ComposeServiceBuilder
+from dev_project.compose.service_builder import ComposeServiceBuilder
 from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

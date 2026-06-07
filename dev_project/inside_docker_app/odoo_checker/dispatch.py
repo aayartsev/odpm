@@ -5,7 +5,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ...container_config import ContainerConfig
-from .. import cli_params
+from ..params import (
+    DB_BACKUP_PARAM,
+    DB_DROP_PARAM,
+    DB_RESTORE_PARAM,
+    D_PARAM,
+    EXPORT_PO_FILES,
+    GET_DB_LIST_PARAM,
+    SET_ADMIN_PASS_PARAM,
+    SQL_EXECUTE_PARAM,
+)
 from .admin_ops import OdooAdminOps
 from .db_ops import OdooDbOps
 from .i18n_ops import OdooI18nOps
@@ -32,17 +41,17 @@ class CheckerCliFlags:
 
 def checker_cli_flags(args_dict: dict) -> CheckerCliFlags:
     return CheckerCliFlags(
-        drop_db_name=args_dict.get(_arg_key(cli_params.DB_DROP_PARAM), False),
-        get_db_list=args_dict.get(_arg_key(cli_params.GET_DB_LIST_PARAM), False),
-        db_name=args_dict.get(_arg_key(cli_params.D_PARAM), False),
+        drop_db_name=args_dict.get(_arg_key(DB_DROP_PARAM), False),
+        get_db_list=args_dict.get(_arg_key(GET_DB_LIST_PARAM), False),
+        db_name=args_dict.get(_arg_key(D_PARAM), False),
         db_restore_file_path=args_dict.get(
-            _arg_key(cli_params.DB_RESTORE_PARAM), False
+            _arg_key(DB_RESTORE_PARAM), False
         ),
-        db_backup=args_dict.get(_arg_key(cli_params.DB_BACKUP_PARAM), False),
-        set_admin_pass=args_dict.get(_arg_key(cli_params.SET_ADMIN_PASS_PARAM), False),
-        sql_execute=args_dict.get(_arg_key(cli_params.SQL_EXECUTE_PARAM), False),
+        db_backup=args_dict.get(_arg_key(DB_BACKUP_PARAM), False),
+        set_admin_pass=args_dict.get(_arg_key(SET_ADMIN_PASS_PARAM), False),
+        sql_execute=args_dict.get(_arg_key(SQL_EXECUTE_PARAM), False),
         export_po_files_lang=args_dict.get(
-            _arg_key(cli_params.EXPORT_PO_FILES), False
+            _arg_key(EXPORT_PO_FILES), False
         ),
     )
 

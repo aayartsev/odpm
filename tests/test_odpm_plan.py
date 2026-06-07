@@ -2,7 +2,7 @@
 
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -16,7 +16,7 @@ from dev_project.plan import (
     runtime_config_stale,
     skip_git_update,
 )
-from dev_project.prepare_registry import (
+from dev_project.prepare import (
     build_prepare_plan,
     collect_execute_step_ids,
     evaluate_prepare_plan,

@@ -2,18 +2,18 @@
 
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-import dev_project.host_cli.parse_args as parse_args_module
+import dev_project.host.cli.parse_args as parse_args_module
 from dev_project.plan import OdpmPlanner, format_plan
-from dev_project.plan_compose_runtime import (
+from dev_project.plan.compose_runtime import (
     PLAN_NO_DOCKER_WARNING,
     evaluate_compose_up_plan,
     plan_probes_compose_stack,
 )
-from dev_project.prepare_registry import build_runtime_plan_warnings
+from dev_project.prepare import build_runtime_plan_warnings
 from dev_project.scenario_policy import ScenarioPolicy
 
 

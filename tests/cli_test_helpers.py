@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 
 
 def cli_args(**kwargs) -> OdpmCliArgs:

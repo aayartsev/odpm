@@ -87,11 +87,11 @@ Full golden-path (compose up + HTTP 200 `/web`) — **nightly**, **workflow_disp
 ./scripts/run_compose_smoke_test.sh
 ```
 
-### Миграция импортов
+### Миграция импортов 4.0→4.1
 
-Root-shim модули в `dev_project/` пока импортируются в 4.0, но при import выдают **`DeprecationWarning`**. Переведите свои скрипты и расширения на канонические пути, когда shims будут удалены.
+**Начиная с 4.1.0, root-shim модули в `dev_project/` удалены.** Используйте канонические пути ниже; старые импорты завершатся `ModuleNotFoundError`.
 
-| Устаревший импорт | Используйте вместо |
+| Удалённый импорт (shim 4.0) | Используйте вместо |
 |---|---|
 | `dev_project.prepare_registry` | `dev_project.prepare` |
 | `dev_project.plan_compose_preview` | `dev_project.plan.compose_preview` |
@@ -111,15 +111,11 @@ Root-shim модули в `dev_project/` пока импортируются в 
 | `dev_project.host_cli.args` | `dev_project.host.cli.args` |
 | `dev_project.host_cli.parse_args` | `dev_project.host.cli.parse_args` |
 | `dev_project.host_cli.params` | `dev_project.host.cli.params` |
-| `dev_project.inside_docker_app.cli_params` | `dev_project.host.cli.params` |
-| `dev_project.inside_docker_app.parse_args` | `dev_project.host.cli.parse_args` |
-| `dev_project.project_env.compose` | `dev_project.compose.ComposeGenerator` |
+| `dev_project.inside_docker_app.cli_params` | `dev_project.host.cli.params` (host); флаги checker: `dev_project.inside_docker_app.params` |
+| `dev_project.inside_docker_app.parse_args` | `dev_project.host.cli.parse_args` (только host) |
+| `dev_project.project_env.compose` | `dev_project.compose.generator.ComposeGenerator` или `from dev_project.compose import ComposeGenerator` |
 
-Чтобы видеть предупреждения при проверке миграции:
-
-```bash
-python3 -Wdefault::DeprecationWarning -m unittest discover -s tests -p 'test_*.py'
-```
+Имена CLI-флагов checker в контейнере: `dev_project.inside_docker_app.params` (host CLI: `dev_project.host.cli.params`).
 
 
 ## Как начать работать

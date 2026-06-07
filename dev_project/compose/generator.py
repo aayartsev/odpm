@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .. import constants, translations
+from ..project_dir_manager import template_needs_upgrade
 from ..config.payload import runtime_config_path
 from ..logging import get_module_logger
 from .command_render import (
@@ -30,9 +32,7 @@ class ComposeGenerator:
         return self.env.user_env
 
     def _ensure_compose_template_current(self, template_path: str) -> list[str]:
-        from dev_project.project_env import compose as compose_shim
-
-        if compose_shim.template_needs_upgrade(
+        if template_needs_upgrade(
             template_path, constants.COMPOSE_TEMPLATE_MARKERS
         ):
             _logger.info(
@@ -57,9 +57,7 @@ class ComposeGenerator:
                     " " * 6 + f"- {mapped_volume.local}:{mapped_volume.docker}:Z"
                 )
                 if not os.path.exists(mapped_volume.local):
-                    from dev_project.project_env import compose as compose_shim
-
-                    compose_shim.Path(mapped_volume.local).mkdir(
+                    Path(mapped_volume.local).mkdir(
                         parents=True, exist_ok=True
                     )
         if not volume_lines:

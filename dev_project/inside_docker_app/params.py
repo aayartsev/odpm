@@ -1,0 +1,10 @@
+"""CLI flag name constants for container-side Odoo checker dispatch."""
+
+DB_DROP_PARAM = "--db-drop"
+GET_DB_LIST_PARAM = "--get-dbs-list"
+D_PARAM = "-d"
+DB_RESTORE_PARAM = "--db-restore"
+DB_BACKUP_PARAM = "--db-backup"
+SET_ADMIN_PASS_PARAM = "--set-admin-pass"
+SQL_EXECUTE_PARAM = "--sql-execute"
+EXPORT_PO_FILES = "--export-po-files"

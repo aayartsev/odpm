@@ -2,13 +2,13 @@
 
 import tempfile
 import unittest
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.plan import PlanStep
-from dev_project.plan_compose_preview import (
+from dev_project.plan.compose_preview import (
     compose_service_needs_update,
     preview_compose_service,
     vscode_settings_up_to_date,
@@ -20,10 +20,10 @@ from dev_project.prepare.steps_docker import (
     exec_docker_ports_release,
 )
 from dev_project.prepare.steps_project import evaluate_update_links
-from dev_project.prepare_registry import (
-    _evaluate_compose_generate,
-    _evaluate_compose_service,
-    make_prepare_context,
+from dev_project.prepare import make_prepare_context
+from dev_project.prepare.steps_compose import (
+    evaluate_compose_generate,
+    evaluate_compose_service,
 )
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -143,7 +143,7 @@ class ComposeGenerateOutcomeTests(unittest.TestCase):
                 MagicMock(),
                 OdpmCliArgs(),
             )
-            step = _evaluate_compose_generate(ctx)
+            step = evaluate_compose_generate(ctx)
             self.assertEqual(step.outcome, "noop")
             self.assertEqual(step.reason, "docker-compose.yml matches preview")
 
@@ -160,8 +160,8 @@ class ComposeServiceGenerateAlignmentTests(unittest.TestCase):
             config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
             config.compute_venv_lock_hash.return_value = "hash"
             ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
-            service = _evaluate_compose_service(ctx)
-            generate = _evaluate_compose_generate(ctx)
+            service = evaluate_compose_service(ctx)
+            generate = evaluate_compose_generate(ctx)
             self.assertEqual(service.outcome, "run")
             self.assertEqual(generate.outcome, "update")
             self.assertTrue(service.should_execute())

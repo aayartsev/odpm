@@ -162,7 +162,7 @@ def build_plan_diffs(
         if runtime_diff is not None:
             diffs.append(runtime_diff)
     if _step_would_change(plan, "compose.generate"):
-        with patch("dev_project.project_env.compose.Path.mkdir"):
+        with patch("pathlib.Path.mkdir"):
             compose_diff = diff_docker_compose(config, project_env)
         if compose_diff is not None:
             diffs.append(compose_diff)

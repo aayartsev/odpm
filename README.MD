@@ -89,9 +89,9 @@ Local compose smoke:
 
 ### Migration 4.0→4.1 imports
 
-Root-level shim modules under `dev_project/` remain importable in 4.0 but emit **`DeprecationWarning`** on import. Switch custom scripts and extensions to the canonical paths below before **4.1.0**, when shims are removed.
+**As of 4.1.0, root-level shim modules under `dev_project/` are removed.** Custom scripts and extensions must use the canonical paths below. Imports of the old paths raise `ModuleNotFoundError`.
 
-| Deprecated import | Use instead |
+| Removed import (4.0 shim) | Use instead |
 |---|---|
 | `dev_project.prepare_registry` | `dev_project.prepare` |
 | `dev_project.plan_compose_preview` | `dev_project.plan.compose_preview` |
@@ -111,15 +111,11 @@ Root-level shim modules under `dev_project/` remain importable in 4.0 but emit *
 | `dev_project.host_cli.args` | `dev_project.host.cli.args` |
 | `dev_project.host_cli.parse_args` | `dev_project.host.cli.parse_args` |
 | `dev_project.host_cli.params` | `dev_project.host.cli.params` |
-| `dev_project.inside_docker_app.cli_params` | `dev_project.host.cli.params` |
-| `dev_project.inside_docker_app.parse_args` | `dev_project.host.cli.parse_args` |
-| `dev_project.project_env.compose` | `dev_project.compose.ComposeGenerator` |
+| `dev_project.inside_docker_app.cli_params` | `dev_project.host.cli.params` (host); checker flags: `dev_project.inside_docker_app.params` |
+| `dev_project.inside_docker_app.parse_args` | `dev_project.host.cli.parse_args` (host only) |
+| `dev_project.project_env.compose` | `dev_project.compose.generator.ComposeGenerator` or `from dev_project.compose import ComposeGenerator` |
 
-To surface warnings while testing migrations:
-
-```bash
-python3 -Wdefault::DeprecationWarning -m unittest discover -s tests -p 'test_*.py'
-```
+Container-side checker flag names: `dev_project.inside_docker_app.params` (host CLI: `dev_project.host.cli.params`).
 
 
 ## How to start work

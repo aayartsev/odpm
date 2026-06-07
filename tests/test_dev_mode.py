@@ -6,10 +6,10 @@ import unittest
 from dataclasses import replace
 from unittest.mock import MagicMock, patch
 
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 
 from dev_project import constants
-from dev_project.compose_service_builder import ComposeServiceBuilder
+from dev_project.compose.service_builder import ComposeServiceBuilder
 from dev_project.dev_mode import (
     dev_mode_disabled,
     effective_dev_mode,

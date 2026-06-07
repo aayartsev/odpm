@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants, translations
-from dev_project.host_cli.args import OdpmCliArgs
+from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.errors import PipelineError
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.base_image import BaseImageBuilder

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from dev_project.compose_runtime import (
+from dev_project.compose.runtime import (
     compose_stack_is_healthy,
     container_is_running_and_healthy,
     should_force_recreate_compose,
