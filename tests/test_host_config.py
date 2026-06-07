@@ -10,6 +10,7 @@ from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.bootstrap import load_project_settings, load_user_settings
+from dev_project.config.artifacts import DeprecatedConfigHandler
 from dev_project.config.defaults import ConfigDefaultsFactory
 from dev_project.config.loader import ConfigLoader
 from dev_project.config.manifests import OdpmJsonReader, UserSettingsReader
@@ -36,27 +37,6 @@ class ConfigLoaderTests(unittest.TestCase):
             loader.beautify_module_list(None),
             constants.DEFAULT_LIST_OF_MODULES,
         )
-
-    def test_check_for_config_renames_legacy_config_json(self):
-        with tempfile.TemporaryDirectory() as project_dir:
-            config = MagicMock()
-            config.project_dir = project_dir
-            config.config_json_content = {}
-            config.config_json_path = ""
-            config.config_deprecated_json_path = ""
-
-            legacy_path = os.path.join(project_dir, constants.CONFIG_FILE_NAME)
-            Path(legacy_path).write_text('{"init_modules": []}', encoding="utf-8")
-
-            ConfigLoader(config).check_for_config()
-
-            self.assertFalse(os.path.exists(legacy_path))
-            deprecated_path = os.path.join(
-                project_dir, f"deprecated_{constants.CONFIG_FILE_NAME}"
-            )
-            self.assertTrue(os.path.exists(deprecated_path))
-            self.assertEqual(config.config_json_content, {"init_modules": []})
-
 
 class ConfigPathsTests(unittest.TestCase):
     def test_get_odoo_ci_image_name_uses_image_tag_when_set(self):
@@ -188,7 +168,26 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         self.assertEqual(content["odoo_version"], "18.0")
 
 
-class ConfigLoaderExtraTests(unittest.TestCase):
+class DeprecatedConfigHandlerTests(unittest.TestCase):
+    def test_check_for_config_renames_legacy_config_json(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.config_json_content = {}
+            config.config_json_path = ""
+            config.config_deprecated_json_path = ""
+
+            legacy_path = os.path.join(project_dir, constants.CONFIG_FILE_NAME)
+            Path(legacy_path).write_text('{"init_modules": []}', encoding="utf-8")
+
+            DeprecatedConfigHandler(config).check_for_config()
+
+            self.assertFalse(os.path.exists(legacy_path))
+            deprecated_path = os.path.join(
+                project_dir, f"deprecated_{constants.CONFIG_FILE_NAME}"
+            )
+            self.assertTrue(os.path.exists(deprecated_path))
+            self.assertEqual(config.config_json_content, {"init_modules": []})
 
     def test_check_file_for_deprecated_words_renames_file(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -196,13 +195,16 @@ class ConfigLoaderExtraTests(unittest.TestCase):
             with open(path, "w", encoding="utf-8") as writer:
                 writer.write("services:\n  {DEBUGGER_PORT_MAP}:\n")
 
-            config = MagicMock()
-            ConfigLoader(config).check_file_for_deprecated_words(path)
+            DeprecatedConfigHandler(MagicMock()).check_file_for_deprecated_words(path)
 
             self.assertFalse(os.path.exists(path))
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "deprecated_docker-compose.yml"))
             )
+
+    def test_check_file_for_deprecated_words_noop_when_file_missing(self):
+        handler = DeprecatedConfigHandler(MagicMock())
+        handler.check_file_for_deprecated_words("/tmp/does-not-exist-odpm-test.yml")
 
 
 class ConfigPayloadTests(unittest.TestCase):
@@ -371,6 +373,22 @@ class UserSettingsReaderTests(unittest.TestCase):
 
 
 class ConfigLoaderManifestDelegationTests(unittest.TestCase):
+    def test_loader_delegates_deprecated_handler_for_legacy_config(self):
+        config = MagicMock()
+        loader = ConfigLoader(config)
+        with patch.object(loader._deprecated, "check_for_config") as mock_check:
+            loader.check_for_config()
+        mock_check.assert_called_once()
+
+    def test_loader_delegates_deprecated_handler_for_template_scan(self):
+        config = MagicMock()
+        loader = ConfigLoader(config)
+        with patch.object(
+            loader._deprecated, "check_file_for_deprecated_words"
+        ) as mock_check:
+            loader.check_file_for_deprecated_words("/tmp/docker-compose.yml")
+        mock_check.assert_called_once_with("/tmp/docker-compose.yml")
+
     def test_loader_delegates_defaults_factory_for_developing_link(self):
         config = MagicMock()
         loader = ConfigLoader(config)

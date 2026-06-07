@@ -17,6 +17,7 @@
 - **`dev_project/git/link.py`** — `HandleOdooProjectLink` собирает `GitRunner`, `RepoCloneService`, `CheckoutService` и `BuildDateResolver` через `_wire_git_services()`; **`dev_project/git/operations.py` удалён**. Публичный API link без изменений; partial-link helpers в тестах вызывают `_wire_git_services()`. `HandleOdooProjectLinkGitServicesTests` заменяют `GitOperationsTests`.
 - **`dev_project/config/manifests/`** — `UserSettingsReader` и `OdpmJsonReader` вынесены из `ConfigLoader`: пути manifest-файлов и загрузка JSON; `ConfigLoader` делегирует через тонкие обёртки. Фабрики defaults (`create_default_user_setting_json_content`, `rewrite_odpm_json`) остаются в loader до C-2. `OdpmJsonReaderTests`, `UserSettingsReaderTests` и тесты делегирования loader в `test_host_config`.
 - **`dev_project/config/defaults/factory.py`** — `ConfigDefaultsFactory` вынесен из `ConfigLoader`: `get_developing_project_link`, `create_default_user_setting_json_content`, `create_default_odpm_json_content` (включая interactive prompt выбора версии Odoo); loader и manifest readers подключаются через `_defaults`. `ConfigDefaultsFactoryTests` в `test_host_config`; `test_noninteractive_init` патчит `defaults.factory`.
+- **`dev_project/config/artifacts/deprecated.py`** — `DeprecatedConfigHandler` вынесен из `ConfigLoader`: миграция legacy `config.json` и сканирование deprecated placeholders в шаблонах; `ConfigLoader` делегирует через тонкие обёртки. `DeprecatedConfigHandlerTests` и тесты делегирования loader в `test_host_config`; `test_template_upgrade` без изменений.
 
 ---
 
