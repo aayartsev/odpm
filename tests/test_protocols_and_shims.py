@@ -167,15 +167,69 @@ class CanonicalImportSmokeTests(unittest.TestCase):
 
     def test_plan_module_imports(self):
         from dev_project.plan import OdpmPlanner, PlanStep, format_plan
+        from dev_project.plan.cli import is_plan_mode as canonical_is_plan_mode
+        from dev_project.plan.format import format_plan_json, format_plan_table
         from dev_project.plan_cli import is_plan_mode
-        from dev_project.plan_format import format_plan_json, format_plan_table
+        from dev_project.plan_format import format_plan_json as shim_format_plan_json
 
         self.assertTrue(callable(OdpmPlanner.build))
         self.assertTrue(callable(is_plan_mode))
+        self.assertIs(is_plan_mode, canonical_is_plan_mode)
         self.assertTrue(callable(format_plan))
         self.assertTrue(callable(format_plan_table))
         self.assertTrue(callable(format_plan_json))
+        self.assertIs(format_plan_json, shim_format_plan_json)
         self.assertTrue(hasattr(PlanStep, "__dataclass_fields__"))
+
+    def test_plan_package_imports(self):
+        from dev_project import plan as plan_module
+        from dev_project.plan import (
+            OdpmPlanner,
+            PlanStep,
+            deps_lock_file_exists,
+            project_template_needs_upgrade,
+        )
+        from dev_project.plan.compose_preview import preview_compose_service
+        from dev_project.plan.compose_runtime import compose_up_would_run
+        from dev_project.plan.core import OdpmPlan, runtime_config_stale
+        from dev_project.plan.diff import PlanFileDiff, build_plan_diffs
+        from dev_project.plan.runtime_preview import preview_runtime_config_text
+
+        self.assertTrue(hasattr(plan_module, "OdpmPlanner"))
+        self.assertTrue(hasattr(plan_module, "PlanStep"))
+        self.assertTrue(callable(deps_lock_file_exists))
+        self.assertTrue(callable(project_template_needs_upgrade))
+        self.assertTrue(callable(preview_compose_service))
+        self.assertTrue(callable(compose_up_would_run))
+        self.assertTrue(callable(runtime_config_stale))
+        self.assertTrue(hasattr(OdpmPlan, "__dataclass_fields__"))
+        self.assertTrue(hasattr(PlanFileDiff, "__dataclass_fields__"))
+        self.assertTrue(callable(build_plan_diffs))
+        self.assertTrue(callable(preview_runtime_config_text))
+
+    def test_plan_shim_imports(self):
+        from dev_project import plan_compose_preview as compose_preview_shim
+        from dev_project import plan_compose_runtime as compose_runtime_shim
+        from dev_project import plan_diff as diff_shim
+        from dev_project import plan_runtime_preview as runtime_preview_shim
+        from dev_project.plan.compose_preview import compose_service_needs_update
+        from dev_project.plan.compose_runtime import evaluate_compose_up_plan
+        from dev_project.plan.diff import PlanFileDiff
+        from dev_project.plan.runtime_preview import clear_runtime_config_preview_cache
+
+        self.assertIs(
+            compose_preview_shim.compose_service_needs_update,
+            compose_service_needs_update,
+        )
+        self.assertIs(
+            compose_runtime_shim.evaluate_compose_up_plan,
+            evaluate_compose_up_plan,
+        )
+        self.assertIs(diff_shim.PlanFileDiff, PlanFileDiff)
+        self.assertIs(
+            runtime_preview_shim.clear_runtime_config_preview_cache,
+            clear_runtime_config_preview_cache,
+        )
 
     def test_program_dir_resolver_imports(self):
         from dev_project.program_dir import resolve_program_dir

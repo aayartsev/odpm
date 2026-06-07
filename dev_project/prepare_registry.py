@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from .compose.service_builder import ComposeServiceBuilder
 from .git.deps_lock_manager import DepsLockManager
-from .plan_compose_preview import (
+from .plan.compose_preview import (
     compose_generate_needs_execute,
     compose_service_needs_update,
     vscode_settings_up_to_date,
 )
-from .plan_compose_runtime import compose_up_would_run, evaluate_compose_up_plan
+from .plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
 from .prepare import (
     PREPARE_STEPS,
     PrepareContext,

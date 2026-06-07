@@ -1,12 +1,5 @@
-"""CLI helpers for odpm plan / odpm plan subcommand."""
+"""Backward-compatible shim for ``dev_project.plan.cli``."""
 
-from __future__ import annotations
+from dev_project.plan.cli import is_plan_mode
 
-from .host.cli import params as cli_params
-from .host.cli.args import OdpmCliArgs
-
-
-def is_plan_mode(args: OdpmCliArgs) -> bool:
-    if args.plan:
-        return True
-    return args.command == cli_params.PLAN_SUBCOMMAND
+__all__ = ["is_plan_mode"]

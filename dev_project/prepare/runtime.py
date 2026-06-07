@@ -5,7 +5,7 @@ from __future__ import annotations
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..plan import PlanStep
-from ..plan_compose_preview import vscode_settings_up_to_date
+from ..plan.compose_preview import vscode_settings_up_to_date
 from ..config import Config
 from .helpers import make_plan_step
 

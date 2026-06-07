@@ -1,11 +1,4 @@
-"""Dry-run plan for ``odpm plan`` / ``odpm --plan``.
-
-Predicts prepare and runtime steps without running git materialization,
-writing runtime config or root compose, or ``docker compose up``. Loading
-configuration does not upgrade templates under ``.odpm/`` (normal runs still
-sync them). Unless ``--plan-no-docker`` is set, odpm may probe the local
-compose stack for ``compose.up`` predictions.
-"""
+"""Plan step types and shared evaluation helpers."""
 
 from __future__ import annotations
 
@@ -15,17 +8,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TYPE_CHECKING
 
-from . import constants
-from .config.payload import runtime_config_path
-from .host.cli.args import OdpmCliArgs
-from .host.context import HostProjectContext
-from .project_dir_manager import template_needs_upgrade
-from .project_env.base_image_identity import base_image_identity_matches
+from .. import constants
+from ..config.payload import runtime_config_path
+from ..host.cli.args import OdpmCliArgs
+from ..project_dir_manager import template_needs_upgrade
 
 if TYPE_CHECKING:
-    from .config import Config
-    from .plan_diff import PlanFileDiff
-    from .project_env import CreateProjectEnvironment
+    from ..config import Config
+    from .diff import PlanFileDiff
 
 PlanStepOutcome = Literal["run", "update", "noop", "skip"]
 
@@ -63,7 +53,7 @@ def update_lock_requested(arguments: OdpmCliArgs) -> bool:
 
 
 def deps_lock_file_exists(project_dir: str) -> bool:
-    from .git.deps_lock import deps_lock_path
+    from ..git.deps_lock import deps_lock_path
 
     return os.path.isfile(deps_lock_path(project_dir))
 
@@ -93,37 +83,3 @@ def dockerfile_template_relative(config: Config) -> str:
         constants.PROJECT_SERVICE_DIRECTORY,
         config.dockerfile_template_name,
     )
-
-
-class OdpmPlanner:
-    @classmethod
-    def build(
-        cls,
-        config: Config,
-        args: OdpmCliArgs,
-        project_env: CreateProjectEnvironment | None = None,
-    ) -> OdpmPlan:
-        from .plan_diff import build_plan_diffs
-        from .plan_runtime_preview import clear_runtime_config_preview_cache
-        from .prepare_registry import build_plan
-
-        clear_runtime_config_preview_cache(config)
-        plan = build_plan(config, args)
-        diffs = build_plan_diffs(plan, config, args, project_env)
-        if not diffs:
-            return plan
-        return OdpmPlan(
-            steps=plan.steps,
-            warnings=plan.warnings,
-            diffs=diffs,
-        )
-
-
-def format_plan(
-    plan: OdpmPlan,
-    args: OdpmCliArgs | None = None,
-    config: "Config | None" = None,
-) -> str:
-    from .plan_format import format_plan as format_plan_output
-
-    return format_plan_output(plan, args, config)

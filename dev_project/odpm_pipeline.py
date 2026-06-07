@@ -140,7 +140,7 @@ class OdpmPipeline:
 
     def run(self) -> None:
         try:
-            from .plan_cli import is_plan_mode
+            from .plan.cli import is_plan_mode
 
             for_plan = is_plan_mode(self.cli_args)
             self.setup(for_plan=for_plan)
