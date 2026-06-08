@@ -17,7 +17,7 @@ jobs:
   deb:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install build dependencies
         run: |
@@ -56,7 +56,7 @@ jobs:
             '
 
       - name: Upload deb artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: package-deb
           path: dist/odpm_*.deb
@@ -64,7 +64,7 @@ jobs:
   rpm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build .rpm (Fedora 41)
         run: |
@@ -103,7 +103,7 @@ jobs:
             '
 
       - name: Upload rpm artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: package-rpm
           path: dist/odpm-*.rpm
@@ -112,7 +112,7 @@ jobs:
     needs: [deb, rpm]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           pattern: package-*
           path: dist
@@ -125,7 +125,7 @@ jobs:
 
       - name: Upload release assets
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             dist/odpm_*.deb
@@ -134,7 +134,7 @@ jobs:
 
       - name: Upload workflow artifacts
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: release-packages
           path: |
