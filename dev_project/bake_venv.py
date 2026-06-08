@@ -13,7 +13,7 @@ import venv
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from pip._vendor.packaging.markers import Marker, default_environment
+from packaging.markers import Marker, default_environment
 
 from . import constants
 from .container_config import ContainerConfig

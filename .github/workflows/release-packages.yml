@@ -1,0 +1,78 @@
+name: Release packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-packages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            debhelper dh-python pybuild-plugin-pyproject \
+            python3-all python3-setuptools python3-wheel \
+            devscripts lintian git
+
+      - name: Build .deb
+        run: ./scripts/build_deb.sh
+
+      - name: Lintian (no errors)
+        run: lintian -E dist/odpm_*.deb
+
+      - name: Install smoke (clean Ubuntu 24.04)
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/dist:/pkgs:ro" \
+            ubuntu:24.04 \
+            bash -c '
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -qq
+              apt-get install -y -qq /pkgs/odpm_*.deb
+              useradd -m -s /bin/bash odpm-smoke
+              runuser -u odpm-smoke -- odpm --version
+              runuser -u odpm-smoke -- python3 -c "
+          from dev_project.program_dir import resolve_program_dir
+          from pathlib import Path
+          import dev_project.constants as c
+          r = resolve_program_dir()
+          assert (Path(r) / c.DEV_PROJECT_DIR / \"templates\").is_dir()
+          assert (Path(r) / c.DEV_PROJECT_DIR / \"i18n/ru_RU/LC_MESSAGES/main.mo\").is_file()
+          print(\"deb smoke OK\")
+          "
+            '
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum odpm_*.deb | tee SHA256SUMS
+
+      - name: Upload release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/odpm_*.deb
+            dist/SHA256SUMS
+
+      - name: Upload workflow artifacts
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-ubuntu-24.04
+          path: |
+            dist/odpm_*.deb
+            dist/SHA256SUMS

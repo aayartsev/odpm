@@ -1,0 +1,29 @@
+Source: odpm
+Section: python
+Priority: optional
+Maintainer: odpm maintainers <odpm-maintainers@noreply.github.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               pybuild-plugin-pyproject,
+               python3-all,
+               python3-setuptools,
+               python3-wheel,
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://github.com/aayartsev/odoo_dev_project
+Vcs-Git: https://github.com/aayartsev/odoo_dev_project.git
+Vcs-Browser: https://github.com/aayartsev/odoo_dev_project
+X-Python3-Version: >= 3.10
+
+Package: odpm
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-packaging,
+         git,
+Recommends: docker.io | moby-engine | docker-ce,
+Description: Odoo Developers Project Manager
+ Declarative environment manager for Odoo development projects.
+ Reads odpm.json from a project repository and prepares Docker-based
+ development stacks (clone sources, build images, compose up PostgreSQL
+ and Odoo). Zero runtime Python dependencies beyond the system interpreter.

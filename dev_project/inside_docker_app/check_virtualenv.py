@@ -3,8 +3,8 @@ import os
 import subprocess
 import sys
 
-import pip._vendor.packaging.version as pip_ver
-from pip._vendor.packaging.utils import canonicalize_name
+import packaging.version as pip_ver
+from packaging.utils import canonicalize_name
 
 from .. import constants
 from ..bake_venv import (
