@@ -17,6 +17,8 @@ debian/debhelper-build-stamp
 debian/files
 debian/*.substvars
 debian/*.debhelper
+# rpmbuild outputs (keep packaging/odpm.spec)
+.rpmbuild/
 build/
 develop-eggs/
 dist/

@@ -1,0 +1,5 @@
+[[Includes]]
+path = "/etc/xdg/rpmlint/fedora.toml"
+
+[Filter]
+overrides = ["spelling-error"]

@@ -41,9 +41,21 @@ The package installs `/usr/bin/odpm` and ships `dev_project` templates + i18n `.
 
 Verify checksums from release `SHA256SUMS` when installing from GitHub.
 
+### Fedora / RHEL (.rpm) — recommended on Fedora
+
+Download **`odpm-*.noarch.rpm`** from [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases), or build locally (Fedora 41+):
+
+```bash
+./scripts/build_rpm.sh
+sudo dnf install ./dist/odpm-*.rpm
+odpm --version
+```
+
+Installs `/usr/bin/odpm` and ships `dev_project` under `python3/site-packages`. **Requires:** `python3-packaging`, `git`. **Recommends:** `moby-engine` / `docker`. Zero PyPI runtime dependencies.
+
 ### pip (4.0+)
 
-For development or non-Debian systems. Requires **Python 3.10+**. On Linux distros with [PEP 668](https://peps.python.org/pep-0668/) (externally managed system Python), install into a virtual environment or use [pipx](https://pipx.pypa.io/) instead of system-wide `pip install`.
+For development or non-native-package systems. Requires **Python 3.10+**. On Linux distros with [PEP 668](https://peps.python.org/pep-0668/) (externally managed system Python), install into a virtual environment or use [pipx](https://pipx.pypa.io/) instead of system-wide `pip install`.
 
 From a clone of this repository:
 
@@ -149,7 +161,7 @@ Rules live in `pyproject.toml` (`[tool.ruff]`). Legacy `.flake8` remains for ref
 |-----|----------|---------|------------|------------------|
 | **lint** | `ci.yml` | every push/PR | **required** (recommended) | `ruff check` on `dev_project/`, `tests/`, `odpm.py` |
 | **unit** | `ci.yml` | every push/PR | **required** (recommended) | `tests/` unittest discover; Python **3.10** and **3.12** |
-| **release-packages** | `release-packages.yml` | version tag `v*` or `workflow_dispatch` | optional | Build `.deb`, lintian, install smoke on Ubuntu **24.04**; upload to GitHub Release |
+| **release-packages** | `release-packages.yml` | version tag `v*` or `workflow_dispatch` | optional | Build `.deb` + `.rpm`, lintian/rpmlint, install smoke; upload to GitHub Release |
 | **compose-smoke** | `ci-docker.yml` | every push/PR | **required** (recommended) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing trees; `odpm --skip-start --no-git-update`, then `docker compose config`. Python **3.12** only. Base image cached between runs. |
 | **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ golden flag), or PR label **`run-docker`** | **opt-in** (not required on every PR) | Secret `ODPM_GOLDEN_PATH_PROJECT` → real initialized project on runner (`tests.integration.test_golden_path`). **Skipped** when secret unset — not a false pass. |
 

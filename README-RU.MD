@@ -42,9 +42,21 @@ odpm --version
 
 При установке с GitHub сверяйте checksum из `SHA256SUMS` релиза.
 
+### Fedora / RHEL (.rpm) — рекомендуется на Fedora
+
+Скачайте **`odpm-*.noarch.rpm`** из [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases) или соберите локально (Fedora 41+):
+
+```bash
+./scripts/build_rpm.sh
+sudo dnf install ./dist/odpm-*.rpm
+odpm --version
+```
+
+Ставит `/usr/bin/odpm`, `dev_project` в `python3/site-packages`. **Requires:** `python3-packaging`, `git`. **Recommends:** `moby-engine` / `docker`. Без PyPI runtime-зависимостей.
+
 ### pip (4.0+)
 
-Для разработки или не-Debian систем. Нужен **Python 3.10 или новее**. На Linux с [PEP 668](https://peps.python.org/pep-0668/) (системный Python «защищён» от pip) устанавливайте odpm в virtualenv или через [pipx](https://pipx.pypa.io/), а не командой `pip install` в систему.
+Для разработки или систем без native package. Нужен **Python 3.10 или новее**. На Linux с [PEP 668](https://peps.python.org/pep-0668/) (системный Python «защищён» от pip) устанавливайте odpm в virtualenv или через [pipx](https://pipx.pypa.io/), а не командой `pip install` в систему.
 
 Из клона репозитория:
 
@@ -150,7 +162,7 @@ pre-commit run --all-files
 |-----|----------|---------|---------------|-----------------|
 | **lint** | `ci.yml` | каждый push/PR | **обязателен** (рекомендуется) | `ruff check` на `dev_project/`, `tests/`, `odpm.py` |
 | **unit** | `ci.yml` | каждый push/PR | **обязателен** (рекомендуется) | `tests/` unittest discover; Python **3.10** и **3.12** |
-| **release-packages** | `release-packages.yml` | тег `v*` или `workflow_dispatch` | опционально | Сборка `.deb`, lintian, install smoke на Ubuntu **24.04**; публикация в GitHub Release |
+| **release-packages** | `release-packages.yml` | тег `v*` или `workflow_dispatch` | опционально | Сборка `.deb` + `.rpm`, lintian/rpmlint, install smoke; публикация в GitHub Release |
 | **compose-smoke** | `ci-docker.yml` | каждый push/PR | **обязателен** (рекомендуется) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing; `odpm --skip-start --no-git-update`, `docker compose config`. Только Python **3.12**. Кэш base-образа между прогонами. |
 | **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ флаг golden), или label PR **`run-docker`** | **opt-in** (не на каждый PR) | Secret `ODPM_GOLDEN_PATH_PROJECT` → реальный инициализированный проект (`tests.integration.test_golden_path`). Без secret job **пропускается** — не ложный pass. |
 
