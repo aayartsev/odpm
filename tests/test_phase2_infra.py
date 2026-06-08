@@ -203,6 +203,27 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config._git_repos.get_platform_sources.assert_not_called()
         mock_logger.warning.assert_called_once()
 
+    @patch("dev_project.check_system._logger")
+    @patch("dev_project.check_system.os.path.exists", return_value=True)
+    @patch("dev_project.check_system.os.makedirs")
+    def test_check_file_system_developer_skips_warning_for_file_platform(
+        self, _mock_mkdir, _mock_exists, mock_logger
+    ):
+        config = self._config()
+        config.policy = MagicMock()
+        config.policy.is_ci.return_value = False
+        config.policy.is_developer.return_value = True
+        config.policy.scenario = constants.DEVELOPER_SCENARIO
+        config.odoo_src_dir = "/Users/yartsev/odoo-19.0+e.20251216"
+        platform = MagicMock()
+        platform.link_type = constants.GITLINK_TYPE_FILE
+        config.odoo_platform_project = platform
+        project_environment = MagicMock()
+
+        SystemChecker(config, project_environment)
+
+        mock_logger.warning.assert_not_called()
+
     @patch("dev_project.check_system.os.path.exists")
     @patch("dev_project.check_system.os.makedirs")
     @patch("dev_project.check_system.PlatformSourcesService")

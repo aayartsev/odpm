@@ -183,6 +183,12 @@ class SystemChecker(SystemCheckerProtocol):
         if policy.is_ci():
             return
         if policy.is_developer():
+            platform = getattr(self.config, "odoo_platform_project", None)
+            if (
+                platform
+                and getattr(platform, "link_type", None) == constants.GITLINK_TYPE_FILE
+            ):
+                return
             if not self._platform_git_repo_ready():
                 message = translations.get_translation(
                     translations.PLATFORM_REPO_CLONE_DEFERRED_TO_PREPARE
