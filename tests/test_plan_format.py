@@ -13,7 +13,6 @@ from dev_project.plan import OdpmPlan, PlanStep, format_plan
 from dev_project.plan.format import (
     PLAN_JSON_VERSION,
     format_plan_json,
-    format_plan_table,
     plan_has_required_changes,
     plan_to_dict,
 )

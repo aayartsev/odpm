@@ -168,8 +168,6 @@ class CanonicalImportSmokeTests(unittest.TestCase):
     def test_plan_package_imports(self):
         from dev_project import plan as plan_module
         from dev_project.plan import (
-            OdpmPlanner,
-            PlanStep,
             deps_lock_file_exists,
             project_template_needs_upgrade,
         )

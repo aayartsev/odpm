@@ -7,7 +7,7 @@ import sys
 
 from . import constants, host_summaries
 from .check_system import SystemChecker
-from .errors import ConfigError, OdpmError, PipelineError
+from .errors import ConfigError, OdpmError
 from .config import Config
 from .project_env import CreateProjectEnvironment
 from .runtime_coordinator import RuntimeCoordinator

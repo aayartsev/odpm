@@ -2,7 +2,6 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.host.cli.args import OdpmCliArgs

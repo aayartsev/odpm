@@ -105,6 +105,27 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 
 Ожидается **634** passed и **7** skipped (opt-in Docker integration tests). Повторный запуск в GitHub: **Actions → CI → Run workflow**.
 
+### Lint (репозиторий odpm)
+
+Статический анализ только для **`dev_project/`**, **`tests/`** и **`odpm.py`** (не для Odoo-addons клиентского проекта). В CI job **`lint`** ([ruff](https://docs.astral.sh/ruff/)) идёт параллельно unit-тестам.
+
+Локально (тот же scope, что в CI):
+
+```bash
+./scripts/lint.sh
+# или: ruff check dev_project tests odpm.py
+```
+
+Опциональный pre-commit для контрибьюторов:
+
+```bash
+pip install pre-commit ruff   # или: uv tool install ruff
+pre-commit install
+pre-commit run --all-files
+```
+
+Правила — в `pyproject.toml` (`[tool.ruff]`). Legacy `.flake8` остаётся для справки; **primary linter — ruff**.
+
 ### Docker CI
 
 [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) параллельно с [unit CI](.github/workflows/ci.yml) на push/PR в `4.0-beta` и `main`.
@@ -113,6 +134,7 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 
 | Job | Workflow | Триггер | Gate на merge | Fixture / входы |
 |-----|----------|---------|---------------|-----------------|
+| **lint** | `ci.yml` | каждый push/PR | **обязателен** (рекомендуется) | `ruff check` на `dev_project/`, `tests/`, `odpm.py` |
 | **unit** | `ci.yml` | каждый push/PR | **обязателен** (рекомендуется) | `tests/` unittest discover; Python **3.10** и **3.12** |
 | **compose-smoke** | `ci-docker.yml` | каждый push/PR | **обязателен** (рекомендуется) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing; `odpm --skip-start --no-git-update`, `docker compose config`. Только Python **3.12**. Кэш base-образа между прогонами. |
 | **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ флаг golden), или label PR **`run-docker`** | **opt-in** (не на каждый PR) | Secret `ODPM_GOLDEN_PATH_PROJECT` → реальный инициализированный проект (`tests.integration.test_golden_path`). Без secret job **пропускается** — не ложный pass. |
@@ -135,7 +157,7 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 |-----|----------|------------|
 | `ODPM_GOLDEN_PATH_PROJECT` | только job `golden-path` | Абсолютный путь к инициализированному odpm-проекту на runner (обычно **self-hosted**). Compose smoke использует minimal fixture из репозитория и **не** требует этот secret. |
 
-Рекомендуется branch protection на `4.0-beta` / `main`: обязательные checks **CI** (unit) и **CI Docker** / **compose-smoke**. **golden-path** — nightly или по запросу, пока нет стабильного self-hosted runner; сделать golden-path обязательным только на `main` — разумный следующий шаг (4.3).
+Рекомендуется branch protection на `4.0-beta` / `main`: обязательные checks **CI** (**lint** + **unit**) и **CI Docker** / **compose-smoke**. **golden-path** — nightly или по запросу, пока нет стабильного self-hosted runner; сделать golden-path обязательным только на `main` — разумный следующий шаг (4.3).
 
 ### Миграция импортов 4.0→4.1
 

@@ -90,7 +90,7 @@ class VirtualenvChecker:
         return sys.prefix != sys.base_prefix
 
     def find_file(self, start_dir: str, pattern: str):
-        for root, dirs, files in os.walk(start_dir):
+        for root, _dirs, files in os.walk(start_dir):
             for name in files:
                 if name.find(pattern) >= 0:
                     return root + os.sep + name

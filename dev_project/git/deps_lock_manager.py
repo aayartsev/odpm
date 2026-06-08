@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from ..errors import PipelineError
 from ..logging import get_module_logger
 from .deps_lock import (
-    LOCK_KIND_FILE,
     DepsLock,
     LockEntry,
     apply_lock_entry_to_link,
@@ -17,7 +16,6 @@ from .deps_lock import (
     is_remote_git_link,
     load_deps_lock,
     lock_kind_for_link,
-    normalize_repo_url,
     repo_url_for_link,
     resolve_lock_commit,
     resolved_checkout_commit,

@@ -1,6 +1,8 @@
 """Unit tests for HostProjectContext."""
 
 import unittest
+from dataclasses import FrozenInstanceError
+
 from dev_project.host.cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
@@ -72,7 +74,7 @@ class HostProjectContextTests(unittest.TestCase):
 
     def test_frozen_context_rejects_attribute_assignment(self):
         ctx = HostProjectContext.from_config(self._make_config())
-        with self.assertRaises(Exception):
+        with self.assertRaises(FrozenInstanceError):
             ctx.project_dir = "/other"
 
 

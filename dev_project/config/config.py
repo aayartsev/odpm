@@ -1,4 +1,9 @@
-from typing import Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from ..host.context import HostProjectContext
 
 from ..host.cli.args import OdpmCliArgs
 
@@ -67,7 +72,7 @@ class Config(ConfigRuntimeFacadeMixin):
         return self._docker
 
     @property
-    def host_context(self) -> "HostProjectContext":
+    def host_context(self) -> HostProjectContext:
         from ..host.context import HostProjectContext
 
         return HostProjectContext.from_config(self)

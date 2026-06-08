@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from dev_project.inside_docker_app.odoo_checker.admin_ops import (
     OdooAdminOps,

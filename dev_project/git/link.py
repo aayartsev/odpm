@@ -7,13 +7,6 @@ from .clone import RepoCloneService
 from .discovery import ProjectDiscovery
 from .parser import LinkParser
 from .runner import GitRunner
-from .types import (
-    FILE_SYSTEM_MARKER,
-    GIT_MARKER,
-    HTTP_MARKER,
-    SSH_MARKER,
-    OdooProjectData,
-)
 
 
 class HandleOdooProjectLink:

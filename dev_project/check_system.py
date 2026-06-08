@@ -217,12 +217,12 @@ class SystemChecker(SystemCheckerProtocol):
             if not os.path.exists(dir_path):
                 try:
                     os.makedirs(dir_path)
-                except BaseException:
+                except BaseException as err:
                     message = _('Cannot create dir, {dir_path}, please check it').format(
                         dir_path=dir_path,
                     )
                     _logger.error(message)
-                    raise SystemCheckError(message)
+                    raise SystemCheckError(message) from err
         self._ensure_platform_sources()
 
     def check_free_space_for_odoo_developing(

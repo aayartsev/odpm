@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from .. import constants
 from ..translations import _
 from ..errors import PipelineError, SubprocessError
 from ..logging import get_module_logger

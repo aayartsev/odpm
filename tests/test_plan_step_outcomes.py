@@ -98,7 +98,6 @@ class PlanComposePreviewTests(unittest.TestCase):
     def test_compose_service_noop_when_runtime_hash_matches(self):
         with tempfile.TemporaryDirectory() as tmp:
             runtime_dir = tmp + "/" + constants.ODPM_RUNTIME_DIR_REL_PATH
-            import os
             from pathlib import Path
 
             Path(runtime_dir).mkdir(parents=True)

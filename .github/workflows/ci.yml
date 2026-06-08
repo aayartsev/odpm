@@ -19,6 +19,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: check dev_project tests odpm.py
+
   unit:
     runs-on: ubuntu-latest
     strategy:

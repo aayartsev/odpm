@@ -28,3 +28,23 @@ dev_project = [
 
 [tool.pyright]
 typeCheckingMode = "standard"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["B", "C90", "E", "F", "W"]
+ignore = ["E203", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"dev_project/constants/__init__.py" = ["F403"]
+"**/__init__.py" = ["F401"]
+"tests/delete_images.py" = ["E402"]
+"tests/test_creating_of_new_local_project.py" = ["E402"]
+"tests/test_dependency_resolver.py" = ["E402"]
+"tests/test_git_build_date.py" = ["E402"]
+"tests/test_new_local_project_from_fork.py" = ["E402"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 16

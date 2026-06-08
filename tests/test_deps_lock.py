@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
-from dev_project.errors import PipelineError
 from dev_project.git.deps_lock import (
     DEPS_LOCK_SCHEMA_VERSION,
     LOCK_KIND_FILE,
@@ -26,7 +25,6 @@ from dev_project.git.deps_lock import (
     snapshot_commit_for_path,
     sort_lock_entries,
 )
-from dev_project.scenario_policy import ScenarioPolicy
 
 
 class NormalizeRepoUrlTests(unittest.TestCase):

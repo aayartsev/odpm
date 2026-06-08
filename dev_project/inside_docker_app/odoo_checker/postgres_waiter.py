@@ -41,21 +41,21 @@ class PostgresWaiter:
         Main method for waiting for PostgreSQL to start
         """
         _logger.info(f"Waiting for PostgreSQL on {self.host}:{self.port}")
-        
+
         while True:
             elapsed_time = time.time() - self.start_time
             if elapsed_time >= self.timeout:
                 message = "PostgreSQL startup timeout exceeded"
                 _logger.error(message)
                 raise PostgresError(message)
-                
+
             if self.is_postgres_up():
                 _logger.info("PostgreSQL is up and running")
                 break
-                
+
             _logger.info(f"PostgreSQL is not available yet. Waiting {self.check_interval} seconds...")
             time.sleep(self.check_interval)
-    
+
     def wait_for_postgres_db(self, dbname, user, password, max_attempts=None):
         """Waits for a specific database to become available after a crash recovery."""
         try:
@@ -68,7 +68,7 @@ class PostgresWaiter:
 
         start = time.time()
         attempt = 0
-        
+
         while True:
             attempt += 1
             elapsed = time.time() - start
@@ -96,7 +96,7 @@ class PostgresWaiter:
                 with conn.cursor() as cur:
                     cur.execute("SELECT 1")
                 conn.close()
-                
+
                 _logger.info(f"Database '{dbname}' is successfully available and ready.")
                 return True
 

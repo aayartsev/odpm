@@ -47,7 +47,7 @@ class OdooConfBuilder:
         subprojects_data = {}
         list_of_subprojects = []
         set_of_python_packages = set()
-        for root, dirs, files in os.walk(project_path):
+        for root, _dirs, files in os.walk(project_path):
             for file in files:
                 if file in constants.MODULE_FILES:
                     subproject_dir_path = os.path.abspath(os.path.join(root, os.pardir))

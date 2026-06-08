@@ -35,9 +35,9 @@ def load_odoo_runtime(*, platform_name: str, odoo_dir: str) -> LoadedOdooRuntime
                 importlib.import_module(f"{platform_name}.{submodule}"),
             )
 
-    odoo_config_object = getattr(odoo.tools, "config")
-    Environment = getattr(odoo.api, "Environment")
-    odoo_version_info = getattr(odoo.release, "version_info")
+    odoo_config_object = odoo.tools.config
+    Environment = odoo.api.Environment
+    odoo_version_info = odoo.release.version_info
     if odoo_version_info < (15, 0):
         environment_manage = Environment.manage
     else:

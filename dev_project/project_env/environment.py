@@ -5,7 +5,7 @@ from ..protocols import SystemCheckerProtocol
 from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
 from .templates import ProjectTemplates
-from .types import MappedPath, SymlinksSources
+from .types import MappedPath
 
 
 class CreateProjectEnvironment:

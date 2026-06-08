@@ -104,6 +104,27 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 
 Expect **634** tests passed and **7** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
 
+### Lint (odpm repository)
+
+Static analysis runs on **`dev_project/`**, **`tests/`**, and **`odpm.py`** only (not Odoo addons in a client project). CI job **`lint`** uses [ruff](https://docs.astral.sh/ruff/) in parallel with unit tests.
+
+Local run (same scope as CI):
+
+```bash
+./scripts/lint.sh
+# or: ruff check dev_project tests odpm.py
+```
+
+Optional pre-commit hook for contributors:
+
+```bash
+pip install pre-commit ruff   # or: uv tool install ruff
+pre-commit install
+pre-commit run --all-files
+```
+
+Rules live in `pyproject.toml` (`[tool.ruff]`). Legacy `.flake8` remains for reference; **ruff** is the primary linter.
+
 ### Docker CI
 
 [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) runs in parallel with [unit CI](.github/workflows/ci.yml) on push/PR to `4.0-beta` and `main`.
@@ -112,6 +133,7 @@ Expect **634** tests passed and **7** skipped by default (opt-in Docker integrat
 
 | Job | Workflow | Trigger | Merge gate | Fixture / inputs |
 |-----|----------|---------|------------|------------------|
+| **lint** | `ci.yml` | every push/PR | **required** (recommended) | `ruff check` on `dev_project/`, `tests/`, `odpm.py` |
 | **unit** | `ci.yml` | every push/PR | **required** (recommended) | `tests/` unittest discover; Python **3.10** and **3.12** |
 | **compose-smoke** | `ci-docker.yml` | every push/PR | **required** (recommended) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing trees; `odpm --skip-start --no-git-update`, then `docker compose config`. Python **3.12** only. Base image cached between runs. |
 | **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ golden flag), or PR label **`run-docker`** | **opt-in** (not required on every PR) | Secret `ODPM_GOLDEN_PATH_PROJECT` → real initialized project on runner (`tests.integration.test_golden_path`). **Skipped** when secret unset — not a false pass. |
@@ -137,7 +159,7 @@ Expect **634** tests passed and **7** skipped by default (opt-in Docker integrat
 |------|----------------|-------|
 | `ODPM_GOLDEN_PATH_PROJECT` | `golden-path` job only | Absolute path to an initialized odpm project on the runner (typically **self-hosted** with Docker and a real Odoo tree). Compose smoke uses the in-repo minimal fixture and does **not** need this secret. |
 
-Recommended GitHub branch protection on `4.0-beta` / `main`: require status checks **CI** (unit) and **CI Docker** / **compose-smoke** before merge. Treat **golden-path** as a nightly or on-demand signal until a self-hosted runner with a stable project path is available; making golden-path required on `main` only is a reasonable next step (4.3).
+Recommended GitHub branch protection on `4.0-beta` / `main`: require status checks **CI** (**lint** + **unit**) and **CI Docker** / **compose-smoke** before merge. Treat **golden-path** as a nightly or on-demand signal until a self-hosted runner with a stable project path is available; making golden-path required on `main` only is a reasonable next step (4.3).
 
 ### Migration 4.0→4.1 imports
 
