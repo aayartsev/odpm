@@ -407,7 +407,7 @@ flowchart LR
 2. ~~Dry-run plan~~ — `odpm plan` с шагами, probe, diff, JSON и strict exit code
 3. ~~Dependency lock (commit SHAs)~~ — `.odpm/deps.lock.json`, `--update-lock`; OCA resolved graph, developing, CI strict verify
 4. Plugin/hook API
-5. ~~Golden-path E2E как обязательный CI gate на каждый PR~~ — **частично (4.2):** `compose-smoke` обязателен на push/PR; full golden-path (`init` → HTTP 200) — opt-in: nightly, `workflow_dispatch`, label `run-docker`, variable `ODPM_GOLDEN_PATH_ENABLED` + secret `ODPM_GOLDEN_PATH_PROJECT` (см. README **CI matrix**). Обязательный gate на `main` — кандидат на 4.3.
+5. ~~Golden-path E2E как обязательный CI gate на каждый PR~~ — **частично (4.2):** `compose-smoke` обязателен на push/PR; full golden-path (`init` → HTTP 200) — opt-in на self-hosted runner: nightly, `workflow_dispatch`, label `run-docker`, variable `ODPM_GOLDEN_PATH_ENABLED` + secret `ODPM_GOLDEN_PATH_PROJECT` (см. README **CI matrix**). Обязательный gate на `main` — кандидат на 4.3.
 6. ~~Plan с probe compose health~~ — есть в `odpm plan`
 
 ---

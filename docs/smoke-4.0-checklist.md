@@ -52,7 +52,7 @@ See [README.MD § CI matrix (4.2 policy)](../README.MD#docker-ci) for the full t
 |-----|----------|---------|------------|--------|
 | **unit** | `ci.yml` | every push/PR | recommended | `tests/`; Python 3.10 + 3.12 |
 | **compose-smoke** | `ci-docker.yml` | every push/PR | recommended | [`tests/fixtures/minimal_odpm_project/`](../tests/fixtures/minimal_odpm_project/); Python 3.12 |
-| **golden-path** | `ci-docker.yml` | nightly, `workflow_dispatch`, PR label `run-docker` | opt-in | Variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT`; skipped when variable unset |
+| **golden-path** | `ci-docker.yml` | nightly, `workflow_dispatch`, PR label `run-docker` | opt-in | Self-hosted runner; variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT`; skipped when variable unset |
 
 **Compose smoke** — automated on every push/PR: [`.github/workflows/ci-docker.yml`](../.github/workflows/ci-docker.yml) (`compose-smoke` job; unit tests in [`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -69,7 +69,7 @@ cd "$ODPM_REPO"
 | `odpm --skip-start` on minimal fixture | Exit 0 | | |
 | `docker compose config` | Exit 0; `services:` in output | | |
 
-**Golden-path** (compose up + HTTP 200): `./scripts/run_golden_path_test.sh` locally; in CI — nightly, **workflow_dispatch** with golden flag, or PR label **`run-docker`** when repo variable `ODPM_GOLDEN_PATH_ENABLED=true` and secret `ODPM_GOLDEN_PATH_PROJECT` are set (see [README.MD § CI secrets and variables](../README.MD#docker-ci)). Re-run **CI Docker** manually after adding `run-docker` to a PR.
+**Golden-path** (compose up + HTTP 200): `ODPM_GOLDEN_PATH_PROJECT=/path/to/your-odpm-env ./scripts/run_golden_path_test.sh` locally; in CI — self-hosted runner, secret `ODPM_GOLDEN_PATH_PROJECT`, nightly, **workflow_dispatch** with golden flag, or PR label **`run-docker`** when `ODPM_GOLDEN_PATH_ENABLED=true` (see [README.MD § Docker CI](../README.MD#docker-ci)). Re-run **CI Docker** manually after adding `run-docker` to a PR.
 
 **Troubleshooting compose smoke**
 

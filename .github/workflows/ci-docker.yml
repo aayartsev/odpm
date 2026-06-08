@@ -1,7 +1,7 @@
 # Docker integration CI (4.2 policy):
 # - compose-smoke: required PR gate — minimal in-repo fixture, no secrets.
-# - golden-path: opt-in — needs vars.ODPM_GOLDEN_PATH_ENABLED + secret ODPM_GOLDEN_PATH_PROJECT;
-#   nightly / workflow_dispatch / PR label run-docker.
+# - golden-path: opt-in on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED +
+#   secret ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
 
 on:
@@ -14,7 +14,7 @@ on:
       - 4.0-beta
       - main
   schedule:
-    # Nightly full golden-path (requires ODPM_GOLDEN_PATH_ENABLED variable + secret).
+    # Nightly full golden-path (requires ODPM_GOLDEN_PATH_ENABLED + secret).
     - cron: "0 3 * * *"
   workflow_dispatch:
     inputs:
@@ -93,15 +93,23 @@ jobs:
           && contains(github.event.pull_request.labels.*.name, 'run-docker')
         )
       )
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 
-      - name: Require golden-path secret
+      - name: Require golden-path secret and project directory
         run: |
           if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
             echo "::error::ODPM_GOLDEN_PATH_PROJECT secret is not configured"
+            exit 1
+          fi
+          if [[ ! -d "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
+            echo "::error::Project directory not found on the self-hosted runner"
+            exit 1
+          fi
+          if [[ ! -f "${ODPM_GOLDEN_PATH_PROJECT}/docker-compose.yml" ]]; then
+            echo "::error::Missing docker-compose.yml in project directory"
             exit 1
           fi
         env:

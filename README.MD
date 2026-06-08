@@ -163,7 +163,7 @@ Rules live in `pyproject.toml` (`[tool.ruff]`). Legacy `.flake8` remains for ref
 | **unit** | `ci.yml` | every push/PR | **required** (recommended) | `tests/` unittest discover; Python **3.10** and **3.12** |
 | **release-packages** | `release-packages.yml` | version tag `v*` or `workflow_dispatch` | optional | Build `.deb` + `.rpm`, lintian/rpmlint, install smoke; upload to GitHub Release |
 | **compose-smoke** | `ci-docker.yml` | every push/PR | **required** (recommended) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing trees; `odpm --skip-start --no-git-update`, then `docker compose config`. Python **3.12** only. Base image cached between runs. |
-| **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ golden flag), or PR label **`run-docker`** | **opt-in** (not required on every PR) | Variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT` → real initialized project on runner (`tests.integration.test_golden_path`). **Skipped** when variable unset — not a false pass. |
+| **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ golden flag), or PR label **`run-docker`** | **opt-in** (not required on every PR) | Self-hosted runner (`self-hosted`, `Linux`, `X64`); variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT` (`tests.integration.test_golden_path`). **Skipped** when variable unset — not a false pass. |
 
 **PR label `run-docker`:** add the label on GitHub, then **re-run** the **CI Docker** workflow (adding a label alone does not start a new run).
 
@@ -175,19 +175,19 @@ Rules live in `pyproject.toml` (`[tool.ruff]`). Legacy `.flake8` remains for ref
 # ODPM_COMPOSE_SMOKE_TIMEOUT=900 ./scripts/run_compose_smoke_test.sh
 
 # Full golden-path (requires real project tree on disk)
-./scripts/run_golden_path_test.sh
-# ODPM_GOLDEN_PATH_PROJECT=/path/to/project ODPM_RUN_DOCKER_INTEGRATION=1 \
-#   python3 -m unittest tests.integration.test_golden_path -v
+ODPM_GOLDEN_PATH_PROJECT=/path/to/your-odpm-env ./scripts/run_golden_path_test.sh
 ```
 
 #### CI secrets, variables, and branch protection
 
 | Name | Kind | Required for | Notes |
 |------|------|----------------|-------|
-| `ODPM_GOLDEN_PATH_ENABLED` | variable | `golden-path` job only | Set to `true` when golden-path is configured (together with the secret below). Job `if:` cannot read secrets; this variable gates the job without exposing the project path. |
-| `ODPM_GOLDEN_PATH_PROJECT` | secret | `golden-path` job only | Absolute path to an initialized odpm project on the runner (typically **self-hosted** with Docker and a real Odoo tree). Required when the variable is `true`; the job fails fast if the secret is missing. Compose smoke does **not** need either. |
+| `ODPM_GOLDEN_PATH_ENABLED` | variable | `golden-path` job only | Set to `true` when golden-path is configured on the self-hosted runner. Job `if:` cannot read secrets; this variable gates the job. |
+| `ODPM_GOLDEN_PATH_PROJECT` | secret | `golden-path` job only | Absolute path to an initialized odpm project **on the self-hosted runner**. Set in GitHub Settings only — never commit the real path. Required when the variable is `true`; the job fails fast if the secret is missing or the directory is absent. |
 
-Recommended GitHub branch protection on `4.0-beta` / `main`: require status checks **CI** (**lint** + **unit**) and **CI Docker** / **compose-smoke** before merge. Treat **golden-path** as a nightly or on-demand signal until a self-hosted runner with a stable project path is available; making golden-path required on `main` only is a reasonable next step (4.3).
+**Self-hosted runner:** register a repo runner with labels `self-hosted`, `Linux`, `X64`. Compose smoke does **not** need the variable, secret, or self-hosted runner.
+
+Recommended GitHub branch protection on `4.0-beta` / `main`: require status checks **CI** (**lint** + **unit**) and **CI Docker** / **compose-smoke** before merge. **golden-path** is a nightly or on-demand signal on the self-hosted runner; making it required on `main` only is a reasonable next step (4.3).
 
 ### Migration 4.0→4.1 imports
 

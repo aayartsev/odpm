@@ -7,7 +7,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 if [[ -z "${ODPM_GOLDEN_PATH_PROJECT:-}" ]]; then
     echo "Set ODPM_GOLDEN_PATH_PROJECT to an initialized odpm project directory." >&2
-    echo "Example: ODPM_GOLDEN_PATH_PROJECT=/path/to/fincomtech-17-2 $0" >&2
+    echo "Example: ODPM_GOLDEN_PATH_PROJECT=/path/to/your-odpm-env $0" >&2
     exit 1
 fi
 
