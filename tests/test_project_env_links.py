@@ -457,28 +457,6 @@ class ProjectLinksUpdateTests(unittest.TestCase):
 
 
 class PlatformSourcesServiceTests(unittest.TestCase):
-    @patch("dev_project.project_env.services.platform_sources.subprocess.run")
-    @patch(
-        "dev_project.project_env.services.platform_sources.delete_files_in_directory"
-    )
-    def test_download_odoo_repository_uses_cwd_not_chdir(
-        self, _mock_delete, mock_run
-    ):
-        config = MagicMock()
-        config.odoo_src_dir = "/tmp/odoo_projects/odoo"
-        checker = MagicMock()
-        env = CreateProjectEnvironment(config, system_checker=checker)
-
-        with patch(
-            "dev_project.project_env.services.platform_sources.os.chdir"
-        ) as mock_chdir:
-            PlatformSourcesService(env).download_odoo_repository()
-
-        mock_chdir.assert_not_called()
-        mock_run.assert_called_once()
-        self.assertEqual(mock_run.call_args.kwargs.get("cwd"), "/tmp/odoo_projects")
-        checker.check_free_space_for_odoo_developing.assert_called_once()
-
     @patch("dev_project.project_env.services.platform_sources.os.remove")
     @patch("dev_project.project_env.services.platform_sources.os.replace")
     @patch(

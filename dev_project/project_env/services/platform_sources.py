@@ -1,9 +1,8 @@
-"""Download Odoo platform sources (git clone or nightly zip)."""
+"""Download Odoo platform sources (nightly zip for server scenario)."""
 
 from __future__ import annotations
 
 import os
-import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -25,15 +24,6 @@ class PlatformSourcesService:
     @property
     def config(self):
         return self.env.config
-
-    def download_odoo_repository(self) -> None:
-        self.env._require_system_checker().check_free_space_for_odoo_developing()
-        parent_dir = os.path.dirname(self.config.odoo_src_dir)
-        delete_files_in_directory(self.config.odoo_src_dir)
-        subprocess.run(
-            ["git", "clone", "--depth", "1", constants.ODOO_GIT_LINK],
-            cwd=parent_dir,
-        )
 
     def download_odoo_nightly_build(self) -> None:
         self.env._require_system_checker().check_free_space_for_odoo_developing(
