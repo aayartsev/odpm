@@ -184,7 +184,9 @@ class ContainerConfig:
         return payload
 
     def to_json_bytes(self) -> bytes:
-        return json.dumps(self.to_dict(), ensure_ascii=False).encode("utf-8")
+        return (
+            json.dumps(self.to_dict(), ensure_ascii=False, indent=4) + "\n"
+        ).encode("utf-8")
 
 
 def load_container_config_from_path(path: str) -> ContainerConfig:

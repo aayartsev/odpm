@@ -26,7 +26,10 @@ class ContainerConfigFromDictTests(unittest.TestCase):
             venv_mode=constants.VENV_MODE_FRESH,
         )
         config = ContainerConfig.from_dict(payload)
-        decoded = json.loads(config.to_json_bytes().decode("utf-8"))
+        raw = config.to_json_bytes().decode("utf-8")
+        self.assertIn("\n    ", raw)
+        self.assertTrue(raw.endswith("\n"))
+        decoded = json.loads(raw)
         self.assertEqual(decoded["schema_version"], CONTAINER_CONFIG_SCHEMA_VERSION)
         self.assertEqual(decoded["odpm_scenario"], constants.SERVER_SCENARIO)
         self.assertEqual(decoded["venv_mode"], constants.VENV_MODE_FRESH)

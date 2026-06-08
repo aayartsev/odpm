@@ -40,7 +40,7 @@ def strip_plan_only_arguments(arguments: dict) -> dict:
 
 
 def format_runtime_config_payload(payload: dict) -> str:
-    return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    return json.dumps(payload, ensure_ascii=False, indent=4, sort_keys=True) + "\n"
 
 
 def runtime_config_payload_from_config(config: Config) -> dict:
