@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`dev_project/check_system.py` (R-2)** — developer platform clone is owned by prepare `git.materialize` (`materialize_git_repos`); init `check_file_system` only validates and logs when the platform repo is not ready yet. `test_phase2_infra` and `test_prepare_context` updated.
 - **`dev_project/check_system.py` (R-3)** — server scenario platform nightly download uses `stdin_is_interactive` / `prompt_input`; non-interactive runs fail fast with `NON_INTERACTIVE_SERVER_PLATFORM_MISSING` instead of blocking on `input()`. README EN+RU server/non-interactive sections updated.
 - **CI policy (R-4)** — README EN+RU **CI matrix**: `compose-smoke` (minimal fixture [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/)) is the PR merge gate; full `golden-path` is opt-in (nightly, `workflow_dispatch`, PR label `run-docker`, secret `ODPM_GOLDEN_PATH_PROJECT`). Maintainer comments in `.github/workflows/ci-docker.yml`; `goals_ru.md` #5 updated; `docs/smoke-4.0-checklist.md` and post-audit plan baseline synced. Documented test count **634** passed.
+- **`dev_project/host/cli/` (R-5)** — split monolithic `parse_args.py` into focused modules (`args_common`, `args_init`, `args_db`, `args_plan`, `args_compose`, `args_scaffold`); `parse_args.py` is a thin facade (`build_arg_parser`, `parse_args`, `parse_cli_args`). No CLI behavior change; `--help` flag order preserved via explicit registration order in `args_common`.
 
 ---
 

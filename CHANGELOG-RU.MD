@@ -32,6 +32,7 @@
 - **`dev_project/check_system.py` (R-2)** — clone platform для developer выполняется только в prepare `git.materialize` (`materialize_git_repos`); init `check_file_system` лишь проверяет и логирует, если repo ещё не готов. Обновлены `test_phase2_infra` и `test_prepare_context`.
 - **`dev_project/check_system.py` (R-3)** — nightly download platform в server-сценарии через `stdin_is_interactive` / `prompt_input`; в неинтерактивном режиме fail-fast с `NON_INTERACTIVE_SERVER_PLATFORM_MISSING` вместо блокировки на `input()`. Обновлены README EN+RU (server / non-interactive).
 - **Политика CI (R-4)** — в README EN+RU добавлена **матрица CI**: `compose-smoke` (minimal fixture [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/)) — gate на merge в PR; full `golden-path` — opt-in (nightly, `workflow_dispatch`, label `run-docker`, secret `ODPM_GOLDEN_PATH_PROJECT`). Комментарии для maintainers в `.github/workflows/ci-docker.yml`; обновлён `goals_ru.md` #5; синхронизированы `docs/smoke-4.0-checklist.md` и baseline post-audit plan. Задокументировано **634** passed.
+- **`dev_project/host/cli/` (R-5)** — монолитный `parse_args.py` разбит на модули (`args_common`, `args_init`, `args_db`, `args_plan`, `args_compose`, `args_scaffold`); `parse_args.py` — тонкий facade (`build_arg_parser`, `parse_args`, `parse_cli_args`). Поведение CLI без изменений; порядок флагов в `--help` сохранён через явный порядок регистрации в `args_common`.
 
 ---
 
