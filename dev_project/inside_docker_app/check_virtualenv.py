@@ -4,15 +4,17 @@ import subprocess
 import sys
 
 import pip._vendor.packaging.version as pip_ver
-from pip._internal.operations.freeze import freeze
 from pip._vendor.packaging.utils import canonicalize_name
 
 from .. import constants
 from ..bake_venv import (
+    UV_PIP_OPTIONS,
+    apply_venv_env,
     build_spec_from_config,
     detect_uv_info,
     install_fresh,
     run_pip_command,
+    venv_python_path,
 )
 from ..container_config import ContainerConfig
 from .exceptions import VenvError
@@ -96,20 +98,62 @@ class VirtualenvChecker:
         return ""
 
     def set_venv(self):
-        activate_path = self.find_file(self.docker_venv_dir, "activate")
-        venv_bin_dir = os.path.dirname(activate_path)
-        venv_lib_path = os.path.join(
-            self.docker_venv_dir, "lib", f"python{self.python_version}", "site-packages"
-        )
-        os.environ["PATH"] = venv_bin_dir + os.pathsep + os.environ["PATH"]
-        sys.path.insert(1, venv_lib_path)
+        apply_venv_env(self.docker_venv_dir, python_version=self.python_version)
+
+    @property
+    def _venv_python(self) -> str:
+        return venv_python_path(self.docker_venv_dir)
 
     def package_installation_error(self, txt: str) -> None:
         _logger.error(txt)
         raise VenvError(txt)
 
-    def _run_pip_command(self, command: str) -> None:
-        run_pip_command(command, cwd=self.docker_project_dir)
+    def _pip_list_argv(self) -> list[str]:
+        if self.use_uv:
+            return [
+                "uv",
+                "pip",
+                "list",
+                "--format",
+                "json",
+                *UV_PIP_OPTIONS,
+                "--python",
+                self._venv_python,
+            ]
+        return [self._venv_python, "-m", "pip", "freeze"]
+
+    def _pip_install_argv(self, *packages: str) -> list[str]:
+        if self.use_uv:
+            return [
+                "uv",
+                "pip",
+                "install",
+                *UV_PIP_OPTIONS,
+                "--python",
+                self._venv_python,
+                *packages,
+            ]
+        return [self._venv_python, "-m", "pip", "install", *packages]
+
+    def _pip_remove_argv(self, *packages: str) -> list[str]:
+        if self.use_uv:
+            return [
+                "uv",
+                "pip",
+                "uninstall",
+                *UV_PIP_OPTIONS,
+                "--python",
+                self._venv_python,
+                *packages,
+            ]
+        return [self._venv_python, "-m", "pip", "uninstall", "-y", *packages]
+
+    def _run_pip_command(self, command: str | list[str]) -> None:
+        run_pip_command(
+            command,
+            cwd=self.docker_project_dir,
+            venv_dir=self.docker_venv_dir,
+        )
 
     def recreate_uv_venv(self):
         delete_files_in_directory(self.docker_venv_dir)
@@ -125,17 +169,17 @@ class VirtualenvChecker:
         return canonicalize_name(name.strip())
 
     def _list_installed_packages(self) -> list[dict]:
+        result = subprocess.run(
+            self._pip_list_argv(),
+            capture_output=True,
+            cwd=self.docker_project_dir,
+            check=False,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.decode("utf-8", errors="replace").strip()
+            message = f"pip list failed (exit {result.returncode}): {stderr}"
+            self.package_installation_error(message)
         if self.use_uv:
-            result = subprocess.run(
-                ["uv", "pip", "list", "--format", "json"],
-                capture_output=True,
-                cwd=self.docker_project_dir,
-                check=False,
-            )
-            if result.returncode != 0:
-                stderr = result.stderr.decode("utf-8", errors="replace").strip()
-                message = f"uv pip list failed (exit {result.returncode}): {stderr}"
-                self.package_installation_error(message)
             json_pip_list_string = result.stdout.decode("utf-8").strip()
             if not json_pip_list_string:
                 return []
@@ -152,20 +196,14 @@ class VirtualenvChecker:
             return payload
         return [
             {"name": pkg.split("==")[0], "version": pkg.split("==")[1]}
-            for pkg in freeze()
+            for pkg in result.stdout.decode("utf-8").splitlines()
+            if "==" in pkg
         ]
 
     def sync_extra_requirements(self) -> None:
         """Install or adjust only extra packages from requirements_txt (fresh mode)."""
-        separator = " "
-        if self.use_uv:
-            manager_commad = "uv"
-            options = "--link-mode=copy"
-        else:
-            manager_commad = "python3 -m"
-            options = ""
         list_of_installed_packages = self._list_installed_packages()
-        all_instructions = {}
+        all_instructions: dict[str, list[dict]] = {}
         for package_to_install in self.requirements_txt:
             instructions_for_package = self.check_package_to_install(
                 package_to_install, list_of_installed_packages
@@ -188,26 +226,20 @@ class VirtualenvChecker:
                         "full_package_name": full_package_name,
                     }
                 )
-        string_to_remove = separator.join(
-            [
-                package_to_remove.get("full_package_name", "")
-                for package_to_remove in all_instructions.get("remove", [])
-            ]
-        )
-        if string_to_remove:
-            self._run_pip_command(
-                f"{manager_commad} pip remove {string_to_remove} {options}".strip()
-            )
-        string_to_install = separator.join(
-            [
-                package_to_remove.get("full_package_name", "")
-                for package_to_remove in all_instructions.get("install", [])
-            ]
-        )
-        if string_to_install:
-            self._run_pip_command(
-                f"{manager_commad} pip install {string_to_install} {options}".strip()
-            )
+        remove_packages = [
+            package.get("full_package_name", "")
+            for package in all_instructions.get("remove", [])
+            if package.get("full_package_name")
+        ]
+        if remove_packages:
+            self._run_pip_command(self._pip_remove_argv(*remove_packages))
+        install_packages = [
+            package.get("full_package_name", "")
+            for package in all_instructions.get("install", [])
+            if package.get("full_package_name")
+        ]
+        if install_packages:
+            self._run_pip_command(self._pip_install_argv(*install_packages))
 
     def check_package_to_install(self, package_string, installed_package_list):
         instructions = []

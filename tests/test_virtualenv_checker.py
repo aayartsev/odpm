@@ -213,14 +213,16 @@ class VenvLockHashTests(unittest.TestCase):
 class SyncExtraRequirementsHygieneTests(unittest.TestCase):
     def _checker(self, **overrides) -> VirtualenvChecker:
         use_uv = overrides.pop("use_uv", True)
+        requirements_txt = overrides.pop("requirements_txt", ["requests==2.31.0"])
         config = minimal_container_config(
-            requirements_txt=["requests==2.31.0"],
+            requirements_txt=requirements_txt,
             **overrides,
         )
         checker = VirtualenvChecker.__new__(VirtualenvChecker)
         checker.config = config
         checker.docker_project_dir = config.docker_project_dir
         checker.docker_venv_dir = config.docker_venv_dir
+        checker.python_version = config.python_version
         checker.requirements_txt = config.requirements_txt
         checker.use_uv = use_uv
         checker._run_pip_command = MagicMock()
@@ -240,17 +242,23 @@ class SyncExtraRequirementsHygieneTests(unittest.TestCase):
                 checker._list_installed_packages()
         self.assertIn("invalid JSON", str(ctx.exception))
 
-    def test_list_installed_packages_non_uv_uses_freeze_without_subprocess(self):
+    def test_list_installed_packages_non_uv_uses_venv_pip_freeze(self):
         checker = self._checker(use_uv=False)
         with patch(
-            "dev_project.inside_docker_app.check_virtualenv.freeze",
-            return_value=["requests==2.31.0", "pip==24.0"],
-        ):
-            with patch(
-                "dev_project.inside_docker_app.check_virtualenv.subprocess.run"
-            ) as mock_run:
-                packages = checker._list_installed_packages()
-        mock_run.assert_not_called()
+            "dev_project.inside_docker_app.check_virtualenv.subprocess.run"
+        ) as mock_run:
+            mock_run.return_value = MagicMock(
+                stdout=b"requests==2.31.0\npip==24.0\n",
+                stderr=b"",
+                returncode=0,
+            )
+            packages = checker._list_installed_packages()
+        mock_run.assert_called_once_with(
+            ["/home/odoo/.venv/bin/python3", "-m", "pip", "freeze"],
+            capture_output=True,
+            cwd=checker.docker_project_dir,
+            check=False,
+        )
         self.assertEqual(
             packages,
             [
@@ -302,12 +310,48 @@ class SyncExtraRequirementsHygieneTests(unittest.TestCase):
 
         mock_chdir.assert_not_called()
         mock_run.assert_called_once_with(
-            ["uv", "pip", "list", "--format", "json"],
+            [
+                "uv",
+                "pip",
+                "list",
+                "--format",
+                "json",
+                "--link-mode=copy",
+                "--python",
+                "/home/odoo/.venv/bin/python3",
+            ],
             capture_output=True,
             cwd=checker.docker_project_dir,
             check=False,
         )
         checker._run_pip_command.assert_not_called()
+
+    def test_sync_extra_requirements_uv_install_targets_venv_python(self):
+        checker = self._checker(requirements_txt=["debugpy==1.7.0"])
+        with patch.object(
+            checker,
+            "_list_installed_packages",
+            return_value=[],
+        ):
+            with patch.object(
+                checker,
+                "check_package_to_install",
+                return_value=[
+                    {"command": "install", "name": "debugpy", "version": "1.7.0"},
+                ],
+            ):
+                checker.sync_extra_requirements()
+        checker._run_pip_command.assert_called_once_with(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--link-mode=copy",
+                "--python",
+                "/home/odoo/.venv/bin/python3",
+                "debugpy==1.7.0",
+            ]
+        )
 
 
 if __name__ == "__main__":

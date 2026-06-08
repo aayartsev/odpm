@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,6 +8,9 @@ from unittest.mock import MagicMock, patch
 from dev_project.bake_venv import (
     PipRunner,
     VenvInstallSpec,
+    _make_pip_runner,
+    activate_venv,
+    apply_venv_env,
     create_venv,
     install_fresh,
     main,
@@ -63,6 +67,40 @@ class PipRunnerTests(unittest.TestCase):
             cwd="/home/odoo",
         )
 
+    def test_make_pip_runner_uv_targets_venv_python(self):
+        spec = _spec(venv_dir="/home/odoo/.venv")
+        runner = _make_pip_runner(spec, use_uv=True)
+        self.assertEqual(
+            runner.pip_extra_args,
+            ["--link-mode=copy", "--python", "/home/odoo/.venv/bin/python3"],
+        )
+
+    def test_make_pip_runner_pip_targets_venv_python(self):
+        spec = _spec(venv_dir="/home/odoo/.venv")
+        runner = _make_pip_runner(spec, use_uv=False)
+        self.assertEqual(runner.base_cmd, ["/home/odoo/.venv/bin/python3", "-m"])
+
+
+class ApplyVenvEnvTests(unittest.TestCase):
+    def test_apply_venv_env_sets_virtual_env(self):
+        with tempfile.TemporaryDirectory() as venv_dir:
+            bin_dir = os.path.join(venv_dir, "bin")
+            os.makedirs(bin_dir)
+            python_path = os.path.join(bin_dir, "python3")
+            Path(python_path).touch()
+            apply_venv_env(venv_dir)
+            self.assertEqual(os.environ["VIRTUAL_ENV"], venv_dir)
+            self.assertTrue(os.environ["PATH"].startswith(bin_dir + os.pathsep))
+
+
+class ActivateVenvTests(unittest.TestCase):
+    @patch("dev_project.bake_venv.apply_venv_env")
+    @patch("dev_project.bake_venv._find_file", return_value="/tmp/.venv/bin/activate")
+    def test_activate_venv_calls_apply_venv_env(self, _mock_find, mock_apply):
+        spec = _spec(venv_dir="/tmp/.venv", python_version="3.12")
+        activate_venv(spec)
+        mock_apply.assert_called_once_with("/tmp/.venv", python_version="3.12")
+
 
 class InstallFreshTests(unittest.TestCase):
     @patch("dev_project.bake_venv.install_extra_packages")
@@ -108,7 +146,7 @@ class CreateVenvTests(unittest.TestCase):
 
         self.assertEqual(ctx.exception.exit_code, 3)
         mock_run.assert_called_once_with(
-            ["uv", "venv", spec.venv_dir],
+            ["uv", "venv", spec.venv_dir, "--python", sys.executable],
             cwd=spec.project_dir,
             check=False,
         )

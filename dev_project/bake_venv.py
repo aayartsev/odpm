@@ -26,6 +26,25 @@ _logger = get_module_logger(__name__)
 UV_PIP_OPTIONS = ("--link-mode=copy",)
 
 
+def venv_python_path(venv_dir: str) -> str:
+    return os.path.join(venv_dir, "bin", "python3")
+
+
+def apply_venv_env(venv_dir: str, *, python_version: str | None = None) -> str:
+    """Expose venv on PATH/VIRTUAL_ENV for pip/uv; return venv python path."""
+    python_path = venv_python_path(venv_dir)
+    bin_dir = os.path.dirname(python_path)
+    os.environ["VIRTUAL_ENV"] = venv_dir
+    os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
+    if python_version is not None:
+        lib_path = os.path.join(
+            venv_dir, "lib", f"python{python_version}", "site-packages"
+        )
+        if lib_path not in sys.path:
+            sys.path.insert(1, lib_path)
+    return python_path
+
+
 @dataclass
 class VenvInstallSpec:
     project_dir: str
@@ -181,13 +200,18 @@ def parse_odoo_requirements(requirements_path: str) -> list[str]:
 
 
 def _make_pip_runner(spec: VenvInstallSpec, use_uv: bool) -> PipRunner:
+    venv_python = venv_python_path(spec.venv_dir)
     if use_uv:
         return PipRunner(
             base_cmd=["uv"],
-            pip_extra_args=list(UV_PIP_OPTIONS),
+            pip_extra_args=[*UV_PIP_OPTIONS, "--python", venv_python],
             cwd=spec.project_dir,
         )
-    return PipRunner(base_cmd=[sys.executable, "-m"], pip_extra_args=[], cwd=spec.project_dir)
+    return PipRunner(
+        base_cmd=[venv_python, "-m"],
+        pip_extra_args=[],
+        cwd=spec.project_dir,
+    )
 
 
 def _run_subprocess(cmd: list[str], *, cwd: str) -> None:
@@ -201,10 +225,17 @@ def _run_subprocess(cmd: list[str], *, cwd: str) -> None:
         )
 
 
-def run_pip_command(command: str, *, cwd: str | None = None) -> None:
-    """Run a pip shell-less command built from a legacy string (for callers outside bake)."""
-    argv = shlex.split(command)
+def run_pip_command(
+    command: str | list[str],
+    *,
+    cwd: str | None = None,
+    venv_dir: str | None = None,
+) -> None:
+    """Run a pip/uv argv list (or legacy shell-less string) for callers outside bake."""
+    argv = shlex.split(command) if isinstance(command, str) else list(command)
     workdir = cwd if cwd is not None else os.getcwd()
+    if venv_dir is not None:
+        apply_venv_env(venv_dir)
     _run_subprocess(argv, cwd=workdir)
 
 
@@ -214,7 +245,7 @@ def create_venv(spec: VenvInstallSpec, use_uv: bool) -> None:
         env.create(spec.venv_dir)
         return
     result = subprocess.run(
-        ["uv", "venv", spec.venv_dir],
+        ["uv", "venv", spec.venv_dir, "--python", sys.executable],
         cwd=spec.project_dir,
         check=False,
     )
@@ -230,12 +261,7 @@ def activate_venv(spec: VenvInstallSpec) -> None:
         message = f"activate script not found under {spec.venv_dir}"
         _logger.error(message)
         raise VenvError(message)
-    venv_bin_dir = os.path.dirname(activate_path)
-    venv_lib_path = os.path.join(
-        spec.venv_dir, "lib", f"python{spec.python_version}", "site-packages"
-    )
-    os.environ["PATH"] = venv_bin_dir + os.pathsep + os.environ["PATH"]
-    sys.path.insert(1, venv_lib_path)
+    apply_venv_env(spec.venv_dir, python_version=spec.python_version)
 
 
 def _find_file(start_dir: str, pattern: str) -> str:
