@@ -80,6 +80,10 @@ YOU_SELECT_POSTGRES_PORT = "You select this port for which PostgreSQL database s
 YOU_SELECT_DEBUGGER_PORT = "You select this port for which Python Debugger will listen: {SELECTED_DEBUGGER_PORT}\n"
 DO_YOU_WANT_CLONE_ODOO = "Do you want to clone odoo? y/n\n"
 CHECK_ODOO_REPO = """Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"""
+PLATFORM_REPO_CLONE_DEFERRED_TO_PREPARE = (
+    "Platform git repository at {odoo_src_dir} is not ready yet; "
+    "cloning will run during prepare (git.materialize step)."
+)
 CONFIG_JSON_IS_DEPRECATED = (
     """ "config.json" is deprecated. Please read documentation"""
 )
@@ -243,6 +247,10 @@ translations = {
         "не является git репозиторием или репозиторий поврежден"
         "Пожалуйста исправьте повреждения или клонируйте репозиторий заново: "
         "git clone https://github.com/odoo/odoo.git"
+    },
+    PLATFORM_REPO_CLONE_DEFERRED_TO_PREPARE: {
+        "ru_RU": "Git-репозиторий platform в {odoo_src_dir} ещё не готов; "
+        "клонирование выполнится на этапе prepare (шаг git.materialize).",
     },
     CONFIG_JSON_IS_DEPRECATED: {
         "ru_RU": """ Файл с параметрами "config.json" является устаревшим. Пожалуйста обратитесь к документации """,

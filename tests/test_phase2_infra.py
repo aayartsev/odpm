@@ -182,11 +182,12 @@ class SystemCheckerExtraTests(unittest.TestCase):
         with self.assertRaises(SystemCheckError):
             checker.check_docker_compose()
 
+    @patch("dev_project.check_system._logger")
     @patch.object(SystemChecker, "_platform_git_repo_ready", return_value=False)
     @patch("dev_project.check_system.os.path.exists", return_value=True)
     @patch("dev_project.check_system.os.makedirs")
-    def test_check_file_system_developer_calls_get_platform_sources(
-        self, _mock_mkdir, _mock_exists, _mock_platform_ready
+    def test_check_file_system_developer_does_not_materialize_platform_on_init(
+        self, _mock_mkdir, _mock_exists, _mock_platform_ready, mock_logger
     ):
         config = self._config()
         config.policy = MagicMock()
@@ -199,7 +200,8 @@ class SystemCheckerExtraTests(unittest.TestCase):
 
         SystemChecker(config, project_environment)
 
-        config._git_repos.get_platform_sources.assert_called_once_with()
+        config._git_repos.get_platform_sources.assert_not_called()
+        mock_logger.warning.assert_called_once()
 
     @patch("dev_project.check_system.os.path.exists")
     @patch("dev_project.check_system.os.makedirs")

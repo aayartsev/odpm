@@ -73,6 +73,19 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
         exec_compose_generate(ctx)
         mock_generate.assert_called_once()
 
+    def test_exec_git_materialize_calls_materialize_git_repos_once(self):
+        from dev_project.prepare.steps_git import exec_git_materialize
+
+        config = MagicMock()
+        lock_manager = MagicMock()
+        lock_manager.has_platform_lock.return_value = False
+        ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
+        ctx.lock_manager = lock_manager
+
+        exec_git_materialize(ctx)
+
+        config.materialize_git_repos.assert_called_once_with(skip_build_date=False)
+
 
 if __name__ == "__main__":
     unittest.main()

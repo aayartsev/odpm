@@ -183,7 +183,10 @@ class SystemChecker(SystemCheckerProtocol):
             return
         if policy.is_developer():
             if not self._platform_git_repo_ready():
-                self.config._git_repos.get_platform_sources()
+                message = translations.get_translation(
+                    translations.PLATFORM_REPO_CLONE_DEFERRED_TO_PREPARE
+                ).format(odoo_src_dir=self.config.odoo_src_dir)
+                _logger.warning(message)
             return
         if policy.scenario != constants.SERVER_SCENARIO:
             return
