@@ -7,6 +7,7 @@ from typing import NamedTuple
 from . import constants, translations
 from .config import Config
 from .errors import SubprocessError, SystemCheckError
+from .interactive import prompt_input, stdin_is_interactive
 from .inside_docker_app import utils
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
@@ -193,7 +194,15 @@ class SystemChecker(SystemCheckerProtocol):
         odoo_bin = os.path.join(self.config.odoo_src_dir, "odoo-bin")
         if os.path.exists(odoo_bin):
             return
-        clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
+        if not stdin_is_interactive():
+            message = translations.get_translation(
+                translations.NON_INTERACTIVE_SERVER_PLATFORM_MISSING
+            ).format(odoo_src_dir=self.config.odoo_src_dir)
+            _logger.error(message)
+            raise SystemCheckError(message)
+        clone_odoo = prompt_input(
+            translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO)
+        )
         if clone_odoo and clone_odoo.lower() == "y":
             PlatformSourcesService(self.project_environment).download_odoo_nightly_build()
             return

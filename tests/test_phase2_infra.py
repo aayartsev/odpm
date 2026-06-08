@@ -206,10 +206,12 @@ class SystemCheckerExtraTests(unittest.TestCase):
     @patch("dev_project.check_system.os.path.exists")
     @patch("dev_project.check_system.os.makedirs")
     @patch("dev_project.check_system.PlatformSourcesService")
-    @patch("builtins.input", return_value="y")
-    def test_check_file_system_server_downloads_nightly_when_odoo_bin_missing(
+    @patch("dev_project.check_system.prompt_input", return_value="y")
+    @patch("dev_project.check_system.stdin_is_interactive", return_value=True)
+    def test_check_file_system_server_interactive_downloads_nightly_when_odoo_bin_missing(
         self,
-        _mock_input,
+        _mock_is_interactive,
+        _mock_prompt,
         mock_platform_sources,
         _mock_mkdir,
         mock_exists,
@@ -235,6 +237,40 @@ class SystemCheckerExtraTests(unittest.TestCase):
 
         mock_platform_sources.assert_called_once_with(project_environment)
         mock_platform_sources.return_value.download_odoo_nightly_build.assert_called_once_with()
+
+    @patch("dev_project.check_system.os.path.exists")
+    @patch("dev_project.check_system.os.makedirs")
+    @patch("dev_project.check_system.prompt_input")
+    @patch("dev_project.check_system.stdin_is_interactive", return_value=False)
+    def test_check_file_system_server_headless_raises_without_prompt(
+        self,
+        _mock_is_interactive,
+        mock_prompt,
+        _mock_mkdir,
+        mock_exists,
+    ):
+        config = self._config()
+        config.policy = MagicMock()
+        config.policy.is_ci.return_value = False
+        config.policy.is_developer.return_value = False
+        config.policy.scenario = constants.SERVER_SCENARIO
+        config.odoo_src_dir = "/tmp/odoo"
+        project_environment = MagicMock()
+
+        def exists_side_effect(path):
+            if path in ("/tmp/backups", "/tmp/odoo-projects"):
+                return True
+            if path == "/tmp/odoo/odoo-bin":
+                return False
+            return False
+
+        mock_exists.side_effect = exists_side_effect
+
+        with self.assertRaises(SystemCheckError) as ctx:
+            SystemChecker(config, project_environment)
+
+        mock_prompt.assert_not_called()
+        self.assertIn("/tmp/odoo", str(ctx.exception))
 
     @patch("dev_project.check_system.os.makedirs", side_effect=OSError("denied"))
     @patch("dev_project.check_system.os.path.exists", return_value=False)

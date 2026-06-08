@@ -198,7 +198,7 @@ ODPM_SCENARIO=developer
 
 ## Non-interactive mode (CI, scripts)
 
-When stdin is not attached to a terminal (no TTY), odpm **does not prompt** via `input()`.
+When stdin is not attached to a terminal (no TTY), odpm **does not prompt** via `input()`. In the **server** scenario, if platform sources (`odoo-bin`) are missing locally, odpm would normally ask to download a nightly zip; without a TTY it **fails fast** instead — pre-install platform sources, run from an interactive terminal, or use `ODPM_SCENARIO=developer` for git-based clone during prepare.
 
 **`.env` file** — must already exist in the project directory or at `~/.odpm/.env`. For the first run you can instead set at least one of the environment variables below; odpm will create `~/.odpm/.env` and fill the rest from defaults:
 
@@ -317,6 +317,7 @@ Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_d
 
 ### Recommendations for `server`
 
+- Ensure Odoo platform sources are present under `odoo_src_dir` before running odpm in CI or scripts (non-interactive). Interactive first-time setup may download a nightly zip when prompted; headless runs require a pre-populated tree or `developer` scenario.
 - `dev_mode` in `user_settings.json` is ignored on `server`; do not switch to `developer` on a publicly reachable instance just to enable `--dev`.
 - Set strong values for `db_manager_password`, `db_default_admin_*`, and PostgreSQL credentials; do not rely on image defaults.
 - Prefer HTTPS via a reverse proxy; set Odoo `proxy_mode` and `dbfilter` in `odoo.conf` when exposing the instance.

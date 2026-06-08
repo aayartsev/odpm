@@ -30,6 +30,7 @@
 - **`dev_project/runtime_coordinator.py` (E-6)** — `RuntimeCoordinator` владеет post-prepare runtime (CI build, VS Code, compose up) через `run_after_prepare`; `OdpmPipeline` делегирует через тонкие обёртки. `RuntimeCoordinatorPolicyTests` и `RuntimeCoordinatorComposeTests` в `test_odpm_pipeline`; orchestration pipeline < 150 LOC.
 - **P2 cleanup** — `RuntimeProjectServicesProtocol` удалён; phase-функции bootstrap перенесены в `config/bootstrap_phases.py` (`bootstrap.py` <100 LOC); server nightly через `PlatformSourcesService`; bullets E-1…E-4 в CHANGELOG исправлены.
 - **`dev_project/check_system.py` (R-2)** — clone platform для developer выполняется только в prepare `git.materialize` (`materialize_git_repos`); init `check_file_system` лишь проверяет и логирует, если repo ещё не готов. Обновлены `test_phase2_infra` и `test_prepare_context`.
+- **`dev_project/check_system.py` (R-3)** — nightly download platform в server-сценарии через `stdin_is_interactive` / `prompt_input`; в неинтерактивном режиме fail-fast с `NON_INTERACTIVE_SERVER_PLATFORM_MISSING` вместо блокировки на `input()`. Обновлены README EN+RU (server / non-interactive).
 
 ---
 

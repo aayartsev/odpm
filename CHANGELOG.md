@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`dev_project/runtime_coordinator.py` (E-6)** — `RuntimeCoordinator` owns post-prepare runtime (CI build, VS Code, compose up) via `run_after_prepare`; `OdpmPipeline` delegates through thin wrappers. `RuntimeCoordinatorPolicyTests` and `RuntimeCoordinatorComposeTests` in `test_odpm_pipeline`; pipeline orchestration under 150 LOC.
 - **P2 cleanup** — `RuntimeProjectServicesProtocol` removed; bootstrap phase functions moved to `config/bootstrap_phases.py` (`bootstrap.py` <100 LOC); server nightly download via `PlatformSourcesService`; CHANGELOG E-1…E-4 bullets corrected.
 - **`dev_project/check_system.py` (R-2)** — developer platform clone is owned by prepare `git.materialize` (`materialize_git_repos`); init `check_file_system` only validates and logs when the platform repo is not ready yet. `test_phase2_infra` and `test_prepare_context` updated.
+- **`dev_project/check_system.py` (R-3)** — server scenario platform nightly download uses `stdin_is_interactive` / `prompt_input`; non-interactive runs fail fast with `NON_INTERACTIVE_SERVER_PLATFORM_MISSING` instead of blocking on `input()`. README EN+RU server/non-interactive sections updated.
 
 ---
 

@@ -134,6 +134,12 @@ NON_INTERACTIVE_ENV_FILE_HINT = (
 NON_INTERACTIVE_ENV_CREATED = (
     "Created {ENV_FILE} from environment variables and defaults (non-interactive mode)."
 )
+NON_INTERACTIVE_SERVER_PLATFORM_MISSING = (
+    "Non-interactive mode cannot prompt to download Odoo platform sources for the "
+    "server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. "
+    "Pre-install platform sources, run odpm from an interactive terminal, or use "
+    "ODPM_SCENARIO=developer for git-based clone during prepare."
+)
 
 translations = {
     USER_NOT_IN_DOCKER_GROUP: {
@@ -345,6 +351,14 @@ translations = {
         "ru_RU": (
             "Создан файл {ENV_FILE} из переменных окружения и значений по умолчанию "
             "(неинтерактивный режим)."
+        ),
+    },
+    NON_INTERACTIVE_SERVER_PLATFORM_MISSING: {
+        "ru_RU": (
+            "В неинтерактивном режиме нельзя запросить загрузку исходников platform "
+            "для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. "
+            "Установите исходники заранее, запустите odpm в интерактивном терминале "
+            "или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
         ),
     },
 }
