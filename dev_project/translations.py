@@ -1,377 +1,107 @@
-import gettext
+"""Host CLI gettext catalog (stdlib only)."""
+
+from __future__ import annotations
+
+import gettext as _stdlib_gettext
 import locale
 import os
+from typing import Callable
 
 from . import constants
 
-program_dir_path = os.path.dirname(os.path.abspath(__file__))
+_PROGRAM_DIR = os.path.dirname(os.path.abspath(__file__))
+_I18N_DIR = os.path.join(_PROGRAM_DIR, "i18n")
+_CATALOG_DOMAIN = "main"
 
-
-class Translator(object):
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = super(Translator, cls).__new__(cls)
-        return cls.instance
-
-    def __init__(self) -> None:
-        self.app_locale = locale.getdefaultlocale()[0] or constants.DEFAULT_LOCALE
-        self.set_locale()
-
-    def update_locale(self, app_locale: str) -> None:
-        self.app_locale = app_locale
-        self.set_locale()
-
-    def set_locale(self) -> None:
-        # program_dir_path = os.path.dirname(os.path.abspath(__file__))
-        # self.gettext_locale = gettext.translation("main", localedir=os.path.join(program_dir_path, "i18n"), languages=[self.app_locale])
-        # self.gettext_locale.install()
-        pass
-
-
-_ = Translator()  # .gettext_locale.gettext
-
-current_locale = locale.getlocale()
-USER_NOT_IN_DOCKER_GROUP = """You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"""
-IS_GIT_INSTALLED = "Did you install git?"
-CAN_NOT_CONNECT_DOCKER = (
-    "Cannot connect to the Docker daemon. Is the docker daemon running?"
-)
-CAN_NOT_LIST_DOCKER_CONTAINERS = "Cannot list Docker containers: {DETAILS}"
-CAN_NOT_GET_DOCKER_COMPOSE_INFO = "Cannot get docker-compose info, did you install it?"
-CAN_NOT_CREATE_DIR = "Cannot create dir, {dir_path}, please check it"
-MESSAGE_FOR_TEMPLATES = "If you want drop this file to default values, just delete it"
-DO_NOT_CHANGE_PARAM = "Do not change this param, it is generating automatically"
-DO_NOT_CHANGE_FILE = "Do not change this file, its content is generating automatically"
-ADMIN_PASSWD_MESSAGE = """Do not change, it will get from "db_manager_password" param from config.json file"""
-THIS_IS_NOT_PROJECT_DIRECTORY = """This is not {PROJECT_NAME} directory. If you want to init new project use "{PROJECT_NAME} {INIT_PARAM}" command"""
-ALREADY_INITED_PROJECT = """This dir is already {PROJECT_NAME} project"""
-CHECK_CONFIG_FILE = """Check your '{CONFIG_FILE_NAME}' file, we can not parse it."""
-PRE_COMMIT_FILE_WAS_NOT_FOUND = (
-    """Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"""
-)
-
-SET_ODOO_PROJECTS_SRC_DIR = """Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"""
-SET_ODOO_BACKUP_DIR = """Set directory for odoo creating/restoring backups, You can leave default {DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default value:"""
-SET_SSH_KEY_PATH = """Set path to your SSH key for GitHub. How to create it you can read here: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Press 'Enter' leave empty value, in this case system will try to use default system ssh key for GitHub:\n"""
-SET_ODOO_PORT = "Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave default value:\n"
-SET_POSTGRES_PORT = "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
-SET_DEBUGGER_PORT = "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
-SET_GEVENT_PORT = "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n"
-YOU_SELECT_GEVENT_PORT = "You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n"
-
-SELECT_ODPM_SCENARIO = "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
-YOU_SELECT_ODPM_SCENARIO = (
-    "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
-)
-
-YOU_SELECT_ODOO_DIR = "You select this odoo sources dir: {SELECTED_ODOO_DIR}\n"
-YOU_SELECT_ODOO_PROJECTS_DIR = (
-    "You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n"
-)
-YOU_SELECT_ODOO_BACKUPS_DIR = (
-    "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
-)
-NOTHING_SSH_PATH_NAME = "You did not selected any path to ssh key"
-YOU_SELECT_SSH_KEY_PATH = "You select this ssh path key: {SELECTED_SSH_KEY_PATH}\n"
-YOU_SELECT_ODOO_PORT = (
-    "You select this port for which odoo will listen: {SELECTED_ODOO_PORT}\n"
-)
-YOU_SELECT_POSTGRES_PORT = "You select this port for which PostgreSQL database server will listen: {SELECTED_POSTGRES_PORT}\n"
-YOU_SELECT_DEBUGGER_PORT = "You select this port for which Python Debugger will listen: {SELECTED_DEBUGGER_PORT}\n"
-DO_YOU_WANT_CLONE_ODOO = "Do you want to clone odoo? y/n\n"
-CHECK_ODOO_REPO = """Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"""
-PLATFORM_REPO_CLONE_DEFERRED_TO_PREPARE = (
-    "Platform git repository at {odoo_src_dir} is not ready yet; "
-    "cloning will run during prepare (git.materialize step)."
-)
-CONFIG_JSON_IS_DEPRECATED = (
-    """ "config.json" is deprecated. Please read documentation"""
-)
-SET_ODOO_VERSION = """Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"""
-YOU_SELECT_ODOO_VERSION = """You select this odoo version: {SELECTED_ODOO_VERSION}\n"""
-YOU_DO_NOT_SET_DEVELOPING_PROJECT = """You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"""
-YOU_NEED_TO_HAVE_FREE_SPACE = """You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"""
-FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED = """File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"""
-ODOO_GIT_LINK_REQUIRES_INIT = """The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"""
-SWITCHING_TO_BRANCH = """Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"""
-PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION = """Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project."""
-RUNNING_AS_ROOT_DISABLED = """Running with sudo/root privileges is not permitted."""
-BUILD_IMAGE_REQUIRES_CI_SCENARIO = (
-    "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
-)
-COMPOSE_UP_FAILED = "docker compose up failed with exit code {EXIT_CODE}"
-DOCKER_BUILD_FAILED = "docker build failed with exit code {EXIT_CODE}"
-OCA_DEPENDENCY_NOT_CLONED = (
-    "Git dependency {DEPENDENCY_URL} is not available locally; "
-    "transitive entries from oca_dependencies.txt and nested odpm.json will be skipped"
-)
-NESTED_ODPM_ODOO_VERSION_MISMATCH = (
-    "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, "
-    "host project uses {HOST_VERSION}"
-)
-NESTED_ODPM_PYTHON_VERSION_MISMATCH = (
-    "Nested odpm.json at {MANIFEST_PATH} declares python_version {NESTED_VERSION}, "
-    "host project uses {HOST_VERSION}"
-)
-NESTED_ODPM_READ_FAILED = (
-    "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
-)
-NESTED_ODPM_NOT_OBJECT = (
-    "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object"
-)
-PROJECT_PATH_IN_START_DIR_PATH = """Directory {START_DIR_PATH} is not a valid odpm project directory. Please run "cd {PROJECT_PATH}" to navigate to the correct location."""
-
-NON_INTERACTIVE_ODOO_VERSION_REQUIRED = (
-    "Non-interactive mode requires odoo_version in the developing project's "
-    "odpm.json or pass --odoo-version on the command line."
-)
-NON_INTERACTIVE_ENV_FILE_HINT = (
-    "Non-interactive mode requires an existing .env file in the project directory "
-    "or under ~/.odpm/.env. Create it manually or set environment variables "
-    "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) before the first run."
-)
-NON_INTERACTIVE_ENV_CREATED = (
-    "Created {ENV_FILE} from environment variables and defaults (non-interactive mode)."
-)
-NON_INTERACTIVE_SERVER_PLATFORM_MISSING = (
-    "Non-interactive mode cannot prompt to download Odoo platform sources for the "
-    "server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. "
-    "Pre-install platform sources, run odpm from an interactive terminal, or use "
-    "ODPM_SCENARIO=developer for git-based clone during prepare."
-)
-
-translations = {
-    USER_NOT_IN_DOCKER_GROUP: {
-        "ru_RU": """Вам необходимо добавить пользователя {CURRENT_USER} в группу {LINUX_DOCKER_GROUPNAME}\n запустите следующую команду от имени root или с помощью sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER}\n Затем перезапустите ваш компьютер""",
-    },
-    IS_GIT_INSTALLED: {"ru_RU": "Вы установили git?"},
-    CAN_NOT_CONNECT_DOCKER: {
-        "ru_RU": "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
-    },
-    CAN_NOT_LIST_DOCKER_CONTAINERS: {
-        "ru_RU": "Не удалось получить список контейнеров Docker: {DETAILS}",
-    },
-    CAN_NOT_GET_DOCKER_COMPOSE_INFO: {
-        "ru_RU": "Не удалось получить информацию о Docker Compose. Проверьте установлен ли он."
-    },
-    CAN_NOT_CREATE_DIR: {
-        "ru_RU": "Не удалось создать каталог, {dir_path}, пожалуйста проверьте его."
-    },
-    MESSAGE_FOR_TEMPLATES: {
-        "ru_RU": "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
-    },
-    DO_NOT_CHANGE_PARAM: {
-        "ru_RU": "Не изменяйте данный параметр, его значение генерируется автоматически"
-    },
-    DO_NOT_CHANGE_FILE: {
-        "ru_RU": "Не изменяйте данный файл, его содержимое генерируется автоматически"
-    },
-    ADMIN_PASSWD_MESSAGE: {
-        "ru_RU": """Не изменяйте данный параметр, его значение будет взято из"""
-        """ параметра "db_manager_password" файла конфигурации config.json"""
-    },
-    THIS_IS_NOT_PROJECT_DIRECTORY: {
-        "ru_RU": "Данный каталог не является odpm проектом. Если вы хотите создать"
-        " новый проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
-    },
-    ALREADY_INITED_PROJECT: {
-        "ru_RU": """Данный каталог уже является {PROJECT_NAME} проектом"""
-    },
-    CHECK_CONFIG_FILE: {
-        "ru_RU": """Проверьте ваш конфигурационный файл '{CONFIG_FILE_NAME}', его не возможно прочитать."""
-    },
-    PRE_COMMIT_FILE_WAS_NOT_FOUND: {
-        "ru_RU": """Pre-commit файл {PRE_COMMIT_FILE} не был найден в каталоге {ODOO_PROJECT_DIR_PATH}"""
-    },
-    SET_ODOO_PROJECTS_SRC_DIR: {
-        "ru_RU": "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить "
-        "значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. "
-        "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
-    },
-    SET_ODOO_BACKUP_DIR: {
-        "ru_RU": "Укажите каталог создания/восстановления бэкапов odoo, Вы можете оставить "
-        "значение по умолчанию {DEFAULT_ODOO_BACKUP_DIR} или написать ваше собственное. "
-        "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
-    },
-    SET_SSH_KEY_PATH: {
-        "ru_RU": "Укажите путь к SSH ключу для GitHub. Как его создать, вы можете прочитать здесь:"
-        " https://docs.github.com/en/authentication/connecting-to-github-with-ssh/"
-        "generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Вы можете оставить значение"
-        " пустым, нажав 'Enter'. Программа попытается использовать системный ssh ключ для GitHub:\n"
-    },
-    SET_ODOO_PORT: {
-        "ru_RU": "Укажите порт, который будет слушать odoo. Можете оставить значение по умолчанию"
-        " {DEFAULT_ODOO_PORT} или укажите свой собственный. "
-        "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
-    },
-    SET_POSTGRES_PORT: {
-        "ru_RU": "Укажите порт, который будет слушать сервер PostgreSQL. Можете оставить значение по умолчанию"
-        " {DEFAULT_POSTGRES_PORT} или укажите свой собственный. "
-        "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
-    },
-    SET_DEBUGGER_PORT: {
-        "ru_RU": "Укажите порт, который будет слушать сервер Отладчик. Можете оставить значение по умолчанию"
-        " {DEFAULT_DEBUGGER_PORT} или укажите свой собственный. "
-        "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
-    },
-    SET_GEVENT_PORT: {
-        "ru_RU": "Укажите порт, который будет слушать сервер Gevent Websocket. Можете оставить значение по умолчанию"
-        " {DEFAULT_GEVENT_PORT} или укажите свой собственный. "
-        "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
-    },
-    YOU_SELECT_GEVENT_PORT: {
-        "ru_RU": "Вы выбрали следующий порт, который будет слушать Odoo Gevent Websocket System: {SELECTED_GEVENT_PORT}\n"
-    },
-    YOU_SELECT_ODOO_DIR: {
-        "ru_RU": "Вы выбрали следующий каталог для хранения исходных текстов odoo: {SELECTED_ODOO_DIR}\n"
-    },
-    YOU_SELECT_ODOO_PROJECTS_DIR: {
-        "ru_RU": "Вы выбрали следующий каталог для хранения исходных текстов других odoo проектов: {SELECTED_ODOO_PROJECTS_DIR}\n",
-    },
-    YOU_SELECT_ODOO_BACKUPS_DIR: {
-        "ru_RU": "Вы выбрали следующий каталог для использования бэкапов odoo: {SELECTED_ODOO_BACKUPS_DIR}\n",
-    },
-    NOTHING_SSH_PATH_NAME: {
-        "ru_RU": "Вы не выбрали путь к ssh ключу",
-    },
-    YOU_SELECT_SSH_KEY_PATH: {
-        "ru_RU": "Вы выбрали следующий путь для нахождения ssh ключа: {SELECTED_SSH_KEY_PATH}\n",
-    },
-    YOU_SELECT_ODOO_PORT: {
-        "ru_RU": "Вы выбрали следующий порт, который будет слушать odoo: {SELECTED_ODOO_PORT}\n",
-    },
-    YOU_SELECT_POSTGRES_PORT: {
-        "ru_RU": "Вы выбрали следующий порт, который будет слушать сервер PostgreSQL: {SELECTED_POSTGRES_PORT}\n",
-    },
-    YOU_SELECT_DEBUGGER_PORT: {
-        "ru_RU": "Вы выбрали следующий порт, который будет слушать Python Debugger: {SELECTED_DEBUGGER_PORT}\n",
-    },
-    DO_YOU_WANT_CLONE_ODOO: {"ru_RU": "Вы хотите клонировать odoo? y/n\n"},
-    CHECK_ODOO_REPO: {
-        "ru_RU": "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} "
-        "не является git репозиторием или репозиторий поврежден"
-        "Пожалуйста исправьте повреждения или клонируйте репозиторий заново: "
-        "git clone https://github.com/odoo/odoo.git"
-    },
-    PLATFORM_REPO_CLONE_DEFERRED_TO_PREPARE: {
-        "ru_RU": "Git-репозиторий platform в {odoo_src_dir} ещё не готов; "
-        "клонирование выполнится на этапе prepare (шаг git.materialize).",
-    },
-    CONFIG_JSON_IS_DEPRECATED: {
-        "ru_RU": """ Файл с параметрами "config.json" является устаревшим. Пожалуйста обратитесь к документации """,
-    },
-    SET_ODOO_VERSION: {
-        "ru_RU": """Пожалуйста, выберите версию Odoo для текущего проекта. Вот список поддерживаемых версий: {AVAILABEL_ODOO_VERSIONS_ARE}. Вы можете оставить значение по умолчанию {ODOO_LATEST_VERSION} или написать свою версию из списка. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n""",
-    },
-    YOU_SELECT_ODOO_VERSION: {
-        "ru_RU": """Вы выбрали следующую версию odoo: {SELECTED_ODOO_VERSION}\n"""
-    },
-    YOU_DO_NOT_SET_DEVELOPING_PROJECT: {
-        "ru_RU": """Вы не указали разрабатываемый проект. Вы можете указать это при использовании --init команды. Например: '--init file:///home/user/projects/your_directory_for_project' или напрямую из git репозитория --init https://github.com/aayartsev/odoo_demo_project.git'. Вы так же можете указать это в файле user_settings.json в ключе 'developing_project'"""
-    },
-    YOU_NEED_TO_HAVE_FREE_SPACE: {
-        "ru_RU": """В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} свободного места""",
-    },
-    SELECT_ODPM_SCENARIO: {
-        "ru_RU": "Пожалуйта выберите ценарий использования odpm из указанного списка {LIST_OF_SCENARIOS}\n Нажпите 'Enter' чтобы оставить значение по уполчнию:\n"
-    },
-    YOU_SELECT_ODPM_SCENARIO: {
-        "ru_RU": "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n",
-    },
-    FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED: {
-        "ru_RU": """Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}""",
-    },
-    ODOO_GIT_LINK_REQUIRES_INIT: {
-        "ru_RU": """Параметр {ODOO_GIT_LINK_PARAM} может использоваться только совместно с параметром {INIT_PARAM}""",
-    },
-    SWITCHING_TO_BRANCH: {
-        "ru_RU": """Переключение проекта {PROJECT_NAME} на ветку {BRANCH_NAME}""",
-    },
-    PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION: {
-        "ru_RU": """Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте версию менеджера соотвествующую версии odpm в проекте. Или созданй новый проект"""
-    },
-    RUNNING_AS_ROOT_DISABLED: {"ru_RU": "Запуск скрипта от root/sudo запрещен"},
-    BUILD_IMAGE_REQUIRES_CI_SCENARIO: {
-        "ru_RU": "--build-image доступен только при ODPM_SCENARIO=ci в .env",
-    },
-    COMPOSE_UP_FAILED: {
-        "ru_RU": "docker compose up завершился с кодом {EXIT_CODE}",
-    },
-    DOCKER_BUILD_FAILED: {
-        "ru_RU": "docker build завершился с кодом {EXIT_CODE}",
-    },
-    OCA_DEPENDENCY_NOT_CLONED: {
-        "ru_RU": (
-            "Git-зависимость {DEPENDENCY_URL} недоступна локально; "
-            "транзитивные записи из oca_dependencies.txt и вложенного odpm.json "
-            "будут пропущены"
-        ),
-    },
-    NESTED_ODPM_ODOO_VERSION_MISMATCH: {
-        "ru_RU": (
-            "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, "
-            "в host-проекте используется {HOST_VERSION}"
-        ),
-    },
-    NESTED_ODPM_PYTHON_VERSION_MISMATCH: {
-        "ru_RU": (
-            "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_version {NESTED_VERSION}, "
-            "в host-проекте используется {HOST_VERSION}"
-        ),
-    },
-    NESTED_ODPM_READ_FAILED: {
-        "ru_RU": (
-            "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
-        ),
-    },
-    NESTED_ODPM_NOT_OBJECT: {
-        "ru_RU": (
-            "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен быть JSON-объектом"
-        ),
-    },
-    PROJECT_PATH_IN_START_DIR_PATH: {
-        "ru_RU": """Каталог {START_DIR_PATH} не является odpm катлогом, пожалуйста выполните команду cd {PROJECT_PATH} для перехода в нужный вам каталог"""
-    },
-    NON_INTERACTIVE_ODOO_VERSION_REQUIRED: {
-        "ru_RU": (
-            "В неинтерактивном режиме требуется odoo_version в odpm.json "
-            "разрабатываемого проекта или параметр --odoo-version в командной строке."
-        ),
-    },
-    NON_INTERACTIVE_ENV_FILE_HINT: {
-        "ru_RU": (
-            "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта "
-            "или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения "
-            "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-            "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) перед первым запуском."
-        ),
-    },
-    NON_INTERACTIVE_ENV_CREATED: {
-        "ru_RU": (
-            "Создан файл {ENV_FILE} из переменных окружения и значений по умолчанию "
-            "(неинтерактивный режим)."
-        ),
-    },
-    NON_INTERACTIVE_SERVER_PLATFORM_MISSING: {
-        "ru_RU": (
-            "В неинтерактивном режиме нельзя запросить загрузку исходников platform "
-            "для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. "
-            "Установите исходники заранее, запустите odpm в интерактивном терминале "
-            "или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
-        ),
-    },
+_LANG_ALIASES = {
+    "C": constants.DEFAULT_LOCALE,
+    "POSIX": constants.DEFAULT_LOCALE,
+    "en": "en_US",
+    "ru": "ru_RU",
 }
 
 
-def get_translation(string_to_translate):
-    translated_result = translations.get(string_to_translate)
-    if not translated_result:
-        return string_to_translate
-    locale_key = current_locale[0]
-    if locale_key is None:
-        locale_key = ""
-    translated_string = translated_result.get(locale_key)
-    if not translated_string:
-        return string_to_translate
-    return translated_string
+def _normalize_locale(value: str | None) -> str:
+    if not value:
+        return constants.DEFAULT_LOCALE
+    base = value.split(".")[0].split("@")[0].replace("-", "_")
+    return _LANG_ALIASES.get(base, base)
+
+
+def _locale_from_environment() -> str:
+    for var in ("LC_ALL", "LC_MESSAGES", "LANG"):
+        raw = os.environ.get(var)
+        if raw:
+            return _normalize_locale(raw)
+    try:
+        default = locale.getdefaultlocale()[0]
+    except (AttributeError, ValueError, TypeError):
+        default = None
+    return _normalize_locale(default)
+
+
+def _language_candidates(app_locale: str) -> list[str]:
+    candidates: list[str] = []
+    for value in (app_locale, _LANG_ALIASES.get(app_locale, "")):
+        if value and value not in candidates:
+            candidates.append(value)
+    if "_" in app_locale:
+        language = app_locale.split("_", 1)[0]
+        alias = _LANG_ALIASES.get(language)
+        for value in (language, alias):
+            if value and value not in candidates:
+                candidates.append(value)
+    return candidates
+
+
+class Translator:
+    def __new__(cls) -> Translator:
+        if not hasattr(cls, "instance"):
+            cls.instance = super().__new__(cls)
+        return cls.instance
+
+    def __init__(self) -> None:
+        self.app_locale = _locale_from_environment()
+        self._gettext: Callable[[str], str] = self._identity_gettext
+        self.set_locale()
+
+    @staticmethod
+    def _identity_gettext(message: str) -> str:
+        return message
+
+    def update_locale(self, app_locale: str) -> None:
+        self.app_locale = _normalize_locale(app_locale)
+        self.set_locale()
+
+    def set_locale(self) -> None:
+        try:
+            locale.setlocale(locale.LC_ALL, "")
+        except locale.Error:
+            pass
+        self.app_locale = _normalize_locale(
+            self.app_locale or _locale_from_environment()
+        )
+        catalog = _stdlib_gettext.translation(
+            _CATALOG_DOMAIN,
+            localedir=_I18N_DIR,
+            languages=_language_candidates(self.app_locale),
+            fallback=True,
+        )
+        self._gettext = catalog.gettext
+
+    def gettext(self, message: str) -> str:
+        return self._gettext(message)
+
+
+_translator = Translator()
+
+
+def gettext(message: str) -> str:
+    return _translator.gettext(message)
+
+
+def update_locale(app_locale: str) -> None:
+    _translator.update_locale(app_locale)
+
+
+_ = gettext

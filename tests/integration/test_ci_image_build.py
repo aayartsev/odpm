@@ -10,7 +10,8 @@ import unittest
 import uuid
 from pathlib import Path
 
-from dev_project import constants, translations
+from dev_project import constants
+from dev_project.translations import _
 from tests.ci_build_context import (
     DEFAULT_DOCKER_PROJECT_DIR,
     write_minimal_ci_build_context,
@@ -73,7 +74,7 @@ def _write_ci_dockerfile(context_dir: Path, *, base_image: str) -> Path:
     )
     content = content.replace(
         constants.MESSAGE_MARKER,
-        translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+        _('Do not change this file, its content is generating automatically'),
     )
     dockerfile_path = context_dir / constants.CI_DOCKERFILE
     dockerfile_path.write_text(content, encoding="utf-8")

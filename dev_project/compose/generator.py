@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..project_dir_manager import template_needs_upgrade
 from ..config.payload import runtime_config_path
 from ..logging import get_module_logger
@@ -128,7 +129,7 @@ class ComposeGenerator:
         )
         return content.replace(
             constants.MESSAGE_MARKER,
-            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+            _('Do not change this file, its content is generating automatically'),
         )
 
     def generate_docker_compose_file(self) -> None:

@@ -5,7 +5,8 @@ import pathlib
 import shutil
 from typing import TYPE_CHECKING
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..bake_venv import (
     VenvInstallSpec,
     get_venv_bootstrap_packages,
@@ -193,7 +194,7 @@ class CiImageBuilder:
         )
         content = content.replace(
             constants.MESSAGE_MARKER,
-            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+            _('Do not change this file, its content is generating automatically'),
         )
         dockerfile_path = os.path.join(
             self.config.ci_build_context_dir, constants.CI_DOCKERFILE
@@ -227,9 +228,7 @@ class CiImageBuilder:
             cwd=self.config.project_dir,
         )
         if returncode != 0:
-            message = translations.get_translation(
-                translations.DOCKER_BUILD_FAILED
-            ).format(EXIT_CODE=returncode)
+            message = _('docker build failed with exit code {EXIT_CODE}').format(EXIT_CODE=returncode)
             _logger.error(message)
             raise PipelineError(message, exit_code=returncode)
         _logger.info(

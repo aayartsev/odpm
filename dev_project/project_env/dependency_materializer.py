@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from .. import translations
+from ..translations import _
 from ..dependency_resolver import (
     DependencyDiscovery,
     DependencyResolutionResult,
@@ -61,9 +61,7 @@ class DependencyMaterializer:
         )
         if not project.is_cloned:
             _logger.warning(
-                translations.get_translation(
-                    translations.OCA_DEPENDENCY_NOT_CLONED
-                ).format(DEPENDENCY_URL=dependency_string)
+                _('Git dependency {DEPENDENCY_URL} is not available locally; transitive entries from oca_dependencies.txt and nested odpm.json will be skipped').format(DEPENDENCY_URL=dependency_string)
             )
             return DependencyDiscovery()
         self._checkout_fn(project)

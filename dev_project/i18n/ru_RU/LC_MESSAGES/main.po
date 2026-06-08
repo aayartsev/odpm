@@ -1,20 +1,174 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR ORGANIZATION
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2024-01-10 15:39+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
+"Project-Id-Version: odpm\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: pygettext.py 1.5\n"
+"Language: ru_RU\n"
 
+msgid " \"config.json\" is deprecated. Please read documentation"
+msgstr " Файл с параметрами \"config.json\" является устаревшим. Пожалуйста обратитесь к документации "
 
-#: ./dev_project/gettext.py:12
-msgid "Test"
-msgstr "Тест"
+msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
+msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .env"
+
+msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
+msgstr "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
+
+msgid "Cannot create dir, {dir_path}, please check it"
+msgstr "Не удалось создать каталог, {dir_path}, пожалуйста проверьте его."
+
+msgid "Cannot get docker-compose info, did you install it?"
+msgstr "Не удалось получить информацию о Docker Compose. Проверьте установлен ли он."
+
+msgid "Cannot list Docker containers: {DETAILS}"
+msgstr "Не удалось получить список контейнеров Docker: {DETAILS}"
+
+msgid "Created {ENV_FILE} from environment variables and defaults (non-interactive mode)."
+msgstr "Создан файл {ENV_FILE} из переменных окружения и значений по умолчанию (неинтерактивный режим)."
+
+msgid "Did you install git?"
+msgstr "Вы установили git?"
+
+msgid "Directory {START_DIR_PATH} is not a valid odpm project directory. Please run \"cd {PROJECT_PATH}\" to navigate to the correct location."
+msgstr "Каталог {START_DIR_PATH} не является odpm катлогом, пожалуйста выполните команду cd {PROJECT_PATH} для перехода в нужный вам каталог"
+
+msgid "Do not change this file, its content is generating automatically"
+msgstr "Не изменяйте данный файл, его содержимое генерируется автоматически"
+
+msgid "Do not change this param, it is generating automatically"
+msgstr "Не изменяйте данный параметр, его значение генерируется автоматически"
+
+msgid "Do not change, it will get from \"db_manager_password\" param from config.json file"
+msgstr "Не изменяйте данный параметр, его значение будет взято из параметра \"db_manager_password\" файла конфигурации config.json"
+
+msgid "Do you want to clone odoo? y/n\n"
+msgstr "Вы хотите клонировать odoo? y/n\n"
+
+msgid "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
+msgstr "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
+
+msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
+msgstr "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"
+
+msgid "Git dependency {DEPENDENCY_URL} is not available locally; transitive entries from oca_dependencies.txt and nested odpm.json will be skipped"
+msgstr "Git-зависимость {DEPENDENCY_URL} недоступна локально; транзитивные записи из oca_dependencies.txt и вложенного odpm.json будут пропущены"
+
+msgid "If you want drop this file to default values, just delete it"
+msgstr "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
+
+msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
+msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
+
+msgid "Nested odpm.json at {MANIFEST_PATH} declares python_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
+msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
+
+msgid "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object"
+msgstr "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен быть JSON-объектом"
+
+msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
+msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
+
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) before the first run."
+msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) перед первым запуском."
+
+msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
+msgstr "В неинтерактивном режиме требуется odoo_version в odpm.json разрабатываемого проекта или параметр --odoo-version в командной строке."
+
+msgid "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
+msgstr "Git-репозиторий platform в {odoo_src_dir} ещё не готов; клонирование выполнится на этапе prepare (шаг git.materialize)."
+
+msgid "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
+msgstr "Пожалуйта выберите ценарий использования odpm из указанного списка {LIST_OF_SCENARIOS}\n Нажпите 'Enter' чтобы оставить значение по уполчнию:\n"
+
+msgid "Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Пожалуйста, выберите версию Odoo для текущего проекта. Вот список поддерживаемых версий: {AVAILABEL_ODOO_VERSIONS_ARE}. Вы можете оставить значение по умолчанию {ODOO_LATEST_VERSION} или написать свою версию из списка. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"
+msgstr "Pre-commit файл {PRE_COMMIT_FILE} не был найден в каталоге {ODOO_PROJECT_DIR_PATH}"
+
+msgid "Running with sudo/root privileges is not permitted."
+msgstr "Запуск скрипта от root/sudo запрещен"
+
+msgid "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Укажите порт, который будет слушать сервер PostgreSQL. Можете оставить значение по умолчанию {DEFAULT_POSTGRES_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Укажите порт, который будет слушать сервер Отладчик. Можете оставить значение по умолчанию {DEFAULT_DEBUGGER_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "Set directory for odoo creating/restoring backups, You can leave default {DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default value:"
+msgstr "Укажите каталог создания/восстановления бэкапов odoo, Вы можете оставить значение по умолчанию {DEFAULT_ODOO_BACKUP_DIR} или написать ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
+
+msgid "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Укажите порт, который будет слушать сервер Gevent Websocket. Можете оставить значение по умолчанию {DEFAULT_GEVENT_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Укажите порт, который будет слушать odoo. Можете оставить значение по умолчанию {DEFAULT_ODOO_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
+msgstr "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
+
+msgid "Set path to your SSH key for GitHub. How to create it you can read here: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Press 'Enter' leave empty value, in this case system will try to use default system ssh key for GitHub:\n"
+msgstr "Укажите путь к SSH ключу для GitHub. Как его создать, вы можете прочитать здесь: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Вы можете оставить значение пустым, нажав 'Enter'. Программа попытается использовать системный ssh ключ для GitHub:\n"
+
+msgid "Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"
+msgstr "Переключение проекта {PROJECT_NAME} на ветку {BRANCH_NAME}"
+
+msgid "The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"
+msgstr "Параметр {ODOO_GIT_LINK_PARAM} может использоваться только совместно с параметром {INIT_PARAM}"
+
+msgid "This dir is already {PROJECT_NAME} project"
+msgstr "Данный каталог уже является {PROJECT_NAME} проектом"
+
+msgid "This is not {PROJECT_NAME} directory. If you want to init new project use \"{PROJECT_NAME} {INIT_PARAM}\" command"
+msgstr "Данный каталог не является odpm проектом. Если вы хотите создать новый проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
+
+msgid "Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project."
+msgstr "Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте версию менеджера соотвествующую версии odpm в проекте. Или созданй новый проект"
+
+msgid "You did not selected any path to ssh key"
+msgstr "Вы не выбрали путь к ssh ключу"
+
+msgid "You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"
+msgstr "Вы не указали разрабатываемый проект. Вы можете указать это при использовании --init команды. Например: '--init file:///home/user/projects/your_directory_for_project' или напрямую из git репозитория --init https://github.com/aayartsev/odoo_demo_project.git'. Вы так же можете указать это в файле user_settings.json в ключе 'developing_project'"
+
+msgid "You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"
+msgstr "Вам необходимо добавить пользователя {CURRENT_USER} в группу {LINUX_DOCKER_GROUPNAME}\n запустите следующую команду от имени root или с помощью sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER}\n Затем перезапустите ваш компьютер"
+
+msgid "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"
+msgstr "В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} свободного места"
+
+msgid "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
+msgstr "Вы выбрали следующий каталог для использования бэкапов odoo: {SELECTED_ODOO_BACKUPS_DIR}\n"
+
+msgid "You select this odoo version: {SELECTED_ODOO_VERSION}\n"
+msgstr "Вы выбрали следующую версию odoo: {SELECTED_ODOO_VERSION}\n"
+
+msgid "You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n"
+msgstr "Вы выбрали следующий каталог для хранения исходных текстов других odoo проектов: {SELECTED_ODOO_PROJECTS_DIR}\n"
+
+msgid "You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n"
+msgstr "Вы выбрали следующий порт, который будет слушать Odoo Gevent Websocket System: {SELECTED_GEVENT_PORT}\n"
+
+msgid "You select this port for which PostgreSQL database server will listen: {SELECTED_POSTGRES_PORT}\n"
+msgstr "Вы выбрали следующий порт, который будет слушать сервер PostgreSQL: {SELECTED_POSTGRES_PORT}\n"
+
+msgid "You select this port for which Python Debugger will listen: {SELECTED_DEBUGGER_PORT}\n"
+msgstr "Вы выбрали следующий порт, который будет слушать Python Debugger: {SELECTED_DEBUGGER_PORT}\n"
+
+msgid "You select this port for which odoo will listen: {SELECTED_ODOO_PORT}\n"
+msgstr "Вы выбрали следующий порт, который будет слушать odoo: {SELECTED_ODOO_PORT}\n"
+
+msgid "You select this ssh path key: {SELECTED_SSH_KEY_PATH}\n"
+msgstr "Вы выбрали следующий путь для нахождения ssh ключа: {SELECTED_SSH_KEY_PATH}\n"
+
+msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
+msgstr "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
+
+msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
+msgstr "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
+
+msgid "docker build failed with exit code {EXIT_CODE}"
+msgstr "docker build завершился с кодом {EXIT_CODE}"
+
+msgid "docker compose up failed with exit code {EXIT_CODE}"
+msgstr "docker compose up завершился с кодом {EXIT_CODE}"

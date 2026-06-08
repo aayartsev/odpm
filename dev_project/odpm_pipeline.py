@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import sys
 
-from . import constants, translations
+from . import constants
 from .check_system import SystemChecker
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config

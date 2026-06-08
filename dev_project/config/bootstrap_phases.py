@@ -5,7 +5,8 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..dev_mode import effective_dev_mode, merge_autoreload_requirements
 from ..errors import ConfigError
 from ..logging import get_module_logger
@@ -32,9 +33,7 @@ def load_user_settings(config: Config) -> None:
 
 def bind_developing_link(config: Config) -> None:
     if not config.developing_project:
-        message = translations.get_translation(
-            translations.YOU_DO_NOT_SET_DEVELOPING_PROJECT
-        )
+        message = _("You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'")
         _logger.error(message)
         raise ConfigError(message)
     config.developing_project = config.handle_git_link(
@@ -70,9 +69,7 @@ def load_project_settings(config: Config) -> None:
         odoo_build_date=ctx.build_date.get_effective_odoo_build_date(),
     )
     if float(config.project_odpm_version) < float(constants.ODPM_VERSION):
-        message = translations.get_translation(
-            translations.PROJECT_ODPM_VERSION_LESS_CURRENT_ODPM_VERSION
-        ).format(
+        message = _('Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project.').format(
             PROJECT_ODPM_VERSION=config.project_odpm_version,
             ODPM_VERSION=constants.ODPM_VERSION,
         )

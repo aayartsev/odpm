@@ -6,7 +6,8 @@ import json
 import os
 from typing import TYPE_CHECKING
 
-from ... import constants, translations
+from ... import constants
+from ...translations import _
 from ...logging import get_module_logger
 
 if TYPE_CHECKING:
@@ -31,11 +32,7 @@ class DeprecatedConfigHandler:
                 self.config.config_json_content = json.load(config_file)
             os.rename(self.config.config_json_path, self.config.config_deprecated_json_path)
             _logger.warning(
-                translations.get_translation(
-                    translations.CONFIG_JSON_IS_DEPRECATED
-                ).format(
-                    CONFIG_FILE_NAME=constants.CONFIG_FILE_NAME,
-                )
+                _(' "config.json" is deprecated. Please read documentation')
             )
 
     def check_file_for_deprecated_words(self, file_path: str) -> None:
@@ -54,9 +51,7 @@ class DeprecatedConfigHandler:
             filename = os.path.basename(file_path)
             deprecated_filename = f"deprecated_{filename}"
             _logger.warning(
-                translations.get_translation(
-                    translations.FILE_WITH_DEPRECATED_CONTEND_WAS_RENAMED
-                ).format(
+                _('File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}').format(
                     SOURCE_FILE=file_path,
                     DEPRECATED_FILE_NAME=deprecated_filename,
                 )

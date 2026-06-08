@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..host.cli.args import OdpmCliArgs
 from ..inside_docker_app.exceptions import ConfigValidationError
 from .compose_preview import docker_compose_path, preview_compose_service
@@ -90,8 +91,8 @@ def preview_dockerignore_content(config: Config) -> str:
     template_path = config.project_dockerignore_template_path
     content = Path(template_path).read_text(encoding="utf-8")
     return content.replace(
-        translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
-        translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+        _('If you want drop this file to default values, just delete it'),
+        _('Do not change this file, its content is generating automatically'),
     )
 
 

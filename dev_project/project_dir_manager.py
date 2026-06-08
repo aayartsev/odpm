@@ -3,7 +3,8 @@ import shlex
 from dataclasses import replace
 from pathlib import Path
 
-from . import constants, translations
+from . import constants
+from .translations import _
 from .host.cli.args import OdpmCliArgs
 from .errors import ProjectDirError
 from .host.cli import params as cli_params
@@ -72,9 +73,7 @@ class ProjectDirManager:
             and not self.init
         ):
             _logger.info(
-                translations.get_translation(
-                    translations.PROJECT_PATH_IN_START_DIR_PATH
-                ).format(
+                _('Directory {START_DIR_PATH} is not a valid odpm project directory. Please run "cd {PROJECT_PATH}" to navigate to the correct location.').format(
                     START_DIR_PATH=self.start_dir_path,
                     PROJECT_PATH=self.project_path,
                 )
@@ -89,9 +88,7 @@ class ProjectDirManager:
             )
         if not self.init and not self.dir_is_project:
             _logger.info(
-                translations.get_translation(
-                    translations.THIS_IS_NOT_PROJECT_DIRECTORY
-                ).format(
+                _('This is not {PROJECT_NAME} directory. If you want to init new project use "{PROJECT_NAME} {INIT_PARAM}" command').format(
                     PROJECT_NAME=constants.PROJECT_NAME,
                     INIT_PARAM=cli_params.INIT_PARAM,
                 )
@@ -104,9 +101,7 @@ class ProjectDirManager:
             return
         if self.init and self.dir_is_project:
             _logger.info(
-                translations.get_translation(
-                    translations.ALREADY_INITED_PROJECT
-                ).format(
+                _('This dir is already {PROJECT_NAME} project').format(
                     PROJECT_NAME=constants.PROJECT_NAME,
                 )
             )
@@ -242,9 +237,7 @@ class ProjectDirManager:
             lines = f.readlines()
         content = "".join(lines)
         for replace_phrase in {
-            constants.MESSAGE_MARKER: translations.get_translation(
-                translations.MESSAGE_FOR_TEMPLATES
-            ),
+            constants.MESSAGE_MARKER: _('If you want drop this file to default values, just delete it'),
         }.items():
             content = content.replace(replace_phrase[0], replace_phrase[1])
         if not os.path.exists(project_template_file):
@@ -253,9 +246,7 @@ class ProjectDirManager:
 
     def check_odoo_git_link(self):
         if self.arguments.odoo_git_link and not self.init:
-            message = translations.get_translation(
-                translations.ODOO_GIT_LINK_REQUIRES_INIT
-            ).format(
+            message = _('The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter').format(
                 ODOO_GIT_LINK_PARAM=cli_params.ODOO_GIT_LINK_PARAM,
                 INIT_PARAM=cli_params.INIT_PARAM,
             )

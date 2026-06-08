@@ -5,7 +5,8 @@ import pathlib
 import shutil
 from typing import TYPE_CHECKING
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..dependency_resolver import DependencyResolutionResult
 from ..logging import get_module_logger
 from .types import MappedPath
@@ -146,9 +147,7 @@ class VolumeMapper:
                 )
             else:
                 _logger.warning(
-                    translations.get_translation(
-                        translations.PRE_COMMIT_FILE_WAS_NOT_FOUND
-                    ).format(
+                    _('Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}').format(
                         PRE_COMMIT_FILE=pre_commit_file,
                         ODOO_PROJECT_DIR_PATH=self.config.developing_project_dir_path,
                     )

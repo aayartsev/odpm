@@ -4,7 +4,8 @@ import platform
 from pathlib import Path
 from typing import NamedTuple
 
-from . import constants, translations
+from . import constants
+from .translations import _
 from .config import Config
 from .errors import SubprocessError, SystemCheckError
 from .interactive import prompt_input, stdin_is_interactive
@@ -37,7 +38,7 @@ class SystemChecker(SystemCheckerProtocol):
             self.check_file_system()
 
     def check_git(self) -> None:
-        message = translations.get_translation(translations.IS_GIT_INSTALLED)
+        message = _('Did you install git?')
         self._run_required_command(
             ["git", "--version"],
             expected_in_stdout=constants.GIT_WORKING_MESSAGE,
@@ -74,15 +75,13 @@ class SystemChecker(SystemCheckerProtocol):
         if platform.system() == "Linux":
             groups = self.get_system_groups(constants.HOST_USER)
             if constants.LINUX_DOCKER_GROUPNAME not in groups:
-                message = translations.get_translation(
-                    translations.USER_NOT_IN_DOCKER_GROUP
-                ).format(
+                message = _('You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer').format(
                     CURRENT_USER=constants.HOST_USER,
                     LINUX_DOCKER_GROUPNAME=constants.LINUX_DOCKER_GROUPNAME,
                 )
                 _logger.error(message)
                 raise SystemCheckError(message)
-        message = translations.get_translation(translations.CAN_NOT_CONNECT_DOCKER)
+        message = _('Cannot connect to the Docker daemon. Is the docker daemon running?')
         self._run_required_command(
             ["docker", "info"],
             expected_in_stdout=constants.DOCKER_WORKING_MESSAGE,
@@ -120,9 +119,7 @@ class SystemChecker(SystemCheckerProtocol):
                 ["docker", "container", "ls", "--format", "'{{json .}}'"],
             )
         except SubprocessError as exc:
-            message = translations.get_translation(
-                translations.CAN_NOT_LIST_DOCKER_CONTAINERS
-            ).format(DETAILS=str(exc))
+            message = _('Cannot list Docker containers: {DETAILS}').format(DETAILS=str(exc))
             _logger.error(message)
             raise SystemCheckError(message) from exc
         output_string = process_result.stdout
@@ -157,9 +154,7 @@ class SystemChecker(SystemCheckerProtocol):
                 self.config.docker_compose_command = command
                 break
         if not docker_compose_working_message_in_output_string:
-            message = translations.get_translation(
-                translations.CAN_NOT_GET_DOCKER_COMPOSE_INFO
-            )
+            message = _('Cannot get docker-compose info, did you install it?')
             _logger.error(message)
             raise SystemCheckError(message)
 
@@ -190,9 +185,7 @@ class SystemChecker(SystemCheckerProtocol):
             ):
                 return
             if not self._platform_git_repo_ready():
-                message = translations.get_translation(
-                    translations.PLATFORM_REPO_CLONE_DEFERRED_TO_PREPARE
-                ).format(odoo_src_dir=self.config.odoo_src_dir)
+                message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step).').format(odoo_src_dir=self.config.odoo_src_dir)
                 _logger.warning(message)
             return
         if policy.scenario != constants.SERVER_SCENARIO:
@@ -201,18 +194,16 @@ class SystemChecker(SystemCheckerProtocol):
         if os.path.exists(odoo_bin):
             return
         if not stdin_is_interactive():
-            message = translations.get_translation(
-                translations.NON_INTERACTIVE_SERVER_PLATFORM_MISSING
-            ).format(odoo_src_dir=self.config.odoo_src_dir)
+            message = _('Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare.').format(odoo_src_dir=self.config.odoo_src_dir)
             _logger.error(message)
             raise SystemCheckError(message)
         clone_odoo = prompt_input(
-            translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO)
+            _('Do you want to clone odoo? y/n\n')
         )
         if clone_odoo and clone_odoo.lower() == "y":
             PlatformSourcesService(self.project_environment).download_odoo_nightly_build()
             return
-        message = translations.get_translation(translations.CHECK_ODOO_REPO).format(
+        message = _('Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git').format(
             odoo_src_dir=self.config.odoo_src_dir,
         )
         _logger.error(message)
@@ -227,9 +218,7 @@ class SystemChecker(SystemCheckerProtocol):
                 try:
                     os.makedirs(dir_path)
                 except BaseException:
-                    message = translations.get_translation(
-                        translations.CAN_NOT_CREATE_DIR
-                    ).format(
+                    message = _('Cannot create dir, {dir_path}, please check it').format(
                         dir_path=dir_path,
                     )
                     _logger.error(message)
@@ -241,9 +230,7 @@ class SystemChecker(SystemCheckerProtocol):
     ) -> None:
         free_space = utils.get_free_space(Path.home())
         if free_space < free_space_size:
-            message = translations.get_translation(
-                translations.YOU_NEED_TO_HAVE_FREE_SPACE
-            ).format(
+            message = _('You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory').format(
                 NECESSARY_FREE_SPACE=free_space_size,
                 DIR_FOR_FREE_SPACE=Path.home(),
             )

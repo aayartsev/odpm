@@ -6,7 +6,8 @@ import json
 import os
 from typing import TYPE_CHECKING
 
-from ... import constants, translations
+from ... import constants
+from ...translations import _
 from ..types import DebuggerPathRecord, DebuggerUnit
 
 if TYPE_CHECKING:
@@ -91,8 +92,8 @@ class VscodeConfigurator:
             self.config.python_version,
         )
         content = content.replace(
-            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
-            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+            _('If you want drop this file to default values, just delete it'),
+            _('Do not change this file, its content is generating automatically'),
         )
         vscode_settings_json_path = os.path.join(
             self.get_vscode_dir_path(), "settings.json"

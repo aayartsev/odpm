@@ -6,7 +6,7 @@ import shlex
 import sys
 from typing import TYPE_CHECKING
 
-from . import translations
+from .translations import _
 from .compose.runtime import should_force_recreate_compose
 from .errors import PipelineError
 from .host.cli.args import OdpmCliArgs
@@ -37,9 +37,7 @@ class RuntimeCoordinator:
         if not self.cli_args.build_image:
             return False
         if not self.config.policy.allow_build_image:
-            message = translations.get_translation(
-                translations.BUILD_IMAGE_REQUIRES_CI_SCENARIO
-            )
+            message = _('--build-image is only allowed when ODPM_SCENARIO=ci in .env')
             _logger.error(message)
             raise PipelineError(message, exit_code=1)
         CiImageBuildService(self.project_env).build_ci_image()
@@ -75,9 +73,7 @@ class RuntimeCoordinator:
             cwd=self.config.project_dir,
         )
         if returncode != 0:
-            message = translations.get_translation(
-                translations.COMPOSE_UP_FAILED
-            ).format(EXIT_CODE=returncode)
+            message = _('docker compose up failed with exit code {EXIT_CODE}').format(EXIT_CODE=returncode)
             _logger.error(message)
             raise PipelineError(message, exit_code=returncode)
 

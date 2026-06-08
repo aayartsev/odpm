@@ -4,7 +4,8 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import TypedDict
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..errors import ConfigError
 from ..interactive import prompt_input, stdin_is_interactive
 from ..logging import get_module_logger
@@ -88,15 +89,13 @@ class CreateUserEnvironment:
 
     def create_env_file_noninteractive(self, local_env_file: str) -> None:
         if not self._has_noninteractive_env_configuration():
-            message = translations.get_translation(
-                translations.NON_INTERACTIVE_ENV_FILE_HINT
-            )
+            message = _('Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) before the first run.')
             _logger.error(message)
             raise ConfigError(message)
         new_env_data = self._build_env_data_from_environ_or_defaults()
         self._write_env_file(local_env_file, new_env_data)
         _logger.info(
-            translations.get_translation(translations.NON_INTERACTIVE_ENV_CREATED).format(
+            _('Created {ENV_FILE} from environment variables and defaults (non-interactive mode).').format(
                 ENV_FILE=local_env_file,
             )
         )
@@ -168,16 +167,14 @@ class CreateUserEnvironment:
     def get_from_user_odoo_projects_src_dir(self) -> str:
         default_odoo_projects_src_dir = os.path.join(Path.home(), "odoo_projects")
         user_dir = prompt_input(
-            translations.get_translation(translations.SET_ODOO_PROJECTS_SRC_DIR).format(
+            _("Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:").format(
                 DEFAULT_ODOO_PROJECTS_SRC_DIR=default_odoo_projects_src_dir,
             )
         )
         if not user_dir:
             user_dir = default_odoo_projects_src_dir
         _logger.info(
-            translations.get_translation(
-                translations.YOU_SELECT_ODOO_PROJECTS_DIR
-            ).format(
+            _('You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n').format(
                 SELECTED_ODOO_PROJECTS_DIR=user_dir,
             )
         )
@@ -186,30 +183,26 @@ class CreateUserEnvironment:
     def get_from_user_backup_dir(self) -> str:
         default_backup_dir = os.path.join(Path.home(), "odoo_backups")
         user_dir = prompt_input(
-            translations.get_translation(translations.SET_ODOO_BACKUP_DIR).format(
+            _("Set directory for odoo creating/restoring backups, You can leave default {DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default value:").format(
                 DEFAULT_ODOO_BACKUP_DIR=default_backup_dir,
             )
         )
         if not user_dir:
             user_dir = default_backup_dir
         _logger.info(
-            translations.get_translation(
-                translations.YOU_SELECT_ODOO_BACKUPS_DIR
-            ).format(
+            _('You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n').format(
                 SELECTED_ODOO_BACKUPS_DIR=user_dir,
             )
         )
         return user_dir
 
     def get_from_user_path_to_ssh_key(self) -> str:
-        ssh_path = prompt_input(translations.get_translation(translations.SET_SSH_KEY_PATH))
+        ssh_path = prompt_input(_("Set path to your SSH key for GitHub. How to create it you can read here: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Press 'Enter' leave empty value, in this case system will try to use default system ssh key for GitHub:\n"))
         ssh_path_name = ssh_path
         if not ssh_path:
-            ssh_path_name = translations.get_translation(
-                translations.NOTHING_SSH_PATH_NAME
-            )
+            ssh_path_name = _('You did not selected any path to ssh key')
         _logger.info(
-            translations.get_translation(translations.YOU_SELECT_SSH_KEY_PATH).format(
+            _('You select this ssh path key: {SELECTED_SSH_KEY_PATH}\n').format(
                 SELECTED_SSH_KEY_PATH=ssh_path_name,
             )
         )
@@ -218,14 +211,14 @@ class CreateUserEnvironment:
     def get_from_user_odoo_port(self) -> int:
         default_port = constants.ODOO_DEFAULT_PORT
         port = prompt_input(
-            translations.get_translation(translations.SET_ODOO_PORT).format(
+            _("Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave default value:\n").format(
                 DEFAULT_ODOO_PORT=default_port,
             )
         )
         if not port:
             port = default_port
         _logger.info(
-            translations.get_translation(translations.YOU_SELECT_ODOO_PORT).format(
+            _('You select this port for which odoo will listen: {SELECTED_ODOO_PORT}\n').format(
                 SELECTED_ODOO_PORT=default_port,
             )
         )
@@ -234,14 +227,14 @@ class CreateUserEnvironment:
     def get_from_user_postgres_port(self) -> int:
         default_port = constants.POSTGRES_DEFAULT_PORT
         port = prompt_input(
-            translations.get_translation(translations.SET_POSTGRES_PORT).format(
+            _("Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n").format(
                 DEFAULT_POSTGRES_PORT=default_port,
             )
         )
         if not port:
             port = default_port
         _logger.info(
-            translations.get_translation(translations.YOU_SELECT_POSTGRES_PORT).format(
+            _('You select this port for which PostgreSQL database server will listen: {SELECTED_POSTGRES_PORT}\n').format(
                 SELECTED_POSTGRES_PORT=default_port,
             )
         )
@@ -250,14 +243,14 @@ class CreateUserEnvironment:
     def get_from_user_debugger_port(self) -> int:
         default_port = constants.DEBUGGER_DEFAULT_PORT
         port = prompt_input(
-            translations.get_translation(translations.SET_DEBUGGER_PORT).format(
+            _("Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n").format(
                 DEFAULT_DEBUGGER_PORT=default_port,
             )
         )
         if not port:
             port = default_port
         _logger.info(
-            translations.get_translation(translations.YOU_SELECT_DEBUGGER_PORT).format(
+            _('You select this port for which Python Debugger will listen: {SELECTED_DEBUGGER_PORT}\n').format(
                 SELECTED_DEBUGGER_PORT=default_port,
             )
         )
@@ -266,14 +259,14 @@ class CreateUserEnvironment:
     def get_from_user_gevent_port(self) -> int:
         default_port = constants.GEVENT_DEFAULT_PORT
         port = prompt_input(
-            translations.get_translation(translations.SET_GEVENT_PORT).format(
+            _("Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n").format(
                 DEFAULT_GEVENT_PORT=default_port,
             )
         )
         if not port:
             port = default_port
         _logger.info(
-            translations.get_translation(translations.YOU_SELECT_GEVENT_PORT).format(
+            _('You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n').format(
                 SELECTED_GEVENT_PORT=default_port,
             )
         )
@@ -285,7 +278,7 @@ class CreateUserEnvironment:
         for scenario in constants.ODPM_SCENARIOS.items():
             list_of_scenarios += f"{scenario[0]} - {scenario[1]}\n"
         odpm_scenario_key = prompt_input(
-            translations.get_translation(translations.SELECT_ODPM_SCENARIO).format(
+            _("Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n").format(
                 LIST_OF_SCENARIOS=list_of_scenarios,
             )
         )
@@ -298,7 +291,7 @@ class CreateUserEnvironment:
                 odpm_scenario_key, default_odpm_scenario
             )
         _logger.info(
-            translations.get_translation(translations.YOU_SELECT_ODPM_SCENARIO).format(
+            _('You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n').format(
                 SELECTED_ODPM_SCENARIO=selected_scenario,
             )
         )

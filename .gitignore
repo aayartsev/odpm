@@ -52,8 +52,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
+# Translations (ship compiled host CLI catalogs; see dev_project/i18n/)
 *.mo
+!dev_project/i18n/**/LC_MESSAGES/*.mo
 *.pot
 
 # Django stuff:

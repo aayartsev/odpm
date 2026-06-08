@@ -52,6 +52,34 @@ python3 /path/to/odoo_dev_project/odpm.py --version
 
 Both installation modes are supported.
 
+## Host CLI translations (gettext)
+
+Host-facing messages use GNU gettext. Catalog domain `main` lives under `dev_project/i18n/<locale>/LC_MESSAGES/`. Runtime picks locale from `LC_ALL`, `LC_MESSAGES`, or `LANG` (for example `ru_RU.UTF-8`).
+
+**Update catalogs after changing `_('...')` strings in `dev_project/`:**
+
+```bash
+# 1) Extract msgids from Python sources (optional when editing .po by hand)
+xgettext -o dev_project/i18n/main.pot -L Python -k_ dev_project/*.py dev_project/**/*.py
+
+# 2) Merge into locale file (example: Russian)
+msgmerge -U dev_project/i18n/ru_RU/LC_MESSAGES/main.po dev_project/i18n/main.pot
+
+# 3) Edit dev_project/i18n/ru_RU/LC_MESSAGES/main.po (msgstr)
+
+# 4) Compile binary catalog shipped in the wheel/deb
+msgfmt -o dev_project/i18n/ru_RU/LC_MESSAGES/main.mo \
+  dev_project/i18n/ru_RU/LC_MESSAGES/main.po
+
+# Shortcut: regenerate ru_RU from scripts/sync_i18n_catalog.py table + msgfmt
+python3 scripts/sync_i18n_catalog.py
+
+# Verify every _('...') in dev_project/ has a ru_RU table entry
+python3 scripts/check_i18n_catalog.py
+```
+
+Compiled `dev_project/i18n/**/LC_MESSAGES/*.mo` files are tracked in git (see `.gitignore` exception) and shipped via `pyproject.toml` `package-data`. Locale behavior is covered by `tests/test_translations.py`.
+
 ## Repository tests
 
 Unit tests run on every push and pull request to `4.0-beta` and `main` via [GitHub Actions](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml) (Python 3.10 and 3.12). The status badge at the top of this file reflects the latest run on `4.0-beta` after the workflow has been pushed at least once.

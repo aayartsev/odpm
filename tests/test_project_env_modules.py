@@ -4,7 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dev_project import constants, translations
+from dev_project import constants
+from dev_project.translations import _
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.errors import PipelineError
 from dev_project.project_env import CreateProjectEnvironment
@@ -62,7 +63,7 @@ class ProjectTemplatesTests(unittest.TestCase):
             self.assertTrue(dockerignore.is_file())
             content = dockerignore.read_text(encoding="utf-8")
             self.assertIn(
-                translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+                _('Do not change this file, its content is generating automatically'),
                 content,
             )
             self.assertIn("**/.git", content)

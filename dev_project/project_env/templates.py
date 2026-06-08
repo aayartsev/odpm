@@ -3,7 +3,8 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..config.odoo_conf import odoo_conf_on_disk_needs_regeneration
 
 if TYPE_CHECKING:
@@ -38,8 +39,8 @@ class ProjectTemplates:
             DISTRO_VERSION_CODENAME=self.config.distro_version_codename,
         )
         content = content.replace(
-            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
-            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+            _('If you want drop this file to default values, just delete it'),
+            _('Do not change this file, its content is generating automatically'),
         )
         dockerfile_path = os.path.join(self.config.project_dir, constants.DOCKERFILE)
         self.config.dockerfile_path = dockerfile_path
@@ -50,8 +51,8 @@ class ProjectTemplates:
         with open(self.config.project_dockerignore_template_path) as reader:
             content = reader.read()
         content = content.replace(
-            translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
-            translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+            _('If you want drop this file to default values, just delete it'),
+            _('Do not change this file, its content is generating automatically'),
         )
         dockerignore_path = os.path.join(self.config.project_dir, constants.DOCKERIGNORE)
         with open(dockerignore_path, "w") as writer:
@@ -65,15 +66,9 @@ class ProjectTemplates:
         with open(config_file_template_path) as reader:
             content = reader.read()
         for replace_phrase in {
-            constants.DO_NOT_CHANGE_PARAM: translations.get_translation(
-                translations.DO_NOT_CHANGE_PARAM
-            ),
-            constants.ADMIN_PASSWD_MESSAGE: translations.get_translation(
-                translations.ADMIN_PASSWD_MESSAGE
-            ),
-            constants.MESSAGE_MARKER: translations.get_translation(
-                translations.MESSAGE_FOR_TEMPLATES
-            ),
+            constants.DO_NOT_CHANGE_PARAM: _('Do not change this param, it is generating automatically'),
+            constants.ADMIN_PASSWD_MESSAGE: _('Do not change, it will get from "db_manager_password" param from config.json file'),
+            constants.MESSAGE_MARKER: _('If you want drop this file to default values, just delete it'),
             constants.POSTGRES_ODOO_USER_MARKER: constants.POSTGRES_ODOO_USER,
             constants.POSTGRES_ODOO_PASS_MARKER: constants.POSTGRES_ODOO_PASS,
             constants.POSTGRES_ODOO_HOST_MARKER: constants.POSTGRES_ODOO_HOST,

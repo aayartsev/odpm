@@ -8,7 +8,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 
 from . import constants
-from . import translations
+from .translations import _
 from .logging import get_module_logger
 
 _logger = get_module_logger(__name__)
@@ -46,7 +46,7 @@ def read_nested_odpm_fragment(project_path: str) -> NestedOdpmFragment | None:
             raw = json.load(manifest_file)
     except (OSError, json.JSONDecodeError) as exc:
         _logger.warning(
-            translations.get_translation(translations.NESTED_ODPM_READ_FAILED).format(
+            _('Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}').format(
                 CONFIG_FILE_NAME=constants.PROJECT_CONFIG_FILE_NAME,
                 MANIFEST_PATH=manifest_path,
                 ERROR=exc,
@@ -55,7 +55,7 @@ def read_nested_odpm_fragment(project_path: str) -> NestedOdpmFragment | None:
         return None
     if not isinstance(raw, dict):
         _logger.warning(
-            translations.get_translation(translations.NESTED_ODPM_NOT_OBJECT).format(
+            _('Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object').format(
                 CONFIG_FILE_NAME=constants.PROJECT_CONFIG_FILE_NAME,
                 MANIFEST_PATH=manifest_path,
             )

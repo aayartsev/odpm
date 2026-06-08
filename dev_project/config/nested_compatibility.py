@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .. import translations
+from ..translations import _
 from ..dependency_resolver import NestedOdpmFragment
 
 
@@ -42,9 +42,7 @@ def collect_nested_compatibility_issues(
             nested_odoo = _normalize_odoo_version(fragment.odoo_version)
             if nested_odoo is not None and nested_odoo != host_odoo:
                 issues.append(
-                    translations.get_translation(
-                        translations.NESTED_ODPM_ODOO_VERSION_MISMATCH
-                    ).format(
+                    _('Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}').format(
                         MANIFEST_PATH=fragment.source_path,
                         NESTED_VERSION=fragment.odoo_version,
                         HOST_VERSION=host_odoo_version,
@@ -55,9 +53,7 @@ def collect_nested_compatibility_issues(
             nested_python = _python_major_minor(fragment.python_version)
             if nested_python is not None and nested_python != host_python:
                 issues.append(
-                    translations.get_translation(
-                        translations.NESTED_ODPM_PYTHON_VERSION_MISMATCH
-                    ).format(
+                    _('Nested odpm.json at {MANIFEST_PATH} declares python_version {NESTED_VERSION}, host project uses {HOST_VERSION}').format(
                         MANIFEST_PATH=fragment.source_path,
                         NESTED_VERSION=fragment.python_version,
                         HOST_VERSION=host_python_version,

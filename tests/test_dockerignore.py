@@ -6,7 +6,8 @@ from dev_project.host.cli.args import OdpmCliArgs
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from dev_project import constants, translations
+from dev_project import constants
+from dev_project.translations import _
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.services import CiImageBuildService
 from dev_project.project_dir_manager import ProjectDirManager
@@ -35,7 +36,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
             project_template = Path(project_dir) / constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH
             self.assertTrue(project_template.is_file())
             self.assertIn(
-                translations.get_translation(translations.MESSAGE_FOR_TEMPLATES),
+                _('If you want drop this file to default values, just delete it'),
                 project_template.read_text(encoding="utf-8"),
             )
 
@@ -57,7 +58,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
             self.assertTrue(dockerignore.is_file())
             content = dockerignore.read_text(encoding="utf-8")
             self.assertIn(
-                translations.get_translation(translations.DO_NOT_CHANGE_FILE),
+                _('Do not change this file, its content is generating automatically'),
                 content,
             )
             self.assertIn("**/.git", content)

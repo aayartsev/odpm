@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..errors import PipelineError, SubprocessError
 from ..logging import get_module_logger
 from ..subprocess_runner import run_logged, run_or_raise
@@ -56,9 +57,7 @@ class BaseImageBuilder:
             cwd=self.config.project_dir,
         )
         if returncode != 0:
-            message = translations.get_translation(
-                translations.DOCKER_BUILD_FAILED
-            ).format(EXIT_CODE=returncode)
+            message = _('docker build failed with exit code {EXIT_CODE}').format(EXIT_CODE=returncode)
             _logger.error(message)
             raise PipelineError(message, exit_code=returncode)
 

@@ -53,6 +53,34 @@ python3 /path/to/odoo_dev_project/odpm.py --version
 
 Оба способа установки поддерживаются.
 
+## Переводы host CLI (gettext)
+
+Сообщения host CLI идут через GNU gettext. Каталог `main` — в `dev_project/i18n/<locale>/LC_MESSAGES/`. Локаль берётся из `LC_ALL`, `LC_MESSAGES` или `LANG` (например `ru_RU.UTF-8`).
+
+**Обновление каталогов после правки строк `_('...')` в `dev_project/`:**
+
+```bash
+# 1) Извлечь msgid из исходников (опционально при ручном редактировании .po)
+xgettext -o dev_project/i18n/main.pot -L Python -k_ dev_project/*.py dev_project/**/*.py
+
+# 2) Слить в файл локали (пример: русский)
+msgmerge -U dev_project/i18n/ru_RU/LC_MESSAGES/main.po dev_project/i18n/main.pot
+
+# 3) Отредактировать dev_project/i18n/ru_RU/LC_MESSAGES/main.po (msgstr)
+
+# 4) Скомпилировать .mo для wheel/deb
+msgfmt -o dev_project/i18n/ru_RU/LC_MESSAGES/main.mo \
+  dev_project/i18n/ru_RU/LC_MESSAGES/main.po
+
+# Быстрый путь: таблица в scripts/sync_i18n_catalog.py + msgfmt
+python3 scripts/sync_i18n_catalog.py
+
+# Проверить, что каждый _('...') в dev_project/ есть в таблице ru_RU
+python3 scripts/check_i18n_catalog.py
+```
+
+Скомпилированные `dev_project/i18n/**/LC_MESSAGES/*.mo` хранятся в git (исключение в `.gitignore`) и попадают в пакет через `package-data` в `pyproject.toml`. Поведение локали — в `tests/test_translations.py`.
+
 ## Тесты репозитория
 
 Unit-тесты запускаются при каждом push и pull request в ветки `4.0-beta` и `main` через [GitHub Actions](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml) (Python 3.10 и 3.12). Badge в начале файла показывает статус последнего прогона на `4.0-beta` после того, как workflow хотя бы раз отработал на удалённой ветке.

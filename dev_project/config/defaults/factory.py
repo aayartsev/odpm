@@ -5,7 +5,8 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from ... import constants, translations
+from ... import constants
+from ...translations import _
 from ...errors import ConfigError
 from ...interactive import prompt_input, stdin_is_interactive
 from ...git import (
@@ -120,9 +121,7 @@ class ConfigDefaultsFactory:
             return user_odoo_version
 
         if not stdin_is_interactive():
-            message = translations.get_translation(
-                translations.NON_INTERACTIVE_ODOO_VERSION_REQUIRED
-            )
+            message = _("Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line.")
             _logger.error(message)
             raise ConfigError(message)
 
@@ -134,7 +133,7 @@ class ConfigDefaultsFactory:
         )
         while True:
             user_odoo_version = prompt_input(
-                translations.get_translation(translations.SET_ODOO_VERSION).format(
+                _("Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n").format(
                     ODOO_LATEST_VERSION=constants.ODOO_LATEST_VERSION,
                     AVAILABEL_ODOO_VERSIONS_ARE=available_versions_str,
                 )
@@ -151,7 +150,7 @@ class ConfigDefaultsFactory:
                 continue
 
         _logger.info(
-            translations.get_translation(translations.YOU_SELECT_ODOO_VERSION).format(
+            _('You select this odoo version: {SELECTED_ODOO_VERSION}\n').format(
                 SELECTED_ODOO_VERSION=user_odoo_version,
             )
         )

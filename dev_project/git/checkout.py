@@ -5,7 +5,8 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Optional
 
-from .. import constants, translations
+from .. import constants
+from ..translations import _
 from ..errors import GitError
 from ..logging import get_module_logger
 from .runner import GitRunner
@@ -157,7 +158,7 @@ class CheckoutService:
 
     def switch_to_branch(self, branch_name: str) -> None:
         _logger.info(
-            translations.get_translation(translations.SWITCHING_TO_BRANCH).format(
+            _('Switching project {PROJECT_NAME} to branch {BRANCH_NAME}').format(
                 PROJECT_NAME=self.link.project_string,
                 BRANCH_NAME=branch_name,
             )
