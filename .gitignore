@@ -10,6 +10,13 @@ __pycache__/
 # Distribution / packaging
 .Python
 .pybuild/
+# debian/dpkg-buildpackage outputs (keep debian/control, rules, changelog, etc.)
+debian/odpm/
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/*.debhelper
 build/
 develop-eggs/
 dist/
