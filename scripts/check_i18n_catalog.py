@@ -38,6 +38,18 @@ def _collect_msgids(path: Path) -> set[str]:
     return msgids
 
 
+def _collect_host_summary_msgids() -> set[str]:
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    import dev_project.host_summaries as host_summaries
+
+    return {
+        value
+        for name, value in vars(host_summaries).items()
+        if name.startswith("MSG_") and isinstance(value, str)
+    }
+
+
 def main() -> int:
     catalog = _load_ru_messages()
     used: set[str] = set()
@@ -45,6 +57,7 @@ def main() -> int:
         if path.name == "translations.py":
             continue
         used |= _collect_msgids(path)
+    used |= _collect_host_summary_msgids()
 
     missing = sorted(used - catalog)
     unused = sorted(catalog - used)

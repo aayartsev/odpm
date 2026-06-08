@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import sys
 
-from . import constants
+from . import constants, host_summaries
 from .check_system import SystemChecker
 from .errors import ConfigError, OdpmError, PipelineError
 from .config import Config
@@ -64,12 +64,14 @@ class OdpmPipeline:
         self.project_environment.attach_system_checker(self.system_checker)
 
     def prepare_project_files(self) -> None:
+        host_summaries.log_prepare_started()
         ProjectMaterializer().run(
             self._config(),
             self._project_environment(),
             self._system_checker(),
             self.cli_args,
         )
+        host_summaries.log_prepare_completed()
 
     def print_plan(self) -> int:
         from .plan import OdpmPlanner, format_plan

@@ -57,6 +57,16 @@ python3 /path/to/odoo_dev_project/odpm.py --version
 
 Сообщения host CLI идут через GNU gettext. Каталог `main` — в `dev_project/i18n/<locale>/LC_MESSAGES/`. Локаль берётся из `LC_ALL`, `LC_MESSAGES` или `LANG` (например `ru_RU.UTF-8`).
 
+**Три уровня i18n:**
+
+| Уровень | Что переводится | Пример |
+|---|---|---|
+| **A1 — ошибки и промпты CLI** | Ошибки host, init-промпты, маркеры шаблонов | `Did you install git?` → по-русски |
+| **A1b — human summaries** | Короткие статусы host при `compose up` | `Starting containers with Docker Compose...` |
+| **Raw-логи контейнера** | **Только English** (поиск, Odoo/PostgreSQL) | `Waiting for PostgreSQL on db:5432` |
+
+Human summaries выводятся с host ([`dev_project/host_summaries.py`](dev_project/host_summaries.py)). Подробный поток контейнера ниже остаётся на английском намеренно.
+
 **Обновление каталогов после правки строк `_('...')` в `dev_project/`:**
 
 ```bash
@@ -79,7 +89,7 @@ python3 scripts/sync_i18n_catalog.py
 python3 scripts/check_i18n_catalog.py
 ```
 
-Скомпилированные `dev_project/i18n/**/LC_MESSAGES/*.mo` хранятся в git (исключение в `.gitignore`) и попадают в пакет через `package-data` в `pyproject.toml`. Поведение локали — в `tests/test_translations.py`.
+Скомпилированные `dev_project/i18n/**/LC_MESSAGES/*.mo` хранятся в git (исключение в `.gitignore`) и попадают в пакет через `package-data` в `pyproject.toml`. Поведение локали — в `tests/test_translations.py` и `tests/test_human_summaries.py`.
 
 ## Тесты репозитория
 

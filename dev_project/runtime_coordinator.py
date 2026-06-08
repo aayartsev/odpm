@@ -6,6 +6,7 @@ import shlex
 import sys
 from typing import TYPE_CHECKING
 
+from . import host_summaries
 from .translations import _
 from .compose.runtime import should_force_recreate_compose
 from .errors import PipelineError
@@ -62,19 +63,20 @@ class RuntimeCoordinator:
         if force_recreate:
             argv.append("--force-recreate")
         else:
-            _logger.info(
-                "Compose stack is healthy; starting without --force-recreate"
-            )
+            host_summaries.log_compose_stack_healthy()
         return argv
 
     def start_containers(self) -> None:
+        host_summaries.log_starting_containers(
+            odoo_port=self.config.user_env.odoo_port,
+        )
         returncode = run_logged(
             self.build_compose_up_argv(),
             cwd=self.config.project_dir,
         )
         if returncode != 0:
-            message = _('docker compose up failed with exit code {EXIT_CODE}').format(EXIT_CODE=returncode)
-            _logger.error(message)
+            host_summaries.log_compose_failed(returncode)
+            message = _(host_summaries.MSG_COMPOSE_FAILED).format(EXIT_CODE=returncode)
             raise PipelineError(message, exit_code=returncode)
 
     def run_after_prepare(self) -> None:
@@ -82,13 +84,13 @@ class RuntimeCoordinator:
             return
         self.configure_vscode()
         if self.cli_args.update_lock:
-            _logger.info("Git dependency lock updated; container start skipped")
+            host_summaries.log_update_lock_skip()
             return
         if self.cli_args.skip_start:
-            _logger.info("Start of instace will be skipped")
+            host_summaries.log_skip_start()
             return
         try:
             self.start_containers()
         except KeyboardInterrupt:
-            _logger.info("Control+C pressed")
+            host_summaries.log_control_c()
             sys.exit()

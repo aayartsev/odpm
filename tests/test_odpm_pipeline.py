@@ -186,6 +186,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         config.project_dir = "/tmp/project"
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
+        config.user_env.odoo_port = 8069
         with patch("dev_project.runtime_coordinator.run_logged", return_value=0) as mock_run:
             self._coordinator(config).start_containers()
         mock_run.assert_called_once_with(
@@ -204,6 +205,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         config.project_dir = "/tmp/project"
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
+        config.user_env.odoo_port = 8069
         with patch("dev_project.runtime_coordinator.run_logged", return_value=17):
             with self.assertRaises(PipelineError) as ctx:
                 self._coordinator(config).start_containers()

@@ -56,6 +56,16 @@ Both installation modes are supported.
 
 Host-facing messages use GNU gettext. Catalog domain `main` lives under `dev_project/i18n/<locale>/LC_MESSAGES/`. Runtime picks locale from `LC_ALL`, `LC_MESSAGES`, or `LANG` (for example `ru_RU.UTF-8`).
 
+**Three i18n layers:**
+
+| Layer | What is translated | Example |
+|---|---|---|
+| **A1 — CLI errors & prompts** | Host errors, init prompts, template markers | `Did you install git?` → Russian |
+| **A1b — human summaries** | Short host status before/during `compose up` | `Starting containers with Docker Compose...` |
+| **Container raw logs** | **English only** (searchable, matches Odoo/PostgreSQL) | `Waiting for PostgreSQL on db:5432` |
+
+Human summaries are emitted from [`dev_project/host_summaries.py`](dev_project/host_summaries.py) on the host. Detailed container output below them stays in English by design.
+
 **Update catalogs after changing `_('...')` strings in `dev_project/`:**
 
 ```bash
@@ -78,7 +88,7 @@ python3 scripts/sync_i18n_catalog.py
 python3 scripts/check_i18n_catalog.py
 ```
 
-Compiled `dev_project/i18n/**/LC_MESSAGES/*.mo` files are tracked in git (see `.gitignore` exception) and shipped via `pyproject.toml` `package-data`. Locale behavior is covered by `tests/test_translations.py`.
+Compiled `dev_project/i18n/**/LC_MESSAGES/*.mo` files are tracked in git (see `.gitignore` exception) and shipped via `pyproject.toml` `package-data`. Locale behavior is covered by `tests/test_translations.py` and `tests/test_human_summaries.py`.
 
 ## Repository tests
 

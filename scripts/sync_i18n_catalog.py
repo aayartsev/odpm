@@ -278,6 +278,32 @@ RU_MESSAGES: dict[str, str] = {
         "репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или "
         "клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
     ),
+    "Attached to container output. Detailed technical logs below are in English.": (
+        "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
+    ),
+    "Check `docker compose ps` and the English log output above for details.": (
+        "Проверьте `docker compose ps` и английский лог выше для подробностей."
+    ),
+    "Compose stack is healthy; reusing existing containers without --force-recreate": (
+        "Стек compose в порядке; перезапуск без --force-recreate"
+    ),
+    "Container start skipped (--skip-start).": (
+        "Запуск контейнеров пропущен (--skip-start)."
+    ),
+    "Control+C pressed; stopping.": "Нажато Control+C; остановка.",
+    "Git dependency lock updated; container start skipped.": (
+        "Git dependency lock обновлён; запуск контейнеров пропущен."
+    ),
+    "Preparing your Odoo environment (dependencies, templates, compose files)...": (
+        "Подготовка окружения Odoo (зависимости, шаблоны, compose)..."
+    ),
+    "Project files are ready.": "Файлы проекта готовы.",
+    "Starting containers with Docker Compose...": (
+        "Запуск контейнеров через Docker Compose..."
+    ),
+    "When Odoo is ready, open http://localhost:{ODOO_PORT}": (
+        "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
+    ),
 }
 
 
