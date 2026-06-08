@@ -164,7 +164,7 @@ pre-commit run --all-files
 | **unit** | `ci.yml` | каждый push/PR | **обязателен** (рекомендуется) | `tests/` unittest discover; Python **3.10** и **3.12** |
 | **release-packages** | `release-packages.yml` | тег `v*` или `workflow_dispatch` | опционально | Сборка `.deb` + `.rpm`, lintian/rpmlint, install smoke; публикация в GitHub Release |
 | **compose-smoke** | `ci-docker.yml` | каждый push/PR | **обязателен** (рекомендуется) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing; `odpm --skip-start --no-git-update`, `docker compose config`. Только Python **3.12**. Кэш base-образа между прогонами. |
-| **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ флаг golden), или label PR **`run-docker`** | **opt-in** (не на каждый PR) | Secret `ODPM_GOLDEN_PATH_PROJECT` → реальный инициализированный проект (`tests.integration.test_golden_path`). Без secret job **пропускается** — не ложный pass. |
+| **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ флаг golden), или label PR **`run-docker`** | **opt-in** (не на каждый PR) | Variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT` → реальный инициализированный проект (`tests.integration.test_golden_path`). Без variable job **пропускается** — не ложный pass. |
 
 **Label PR `run-docker`:** добавьте label в GitHub, затем **перезапустите** workflow **CI Docker** (одного label недостаточно для нового прогона).
 
@@ -178,11 +178,12 @@ pre-commit run --all-files
 ./scripts/run_golden_path_test.sh
 ```
 
-#### CI secrets и branch protection
+#### CI secrets, variables и branch protection
 
-| Имя | Для чего | Примечание |
-|-----|----------|------------|
-| `ODPM_GOLDEN_PATH_PROJECT` | только job `golden-path` | Абсолютный путь к инициализированному odpm-проекту на runner (обычно **self-hosted**). Compose smoke использует minimal fixture из репозитория и **не** требует этот secret. |
+| Имя | Тип | Для чего | Примечание |
+|-----|-----|----------|------------|
+| `ODPM_GOLDEN_PATH_ENABLED` | variable | только job `golden-path` | Значение `true`, когда golden-path настроен (вместе с secret ниже). В `if:` job нельзя читать secrets; variable включает job без раскрытия пути. |
+| `ODPM_GOLDEN_PATH_PROJECT` | secret | только job `golden-path` | Абсолютный путь к инициализированному odpm-проекту на runner (обычно **self-hosted**). Обязателен при `ENABLED=true`; job падает, если secret не задан. Compose smoke **не** требует ни variable, ни secret. |
 
 Рекомендуется branch protection на `4.0-beta` / `main`: обязательные checks **CI** (**lint** + **unit**) и **CI Docker** / **compose-smoke**. **golden-path** — nightly или по запросу, пока нет стабильного self-hosted runner; сделать golden-path обязательным только на `main` — разумный следующий шаг (4.3).
 

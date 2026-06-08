@@ -1,6 +1,7 @@
 # Docker integration CI (4.2 policy):
 # - compose-smoke: required PR gate — minimal in-repo fixture, no secrets.
-# - golden-path: opt-in — needs ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
+# - golden-path: opt-in — needs vars.ODPM_GOLDEN_PATH_ENABLED + secret ODPM_GOLDEN_PATH_PROJECT;
+#   nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
 
 on:
@@ -13,7 +14,7 @@ on:
       - 4.0-beta
       - main
   schedule:
-    # Nightly full golden-path (requires ODPM_GOLDEN_PATH_PROJECT secret).
+    # Nightly full golden-path (requires ODPM_GOLDEN_PATH_ENABLED variable + secret).
     - cron: "0 3 * * *"
   workflow_dispatch:
     inputs:
@@ -78,11 +79,12 @@ jobs:
             docker save "${ODPM_COMPOSE_SMOKE_IMAGE}" -o /tmp/odpm-ci-docker-cache/odoo-base.tar
           fi
 
-  # Opt-in E2E: skipped without ODPM_GOLDEN_PATH_PROJECT secret (not a false green).
+  # Opt-in E2E: skipped without ODPM_GOLDEN_PATH_ENABLED (not a false green).
+  # secrets.* cannot be used in job if: — use a repo variable for the gate.
   golden-path:
     needs: compose-smoke
     if: >-
-      secrets.ODPM_GOLDEN_PATH_PROJECT != ''
+      vars.ODPM_GOLDEN_PATH_ENABLED == 'true'
       && (
         github.event_name == 'schedule'
         || (github.event_name == 'workflow_dispatch' && inputs.run_golden)
@@ -95,6 +97,15 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
+
+      - name: Require golden-path secret
+        run: |
+          if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
+            echo "::error::ODPM_GOLDEN_PATH_PROJECT secret is not configured"
+            exit 1
+          fi
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
