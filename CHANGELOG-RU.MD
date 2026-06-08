@@ -180,6 +180,8 @@ odpm можно **установить через pip** — в PATH появит
 - **Prepare steps вызывают inject-сервисы напрямую.** Template, compose и project steps выполняются через `ctx.templates`, `ctx.compose_generator` и `ctx.links`; compose preview читает volume map и generator из того же context. Git checkout через `ctx.links`.
 - **`CreateProjectEnvironment` только runtime; protocols split.** Prepare-операции на `ProjectTemplates`, `ComposeGenerator` и `ProjectLinks`; `CreateProjectEnvironment` реализует только `RuntimeProjectServicesProtocol` (`PrepareProjectServicesProtocol` описывает prepare surface). Prepare-делегаты удалены из `CreateProjectEnvironment`.
 
+  > **Примечание (4.2):** `RuntimeProjectServicesProtocol` удалён; runtime — в `project_env.services` + `RuntimeCoordinator`. `PrepareProjectServicesProtocol` остаётся в `dev_project.protocols`. См. [Unreleased] P2 cleanup.
+
 ### Исправлено
 
 - **`check_system: false` больше не пропускает освобождение портов.** Регрессия после plan-safe docker check: занятые порты (например PostgreSQL на 5432) приводили к ошибке bind при переключении между odpm-проектами с отключёнными проверками.

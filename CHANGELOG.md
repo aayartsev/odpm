@@ -174,6 +174,8 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 - **Prepare steps call injected services directly.** Template, compose, and project prepare steps execute via `ctx.templates`, `ctx.compose_generator`, and `ctx.links`; compose preview reads volume map and generator from the same context. Git checkout uses `ctx.links`.
 - **`CreateProjectEnvironment` is runtime-only; protocols split.** Prepare operations live on `ProjectTemplates`, `ComposeGenerator`, and `ProjectLinks`; `CreateProjectEnvironment` implements `RuntimeProjectServicesProtocol` only (`PrepareProjectServicesProtocol` documents the prepare surface). Removed prepare delegate methods from `CreateProjectEnvironment`.
 
+  > **Note (4.2):** `RuntimeProjectServicesProtocol` removed; runtime lives in `project_env.services` + `RuntimeCoordinator`. `PrepareProjectServicesProtocol` remains in `dev_project.protocols`. See [Unreleased] P2 cleanup.
+
 ### Fixed
 
 - **`check_system: false` no longer skips port cleanup.** Regression after plan-safe docker check: occupied host ports (for example PostgreSQL on 5432) caused `compose up` bind failures when switching between odpm projects with `check_system` disabled.
