@@ -316,7 +316,6 @@ class SyncExtraRequirementsHygieneTests(unittest.TestCase):
                 "list",
                 "--format",
                 "json",
-                "--link-mode=copy",
                 "--python",
                 "/home/odoo/.venv/bin/python3",
             ],

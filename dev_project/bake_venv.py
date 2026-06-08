@@ -23,7 +23,7 @@ from .logging import get_module_logger
 
 _logger = get_module_logger(__name__)
 
-UV_PIP_OPTIONS = ("--link-mode=copy",)
+UV_PIP_INSTALL_OPTIONS = ("--link-mode=copy",)
 
 
 def venv_python_path(venv_dir: str) -> str:
@@ -204,7 +204,7 @@ def _make_pip_runner(spec: VenvInstallSpec, use_uv: bool) -> PipRunner:
     if use_uv:
         return PipRunner(
             base_cmd=["uv"],
-            pip_extra_args=[*UV_PIP_OPTIONS, "--python", venv_python],
+            pip_extra_args=[*UV_PIP_INSTALL_OPTIONS, "--python", venv_python],
             cwd=spec.project_dir,
         )
     return PipRunner(

@@ -8,7 +8,7 @@ from pip._vendor.packaging.utils import canonicalize_name
 
 from .. import constants
 from ..bake_venv import (
-    UV_PIP_OPTIONS,
+    UV_PIP_INSTALL_OPTIONS,
     apply_venv_env,
     build_spec_from_config,
     detect_uv_info,
@@ -116,7 +116,6 @@ class VirtualenvChecker:
                 "list",
                 "--format",
                 "json",
-                *UV_PIP_OPTIONS,
                 "--python",
                 self._venv_python,
             ]
@@ -128,7 +127,7 @@ class VirtualenvChecker:
                 "uv",
                 "pip",
                 "install",
-                *UV_PIP_OPTIONS,
+                *UV_PIP_INSTALL_OPTIONS,
                 "--python",
                 self._venv_python,
                 *packages,
@@ -141,7 +140,6 @@ class VirtualenvChecker:
                 "uv",
                 "pip",
                 "uninstall",
-                *UV_PIP_OPTIONS,
                 "--python",
                 self._venv_python,
                 *packages,
