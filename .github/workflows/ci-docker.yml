@@ -1,3 +1,6 @@
+# Docker integration CI (4.2 policy):
+# - compose-smoke: required PR gate — minimal in-repo fixture, no secrets.
+# - golden-path: opt-in — needs ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
 
 on:
@@ -30,6 +33,7 @@ env:
   ODPM_COMPOSE_SMOKE_IMAGE: odoo-amd64-python-3.12-debian-12:latest
 
 jobs:
+  # PR merge gate: tests/fixtures/minimal_odpm_project (see README CI matrix).
   compose-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -74,6 +78,7 @@ jobs:
             docker save "${ODPM_COMPOSE_SMOKE_IMAGE}" -o /tmp/odpm-ci-docker-cache/odoo-base.tar
           fi
 
+  # Opt-in E2E: skipped without ODPM_GOLDEN_PATH_PROJECT secret (not a false green).
   golden-path:
     needs: compose-smoke
     if: >-

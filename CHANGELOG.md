@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **P2 cleanup** — `RuntimeProjectServicesProtocol` removed; bootstrap phase functions moved to `config/bootstrap_phases.py` (`bootstrap.py` <100 LOC); server nightly download via `PlatformSourcesService`; CHANGELOG E-1…E-4 bullets corrected.
 - **`dev_project/check_system.py` (R-2)** — developer platform clone is owned by prepare `git.materialize` (`materialize_git_repos`); init `check_file_system` only validates and logs when the platform repo is not ready yet. `test_phase2_infra` and `test_prepare_context` updated.
 - **`dev_project/check_system.py` (R-3)** — server scenario platform nightly download uses `stdin_is_interactive` / `prompt_input`; non-interactive runs fail fast with `NON_INTERACTIVE_SERVER_PLATFORM_MISSING` instead of blocking on `input()`. README EN+RU server/non-interactive sections updated.
+- **CI policy (R-4)** — README EN+RU **CI matrix**: `compose-smoke` (minimal fixture [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/)) is the PR merge gate; full `golden-path` is opt-in (nightly, `workflow_dispatch`, PR label `run-docker`, secret `ODPM_GOLDEN_PATH_PROJECT`). Maintainer comments in `.github/workflows/ci-docker.yml`; `goals_ru.md` #5 updated; `docs/smoke-4.0-checklist.md` and post-audit plan baseline synced. Documented test count **634** passed.
 
 ---
 

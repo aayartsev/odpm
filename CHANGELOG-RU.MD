@@ -31,6 +31,7 @@
 - **P2 cleanup** — `RuntimeProjectServicesProtocol` удалён; phase-функции bootstrap перенесены в `config/bootstrap_phases.py` (`bootstrap.py` <100 LOC); server nightly через `PlatformSourcesService`; bullets E-1…E-4 в CHANGELOG исправлены.
 - **`dev_project/check_system.py` (R-2)** — clone platform для developer выполняется только в prepare `git.materialize` (`materialize_git_repos`); init `check_file_system` лишь проверяет и логирует, если repo ещё не готов. Обновлены `test_phase2_infra` и `test_prepare_context`.
 - **`dev_project/check_system.py` (R-3)** — nightly download platform в server-сценарии через `stdin_is_interactive` / `prompt_input`; в неинтерактивном режиме fail-fast с `NON_INTERACTIVE_SERVER_PLATFORM_MISSING` вместо блокировки на `input()`. Обновлены README EN+RU (server / non-interactive).
+- **Политика CI (R-4)** — в README EN+RU добавлена **матрица CI**: `compose-smoke` (minimal fixture [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/)) — gate на merge в PR; full `golden-path` — opt-in (nightly, `workflow_dispatch`, label `run-docker`, secret `ODPM_GOLDEN_PATH_PROJECT`). Комментарии для maintainers в `.github/workflows/ci-docker.yml`; обновлён `goals_ru.md` #5; синхронизированы `docs/smoke-4.0-checklist.md` и baseline post-audit plan. Задокументировано **634** passed.
 
 ---
 

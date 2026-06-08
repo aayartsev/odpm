@@ -38,15 +38,23 @@ python3 -m unittest discover -s tests -p "test_*.py"
 |-------|----------|--------|------|
 | GitHub Actions `CI` | Green on push/PR; same command as local §2A | | |
 | Test suite | All tests OK; 7 skipped (opt-in Docker unless `ODPM_RUN_DOCKER_*` env) | | |
-| Test count | 555 tests OK (7 skipped by default); re-run after adding tests | | |
+| Test count | **634** tests OK (7 skipped by default); re-run after adding tests | | |
 
-**Branch protection (recommended):** require GitHub status checks **CI** and **CI Docker** (`compose-smoke`) on `4.0-beta` / `main` before merge.
+**Branch protection (recommended):** require GitHub status checks **CI** (unit) and **CI Docker** / **compose-smoke** on `4.0-beta` / `main` before merge. Full **golden-path** is opt-in (not required on every PR). Canonical policy: [README.MD § Docker CI / CI matrix](../README.MD#docker-ci).
 
 ---
 
-## 2A+ — Compose smoke (repository, Docker)
+## 2A+ — Docker CI (compose smoke + golden-path)
 
-Automated on every push/PR in parallel with unit CI: [`.github/workflows/ci-docker.yml`](../.github/workflows/ci-docker.yml) (`compose-smoke` job; [`ci.yml`](../.github/workflows/ci.yml) runs unit tests separately).
+See [README.MD § CI matrix (4.2 policy)](../README.MD#docker-ci) for the full table. Summary:
+
+| Job | Workflow | Trigger | Merge gate | Inputs |
+|-----|----------|---------|------------|--------|
+| **unit** | `ci.yml` | every push/PR | recommended | `tests/`; Python 3.10 + 3.12 |
+| **compose-smoke** | `ci-docker.yml` | every push/PR | recommended | [`tests/fixtures/minimal_odpm_project/`](../tests/fixtures/minimal_odpm_project/); Python 3.12 |
+| **golden-path** | `ci-docker.yml` | nightly, `workflow_dispatch`, PR label `run-docker` | opt-in | Secret `ODPM_GOLDEN_PATH_PROJECT`; skipped when unset |
+
+**Compose smoke** — automated on every push/PR: [`.github/workflows/ci-docker.yml`](../.github/workflows/ci-docker.yml) (`compose-smoke` job; unit tests in [`ci.yml`](../.github/workflows/ci.yml)).
 
 Local run from **`$ODPM_REPO`** (requires Docker):
 
@@ -61,7 +69,7 @@ cd "$ODPM_REPO"
 | `odpm --skip-start` on minimal fixture | Exit 0 | | |
 | `docker compose config` | Exit 0; `services:` in output | | |
 
-Full golden-path (compose up + HTTP 200): nightly schedule, **workflow_dispatch** with golden flag, or PR label **`run-docker`** (requires `ODPM_GOLDEN_PATH_PROJECT` secret). Without the secret the golden job is **skipped**. After adding `run-docker` to a PR, re-run **CI Docker** manually.
+**Golden-path** (compose up + HTTP 200): `./scripts/run_golden_path_test.sh` locally; in CI — nightly, **workflow_dispatch** with golden flag, or PR label **`run-docker`** when `ODPM_GOLDEN_PATH_PROJECT` is set. Re-run **CI Docker** manually after adding `run-docker` to a PR.
 
 **Troubleshooting compose smoke**
 

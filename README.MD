@@ -64,28 +64,42 @@ pip install -e .
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Expect **590** tests passed and **7** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
+Expect **634** tests passed and **7** skipped by default (opt-in Docker integration tests). Re-run manually in GitHub: **Actions → CI → Run workflow**.
 
 ### Docker CI
 
-Compose smoke runs on every push/PR via [`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) in parallel with [unit CI](.github/workflows/ci.yml): minimal fixture project, `odpm --skip-start --no-git-update`, then `docker compose config`. Compose smoke uses **Python 3.12** only (unit CI also runs 3.10). The workflow caches the project base Docker image between runs; the first run on a clean cache may take several minutes while the image is built.
+[`.github/workflows/ci-docker.yml`](.github/workflows/ci-docker.yml) runs in parallel with [unit CI](.github/workflows/ci.yml) on push/PR to `4.0-beta` and `main`.
 
-Full golden-path (`docker compose up` + HTTP 200 on `/web`) runs on a **nightly schedule**, on **workflow_dispatch** with **Run full golden-path HTTP test**, or when a pull request has the **`run-docker`** label — only when the `ODPM_GOLDEN_PATH_PROJECT` repository secret is configured. After adding the `run-docker` label to a PR, **re-run** the **CI Docker** workflow (labels do not trigger a new run automatically).
+#### CI matrix (4.2 policy)
+
+| Job | Workflow | Trigger | Merge gate | Fixture / inputs |
+|-----|----------|---------|------------|------------------|
+| **unit** | `ci.yml` | every push/PR | **required** (recommended) | `tests/` unittest discover; Python **3.10** and **3.12** |
+| **compose-smoke** | `ci-docker.yml` | every push/PR | **required** (recommended) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing trees; `odpm --skip-start --no-git-update`, then `docker compose config`. Python **3.12** only. Base image cached between runs. |
+| **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ golden flag), or PR label **`run-docker`** | **opt-in** (not required on every PR) | Secret `ODPM_GOLDEN_PATH_PROJECT` → real initialized project on runner (`tests.integration.test_golden_path`). **Skipped** when secret unset — not a false pass. |
+
+**PR label `run-docker`:** add the label on GitHub, then **re-run** the **CI Docker** workflow (adding a label alone does not start a new run).
+
+**Local equivalents:**
+
+```bash
+# Compose smoke (same as CI compose-smoke job)
+./scripts/run_compose_smoke_test.sh
+# ODPM_COMPOSE_SMOKE_TIMEOUT=900 ./scripts/run_compose_smoke_test.sh
+
+# Full golden-path (requires real project tree on disk)
+./scripts/run_golden_path_test.sh
+# ODPM_GOLDEN_PATH_PROJECT=/path/to/project ODPM_RUN_DOCKER_INTEGRATION=1 \
+#   python3 -m unittest tests.integration.test_golden_path -v
+```
 
 #### CI secrets and branch protection
 
 | Name | Required for | Notes |
 |------|----------------|-------|
-| `ODPM_GOLDEN_PATH_PROJECT` | Full golden-path job | Absolute path to an initialized odpm project on the runner (typically a **self-hosted** runner with Docker and a real Odoo tree). Without this secret the golden job is **skipped**, not a false pass. |
+| `ODPM_GOLDEN_PATH_PROJECT` | `golden-path` job only | Absolute path to an initialized odpm project on the runner (typically **self-hosted** with Docker and a real Odoo tree). Compose smoke uses the in-repo minimal fixture and does **not** need this secret. |
 
-Recommended GitHub branch protection on `4.0-beta` / `main`: require status checks **CI** and **CI Docker** (`compose-smoke`) before merge.
-
-Local compose smoke:
-
-```bash
-./scripts/run_compose_smoke_test.sh
-# ODPM_COMPOSE_SMOKE_TIMEOUT=900 ./scripts/run_compose_smoke_test.sh
-```
+Recommended GitHub branch protection on `4.0-beta` / `main`: require status checks **CI** (unit) and **CI Docker** / **compose-smoke** before merge. Treat **golden-path** as a nightly or on-demand signal until a self-hosted runner with a stable project path is available; making golden-path required on `main` only is a reasonable next step (4.3).
 
 ### Migration 4.0→4.1 imports
 
