@@ -56,7 +56,7 @@ odpm --version
 
 ### pip (4.0+)
 
-Для разработки или систем без native package. Нужен **Python 3.10 или новее**. На Linux с [PEP 668](https://peps.python.org/pep-0668/) (системный Python «защищён» от pip) устанавливайте odpm в virtualenv или через [pipx](https://pipx.pypa.io/), а не командой `pip install` в систему.
+Для разработки или систем без native package. Установка через pip — это **бинарный дистрибутив** odpm (wheel-файл `.whl` из релиза или локальной сборки `python -m build`). Нужен **Python 3.10 или новее**. На Linux с [PEP 668](https://peps.python.org/pep-0668/) (системный Python «защищён» от pip) устанавливайте odpm в virtualenv или через [pipx](https://pipx.pypa.io/), а не командой `pip install` в систему.
 
 Из клона репозитория:
 
@@ -104,7 +104,7 @@ msgmerge -U dev_project/i18n/ru_RU/LC_MESSAGES/main.po dev_project/i18n/main.pot
 
 # 3) Отредактировать dev_project/i18n/ru_RU/LC_MESSAGES/main.po (msgstr)
 
-# 4) Скомпилировать .mo для wheel/deb
+# 4) Скомпилировать .mo — включается в wheel-файл pip, .deb и .rpm
 msgfmt -o dev_project/i18n/ru_RU/LC_MESSAGES/main.mo \
   dev_project/i18n/ru_RU/LC_MESSAGES/main.po
 
@@ -424,6 +424,102 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 - Выносите HTTPS на reverse proxy; при публикации Odoo настройте `proxy_mode` и `dbfilter` в `odoo.conf`.
 - Ограничьте входящий трафик firewall (SSH, HTTPS; закройте прямой доступ к `8069`/`8072` из интернета, если proxy на той же машине).
 - Для администрирования БД с хоста достаточно привязки Postgres к `127.0.0.1`; не пробрасывайте `5432` на `0.0.0.0` вручную в compose.
+
+## Масштабирование и единый контур для команды
+
+Один инструмент — **разработчик**, **системный администратор** и **DevOps** — работают с **одним manifest** (`odpm.json`, lock-файлы) и **одним runtime engine** (prepare → compose → entrypoint). Меняется только **профиль** (`ODPM_SCENARIO`), а не набор разрозненных скриптов и Dockerfile.
+
+Подробная архитектурная картина, референсы (Doodba, Dev Containers, Odoo.sh) и roadmap: [goals_ru.md](goals_ru.md).
+
+### Зачем унифицировать роли
+
+Типичная проблема Odoo-команд: каждая роль собирает «похожее, но не одно и то же» окружение. Итог — «у меня работает», на staging иначе, в CI третий вариант.
+
+**Цель odpm:** один declarative manifest и один движок → **согласованный Odoo-стек** для всех участников процесса.
+
+### ОС и архитектура: ещё один источник хаоса
+
+Помимо разных ролей, в команде обычно **разные рабочие станции**: Linux, Windows, macOS; процессоры **x86_64** и **ARM** (Apple Silicon). Без общего слоя это быстро размножает проблемы:
+
+- «на Ubuntu ставится, на macOS — нет» (пути, права, shell, зависимости Python);
+- бинарные wheel-файлы и native-расширения, собранные под одну ОС и архитектуру;
+- разные версии PostgreSQL, Python, Node «на хосте»;
+- инструкции вида «сначала поставь X, потом Y» — отдельно для каждой ОС.
+
+**odpm снимает это с хоста:** Odoo, venv и PostgreSQL живут в **Docker-контейнерах** с описанием в `odpm.json`. Разработчик на ноутбуке, сисадмин на VPS и runner в CI получают **один и тот же runtime внутри контейнера**; на хосте нужны только Docker, git и `odpm` (см. [Цель проекта](#цель-проекта)).
+
+| На хосте (может отличаться) | В контейнере (единое для всех) |
+|-----------------------------|--------------------------------|
+| Linux / Windows / macOS | Debian-образ из шаблона odpm |
+| amd64 / arm64 (где поддерживает Docker) | фиксированный Python, venv policy, entrypoint |
+| локальные пути к clone | тот же compose и `.odpm/runtime/config.json` |
+
+Итог для команды: меньше споров «у меня на M1 работает», проще онбординг нового разработчика (`odpm --init` → тот же manifest), а CI и staging проверяют **тот же контракт**, что и локальная разработка. Ограничения железа хоста остаются (RAM, Docker Desktop на Mac), но **стек Odoo перестаёт зависеть от дистрибутива на ноутбуке**.
+
+Полной идентичности «ноутбук ARM = CI runner x86_64» odpm сам по себе не гарантирует: для arm64-разработчиков важны multi-arch образы или self-hosted runner той же архитектуры — это зона DevOps, но **manifest и compose** остаются общими. См. [goals_ru.md](goals_ru.md) — North Star и сравнение с Dev Containers.
+
+| Роль | Команды | Сценарий | Результат |
+|------|---------|----------|-----------|
+| **Разработчик** | `odpm --init`, compose up, VS Code attach | `developer` | Локальный Odoo с mount исходников, debugpy, `dev_mode` |
+| **Сисадмин** | `odpm --skip-start`, `docker compose up`, бэкапы, proxy | `server` | Тот же compose и те же зависимости, без debugpy, hardening |
+| **DevOps** | `odpm plan --strict`, `odpm --build-image`, push, deploy | `ci` | Baked-образ с тем же кодом и venv, что в manifest |
+
+**`odpm plan`** — общий язык между ролями: перед изменениями видны одни и те же шаги и diff compose. См. также [goals_ru.md § Plan и dry-run](goals_ru.md).
+
+### Три сценария — один состав проекта
+
+Отличается **упаковка**, не **состав** (репозитории, SHAs, Python, entrypoint):
+
+| Измерение | `developer` | `server` | `ci` |
+|-----------|-------------|----------|------|
+| Исходники | bind-mount | bind-mount (VPS) | в образе |
+| venv | `fresh` | `fresh` | `baked` |
+| debugpy | да | нет | нет |
+| Типичная среда | ноутбук | VM / VPS | runner + registry |
+
+Lifecycle и диаграммы persona: [goals_ru.md § Идеальный lifecycle](goals_ru.md).
+
+### Масштаб: от одной VM до CI/CD
+
+**Малый контур** (пилот, staging, одна VM):
+
+- `ODPM_SCENARIO=server` (или `developer` на dev-машине)
+- один `docker compose`: Odoo + Postgres
+- расширения: вручную — [dev_project/plugins/services_ru.md](dev_project/plugins/services_ru.md); после Plugin API — плагины в manifest (см. [goals_ru.md § Extensibility](goals_ru.md))
+- observability на тестовом стенде: [docs/observability.md](docs/observability.md)
+
+**Средний контур** (команда + staging + CI):
+
+- разработчики на `developer`, staging на `server`, CI на `ci`
+- PR: compose-smoke; opt-in golden-path — см. [Docker CI](#docker-ci) выше
+- один `odpm.json` в Git для всех сред
+
+**Большой контур** (registry, несколько сред):
+
+```text
+odpm --build-image  →  registry/project:tag  →  deploy (VM / k8s / orchestrator)
+```
+
+odpm — **звено сборки воспроизводимого Odoo-образа**, не замена GitHub Actions / GitLab CI / Argo CD. Manifest и lock версионируются в Git.
+
+### Что унифицируется
+
+| Артефакт | Разработчик | Сисадмин | DevOps |
+|----------|-------------|----------|--------|
+| `odpm.json` / `deps.lock` | правит deps | читает, не форкает стек | валидирует в CI |
+| `docker-compose.yml` | генерируется odpm | то же | то же (ci без mount Odoo) |
+| `.odpm/runtime/config.json` | typed contract | то же | baked в ci-образ |
+| Проверка «стек жив» | локально | staging | compose-smoke, golden-path |
+
+### Плагины (roadmap)
+
+После [Plugin/hook API](goals_ru.md) плагин (Redis, mailpit, observability) объявляется **один раз** в manifest и даёт те же compose-сервисы на laptop, VPS и runner. Сегодня — примеры фрагментов в [dev_project/plugins/services_ru.md](dev_project/plugins/services_ru.md).
+
+### North Star
+
+> **Один репозиторий проекта, один `odpm.json`, три профиля — разработчик, сисадмин и DevOps (и разные рабочие станции) сходятся к одному Odoo-стеку. Масштаб меняет упаковку (compose на VM vs образ в registry), а не правила игры.**
+
+Полное описание vision, data flow host↔container и gap до Doodba/Odoo.sh: [goals_ru.md](goals_ru.md).
 
 ## Параметры user_settings.json:
 

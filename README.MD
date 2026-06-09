@@ -55,7 +55,7 @@ Installs `/usr/bin/odpm` and ships `dev_project` under `python3/site-packages`. 
 
 ### pip (4.0+)
 
-For development or non-native-package systems. Requires **Python 3.10+**. On Linux distros with [PEP 668](https://peps.python.org/pep-0668/) (externally managed system Python), install into a virtual environment or use [pipx](https://pipx.pypa.io/) instead of system-wide `pip install`.
+For development or non-native-package systems. `pip install` uses the **binary distribution** (wheel file `.whl` from a release or a local `python -m build`). Requires **Python 3.10+**. On Linux distros with [PEP 668](https://peps.python.org/pep-0668/) (externally managed system Python), install into a virtual environment or use [pipx](https://pipx.pypa.io/) instead of system-wide `pip install`.
 
 From a clone of this repository:
 
@@ -103,7 +103,7 @@ msgmerge -U dev_project/i18n/ru_RU/LC_MESSAGES/main.po dev_project/i18n/main.pot
 
 # 3) Edit dev_project/i18n/ru_RU/LC_MESSAGES/main.po (msgstr)
 
-# 4) Compile binary catalog shipped in the wheel/deb
+# 4) Compile .mo — shipped in the pip wheel, .deb, and .rpm packages
 msgfmt -o dev_project/i18n/ru_RU/LC_MESSAGES/main.mo \
   dev_project/i18n/ru_RU/LC_MESSAGES/main.po
 
