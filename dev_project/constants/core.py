@@ -182,6 +182,7 @@ ODOO_VERSION_DEFAULT_ENV = {
 }
 
 DEFAULT_LOCALE = "en_US"
+ODPM_LOCALE_ENV_KEY = "ODPM_LOCALE"
 
 MODULE_FILES = ("__manifest__.py", "__openerp__.py", "__odoo__.py", "__terp__.py")
 

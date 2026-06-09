@@ -5,6 +5,8 @@ from __future__ import annotations
 import gettext as _stdlib_gettext
 import locale
 import os
+import re
+from collections.abc import Mapping
 from typing import Callable
 
 from . import constants
@@ -20,6 +22,8 @@ _LANG_ALIASES = {
     "ru": "ru_RU",
 }
 
+_LOCALE_PATTERN = re.compile(r"^[a-z]{2}(_[A-Z]{2})?$", re.IGNORECASE)
+
 
 def _normalize_locale(value: str | None) -> str:
     if not value:
@@ -28,9 +32,16 @@ def _normalize_locale(value: str | None) -> str:
     return _LANG_ALIASES.get(base, base)
 
 
-def _locale_from_environment() -> str:
+def _is_plausible_locale(value: str) -> bool:
+    return bool(_LOCALE_PATTERN.match(value))
+
+
+def _locale_from_posix_environment(
+    environ: Mapping[str, str] | None = None,
+) -> str:
+    env = os.environ if environ is None else environ
     for var in ("LC_ALL", "LC_MESSAGES", "LANG"):
-        raw = os.environ.get(var)
+        raw = env.get(var)
         if raw:
             return _normalize_locale(raw)
     try:
@@ -38,6 +49,36 @@ def _locale_from_environment() -> str:
     except (AttributeError, ValueError, TypeError):
         default = None
     return _normalize_locale(default)
+
+
+def _locale_from_environment(
+    environ: Mapping[str, str] | None = None,
+) -> str:
+    return _locale_from_posix_environment(environ)
+
+
+def parse_odpm_locale_setting(value: str | None) -> str | None:
+    if not value or not value.strip():
+        return None
+    raw = value.strip()
+    normalized = _normalize_locale(raw)
+    if not _is_plausible_locale(normalized):
+        return None
+    return raw
+
+
+def resolve_effective_locale(
+    odpm_locale: str | None = None,
+    *,
+    environ: Mapping[str, str] | None = None,
+) -> str:
+    """Resolve host CLI locale: file/process ODPM_LOCALE > LC_* / LANG > system."""
+    env = os.environ if environ is None else environ
+    for candidate in (odpm_locale, env.get(constants.ODPM_LOCALE_ENV_KEY)):
+        parsed = parse_odpm_locale_setting(candidate)
+        if parsed is not None:
+            return _normalize_locale(parsed)
+    return _locale_from_posix_environment(environ)
 
 
 def _language_candidates(app_locale: str) -> list[str]:
@@ -102,6 +143,16 @@ def gettext(message: str) -> str:
 
 def update_locale(app_locale: str) -> None:
     _translator.update_locale(app_locale)
+
+
+def apply_locale_from_sources(
+    odpm_locale: str | None = None,
+    *,
+    environ: Mapping[str, str] | None = None,
+) -> str:
+    locale_name = resolve_effective_locale(odpm_locale, environ=environ)
+    update_locale(locale_name)
+    return locale_name
 
 
 _ = gettext

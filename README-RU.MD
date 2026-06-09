@@ -81,7 +81,26 @@ python3 /path/to/odoo_dev_project/odpm.py --version
 
 ## Переводы host CLI (gettext)
 
-Сообщения host CLI идут через GNU gettext. Каталог `main` — в `dev_project/i18n/<locale>/LC_MESSAGES/`. Локаль берётся из `LC_ALL`, `LC_MESSAGES` или `LANG` (например `ru_RU.UTF-8`).
+Сообщения host CLI идут через GNU gettext. Каталог `main` — в `dev_project/i18n/<locale>/LC_MESSAGES/`.
+
+**Выбор локали** (первое совпадение):
+
+| Приоритет | Источник |
+|---|---|
+| 1 | `ODPM_LOCALE` в project `.env` |
+| 2 | `ODPM_LOCALE` в `~/.odpm/.env` |
+| 3 | `ODPM_LOCALE` в окружении процесса |
+| 4 | `LC_ALL`, `LC_MESSAGES` или `LANG` (например `ru_RU.UTF-8`) |
+| 5 | Локаль системы |
+| 6 | `en_US` (fallback каталога) |
+
+Если ключ не задан — используется системная/shell-локаль. Новичкам удобно добавить в project `.env`:
+
+```ini
+ODPM_LOCALE=ru_RU
+```
+
+Полный перевод есть для `ru_RU`; для других локалей — English fallback. Это **не** то же самое, что `db_lang` в `user_settings.json` (язык базы Odoo).
 
 **Три уровня i18n:**
 

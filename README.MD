@@ -80,7 +80,26 @@ Both installation modes are supported.
 
 ## Host CLI translations (gettext)
 
-Host-facing messages use GNU gettext. Catalog domain `main` lives under `dev_project/i18n/<locale>/LC_MESSAGES/`. Runtime picks locale from `LC_ALL`, `LC_MESSAGES`, or `LANG` (for example `ru_RU.UTF-8`).
+Host-facing messages use GNU gettext. Catalog domain `main` lives under `dev_project/i18n/<locale>/LC_MESSAGES/`.
+
+**Locale resolution** (first match wins):
+
+| Priority | Source |
+|---|---|
+| 1 | `ODPM_LOCALE` in project `.env` |
+| 2 | `ODPM_LOCALE` in `~/.odpm/.env` |
+| 3 | `ODPM_LOCALE` in the process environment |
+| 4 | `LC_ALL`, `LC_MESSAGES`, or `LANG` (for example `ru_RU.UTF-8`) |
+| 5 | System default |
+| 6 | `en_US` (catalog fallback) |
+
+Leave `ODPM_LOCALE` unset to follow the system/shell locale. For beginners, add to project `.env`:
+
+```ini
+ODPM_LOCALE=ru_RU
+```
+
+Full Russian translations ship for `ru_RU` only; other locales fall back to English msgids. This is **not** the same as `db_lang` in `user_settings.json` (Odoo database language).
 
 **Three i18n layers:**
 

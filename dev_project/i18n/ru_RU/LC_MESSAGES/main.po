@@ -131,6 +131,9 @@ msgstr "Укажите порт, который будет слушать сер
 msgid "Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Укажите порт, который будет слушать odoo. Можете оставить значение по умолчанию {DEFAULT_ODOO_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
 
+msgid "Set odpm host message language. System locale is {SYSTEM_LOCALE}. Press 'Enter' to keep the system default or type a locale (for example ru_RU):"
+msgstr "Укажите язык сообщений odpm на host. Локаль системы: {SYSTEM_LOCALE}. Нажмите 'Enter', чтобы оставить системную локаль, или введите локаль (например ru_RU):"
+
 msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
 msgstr "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
 
@@ -196,6 +199,12 @@ msgstr "Вы выбрали следующий путь для нахожден�
 
 msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 msgstr "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
+
+msgid "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n"
+msgstr "Вы выбрали системную локаль по умолчанию для сообщений odpm: {SELECTED_LOCALE}\n"
+
+msgid "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
+msgstr "Вы выбрали следующую локаль для сообщений odpm: {SELECTED_LOCALE}\n"
 
 msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
 msgstr "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"

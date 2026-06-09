@@ -168,6 +168,13 @@ RU_MESSAGES: dict[str, str] = {
         " {DEFAULT_ODOO_PORT} или укажите свой собственный. "
         "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
     ),
+    "Set odpm host message language. System locale is {SYSTEM_LOCALE}. "
+    "Press 'Enter' to keep the system default or type a locale "
+    "(for example ru_RU):": (
+        "Укажите язык сообщений odpm на host. Локаль системы: {SYSTEM_LOCALE}. "
+        "Нажмите 'Enter', чтобы оставить системную локаль, или введите локаль "
+        "(например ru_RU):"
+    ),
     "Set other odoo projects sources directory, You can leave default "
     "{DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave "
     "default value:": (
@@ -239,6 +246,12 @@ RU_MESSAGES: dict[str, str] = {
     "directory": (
         "В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} "
         "свободного места"
+    ),
+    "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n": (
+        "Вы выбрали системную локаль по умолчанию для сообщений odpm: {SELECTED_LOCALE}\n"
+    ),
+    "You selected this locale for odpm messages: {SELECTED_LOCALE}\n": (
+        "Вы выбрали следующую локаль для сообщений odpm: {SELECTED_LOCALE}\n"
     ),
     "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n": (
         "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"

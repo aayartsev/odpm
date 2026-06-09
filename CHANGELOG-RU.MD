@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **`ODPM_LOCALE` в `.env` (A1c / L-track)** — опциональная локаль host CLI в project `.env` или `~/.odpm/.env`; пустой ключ — система/`LANG`. `resolve_effective_locale()` + ранний bootstrap из project `.env` до cli guards; интерактивный wizard спрашивает локаль; `tests/test_odpm_locale_env.py`. README EN+RU: таблица приоритетов. Не путать с `db_lang` (язык БД Odoo).
 - **Lazy import `CiImageBuildService` на host** — `project_env.services` подгружает `CiImageBuildService` (и `bake_venv`) только для `--build-image`; обычный `odpm` / `--init` больше не импортирует `bake_venv` при старте. Subprocess import test в `test_protocols_and_imports`.
 - **Дефолт `check_system: true`** — новые проекты после `odpm init` и manifest без явного ключа получают beginner-проверки git/docker и `ensure_base_image` при первом запуске (исправляет пропуск сборки base image при отсутствии ключа). CI minimal fixture по-прежнему с явным `"check_system": false`. README EN+RU описывают дефолт.
 - **RPM package (B2)** — `packaging/odpm.spec` (pyproject `%pyproject_*` на Fedora 41+), `packaging/rpmlint.toml`, `scripts/build_rpm.sh`, `scripts/smoke_rpm_install.sh`; [`.github/workflows/release-packages.yml`](.github/workflows/release-packages.yml) добавляет job **rpm** + **publish** (`.deb` + `.rpm` + `SHA256SUMS`). README EN+RU: установка на Fedora.

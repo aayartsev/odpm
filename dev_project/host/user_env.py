@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import TypedDict
 
 from .. import constants
-from ..translations import _
+from ..translations import _, apply_locale_from_sources, parse_odpm_locale_setting
 from ..errors import ConfigError
 from ..interactive import prompt_input, stdin_is_interactive
 from ..logging import get_module_logger
@@ -14,7 +14,7 @@ from ..project_dir_manager import ProjectDirManager
 _logger = get_module_logger(__name__)
 
 
-class EnvData(TypedDict):
+class EnvData(TypedDict, total=False):
     BACKUP_DIR: str
     ODOO_PROJECTS_DIR: str
     PATH_TO_SSH_KEY: str
@@ -23,6 +23,7 @@ class EnvData(TypedDict):
     DEBUGGER_PORT: int
     GEVENT_PORT: int
     ODPM_SCENARIO: str
+    ODPM_LOCALE: str
 
 
 class CreateUserEnvironment:
@@ -30,7 +31,9 @@ class CreateUserEnvironment:
         self.pd_manager = pd_manager
         self.config_home_dir = self.pd_manager.home_config_dir
         self.env_file = self.get_env_file_path()
+        self.odpm_locale: str | None = None
         self.parse_env_file()
+        apply_locale_from_sources(self.odpm_locale)
 
     def get_env_file_path(self) -> str:
         local_env_file = os.path.join(
@@ -82,6 +85,20 @@ class CreateUserEnvironment:
         if isinstance(path_to_ssh_key, str) and platform.system() == "Windows":
             path_to_ssh_key = path_to_ssh_key.replace("\\", "\\\\")
         self.path_to_ssh_key = path_to_ssh_key
+        raw_locale = parser["env"].get(constants.ODPM_LOCALE_ENV_KEY, "").strip()
+        if raw_locale:
+            parsed_locale = parse_odpm_locale_setting(raw_locale)
+            if parsed_locale is None:
+                _logger.warning(
+                    "Invalid %s=%r, falling back to system locale",
+                    constants.ODPM_LOCALE_ENV_KEY,
+                    raw_locale,
+                )
+                self.odpm_locale = None
+            else:
+                self.odpm_locale = parsed_locale
+        else:
+            self.odpm_locale = None
 
     def create_env_file(self, local_env_file: str) -> None:
         new_env_data = self._build_env_data_interactive()
@@ -101,8 +118,10 @@ class CreateUserEnvironment:
         )
 
     def _write_env_file(self, local_env_file: str, new_env_data: EnvData) -> None:
-        with open(local_env_file, "w") as env_file:
+        with open(local_env_file, "w", encoding="utf-8") as env_file:
             for key_name, value in new_env_data.items():
+                if key_name == constants.ODPM_LOCALE_ENV_KEY and not str(value).strip():
+                    continue
                 env_file.write(f"{key_name}={value}\n")
 
     def _has_noninteractive_env_configuration(self) -> bool:
@@ -117,6 +136,7 @@ class CreateUserEnvironment:
                 "DEBUGGER_PORT",
                 "GEVENT_PORT",
                 "ODPM_SCENARIO",
+                constants.ODPM_LOCALE_ENV_KEY,
             )
         ):
             return True
@@ -131,7 +151,7 @@ class CreateUserEnvironment:
         raw_scenario = os.environ.get("ODPM_SCENARIO", constants.DEFAULT_ODPM_SCENARIO)
         if raw_scenario not in constants.ODPM_SCENARIO_VALUES:
             raw_scenario = constants.DEFAULT_ODPM_SCENARIO
-        return EnvData(
+        env_data = EnvData(
             BACKUP_DIR=os.environ.get("BACKUP_DIR", default_backup_dir),
             ODOO_PROJECTS_DIR=os.environ.get(
                 "ODOO_PROJECTS_DIR", default_odoo_projects_src_dir
@@ -151,9 +171,13 @@ class CreateUserEnvironment:
             ),
             ODPM_SCENARIO=raw_scenario,
         )
+        locale_value = os.environ.get(constants.ODPM_LOCALE_ENV_KEY, "").strip()
+        if locale_value:
+            env_data[constants.ODPM_LOCALE_ENV_KEY] = locale_value
+        return env_data
 
     def _build_env_data_interactive(self) -> EnvData:
-        return EnvData(
+        env_data = EnvData(
             BACKUP_DIR=self.get_from_user_backup_dir(),
             ODOO_PROJECTS_DIR=self.get_from_user_odoo_projects_src_dir(),
             PATH_TO_SSH_KEY=self.get_from_user_path_to_ssh_key(),
@@ -163,6 +187,10 @@ class CreateUserEnvironment:
             GEVENT_PORT=self.get_from_user_gevent_port(),
             ODPM_SCENARIO=self.get_from_user_odpm_scenario(),
         )
+        locale_value = self.get_from_user_odpm_locale()
+        if locale_value:
+            env_data[constants.ODPM_LOCALE_ENV_KEY] = locale_value
+        return env_data
 
     def get_from_user_odoo_projects_src_dir(self) -> str:
         default_odoo_projects_src_dir = os.path.join(Path.home(), "odoo_projects")
@@ -296,3 +324,37 @@ class CreateUserEnvironment:
             )
         )
         return str(selected_scenario)
+
+    def get_from_user_odpm_locale(self) -> str:
+        from ..translations import _locale_from_environment
+
+        system_locale = _locale_from_environment()
+        user_locale = prompt_input(
+            _(
+                "Set odpm host message language. System locale is {SYSTEM_LOCALE}. "
+                "Press 'Enter' to keep the system default or type a locale "
+                "(for example ru_RU):"
+            ).format(SYSTEM_LOCALE=system_locale)
+        )
+        if not user_locale:
+            _logger.info(
+                _(
+                    "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n"
+                ).format(SELECTED_LOCALE=system_locale)
+            )
+            return ""
+        parsed_locale = parse_odpm_locale_setting(user_locale)
+        if parsed_locale is None:
+            _logger.warning(
+                "Invalid %s=%r, using system locale %s",
+                constants.ODPM_LOCALE_ENV_KEY,
+                user_locale,
+                system_locale,
+            )
+            return ""
+        _logger.info(
+            _(
+                "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
+            ).format(SELECTED_LOCALE=parsed_locale)
+        )
+        return parsed_locale
