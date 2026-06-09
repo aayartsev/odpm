@@ -221,6 +221,13 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         link = ConfigDefaultsFactory(config).get_developing_project_link()
         self.assertEqual(link, "file:///tmp/project/my_repo")
 
+    def test_create_default_user_settings_check_system_true_by_default(self):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.pd_manager = MagicMock(init=".", project_path="/tmp/project")
+        content = ConfigDefaultsFactory(config).create_default_user_setting_json_content()
+        self.assertTrue(content["check_system"])
+
     @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
     def test_create_default_odpm_json_raises_without_odoo_version(self, _mock_tty):
         config = MagicMock()
