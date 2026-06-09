@@ -14,7 +14,7 @@ from ..project_dir_manager import ProjectDirManager
 _logger = get_module_logger(__name__)
 
 
-class EnvData(TypedDict, total=False):
+class _EnvDataRequired(TypedDict):
     BACKUP_DIR: str
     ODOO_PROJECTS_DIR: str
     PATH_TO_SSH_KEY: str
@@ -23,6 +23,9 @@ class EnvData(TypedDict, total=False):
     DEBUGGER_PORT: int
     GEVENT_PORT: int
     ODPM_SCENARIO: str
+
+
+class EnvData(_EnvDataRequired, total=False):
     ODPM_LOCALE: str
 
 
@@ -106,7 +109,12 @@ class CreateUserEnvironment:
 
     def create_env_file_noninteractive(self, local_env_file: str) -> None:
         if not self._has_noninteractive_env_configuration():
-            message = _('Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) before the first run.')
+            message = _(
+                "Non-interactive mode requires an existing .env file in the project directory "
+                "or under ~/.odpm/.env. Create it manually or set environment variables "
+                "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
+                "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) before the first run."
+            )
             _logger.error(message)
             raise ConfigError(message)
         new_env_data = self._build_env_data_from_environ_or_defaults()

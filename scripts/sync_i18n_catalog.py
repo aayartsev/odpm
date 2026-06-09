@@ -104,11 +104,11 @@ RU_MESSAGES: dict[str, str] = {
     "Non-interactive mode requires an existing .env file in the project directory "
     "or under ~/.odpm/.env. Create it manually or set environment variables "
     "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) before the first run.": (
+    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) before the first run.": (
         "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта "
         "или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения "
         "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) перед первым запуском."
+        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) перед первым запуском."
     ),
     "Non-interactive mode requires odoo_version in the developing project's "
     "odpm.json or pass --odoo-version on the command line.": (

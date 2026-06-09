@@ -104,6 +104,15 @@ class CreateUserEnvironmentLocaleTests(unittest.TestCase):
                 CreateUserEnvironment(pd_manager)
             self.assertEqual(_("Did you install git?"), "Вы установили git?")
 
+    def test_unsupported_locale_falls_back_to_english_msgid(self) -> None:
+        with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
+            project_env = os.path.join(project_dir, constants.ENV_FILE_NAME)
+            _write_env_file(project_env, odpm_locale="de_DE")
+            with patch.dict(os.environ, {"HOME": home_dir, "LANG": "ru_RU.UTF-8"}, clear=True):
+                pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
+                CreateUserEnvironment(pd_manager)
+            self.assertEqual(_("Did you install git?"), "Did you install git?")
+
 
 class LocaleBootstrapTests(unittest.TestCase):
     def tearDown(self) -> None:
@@ -181,6 +190,25 @@ class NonInteractiveLocaleEnvTests(unittest.TestCase):
             )
             content = env_file.read_text(encoding="utf-8")
             self.assertIn("ODPM_LOCALE=ru_RU", content)
+
+    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    def test_noninteractive_omits_odpm_locale_without_environment(self, _mock_tty) -> None:
+        with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
+            pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
+            env = {
+                "HOME": home_dir,
+                "BACKUP_DIR": "/tmp/backups",
+                "ODOO_PROJECTS_DIR": "/tmp/projects",
+                "ODPM_SCENARIO": constants.CI_SCENARIO,
+            }
+            with patch.dict(os.environ, env, clear=True):
+                CreateUserEnvironment(pd_manager)
+
+            env_file = (
+                Path(home_dir) / constants.CONFIG_DIR_IN_HOME_DIR / constants.ENV_FILE_NAME
+            )
+            content = env_file.read_text(encoding="utf-8")
+            self.assertNotIn("ODPM_LOCALE", content)
 
 
 class InteractiveLocaleWizardTests(unittest.TestCase):

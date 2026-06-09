@@ -83,16 +83,19 @@ python3 /path/to/odoo_dev_project/odpm.py --version
 
 Сообщения host CLI идут через GNU gettext. Каталог `main` — в `dev_project/i18n/<locale>/LC_MESSAGES/`.
 
-**Выбор локали** (первое совпадение):
+**Какой `.env` читается:** odpm загружает **один** файл — project `.env`, если он есть, иначе `~/.odpm/.env`. Значения из двух файлов **не сливаются**. Если project `.env` есть, но без `ODPM_LOCALE`, ключ из `~/.odpm/.env` **не** подхватывается; дальше — process `ODPM_LOCALE`, затем `LANG` / система.
+
+**Выбор локали** внутри активного `.env` и окружения процесса (первое совпадение):
 
 | Приоритет | Источник |
 |---|---|
-| 1 | `ODPM_LOCALE` в project `.env` |
-| 2 | `ODPM_LOCALE` в `~/.odpm/.env` |
-| 3 | `ODPM_LOCALE` в окружении процесса |
-| 4 | `LC_ALL`, `LC_MESSAGES` или `LANG` (например `ru_RU.UTF-8`) |
-| 5 | Локаль системы |
-| 6 | `en_US` (fallback каталога) |
+| 1 | `ODPM_LOCALE` в активном `.env` (project или `~/.odpm/`) |
+| 2 | `ODPM_LOCALE` в окружении процесса |
+| 3 | `LC_ALL`, `LC_MESSAGES` или `LANG` (например `ru_RU.UTF-8`) |
+| 4 | Локаль системы |
+| 5 | `en_US` (fallback каталога) |
+
+До `OdpmPipeline.setup()` для раннего bootstrap (например sudo guard) читается только **project** `.env`. Global `~/.odpm/.env` применяется после setup, если project `.env` отсутствует.
 
 Если ключ не задан — используется системная/shell-локаль. Новичкам удобно добавить в project `.env`:
 

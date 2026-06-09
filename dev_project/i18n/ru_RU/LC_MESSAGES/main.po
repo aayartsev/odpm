@@ -89,8 +89,8 @@ msgstr "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен б�
 msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
 msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
 
-msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) before the first run."
-msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO) перед первым запуском."
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) before the first run."
+msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) перед первым запуском."
 
 msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
 msgstr "В неинтерактивном режиме требуется odoo_version в odpm.json разрабатываемого проекта или параметр --odoo-version в командной строке."

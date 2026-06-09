@@ -82,16 +82,19 @@ Both installation modes are supported.
 
 Host-facing messages use GNU gettext. Catalog domain `main` lives under `dev_project/i18n/<locale>/LC_MESSAGES/`.
 
-**Locale resolution** (first match wins):
+**Which `.env` file is read:** odpm loads **one** file — project `.env` if it exists, otherwise `~/.odpm/.env`. Values are not merged across both files. If project `.env` exists but omits `ODPM_LOCALE`, the key from `~/.odpm/.env` is **not** used; locale falls through to process `ODPM_LOCALE`, then `LANG` / system defaults.
+
+**Locale resolution** inside that file and process environment (first match wins):
 
 | Priority | Source |
 |---|---|
-| 1 | `ODPM_LOCALE` in project `.env` |
-| 2 | `ODPM_LOCALE` in `~/.odpm/.env` |
-| 3 | `ODPM_LOCALE` in the process environment |
-| 4 | `LC_ALL`, `LC_MESSAGES`, or `LANG` (for example `ru_RU.UTF-8`) |
-| 5 | System default |
-| 6 | `en_US` (catalog fallback) |
+| 1 | `ODPM_LOCALE` in the active `.env` file (project or `~/.odpm/`) |
+| 2 | `ODPM_LOCALE` in the process environment |
+| 3 | `LC_ALL`, `LC_MESSAGES`, or `LANG` (for example `ru_RU.UTF-8`) |
+| 4 | System default |
+| 5 | `en_US` (catalog fallback) |
+
+Before `OdpmPipeline.setup()`, only **project** `.env` is read for an early locale bootstrap (e.g. sudo guard). Global `~/.odpm/.env` applies after setup when no project `.env` exists.
 
 Leave `ODPM_LOCALE` unset to follow the system/shell locale. For beginners, add to project `.env`:
 
