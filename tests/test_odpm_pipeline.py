@@ -19,7 +19,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         project_env = MagicMock()
         return RuntimeCoordinator(args, config, project_env)
 
-    @patch("dev_project.runtime_coordinator.CiImageBuildService")
+    @patch("dev_project.project_env.services.CiImageBuildService")
     def test_handle_build_image_rejects_non_ci_policy(self, mock_ci_service):
         coordinator = self._coordinator(build_image=True)
         coordinator.config.policy = ScenarioPolicy.from_scenario(
@@ -30,7 +30,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         self.assertEqual(ctx.exception.exit_code, 1)
         mock_ci_service.assert_not_called()
 
-    @patch("dev_project.runtime_coordinator.CiImageBuildService")
+    @patch("dev_project.project_env.services.CiImageBuildService")
     def test_handle_build_image_runs_for_ci_policy(self, mock_ci_service):
         coordinator = self._coordinator(build_image=True)
         coordinator.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)

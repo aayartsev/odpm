@@ -1,4 +1,7 @@
+import subprocess
+import sys
 import unittest
+from pathlib import Path
 
 from dev_project.check_system import SystemChecker
 from dev_project.project_env import CreateProjectEnvironment
@@ -32,6 +35,25 @@ class ProtocolTypingTests(unittest.TestCase):
         from dev_project.runtime_coordinator import RuntimeCoordinator
 
         self.assertTrue(callable(RuntimeCoordinator))
+
+    def test_odpm_pipeline_import_does_not_load_bake_venv(self):
+        repo = Path(__file__).resolve().parents[1]
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import sys; import dev_project.odpm_pipeline; "
+                "raise SystemExit(0 if 'dev_project.bake_venv' not in sys.modules else 1)",
+            ],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(
+            proc.returncode,
+            0,
+            msg=(proc.stdout or "") + (proc.stderr or ""),
+        )
 
     def test_create_project_environment_is_not_prepare_services_protocol(self):
         self.assertFalse(

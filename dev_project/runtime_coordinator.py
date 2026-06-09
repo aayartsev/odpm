@@ -12,7 +12,7 @@ from .compose.runtime import should_force_recreate_compose
 from .errors import PipelineError
 from .host.cli.args import OdpmCliArgs
 from .logging import get_module_logger
-from .project_env.services import CiImageBuildService, VscodeConfigurator
+from .project_env.services import VscodeConfigurator
 from .subprocess_runner import run_logged
 
 if TYPE_CHECKING:
@@ -41,6 +41,8 @@ class RuntimeCoordinator:
             message = _('--build-image is only allowed when ODPM_SCENARIO=ci in .env')
             _logger.error(message)
             raise PipelineError(message, exit_code=1)
+        from .project_env.services import CiImageBuildService
+
         CiImageBuildService(self.project_env).build_ci_image()
         return True
 
