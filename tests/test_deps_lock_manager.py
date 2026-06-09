@@ -96,6 +96,62 @@ class DepsLockManagerApplyTests(unittest.TestCase):
             self.assertTrue(config.dependencies_projects[0].commit_explicit)
             self.assertTrue(config.dependencies_projects[1].commit_explicit)
 
+    def test_apply_to_developing_skips_remote_git_in_developer_scenario(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            lock = DepsLock(
+                platform=LockEntry(
+                    url="https://github.com/odoo/odoo",
+                    commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                ),
+                developing=LockEntry(
+                    url="https://github.com/acme/developing",
+                    commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                ),
+            )
+            save_deps_lock(
+                os.path.join(project_dir, ".odpm", "deps.lock.json"),
+                lock,
+            )
+            config = _config_with_policy(project_dir, constants.DEVELOPER_SCENARIO)
+            manager = DepsLockManager(config)
+            manager.load()
+            manager.enter_apply_mode()
+
+            with self.assertLogs("dev_project.git.deps_lock_manager", level="INFO"):
+                manager.apply_to_developing(config.developing_project)
+
+            self.assertFalse(config.developing_project.commit_explicit)
+            self.assertFalse(manager.is_pinned(config.developing_project))
+
+    def test_apply_to_developing_pins_remote_git_in_ci_scenario(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            lock = DepsLock(
+                platform=LockEntry(
+                    url="https://github.com/odoo/odoo",
+                    commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                ),
+                developing=LockEntry(
+                    url="https://github.com/acme/developing",
+                    commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                ),
+            )
+            save_deps_lock(
+                os.path.join(project_dir, ".odpm", "deps.lock.json"),
+                lock,
+            )
+            config = _config_with_policy(project_dir, constants.CI_SCENARIO)
+            manager = DepsLockManager(config)
+            manager.load()
+            manager.enter_apply_mode()
+            manager.apply_to_developing(config.developing_project)
+
+            self.assertTrue(config.developing_project.commit_explicit)
+            self.assertEqual(
+                config.developing_project.commit,
+                "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            )
+            self.assertTrue(manager.is_pinned(config.developing_project))
+
     def test_apply_to_developing_skips_file_link(self):
         with tempfile.TemporaryDirectory() as project_dir:
             lock = DepsLock(
@@ -202,6 +258,40 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
                 dependencies=config.dependencies_projects,
             )
 
+    def test_verify_after_checkout_skips_developing_in_developer_scenario(self):
+        config = _config_with_policy("/tmp/project", constants.DEVELOPER_SCENARIO)
+        lock = DepsLock(
+            platform=LockEntry(
+                url="https://github.com/odoo/odoo",
+                commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            ),
+            developing=LockEntry(
+                url="https://github.com/acme/developing",
+                commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            ),
+        )
+        manager = DepsLockManager(config)
+        manager._lock = lock
+        manager._apply_mode = True
+        verified_labels: list[str] = []
+        original_verify = manager._verify_entry
+
+        def capture_verify(project, entry, *, label: str):
+            verified_labels.append(label)
+            return original_verify(project, entry, label=label)
+
+        manager._verify_entry = capture_verify  # type: ignore[method-assign]
+        config.odoo_platform_project.resolve_head_sha.return_value = "a" * 40
+
+        manager.verify_after_checkout(
+            platform=config.odoo_platform_project,
+            developing=config.developing_project,
+            dependencies=config.dependencies_projects,
+        )
+
+        self.assertIn("platform", verified_labels)
+        self.assertNotIn("developing", verified_labels)
+
     def test_verify_after_checkout_fails_in_ci_scenario(self):
         config = _config_with_policy("/tmp/project", constants.CI_SCENARIO)
         lock = DepsLock(
@@ -243,7 +333,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
 
 
 class DepsLockManagerStaleDevelopingTests(unittest.TestCase):
-    def test_stale_developing_warns_when_project_uses_file_link(self):
+    def test_stale_developing_skips_apply_in_developer_scenario(self):
         with tempfile.TemporaryDirectory() as project_dir:
             lock = DepsLock(
                 platform=LockEntry(
@@ -267,9 +357,7 @@ class DepsLockManagerStaleDevelopingTests(unittest.TestCase):
             manager = DepsLockManager(config)
             manager.load()
             manager.enter_apply_mode()
-
-            with self.assertLogs("dev_project.git.deps_lock_manager", level="WARNING"):
-                manager.apply_to_developing(config.developing_project)
+            manager.apply_to_developing(config.developing_project)
 
             self.assertFalse(config.developing_project.commit_explicit)
 

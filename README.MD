@@ -591,6 +591,8 @@ For `file://` platform trees, `commit` is a content fingerprint (not a git SHA).
 
 Precedence: `--no-git-update` > `--update-lock` > existing lock (pins SHAs, skips `odoo_build_date` for locked platform) > legacy branch tip / build date.
 
+**Developer scenario** (`ODPM_SCENARIO=developer`, default): lock applies to **platform** and **dependencies** only; the **developing** project git tree is left under developer control. The `developing` entry is still written on `--update-lock` (for CI/server) and enforced in `ci` / `server` scenarios.
+
 ### Database backup and maintenance
 
 | Parameter | Description |

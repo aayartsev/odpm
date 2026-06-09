@@ -685,6 +685,8 @@ Schema v1: `platform`, optional `developing` (только remote git), `depende
 
 Приоритет: `--no-git-update` > `--update-lock` > lock (pin SHA, без `odoo_build_date` для platform) > branch tip / build date.
 
+**Сценарий developer** (`ODPM_SCENARIO=developer`, по умолчанию): lock **применяется** к platform и `dependencies`, но **не** к разрабатываемому проекту — git-состояние developing остаётся под контролем разработчика. Поле `developing` в lock по-прежнему записывается при `--update-lock` (для CI/server) и проверяется строго в `ci` / `server`.
+
 ### Резервное копирование и обслуживание БД
 
 | Параметр | Описание |

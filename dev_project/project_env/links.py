@@ -57,6 +57,8 @@ class ProjectLinks:
         developing = self.config.developing_project
         if not is_remote_git_link(developing):
             return False
+        if self.config.policy.is_developer():
+            return bool(developing.branch_explicit or developing.commit_explicit)
         if lock_manager is not None and lock_manager.is_pinned(developing):
             return True
         return bool(developing.branch_explicit or developing.commit_explicit)

@@ -66,6 +66,12 @@ class DepsLockManager:
     def apply_to_developing(self, developing: HandleOdooProjectLink) -> None:
         if not self._apply_mode or self._lock is None or self._lock.developing is None:
             return
+        if self._config.policy.is_developer():
+            _logger.info(
+                "Skipping developing lock apply in developer scenario; "
+                "git state is managed by the developer"
+            )
+            return
         self._check_stale_developing_entry(developing)
         if not is_remote_git_link(developing):
             return
@@ -99,7 +105,11 @@ class DepsLockManager:
         if not self._apply_mode or self._lock is None:
             return
         self._verify_entry(platform, self._lock.platform, label="platform")
-        if self._lock.developing is not None and is_remote_git_link(developing):
+        if (
+            self._lock.developing is not None
+            and is_remote_git_link(developing)
+            and not self._config.policy.is_developer()
+        ):
             self._verify_entry(developing, self._lock.developing, label="developing")
         resolved_urls = {repo_url_for_link(project) for project in dependencies}
         for entry in self._lock.dependencies:

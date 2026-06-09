@@ -10,6 +10,7 @@ from dev_project.project_env.environment import CreateProjectEnvironment
 from dev_project.project_env.links import ProjectLinks
 from dev_project.project_env.services import PlatformSourcesService
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
+from dev_project.scenario_policy import ScenarioPolicy
 
 
 class ProjectLinksCheckoutTests(unittest.TestCase):
@@ -76,9 +77,10 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
             lock_manager=None,
         )
 
-    def test_checkout_dependencies_includes_pinned_developing(self):
+    def test_checkout_dependencies_includes_pinned_developing_in_ci_scenario(self):
         config = MagicMock()
         config.odoo_version = "17.0"
+        config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         config.odoo_platform_project = MagicMock()
         config.dependencies_projects = []
         developing = MagicMock()
@@ -101,6 +103,34 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
         self.assertEqual(links.checkout_project.call_count, 2)
         links.checkout_project.assert_any_call(
             developing,
+            lock_manager=lock_manager,
+        )
+
+    def test_checkout_dependencies_skips_pinned_developing_in_developer_scenario(self):
+        config = MagicMock()
+        config.odoo_version = "17.0"
+        config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        config.odoo_platform_project = MagicMock()
+        config.dependencies_projects = []
+        developing = MagicMock()
+        developing.link_type = constants.GITLINK_TYPE_SSH
+        developing.is_true = True
+        developing.branch_explicit = False
+        developing.commit_explicit = False
+        config.developing_project = developing
+        env = MagicMock()
+        env.config = config
+        links = ProjectLinks(env)
+        links.checkout_project = MagicMock()
+        lock_manager = MagicMock()
+        lock_manager.is_pinned.side_effect = (
+            lambda project: project is developing
+        )
+
+        links.checkout_dependencies(lock_manager=lock_manager)
+
+        links.checkout_project.assert_called_once_with(
+            config.odoo_platform_project,
             lock_manager=lock_manager,
         )
 
