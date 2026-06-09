@@ -222,10 +222,6 @@ class InteractiveLocaleWizardTests(unittest.TestCase):
         return_value="/tmp/projects",
     )
     @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_path_to_ssh_key",
-        return_value="",
-    )
-    @patch(
         "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odoo_port",
         return_value=8069,
     )
@@ -257,7 +253,6 @@ class InteractiveLocaleWizardTests(unittest.TestCase):
         _mock_debugger,
         _mock_postgres,
         _mock_odoo,
-        _mock_ssh,
         _mock_projects,
         _mock_backup,
         _mock_tty,
@@ -268,6 +263,7 @@ class InteractiveLocaleWizardTests(unittest.TestCase):
                 user_env = CreateUserEnvironment(pd_manager)
             content = Path(user_env.env_file).read_text(encoding="utf-8")
             self.assertIn("ODPM_LOCALE=ru_RU", content)
+            self.assertIn("PATH_TO_SSH_KEY=", content)
 
 
 if __name__ == "__main__":

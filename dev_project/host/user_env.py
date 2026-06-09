@@ -188,7 +188,7 @@ class CreateUserEnvironment:
         env_data = EnvData(
             BACKUP_DIR=self.get_from_user_backup_dir(),
             ODOO_PROJECTS_DIR=self.get_from_user_odoo_projects_src_dir(),
-            PATH_TO_SSH_KEY=self.get_from_user_path_to_ssh_key(),
+            PATH_TO_SSH_KEY="",
             ODOO_PORT=self.get_from_user_odoo_port(),
             POSTGRES_PORT=self.get_from_user_postgres_port(),
             DEBUGGER_PORT=self.get_from_user_debugger_port(),
@@ -231,18 +231,6 @@ class CreateUserEnvironment:
             )
         )
         return user_dir
-
-    def get_from_user_path_to_ssh_key(self) -> str:
-        ssh_path = prompt_input(_("Set path to your SSH key for GitHub. How to create it you can read here: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Press 'Enter' leave empty value, in this case system will try to use default system ssh key for GitHub:\n"))
-        ssh_path_name = ssh_path
-        if not ssh_path:
-            ssh_path_name = _('You did not selected any path to ssh key')
-        _logger.info(
-            _('You select this ssh path key: {SELECTED_SSH_KEY_PATH}\n').format(
-                SELECTED_SSH_KEY_PATH=ssh_path_name,
-            )
-        )
-        return ssh_path
 
     def get_from_user_odoo_port(self) -> int:
         default_port = constants.ODOO_DEFAULT_PORT

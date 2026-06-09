@@ -182,16 +182,6 @@ RU_MESSAGES: dict[str, str] = {
         "оставить значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать "
         "ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
     ),
-    "Set path to your SSH key for GitHub. How to create it you can read here: "
-    "https://docs.github.com/en/authentication/connecting-to-github-with-ssh/"
-    "generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Press 'Enter' leave empty "
-    "value, in this case system will try to use default system ssh key for GitHub:\n": (
-        "Укажите путь к SSH ключу для GitHub. Как его создать, вы можете прочитать здесь:"
-        " https://docs.github.com/en/authentication/connecting-to-github-with-ssh/"
-        "generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Вы можете оставить "
-        "значение пустым, нажав 'Enter'. Программа попытается использовать системный "
-        "ssh ключ для GitHub:\n"
-    ),
     "Set PostgreSQL database server port which it will listen. You can leave default "
     "{DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n": (
         "Укажите порт, который будет слушать сервер PostgreSQL. Можете оставить "
@@ -222,7 +212,6 @@ RU_MESSAGES: dict[str, str] = {
         "версию менеджера соотвествующую версии odpm в проекте. Или созданй новый "
         "проект"
     ),
-    "You did not selected any path to ssh key": "Вы не выбрали путь к ssh ключу",
     "You do not set where developing project is situated. You can set it with --init "
     "command. Example: '--init file:///home/user/projects/your_directory_for_project' or "
     "directly form git repo --init "
@@ -284,9 +273,6 @@ RU_MESSAGES: dict[str, str] = {
     "{SELECTED_DEBUGGER_PORT}\n": (
         "Вы выбрали следующий порт, который будет слушать Python Debugger: "
         "{SELECTED_DEBUGGER_PORT}\n"
-    ),
-    "You select this ssh path key: {SELECTED_SSH_KEY_PATH}\n": (
-        "Вы выбрали следующий путь для нахождения ssh ключа: {SELECTED_SSH_KEY_PATH}\n"
     ),
     "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or "
     "delete and clone its repo again: git clone https://github.com/odoo/odoo.git": (

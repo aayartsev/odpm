@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **Wizard `.env`: без вопроса про SSH-ключ** — при первом запуске wizard больше не спрашивает `PATH_TO_SSH_KEY`; в создаваемом `.env` ключ пустой, git использует обычный OpenSSH/ssh-agent. Параметр остаётся опциональным advanced override в `.env` / env. README EN+RU обновлены.
 - **`ODPM_LOCALE` в `.env` (A1c / L-track)** — опциональная локаль host CLI в project `.env` или `~/.odpm/.env`; пустой ключ — система/`LANG`. `resolve_effective_locale()` + ранний bootstrap из project `.env` до cli guards; интерактивный wizard спрашивает локаль; `tests/test_odpm_locale_env.py`. README EN+RU: таблица приоритетов. Не путать с `db_lang` (язык БД Odoo).
 - **Lazy import `CiImageBuildService` на host** — `project_env.services` подгружает `CiImageBuildService` (и `bake_venv`) только для `--build-image`; обычный `odpm` / `--init` больше не импортирует `bake_venv` при старте. Subprocess import test в `test_protocols_and_imports`.
 - **Дефолт `check_system: true`** — новые проекты после `odpm init` и manifest без явного ключа получают beginner-проверки git/docker и `ensure_base_image` при первом запуске (исправляет пропуск сборки base image при отсутствии ключа). CI minimal fixture по-прежнему с явным `"check_system": false`. README EN+RU описывают дефолт.

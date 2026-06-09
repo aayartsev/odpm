@@ -137,9 +137,6 @@ msgstr "Укажите язык сообщений odpm на host. Локаль 
 msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
 msgstr "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
 
-msgid "Set path to your SSH key for GitHub. How to create it you can read here: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Press 'Enter' leave empty value, in this case system will try to use default system ssh key for GitHub:\n"
-msgstr "Укажите путь к SSH ключу для GitHub. Как его создать, вы можете прочитать здесь: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Вы можете оставить значение пустым, нажав 'Enter'. Программа попытается использовать системный ssh ключ для GitHub:\n"
-
 msgid "Starting containers with Docker Compose..."
 msgstr "Запуск контейнеров через Docker Compose..."
 
@@ -160,9 +157,6 @@ msgstr "Версия odpm используемая в проекте - {PROJECT_
 
 msgid "When Odoo is ready, open http://localhost:{ODOO_PORT}"
 msgstr "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
-
-msgid "You did not selected any path to ssh key"
-msgstr "Вы не выбрали путь к ssh ключу"
 
 msgid "You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"
 msgstr "Вы не указали разрабатываемый проект. Вы можете указать это при использовании --init команды. Например: '--init file:///home/user/projects/your_directory_for_project' или напрямую из git репозитория --init https://github.com/aayartsev/odoo_demo_project.git'. Вы так же можете указать это в файле user_settings.json в ключе 'developing_project'"
@@ -193,9 +187,6 @@ msgstr "Вы выбрали следующий порт, который буде
 
 msgid "You select this port for which odoo will listen: {SELECTED_ODOO_PORT}\n"
 msgstr "Вы выбрали следующий порт, который будет слушать odoo: {SELECTED_ODOO_PORT}\n"
-
-msgid "You select this ssh path key: {SELECTED_SSH_KEY_PATH}\n"
-msgstr "Вы выбрали следующий путь для нахождения ssh ключа: {SELECTED_SSH_KEY_PATH}\n"
 
 msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 msgstr "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"

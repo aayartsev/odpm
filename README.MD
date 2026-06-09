@@ -301,7 +301,6 @@ Edit Docker build exclusions in `.odpm/dockerignore` (copied from odpm when the 
 The system will try to create a `.odpm` directory in the user's home directory of your operating system. Inside it the system will place the `.env` file. If you are launching the application for the first time, it will ask a question for each item described below in this file and offer default values. If you don't know what to answer, just press `Enter`. If you place the `.env` file in the project directory, the program will consider it a priority and try to take values from the file inside the project.
 - `BACKUP_DIR` - the directory where the archives are located. It is used to specify the name of the database for recovery using command-line parameters and then the system will search for an archive with the specified name in this directory, or when saving the database to the archive, it will appear in this directory, can be used for all projects
 - `ODOO_PROJECTS_DIR` - create a directory where clones of all used repositories will be created. You just need specify the path to this directory, then the system itself will create this directory and clone all the repositories into it and arrange them so that there are no conflicts
-- `PATH_TO_SSH_KEY` - if, for some reason, you are unable to add your repository key to the ssh agent, then you can specify the path to it here. At the moment, one key will be used for all repositories
 - `ODOO_PORT` - the port on which odoo will be launched by default at the address 127.0.0.1
 - `POSTGRES_PORT` - the port on which the PostgreSQL DBMS will be launched by default at the address 127.0.0.1
 - `DEBUGGER_PORT` - the port on which the debugger will run by default at the address 127.0.0.1
@@ -312,12 +311,22 @@ Example:
 ```conf
 BACKUP_DIR=/home/user/odoo_backups
 ODOO_PROJECTS_DIR=/home/user/odoo_projects
-PATH_TO_SSH_KEY=/home/user/.ssh/my_ssh_key
+PATH_TO_SSH_KEY=
 ODOO_PORT=8069
 POSTGRES_PORT=5432
 DEBUGGER_PORT=5678
 GEVENT_PORT=8072
 ODPM_SCENARIO=developer
+```
+
+The first-run wizard does **not** ask for an SSH key. Git uses your normal OpenSSH setup (`~/.ssh/config`, ssh-agent, default keys). Leave `PATH_TO_SSH_KEY` empty unless you need an override (see below).
+
+### Advanced: `PATH_TO_SSH_KEY` (optional)
+
+Set this only when git cannot use your default SSH stack (for example ssh-agent is unavailable in CI). odpm then runs git with `core.sshCommand=ssh -i <path>`. One key applies to all git remotes. Example:
+
+```conf
+PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 ```
 
 ## Non-interactive mode (CI, scripts)
@@ -326,9 +335,10 @@ When stdin is not attached to a terminal (no TTY), odpm **does not prompt** via 
 
 **`.env` file** — must already exist in the project directory or at `~/.odpm/.env`. For the first run you can instead set at least one of the environment variables below; odpm will create `~/.odpm/.env` and fill the rest from defaults:
 
-- `BACKUP_DIR`, `ODOO_PROJECTS_DIR`, `PATH_TO_SSH_KEY`
+- `BACKUP_DIR`, `ODOO_PROJECTS_DIR`
 - `ODOO_PORT`, `POSTGRES_PORT`, `DEBUGGER_PORT`, `GEVENT_PORT`
 - `ODPM_SCENARIO`
+- `PATH_TO_SSH_KEY` (optional advanced override)
 
 **Creating `odpm.json`** — on `--init` without an existing `odpm.json` in the developing project, pass `--odoo-version` or ensure `odoo_version` is present in the cloned repo's `odpm.json`.
 
