@@ -29,7 +29,12 @@ class CheckoutService:
         self._runner.run_git(["pull"], capture=False)
 
     def _git_checkout_ref(self, ref: str) -> None:
-        _logger.info(f"Checking out {ref} for {self.link.project_string}")
+        _logger.info(
+            _("Checking out {REF} for {PROJECT}").format(
+                REF=ref,
+                PROJECT=self.link.project_string,
+            )
+        )
         self._runner.run_git(["checkout", ref], capture=False)
 
     def _git_fetch_ref(self, ref: str) -> None:

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from ..logging import get_module_logger
 from ..subprocess_runner import CommandResult, run_checked
+from ..translations import _
 
 if TYPE_CHECKING:
     from .link import HandleOdooProjectLink
@@ -38,6 +39,9 @@ class GitRunner:
         workdir = self.link.project_path if cwd is None else cwd
         if not capture:
             _logger.info(
-                f"""running command: → git {" ".join(args)} for {self.link.project_string}"""
+                _("running command: → git {GIT_ARGS} for {PROJECT}").format(
+                    GIT_ARGS=" ".join(args),
+                    PROJECT=self.link.project_string,
+                )
             )
         return run_checked(cmd, cwd=workdir, capture=capture)

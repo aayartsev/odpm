@@ -29,6 +29,9 @@ msgstr "Не удалось получить список контейнеров
 msgid "Check `docker compose ps` and the English log output above for details."
 msgstr "Проверьте `docker compose ps` и английский лог выше для подробностей."
 
+msgid "Checking out {REF} for {PROJECT}"
+msgstr "Переключение на {REF} для {PROJECT}"
+
 msgid "Compose stack is healthy; reusing existing containers without --force-recreate"
 msgstr "Стек compose в порядке; перезапуск без --force-recreate"
 
@@ -202,3 +205,6 @@ msgstr "docker build завершился с кодом {EXIT_CODE}"
 
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up завершился с кодом {EXIT_CODE}"
+
+msgid "running command: → git {GIT_ARGS} for {PROJECT}"
+msgstr "Выполняется команда: → git {GIT_ARGS} для {PROJECT}"

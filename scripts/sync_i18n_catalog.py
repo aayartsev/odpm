@@ -140,6 +140,9 @@ RU_MESSAGES: dict[str, str] = {
     "Running with sudo/root privileges is not permitted.": (
         "Запуск скрипта от root/sudo запрещен"
     ),
+    "running command: → git {GIT_ARGS} for {PROJECT}": (
+        "Выполняется команда: → git {GIT_ARGS} для {PROJECT}"
+    ),
     "Set debugger port which it will listen. You can leave default "
     "{DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n": (
         "Укажите порт, который будет слушать сервер Отладчик. Можете оставить "
@@ -283,6 +286,9 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Check `docker compose ps` and the English log output above for details.": (
         "Проверьте `docker compose ps` и английский лог выше для подробностей."
+    ),
+    "Checking out {REF} for {PROJECT}": (
+        "Переключение на {REF} для {PROJECT}"
     ),
     "Compose stack is healthy; reusing existing containers without --force-recreate": (
         "Стек compose в порядке; перезапуск без --force-recreate"

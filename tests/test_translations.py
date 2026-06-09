@@ -39,6 +39,23 @@ class GettextCatalogTests(unittest.TestCase):
         msgid = "odpm gettext fallback probe string"
         self.assertEqual(_(msgid), msgid)
 
+    def test_ru_locale_translates_git_prepare_status_lines(self):
+        update_locale("ru_RU")
+        self.assertEqual(
+            _("Checking out {REF} for {PROJECT}").format(
+                REF="19.0",
+                PROJECT="git@github.com:acme/demo.git",
+            ),
+            "Переключение на 19.0 для git@github.com:acme/demo.git",
+        )
+        self.assertEqual(
+            _("running command: → git {GIT_ARGS} for {PROJECT}").format(
+                GIT_ARGS="checkout 19.0",
+                PROJECT="git@github.com:acme/demo.git",
+            ),
+            "Выполняется команда: → git checkout 19.0 для git@github.com:acme/demo.git",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
