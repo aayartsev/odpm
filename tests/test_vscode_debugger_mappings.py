@@ -79,9 +79,9 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
 
     def test_build_debugger_path_mappings_includes_project_symlink_aliases(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
-            real_developing = os.path.join(project_dir, "sources", "ts-groupe")
+            real_developing = os.path.join(project_dir, "sources", "acme-app")
             os.makedirs(real_developing)
-            link_path = os.path.join(project_dir, "ts-groupe")
+            link_path = os.path.join(project_dir, "acme-app")
             os.symlink(real_developing, link_path)
 
             env = MagicMock()
@@ -96,7 +96,7 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
             env.mapped_folders = [
                 MappedPath(
                     local=real_developing,
-                    docker="/home/odoo/extra-addons/ts-groupe",
+                    docker="/home/odoo/extra-addons/acme-app",
                 ),
             ]
 

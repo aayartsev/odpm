@@ -16,7 +16,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 if [[ -z "${ODPM_GOLDEN_PATH_PROJECT:-}" ]]; then
     echo "Set ODPM_GOLDEN_PATH_PROJECT to an initialized odpm project directory." >&2
-    echo "Example: ODPM_GOLDEN_PATH_PROJECT=/path/to/oodobno-2-17 $0" >&2
+    echo "Example: ODPM_GOLDEN_PATH_PROJECT=/path/to/demo-project $0" >&2
     exit 1
 fi
 

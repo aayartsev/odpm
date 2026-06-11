@@ -22,13 +22,15 @@ class DevModeReloadProbeTests(unittest.TestCase):
 services:
   odoo:
     volumes:
-      - /data/oodobno-2:/home/odoo/extra-addons/oodobno-2:Z
+      - /data/demo-project:/home/odoo/extra-addons/demo-project:Z
 """
 
     def test_repo_basename_from_developing_link(self):
         self.assertEqual(
-            repo_basename_from_developing_link("git@github.com:aayartsev/oodobno-2.git"),
-            "oodobno-2",
+            repo_basename_from_developing_link(
+                "git@github.com:example/demo-project.git"
+            ),
+            "demo-project",
         )
 
     def test_classify_autoreload_support(self):
@@ -46,14 +48,18 @@ services:
     def test_resolve_developing_project_local_path(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            local_repo = root / "repos" / "oodobno-2"
+            local_repo = root / "repos" / "demo-project"
             local_repo.mkdir(parents=True)
             (root / "user_settings.json").write_text(
-                json.dumps({"developing_project": "git@github.com:aayartsev/oodobno-2.git"}),
+                json.dumps(
+                    {
+                        "developing_project": "git@github.com:example/demo-project.git"
+                    }
+                ),
                 encoding="utf-8",
             )
             (root / "docker-compose.yml").write_text(
-                self.SAMPLE_COMPOSE.replace("/data/oodobno-2", str(local_repo)),
+                self.SAMPLE_COMPOSE.replace("/data/demo-project", str(local_repo)),
                 encoding="utf-8",
             )
             resolved = resolve_developing_project_local_path(root)
@@ -62,7 +68,7 @@ services:
     def test_resolve_probe_python_file_prefers_init_module(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            local_repo = root / "repos" / "oodobno-2"
+            local_repo = root / "repos" / "demo-project"
             module_dir = local_repo / "demo_module"
             module_dir.mkdir(parents=True)
             probe = module_dir / "__init__.py"
@@ -70,14 +76,14 @@ services:
             (root / "user_settings.json").write_text(
                 json.dumps(
                     {
-                        "developing_project": "git@github.com:aayartsev/oodobno-2.git",
+                        "developing_project": "git@github.com:example/demo-project.git",
                         "init_modules": "demo_module,other",
                     }
                 ),
                 encoding="utf-8",
             )
             (root / "docker-compose.yml").write_text(
-                self.SAMPLE_COMPOSE.replace("/data/oodobno-2", str(local_repo)),
+                self.SAMPLE_COMPOSE.replace("/data/demo-project", str(local_repo)),
                 encoding="utf-8",
             )
             self.assertEqual(resolve_probe_python_file(root), probe)
