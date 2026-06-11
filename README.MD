@@ -29,7 +29,7 @@ You need to download and install the following programs:
 
 ### Debian / Ubuntu (.deb) — recommended on Linux
 
-Download **`odpm_*_all.deb`** from [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases) (built by [`.github/workflows/release-packages.yml`](.github/workflows/release-packages.yml) on version tags), or build locally:
+Download **`odpm_*_all.deb`** from [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases) (built by [`.github/workflows/release-packages.yml`](.github/workflows/release-packages.yml) on version tags), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.0-beta` / `4.0-rc1` / `main`, or build locally:
 
 ```bash
 ./scripts/build_deb.sh
@@ -183,7 +183,7 @@ Rules live in `pyproject.toml` (`[tool.ruff]`). Legacy `.flake8` remains for ref
 |-----|----------|---------|------------|------------------|
 | **lint** | `ci.yml` | every push/PR | **required** (recommended) | `ruff check` on `dev_project/`, `tests/`, `odpm.py` |
 | **unit** | `ci.yml` | every push/PR | **required** (recommended) | `tests/` unittest discover; Python **3.10** and **3.12** |
-| **release-packages** | `release-packages.yml` | version tag `v*` or `workflow_dispatch` | optional | Build `.deb` + `.rpm`, lintian/rpmlint, install smoke; upload to GitHub Release |
+| **release-packages** | `release-packages.yml` | push to `4.0-beta` / `4.0-rc1` / `main`, tag `v*`, or `workflow_dispatch` | optional | Build `.deb` + `.rpm`, lintian/rpmlint, install smoke; **Actions artifact** `release-packages` (+ per-job artifacts); **GitHub Release** assets on tag `v*` only |
 | **compose-smoke** | `ci-docker.yml` | every push/PR | **required** (recommended) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing trees; `odpm --skip-start --no-git-update`, then `docker compose config`. Python **3.12** only. Base image cached between runs. |
 | **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ golden flag), or PR label **`run-docker`** | **opt-in** (not required on every PR) | Self-hosted runner (`self-hosted`, `Linux`, `X64`); variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT` (`tests.integration.test_golden_path`). **Skipped** when variable unset — not a false pass. |
 

@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **`release-packages`: артефакты на push в ветки** — workflow на push в `4.0-beta` / `4.0-rc1` / `main` (не только тег `v*` / `workflow_dispatch`); combined-артефакт Actions `release-packages` (`.deb`, `.rpm`, `SHA256SUMS`). GitHub Release — только по тегу. README EN+RU, матрица CI.
 - **`VscodeConfigurator`: symlink `pathMappings`** — в `launch.json` добавляются alias-пути для симлинков в корне проекта и в `dependencies/` (тот же `remoteRoot`, что у смонтированного real path). Исправляет серые breakpoints при открытии модулей через `project/...` в дереве odpm-проекта вместо `~/odoo_projects/...`. `tests/test_vscode_debugger_mappings.py`.
 - **Wizard `.env`: без вопроса про SSH-ключ** — при первом запуске wizard больше не спрашивает `PATH_TO_SSH_KEY`; в создаваемом `.env` ключ пустой, git использует обычный OpenSSH/ssh-agent. Параметр остаётся опциональным advanced override в `.env` / env. README EN+RU обновлены.
 - **`ODPM_LOCALE` в `.env` (A1c / L-track)** — опциональная локаль host CLI в project `.env` или `~/.odpm/.env`; пустой ключ — система/`LANG`. `resolve_effective_locale()` + ранний bootstrap из project `.env` до cli guards; интерактивный wizard спрашивает локаль; `tests/test_odpm_locale_env.py`. README EN+RU: таблица приоритетов. Не путать с `db_lang` (язык БД Odoo).

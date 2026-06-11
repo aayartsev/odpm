@@ -30,7 +30,7 @@
 
 ### Debian / Ubuntu (.deb) — рекомендуется на Linux
 
-Скачайте **`odpm_*_all.deb`** из [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases) (собирается workflow [`.github/workflows/release-packages.yml`](.github/workflows/release-packages.yml) по тегам версий) или соберите локально:
+Скачайте **`odpm_*_all.deb`** из [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases) (по тегам версий), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.0-beta` / `4.0-rc1` / `main`, или соберите локально — workflow [`.github/workflows/release-packages.yml`](.github/workflows/release-packages.yml):
 
 ```bash
 ./scripts/build_deb.sh
@@ -184,7 +184,7 @@ pre-commit run --all-files
 |-----|----------|---------|---------------|-----------------|
 | **lint** | `ci.yml` | каждый push/PR | **обязателен** (рекомендуется) | `ruff check` на `dev_project/`, `tests/`, `odpm.py` |
 | **unit** | `ci.yml` | каждый push/PR | **обязателен** (рекомендуется) | `tests/` unittest discover; Python **3.10** и **3.12** |
-| **release-packages** | `release-packages.yml` | тег `v*` или `workflow_dispatch` | опционально | Сборка `.deb` + `.rpm`, lintian/rpmlint, install smoke; публикация в GitHub Release |
+| **release-packages** | `release-packages.yml` | push в `4.0-beta` / `4.0-rc1` / `main`, тег `v*`, или `workflow_dispatch` | опционально | Сборка `.deb` + `.rpm`, lintian/rpmlint, install smoke; **артефакт** Actions `release-packages` (+ по job); **GitHub Release** только на теге `v*` |
 | **compose-smoke** | `ci-docker.yml` | каждый push/PR | **обязателен** (рекомендуется) | [`tests/fixtures/minimal_odpm_project/`](tests/fixtures/minimal_odpm_project/) — stub platform/developing; `odpm --skip-start --no-git-update`, `docker compose config`. Только Python **3.12**. Кэш base-образа между прогонами. |
 | **golden-path** | `ci-docker.yml` | nightly (`03:00` UTC), `workflow_dispatch` (+ флаг golden), или label PR **`run-docker`** | **opt-in** (не на каждый PR) | Self-hosted runner (`self-hosted`, `Linux`, `X64`); variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT` (`tests.integration.test_golden_path`). Без variable job **пропускается** — не ложный pass. |
 

@@ -1,7 +1,13 @@
+# Build .deb + .rpm; upload Actions artifacts on branch push / workflow_dispatch;
+# attach assets to GitHub Release on version tags (v*) only.
 name: Release packages
 
 on:
   push:
+    branches:
+      - 4.0-beta
+      - 4.0-rc1
+      - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -132,8 +138,8 @@ jobs:
             dist/odpm_*.rpm
             dist/SHA256SUMS
 
-      - name: Upload workflow artifacts
-        if: github.event_name == 'workflow_dispatch'
+      - name: Upload combined package artifacts
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v6
         with:
           name: release-packages
