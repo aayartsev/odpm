@@ -3,6 +3,7 @@ Section: python
 Priority: optional
 Maintainer: odpm maintainers <odpm-maintainers@noreply.github.com>
 Build-Depends: debhelper-compat (= 13),
+               build-essential:native,
                dh-python,
                pybuild-plugin-pyproject,
                python3-all,
