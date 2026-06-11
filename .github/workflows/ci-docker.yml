@@ -126,12 +126,14 @@ jobs:
           fi
           python3.12 --version
 
-      - name: Install odpm (editable)
-        run: python3.12 -m pip install -e .
+      - name: Install odpm (editable, venv)
+        run: |
+          python3.12 -m venv .ci-golden-venv
+          .ci-golden-venv/bin/pip install -e .
 
       - name: Run golden-path integration test
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
           ODPM_GOLDEN_PATH_TIMEOUT: "900"
-        run: python3.12 -m unittest tests.integration.test_golden_path -v
+        run: .ci-golden-venv/bin/python -m unittest tests.integration.test_golden_path -v
