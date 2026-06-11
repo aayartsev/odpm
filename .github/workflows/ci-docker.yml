@@ -8,10 +8,12 @@ on:
   push:
     branches:
       - 4.0-beta
+      - 4.0-rc1
       - main
   pull_request:
     branches:
       - 4.0-beta
+      - 4.0-rc1
       - main
   schedule:
     # Nightly full golden-path (requires ODPM_GOLDEN_PATH_ENABLED + secret).
