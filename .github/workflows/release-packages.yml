@@ -127,8 +127,8 @@ jobs:
 
       - name: Flatten package artifacts
         run: |
-          find dist -name 'odpm-*.rpm' -exec mv -t dist {} +
-          find dist -name 'odpm_*.deb' -exec mv -t dist {} +
+          find dist -mindepth 2 -name 'odpm-*.rpm' -exec mv -t dist {} +
+          find dist -mindepth 2 -name 'odpm_*.deb' -exec mv -t dist {} +
           find dist -mindepth 1 -type d -empty -delete
           ls -la dist/
           test -f dist/odpm_*.deb
