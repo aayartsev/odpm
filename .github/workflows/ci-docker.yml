@@ -117,17 +117,21 @@ jobs:
         env:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+      # Self-hosted OS (e.g. Linux Mint) may be absent from setup-python manifests.
+      - name: Verify Python 3.12 on runner
+        run: |
+          if ! command -v python3.12 >/dev/null 2>&1; then
+            echo "::error::python3.12 not found on self-hosted runner (install via deadsnakes PPA or equivalent)"
+            exit 1
+          fi
+          python3.12 --version
 
       - name: Install odpm (editable)
-        run: pip install -e .
+        run: python3.12 -m pip install -e .
 
       - name: Run golden-path integration test
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
           ODPM_GOLDEN_PATH_TIMEOUT: "900"
-        run: python -m unittest tests.integration.test_golden_path -v
+        run: python3.12 -m unittest tests.integration.test_golden_path -v
