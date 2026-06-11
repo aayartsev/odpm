@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **`VscodeConfigurator` symlink `pathMappings`** — `launch.json` now adds debugger aliases for project-root and `dependencies/` symlinks (same `remoteRoot` as the mounted real path). Fixes grey breakpoints when opening modules via `project/...` in the odpm tree instead of `~/odoo_projects/...`. `tests/test_vscode_debugger_mappings.py`.
 - **`.env` wizard: no SSH key prompt** — first-run wizard no longer asks for `PATH_TO_SSH_KEY`; created `.env` keeps it empty so git uses normal OpenSSH/ssh-agent. Key remains an optional advanced override in `.env` / process env. README EN+RU updated.
 - **`ODPM_LOCALE` in `.env` (A1c / L-track)** — optional host CLI locale in project `.env` or `~/.odpm/.env`; empty key follows system/`LANG`. `resolve_effective_locale()` + early bootstrap from project `.env` before cli guards; interactive `.env` wizard prompts for locale; `tests/test_odpm_locale_env.py`. README EN+RU document priority table. Not the same as `db_lang` (Odoo DB language).
 - **Lazy `CiImageBuildService` import on host** — `project_env.services` loads `CiImageBuildService` (and `bake_venv`) only for `--build-image`; normal `odpm` / `--init` no longer import `bake_venv` at startup. Subprocess import test in `test_protocols_and_imports`.
