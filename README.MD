@@ -1,6 +1,12 @@
 [![CI](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml)
 [![CI Docker](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml)
-[![ru](https://img.shields.io/badge/lang-ru-green.svg)](https://github.com/aayartsev/odoo_dev_project/blob/3.0/README-RU.MD)
+[![Release packages](https://github.com/aayartsev/odoo_dev_project/actions/workflows/release-packages.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/release-packages.yml)
+[![GitHub release](https://img.shields.io/github/v/release/aayartsev/odoo_dev_project?include_prereleases&label=release)](https://github.com/aayartsev/odoo_dev_project/releases)
+[![packages](https://img.shields.io/badge/packages-.deb%20%7C%20.rpm-2ea44f?style=flat-square)](https://github.com/aayartsev/odoo_dev_project/releases)
+
+[![ru](https://img.shields.io/badge/lang-ru-green.svg)](README-RU.MD)
+[![code AI-assisted](https://img.shields.io/badge/code-AI--assisted-6366F1?style=flat-square)](docs/contributing/README.md#ai-disclosure)
+[![AI-assisted docs](https://img.shields.io/badge/docs-AI--assisted-8B5CF6?style=flat-square)](docs/README.md)
 
 # Odoo Developers Project Manager
 

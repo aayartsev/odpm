@@ -11,3 +11,11 @@
 | [Переименование модулей 4.0→4.1](imports-migration.md) | Таблица импортов Python |
 
 Пользовательская документация по работе **с Odoo через odpm**: [оглавление](../README.md).
+
+<a id="ai-disclosure"></a>
+
+## AI disclosure
+
+Parts of the **odpm codebase** and the **Russian user documentation** in `docs/` are **AI-assisted** and reviewed by maintainers. Planned **English documentation** will be **AI-translated** from Russian (`AI-translated docs` badge on `README.MD`).
+
+Отдельные части **кода odpm** и **русской пользовательской документации** в `docs/` подготовлены **с помощью ИИ** (AI-assisted) и вычитаны авторами. Планируемая **английская документация** будет **переводом** с русской (плашка AI-translated docs в `README.MD`).
