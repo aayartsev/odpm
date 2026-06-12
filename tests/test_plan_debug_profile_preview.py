@@ -19,8 +19,9 @@ from dev_project.plan.diff import PlanFileDiff, build_plan_diffs
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.prepare.runtime import evaluate_runtime_debug_profile
 from dev_project.project_env.debug_profile import write_debug_profile
-from dev_project.project_env.types import MappedPath
 from dev_project.scenario_policy import ScenarioPolicy
+
+from tests.debug_profile_test_helpers import make_debugger_env_mock
 
 
 class PlanDebugProfilePreviewTests(unittest.TestCase):
@@ -33,14 +34,12 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
     def _project_env(self, project_dir: str) -> MagicMock:
         odoo_src = os.path.join(project_dir, "sources", "odoo")
         os.makedirs(odoo_src, exist_ok=True)
-        env = MagicMock()
-        config = MagicMock()
-        config.project_dir = project_dir
-        env.config = config
-        env.user_env.backups = os.path.join(project_dir, "backups")
-        env.user_env.debugger_port = 5678
-        env.mapped_folders = [MappedPath(local=odoo_src, docker="/home/odoo/odoo")]
-        return env
+        from dev_project.project_env.types import MappedPath
+
+        return make_debugger_env_mock(
+            project_dir=project_dir,
+            mapped_folders=[MappedPath(local=odoo_src, docker="/home/odoo/odoo")],
+        )
 
     def test_preview_debug_profile_text_returns_schema_v1(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
@@ -94,6 +93,18 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
             self.assertEqual(step.id, "ide.debug_profile")
             self.assertEqual(step.outcome, "run")
             self.assertTrue(step.should_execute())
+
+    def test_diff_debug_profile_returns_unified_diff_when_file_missing(self) -> None:
+        from dev_project.plan.diff import diff_debug_profile
+
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = self._developer_config(project_dir)
+            env = self._project_env(project_dir)
+            diff = diff_debug_profile(config, env)
+            self.assertIsNotNone(diff)
+            assert diff is not None
+            self.assertEqual(diff.path, constants.ODPM_DEBUG_PROFILE_REL_PATH)
+            self.assertIn("path_mappings", diff.unified_diff or "")
 
     def test_build_plan_diffs_includes_debug_profile(self) -> None:
         plan = OdpmPlan(

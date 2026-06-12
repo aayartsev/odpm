@@ -24,6 +24,8 @@ from dev_project.prepare import (
 from dev_project.project_materializer import ProjectMaterializer
 from dev_project.scenario_policy import ScenarioPolicy
 
+from tests.debug_profile_test_helpers import make_debugger_env_mock
+
 
 class PlanPredicateTests(unittest.TestCase):
     def test_skip_git_update_reads_no_git_update_flag(self):
@@ -93,6 +95,31 @@ class OdpmPlannerTests(unittest.TestCase):
 
     def _step(self, plan, step_id: str) -> PlanStep:
         return next(step for step in plan.steps if step.id == step_id)
+
+    def test_plan_includes_debug_profile_for_developer_with_project_env(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self._config(project_dir=tmp)
+            project_env = make_debugger_env_mock(project_dir=tmp, mapped_folders=[])
+            plan = OdpmPlanner.build(
+                config,
+                OdpmCliArgs(skip_start=True),
+                project_env,
+            )
+            step = self._step(plan, "ide.debug_profile")
+            self.assertEqual(step.outcome, "run")
+            self.assertIn("changed", step.reason)
+
+    def test_plan_omits_debug_profile_for_ci(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self._config(project_dir=tmp)
+            config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+            project_env = make_debugger_env_mock(project_dir=tmp, mapped_folders=[])
+            plan = OdpmPlanner.build(
+                config,
+                OdpmCliArgs(skip_start=True),
+                project_env,
+            )
+            self.assertFalse(any(step.id == "ide.debug_profile" for step in plan.steps))
 
     def test_plan_materialize_git_by_default(self):
         with tempfile.TemporaryDirectory() as tmp:

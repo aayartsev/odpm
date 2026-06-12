@@ -1,4 +1,4 @@
-"""Tests for VS Code debugger pathMappings generation."""
+"""Tests for VS Code launch.json generation on top of DebuggerProfile."""
 
 from __future__ import annotations
 
@@ -6,61 +6,45 @@ import json
 import os
 import tempfile
 import unittest
-from unittest.mock import MagicMock
 
 from dev_project import constants
+from dev_project.project_env.debug_profile import DebuggerProfileBuilder
 from dev_project.project_env.services import VscodeConfigurator
 from dev_project.project_env.types import MappedPath, SymlinksSources
 
+from tests.debug_profile_test_helpers import make_debugger_env_mock
+
 
 class VscodeDebuggerMappingsTests(unittest.TestCase):
-    def _configurator(self, *, mapped_folders: list[MappedPath]) -> VscodeConfigurator:
-        env = MagicMock()
-        config = MagicMock()
-        config.project_dir = "/proj"
-        config.debugger_path_mappings = []
-        env.config = config
-        env.user_env.backups = "/proj/backups"
-        env.mapped_folders = mapped_folders
-        return VscodeConfigurator(env)
-
-    def test_build_debugger_path_mappings_uses_absolute_real_paths(self) -> None:
-        configurator = self._configurator(
+    def test_build_debugger_path_mappings_matches_debugger_profile(self) -> None:
+        env = make_debugger_env_mock(
+            project_dir="/proj",
             mapped_folders=[
                 MappedPath(local="/proj/sources/odoo", docker="/home/odoo/odoo"),
                 MappedPath(local="/proj/backups", docker="/home/odoo/backups"),
-                MappedPath(
-                    local="/real/path/developing",
-                    docker="/home/odoo/extra-addons/app",
-                ),
-            ]
+            ],
         )
 
-        mappings = configurator.build_debugger_path_mappings()
+        profile = DebuggerProfileBuilder(env).build()
+        mappings = VscodeConfigurator(env).build_debugger_path_mappings()
 
-        local_roots = [record["localRoot"] for record in mappings]
-        self.assertIn(os.path.realpath("/proj/sources/odoo"), local_roots)
-        self.assertIn(os.path.realpath("/real/path/developing"), local_roots)
-        self.assertNotIn(os.path.realpath("/proj/backups"), local_roots)
+        self.assertEqual(mappings, profile.to_vscode_path_mappings())
 
-    def test_update_vscode_debugger_launcher_writes_real_local_roots(self) -> None:
+    def test_update_vscode_debugger_launcher_writes_profile_connection(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
             odoo_src = os.path.join(project_dir, "sources", "odoo")
             os.makedirs(odoo_src)
             backups = os.path.join(project_dir, "backups")
             os.makedirs(backups)
 
-            env = MagicMock()
-            config = MagicMock()
-            config.project_dir = project_dir
-            config.debugger_path_mappings = []
-            env.config = config
-            env.user_env.backups = backups
-            env.user_env.debugger_port = 5678
-            env.mapped_folders = [
-                MappedPath(local=odoo_src, docker="/home/odoo/odoo"),
-                MappedPath(local=backups, docker="/home/odoo/backups"),
-            ]
+            env = make_debugger_env_mock(
+                project_dir=project_dir,
+                mapped_folders=[
+                    MappedPath(local=odoo_src, docker="/home/odoo/odoo"),
+                    MappedPath(local=backups, docker="/home/odoo/backups"),
+                ],
+            )
+            profile = DebuggerProfileBuilder(env).build()
 
             VscodeConfigurator(env).update_vscode_debugger_launcher()
 
@@ -72,65 +56,12 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
                 for unit in payload["configurations"]
                 if unit["name"] == constants.DEBUGGER_UNIT_NAME
             )
+            self.assertEqual(odoo_unit["port"], profile.debugger.port)
+            self.assertEqual(odoo_unit["host"], profile.debugger.host)
             local_roots = [
                 mapping["localRoot"] for mapping in odoo_unit["pathMappings"]
             ]
             self.assertEqual(local_roots, [os.path.realpath(odoo_src)])
-
-    def test_build_debugger_path_mappings_includes_project_symlink_aliases(self) -> None:
-        with tempfile.TemporaryDirectory() as project_dir:
-            real_developing = os.path.join(project_dir, "sources", "acme-app")
-            os.makedirs(real_developing)
-            link_path = os.path.join(project_dir, "acme-app")
-            os.symlink(real_developing, link_path)
-
-            env = MagicMock()
-            config = MagicMock()
-            config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.symlinks_sources = [
-                SymlinksSources(source_path=real_developing, link_path=link_path)
-            ]
-            env.config = config
-            env.user_env.backups = os.path.join(project_dir, "backups")
-            env.mapped_folders = [
-                MappedPath(
-                    local=real_developing,
-                    docker="/home/odoo/extra-addons/acme-app",
-                ),
-            ]
-
-            mappings = VscodeConfigurator(env).build_debugger_path_mappings()
-            local_roots = [record["localRoot"] for record in mappings]
-
-            self.assertIn(os.path.realpath(real_developing), local_roots)
-            self.assertIn(os.path.abspath(link_path), local_roots)
-
-    def test_build_debugger_path_mappings_discovers_existing_symlinks(self) -> None:
-        with tempfile.TemporaryDirectory() as project_dir:
-            real_developing = os.path.join(project_dir, "sources", "app")
-            os.makedirs(real_developing)
-            link_path = os.path.join(project_dir, "app")
-            os.symlink(real_developing, link_path)
-
-            env = MagicMock()
-            config = MagicMock()
-            config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.symlinks_sources = []
-            env.config = config
-            env.user_env.backups = os.path.join(project_dir, "backups")
-            env.mapped_folders = [
-                MappedPath(
-                    local=real_developing,
-                    docker="/home/odoo/extra-addons/app",
-                ),
-            ]
-
-            mappings = VscodeConfigurator(env).build_debugger_path_mappings()
-            local_roots = [record["localRoot"] for record in mappings]
-
-            self.assertIn(os.path.abspath(link_path), local_roots)
 
     def test_update_vscode_debugger_launcher_writes_symlink_local_roots(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
@@ -139,23 +70,18 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
             link_path = os.path.join(project_dir, "app")
             os.symlink(real_developing, link_path)
 
-            env = MagicMock()
-            config = MagicMock()
-            config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.debugger_path_mappings = []
-            config.symlinks_sources = [
-                SymlinksSources(source_path=real_developing, link_path=link_path)
-            ]
-            env.config = config
-            env.user_env.backups = os.path.join(project_dir, "backups")
-            env.user_env.debugger_port = 5678
-            env.mapped_folders = [
-                MappedPath(
-                    local=real_developing,
-                    docker="/home/odoo/extra-addons/app",
-                ),
-            ]
+            env = make_debugger_env_mock(
+                project_dir=project_dir,
+                symlinks_sources=[
+                    SymlinksSources(source_path=real_developing, link_path=link_path)
+                ],
+                mapped_folders=[
+                    MappedPath(
+                        local=real_developing,
+                        docker="/home/odoo/extra-addons/app",
+                    ),
+                ],
+            )
 
             VscodeConfigurator(env).update_vscode_debugger_launcher()
 

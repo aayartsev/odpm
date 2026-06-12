@@ -18,6 +18,8 @@ from dev_project.project_env.debug_profile import (
 )
 from dev_project.project_env.types import MappedPath, SymlinksSources
 
+from tests.debug_profile_test_helpers import make_debugger_env_mock
+
 
 class DebuggerProfileBuilderTests(unittest.TestCase):
     def _builder(self, *, mapped_folders: list[MappedPath]) -> DebuggerProfileBuilder:
@@ -45,9 +47,9 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
         mappings = builder.build_path_mappings()
         local_roots = [mapping.local for mapping in mappings]
 
-        self.assertIn(os.path.abspath("/proj/sources/odoo"), local_roots)
-        self.assertIn(os.path.abspath("/real/path/developing"), local_roots)
-        self.assertNotIn(os.path.abspath("/proj/backups"), local_roots)
+        self.assertIn(os.path.realpath("/proj/sources/odoo"), local_roots)
+        self.assertIn(os.path.realpath("/real/path/developing"), local_roots)
+        self.assertNotIn(os.path.realpath("/proj/backups"), local_roots)
 
     def test_build_path_mappings_includes_project_symlink_aliases(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
@@ -56,22 +58,18 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
             link_path = os.path.join(project_dir, "acme-app")
             os.symlink(real_developing, link_path)
 
-            env = MagicMock()
-            config = MagicMock()
-            config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.symlinks_sources = [
-                SymlinksSources(source_path=real_developing, link_path=link_path)
-            ]
-            env.config = config
-            env.user_env.backups = os.path.join(project_dir, "backups")
-            env.user_env.debugger_port = 5678
-            env.mapped_folders = [
-                MappedPath(
-                    local=real_developing,
-                    docker="/home/odoo/extra-addons/acme-app",
-                ),
-            ]
+            env = make_debugger_env_mock(
+                project_dir=project_dir,
+                symlinks_sources=[
+                    SymlinksSources(source_path=real_developing, link_path=link_path)
+                ],
+                mapped_folders=[
+                    MappedPath(
+                        local=real_developing,
+                        docker="/home/odoo/extra-addons/acme-app",
+                    ),
+                ],
+            )
 
             mappings = DebuggerProfileBuilder(env).build_path_mappings()
             local_roots = [mapping.local for mapping in mappings]
@@ -86,20 +84,15 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
             link_path = os.path.join(project_dir, "app")
             os.symlink(real_developing, link_path)
 
-            env = MagicMock()
-            config = MagicMock()
-            config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.symlinks_sources = []
-            env.config = config
-            env.user_env.backups = os.path.join(project_dir, "backups")
-            env.user_env.debugger_port = 5678
-            env.mapped_folders = [
-                MappedPath(
-                    local=real_developing,
-                    docker="/home/odoo/extra-addons/app",
-                ),
-            ]
+            env = make_debugger_env_mock(
+                project_dir=project_dir,
+                mapped_folders=[
+                    MappedPath(
+                        local=real_developing,
+                        docker="/home/odoo/extra-addons/app",
+                    ),
+                ],
+            )
 
             mappings = DebuggerProfileBuilder(env).build_path_mappings()
             local_roots = [mapping.local for mapping in mappings]
@@ -144,20 +137,22 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
             ],
         )
 
+    def test_from_dict_rejects_unsupported_schema_version(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            DebuggerProfile.from_dict({"schema_version": 99, "debugger": {}})
+        self.assertIn("schema_version", str(ctx.exception))
+
     def test_write_debug_profile_writes_runtime_json(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
             odoo_src = os.path.join(project_dir, "sources", "odoo")
             os.makedirs(odoo_src)
 
-            env = MagicMock()
-            config = MagicMock()
-            config.project_dir = project_dir
-            env.config = config
-            env.user_env.backups = os.path.join(project_dir, "backups")
-            env.user_env.debugger_port = 5678
-            env.mapped_folders = [
-                MappedPath(local=odoo_src, docker="/home/odoo/odoo"),
-            ]
+            env = make_debugger_env_mock(
+                project_dir=project_dir,
+                mapped_folders=[
+                    MappedPath(local=odoo_src, docker="/home/odoo/odoo"),
+                ],
+            )
 
             written_path = write_debug_profile(env)
 
