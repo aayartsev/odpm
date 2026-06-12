@@ -3,7 +3,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
+import hashlib
+import json
 
+from .. import constants
 from ..container_config import ContainerConfig
 
 if TYPE_CHECKING:
@@ -47,18 +50,18 @@ def write_runtime_config(config: Config) -> str:
     return write_runtime_config_to_path(config, path)
 
 
-def compute_venv_lock_hash(config: Config) -> str:
-    import hashlib
-    import json
+def compute_extras_stamp(requirements_txt: list[str]) -> str:
+    cleaned = sorted(req.strip() for req in requirements_txt if req and req.strip())
+    canonical = json.dumps(cleaned, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
-    from .. import constants
+
+def compute_venv_lock_hash(config: Config) -> str:
 
     arch = config.arch if config.arch != "auto" else constants.ARCH
     payload: dict[str, str] = {}
     for key in constants.VENV_LOCK_KEYS:
-        if key == "requirements_txt":
-            payload[key] = ",".join(sorted(config.requirements_txt))
-        elif key == "venv_mode":
+        if key == "venv_mode":
             payload[key] = config.policy.venv_mode
         elif key == "arch":
             payload[key] = str(arch)

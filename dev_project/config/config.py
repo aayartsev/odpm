@@ -16,7 +16,7 @@ from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
 from .bootstrap import bootstrap_config, normalize_project_requirements
 from .nested_compatibility import collect_nested_compatibility_issues
-from .payload import compute_venv_lock_hash, config_to_json
+from .payload import compute_extras_stamp, compute_venv_lock_hash, config_to_json
 from .runtime_facade import ConfigRuntimeFacadeMixin
 from .state import (
     DOCKER_SLICE_FIELDS,
@@ -143,6 +143,9 @@ class Config(ConfigRuntimeFacadeMixin):
 
     def compute_venv_lock_hash(self) -> str:
         return compute_venv_lock_hash(self)
+
+    def compute_extras_stamp(self) -> str:
+        return compute_extras_stamp(self.requirements_txt)
 
     def config_to_json(self) -> bytes:
         return config_to_json(self)

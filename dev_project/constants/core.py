@@ -245,6 +245,8 @@ VENV_LOCK_KEYS = (
     "postgres_version",
     "odoo_version",
     "arch",
-    "requirements_txt",
     "venv_mode",
 )
+
+VENV_EXTRAS_LOCK_BASENAME = ".extras.lock"
+VENV_EXTRAS_REQUIREMENTS_BASENAME = ".extras-requirements.txt"
