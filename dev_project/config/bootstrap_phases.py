@@ -26,23 +26,25 @@ def load_user_settings(config: Config) -> None:
     ctx.user_settings.get_user_settings_json()
     ctx.user_settings.get_user_settings()
     config._user = user_settings_from_raw(
-        config._raw_user_settings,
+        config.bootstrap.raw_user_settings,
         beautify_module_list=beautify_module_list,
     )
-    config._user_loaded = True
+    config.bootstrap.developing_project = config._user.developing_project
+    config.bootstrap.user_loaded = True
 
 
 def bind_developing_link(config: Config) -> None:
-    if not config.developing_project:
+    bootstrap = config.bootstrap
+    if not bootstrap.developing_project:
         message = _("You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'")
         _logger.error(message)
         raise ConfigError(message)
-    config.developing_project = config.handle_git_link(
-        config.developing_project,
+    bootstrap.developing_project = config.handle_git_link(
+        bootstrap.developing_project,
         system_type="standart",
         materialize=False,
     )
-    config.developing_project_dir_path = config.developing_project.project_path
+    bootstrap.developing_project_dir_path = bootstrap.developing_project.project_path
     config._developing_materializer.materialize_for_odpm_json(config)
 
 
@@ -60,12 +62,12 @@ def load_project_settings(config: Config) -> None:
     ):
         config.pd_manager.rebuild_docker_compose_template()
 
-    ctx.deprecated.check_file_for_deprecated_words(config.repo_odpm_json)
-    if not os.path.exists(config.repo_odpm_json):
+    ctx.deprecated.check_file_for_deprecated_words(config.bootstrap.repo_odpm_json)
+    if not os.path.exists(config.bootstrap.repo_odpm_json):
         ctx.rewrite_odpm_json()
 
     config._project = project_settings_from_raw(
-        config._raw_odpm_json,
+        config.bootstrap.raw_odpm_json,
         config.arguments,
         odoo_build_date=ctx.build_date.get_effective_odoo_build_date(),
     )
@@ -76,16 +78,17 @@ def load_project_settings(config: Config) -> None:
         )
         _logger.warning(message)
         raise ConfigError(message)
-    config._project_loaded = True
+    config.bootstrap.project_loaded = True
 
 
 def bind_platform_link(config: Config) -> None:
-    config.odoo_platform_project = config.handle_git_link(
+    bootstrap = config.bootstrap
+    bootstrap.odoo_platform_project = config.handle_git_link(
         config.odoo_git_link,
         system_type="platform",
         materialize=False,
     )
-    config.odoo_src_dir = config.odoo_platform_project.get_project_path()
+    bootstrap.odoo_src_dir = bootstrap.odoo_platform_project.get_project_path()
 
 
 def normalize_project_requirements(

@@ -20,7 +20,12 @@ from .bootstrap_phases import (
     normalize_project_requirements,
 )
 from .layout import apply_policy_and_layout
-from .state import DockerLayoutState, ProjectSettingsState, UserSettingsState
+from .state import (
+    BootstrapState,
+    DockerLayoutState,
+    ProjectSettingsState,
+    UserSettingsState,
+)
 
 if TYPE_CHECKING:
     from .config import Config
@@ -62,11 +67,7 @@ def init_context(
     config.pd_manager = pd_manager
     config.program_dir = program_dir
     config.arguments = arguments
-    config._raw_user_settings = {}
-    config._raw_odpm_json = {}
-    config._user_loaded = False
-    config._project_loaded = False
-    config.repo_odpm_json = ""
+    config._bootstrap = BootstrapState()
     config.dockerfile_path = ""
     config.config_json_loaded = False
     config._runtime = HostRuntimeState()

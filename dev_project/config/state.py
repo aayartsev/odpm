@@ -106,6 +106,66 @@ def bind_slice_properties(
         setattr(cls, field_name, _slice_property(slice_attr, field_name))
 
 
+def _ensure_bootstrap_state(self: Any) -> BootstrapState:
+    state = getattr(self, "_bootstrap", None)
+    if state is None:
+        state = BootstrapState()
+        self._bootstrap = state
+    return state
+
+
+def _bootstrap_property(field_name: str) -> property:
+    def getter(self) -> Any:
+        return getattr(_ensure_bootstrap_state(self), field_name)
+
+    def setter(self, value: Any) -> None:
+        setattr(_ensure_bootstrap_state(self), field_name, value)
+
+    return property(getter, setter)
+
+
+def bind_bootstrap_properties(cls: type) -> None:
+    for field_name in BOOTSTRAP_FIELDS:
+        setattr(cls, field_name, _bootstrap_property(field_name))
+    for public_name, field_name in BOOTSTRAP_PRIVATE_ALIASES.items():
+        setattr(cls, public_name, _bootstrap_property(field_name))
+
+
+@dataclass
+class BootstrapState:
+    """Bootstrap-only state: git links, manifest paths, and load flags."""
+
+    developing_project: Union[str, HandleOdooProjectLink] = (
+        constants.DEFAULT_DEVELOPING_PROJECT
+    )
+    developing_project_dir_path: str = ""
+    odoo_platform_project: HandleOdooProjectLink | None = None
+    odoo_src_dir: str = ""
+    repo_odpm_json: str = ""
+    project_odpm_json: str = ""
+    raw_user_settings: dict = field(default_factory=dict)
+    raw_odpm_json: dict = field(default_factory=dict)
+    user_loaded: bool = False
+    project_loaded: bool = False
+
+
+BOOTSTRAP_FIELDS = (
+    "developing_project",
+    "developing_project_dir_path",
+    "odoo_platform_project",
+    "odoo_src_dir",
+    "repo_odpm_json",
+    "project_odpm_json",
+)
+
+BOOTSTRAP_PRIVATE_ALIASES = {
+    "_raw_user_settings": "raw_user_settings",
+    "_raw_odpm_json": "raw_odpm_json",
+    "_user_loaded": "user_loaded",
+    "_project_loaded": "project_loaded",
+}
+
+
 @dataclass
 class UserSettingsState:
     init_modules: str = constants.DEFAULT_LIST_OF_MODULES
@@ -176,7 +236,11 @@ class DockerLayoutState:
     docker_dirs_with_addons: list = field(default_factory=list)
 
 
-USER_SLICE_FIELDS = tuple(UserSettingsState.__dataclass_fields__)
+USER_SLICE_FIELDS = tuple(
+    name
+    for name in UserSettingsState.__dataclass_fields__
+    if name != "developing_project"
+)
 PROJECT_SLICE_FIELDS = tuple(ProjectSettingsState.__dataclass_fields__)
 DOCKER_SLICE_FIELDS = tuple(
     name

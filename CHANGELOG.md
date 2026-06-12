@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **`BootstrapState` (A4-2 C-7)** — bootstrap-only fields (`developing_project` link, platform link, manifest paths, raw JSON, load flags) moved to `BootstrapState` on `config.bootstrap`; `Config` keeps property shims for backward compatibility. `developing_project` removed from user slice facade (string remains on `UserSettingsState`). `bootstrap_phases` use `config.bootstrap` internally. Tests: `ConfigBootstrapStateTests` in `test_host_config`.
 - **`--init --branch` syncs developing repo before reading `odpm.json`** — when the developing clone already contains `odpm.json` (e.g. default branch), `materialize_for_odpm_json` now runs checkout + project symlinks if `--branch` is set instead of skipping git update. Fixes version mismatch and missing developing symlink on re-init. Tests: `test_developing_repo_materializer.py`.
 - **`ScenarioPolicy.skip_ide_config`** — renamed from `skip_vscode`; gates VS Code and PyCharm configurators (CI skips all IDE files). `skip_vscode` remains a read-only alias on the policy object.
 - **`release-packages` branch artifacts** — workflow runs on push to `4.0-beta` / `4.0-rc1` / `main` (not only tag `v*` / `workflow_dispatch`); uploads combined Actions artifact `release-packages` (`.deb`, `.rpm`, `SHA256SUMS`). GitHub Release assets remain tag-only. README EN+RU CI matrix.

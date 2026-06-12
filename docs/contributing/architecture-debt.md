@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **771 OK**, 7 skipped.
+**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **773+ OK**, 7 skipped.
 
 ---
 
@@ -36,6 +36,19 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
+## A4-2 Config hub slimming (C-7…) — IN PROGRESS
+
+| Slice | Status | Outcome |
+|-------|--------|---------|
+| C-7 | **DONE** | `BootstrapState` + property shims; `config.bootstrap`; `bootstrap_phases` internal |
+| C-8 | backlog | `AddonLayoutState` (`catalogs_of_modules_data`, …) |
+| C-9 | backlog | prepare steps → `host_ctx` |
+| C-10 | backlog | `ConfigPaths` writes to `docker_layout` |
+
+**C-7 KPI:** bootstrap-only fields no longer scattered on `Config.__dict__`; callers unchanged via shims; `developing_project` link on `bootstrap`, URL string on `UserSettingsState`.
+
+---
+
 ## A11 Env (E-1…E-6) — DONE
 
 | Slice | Outcome | Modules |
@@ -55,7 +68,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 | Acceptable; slices via state objects |
+| `Config` facade still central | P2 | C-7 started; C-8…C-10 remain |
 | `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.0" | P2 | Fallback for legacy `odpm.json` |
 | Plugin/hook API | backlog | `goals_ru.md` vision only |
 | Env variable refs in `odpm.json` | backlog | `todo.md` |

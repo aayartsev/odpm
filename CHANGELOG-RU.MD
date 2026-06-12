@@ -19,6 +19,7 @@
 
 ### Изменено
 
+- **`BootstrapState` (A4-2 C-7)** — bootstrap-поля (`developing_project` link, platform link, пути manifest, raw JSON, флаги загрузки) вынесены в `BootstrapState` (`config.bootstrap`); на `Config` сохранены property-shim для обратной совместимости. `developing_project` убран из user slice facade (строка остаётся в `UserSettingsState`). `bootstrap_phases` используют `config.bootstrap` внутри. Тесты: `ConfigBootstrapStateTests` в `test_host_config`.
 - **`--init --branch` синхронизирует developing до чтения `odpm.json`** — если в клоне уже есть `odpm.json` (например на default branch), при указании `--branch` выполняются checkout и симлинки на проект, а не пропуск git. Исправляет ошибку версии и отсутствие symlink при повторном init. Тесты: `test_developing_repo_materializer.py`.
 - **`ScenarioPolicy.skip_ide_config`** — переименовано с `skip_vscode`; отключает генерацию конфигов VS Code и PyCharm (в `ci` IDE-файлы не создаются). Свойство `skip_vscode` оставлено как read-only alias.
 - **`release-packages`: артефакты на push в ветки** — workflow на push в `4.0-beta` / `4.0-rc1` / `main` (не только тег `v*` / `workflow_dispatch`); combined-артефакт Actions `release-packages` (`.deb`, `.rpm`, `SHA256SUMS`). GitHub Release — только по тегу. README EN+RU, матрица CI.

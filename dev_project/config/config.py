@@ -22,9 +22,12 @@ from .state import (
     DOCKER_SLICE_FIELDS,
     PROJECT_SLICE_FIELDS,
     USER_SLICE_FIELDS,
+    BootstrapState,
     DockerLayoutState,
     ProjectSettingsState,
     UserSettingsState,
+    _ensure_bootstrap_state,
+    bind_bootstrap_properties,
     bind_slice_properties,
 )
 from .types import SubProject
@@ -70,6 +73,10 @@ class Config(ConfigRuntimeFacadeMixin):
     @property
     def docker_layout(self) -> DockerLayoutState:
         return self._docker
+
+    @property
+    def bootstrap(self) -> BootstrapState:
+        return _ensure_bootstrap_state(self)
 
     @property
     def host_context(self) -> HostProjectContext:
@@ -172,3 +179,4 @@ class Config(ConfigRuntimeFacadeMixin):
 bind_slice_properties(Config, "_user", USER_SLICE_FIELDS)
 bind_slice_properties(Config, "_project", PROJECT_SLICE_FIELDS)
 bind_slice_properties(Config, "_docker", DOCKER_SLICE_FIELDS)
+bind_bootstrap_properties(Config)

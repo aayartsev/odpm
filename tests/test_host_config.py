@@ -12,6 +12,7 @@ from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.bootstrap import (
     bind_developing_link,
     bind_platform_link,
+    init_context,
     load_project_settings,
     load_user_settings,
 )
@@ -23,7 +24,12 @@ from dev_project.config.transforms import OdooBuildDateResolver, beautify_module
 from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.config.odoo_conf import OdooConfBuilder
 from dev_project.config.paths import ConfigPaths
-from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
+from dev_project.config.state import (
+    BootstrapState,
+    DockerLayoutState,
+    ProjectSettingsState,
+    UserSettingsState,
+)
 from dev_project.errors import ConfigError, PipelineError
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.dependency_resolver import NestedOdpmFragment
@@ -499,6 +505,72 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
         self.assertIsInstance(ctx.git_repos, GitRepoCoordinator)
         self.assertIs(ctx.git_repos._paths, ctx.paths)
         self.assertIs(ctx.git_repos._bind_platform_link, bind_platform_link)
+
+
+class ConfigBootstrapStateTests(unittest.TestCase):
+    def test_init_context_creates_bootstrap_state(self):
+        config = Config.__new__(Config)
+        init_context(
+            config,
+            MagicMock(project_path="/tmp/project"),
+            OdpmCliArgs(
+                odoo_version=None,
+                python_version=None,
+                distro_name=None,
+                distro_version=None,
+                postgres_version=None,
+                requirements_txt="",
+            ),
+            "/tmp/odpm",
+            MagicMock(odpm_scenario=constants.DEVELOPER_SCENARIO),
+        )
+
+        self.assertIsInstance(config.bootstrap, BootstrapState)
+        self.assertEqual(config.bootstrap.raw_user_settings, {})
+        self.assertEqual(config.bootstrap.raw_odpm_json, {})
+        self.assertFalse(config.bootstrap.user_loaded)
+        self.assertFalse(config.bootstrap.project_loaded)
+        self.assertEqual(config.bootstrap.repo_odpm_json, "")
+
+    def test_property_shims_delegate_to_bootstrap(self):
+        config = Config.__new__(Config)
+        config._bootstrap = BootstrapState()
+
+        config._raw_odpm_json = {"odoo_version": "18.0"}
+        config.repo_odpm_json = "/tmp/project/odpm.json"
+        config._user_loaded = True
+
+        self.assertEqual(config.bootstrap.raw_odpm_json, {"odoo_version": "18.0"})
+        self.assertEqual(config.bootstrap.repo_odpm_json, "/tmp/project/odpm.json")
+        self.assertTrue(config.bootstrap.user_loaded)
+
+    def test_developing_project_lives_in_bootstrap_not_user_slice(self):
+        config = Config.__new__(Config)
+        config._bootstrap = BootstrapState()
+        config._user = UserSettingsState(developing_project="https://github.com/acme/demo.git")
+
+        config.developing_project = MagicMock(project_path="/tmp/dev")
+
+        self.assertIs(config.bootstrap.developing_project, config.developing_project)
+        self.assertEqual(
+            config._user.developing_project, "https://github.com/acme/demo.git"
+        )
+
+    def test_load_user_settings_syncs_developing_project_to_bootstrap(self):
+        config = Config.__new__(Config)
+        config._bootstrap = BootstrapState()
+        config._raw_user_settings = {
+            "developing_project": "https://github.com/acme/demo.git",
+        }
+        config._user = UserSettingsState()
+        config._bootstrap_ctx = MagicMock()
+
+        load_user_settings(config)
+
+        self.assertEqual(
+            config.bootstrap.developing_project, "https://github.com/acme/demo.git"
+        )
+        self.assertTrue(config.bootstrap.user_loaded)
 
 
 class BindDevelopingLinkTests(unittest.TestCase):
