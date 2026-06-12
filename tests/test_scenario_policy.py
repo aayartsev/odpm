@@ -87,6 +87,21 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.is_ci())
         self.assertFalse(policy.is_developer())
 
+    def test_report_compose_failure_on_host_by_scenario(self):
+        self.assertFalse(
+            ScenarioPolicy.from_scenario(
+                constants.DEVELOPER_SCENARIO
+            ).report_compose_failure_on_host()
+        )
+        self.assertTrue(
+            ScenarioPolicy.from_scenario(constants.CI_SCENARIO).report_compose_failure_on_host()
+        )
+        self.assertTrue(
+            ScenarioPolicy.from_scenario(
+                constants.SERVER_SCENARIO
+            ).report_compose_failure_on_host()
+        )
+
     def test_developer_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         self.assertTrue(policy.uses_host_identity)

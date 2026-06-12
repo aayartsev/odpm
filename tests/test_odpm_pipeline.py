@@ -253,10 +253,39 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
         config.user_env.odoo_port = 8069
+        config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         with patch("dev_project.runtime_coordinator.run_logged", return_value=17):
-            with self.assertRaises(PipelineError) as ctx:
-                self._coordinator(config).start_containers()
+            with patch(
+                "dev_project.runtime_coordinator.host_summaries.log_compose_failed"
+            ) as mock_log_failed:
+                with self.assertRaises(PipelineError) as ctx:
+                    self._coordinator(config).start_containers()
         self.assertEqual(ctx.exception.exit_code, 17)
+        self.assertEqual(str(ctx.exception), "")
+        mock_log_failed.assert_called_once_with(17)
+
+    @patch(
+        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        return_value=False,
+    )
+    def test_start_containers_skips_host_compose_summary_for_developer(
+        self, _mock_should
+    ):
+        config = MagicMock()
+        config.project_dir = "/tmp/project"
+        config.docker_compose_command = "docker compose"
+        config.no_log_prefix = False
+        config.user_env.odoo_port = 8069
+        config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        with patch("dev_project.runtime_coordinator.run_logged", return_value=1):
+            with patch(
+                "dev_project.runtime_coordinator.host_summaries.log_compose_failed"
+            ) as mock_log_failed:
+                with self.assertRaises(PipelineError) as ctx:
+                    self._coordinator(config).start_containers()
+        self.assertEqual(ctx.exception.exit_code, 1)
+        self.assertEqual(str(ctx.exception), "")
+        mock_log_failed.assert_not_called()
 
 
 class OdpmPipelineComposeTests(unittest.TestCase):

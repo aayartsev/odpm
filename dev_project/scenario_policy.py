@@ -111,6 +111,10 @@ class ScenarioPolicy:
     def is_developer(self) -> bool:
         return self.scenario == constants.DEVELOPER_SCENARIO
 
+    def report_compose_failure_on_host(self) -> bool:
+        """Whether to emit a host summary when ``docker compose up`` exits non-zero."""
+        return not self.is_developer()
+
     def mount_runtime_config_from_host(self) -> bool:
         """Dev/server mount .odpm/runtime/config.json; CI bakes config into the image."""
         return not self.is_ci()

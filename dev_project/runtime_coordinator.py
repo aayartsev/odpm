@@ -92,9 +92,9 @@ class RuntimeCoordinator:
             cwd=self.config.project_dir,
         )
         if returncode != 0:
-            host_summaries.log_compose_failed(returncode)
-            message = _(host_summaries.MSG_COMPOSE_FAILED).format(EXIT_CODE=returncode)
-            raise PipelineError(message, exit_code=returncode)
+            if self.config.policy.report_compose_failure_on_host():
+                host_summaries.log_compose_failed(returncode)
+            raise PipelineError("", exit_code=returncode)
 
     def run_after_prepare(self) -> None:
         if self.handle_build_image():
