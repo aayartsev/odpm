@@ -20,7 +20,8 @@ from dev_project.debugger.constants import (
     DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEFAULT_DEBUGGER_CONNECT_HOST,
 )
-from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
+from dev_project.debugger import is_debugpy_requirement
+from dev_project.scenario_policy import ScenarioPolicy
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"

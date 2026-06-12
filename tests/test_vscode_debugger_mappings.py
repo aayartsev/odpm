@@ -10,7 +10,8 @@ import unittest
 from dev_project import constants
 from dev_project.project_env.debug_profile import DebuggerProfileBuilder
 from dev_project.project_env.services import VscodeConfigurator
-from dev_project.project_env.types import MappedPath, SymlinksSources
+from dev_project.project_env.types import MappedPath
+from dev_project.symlinks import SymlinksSources
 
 from tests.debug_profile_test_helpers import make_debugger_env_mock
 
