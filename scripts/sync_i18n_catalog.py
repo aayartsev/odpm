@@ -104,11 +104,13 @@ RU_MESSAGES: dict[str, str] = {
     "Non-interactive mode requires an existing .env file in the project directory "
     "or under ~/.odpm/.env. Create it manually or set environment variables "
     "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) before the first run.": (
+    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, "
+    "ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run.": (
         "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта "
         "или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения "
         "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) перед первым запуском."
+        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, "
+        "ODPM_DEBUGGER_BACKEND, ODPM_IDE) перед первым запуском."
     ),
     "Non-interactive mode requires odoo_version in the developing project's "
     "odpm.json or pass --odoo-version on the command line.": (
@@ -278,6 +280,22 @@ RU_MESSAGES: dict[str, str] = {
     "{SELECTED_POSTGRES_PORT}\n": (
         "Вы выбрали следующий порт, который будет слушать сервер PostgreSQL: "
         "{SELECTED_POSTGRES_PORT}\n"
+    ),
+    "Select debugger backend for developer scenario "
+    "(Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n": (
+        "Выберите backend отладчика для сценария developer "
+        "(Enter — по умолчанию {DEFAULT_BACKEND}):\n{OPTIONS}\n"
+    ),
+    "You selected debugger backend: {SELECTED_BACKEND}\n": (
+        "Вы выбрали backend отладчика: {SELECTED_BACKEND}\n"
+    ),
+    "Select IDE configuration to generate "
+    "(Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n": (
+        "Выберите конфигурацию IDE для генерации "
+        "(Enter — по умолчанию {DEFAULT_IDE}):\n{OPTIONS}\n"
+    ),
+    "You selected IDE configuration: {SELECTED_IDE}\n": (
+        "Вы выбрали конфигурацию IDE: {SELECTED_IDE}\n"
     ),
     "You selected debugger connect host: {SELECTED_HOST}\n": (
         "Вы выбрали хост подключения отладчика: {SELECTED_HOST}\n"

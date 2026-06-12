@@ -9,8 +9,6 @@ from . import constants
 from .debugger import (
     DEFAULT_DEBUGGER_BACKEND,
     get_backend,
-    is_debugger_requirement,
-    is_debugpy_requirement,
     normalize_debugger_requirements,
 )
 from .debugger.constants import (

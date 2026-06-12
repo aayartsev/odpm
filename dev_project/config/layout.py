@@ -13,7 +13,7 @@ from ..debugger.constants import (
     ODPM_IDE_NONE,
     ODPM_IDE_VSCODE,
 )
-from ..scenario_policy import is_debugger_requirement, is_debugpy_requirement
+from ..scenario_policy import is_debugger_requirement
 from .state import DockerLayoutState, ProjectSettingsState
 
 if TYPE_CHECKING:

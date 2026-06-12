@@ -89,8 +89,8 @@ msgstr "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен б�
 msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
 msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
 
-msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) before the first run."
-msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) перед первым запуском."
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
+msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) перед первым запуском."
 
 msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
 msgstr "В неинтерактивном режиме требуется odoo_version в odpm.json разрабатываемого проекта или параметр --odoo-version в командной строке."
@@ -115,6 +115,12 @@ msgstr "Файлы проекта готовы."
 
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Запуск скрипта от root/sudo запрещен"
+
+msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
+msgstr "Выберите конфигурацию IDE для генерации (Enter — по умолчанию {DEFAULT_IDE}):\n{OPTIONS}\n"
+
+msgid "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
+msgstr "Выберите backend отладчика для сценария developer (Enter — по умолчанию {DEFAULT_BACKEND}):\n{OPTIONS}\n"
 
 msgid "Set IDE host name for pydevd_connect (container connects to Debug Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
 msgstr "Укажите имя хоста IDE для pydevd_connect (контейнер подключается к Debug Server). Нажмите 'Enter' для значения по умолчанию {DEFAULT_HOST}:\n"
@@ -196,6 +202,12 @@ msgstr "Вы выбрали следующий порт, который буде
 
 msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 msgstr "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
+
+msgid "You selected IDE configuration: {SELECTED_IDE}\n"
+msgstr "Вы выбрали конфигурацию IDE: {SELECTED_IDE}\n"
+
+msgid "You selected debugger backend: {SELECTED_BACKEND}\n"
+msgstr "Вы выбрали backend отладчика: {SELECTED_BACKEND}\n"
 
 msgid "You selected debugger connect host: {SELECTED_HOST}\n"
 msgstr "Вы выбрали хост подключения отладчика: {SELECTED_HOST}\n"

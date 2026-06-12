@@ -1,8 +1,6 @@
 from typing import Literal, NamedTuple, TypedDict
 
 
-from ..symlinks.types import SymlinksSources
-
 class MappedPath(NamedTuple):
     local: str
     docker: str

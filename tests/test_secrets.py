@@ -5,7 +5,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from dev_project import constants
 from dev_project.errors import ConfigError
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.project_env.secrets import (
