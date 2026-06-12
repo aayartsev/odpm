@@ -15,6 +15,11 @@ from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.services import CiImageBuildService
 from dev_project.project_env.ci_image import CiImageBuilder
 from dev_project.compose.service_builder import ComposeServiceBuilder
+from dev_project.debugger.constants import (
+    DEBUGGER_BACKEND_DEBUGPY_LISTEN,
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
+    DEFAULT_DEBUGGER_CONNECT_HOST,
+)
 from dev_project.scenario_policy import ScenarioPolicy, is_debugpy_requirement
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -220,6 +225,54 @@ class ScenarioPolicyTests(unittest.TestCase):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         self.assertIn("5678:5678", policy.build_dev_extra_ports("5678:5678"))
         self.assertIn("volumes:", policy.build_odoo_volumes_block("\n      - x:y\n"))
+
+    def test_should_publish_debugger_port_by_backend(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertTrue(
+            policy.should_publish_debugger_port(DEBUGGER_BACKEND_DEBUGPY_LISTEN)
+        )
+        self.assertFalse(
+            policy.should_publish_debugger_port(DEBUGGER_BACKEND_PYDEVD_CONNECT)
+        )
+
+    def test_build_dev_extra_hosts_pydevd_connect_on_developer(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        hosts = policy.build_dev_extra_hosts(
+            DEFAULT_DEBUGGER_CONNECT_HOST,
+            debugger_backend=DEBUGGER_BACKEND_PYDEVD_CONNECT,
+        )
+        self.assertIn("extra_hosts:", hosts)
+        self.assertIn("host.docker.internal:host-gateway", hosts)
+
+    def test_build_dev_extra_hosts_empty_for_debugpy_listen(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertEqual(
+            policy.build_dev_extra_hosts(
+                DEFAULT_DEBUGGER_CONNECT_HOST,
+                debugger_backend=DEBUGGER_BACKEND_DEBUGPY_LISTEN,
+            ),
+            "",
+        )
+
+    def test_build_dev_extra_hosts_empty_for_custom_connect_host(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertEqual(
+            policy.build_dev_extra_hosts(
+                "172.17.0.1",
+                debugger_backend=DEBUGGER_BACKEND_PYDEVD_CONNECT,
+            ),
+            "",
+        )
+
+    def test_build_dev_extra_hosts_empty_for_ci(self):
+        policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        self.assertEqual(
+            policy.build_dev_extra_hosts(
+                DEFAULT_DEBUGGER_CONNECT_HOST,
+                debugger_backend=DEBUGGER_BACKEND_PYDEVD_CONNECT,
+            ),
+            "",
+        )
 
 
 class CiVenvInstallSpecTests(unittest.TestCase):
@@ -445,6 +498,7 @@ class ComposeTemplateMigrationTests(unittest.TestCase):
     def test_program_template_uses_new_placeholders(self):
         template_path = DEV_PROJECT_DIR / "templates" / "docker-compose.yml"
         content = template_path.read_text()
+        self.assertIn("{DEV_EXTRA_HOSTS}", content)
         self.assertIn("{DEV_EXTRA_PORTS}", content)
         self.assertIn("{ODOO_VOLUMES_BLOCK}", content)
         self.assertIn("{START_COMMAND_BLOCK}", content)

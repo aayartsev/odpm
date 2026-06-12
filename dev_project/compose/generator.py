@@ -89,11 +89,19 @@ class ComposeGenerator:
         )
         debugger_port = self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
         debugger_port_map = f"{debugger_port}:{constants.DEBUGGER_DOCKER_PORT}"
-        from ..debugger.user_env import resolve_debugger_backend_id
+        from ..debugger.user_env import (
+            resolve_debugger_backend_id,
+            resolve_debugger_connect_host,
+        )
 
+        debugger_backend = resolve_debugger_backend_id(self.user_env)
         dev_extra_ports = policy.build_dev_extra_ports(
             debugger_port_map,
-            debugger_backend=resolve_debugger_backend_id(self.user_env),
+            debugger_backend=debugger_backend,
+        )
+        dev_extra_hosts = policy.build_dev_extra_hosts(
+            resolve_debugger_connect_host(self.user_env),
+            debugger_backend=debugger_backend,
         )
 
         compose_service = self.config.compose_service
@@ -122,6 +130,7 @@ class ComposeGenerator:
         content = "".join(lines).format(
             ODOO_IMAGE=odoo_image,
             DEV_EXTRA_PORTS=dev_extra_ports,
+            DEV_EXTRA_HOSTS=dev_extra_hosts,
             ODOO_VOLUMES_BLOCK=odoo_volumes_block,
             ODOO_PORT=self.user_env.odoo_port or constants.ODOO_DEFAULT_PORT,
             POSTGRES_PORT_MAP=postgres_port_map,

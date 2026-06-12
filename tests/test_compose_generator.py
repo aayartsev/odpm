@@ -6,6 +6,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
+from dev_project.debugger.constants import (
+    DEBUGGER_BACKEND_DEBUGPY_LISTEN,
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
+    DEFAULT_DEBUGGER_CONNECT_HOST,
+)
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.compose.generator import ComposeGenerator
 from dev_project.project_env.types import MappedPath
@@ -37,6 +42,8 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         scenario: str,
         *,
         include_runtime_secrets: bool = False,
+        debugger_backend: str = DEBUGGER_BACKEND_DEBUGPY_LISTEN,
+        debugger_connect_host: str = DEFAULT_DEBUGGER_CONNECT_HOST,
     ) -> CreateProjectEnvironment:
         policy = ScenarioPolicy.from_scenario(scenario)
         config = MagicMock()
@@ -63,7 +70,8 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         user_env = MagicMock()
         user_env.postgres_port = 15432
         user_env.debugger_port = 5678
-        user_env.debugger_backend = "debugpy_listen"
+        user_env.debugger_backend = debugger_backend
+        user_env.debugger_connect_host = debugger_connect_host
         user_env.odoo_port = 8069
         user_env.gevent_port = 8072
         config.user_env = user_env
@@ -78,6 +86,42 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         env = self._make_env(project_dir, scenario)
         env._compose.generate_docker_compose_file()
         return (Path(project_dir) / "docker-compose.yml").read_text(encoding="utf-8")
+
+    def test_developer_pydevd_connect_compose_has_extra_hosts_without_debugger_port(
+        self,
+    ):
+        with tempfile.TemporaryDirectory() as project_dir:
+            self._copy_compose_template(project_dir)
+            env = self._make_env(
+                project_dir,
+                constants.DEVELOPER_SCENARIO,
+                debugger_backend=DEBUGGER_BACKEND_PYDEVD_CONNECT,
+            )
+            env._compose.generate_docker_compose_file()
+            content = (Path(project_dir) / "docker-compose.yml").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("extra_hosts:", content)
+            self.assertIn("host.docker.internal:host-gateway", content)
+            self.assertNotIn("5678:5678", content)
+
+    def test_developer_pydevd_connect_skips_extra_hosts_for_custom_connect_host(
+        self,
+    ):
+        with tempfile.TemporaryDirectory() as project_dir:
+            self._copy_compose_template(project_dir)
+            env = self._make_env(
+                project_dir,
+                constants.DEVELOPER_SCENARIO,
+                debugger_backend=DEBUGGER_BACKEND_PYDEVD_CONNECT,
+                debugger_connect_host="172.17.0.1",
+            )
+            env._compose.generate_docker_compose_file()
+            content = (Path(project_dir) / "docker-compose.yml").read_text(
+                encoding="utf-8"
+            )
+            self.assertNotIn("extra_hosts:", content)
+            self.assertNotIn("5678:5678", content)
 
     def test_developer_compose_includes_debugger_port_and_volumes(self):
         with tempfile.TemporaryDirectory() as project_dir:

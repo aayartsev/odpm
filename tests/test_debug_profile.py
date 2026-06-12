@@ -11,7 +11,9 @@ from unittest.mock import MagicMock
 from dev_project import constants
 from dev_project.debugger.constants import (
     DEBUGGER_BACKEND_DEBUGPY_LISTEN,
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEBUGGER_DIRECTION_ATTACH,
+    DEBUGGER_DIRECTION_CONNECT,
 )
 from dev_project.project_env.debug_profile import (
     DEBUG_PROFILE_SCHEMA_VERSION,
@@ -103,6 +105,27 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
             local_roots = [mapping.local for mapping in mappings]
 
             self.assertIn(os.path.abspath(link_path), local_roots)
+
+    def test_build_returns_pydevd_connect_profile(self) -> None:
+        env = MagicMock()
+        config = MagicMock()
+        config.project_dir = "/proj"
+        env.config = config
+        env.user_env.backups = "/proj/backups"
+        env.user_env.debugger_port = 5678
+        env.user_env.debugger_backend = DEBUGGER_BACKEND_PYDEVD_CONNECT
+        env.mapped_folders = [
+            MappedPath(local="/proj/sources/odoo", docker="/home/odoo/odoo"),
+        ]
+
+        profile = DebuggerProfileBuilder(env).build()
+        payload = profile.to_dict()
+
+        self.assertEqual(payload["debugger"]["backend"], DEBUGGER_BACKEND_PYDEVD_CONNECT)
+        self.assertEqual(payload["debugger"]["direction"], DEBUGGER_DIRECTION_CONNECT)
+        self.assertEqual(payload["debugger"]["protocol"], "pydevd")
+        self.assertEqual(payload["debugger"]["host"], "localhost")
+        self.assertEqual(payload["debugger"]["port"], 5678)
 
     def test_build_returns_schema_v2_profile(self) -> None:
         builder = self._builder(

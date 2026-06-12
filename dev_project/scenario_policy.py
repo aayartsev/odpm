@@ -13,6 +13,10 @@ from .debugger import (
     is_debugpy_requirement,
     normalize_debugger_requirements,
 )
+from .debugger.constants import (
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
+    DEFAULT_DEBUGGER_CONNECT_HOST,
+)
 
 VenvMode = Literal["fresh", "baked"]
 
@@ -167,6 +171,23 @@ class ScenarioPolicy:
         if not self.should_publish_debugger_port(debugger_backend):
             return ""
         return f"      - {debugger_port_map}\n"
+
+    def should_add_debugger_extra_hosts(
+        self, debugger_backend: str | None = None
+    ) -> bool:
+        if not self.include_debugger_port:
+            return False
+        backend_id = debugger_backend or DEFAULT_DEBUGGER_BACKEND
+        return backend_id == DEBUGGER_BACKEND_PYDEVD_CONNECT
+
+    def build_dev_extra_hosts(
+        self, connect_host: str, *, debugger_backend: str | None = None
+    ) -> str:
+        if not self.should_add_debugger_extra_hosts(debugger_backend):
+            return ""
+        if connect_host.strip() != DEFAULT_DEBUGGER_CONNECT_HOST:
+            return ""
+        return '    extra_hosts:\n      - "host.docker.internal:host-gateway"\n'
 
     def build_postgres_port_map(self, port_map: str) -> str:
         if self.bind_postgres_localhost:
