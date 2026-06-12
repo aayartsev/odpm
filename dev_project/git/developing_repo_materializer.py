@@ -6,6 +6,7 @@ import os
 from typing import TYPE_CHECKING, Protocol
 
 from .. import constants
+from ..symlinks import ensure_developing_repo_symlinks
 from .link import HandleOdooProjectLink
 
 if TYPE_CHECKING:
@@ -67,8 +68,11 @@ class DevelopingRepoMaterializer:
             self._build_developing(config)
 
     def _build_developing(self, config: DevelopingRepoConfig) -> None:
-        config.developing_project.build_project()
-        if config.arguments.branch and isinstance(config.arguments.branch, str):
-            config.developing_project.switch_to_branch(config.arguments.branch)
+        try:
+            config.developing_project.build_project()
+            if config.arguments.branch and isinstance(config.arguments.branch, str):
+                config.developing_project.switch_to_branch(config.arguments.branch)
+        finally:
+            ensure_developing_repo_symlinks(config)
         config.developing_project_dir_path = config.developing_project.project_path
         self._developing_repo_materialized = True

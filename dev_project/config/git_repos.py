@@ -63,11 +63,17 @@ class GitRepoCoordinator:
     def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
         self.config._developing_materializer.materialize_full(self.config)
 
-        self.config.odoo_platform_project.build_project()
-        if not skip_build_date:
-            self.apply_odoo_build_date_to_platform()
+        platform_path = self.config.odoo_platform_project.project_path
+        try:
+            self.config.odoo_platform_project.build_project()
+            if not skip_build_date:
+                self.apply_odoo_build_date_to_platform()
+        finally:
+            self.config.ensure_git_repo_symlink(platform_path, scope="project")
 
         self._paths.apply_developing_project_docker_path()
+        if self.config.developing_project_dir_path:
+            self.config.ensure_developing_repo_symlinks()
 
     def apply_odoo_build_date_to_platform(self) -> None:
         self.config.odoo_platform_project.apply_build_date(

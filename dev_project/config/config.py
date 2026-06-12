@@ -153,6 +153,21 @@ class Config(ConfigRuntimeFacadeMixin):
     def generate_odoo_conf_docker_data(self) -> None:
         self._odoo_conf.generate_odoo_conf_docker_data()
 
+    def ensure_git_repo_symlink(
+        self,
+        target_path: str,
+        *,
+        scope: Literal["project", "dependency"] = "project",
+    ) -> None:
+        from ..symlinks import ensure_git_repo_symlink
+
+        ensure_git_repo_symlink(self, target_path, scope=scope)
+
+    def ensure_developing_repo_symlinks(self) -> None:
+        from ..symlinks import ensure_developing_repo_symlinks
+
+        ensure_developing_repo_symlinks(self)
+
 
 bind_slice_properties(Config, "_user", USER_SLICE_FIELDS)
 bind_slice_properties(Config, "_project", PROJECT_SLICE_FIELDS)

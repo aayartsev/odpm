@@ -1,14 +1,11 @@
 from typing import Literal, NamedTuple, TypedDict
 
 
+from ..symlinks.types import SymlinksSources
+
 class MappedPath(NamedTuple):
     local: str
     docker: str
-
-
-class SymlinksSources(NamedTuple):
-    source_path: str
-    link_path: str
 
 
 class DebuggerPathRecord(TypedDict):

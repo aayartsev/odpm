@@ -6,7 +6,7 @@ from ..git import HandleOdooProjectLink
 from ..git.deps_lock import is_remote_git_link
 from ..dependency_resolver import DependencyResolutionResult
 from .dependency_materializer import DependencyMaterializer
-from .symlink_manager import SymlinkManager
+from ..symlinks import SymlinkManager
 from .volume_mapper import VolumeMapper
 
 if TYPE_CHECKING:
@@ -74,14 +74,26 @@ class ProjectLinks:
     def checkout_project(
         self, project: HandleOdooProjectLink, *, lock_manager=None
     ) -> None:
-        update_git_repos = self.config.update_git_repos
-        if lock_manager is not None and lock_manager.is_pinned(project):
-            update_git_repos = False
-        project.checkout_repository(
-            self.config.odoo_version,
-            clean_git_repos=self.config.clean_git_repos,
-            update_git_repos=update_git_repos,
+        scope = (
+            "dependency"
+            if project in self.config.dependencies_projects
+            else "project"
         )
+        project_path = project.project_path
+        try:
+            update_git_repos = self.config.update_git_repos
+            if lock_manager is not None and lock_manager.is_pinned(project):
+                update_git_repos = False
+            project.checkout_repository(
+                self.config.odoo_version,
+                clean_git_repos=self.config.clean_git_repos,
+                update_git_repos=update_git_repos,
+            )
+        finally:
+            if project_path:
+                self.config.ensure_git_repo_symlink(project_path, scope=scope)
+                if scope == "project" and project is self.config.developing_project:
+                    self.config.ensure_developing_repo_symlinks()
 
     def update_links(self) -> None:
         SymlinkManager(self.config).update_links()

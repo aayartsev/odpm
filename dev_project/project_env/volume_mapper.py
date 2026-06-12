@@ -81,8 +81,15 @@ class VolumeMapper:
                 dependency_string,
                 materialize=materialize,
             )
-            if skip_materialize and not dependency_project.is_cloned:
-                dependency_project.build_project()
+            try:
+                if skip_materialize and not dependency_project.is_cloned:
+                    dependency_project.build_project()
+            finally:
+                if dependency_project.project_path:
+                    self.config.ensure_git_repo_symlink(
+                        dependency_project.project_path,
+                        scope="dependency",
+                    )
             if not dependency_project.is_cloned:
                 continue
             list_of_subprojects = self.config.check_project_for_subprojects(

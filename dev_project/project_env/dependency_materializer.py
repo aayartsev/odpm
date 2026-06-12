@@ -59,28 +59,36 @@ class DependencyMaterializer:
             dependency_string,
             materialize=materialize,
         )
-        if not project.is_cloned:
-            _logger.warning(
-                _('Git dependency {DEPENDENCY_URL} is not available locally; transitive entries from oca_dependencies.txt and nested odpm.json will be skipped').format(DEPENDENCY_URL=dependency_string)
+        project_path = project.project_path
+        try:
+            if not project.is_cloned:
+                _logger.warning(
+                    _(
+                        "Git dependency {DEPENDENCY_URL} is not available locally; "
+                        "transitive entries from oca_dependencies.txt and nested "
+                        "odpm.json will be skipped"
+                    ).format(DEPENDENCY_URL=dependency_string)
+                )
+                return DependencyDiscovery()
+            self._checkout_fn(project)
+            urls = read_oca_dependency_urls(project.project_path)
+            nested = read_nested_odpm_fragment(project.project_path)
+            if nested is None:
+                return DependencyDiscovery(urls=urls)
+            merged_urls = list(urls)
+            seen_urls = set(urls)
+            for dependency_url in nested.dependencies:
+                if dependency_url in seen_urls:
+                    continue
+                seen_urls.add(dependency_url)
+                merged_urls.append(dependency_url)
+            return DependencyDiscovery(
+                urls=merged_urls,
+                requirements=list(nested.requirements_txt),
+                nested_fragment=nested,
             )
-            return DependencyDiscovery()
-        self._checkout_fn(project)
-        urls = read_oca_dependency_urls(project.project_path)
-        nested = read_nested_odpm_fragment(project.project_path)
-        if nested is None:
-            return DependencyDiscovery(urls=urls)
-        merged_urls = list(urls)
-        seen_urls = set(urls)
-        for dependency_url in nested.dependencies:
-            if dependency_url in seen_urls:
-                continue
-            seen_urls.add(dependency_url)
-            merged_urls.append(dependency_url)
-        return DependencyDiscovery(
-            urls=merged_urls,
-            requirements=list(nested.requirements_txt),
-            nested_fragment=nested,
-        )
+        finally:
+            self.config.ensure_git_repo_symlink(project_path, scope="dependency")
 
     def apply_to_config(self, resolution: DependencyResolutionResult) -> None:
         self.config.dependencies = resolution.urls

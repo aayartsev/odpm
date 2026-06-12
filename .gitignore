@@ -148,6 +148,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# unittest.mock path artifact (os.makedirs on MagicMock().project_dir)
+MagicMock/
+MockMagic/
+
 # Cursor IDE
 .cursor
 
