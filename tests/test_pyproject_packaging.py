@@ -42,7 +42,7 @@ class PyprojectPackagingTests(unittest.TestCase):
 
     def test_project_urls_and_license(self):
         project = _load_pyproject()["project"]
-        self.assertEqual(project["license"], "GPL-3.0-or-later")
+        self.assertEqual(project["license"], {"file": "LICENSE"})
         urls = project["urls"]
         self.assertIn("Repository", urls)
         self.assertIn("github.com/aayartsev/odoo_dev_project", urls["Repository"])
