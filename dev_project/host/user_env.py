@@ -62,22 +62,33 @@ class CreateUserEnvironment:
         self.parse_env_file()
         apply_locale_from_sources(self.odpm_locale)
 
-    def get_env_file_path(self) -> str:
-        local_env_file = os.path.join(
+    def resolve_env_file_path(self) -> str:
+        """Return project-local .env when present, else the home config path."""
+        project_env_file = os.path.join(
             self.pd_manager.project_path, constants.ENV_FILE_NAME
         )
-        if os.path.exists(local_env_file):
-            return local_env_file
+        if os.path.exists(project_env_file):
+            return project_env_file
+        return os.path.join(self.config_home_dir, constants.ENV_FILE_NAME)
+
+    def ensure_default_env_file(self, env_path: str) -> None:
+        """Create *env_path* via wizard or non-interactive defaults when missing."""
+        if os.path.exists(env_path):
+            return
+        parent_dir = os.path.dirname(env_path)
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
+        if stdin_is_interactive():
+            self.create_env_file(env_path)
+        else:
+            self.create_env_file_noninteractive(env_path)
+
+    def get_env_file_path(self) -> str:
         if not os.path.exists(self.config_home_dir):
             os.makedirs(self.config_home_dir)
-        # TODO we need to write method that will create default .env file
-        local_env_file = os.path.join(self.config_home_dir, constants.ENV_FILE_NAME)
-        if not os.path.exists(local_env_file):
-            if stdin_is_interactive():
-                self.create_env_file(local_env_file)
-            else:
-                self.create_env_file_noninteractive(local_env_file)
-        return local_env_file
+        env_path = self.resolve_env_file_path()
+        self.ensure_default_env_file(env_path)
+        return env_path
 
     def parse_env_file(self) -> None:
         parser = ConfigParser()
