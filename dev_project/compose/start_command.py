@@ -33,8 +33,10 @@ class StartCommand:
     ) -> ComposeOdooService:
         if self.kind == "pre_commit":
             project_dir = self.pre_commit_project_dir or "/home/odoo"
+            # working_dir must be docker_project_dir so `python3 -m dev_project` resolves.
+            working_dir = self.docker_project_dir or "/home/odoo"
             return ComposeOdooService(
-                working_dir=project_dir,
+                working_dir=working_dir,
                 include_runtime_config=False,
                 include_runtime_secrets=False,
                 command=[

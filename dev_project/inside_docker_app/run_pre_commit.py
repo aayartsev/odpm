@@ -23,7 +23,7 @@ def parse_project_dir(argv: list[str] | None = None) -> str:
     return rest[0]
 
 
-def run_pre_commit(project_dir: str) -> None:
+def _ensure_git_safe_directory(path: str, *, cwd: str) -> None:
     git_exit = run_logged(
         [
             "git",
@@ -31,14 +31,20 @@ def run_pre_commit(project_dir: str) -> None:
             "--global",
             "--add",
             "safe.directory",
-            project_dir,
+            path,
         ],
-        cwd=project_dir,
+        cwd=cwd,
     )
     if git_exit != 0:
         raise ContainerError(
-            f"git config safe.directory failed for {project_dir!r} (exit {git_exit})"
+            f"git config safe.directory failed for {path!r} (exit {git_exit})"
         )
+
+
+def run_pre_commit(project_dir: str) -> None:
+    # Wildcard: pre-commit hook clones under ~/.cache/pre-commit (bind-mounted).
+    _ensure_git_safe_directory("*", cwd=project_dir)
+    _ensure_git_safe_directory(project_dir, cwd=project_dir)
 
     pre_commit_exit = run_logged(
         ["pre-commit", "run", "--all-files"],

@@ -36,15 +36,29 @@ class RunPreCommitTests(unittest.TestCase):
     def test_runs_git_safe_directory_then_pre_commit_in_project_dir(
         self, mock_run_logged
     ):
-        mock_run_logged.side_effect = [0, 0]
+        mock_run_logged.side_effect = [0, 0, 0]
         project_dir = "/home/odoo/extra-addons/project"
 
         run_pre_commit.run_pre_commit(project_dir)
 
-        self.assertEqual(mock_run_logged.call_count, 2)
-        git_call = mock_run_logged.call_args_list[0]
+        self.assertEqual(mock_run_logged.call_count, 3)
+        wildcard_call = mock_run_logged.call_args_list[0]
         self.assertEqual(
-            git_call.args[0],
+            wildcard_call.args[0],
+            [
+                "git",
+                "config",
+                "--global",
+                "--add",
+                "safe.directory",
+                "*",
+            ],
+        )
+        self.assertEqual(wildcard_call.kwargs["cwd"], project_dir)
+
+        project_call = mock_run_logged.call_args_list[1]
+        self.assertEqual(
+            project_call.args[0],
             [
                 "git",
                 "config",
@@ -54,9 +68,9 @@ class RunPreCommitTests(unittest.TestCase):
                 project_dir,
             ],
         )
-        self.assertEqual(git_call.kwargs["cwd"], project_dir)
+        self.assertEqual(project_call.kwargs["cwd"], project_dir)
 
-        pre_commit_call = mock_run_logged.call_args_list[1]
+        pre_commit_call = mock_run_logged.call_args_list[2]
         self.assertEqual(
             pre_commit_call.args[0],
             ["pre-commit", "run", "--all-files"],
@@ -72,7 +86,7 @@ class RunPreCommitTests(unittest.TestCase):
 
     @patch("dev_project.inside_docker_app.run_pre_commit.run_logged")
     def test_pre_commit_failure_exits_with_tool_exit_code(self, mock_run_logged):
-        mock_run_logged.side_effect = [0, 1]
+        mock_run_logged.side_effect = [0, 0, 1]
 
         with self.assertRaises(SystemExit) as ctx:
             run_pre_commit.run_pre_commit("/home/odoo/project")

@@ -423,9 +423,10 @@ class ComposeServiceBuilderTests(unittest.TestCase):
             config.docker_odoo_project_dir_path,
         )
         service = command.to_compose_service()
-        self.assertEqual(
-            service.working_dir,
+        self.assertEqual(service.working_dir, config.docker_project_dir)
+        self.assertIn(
             config.docker_odoo_project_dir_path,
+            service.command,
         )
         self.assertFalse(service.include_runtime_config)
         self.assertIn(constants.RUN_PRE_COMMIT_ENTRYPOINT, service.command)

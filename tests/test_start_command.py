@@ -81,11 +81,12 @@ class StartCommandTests(unittest.TestCase):
         project_dir = "/home/odoo/extra-addons/project"
         command = StartCommand(
             kind="pre_commit",
+            docker_project_dir="/home/odoo",
             pre_commit_project_dir=project_dir,
         )
         service = command.to_compose_service()
 
-        self.assertEqual(service.working_dir, project_dir)
+        self.assertEqual(service.working_dir, "/home/odoo")
         self.assertFalse(service.include_runtime_config)
         self.assertEqual(
             service.command,

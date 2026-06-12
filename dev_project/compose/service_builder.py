@@ -43,6 +43,7 @@ class ComposeServiceBuilder:
         if self.args.start_precommit:
             return StartCommand(
                 kind="pre_commit",
+                docker_project_dir=self.config.docker_project_dir,
                 pre_commit_project_dir=self.config.docker_odoo_project_dir_path,
             )
 
