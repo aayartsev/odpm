@@ -101,6 +101,7 @@ curl -sf "http://127.0.0.1:${ODOO_PORT:-8069}/web"
 | `odpm --skip-start` | Exit 0; templates regenerated | | |
 | Odoo `command` | Exec form: `python3 -m dev_project.inside_docker_app.run_odoo` | | |
 | Runtime config | `.odpm/runtime/config.json` exists; `schema_version: 1` | | |
+| Debug profile (developer) | `.odpm/runtime/debug-profile.json` exists; `schema_version: 1`; `odpm plan` shows `ide.debug_profile` | | |
 | Compose env | `ODPM_CONFIG_PATH=/run/odpm/config.json` + read-only mount of runtime JSON | | |
 | No legacy placeholders | No `{START_STRING}` / base64 bootstrap | | |
 | No default healthcheck | No embedded `healthcheck:` in project compose template | | |

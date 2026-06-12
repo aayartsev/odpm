@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **IDE-neutral `DebuggerProfile` v1 (`profile_only`)** — `dev_project/project_env/debug_profile.py`: `DebuggerProfile`, `DebuggerProfileBuilder`, `write_debug_profile()` → `.odpm/runtime/debug-profile.json` (`schema_version: 1`, `debugger`, `path_mappings` with `local`/`remote`). Written when `ScenarioPolicy.include_debugpy` (`RuntimeCoordinator.write_debug_profile` before VS Code). `VscodeConfigurator` delegates path mappings and `launch.json` attach settings to the profile; symlink aliases use `realpath` normalization (macOS `/var` vs `/private/var`). Plan: runtime step `ide.debug_profile`, preview/diff in `plan/debug_profile_preview.py`; `ODPM_DEBUG_PROFILE_REL_PATH` in `constants/ci.py`. Tests: `test_debug_profile.py`, slimmed `test_vscode_debugger_mappings.py`, `test_plan_debug_profile_preview.py`, `tests/debug_profile_test_helpers.py`. Docs: `docs/operations/vscode-debug.md`, `docs/reference/generated-files.md`. **Follow-up:** TD-FEAT-08a PyCharm generator, TD-FEAT-08b manual IDE attach docs.
+
 ### Changed
 
 - **`release-packages` branch artifacts** — workflow runs on push to `4.0-beta` / `4.0-rc1` / `main` (not only tag `v*` / `workflow_dispatch`); uploads combined Actions artifact `release-packages` (`.deb`, `.rpm`, `SHA256SUMS`). GitHub Release assets remain tag-only. README EN+RU CI matrix.

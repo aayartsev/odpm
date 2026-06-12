@@ -6,7 +6,27 @@
 
 - В контейнере запускается **отладчик Python** (библиотека debugpy).
 - На компьютер разработчика пробрасывается порт из **`DEBUGGER_PORT`** (по умолчанию 5678).
-- В каталоге `.vscode/` создаётся **`launch.json`** с конфигурацией подключения к процессу в контейнере.
+- В **`.odpm/runtime/debug-profile.json`** записывается **IDE-neutral профиль** (`schema_version: 1`): параметры подключения debugpy и `path_mappings` (локальный путь ↔ путь в контейнере). Файл в gitignore, как и `runtime/config.json`.
+- В каталоге `.vscode/` создаётся **`launch.json`** и **`settings.json`** — VS Code читает те же mappings из профиля через `VscodeConfigurator`.
+
+Пример фрагмента профиля:
+
+```json
+{
+    "schema_version": 1,
+    "debugger": {
+        "protocol": "debugpy",
+        "host": "localhost",
+        "port": 5678,
+        "name": "Odoo: Remote Attach"
+    },
+    "path_mappings": [
+        { "local": "/abs/path/on/host/odoo", "remote": "/home/odoo/odoo" }
+    ]
+}
+```
+
+Перегенерация: `odpm` или `odpm --skip-start` в сценарии **`developer`**. Шаг **`ide.debug_profile`** виден в `odpm plan`; с `--plan-show-diff` — diff для `debug-profile.json`.
 
 ## Порядок работы
 
@@ -22,4 +42,15 @@
 
 ## На сервере и в сборке образа
 
-В сценариях **`server`** и **`ci`** отладчик **не используется**. Не включайте `developer` на production ради отладки — для этого служит отдельная машина разработчика.
+В сценариях **`server`** и **`ci`** отладчик **не используется** — `debug-profile.json` и `.vscode/` не создаются. Не включайте `developer` на production ради отладки — для этого служит отдельная машина разработчика.
+
+## Другие IDE (запланировано)
+
+Профиль задуман как общий контракт для генераторов конфигурации IDE (не только VS Code):
+
+| ID | Задача | Статус |
+|----|--------|--------|
+| TD-FEAT-08a | Генератор run/debug конфигурации **PyCharm** из `debug-profile.json` | запланировано |
+| TD-FEAT-08b | Документация «подключение вручную» для IDE без генератора (пути из профиля) | запланировано |
+
+Сейчас автоматически настраивается только VS Code (`launch.json` / `settings.json`).

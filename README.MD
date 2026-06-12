@@ -276,7 +276,7 @@ The utility will try to prepare your computer:
 1. A `.dockerignore` in the project root is generated from the `.odpm/dockerignore` template (Docker build context).
 1. After this, the automatic build of the `Docker image` will start if it has not been built before.
 1. The `docker-compose.yml` file will be automatically generated
-1. Configuration files will be generated for VS Code for the debugger to work correctly
+1. Configuration files will be generated for VS Code for the debugger to work correctly (`.odpm/runtime/debug-profile.json` plus `.vscode/launch.json` in the `developer` scenario)
 1. `docker-compose up` will start automatically
 1. All python dependencies will be installed in the virtual environment
 1. Odoo will start with all specified addons for selected version
@@ -483,7 +483,7 @@ Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_d
 - `db_manager_password` - `type: String`. password for the database manager
 - `sql_queries` - `type: List`. Contains a list of strings, each of which is an SQL script that will be executed when using the command line parameter `--sql-execute`
 - `use_oca_dependencies` - experimental dependency discovery (single odpm run, default `false`): reads `oca_dependencies.txt` from the developing project and each checked-out git dependency, **and** nested `odpm.json` at dependency repo roots (`dependencies`, `requirements_txt`). Transitive git URLs are included in the resolved graph and in `.odpm/deps.lock.json` on `--update-lock`. Nested `odoo_version` / `python_version` are checked against the host project (warning in developer scenario, error in CI). Does not override host `odoo_git_link` or platform settings.
-- `create_module_links` - optional experimental feature that adds soft links for all modules involved in the project to the platform `odoo/addons` tree under `odoo_src_dir`. Project-root symlinks (`odoo`, developing project, `dependencies/*`) are always refreshed on each `odpm` run. VS Code debugger `pathMappings` in `.vscode/launch.json` include **both real on-disk directories and project symlink paths** — breakpoints work when you open files via `project/...` in the odpm tree or via `~/odoo_projects/...`. Default `false`.
+- `create_module_links` - optional experimental feature that adds soft links for all modules involved in the project to the platform `odoo/addons` tree under `odoo_src_dir`. Project-root symlinks (`odoo`, developing project, `dependencies/*`) are always refreshed on each `odpm` run. Debugger `path_mappings` (in `.odpm/runtime/debug-profile.json` and `.vscode/launch.json`) include **both real on-disk directories and project symlink paths** — breakpoints work when you open files via `project/...` in the odpm tree or via `~/odoo_projects/...`. Default `false`.
 
 ## Parameters in odpm.json:
 - `python_version` - `type: String`. The python version is indicated in text form by its number, for example `"3.10"` or `"3.7"`,

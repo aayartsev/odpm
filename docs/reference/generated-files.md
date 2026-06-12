@@ -7,7 +7,8 @@
 | `docker-compose.yml` | `odpm` или `odpm --skip-start` |
 | корневой `.dockerignore` | из шаблона `.odpm/dockerignore`; сброс шаблона — удалить `.odpm/dockerignore` и снова запустить odpm |
 | `.odpm/runtime/config.json` | автоматически; в gitignore проекта |
-| `.vscode/launch.json` | `odpm --skip-start` после смены сценария или портов |
+| `.odpm/runtime/debug-profile.json` | автоматически в сценарии `developer` (`include_debugpy`); в gitignore |
+| `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` после смены сценария, портов или volume map |
 
 ## Исключение: конфигурация Odoo
 

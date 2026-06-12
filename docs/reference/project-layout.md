@@ -20,6 +20,7 @@
 |--------|------------|
 | `deps.lock.json` | Фиксация ревизий git — **хранить в git** |
 | `runtime/config.json` | Служебный контракт host→container — **не коммитить**, не править |
+| `runtime/debug-profile.json` | IDE-neutral профиль отладчика (developer) — **не коммитить**, не править |
 | `dockerignore` | Шаблон для корневого `.dockerignore` |
 
 ## Прочие каталоги

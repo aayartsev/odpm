@@ -61,7 +61,8 @@ flowchart TB
     end
 
     subgraph ide [IDE layer — опционально]
-        vscode[VS Code launch / tasks]
+        profile[.odpm/runtime/debug-profile.json]
+        vscode[VS Code launch / settings]
         lsp[Python LSP paths / module links]
     end
 

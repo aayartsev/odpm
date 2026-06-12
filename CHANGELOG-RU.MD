@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+### Добавлено
+
+- **IDE-neutral `DebuggerProfile` v1 (`profile_only`)** — `dev_project/project_env/debug_profile.py`: схема профиля отладчика, builder path mappings, запись `.odpm/runtime/debug-profile.json` при `include_debugpy` (до настройки VS Code). `VscodeConfigurator` берёт mappings и attach-параметры из профиля; symlink aliases с нормализацией `realpath`. В `odpm plan` — шаг `ide.debug_profile`, preview/diff в `plan/debug_profile_preview.py`. Тесты и документация (`vscode-debug.md`, `generated-files.md`). **Дальше:** TD-FEAT-08a генератор PyCharm, TD-FEAT-08b ручное подключение других IDE.
+
 ### Изменено
 
 - **`release-packages`: артефакты на push в ветки** — workflow на push в `4.0-beta` / `4.0-rc1` / `main` (не только тег `v*` / `workflow_dispatch`); combined-артефакт Actions `release-packages` (`.deb`, `.rpm`, `SHA256SUMS`). GitHub Release — только по тегу. README EN+RU, матрица CI.
