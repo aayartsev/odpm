@@ -306,14 +306,69 @@ class CheckoutServiceTests(unittest.TestCase):
         self, mock_run_checked
     ):
         mock_run_checked.return_value = MagicMock(
-            stdout="  19.0\n",
+            stdout="* 19.0\n",
             returncode=0,
             stderr="",
         )
         service = self._service()
         service.ensure_branch_exists("19.0", "19.0")
         mock_run_checked.assert_called_once()
-        self.assertEqual(mock_run_checked.call_args.args[0], ["git", "branch"])
+        self.assertEqual(
+            mock_run_checked.call_args.args[0],
+            ["git", "branch", "--list", "19.0"],
+        )
+
+    @patch("dev_project.git.runner.run_checked")
+    def test_ensure_branch_exists_fetches_local_branch_when_only_remote_present(
+        self, mock_run_checked
+    ):
+        mock_run_checked.side_effect = [
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="  origin/17.0\n", returncode=0, stderr=""),
+            MagicMock(stdout="", returncode=0, stderr=""),
+        ]
+        service = self._service()
+        service.ensure_branch_exists("17.0", "17.0")
+        self.assertEqual(mock_run_checked.call_count, 3)
+        self.assertEqual(
+            mock_run_checked.call_args_list[2].args[0],
+            ["git", "fetch", "--depth", "1", "origin", "17.0:17.0"],
+        )
+
+    @patch("dev_project.git.checkout.CheckoutService._git_checkout_ref")
+    @patch("dev_project.git.runner.run_checked")
+    def test_checkout_version_branch_checkouts_from_remote_tracking_branch(
+        self, mock_run_checked, mock_checkout
+    ):
+        mock_run_checked.side_effect = [
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="  origin/17.0\n", returncode=0, stderr=""),
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="deadbeef\n", returncode=0, stderr=""),
+        ]
+        service = self._service()
+        service._checkout_version_branch("17.0")
+        mock_checkout.assert_called_once_with("17.0")
+
+    @patch("dev_project.git.checkout.CheckoutService._git_checkout_ref")
+    @patch("dev_project.git.runner.run_checked")
+    def test_checkout_version_branch_raises_without_switching_to_newest(
+        self, mock_run_checked, mock_checkout
+    ):
+        from dev_project.errors import GitError
+
+        mock_run_checked.side_effect = [
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="", returncode=0, stderr=""),
+            MagicMock(stdout="", returncode=1, stderr="fatal: not a valid object"),
+            MagicMock(stdout="", returncode=0, stderr=""),
+        ]
+        service = self._service()
+        with self.assertRaises(GitError) as ctx:
+            service._checkout_version_branch("17.0")
+        self.assertIn("17.0", str(ctx.exception))
+        mock_checkout.assert_not_called()
 
     @patch("dev_project.git.runner.run_checked")
     def test_checkout_parsed_or_version_fetches_explicit_commit(self, mock_run_checked):

@@ -43,26 +43,41 @@ class CheckoutService:
             return
         self._runner.run_git(["fetch", "--depth", "1", "origin", ref], capture=False)
 
+    def _local_branch_exists(self, branch_name: str) -> bool:
+        result = self._runner.run_git(["branch", "--list", branch_name])
+        return bool(result.stdout.strip())
+
+    def _remote_branch_exists(self, branch_name: str) -> bool:
+        result = self._runner.run_git(["branch", "-r", "--list", f"origin/{branch_name}"])
+        return bool(result.stdout.strip())
+
+    def _ref_exists(self, ref: str) -> bool:
+        result = self._runner.run_git(["rev-parse", "--verify", ref])
+        text = (result.stdout or result.stderr or "").strip()
+        return result.returncode == 0 and "fatal" not in text
+
+    def _fetch_local_branch_from_origin(self, branch_name: str) -> None:
+        self._runner.run_git(
+            ["fetch", "--depth", "1", "origin", f"{branch_name}:{branch_name}"],
+            capture=False,
+        )
+
     def _checkout_version_branch(self, odoo_version: str) -> None:
         self.ensure_branch_exists(odoo_version, odoo_version)
-        branch_commit = self._runner.run_git(["rev-parse", "--verify", odoo_version])
-        branch_commit_string = branch_commit.stdout.strip() or branch_commit.stderr.strip()
-        if branch_commit.returncode != 0 or "fatal" in branch_commit_string:
-            newest_version = self.get_odoo_latest_version()
-            self._git_checkout_ref(str(newest_version))
-            self._git_pull()
-            newest_version = self.get_odoo_latest_version()
-            if str(newest_version) == odoo_version:
-                self._git_checkout_ref(str(newest_version))
-            else:
-                message = (
-                    f"Version {odoo_version} not exists in git repository "
-                    f"{self.link.project_path}"
-                )
-                _logger.error(message)
-                raise GitError(message)
-        else:
+        if self._ref_exists(odoo_version):
             self._git_checkout_ref(odoo_version)
+            return
+        if self._remote_branch_exists(odoo_version):
+            self._fetch_local_branch_from_origin(odoo_version)
+            if self._ref_exists(odoo_version):
+                self._git_checkout_ref(odoo_version)
+                return
+        message = (
+            f"Version {odoo_version} not exists in git repository "
+            f"{self.link.project_path}"
+        )
+        _logger.error(message)
+        raise GitError(message)
 
     def checkout_parsed_or_version(self, odoo_version: str) -> None:
         if self.link.link_type == constants.GITLINK_TYPE_FILE:
@@ -80,22 +95,12 @@ class CheckoutService:
             self._checkout_version_branch(odoo_version)
 
     def ensure_branch_exists(self, branch_name: str, odoo_version: str) -> None:
-        current_branches = self._runner.run_git(["branch"])
-        if branch_name in current_branches.stdout:
+        if self._local_branch_exists(branch_name):
             return
-        current_remote_branches = self._runner.run_git(["branch", "-a"])
-        if f"origin/{branch_name}" in current_remote_branches.stdout:
+        if self._remote_branch_exists(branch_name):
+            self._fetch_local_branch_from_origin(branch_name)
             return
-        self._runner.run_git(
-            [
-                "fetch",
-                "--depth",
-                "1",
-                "origin",
-                f"{branch_name}:{branch_name}",
-            ],
-            capture=False,
-        )
+        self._fetch_local_branch_from_origin(branch_name)
 
     def get_odoo_latest_version(self) -> float:
         all_remote_branches = self._runner.run_git(["branch", "-r"])
