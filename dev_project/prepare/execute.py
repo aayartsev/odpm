@@ -104,7 +104,11 @@ def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
     )
 
 
-def build_plan(config: Config, args: OdpmCliArgs) -> OdpmPlan:
+def build_plan(
+    config: Config,
+    args: OdpmCliArgs,
+    project_env: CreateProjectEnvironment | None = None,
+) -> OdpmPlan:
     ctx = make_prepare_context(
         config,
         PlanOnlyProjectEnv(),  # type: ignore[arg-type]
@@ -112,7 +116,9 @@ def build_plan(config: Config, args: OdpmCliArgs) -> OdpmPlan:
         args,
     )
     prepare_plan = build_prepare_plan(ctx)
-    runtime_steps = build_runtime_plan_steps(config, args, ctx.host_ctx)
+    runtime_steps = build_runtime_plan_steps(
+        config, args, ctx.host_ctx, project_env
+    )
     runtime_warnings = build_runtime_plan_warnings(config, args, ctx.host_ctx)
     return OdpmPlan(
         steps=prepare_plan.steps + runtime_steps,

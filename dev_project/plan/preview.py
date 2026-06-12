@@ -9,6 +9,12 @@ from .compose_preview import (
     preview_compose_service,
     preview_runtime_config_text,
 )
+from .debug_profile_preview import (
+    debug_profile_needs_update,
+    format_debug_profile_payload,
+    normalized_debug_profile_text_from_disk,
+    preview_debug_profile_text,
+)
 from .runtime_preview import (
     clear_runtime_config_preview_cache,
     format_runtime_config_payload,
@@ -22,6 +28,10 @@ __all__ = (
     "clear_runtime_config_preview_cache",
     "compose_generate_needs_execute",
     "compose_service_needs_update",
+    "debug_profile_needs_update",
+    "format_debug_profile_payload",
+    "normalized_debug_profile_text_from_disk",
+    "preview_debug_profile_text",
     "format_runtime_config_payload",
     "normalize_runtime_config_text",
     "normalized_runtime_config_text_from_disk",

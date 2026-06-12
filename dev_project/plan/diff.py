@@ -14,6 +14,10 @@ from ..translations import _
 from ..host.cli.args import OdpmCliArgs
 from ..inside_docker_app.exceptions import ConfigValidationError
 from .compose_preview import docker_compose_path, preview_compose_service
+from .debug_profile_preview import (
+    normalized_debug_profile_text_from_disk,
+    preview_debug_profile_text,
+)
 from .core import OdpmPlan
 from .runtime_preview import (
     normalized_runtime_config_text_from_disk,
@@ -96,6 +100,18 @@ def preview_dockerignore_content(config: Config) -> str:
     )
 
 
+def diff_debug_profile(
+    config: Config, project_env: CreateProjectEnvironment | None
+) -> PlanFileDiff | None:
+    if project_env is None:
+        return None
+    preview = preview_debug_profile_text(project_env)
+    if preview is None:
+        return None
+    on_disk = normalized_debug_profile_text_from_disk(config.project_dir)
+    return _plan_file_diff(constants.ODPM_DEBUG_PROFILE_REL_PATH, on_disk, preview)
+
+
 def diff_runtime_config(config: Config) -> PlanFileDiff | None:
     preview = preview_runtime_config_text(config)
     if preview is None:
@@ -158,6 +174,10 @@ def build_plan_diffs(
     if not args.plan_show_diff:
         return ()
     diffs: list[PlanFileDiff] = []
+    if _step_would_change(plan, "ide.debug_profile"):
+        debug_profile_diff = diff_debug_profile(config, project_env)
+        if debug_profile_diff is not None:
+            diffs.append(debug_profile_diff)
     if _step_would_change(plan, "compose.service"):
         runtime_diff = diff_runtime_config(config)
         if runtime_diff is not None:

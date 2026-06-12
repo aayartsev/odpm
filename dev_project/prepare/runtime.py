@@ -6,8 +6,10 @@ from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..plan import PlanStep
 from ..plan.compose_preview import vscode_settings_up_to_date
+from ..plan.debug_profile_preview import debug_profile_needs_update
 from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
 from ..config import Config
+from ..project_env import CreateProjectEnvironment
 from .helpers import make_plan_step
 
 
@@ -22,6 +24,30 @@ def evaluate_runtime_ci_build_image(
         "run",
         True,
         "build CI image from prepared context",
+    )
+
+
+def evaluate_runtime_debug_profile(
+    config: Config, project_env: CreateProjectEnvironment | None = None
+) -> PlanStep | None:
+    if not config.policy.include_debugpy:
+        return None
+    description = "Write .odpm/runtime/debug-profile.json"
+    needs_update, reason = debug_profile_needs_update(config, project_env)
+    if needs_update:
+        return make_plan_step(
+            "ide.debug_profile",
+            description,
+            "run",
+            False,
+            reason,
+        )
+    return make_plan_step(
+        "ide.debug_profile",
+        description,
+        "noop",
+        False,
+        reason,
     )
 
 
@@ -63,11 +89,15 @@ def evaluate_runtime_compose_up(
 
 
 def build_runtime_plan_steps(
-    config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
+    config: Config,
+    args: OdpmCliArgs,
+    host_ctx: HostProjectContext,
+    project_env: CreateProjectEnvironment | None = None,
 ) -> tuple[PlanStep, ...]:
     steps: list[PlanStep] = []
     for evaluator in (
         lambda: evaluate_runtime_ci_build_image(config, args),
+        lambda: evaluate_runtime_debug_profile(config, project_env),
         lambda: evaluate_runtime_vscode_settings(config),
         lambda: evaluate_runtime_compose_up(config, args, host_ctx),
     ):

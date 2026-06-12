@@ -26,7 +26,7 @@ class OdpmPlanner:
         from .runtime_preview import clear_runtime_config_preview_cache
 
         clear_runtime_config_preview_cache(config)
-        plan = build_plan(config, args)
+        plan = build_plan(config, args, project_env)
         diffs = build_plan_diffs(plan, config, args, project_env)
         if not diffs:
             return plan
