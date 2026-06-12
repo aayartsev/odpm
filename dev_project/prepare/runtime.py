@@ -7,7 +7,10 @@ from ..host.context import HostProjectContext
 from ..plan import PlanStep
 from ..debugger.ide import ide_includes_pycharm, ide_includes_vscode
 from ..plan.compose_preview import vscode_settings_up_to_date
-from ..plan.pycharm_preview import pycharm_run_config_up_to_date
+from ..plan.pycharm_preview import (
+    pycharm_run_config_description,
+    pycharm_run_config_up_to_date,
+)
 from ..plan.debug_profile_preview import debug_profile_needs_update
 from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
 from ..config import Config
@@ -85,7 +88,7 @@ def evaluate_runtime_pycharm_settings(
         return None
     if not ide_includes_pycharm(config.user_env.odpm_ide):
         return None
-    description = "Update PyCharm Attach to DAP run configuration"
+    description = pycharm_run_config_description(config)
     if pycharm_run_config_up_to_date(config, project_env):
         return make_plan_step(
             "pycharm.settings",
@@ -99,7 +102,7 @@ def evaluate_runtime_pycharm_settings(
         description,
         "run",
         False,
-        "refresh PyCharm Attach to DAP configuration",
+        description,
     )
 
 

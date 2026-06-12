@@ -45,9 +45,9 @@ def parse_debugger_connect_host(raw: str | None) -> str:
 
 def parse_debugger_suspend(raw: str | None) -> bool:
     value = (raw or "").strip().lower()
-    if not value or value in {"0", "false", "no", "off"}:
+    if not value or value in {"0", "false", "no", "off", "n"}:
         return False
-    if value in {"1", "true", "yes", "on"}:
+    if value in {"1", "true", "yes", "on", "y"}:
         return True
     _logger.warning("Unknown ODPM_DEBUGGER_SUSPEND=%r, using false", raw)
     return False

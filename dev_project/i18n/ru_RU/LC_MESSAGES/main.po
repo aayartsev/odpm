@@ -116,6 +116,9 @@ msgstr "Файлы проекта готовы."
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Запуск скрипта от root/sudo запрещен"
 
+msgid "Set IDE host name for pydevd_connect (container connects to Debug Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
+msgstr "Укажите имя хоста IDE для pydevd_connect (контейнер подключается к Debug Server). Нажмите 'Enter' для значения по умолчанию {DEFAULT_HOST}:\n"
+
 msgid "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Укажите порт, который будет слушать сервер PostgreSQL. Можете оставить значение по умолчанию {DEFAULT_POSTGRES_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
 
@@ -139,6 +142,9 @@ msgstr "Укажите каталог хранения исходных текс
 
 msgid "Starting containers with Docker Compose..."
 msgstr "Запуск контейнеров через Docker Compose..."
+
+msgid "Suspend Odoo until PyCharm Debug Server connects? Answer y/yes or n/no (Enter for no):\n"
+msgstr "Приостанавливать Odoo до подключения PyCharm Debug Server? Ответьте y/yes или n/no (Enter — нет):\n"
 
 msgid "Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"
 msgstr "Переключение проекта {PROJECT_NAME} на ветку {BRANCH_NAME}"
@@ -190,6 +196,12 @@ msgstr "Вы выбрали следующий порт, который буде
 
 msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 msgstr "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
+
+msgid "You selected debugger connect host: {SELECTED_HOST}\n"
+msgstr "Вы выбрали хост подключения отладчика: {SELECTED_HOST}\n"
+
+msgid "You selected debugger suspend on connect: {SELECTED_SUSPEND}\n"
+msgstr "Вы выбрали приостановку при подключении отладчика: {SELECTED_SUSPEND}\n"
 
 msgid "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n"
 msgstr "Вы выбрали системную локаль по умолчанию для сообщений odpm: {SELECTED_LOCALE}\n"

@@ -8,6 +8,7 @@ from .. import constants
 from ..debugger.backends import DEBUGGER_BACKENDS
 from ..debugger.constants import (
     DEBUGGER_BACKEND_LABELS,
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEFAULT_DEBUGGER_BACKEND,
     DEFAULT_DEBUGGER_CONNECT_HOST,
     DEFAULT_ODPM_IDE,
@@ -267,11 +268,16 @@ class CreateUserEnvironment:
             return defaults
         debugger_backend = self.get_from_user_debugger_backend()
         odpm_ide = self.get_from_user_odpm_ide()
+        connect_host = DEFAULT_DEBUGGER_CONNECT_HOST
+        suspend = "0"
+        if debugger_backend == DEBUGGER_BACKEND_PYDEVD_CONNECT:
+            connect_host = self.get_from_user_debugger_connect_host()
+            suspend = "1" if self.get_from_user_debugger_suspend() else "0"
         return EnvData(
             ODPM_DEBUGGER_BACKEND=debugger_backend,
             ODPM_IDE=odpm_ide,
-            ODPM_DEBUGGER_CONNECT_HOST=DEFAULT_DEBUGGER_CONNECT_HOST,
-            ODPM_DEBUGGER_SUSPEND="0",
+            ODPM_DEBUGGER_CONNECT_HOST=connect_host,
+            ODPM_DEBUGGER_SUSPEND=suspend,
         )
 
     def get_from_user_odoo_projects_src_dir(self) -> str:
@@ -428,6 +434,40 @@ class CreateUserEnvironment:
             ).format(SELECTED_LOCALE=parsed_locale)
         )
         return parsed_locale
+
+    def get_from_user_debugger_connect_host(self) -> str:
+        default_host = DEFAULT_DEBUGGER_CONNECT_HOST
+        user_host = prompt_input(
+            _(
+                "Set IDE host name for pydevd_connect (container connects to Debug Server). "
+                "Press 'Enter' for default {DEFAULT_HOST}:\n"
+            ).format(DEFAULT_HOST=default_host)
+        )
+        if not user_host:
+            selected = default_host
+        else:
+            selected = parse_debugger_connect_host(user_host)
+        _logger.info(
+            _("You selected debugger connect host: {SELECTED_HOST}\n").format(
+                SELECTED_HOST=selected,
+            )
+        )
+        return selected
+
+    def get_from_user_debugger_suspend(self) -> bool:
+        choice = prompt_input(
+            _(
+                "Suspend Odoo until PyCharm Debug Server connects? "
+                "Answer y/yes or n/no (Enter for no):\n"
+            )
+        )
+        selected = parse_debugger_suspend(choice)
+        _logger.info(
+            _(
+                "You selected debugger suspend on connect: {SELECTED_SUSPEND}\n"
+            ).format(SELECTED_SUSPEND="yes" if selected else "no")
+        )
+        return selected
 
     def get_from_user_debugger_backend(self) -> str:
         default_backend = DEFAULT_DEBUGGER_BACKEND

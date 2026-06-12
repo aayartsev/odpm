@@ -9,9 +9,13 @@ from unittest.mock import patch
 
 from dev_project import constants
 from dev_project.debugger.constants import (
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEFAULT_DEBUGGER_BACKEND,
+    DEFAULT_DEBUGGER_CONNECT_HOST,
     DEFAULT_ODPM_IDE,
     ODPM_DEBUGGER_BACKEND_ENV,
+    ODPM_DEBUGGER_CONNECT_HOST_ENV,
+    ODPM_DEBUGGER_SUSPEND_ENV,
     ODPM_IDE_ENV,
 )
 from dev_project.host.cli.args import OdpmCliArgs
@@ -69,6 +73,39 @@ class UserEnvDebuggerTests(unittest.TestCase):
                 DEFAULT_DEBUGGER_BACKEND,
             )
             self.assertEqual(env_data[ODPM_IDE_ENV], DEFAULT_ODPM_IDE)
+
+    @patch("dev_project.host.user_env.prompt_input")
+    def test_interactive_pydevd_connect_prompts_connect_host_and_suspend(
+        self, mock_prompt
+    ) -> None:
+        mock_prompt.side_effect = [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "1",
+            "2",
+            "",
+            "",
+            "y",
+            "",
+        ]
+
+        with tempfile.TemporaryDirectory() as project_dir:
+            self._write_minimal_env(project_dir)
+            user_env = CreateUserEnvironment(self._pd_manager(project_dir))
+            env_data = user_env._build_env_data_interactive()
+            self.assertEqual(
+                env_data[ODPM_DEBUGGER_BACKEND_ENV],
+                DEBUGGER_BACKEND_PYDEVD_CONNECT,
+            )
+            self.assertEqual(
+                env_data[ODPM_DEBUGGER_CONNECT_HOST_ENV],
+                DEFAULT_DEBUGGER_CONNECT_HOST,
+            )
+            self.assertEqual(env_data[ODPM_DEBUGGER_SUSPEND_ENV], "1")
 
 
 if __name__ == "__main__":

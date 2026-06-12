@@ -10,6 +10,7 @@ from ..dev_mode import dev_mode_disabled
 from ..logging import get_module_logger
 from ..debugger.constants import (
     DEBUGGER_BACKEND_PYDEVD_CONNECT,
+    ODPM_IDE_NONE,
     ODPM_IDE_VSCODE,
 )
 from ..scenario_policy import is_debugger_requirement, is_debugpy_requirement
@@ -108,6 +109,15 @@ def apply_policy_and_layout(config: Config) -> None:
         _logger.warning(
             "ODPM_DEBUGGER_BACKEND=pydevd_connect is incompatible with ODPM_IDE=vscode; "
             "use ODPM_IDE=pycharm or both"
+        )
+
+    if (
+        config.user_env.debugger_backend == DEBUGGER_BACKEND_PYDEVD_CONNECT
+        and config.user_env.odpm_ide == ODPM_IDE_NONE
+    ):
+        _logger.warning(
+            "ODPM_DEBUGGER_BACKEND=pydevd_connect with ODPM_IDE=none; "
+            "set ODPM_IDE=pycharm or both to generate Debug Server XML"
         )
 
     ctx = config._bootstrap_ctx

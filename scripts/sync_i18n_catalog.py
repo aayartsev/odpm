@@ -156,11 +156,21 @@ RU_MESSAGES: dict[str, str] = {
         "значение по умолчанию {DEFAULT_ODOO_BACKUP_DIR} или написать ваше собственное. "
         "Нажмите 'Enter' чтобы оставить значение по умолчанию:"
     ),
+    "Set IDE host name for pydevd_connect (container connects to Debug Server). "
+    "Press 'Enter' for default {DEFAULT_HOST}:\n": (
+        "Укажите имя хоста IDE для pydevd_connect (контейнер подключается к Debug Server). "
+        "Нажмите 'Enter' для значения по умолчанию {DEFAULT_HOST}:\n"
+    ),
     "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} "
     "or write your own. Press 'Enter' to leave default value:\n": (
         "Укажите порт, который будет слушать сервер Gevent Websocket. Можете оставить "
         "значение по умолчанию {DEFAULT_GEVENT_PORT} или укажите свой собственный. "
         "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+    ),
+    "Suspend Odoo until PyCharm Debug Server connects? "
+    "Answer y/yes or n/no (Enter for no):\n": (
+        "Приостанавливать Odoo до подключения PyCharm Debug Server? "
+        "Ответьте y/yes или n/no (Enter — нет):\n"
     ),
     "Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or "
     "write your own. Press 'Enter' to leave default value:\n": (
@@ -268,6 +278,12 @@ RU_MESSAGES: dict[str, str] = {
     "{SELECTED_POSTGRES_PORT}\n": (
         "Вы выбрали следующий порт, который будет слушать сервер PostgreSQL: "
         "{SELECTED_POSTGRES_PORT}\n"
+    ),
+    "You selected debugger connect host: {SELECTED_HOST}\n": (
+        "Вы выбрали хост подключения отладчика: {SELECTED_HOST}\n"
+    ),
+    "You selected debugger suspend on connect: {SELECTED_SUSPEND}\n": (
+        "Вы выбрали приостановку при подключении отладчика: {SELECTED_SUSPEND}\n"
     ),
     "You select this port for which Python Debugger will listen: "
     "{SELECTED_DEBUGGER_PORT}\n": (
