@@ -89,7 +89,12 @@ class ComposeGenerator:
         )
         debugger_port = self.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
         debugger_port_map = f"{debugger_port}:{constants.DEBUGGER_DOCKER_PORT}"
-        dev_extra_ports = policy.build_dev_extra_ports(debugger_port_map)
+        from ..debugger.user_env import resolve_debugger_backend_id
+
+        dev_extra_ports = policy.build_dev_extra_ports(
+            debugger_port_map,
+            debugger_backend=resolve_debugger_backend_id(self.user_env),
+        )
 
         compose_service = self.config.compose_service
         if compose_service is None:

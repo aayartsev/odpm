@@ -6,15 +6,17 @@
 
 - В контейнере запускается **отладчик Python** (библиотека debugpy).
 - На компьютер разработчика пробрасывается порт из **`DEBUGGER_PORT`** (по умолчанию 5678).
-- В **`.odpm/runtime/debug-profile.json`** записывается **IDE-neutral профиль** (`schema_version: 1`): параметры подключения debugpy и `path_mappings` (локальный путь ↔ путь в контейнере). Файл в gitignore, как и `runtime/config.json`.
-- В каталоге `.vscode/` создаётся **`launch.json`** и **`settings.json`** — VS Code читает те же mappings из профиля через `VscodeConfigurator`.
+- В **`.odpm/runtime/debug-profile.json`** записывается **IDE-neutral профиль** (`schema_version: 2`): backend (`debugpy_listen`), direction (`attach`), protocol, host/port и `path_mappings` (локальный путь ↔ путь в контейнере). Файл в gitignore, как и `runtime/config.json`.
+- По **`ODPM_IDE`** в `.env` odpm генерирует настройки IDE: **`vscode`** / **`both`** → `.vscode/launch.json` и `settings.json` (`VscodeConfigurator`); **`pycharm`** / **`both`** → `.run/Odoo Remote Attach.run.xml` (Attach to DAP, PyCharm 2024+); **`none`** — только `debug-profile.json`.
 
 Пример фрагмента профиля:
 
 ```json
 {
-    "schema_version": 1,
+    "schema_version": 2,
     "debugger": {
+        "backend": "debugpy_listen",
+        "direction": "attach",
         "protocol": "debugpy",
         "host": "localhost",
         "port": 5678,
@@ -44,13 +46,17 @@
 
 В сценариях **`server`** и **`ci`** отладчик **не используется** — `debug-profile.json` и `.vscode/` не создаются. Не включайте `developer` на production ради отладки — для этого служит отдельная машина разработчика.
 
-## Другие IDE (запланировано)
+## PyCharm (Attach to DAP)
 
-Профиль задуман как общий контракт для генераторов конфигурации IDE (не только VS Code):
+При `ODPM_IDE=pycharm` или `both` odpm создаёт **`.run/Odoo Remote Attach.run.xml`** — конфигурация **Attach to DAP** (PyCharm 2024+, поддержка debugpy). Запустите Odoo через odpm, откройте проект в PyCharm и подключитесь к конфигурации **Odoo: Remote Attach**.
+
+**PyCharm Community Edition** не поддерживает remote debug; используйте VS Code/Cursor (`ODPM_IDE=vscode`) или PyCharm Professional.
+
+Режим **PyCharm Debug Server** (`pydevd_connect`, контейнер подключается к IDE) — этап 2, только Professional.
+
+## Другие IDE
 
 | ID | Задача | Статус |
 |----|--------|--------|
-| TD-FEAT-08a | Генератор run/debug конфигурации **PyCharm** из `debug-profile.json` | запланировано |
-| TD-FEAT-08b | Документация «подключение вручную» для IDE без генератора (пути из профиля) | запланировано |
-
-Сейчас автоматически настраивается только VS Code (`launch.json` / `settings.json`).
+| TD-FEAT-08a | PyCharm Attach to DAP из `debug-profile.json` | реализовано (этап 1) |
+| TD-FEAT-08b | PyCharm Debug Server + ручное подключение для прочих IDE | этап 2 / документация |

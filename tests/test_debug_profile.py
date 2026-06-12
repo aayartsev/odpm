@@ -9,6 +9,10 @@ import unittest
 from unittest.mock import MagicMock
 
 from dev_project import constants
+from dev_project.debugger.constants import (
+    DEBUGGER_BACKEND_DEBUGPY_LISTEN,
+    DEBUGGER_DIRECTION_ATTACH,
+)
 from dev_project.project_env.debug_profile import (
     DEBUG_PROFILE_SCHEMA_VERSION,
     DebuggerProfile,
@@ -29,6 +33,7 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
         env.config = config
         env.user_env.backups = "/proj/backups"
         env.user_env.debugger_port = 5678
+        env.user_env.debugger_backend = DEBUGGER_BACKEND_DEBUGPY_LISTEN
         env.mapped_folders = mapped_folders
         return DebuggerProfileBuilder(env)
 
@@ -99,7 +104,7 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
 
             self.assertIn(os.path.abspath(link_path), local_roots)
 
-    def test_build_returns_schema_v1_profile(self) -> None:
+    def test_build_returns_schema_v2_profile(self) -> None:
         builder = self._builder(
             mapped_folders=[
                 MappedPath(local="/proj/sources/odoo", docker="/home/odoo/odoo"),
@@ -110,6 +115,8 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
         payload = profile.to_dict()
 
         self.assertEqual(payload["schema_version"], DEBUG_PROFILE_SCHEMA_VERSION)
+        self.assertEqual(payload["debugger"]["backend"], DEBUGGER_BACKEND_DEBUGPY_LISTEN)
+        self.assertEqual(payload["debugger"]["direction"], DEBUGGER_DIRECTION_ATTACH)
         self.assertEqual(payload["debugger"]["protocol"], "debugpy")
         self.assertEqual(payload["debugger"]["port"], 5678)
         self.assertEqual(
@@ -136,6 +143,23 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
                 }
             ],
         )
+
+    def test_from_dict_upgrades_schema_v1_profile(self) -> None:
+        payload = {
+            "schema_version": 1,
+            "debugger": {
+                "protocol": "debugpy",
+                "host": "localhost",
+                "port": 5678,
+                "name": constants.DEBUGGER_UNIT_NAME,
+            },
+            "path_mappings": [],
+        }
+        profile = DebuggerProfile.from_dict(payload)
+        upgraded = profile.to_dict()
+        self.assertEqual(upgraded["schema_version"], DEBUG_PROFILE_SCHEMA_VERSION)
+        self.assertEqual(upgraded["debugger"]["backend"], DEBUGGER_BACKEND_DEBUGPY_LISTEN)
+        self.assertEqual(upgraded["debugger"]["direction"], DEBUGGER_DIRECTION_ATTACH)
 
     def test_from_dict_rejects_unsupported_schema_version(self) -> None:
         with self.assertRaises(ValueError) as ctx:

@@ -5,6 +5,25 @@ from pathlib import Path
 from typing import TypedDict
 
 from .. import constants
+from ..debugger.backends import DEBUGGER_BACKENDS
+from ..debugger.constants import (
+    DEBUGGER_BACKEND_LABELS,
+    DEFAULT_DEBUGGER_BACKEND,
+    DEFAULT_DEBUGGER_CONNECT_HOST,
+    DEFAULT_ODPM_IDE,
+    ODPM_DEBUGGER_BACKEND_ENV,
+    ODPM_DEBUGGER_CONNECT_HOST_ENV,
+    ODPM_DEBUGGER_SUSPEND_ENV,
+    ODPM_IDE_ENV,
+    ODPM_IDE_LABELS,
+    ODPM_IDE_VALUES,
+)
+from ..debugger.env_parsing import (
+    parse_debugger_backend,
+    parse_debugger_connect_host,
+    parse_debugger_suspend,
+    parse_odpm_ide,
+)
 from ..translations import _, apply_locale_from_sources, parse_odpm_locale_setting
 from ..errors import ConfigError
 from ..interactive import prompt_input, stdin_is_interactive
@@ -27,6 +46,10 @@ class _EnvDataRequired(TypedDict):
 
 class EnvData(_EnvDataRequired, total=False):
     ODPM_LOCALE: str
+    ODPM_DEBUGGER_BACKEND: str
+    ODPM_IDE: str
+    ODPM_DEBUGGER_CONNECT_HOST: str
+    ODPM_DEBUGGER_SUSPEND: str
 
 
 class CreateUserEnvironment:
@@ -102,6 +125,16 @@ class CreateUserEnvironment:
                 self.odpm_locale = parsed_locale
         else:
             self.odpm_locale = None
+        self.debugger_backend = parse_debugger_backend(
+            parser["env"].get(ODPM_DEBUGGER_BACKEND_ENV)
+        )
+        self.odpm_ide = parse_odpm_ide(parser["env"].get(ODPM_IDE_ENV))
+        self.debugger_connect_host = parse_debugger_connect_host(
+            parser["env"].get(ODPM_DEBUGGER_CONNECT_HOST_ENV)
+        )
+        self.debugger_suspend = parse_debugger_suspend(
+            parser["env"].get(ODPM_DEBUGGER_SUSPEND_ENV)
+        )
 
     def create_env_file(self, local_env_file: str) -> None:
         new_env_data = self._build_env_data_interactive()
@@ -113,7 +146,8 @@ class CreateUserEnvironment:
                 "Non-interactive mode requires an existing .env file in the project directory "
                 "or under ~/.odpm/.env. Create it manually or set environment variables "
                 "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-                "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE) before the first run."
+                "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, "
+                "ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
             )
             _logger.error(message)
             raise ConfigError(message)
@@ -145,6 +179,8 @@ class CreateUserEnvironment:
                 "GEVENT_PORT",
                 "ODPM_SCENARIO",
                 constants.ODPM_LOCALE_ENV_KEY,
+                ODPM_DEBUGGER_BACKEND_ENV,
+                ODPM_IDE_ENV,
             )
         ):
             return True
@@ -182,7 +218,22 @@ class CreateUserEnvironment:
         locale_value = os.environ.get(constants.ODPM_LOCALE_ENV_KEY, "").strip()
         if locale_value:
             env_data[constants.ODPM_LOCALE_ENV_KEY] = locale_value
+        env_data.update(self._debugger_env_defaults_from_environ())
         return env_data
+
+    def _debugger_env_defaults_from_environ(self) -> EnvData:
+        return EnvData(
+            ODPM_DEBUGGER_BACKEND=parse_debugger_backend(
+                os.environ.get(ODPM_DEBUGGER_BACKEND_ENV)
+            ),
+            ODPM_IDE=parse_odpm_ide(os.environ.get(ODPM_IDE_ENV)),
+            ODPM_DEBUGGER_CONNECT_HOST=parse_debugger_connect_host(
+                os.environ.get(ODPM_DEBUGGER_CONNECT_HOST_ENV)
+            ),
+            ODPM_DEBUGGER_SUSPEND="1"
+            if parse_debugger_suspend(os.environ.get(ODPM_DEBUGGER_SUSPEND_ENV))
+            else "0",
+        )
 
     def _build_env_data_interactive(self) -> EnvData:
         env_data = EnvData(
@@ -195,10 +246,33 @@ class CreateUserEnvironment:
             GEVENT_PORT=self.get_from_user_gevent_port(),
             ODPM_SCENARIO=self.get_from_user_odpm_scenario(),
         )
+        env_data.update(
+            self._debugger_env_data_interactive(
+                odpm_scenario=env_data["ODPM_SCENARIO"]
+            )
+        )
         locale_value = self.get_from_user_odpm_locale()
         if locale_value:
             env_data[constants.ODPM_LOCALE_ENV_KEY] = locale_value
         return env_data
+
+    def _debugger_env_data_interactive(self, *, odpm_scenario: str) -> EnvData:
+        defaults = EnvData(
+            ODPM_DEBUGGER_BACKEND=DEFAULT_DEBUGGER_BACKEND,
+            ODPM_IDE=DEFAULT_ODPM_IDE,
+            ODPM_DEBUGGER_CONNECT_HOST=DEFAULT_DEBUGGER_CONNECT_HOST,
+            ODPM_DEBUGGER_SUSPEND="0",
+        )
+        if odpm_scenario != constants.DEVELOPER_SCENARIO:
+            return defaults
+        debugger_backend = self.get_from_user_debugger_backend()
+        odpm_ide = self.get_from_user_odpm_ide()
+        return EnvData(
+            ODPM_DEBUGGER_BACKEND=debugger_backend,
+            ODPM_IDE=odpm_ide,
+            ODPM_DEBUGGER_CONNECT_HOST=DEFAULT_DEBUGGER_CONNECT_HOST,
+            ODPM_DEBUGGER_SUSPEND="0",
+        )
 
     def get_from_user_odoo_projects_src_dir(self) -> str:
         default_odoo_projects_src_dir = os.path.join(Path.home(), "odoo_projects")
@@ -354,3 +428,67 @@ class CreateUserEnvironment:
             ).format(SELECTED_LOCALE=parsed_locale)
         )
         return parsed_locale
+
+    def get_from_user_debugger_backend(self) -> str:
+        default_backend = DEFAULT_DEBUGGER_BACKEND
+        available_backends = sorted(DEBUGGER_BACKENDS)
+        options = "\n".join(
+            f"{index} - {DEBUGGER_BACKEND_LABELS.get(backend_id, backend_id)}"
+            for index, backend_id in enumerate(available_backends, start=1)
+        )
+        choice = prompt_input(
+            _(
+                "Select debugger backend for developer scenario "
+                "(Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
+            ).format(DEFAULT_BACKEND=default_backend, OPTIONS=options)
+        )
+        if not choice:
+            selected = default_backend
+        else:
+            try:
+                selected = available_backends[int(choice) - 1]
+            except (ValueError, IndexError):
+                _logger.warning(
+                    "Invalid debugger backend choice %r, using %s",
+                    choice,
+                    default_backend,
+                )
+                selected = default_backend
+        _logger.info(
+            _("You selected debugger backend: {SELECTED_BACKEND}\n").format(
+                SELECTED_BACKEND=selected,
+            )
+        )
+        return selected
+
+    def get_from_user_odpm_ide(self) -> str:
+        default_ide = DEFAULT_ODPM_IDE
+        options = "\n".join(
+            f"{index} - {ODPM_IDE_LABELS[ide_id]}"
+            for index, ide_id in enumerate(sorted(ODPM_IDE_VALUES), start=1)
+        )
+        choice = prompt_input(
+            _(
+                "Select IDE configuration to generate "
+                "(Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
+            ).format(DEFAULT_IDE=default_ide, OPTIONS=options)
+        )
+        if not choice:
+            selected = default_ide
+        else:
+            ordered = sorted(ODPM_IDE_VALUES)
+            try:
+                selected = ordered[int(choice) - 1]
+            except (ValueError, IndexError):
+                _logger.warning(
+                    "Invalid ODPM_IDE choice %r, using %s",
+                    choice,
+                    default_ide,
+                )
+                selected = default_ide
+        _logger.info(
+            _("You selected IDE configuration: {SELECTED_IDE}\n").format(
+                SELECTED_IDE=selected,
+            )
+        )
+        return selected

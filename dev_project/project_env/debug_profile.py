@@ -9,6 +9,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
+from ..debugger.backends import get_backend
+from ..debugger.constants import (
+    DEBUGGER_DIRECTION_ATTACH,
+    DEBUGGER_DIRECTION_CONNECT,
+    DEFAULT_DEBUGGER_BACKEND,
+)
 from .types import DebuggerPathRecord
 
 if TYPE_CHECKING:
@@ -38,7 +44,8 @@ def write_debug_profile(env: CreateProjectEnvironment) -> str:
     ensure_runtime_dir_gitignore(project_dir)
     return write_debug_profile_to_path(env, debug_profile_path(project_dir))
 
-DEBUG_PROFILE_SCHEMA_VERSION = 1
+DEBUG_PROFILE_SCHEMA_VERSION = 2
+DEBUG_PROFILE_SCHEMA_VERSION_V1 = 1
 DEBUGGER_PROTOCOL_DEBUGPY = "debugpy"
 
 
@@ -65,9 +72,13 @@ class DebuggerConnection:
     host: str
     port: int
     name: str
+    backend: str = DEFAULT_DEBUGGER_BACKEND
+    direction: str = DEBUGGER_DIRECTION_ATTACH
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "backend": self.backend,
+            "direction": self.direction,
             "protocol": self.protocol,
             "host": self.host,
             "port": self.port,
@@ -84,7 +95,16 @@ class DebuggerConnection:
             raise ValueError("debugger connection requires protocol, host, and name")
         if not isinstance(port_raw, int) or isinstance(port_raw, bool):
             raise ValueError("debugger connection port must be an integer")
-        return cls(protocol=protocol, host=host, port=port_raw, name=name)
+        backend = str(data.get("backend", DEFAULT_DEBUGGER_BACKEND)).strip()
+        direction = str(data.get("direction", DEBUGGER_DIRECTION_ATTACH)).strip()
+        return cls(
+            protocol=protocol,
+            host=host,
+            port=port_raw,
+            name=name,
+            backend=backend,
+            direction=direction,
+        )
 
 
 @dataclass
@@ -103,17 +123,28 @@ class DebuggerProfile:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DebuggerProfile:
         version = int(data.get("schema_version", 0))
-        if version != DEBUG_PROFILE_SCHEMA_VERSION:
+        if version not in (DEBUG_PROFILE_SCHEMA_VERSION_V1, DEBUG_PROFILE_SCHEMA_VERSION):
             raise ValueError(f"unsupported debug profile schema_version: {version}")
         debugger_raw = data.get("debugger")
         if not isinstance(debugger_raw, dict):
             raise ValueError("debugger must be an object")
+        debugger = DebuggerConnection.from_dict(debugger_raw)
+        if version == DEBUG_PROFILE_SCHEMA_VERSION_V1:
+            debugger = DebuggerConnection(
+                protocol=debugger.protocol,
+                host=debugger.host,
+                port=debugger.port,
+                name=debugger.name,
+                backend=DEFAULT_DEBUGGER_BACKEND,
+                direction=DEBUGGER_DIRECTION_ATTACH,
+            )
+            version = DEBUG_PROFILE_SCHEMA_VERSION
         mappings_raw = data.get("path_mappings", [])
         if not isinstance(mappings_raw, list):
             raise ValueError("path_mappings must be a list")
         return cls(
             schema_version=version,
-            debugger=DebuggerConnection.from_dict(debugger_raw),
+            debugger=debugger,
             path_mappings=[
                 DebuggerPathMapping.from_dict(item)
                 for item in mappings_raw
@@ -138,9 +169,18 @@ class DebuggerProfileBuilder:
 
     def build(self) -> DebuggerProfile:
         port = self.env.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
+        backend_id = self.env.user_env.debugger_backend
+        backend = get_backend(backend_id)
+        direction = (
+            DEBUGGER_DIRECTION_ATTACH
+            if backend.direction == "listen"
+            else DEBUGGER_DIRECTION_CONNECT
+        )
         return DebuggerProfile(
             debugger=DebuggerConnection(
-                protocol=DEBUGGER_PROTOCOL_DEBUGPY,
+                backend=backend_id,
+                direction=direction,
+                protocol=backend.protocol,
                 host="localhost",
                 port=int(port),
                 name=constants.DEBUGGER_UNIT_NAME,

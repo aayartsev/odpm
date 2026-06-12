@@ -36,8 +36,11 @@ _ALLOWED_KEYS = frozenset(
         "odpm_scenario",
         "venv_mode",
         "run_mode",
+        "debugger",
     }
 )
+
+_OPTIONAL_KEYS = frozenset({"debugger"})
 
 _NON_EMPTY_STRING_FIELDS = (
     "docker_odoo_dir",
@@ -96,7 +99,8 @@ def validate_container_config_dict(data: dict) -> None:
             f"Unknown container config fields: {', '.join(unknown_keys)}"
         )
 
-    for field_name in sorted(_ALLOWED_KEYS - set(data)):
+    required_keys = _ALLOWED_KEYS - _OPTIONAL_KEYS
+    for field_name in sorted(required_keys - set(data)):
         raise ConfigValidationError(
             f"Missing required container config field: {field_name}"
         )
@@ -138,3 +142,8 @@ def validate_container_config_dict(data: dict) -> None:
 
     if data["run_mode"] not in constants.RUN_MODE_VALUES:
         raise ConfigValidationError(f"Invalid run_mode: {data['run_mode']!r}")
+
+    if "debugger" in data:
+        from .config import DebuggerSettings
+
+        DebuggerSettings.from_dict(data["debugger"])

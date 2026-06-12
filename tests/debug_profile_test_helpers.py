@@ -27,5 +27,6 @@ def make_debugger_env_mock(
     env.config = config
     env.user_env.backups = os.path.join(project_dir, "backups")
     env.user_env.debugger_port = debugger_port
+    env.user_env.debugger_backend = "debugpy_listen"
     env.mapped_folders = mapped_folders
     return env

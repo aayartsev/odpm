@@ -6,21 +6,15 @@ from dataclasses import dataclass
 from typing import Literal
 
 from . import constants
+from .debugger import (
+    DEFAULT_DEBUGGER_BACKEND,
+    get_backend,
+    is_debugger_requirement,
+    is_debugpy_requirement,
+    normalize_debugger_requirements,
+)
 
 VenvMode = Literal["fresh", "baked"]
-
-
-def _package_name(requirement: str) -> str:
-    """Extract distribution name from a pip requirement string."""
-    spec = requirement.split(";", 1)[0].strip()
-    for separator in ("==", ">=", "<=", "!=", "~=", ">", "<", "["):
-        if separator in spec:
-            spec = spec.split(separator, 1)[0]
-    return spec.strip().lower()
-
-
-def is_debugpy_requirement(requirement: str) -> bool:
-    return _package_name(requirement) == "debugpy"
 
 
 @dataclass(frozen=True)
@@ -33,7 +27,7 @@ class ScenarioPolicy:
     include_debugpy: bool
     install_debugpy: bool
     apply_dev_mode: bool
-    skip_vscode: bool
+    skip_ide_config: bool
     allow_build_image: bool
     venv_mode: VenvMode
     uses_host_identity: bool
@@ -60,7 +54,7 @@ class ScenarioPolicy:
                 include_debugpy=False,
                 install_debugpy=False,
                 apply_dev_mode=False,
-                skip_vscode=True,
+                skip_ide_config=True,
                 allow_build_image=True,
                 venv_mode=constants.VENV_MODE_BAKED,
                 uses_host_identity=False,
@@ -75,7 +69,7 @@ class ScenarioPolicy:
                 include_debugpy=False,
                 install_debugpy=False,
                 apply_dev_mode=False,
-                skip_vscode=False,
+                skip_ide_config=False,
                 allow_build_image=False,
                 venv_mode=constants.VENV_MODE_FRESH,
                 uses_host_identity=True,
@@ -89,11 +83,16 @@ class ScenarioPolicy:
             include_debugpy=True,
             install_debugpy=True,
             apply_dev_mode=True,
-            skip_vscode=False,
+            skip_ide_config=False,
             allow_build_image=False,
             venv_mode=constants.VENV_MODE_FRESH,
             uses_host_identity=True,
         )
+
+    @property
+    def skip_vscode(self) -> bool:
+        """Deprecated alias for :attr:`skip_ide_config` (VS Code + PyCharm configurators)."""
+        return self.skip_ide_config
 
     def venv_is_baked(self) -> bool:
         return self.venv_mode == constants.VENV_MODE_BAKED
@@ -146,16 +145,26 @@ class ScenarioPolicy:
         requirements_txt: list[str],
         *,
         python_version: str,
+        debugger_backend: str | None = None,
     ) -> list[str]:
-        cleaned = [req.strip() for req in requirements_txt if req and req.strip()]
-        cleaned = [req for req in cleaned if not is_debugpy_requirement(req)]
-        debugpy = self.debugpy_requirement(python_version)
-        if not debugpy:
-            return cleaned
-        return cleaned + [debugpy]
+        backend_id = debugger_backend or DEFAULT_DEBUGGER_BACKEND
+        return normalize_debugger_requirements(
+            requirements_txt,
+            python_version=python_version,
+            debugger_backend=backend_id,
+            install_debugger=self.install_debugpy,
+        )
 
-    def build_dev_extra_ports(self, debugger_port_map: str) -> str:
+    def should_publish_debugger_port(self, debugger_backend: str | None = None) -> bool:
         if not self.include_debugger_port:
+            return False
+        backend_id = debugger_backend or DEFAULT_DEBUGGER_BACKEND
+        return get_backend(backend_id).needs_compose_port_publish
+
+    def build_dev_extra_ports(
+        self, debugger_port_map: str, *, debugger_backend: str | None = None
+    ) -> str:
+        if not self.should_publish_debugger_port(debugger_backend):
             return ""
         return f"      - {debugger_port_map}\n"
 

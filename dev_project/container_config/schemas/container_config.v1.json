@@ -80,6 +80,17 @@
     "run_mode": {
       "type": "string",
       "enum": ["odoo", "bootstrap_only"]
+    },
+    "debugger": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backend": { "type": "string", "minLength": 1 },
+        "port": { "type": "integer" },
+        "connect_host": { "type": "string", "minLength": 1 },
+        "suspend_on_connect": { "type": "boolean" }
+      },
+      "required": ["backend", "port", "connect_host", "suspend_on_connect"]
     }
   }
 }

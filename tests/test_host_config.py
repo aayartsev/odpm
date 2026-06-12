@@ -630,6 +630,8 @@ class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
             requirements_txt=["requests==2.31.0"],
         )
         config.policy = ScenarioPolicy.from_scenario(scenario)
+        config.user_env = MagicMock()
+        config.user_env.debugger_backend = "debugpy_listen"
         return config
 
     def test_merges_transitive_requirements_and_renormalizes(self):

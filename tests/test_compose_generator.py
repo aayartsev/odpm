@@ -63,6 +63,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         user_env = MagicMock()
         user_env.postgres_port = 15432
         user_env.debugger_port = 5678
+        user_env.debugger_backend = "debugpy_listen"
         user_env.odoo_port = 8069
         user_env.gevent_port = 8072
         config.user_env = user_env

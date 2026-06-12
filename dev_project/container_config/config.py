@@ -9,6 +9,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
+from ..debugger.env_parsing import parse_debugger_backend
+from ..debugger.user_env import (
+    resolve_debugger_backend_id,
+    resolve_debugger_connect_host,
+    resolve_debugger_port,
+    resolve_debugger_suspend,
+)
 from ..inside_docker_app.exceptions import ConfigValidationError, ContainerError
 from .schema import CONTAINER_CONFIG_SCHEMA_VERSION, validate_container_config_dict
 
@@ -52,6 +59,45 @@ def _normalize_legacy_container_config(raw: dict) -> dict:
 
     validate_container_config_dict(data)
     return data
+
+
+@dataclass
+class DebuggerSettings:
+    backend: str
+    port: int
+    connect_host: str
+    suspend_on_connect: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "backend": self.backend,
+            "port": self.port,
+            "connect_host": self.connect_host,
+            "suspend_on_connect": self.suspend_on_connect,
+        }
+
+    @classmethod
+    def from_dict(cls, raw: dict | None) -> DebuggerSettings | None:
+        if raw is None:
+            return None
+        if not isinstance(raw, dict):
+            raise ConfigValidationError("debugger must be an object")
+        backend = parse_debugger_backend(str(raw.get("backend", "")))
+        port_raw = raw.get("port")
+        if not isinstance(port_raw, int) or isinstance(port_raw, bool):
+            raise ConfigValidationError("debugger.port must be an integer")
+        connect_host = str(raw.get("connect_host", "")).strip()
+        if not connect_host:
+            raise ConfigValidationError("debugger.connect_host must be a non-empty string")
+        suspend_raw = raw.get("suspend_on_connect", False)
+        if not isinstance(suspend_raw, bool):
+            raise ConfigValidationError("debugger.suspend_on_connect must be a boolean")
+        return cls(
+            backend=backend,
+            port=port_raw,
+            connect_host=connect_host,
+            suspend_on_connect=suspend_raw,
+        )
 
 
 @dataclass
@@ -115,12 +161,14 @@ class ContainerConfig:
     odpm_scenario: str
     venv_mode: str
     run_mode: str
+    debugger: DebuggerSettings | None = None
 
     @classmethod
     def from_odpm_config(cls, config: Config) -> ContainerConfig:
         from ..config.payload import compute_venv_lock_hash
 
         run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)
+        debugger = cls._debugger_settings_from_host(config)
         return cls(
             schema_version=CONTAINER_CONFIG_SCHEMA_VERSION,
             docker_odoo_dir=config.docker_odoo_dir,
@@ -145,6 +193,19 @@ class ContainerConfig:
             odpm_scenario=config.user_env.odpm_scenario,
             venv_mode=config.policy.venv_mode,
             run_mode=run_mode,
+            debugger=debugger,
+        )
+
+    @staticmethod
+    def _debugger_settings_from_host(config: Config) -> DebuggerSettings | None:
+        if not config.policy.install_debugpy:
+            return None
+        user_env = config.user_env
+        return DebuggerSettings(
+            backend=resolve_debugger_backend_id(user_env),
+            port=resolve_debugger_port(user_env),
+            connect_host=resolve_debugger_connect_host(user_env),
+            suspend_on_connect=resolve_debugger_suspend(user_env),
         )
 
     @classmethod
@@ -176,11 +237,16 @@ class ContainerConfig:
             odpm_scenario=str(data["odpm_scenario"]),
             venv_mode=str(data["venv_mode"]),
             run_mode=str(data["run_mode"]),
+            debugger=DebuggerSettings.from_dict(data.get("debugger")),
         )
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["db_creation_data"] = self.db_creation_data.to_dict()
+        if self.debugger is None:
+            payload.pop("debugger", None)
+        else:
+            payload["debugger"] = self.debugger.to_dict()
         return payload
 
     def to_json_bytes(self) -> bytes:

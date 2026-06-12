@@ -5,7 +5,9 @@ from __future__ import annotations
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..plan import PlanStep
+from ..debugger.ide import ide_includes_pycharm, ide_includes_vscode
 from ..plan.compose_preview import vscode_settings_up_to_date
+from ..plan.pycharm_preview import pycharm_run_config_up_to_date
 from ..plan.debug_profile_preview import debug_profile_needs_update
 from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
 from ..config import Config
@@ -51,8 +53,12 @@ def evaluate_runtime_debug_profile(
     )
 
 
-def evaluate_runtime_vscode_settings(config: Config) -> PlanStep | None:
-    if config.policy.skip_vscode:
+def evaluate_runtime_vscode_settings(
+    config: Config, project_env: CreateProjectEnvironment | None = None
+) -> PlanStep | None:
+    if config.policy.skip_ide_config:
+        return None
+    if not ide_includes_vscode(config.user_env.odpm_ide):
         return None
     description = "Update VS Code launch and workspace settings"
     if vscode_settings_up_to_date(config):
@@ -69,6 +75,31 @@ def evaluate_runtime_vscode_settings(config: Config) -> PlanStep | None:
         "run",
         False,
         "refresh VS Code launch and settings",
+    )
+
+
+def evaluate_runtime_pycharm_settings(
+    config: Config, project_env: CreateProjectEnvironment | None = None
+) -> PlanStep | None:
+    if config.policy.skip_ide_config:
+        return None
+    if not ide_includes_pycharm(config.user_env.odpm_ide):
+        return None
+    description = "Update PyCharm Attach to DAP run configuration"
+    if pycharm_run_config_up_to_date(config, project_env):
+        return make_plan_step(
+            "pycharm.settings",
+            description,
+            "noop",
+            False,
+            "PyCharm run configuration already present",
+        )
+    return make_plan_step(
+        "pycharm.settings",
+        description,
+        "run",
+        False,
+        "refresh PyCharm Attach to DAP configuration",
     )
 
 
@@ -98,7 +129,8 @@ def build_runtime_plan_steps(
     for evaluator in (
         lambda: evaluate_runtime_ci_build_image(config, args),
         lambda: evaluate_runtime_debug_profile(config, project_env),
-        lambda: evaluate_runtime_vscode_settings(config),
+        lambda: evaluate_runtime_vscode_settings(config, project_env),
+        lambda: evaluate_runtime_pycharm_settings(config, project_env),
         lambda: evaluate_runtime_compose_up(config, args, host_ctx),
     ):
         step = evaluator()

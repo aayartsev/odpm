@@ -11,7 +11,8 @@
 | `.odpm/secrets.example.json` | шаблон при init; в git |
 | `.odpm/secrets.json` | вручную или `--secrets-file`; в `.odpm/.gitignore` |
 | `.odpm/runtime/secrets.json` | шаг `secrets.materialize`; mount в контейнер; в gitignore; см. [секреты](../operations/secrets.md) |
-| `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` после смены сценария, портов или volume map |
+| `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` при `ODPM_IDE=vscode` или `both` |
+| `.run/Odoo Remote Attach.run.xml` | `odpm --skip-start` при `ODPM_IDE=pycharm` или `both` (PyCharm Attach to DAP) |
 
 ## Исключение: конфигурация Odoo
 

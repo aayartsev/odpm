@@ -6,6 +6,7 @@ import os
 from typing import TYPE_CHECKING
 
 from .. import constants
+from ..debugger.user_env import resolve_debugger_backend_id
 from ..translations import _
 from ..dev_mode import effective_dev_mode, merge_autoreload_requirements
 from ..errors import ConfigError
@@ -93,6 +94,9 @@ def normalize_project_requirements(
     normalized = config.policy.normalize_requirements(
         requirements_txt,
         python_version=config.python_version,
+        debugger_backend=resolve_debugger_backend_id(
+            getattr(config, "user_env", None)
+        ),
     )
     return merge_autoreload_requirements(
         normalized,

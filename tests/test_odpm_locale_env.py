@@ -242,12 +242,22 @@ class InteractiveLocaleWizardTests(unittest.TestCase):
         return_value=constants.DEVELOPER_SCENARIO,
     )
     @patch(
+        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odpm_ide",
+        return_value="vscode",
+    )
+    @patch(
+        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_debugger_backend",
+        return_value="debugpy_listen",
+    )
+    @patch(
         "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odpm_locale",
         return_value="ru_RU",
     )
     def test_interactive_env_file_includes_locale(
         self,
         _mock_locale,
+        _mock_debugger_backend,
+        _mock_odpm_ide,
         _mock_scenario,
         _mock_gevent,
         _mock_debugger,

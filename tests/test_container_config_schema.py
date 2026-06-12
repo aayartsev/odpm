@@ -71,6 +71,10 @@ class ContainerConfigSchemaTests(unittest.TestCase):
     def test_from_odpm_config_round_trip_passes_validation(self):
         config = MagicMock()
         config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
+        config.user_env.debugger_backend = "debugpy_listen"
+        config.user_env.debugger_port = 5678
+        config.user_env.debugger_connect_host = "host.docker.internal"
+        config.user_env.debugger_suspend = False
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.docker_odoo_dir = "/home/odoo/odoo"
         config.odoo_config_data = {}

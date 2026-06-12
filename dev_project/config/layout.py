@@ -8,7 +8,11 @@ from typing import TYPE_CHECKING
 from .. import constants
 from ..dev_mode import dev_mode_disabled
 from ..logging import get_module_logger
-from ..scenario_policy import is_debugpy_requirement
+from ..debugger.constants import (
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
+    ODPM_IDE_VSCODE,
+)
+from ..scenario_policy import is_debugger_requirement, is_debugpy_requirement
 from .state import DockerLayoutState, ProjectSettingsState
 
 if TYPE_CHECKING:
@@ -72,24 +76,38 @@ def apply_policy_and_layout(config: Config) -> None:
         project_dockerfile_template_path=project_dockerfile_template_path,
         project_dockerignore_template_path=project_dockerignore_template_path,
     )
-    if any(is_debugpy_requirement(req) for req in original_requirements_txt):
+    if any(is_debugger_requirement(req) for req in original_requirements_txt):
         if not config.policy.install_debugpy:
             _logger.warning(
-                "debugpy is forbidden in scenario %s and will not be installed",
+                "debugger packages are forbidden in scenario %s and will not be installed",
                 config.policy.scenario,
             )
         else:
-            debugpy_req = config.policy.debugpy_requirement(config.python_version)
-            _logger.info(
-                "debugpy requirement normalized for scenario %s: %s",
-                config.policy.scenario,
-                debugpy_req,
-            )
+            normalized_debugger = [
+                req
+                for req in normalized_requirements
+                if is_debugger_requirement(req)
+            ]
+            if normalized_debugger:
+                _logger.info(
+                    "debugger requirement normalized for scenario %s: %s",
+                    config.policy.scenario,
+                    normalized_debugger[0],
+                )
 
     if not dev_mode_disabled(config.dev_mode) and not config.policy.apply_dev_mode:
         _logger.warning(
             "dev_mode is ignored in scenario %s",
             config.policy.scenario,
+        )
+
+    if (
+        config.user_env.debugger_backend == DEBUGGER_BACKEND_PYDEVD_CONNECT
+        and config.user_env.odpm_ide == ODPM_IDE_VSCODE
+    ):
+        _logger.warning(
+            "ODPM_DEBUGGER_BACKEND=pydevd_connect is incompatible with ODPM_IDE=vscode; "
+            "use ODPM_IDE=pycharm or both"
         )
 
     ctx = config._bootstrap_ctx

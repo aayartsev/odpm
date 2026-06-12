@@ -41,13 +41,14 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
             mapped_folders=[MappedPath(local=odoo_src, docker="/home/odoo/odoo")],
         )
 
-    def test_preview_debug_profile_text_returns_schema_v1(self) -> None:
+    def test_preview_debug_profile_text_returns_schema_v2(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
             env = self._project_env(project_dir)
             text = preview_debug_profile_text(env)
             self.assertIsNotNone(text)
             payload = json.loads(text or "{}")
-            self.assertEqual(payload["schema_version"], 1)
+            self.assertEqual(payload["schema_version"], 2)
+            self.assertEqual(payload["debugger"]["backend"], "debugpy_listen")
             self.assertEqual(payload["debugger"]["port"], 5678)
 
     def test_debug_profile_needs_update_when_file_missing_without_project_env(

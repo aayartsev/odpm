@@ -16,6 +16,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
     def _coordinator(self, **args_overrides) -> RuntimeCoordinator:
         args = OdpmCliArgs(**{"build_image": False, "skip_start": False, **args_overrides})
         config = MagicMock()
+        config.user_env.odpm_ide = "vscode"
         project_env = MagicMock()
         return RuntimeCoordinator(args, config, project_env)
 
@@ -72,10 +73,11 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         coordinator.write_debug_profile()
         mock_write.assert_called_once_with(coordinator.project_env)
 
+    @patch("dev_project.runtime_coordinator.PycharmConfigurator")
     @patch("dev_project.runtime_coordinator.VscodeConfigurator")
     @patch("dev_project.project_env.debug_profile.write_debug_profile")
     def test_run_after_prepare_writes_debug_profile_before_vscode(
-        self, mock_write, mock_vscode_cls
+        self, mock_write, mock_vscode_cls, mock_pycharm_cls
     ):
         coordinator = self._coordinator(skip_start=True)
         coordinator.config.policy = ScenarioPolicy.from_scenario(
@@ -97,6 +99,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
 
         mock_write.assert_called_once_with(coordinator.project_env)
         mock_vscode_cls.assert_called_once_with(coordinator.project_env)
+        mock_pycharm_cls.assert_not_called()
         self.assertEqual(call_order, ["write", "vscode"])
 
 
@@ -395,8 +398,10 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         mock_project_env_cls.return_value = mock_project_env
         mock_checker = MagicMock()
         mock_checker_cls.return_value = mock_checker
+        pipeline_args = OdpmCliArgs(build_image=False, skip_start=False)
+        mock_pd_manager_cls.return_value.arguments = pipeline_args
 
-        pipeline = OdpmPipeline(OdpmCliArgs(build_image=False, skip_start=False), "/opt/odpm")
+        pipeline = OdpmPipeline(pipeline_args, "/opt/odpm")
         pipeline.setup()
 
         self.assertIs(pipeline.config, mock_config)

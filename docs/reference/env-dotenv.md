@@ -13,6 +13,10 @@
 | `ODOO_PORT` | HTTP-порт Odoo на компьютере | `8069` |
 | `POSTGRES_PORT` | Порт PostgreSQL на компьютере (в сценарии `server` — только localhost) | `5432` |
 | `DEBUGGER_PORT` | Порт отладчика (сценарий `developer`) | `5678` |
+| `ODPM_DEBUGGER_BACKEND` | Режим отладки: `debugpy_listen` (контейнер слушает, IDE подключается) | `debugpy_listen` |
+| `ODPM_IDE` | Какие настройки IDE генерировать: `vscode`, `pycharm`, `both`, `none` | `vscode` |
+| `ODPM_DEBUGGER_CONNECT_HOST` | Хост IDE для `pydevd_connect` (этап 2) | `host.docker.internal` |
+| `ODPM_DEBUGGER_SUSPEND` | `1` — ждать IDE перед стартом Odoo (этап 2) | `0` |
 | `GEVENT_PORT` | Порт веб-сокетов gevent | `8072` |
 | `ODPM_SCENARIO` | `developer`, `server` или `ci` | `developer` |
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | по системе | см. [locale.md](locale.md) |
@@ -27,6 +31,8 @@ PATH_TO_SSH_KEY=
 ODOO_PORT=8069
 POSTGRES_PORT=5432
 DEBUGGER_PORT=5678
+ODPM_DEBUGGER_BACKEND=debugpy_listen
+ODPM_IDE=vscode
 GEVENT_PORT=8072
 ODPM_SCENARIO=developer
 ODPM_LOCALE=ru_RU

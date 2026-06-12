@@ -142,6 +142,7 @@ class PlanSafePipelineSetupTests(unittest.TestCase):
         _mock_checker_cls,
     ):
         pipeline_args = OdpmCliArgs(plan=True)
+        mock_pd_manager_cls.return_value.arguments = pipeline_args
         pipeline = OdpmPipeline(
             pipeline_args,
             "/opt/odpm",
@@ -172,6 +173,7 @@ class PlanSafePipelineSetupTests(unittest.TestCase):
         _mock_checker_cls,
     ):
         pipeline_args = OdpmCliArgs(build_image=False)
+        mock_pd_manager_cls.return_value.arguments = pipeline_args
         pipeline = OdpmPipeline(
             pipeline_args,
             "/opt/odpm",

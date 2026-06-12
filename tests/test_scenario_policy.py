@@ -43,7 +43,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.apply_dev_mode)
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertTrue(policy.allow_build_image)
-        self.assertTrue(policy.skip_vscode)
+        self.assertTrue(policy.skip_ide_config)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
         self.assertTrue(policy.venv_is_baked())
         self.assertFalse(policy.allows_venv_recreate())

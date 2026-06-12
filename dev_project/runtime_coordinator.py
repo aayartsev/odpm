@@ -12,7 +12,8 @@ from .compose.runtime import should_force_recreate_compose
 from .errors import PipelineError
 from .host.cli.args import OdpmCliArgs
 from .logging import get_module_logger
-from .project_env.services import VscodeConfigurator
+from .debugger.ide import ide_includes_pycharm, ide_includes_vscode
+from .project_env.services import PycharmConfigurator, VscodeConfigurator
 from .subprocess_runner import run_logged
 
 if TYPE_CHECKING:
@@ -53,12 +54,19 @@ class RuntimeCoordinator:
 
         write_debug_profile(self.project_env)
 
-    def configure_vscode(self) -> None:
-        if self.config.policy.skip_vscode:
+    def configure_ide(self) -> None:
+        if self.config.policy.skip_ide_config:
             return
-        vscode = VscodeConfigurator(self.project_env)
-        vscode.update_vscode_debugger_launcher()
-        vscode.generate_vscode_settings_json()
+        ide = self.config.user_env.odpm_ide
+        if ide_includes_vscode(ide):
+            vscode = VscodeConfigurator(self.project_env)
+            vscode.update_vscode_debugger_launcher()
+            vscode.generate_vscode_settings_json()
+        if ide_includes_pycharm(ide):
+            PycharmConfigurator(self.project_env).update_pycharm_run_configuration()
+
+    def configure_vscode(self) -> None:
+        self.configure_ide()
 
     def build_compose_up_argv(
         self, *, force_recreate: bool | None = None
@@ -92,7 +100,7 @@ class RuntimeCoordinator:
         if self.handle_build_image():
             return
         self.write_debug_profile()
-        self.configure_vscode()
+        self.configure_ide()
         if self.cli_args.update_lock:
             host_summaries.log_update_lock_skip()
             return

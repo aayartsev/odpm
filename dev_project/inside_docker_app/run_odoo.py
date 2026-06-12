@@ -8,7 +8,7 @@ from pathlib import PurePosixPath
 
 from .. import constants
 from ..container_config import ContainerConfig, load_container_config_from_env
-from ..scenario_policy import ScenarioPolicy
+from ..debugger.resolve import resolve_debugger_backend
 from .container_bootstrap import run_container_bootstrap
 from .exceptions import ContainerError
 
@@ -29,19 +29,16 @@ def build_odoo_exec_argv(config: ContainerConfig, odoo_argv: list[str]) -> list[
     venv_python = str(
         PurePosixPath(config.docker_venv_dir, "bin", "python3")
     )
-    policy = ScenarioPolicy.from_scenario(config.odpm_scenario)
-    exec_argv = [venv_python, "-u"]
-    if policy.include_debugpy:
-        exec_argv.extend(
-            [
-                "-m",
-                "debugpy",
-                "--listen",
-                f"0.0.0.0:{constants.DEBUGGER_DOCKER_PORT}",
-            ]
-        )
-    exec_argv.extend(odoo_argv)
-    return exec_argv
+    backend = resolve_debugger_backend(config)
+    if backend is None:
+        return [venv_python, "-u", *odoo_argv]
+    settings = config.debugger
+    listen_port = settings.port if settings is not None else 5678
+    return backend.wrap_exec_argv(
+        venv_python,
+        odoo_argv,
+        listen_port=listen_port,
+    )
 
 
 def run_odoo(argv: list[str] | None = None) -> None:
