@@ -4,7 +4,7 @@
 
 ```bash
 cd /path/to/odoo_dev_project
-pip install -e .
+pip install -e ".[test]"
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
