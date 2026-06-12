@@ -137,9 +137,26 @@ odpm plan --skip-start --plan-show-diff
 | `server` | да | доставьте `secrets.json` на VM (`--secrets-file` или копирование) |
 | `ci` | нет | runtime config в образе; секреты приложения — отдельный процесс деплоя |
 
-### CI и будущие версии
+### CI (GitHub Actions, developer/server pipeline)
 
-В **v1** odpm **не** монтирует `.odpm/secrets.json` в CI-сборке. Инъекция секретов в CI (GitHub Actions → временный файл → `--secrets-file`, SOPS, env) — **TD-FEAT-09**, запланировано отдельно.
+В сценарии **`ci`** (`odpm --build-image`) mount secrets с хоста **по-прежнему отключён** — секреты в образ этим механизмом не попадают.
+
+Для **локального developer/server pipeline** в Actions используйте ephemeral JSON и `--secrets-file`:
+
+```yaml
+- name: Materialize module secrets for odpm project
+  run: |
+    cat > /tmp/odpm-ci-secrets.json <<'EOF'
+    {"schema_version":1,"secrets":{"payment.api_key":"${{ secrets.MODULE_PAYMENT_API_KEY }}"}}
+    EOF
+    chmod 600 /tmp/odpm-ci-secrets.json
+    odpm --secrets-file /tmp/odpm-ci-secrets.json --skip-start
+  working-directory: /path/to/odpm-project
+```
+
+Репозиторий odpm проверяет контракт в **`tests/test_ci_secrets_smoke.py`** (job `compose-smoke` в `ci-docker.yml`). Значения секретов в логи не выводить.
+
+**Follow-up (Phase B):** bake secrets в CI-образ при `ODPM_SCENARIO=ci` — отдельная задача.
 
 ## Отличие от `.env` и паролей Odoo
 

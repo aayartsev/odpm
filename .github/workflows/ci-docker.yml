@@ -1,5 +1,6 @@
 # Docker integration CI (4.2 policy):
-# - compose-smoke: required PR gate — minimal in-repo fixture, no secrets.
+# - compose-smoke: required PR gate — minimal in-repo fixture; secrets pipeline
+#   validated separately via tests.test_ci_secrets_smoke (TD-FEAT-09 MVP).
 # - golden-path: opt-in on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED +
 #   secret ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
@@ -50,6 +51,9 @@ jobs:
 
       - name: Install odpm (editable)
         run: pip install -e .
+
+      - name: Run CI secrets smoke tests
+        run: python -m unittest tests.test_ci_secrets_smoke -v
 
       - name: Restore odpm base image cache
         id: docker-image-cache
