@@ -10,6 +10,7 @@
 
 ### Добавлено
 
+- **План architecture debt восстановлен как status doc** — `docs/contributing/architecture-debt.md` (ретроспектива G/C/E); синхронизирован `todo.md`. Локальное правило Cursor обновлено (`.cursor/` в gitignore).
 - **CI secrets import smoke (TD-FEAT-09 MVP)** — `tests/test_ci_secrets_smoke.py`: `--secrets-file` → materialize → mount в compose (developer); в `ci` шаг `secrets.materialize` — `skip`. Шаг в `ci-docker.yml`. Документация: `docs/operations/secrets.md` (пример GitHub Actions).
 - **Метаданные PyPI и ручной workflow публикации** — расширен `pyproject.toml` (зависимость `packaging`, GPL-3.0-or-later, URLs, classifiers); [`.github/workflows/publish-pypi.yml`](.github/workflows/publish-pypi.yml) только через `workflow_dispatch` (по умолчанию TestPyPI). Тесты: `test_pyproject_packaging.py`. Документация: `docs/contributing/packaging.md`.
 - **Расширяемые debugger backends (этап 2) — `pydevd_connect` / PyCharm Debug Server** — backend `PydevdConnectBackend`: контейнер подключается к IDE через `pydevd-pycharm` (`run_with_pydevd`, in-process `runpy` после `settrace`). Compose `DEV_EXTRA_HOSTS` для `pydevd_connect`; без publish debugger-порта. `PycharmConfigurator` → `.run/Odoo Debug Server.run.xml`; wizard `connect_host` / `suspend`; preview шага `pycharm.settings` по backend. Тесты: `test_run_with_pydevd.py`, расширения compose/profile/pycharm/user_env. Документация: `vscode-debug.md`, `env-dotenv.md`, `generated-files.md`. **Примечание:** end-to-end smoke с PyCharm Pro в CI не фиксировался.

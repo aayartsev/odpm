@@ -8,6 +8,7 @@
 | [Тесты и статический анализ](tests.md) | Unit-тесты, ruff |
 | [Переводы интерфейса](i18n.md) | gettext, каталоги ru_RU |
 | [Сборка пакетов](packaging.md) | deb, rpm, wheel |
+| [Architecture debt (status)](architecture-debt.md) | Ретроспектива G/C/E (A10, A4, A11) |
 | [Переименование модулей 4.0→4.1](imports-migration.md) | Таблица импортов Python |
 
 Пользовательская документация по работе **с Odoo через odpm**: [оглавление](../README.md).
