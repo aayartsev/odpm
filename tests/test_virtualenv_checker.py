@@ -353,5 +353,29 @@ class SyncExtraRequirementsHygieneTests(unittest.TestCase):
         )
 
 
+class CheckPackageToInstallTests(unittest.TestCase):
+    def _checker(self) -> VirtualenvChecker:
+        config = minimal_container_config()
+        checker = VirtualenvChecker.__new__(VirtualenvChecker)
+        checker.config = config
+        return checker
+
+    def test_extras_requirement_matches_installed_distribution(self):
+        checker = self._checker()
+        installed = [{"name": "zeep", "version": "4.2.1"}]
+        instructions = checker.check_package_to_install(
+            "zeep[async]==4.2.1", installed
+        )
+        self.assertEqual(instructions, [])
+
+    def test_extras_requirement_requests_install_when_missing(self):
+        checker = self._checker()
+        instructions = checker.check_package_to_install("zeep[async]==4.2.1", [])
+        self.assertEqual(len(instructions), 1)
+        self.assertEqual(instructions[0]["command"], "install")
+        self.assertEqual(instructions[0]["name"], "zeep[async]")
+        self.assertEqual(instructions[0]["version"], "4.2.1")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -5,9 +5,11 @@ import sys
 
 try:
     import packaging.version as pip_ver
+    from packaging.requirements import Requirement
     from packaging.utils import canonicalize_name
 except ImportError:
     import pip._vendor.packaging.version as pip_ver
+    from pip._vendor.packaging.requirements import Requirement
     from pip._vendor.packaging.utils import canonicalize_name
 
 from .. import constants
@@ -170,6 +172,9 @@ class VirtualenvChecker:
     def _canonical_package_name(self, name: str) -> str:
         return canonicalize_name(name.strip())
 
+    def _distribution_name(self, package_string: str) -> str:
+        return Requirement(package_string.strip()).name
+
     def _list_installed_packages(self) -> list[dict]:
         result = subprocess.run(
             self._pip_list_argv(),
@@ -245,14 +250,20 @@ class VirtualenvChecker:
 
     def check_package_to_install(self, package_string, installed_package_list):
         instructions = []
+        package_string = package_string.strip()
         to_install_package_version = None
         if "==" in package_string:
-            to_install_package_name = package_string.split("==")[0]
-            to_install_package_version = package_string.split("==")[1]
+            to_install_package_name, to_install_package_version = package_string.split(
+                "==", 1
+            )
+            to_install_package_name = to_install_package_name.strip()
+            to_install_package_version = to_install_package_version.strip()
         else:
             to_install_package_name = package_string
 
-        required_name = self._canonical_package_name(to_install_package_name)
+        required_name = self._canonical_package_name(
+            self._distribution_name(package_string)
+        )
 
         for installed_package_info in installed_package_list:
             installed_package_name = installed_package_info.get("name")
