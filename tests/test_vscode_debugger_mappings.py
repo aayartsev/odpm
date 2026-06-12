@@ -39,9 +39,9 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
         mappings = configurator.build_debugger_path_mappings()
 
         local_roots = [record["localRoot"] for record in mappings]
-        self.assertIn(os.path.abspath("/proj/sources/odoo"), local_roots)
-        self.assertIn(os.path.abspath("/real/path/developing"), local_roots)
-        self.assertNotIn(os.path.abspath("/proj/backups"), local_roots)
+        self.assertIn(os.path.realpath("/proj/sources/odoo"), local_roots)
+        self.assertIn(os.path.realpath("/real/path/developing"), local_roots)
+        self.assertNotIn(os.path.realpath("/proj/backups"), local_roots)
 
     def test_update_vscode_debugger_launcher_writes_real_local_roots(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
@@ -75,7 +75,7 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
             local_roots = [
                 mapping["localRoot"] for mapping in odoo_unit["pathMappings"]
             ]
-            self.assertEqual(local_roots, [os.path.abspath(odoo_src)])
+            self.assertEqual(local_roots, [os.path.realpath(odoo_src)])
 
     def test_build_debugger_path_mappings_includes_project_symlink_aliases(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
@@ -103,7 +103,7 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
             mappings = VscodeConfigurator(env).build_debugger_path_mappings()
             local_roots = [record["localRoot"] for record in mappings]
 
-            self.assertIn(os.path.abspath(real_developing), local_roots)
+            self.assertIn(os.path.realpath(real_developing), local_roots)
             self.assertIn(os.path.abspath(link_path), local_roots)
 
     def test_build_debugger_path_mappings_discovers_existing_symlinks(self) -> None:
@@ -170,7 +170,7 @@ class VscodeDebuggerMappingsTests(unittest.TestCase):
             local_roots = [
                 mapping["localRoot"] for mapping in odoo_unit["pathMappings"]
             ]
-            self.assertIn(os.path.abspath(real_developing), local_roots)
+            self.assertIn(os.path.realpath(real_developing), local_roots)
             self.assertIn(os.path.abspath(link_path), local_roots)
 
 
