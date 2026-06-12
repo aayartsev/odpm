@@ -277,6 +277,7 @@ The utility will try to prepare your computer:
 1. After this, the automatic build of the `Docker image` will start if it has not been built before.
 1. The `docker-compose.yml` file will be automatically generated
 1. Configuration files will be generated for VS Code for the debugger to work correctly (`.odpm/runtime/debug-profile.json` plus `.vscode/launch.json` in the `developer` scenario)
+1. A `secrets.example.json` template is placed under `.odpm/`; optional module secrets live in gitignored `.odpm/secrets.json` and mount to `/run/odpm/secrets.json` in `developer`/`server` (see [docs/operations/secrets.md](docs/operations/secrets.md))
 1. `docker-compose up` will start automatically
 1. All python dependencies will be installed in the virtual environment
 1. Odoo will start with all specified addons for selected version

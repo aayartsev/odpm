@@ -10,6 +10,7 @@ from dev_project.project_env import CreateProjectEnvironment
 from dev_project.compose.generator import ComposeGenerator
 from dev_project.project_env.types import MappedPath
 from dev_project.compose.start_command import ComposeOdooService
+from dev_project.project_env.secrets import import_secrets_from_path, materialize_secrets
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -30,7 +31,13 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             template_dest,
         )
 
-    def _make_env(self, project_dir: str, scenario: str) -> CreateProjectEnvironment:
+    def _make_env(
+        self,
+        project_dir: str,
+        scenario: str,
+        *,
+        include_runtime_secrets: bool = False,
+    ) -> CreateProjectEnvironment:
         policy = ScenarioPolicy.from_scenario(scenario)
         config = MagicMock()
         config.project_dir = project_dir
@@ -40,6 +47,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         config.compose_service = ComposeOdooService(
             working_dir="/home/odoo",
             include_runtime_config=policy.mount_runtime_config_from_host(),
+            include_runtime_secrets=include_runtime_secrets,
             command=[
                 "python3",
                 "-m",
@@ -128,6 +136,35 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertIn(f"- {constants.RUN_ODOO_ENTRYPOINT}", content)
             self.assertNotIn("bash -c", content)
             self.assertIn("    command:", content)
+
+    def test_developer_compose_includes_secrets_volume_when_enabled(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            external = os.path.join(project_dir, "incoming.json")
+            Path(external).write_text(
+                '{"schema_version": 1, "secrets": {"k": "v"}}\n',
+                encoding="utf-8",
+            )
+            import_secrets_from_path(project_dir, external)
+            materialize_secrets(project_dir)
+            self._copy_compose_template(project_dir)
+            env = self._make_env(
+                project_dir, constants.DEVELOPER_SCENARIO, include_runtime_secrets=True
+            )
+            env._compose.generate_docker_compose_file()
+            content = (Path(project_dir) / "docker-compose.yml").read_text(
+                encoding="utf-8"
+            )
+            runtime_secrets_host = os.path.join(
+                project_dir, constants.ODPM_SECRETS_RUNTIME_REL_PATH
+            )
+            self.assertIn(
+                f"{constants.ODPM_SECRETS_PATH_ENV}={constants.ODPM_SECRETS_CONTAINER_PATH}",
+                content,
+            )
+            self.assertIn(
+                f"{runtime_secrets_host}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro",
+                content,
+            )
 
     def test_ci_compose_omits_host_runtime_config_volume(self):
         with tempfile.TemporaryDirectory() as project_dir:

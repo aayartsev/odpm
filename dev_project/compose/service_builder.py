@@ -26,6 +26,12 @@ class ComposeServiceBuilder:
             from ..config.payload import write_runtime_config
 
             write_runtime_config(self.config)
+        if self.policy.mount_runtime_secrets_from_host():
+            from ..project_env.secrets import materialize_secrets
+
+            compose_service.include_runtime_secrets = materialize_secrets(
+                self.config.project_dir
+            )
         return compose_service
 
     def build_start_command(self) -> StartCommand:

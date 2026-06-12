@@ -18,6 +18,7 @@ from .debug_profile_preview import (
     normalized_debug_profile_text_from_disk,
     preview_debug_profile_text,
 )
+from .secrets_preview import secrets_needs_update, secrets_source_key_count
 from .core import OdpmPlan
 from .runtime_preview import (
     normalized_runtime_config_text_from_disk,
@@ -165,6 +166,24 @@ def diff_deps_lock_summary() -> PlanFileDiff:
     )
 
 
+def diff_secrets_materialize_summary(config: Config) -> PlanFileDiff | None:
+    needs_update, _reason = secrets_needs_update(config.project_dir)
+    if not needs_update:
+        return None
+    key_count = secrets_source_key_count(config.project_dir)
+    if key_count:
+        summary = (
+            f"will materialize {key_count} secret keys from .odpm/secrets.json"
+        )
+    else:
+        summary = "will remove stale .odpm/runtime/secrets.json"
+    return PlanFileDiff(
+        path=constants.ODPM_SECRETS_RUNTIME_REL_PATH,
+        unified_diff=None,
+        summary=summary,
+    )
+
+
 def build_plan_diffs(
     plan: OdpmPlan,
     config: Config,
@@ -178,6 +197,10 @@ def build_plan_diffs(
         debug_profile_diff = diff_debug_profile(config, project_env)
         if debug_profile_diff is not None:
             diffs.append(debug_profile_diff)
+    if _step_would_change(plan, "secrets.materialize"):
+        secrets_diff = diff_secrets_materialize_summary(config)
+        if secrets_diff is not None:
+            diffs.append(secrets_diff)
     if _step_would_change(plan, "compose.service"):
         runtime_diff = diff_runtime_config(config)
         if runtime_diff is not None:

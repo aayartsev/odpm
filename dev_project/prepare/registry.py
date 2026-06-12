@@ -11,6 +11,7 @@ from .steps_compose import (
     exec_compose_service,
     exec_compose_template,
 )
+from .steps_secrets import evaluate_secrets_materialize, exec_secrets_materialize
 from .steps_docker import (
     evaluate_docker_engine_check,
     evaluate_docker_ports_release,
@@ -90,6 +91,12 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     ),
     PrepareStepDef(
         "compose.template", "", evaluate_compose_template, exec_compose_template
+    ),
+    PrepareStepDef(
+        "secrets.materialize",
+        "",
+        evaluate_secrets_materialize,
+        exec_secrets_materialize,
     ),
     PrepareStepDef(
         "compose.service", "", evaluate_compose_service, exec_compose_service

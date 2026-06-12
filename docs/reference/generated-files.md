@@ -8,6 +8,9 @@
 | корневой `.dockerignore` | из шаблона `.odpm/dockerignore`; сброс шаблона — удалить `.odpm/dockerignore` и снова запустить odpm |
 | `.odpm/runtime/config.json` | автоматически; в gitignore проекта |
 | `.odpm/runtime/debug-profile.json` | автоматически в сценарии `developer` (`include_debugpy`); в gitignore |
+| `.odpm/secrets.example.json` | шаблон при init; в git |
+| `.odpm/secrets.json` | вручную или `--secrets-file`; в `.odpm/.gitignore` |
+| `.odpm/runtime/secrets.json` | шаг `secrets.materialize`; mount в контейнер; в gitignore; см. [секреты](../operations/secrets.md) |
 | `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` после смены сценария, портов или volume map |
 
 ## Исключение: конфигурация Odoo

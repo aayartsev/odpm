@@ -18,12 +18,23 @@
 | `--distro-version ВЕР` | Версия дистрибутива (`11`, `12`, …) |
 | `--postgres-version ВЕР` | Версия PostgreSQL в compose |
 | `--requirements-txt ПАКЕТЫ` | Пакеты Python через запятую → запись в `odpm.json` |
+| `--secrets-file ПУТЬ` | Импорт JSON v1 в `.odpm/secrets.json` (при `--init` и на любом запуске). См. [локальные секреты](../operations/secrets.md). |
 
 Пример:
 
 ```bash
 odpm --init git@github.com:org/my_addons.git --branch 17.0 \
   --odoo-version 17.0 --python-version 3.10 --distro-version 12
+```
+
+Импорт секретов при развёртывании:
+
+```bash
+odpm --init file:///path/to/my_addons \
+  --secrets-file /secure/client-secrets.json
+
+# ротация ключей на существующем проекте
+odpm --secrets-file ~/new-secrets.json --skip-start
 ```
 
 ## Подготовка окружения и образ

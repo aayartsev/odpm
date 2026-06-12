@@ -58,6 +58,14 @@ class ScenarioPolicyTests(unittest.TestCase):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         self.assertTrue(policy.mount_runtime_config_from_host())
 
+    def test_ci_does_not_mount_runtime_secrets_from_host(self):
+        policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        self.assertFalse(policy.mount_runtime_secrets_from_host())
+
+    def test_developer_mounts_runtime_secrets_from_host(self):
+        policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertTrue(policy.mount_runtime_secrets_from_host())
+
     def test_server_policy(self):
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
         self.assertTrue(policy.uses_host_identity)
@@ -440,6 +448,7 @@ class ComposeTemplateMigrationTests(unittest.TestCase):
         self.assertIn("{ODOO_VOLUMES_BLOCK}", content)
         self.assertIn("{START_COMMAND_BLOCK}", content)
         self.assertIn("{ODPM_CONFIG_PATH_ENV_LINE}", content)
+        self.assertIn("{ODPM_SECRETS_PATH_ENV_LINE}", content)
         self.assertNotIn("{DEBUGGER_PORT_MAP}", content)
         self.assertNotIn("{START_STRING}", content)
         self.assertNotIn("{ODPM_CONFIG_ENV_LINE}", content)

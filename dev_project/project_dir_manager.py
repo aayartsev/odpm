@@ -134,6 +134,7 @@ class ProjectDirManager:
         self.rebuild_dockerignore_template()
         self.rebuild_odoo_config_file_template()
         self.rebuild_vscode_settings_json_file_template()
+        self.rebuild_secrets_example_template()
 
     def rebuild_templates(self) -> None:
         self.bind_template_paths()
@@ -209,6 +210,20 @@ class ProjectDirManager:
             program_vscode_settings_json_file_template,
             project_vscode_settings_json_file_template,
         )
+
+    def rebuild_secrets_example_template(self) -> None:
+        if not self.sync_templates:
+            return
+        program_template = os.path.join(
+            self.program_dir_path,
+            constants.DEV_PROJECT_DIR,
+            "templates",
+            "secrets.example.json",
+        )
+        project_template = os.path.join(
+            self.project_path, constants.ODPM_SECRETS_EXAMPLE_REL_PATH
+        )
+        self.generate_project_template_files(program_template, project_template)
 
     def ensure_project_template(
         self,

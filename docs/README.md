@@ -66,6 +66,7 @@
 | Статья | Содержание |
 |--------|------------|
 | [VS Code и отладка](operations/vscode-debug.md) | Подключение отладчика к процессу в контейнере |
+| [Локальные секреты](operations/secrets.md) | API-ключи и токены модулей → `/run/odpm/secrets.json` |
 | [Запуск без диалогов](operations/non-interactive.md) | Скрипты и машины сборки |
 | [Безопасность](operations/security.md) | Пароли, обратный прокси, порты |
 | [Переход с версии 3.0](operations/migration-3-to-4.md) | Совместимость не сохраняется |

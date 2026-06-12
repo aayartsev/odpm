@@ -84,6 +84,11 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
             warnings.append(
                 "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
             )
+    from ..plan.secrets_preview import secrets_gitignore_warning
+
+    gitignore_warning = secrets_gitignore_warning(ctx.config.project_dir)
+    if gitignore_warning:
+        warnings.append(gitignore_warning)
     return tuple(warnings)
 
 

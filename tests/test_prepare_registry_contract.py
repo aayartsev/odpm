@@ -16,6 +16,7 @@ PREPARE_STEP_IDS = [
     "docker.ports.release",
     "template.odoo_conf",
     "compose.template",
+    "secrets.materialize",
     "compose.service",
     "compose.generate",
     "compose.validate",

@@ -112,6 +112,10 @@ class ScenarioPolicy:
         """Dev/server mount .odpm/runtime/config.json; CI bakes config into the image."""
         return not self.is_ci()
 
+    def mount_runtime_secrets_from_host(self) -> bool:
+        """Dev/server mount .odpm/runtime/secrets.json; CI has no host secrets file."""
+        return not self.is_ci()
+
     def runtime_unix_user(self) -> str:
         """Unix user for compose and base image (host-aligned except CI)."""
         if self.uses_host_identity:

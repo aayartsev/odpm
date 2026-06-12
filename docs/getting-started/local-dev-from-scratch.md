@@ -87,6 +87,22 @@ odpm -d test_db -i -u
 | Восстановление из архива | `odpm -d test_db --db-restore имя_архива` |
 | Новый модуль | `odpm scaffold имя_модуля` |
 | Отладка с точками останова | [VS Code и отладка](../operations/vscode-debug.md) |
+| API-ключи и токены для модулей | [Локальные секреты](../operations/secrets.md) — `.odpm/secrets.json` → `/run/odpm/secrets.json` |
+
+## Секреты для модулей (опционально)
+
+Если модули обращаются к внешним API, подготовьте файл секретов **до** или **после** init:
+
+```bash
+# из шаблона (после odpm --init)
+cp .odpm/secrets.example.json .odpm/secrets.json
+# отредактируйте ключи, затем:
+odpm --skip-start
+```
+
+Или при init: `odpm --init … --secrets-file /path/to/secrets.json`.
+
+После смены значений снова `odpm --skip-start` и при необходимости `docker compose up -d`. Подробно — [локальные секреты](../operations/secrets.md).
 
 ## Шаблон `.dockerignore`
 

@@ -75,3 +75,9 @@ def add_platform_env_arguments(parser: argparse.ArgumentParser) -> None:
         help="""Odoo nightly build date (YYYYMMDD or YYYY-MM-DD). Resolves to the last commit on the platform branch before that day and checks it out. Overrides odoo_build_date from odpm.json. Ignored when a commit hash is set in odoo_git_link.""",
         type=str,
     )
+
+    parser.add_argument(
+        params.SECRETS_FILE_PARAM,
+        help="""Import secrets from a JSON file into .odpm/secrets.json (schema v1). Works with --init and on any run.""",
+        type=str,
+    )

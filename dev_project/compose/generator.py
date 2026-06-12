@@ -52,6 +52,14 @@ class ComposeGenerator:
                 " " * 6
                 + f"- {local_runtime_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro"
             )
+        if compose_service.include_runtime_secrets:
+            local_runtime_secrets_path = os.path.join(
+                self.config.project_dir, constants.ODPM_SECRETS_RUNTIME_REL_PATH
+            )
+            volume_lines.append(
+                " " * 6
+                + f"- {local_runtime_secrets_path}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro"
+            )
         if self.config.policy.include_odoo_volumes:
             for mapped_volume in self.env.mapped_folders:
                 volume_lines.append(
@@ -98,6 +106,13 @@ class ComposeGenerator:
                 constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
             )
 
+        odpm_secrets_path_env_line = ""
+        if compose_service.include_runtime_secrets:
+            odpm_secrets_path_env_line = render_odpm_config_path_env_line(
+                constants.ODPM_SECRETS_PATH_ENV,
+                constants.ODPM_SECRETS_CONTAINER_PATH,
+            )
+
         compose_user = policy.runtime_unix_user()
         content = "".join(lines).format(
             ODOO_IMAGE=odoo_image,
@@ -108,6 +123,7 @@ class ComposeGenerator:
             GEVENT_PORT=self.user_env.gevent_port or constants.GEVENT_DEFAULT_PORT,
             DOCKER_PROJECT_DIR=compose_service.working_dir,
             ODPM_CONFIG_PATH_ENV_LINE=odpm_config_path_env_line,
+            ODPM_SECRETS_PATH_ENV_LINE=odpm_secrets_path_env_line,
             START_COMMAND_BLOCK=render_compose_command_block(
                 compose_service.command
             ),

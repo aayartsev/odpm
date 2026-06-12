@@ -15,6 +15,7 @@ class ComposeOdooService:
     working_dir: str
     command: list[str]
     include_runtime_config: bool = True
+    include_runtime_secrets: bool = False
 
 
 @dataclass
@@ -35,6 +36,7 @@ class StartCommand:
             return ComposeOdooService(
                 working_dir=project_dir,
                 include_runtime_config=False,
+                include_runtime_secrets=False,
                 command=[
                     "python3",
                     "-m",

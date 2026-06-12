@@ -157,6 +157,7 @@ class EnsureProjectTemplateTests(unittest.TestCase):
             content = project_template.read_text(encoding="utf-8")
             self.assertIn("{START_COMMAND_BLOCK}", content)
             self.assertIn("{ODPM_CONFIG_PATH_ENV_LINE}", content)
+            self.assertIn("{ODPM_SECRETS_PATH_ENV_LINE}", content)
             self.assertIn("{ODOO_VOLUMES_BLOCK}", content)
             self.assertNotIn("{START_STRING}", content)
             self.assertNotIn("{ODPM_CONFIG_ENV_LINE}", content)

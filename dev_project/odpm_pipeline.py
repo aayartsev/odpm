@@ -56,12 +56,20 @@ class OdpmPipeline:
             self.program_dir,
             user_environment,
         )
+        self._import_secrets_if_requested()
         self.project_environment = CreateProjectEnvironment(self.config)
         self.system_checker = SystemChecker(self.config, self.project_environment)
         policy = SystemCheckPolicy.from_config(self.config)
         if policy.beginner_git:
             self.system_checker.check_git()
         self.project_environment.attach_system_checker(self.system_checker)
+
+    def _import_secrets_if_requested(self) -> None:
+        if not self.cli_args.secrets_file:
+            return
+        from .project_env.secrets import import_secrets_from_path
+
+        import_secrets_from_path(self.config.project_dir, self.cli_args.secrets_file)
 
     def prepare_project_files(self) -> None:
         host_summaries.log_prepare_started()

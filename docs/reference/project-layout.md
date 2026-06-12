@@ -21,6 +21,9 @@
 | `deps.lock.json` | Фиксация ревизий git — **хранить в git** |
 | `runtime/config.json` | Служебный контракт host→container — **не коммитить**, не править |
 | `runtime/debug-profile.json` | IDE-neutral профиль отладчика (developer) — **не коммитить**, не править |
+| `secrets.example.json` | Шаблон ключей секретов — **хранить в git** |
+| `secrets.json` | Source секретов модулей — **не коммитить**; см. [секреты](../operations/secrets.md) |
+| `runtime/secrets.json` | Materialized copy для mount в контейнер — **не коммитить**, не править |
 | `dockerignore` | Шаблон для корневого `.dockerignore` |
 
 ## Прочие каталоги
