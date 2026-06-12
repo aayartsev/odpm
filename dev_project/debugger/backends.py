@@ -8,9 +8,11 @@ from typing import Literal, Protocol
 from .. import constants
 from .constants import (
     DEBUGGER_BACKEND_DEBUGPY_LISTEN,
-    DEBUGGER_DIRECTION_ATTACH,
+    DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEBUGGER_PROTOCOL_DEBUGPY,
 )
+from .exec_settings import DebuggerExecSettings
+from .pydevd_connect import PydevdConnectBackend
 
 DebuggerDirection = Literal["listen", "connect"]
 
@@ -30,7 +32,7 @@ class DebuggerBackend(Protocol):
         venv_python: str,
         odoo_argv: list[str],
         *,
-        listen_port: int,
+        settings: DebuggerExecSettings,
     ) -> list[str]: ...
 
 
@@ -52,15 +54,23 @@ class DebugpyListenBackend:
         venv_python: str,
         odoo_argv: list[str],
         *,
-        listen_port: int,
+        settings: DebuggerExecSettings,
     ) -> list[str]:
-        exec_argv = [venv_python, "-u", "-m", "debugpy", "--listen", f"0.0.0.0:{listen_port}"]
+        exec_argv = [
+            venv_python,
+            "-u",
+            "-m",
+            "debugpy",
+            "--listen",
+            f"0.0.0.0:{settings.port}",
+        ]
         exec_argv.extend(odoo_argv)
         return exec_argv
 
 
 DEBUGGER_BACKENDS: dict[str, DebuggerBackend] = {
     DEBUGGER_BACKEND_DEBUGPY_LISTEN: DebugpyListenBackend(),
+    DEBUGGER_BACKEND_PYDEVD_CONNECT: PydevdConnectBackend(),
 }
 
 

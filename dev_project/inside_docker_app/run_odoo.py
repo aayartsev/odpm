@@ -8,6 +8,7 @@ from pathlib import PurePosixPath
 
 from .. import constants
 from ..container_config import ContainerConfig, load_container_config_from_env
+from ..debugger.exec_settings import debugger_exec_settings_from_config
 from ..debugger.resolve import resolve_debugger_backend
 from .container_bootstrap import run_container_bootstrap
 from .exceptions import ContainerError
@@ -32,12 +33,10 @@ def build_odoo_exec_argv(config: ContainerConfig, odoo_argv: list[str]) -> list[
     backend = resolve_debugger_backend(config)
     if backend is None:
         return [venv_python, "-u", *odoo_argv]
-    settings = config.debugger
-    listen_port = settings.port if settings is not None else 5678
     return backend.wrap_exec_argv(
         venv_python,
         odoo_argv,
-        listen_port=listen_port,
+        settings=debugger_exec_settings_from_config(config),
     )
 
 

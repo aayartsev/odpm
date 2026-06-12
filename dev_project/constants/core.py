@@ -101,6 +101,18 @@ DEBUGPY = {
     "3.13": "debugpy==1.8.0",
 }
 
+# PyCharm Debug Server (pydevd_connect). Pin targets 2024.3; see ide-debug docs if IDE mismatches.
+DEFAULT_PYDEVD_PYCHARM = "pydevd-pycharm==243.25659.43"
+PYDEVD_PYCHARM = {
+    "3.7": DEFAULT_PYDEVD_PYCHARM,
+    "3.8": DEFAULT_PYDEVD_PYCHARM,
+    "3.9": DEFAULT_PYDEVD_PYCHARM,
+    "3.10": DEFAULT_PYDEVD_PYCHARM,
+    "3.11": DEFAULT_PYDEVD_PYCHARM,
+    "3.12": DEFAULT_PYDEVD_PYCHARM,
+    "3.13": DEFAULT_PYDEVD_PYCHARM,
+}
+
 DEFAULT_VENV_BOOTSTRAP = [
     "cython<3.0",
     "wheel",
