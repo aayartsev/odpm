@@ -21,6 +21,12 @@ PycharmRunConfigKind = Literal["dap_attach", "debug_server"]
 PYCHARM_RUN_CONFIG_BASENAME = "Odoo Remote Attach"
 PYCHARM_DEBUG_SERVER_RUN_CONFIG_BASENAME = "Odoo Debug Server"
 PYCHARM_DEBUG_SERVER_UNIT_NAME = "Odoo Debug Server"
+ODPM_PYCHARM_RUN_CONFIG_BASENAMES = frozenset(
+    {
+        PYCHARM_RUN_CONFIG_BASENAME,
+        PYCHARM_DEBUG_SERVER_RUN_CONFIG_BASENAME,
+    }
+)
 
 
 class PycharmConfigurator:
@@ -69,6 +75,22 @@ class PycharmConfigurator:
 
     def should_generate(self, profile: DebuggerProfile) -> bool:
         return self.run_config_kind(profile) is not None
+
+    def odpm_run_config_path(self, basename: str) -> str:
+        return os.path.join(self.get_run_dir_path(), f"{basename}.run.xml")
+
+    def remove_stale_odpm_run_configs(self, profile: DebuggerProfile) -> None:
+        """Remove odpm-managed .run XML for the inactive debugger backend."""
+        active = self.run_config_basename(profile)
+        run_dir = os.path.join(self.config.project_dir, ".run")
+        if not os.path.isdir(run_dir):
+            return
+        for basename in ODPM_PYCHARM_RUN_CONFIG_BASENAMES:
+            if basename == active:
+                continue
+            path = os.path.join(run_dir, f"{basename}.run.xml")
+            if os.path.isfile(path):
+                os.unlink(path)
 
     def _append_path_mappings(
         self, configuration: ET.Element, profile: DebuggerProfile
@@ -177,6 +199,7 @@ class PycharmConfigurator:
 
     def update_pycharm_run_configuration(self) -> None:
         profile = self.build_debugger_profile()
+        self.remove_stale_odpm_run_configs(profile)
         if not self.should_generate(profile):
             return
         path = self.run_config_path(profile)

@@ -10,7 +10,7 @@
 
 | Область | Как устроено |
 |---------|--------------|
-| **Отладчик** | В контейнере запускается отладчик Python (debugpy); на хост пробрасывается порт из `DEBUGGER_PORT` (обычно 5678). Подключение из VS Code — [отдельная статья](../operations/vscode-debug.md). |
+| **Отладчик** | Режим `ODPM_DEBUGGER_BACKEND`: `debugpy_listen` (контейнер слушает, VS Code / PyCharm Attach) или `pydevd_connect` (PyCharm Debug Server). Порт `DEBUGGER_PORT` — см. [отладка в IDE](../operations/vscode-debug.md). |
 | **Секреты модулей** | Опционально: `.odpm/secrets.json` → mount `/run/odpm/secrets.json` — [локальные секреты](../operations/secrets.md). |
 | **PostgreSQL** | Порт базы доступен на хосте (не только с интерфейса loopback) — удобно для локальных утилит. |
 | **Исходники** | Каталоги платформы, разрабатываемого проекта и зависимостей подключены с компьютера разработчика. |

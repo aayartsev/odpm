@@ -12,17 +12,48 @@
 | `ODOO_PROJECTS_DIR` | Куда клонировать platform и git-зависимости | `~/odoo_projects` |
 | `ODOO_PORT` | HTTP-порт Odoo на компьютере | `8069` |
 | `POSTGRES_PORT` | Порт PostgreSQL на компьютере (в сценарии `server` — только localhost) | `5432` |
-| `DEBUGGER_PORT` | Порт отладчика (сценарий `developer`) | `5678` |
-| `ODPM_DEBUGGER_BACKEND` | Режим отладки: `debugpy_listen` (контейнер слушает, IDE подключается) | `debugpy_listen` |
+| `DEBUGGER_PORT` | Порт отладчика; см. [семантику по backend](#debugger_port-и-backend) | `5678` |
+| `ODPM_DEBUGGER_BACKEND` | `debugpy_listen` или `pydevd_connect` | `debugpy_listen` |
 | `ODPM_IDE` | Какие настройки IDE генерировать: `vscode`, `pycharm`, `both`, `none` | `vscode` |
-| `ODPM_DEBUGGER_CONNECT_HOST` | Хост IDE для `pydevd_connect` (этап 2) | `host.docker.internal` |
-| `ODPM_DEBUGGER_SUSPEND` | `1` — ждать IDE перед стартом Odoo (этап 2) | `0` |
+| `ODPM_DEBUGGER_CONNECT_HOST` | Хост IDE для `pydevd_connect` (откуда контейнер подключается к Debug Server) | `host.docker.internal` |
+| `ODPM_DEBUGGER_SUSPEND` | `1` / `y` — Odoo ждёт IDE после `settrace` (`pydevd_connect`) | `0` |
 | `GEVENT_PORT` | Порт веб-сокетов gevent | `8072` |
 | `ODPM_SCENARIO` | `developer`, `server` или `ci` | `developer` |
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | по системе | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
 
-## Пример
+## `DEBUGGER_PORT` и backend
+
+| `ODPM_DEBUGGER_BACKEND` | Что означает `DEBUGGER_PORT` | Compose |
+|-------------------------|------------------------------|---------|
+| **`debugpy_listen`** | Порт **в контейнере**, publish на хост (`5678:5678`) | IDE подключается к `localhost:DEBUGGER_PORT` |
+| **`pydevd_connect`** | Порт **Debug Server на хосте** (PyCharm слушает) | Порт **не** публикуется; нужен `extra_hosts` для `host.docker.internal` на Linux |
+
+Подробный workflow: [отладка в IDE](../operations/vscode-debug.md).
+
+Поля `ODPM_DEBUGGER_CONNECT_HOST` и `ODPM_DEBUGGER_SUSPEND` попадают в `.odpm/runtime/config.json` всегда; для `debugpy_listen` runtime их не использует.
+
+## Примеры
+
+### VS Code / Cursor (по умолчанию)
+
+```ini
+DEBUGGER_PORT=5678
+ODPM_DEBUGGER_BACKEND=debugpy_listen
+ODPM_IDE=vscode
+```
+
+### PyCharm Debug Server
+
+```ini
+DEBUGGER_PORT=5678
+ODPM_DEBUGGER_BACKEND=pydevd_connect
+ODPM_IDE=pycharm
+ODPM_DEBUGGER_CONNECT_HOST=host.docker.internal
+ODPM_DEBUGGER_SUSPEND=1
+```
+
+### Полный фрагмент `.env`
 
 ```ini
 BACKUP_DIR=/home/user/odoo_backups

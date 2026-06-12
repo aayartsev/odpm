@@ -65,7 +65,7 @@
 
 | Статья | Содержание |
 |--------|------------|
-| [VS Code и отладка](operations/vscode-debug.md) | Подключение отладчика к процессу в контейнере |
+| [Отладка в IDE](operations/vscode-debug.md) | `debugpy_listen` (VS Code / PyCharm DAP) и `pydevd_connect` (PyCharm Debug Server) |
 | [Локальные секреты](operations/secrets.md) | API-ключи и токены модулей → `/run/odpm/secrets.json` |
 | [Запуск без диалогов](operations/non-interactive.md) | Скрипты и машины сборки |
 | [Безопасность](operations/security.md) | Пароли, обратный прокси, порты |

@@ -13,6 +13,7 @@ from dev_project.debugger.constants import DEBUGGER_BACKEND_PYDEVD_CONNECT
 from dev_project.project_env.services.pycharm_configurator import (
     PYCHARM_DEBUG_SERVER_RUN_CONFIG_BASENAME,
     PYCHARM_DEBUG_SERVER_UNIT_NAME,
+    PYCHARM_RUN_CONFIG_BASENAME,
     PycharmConfigurator,
 )
 from dev_project.project_env.types import MappedPath
@@ -161,6 +162,58 @@ class PycharmConfiguratorTests(unittest.TestCase):
                 content = run_file.read()
             self.assertIn("PyRemoteDebugConfigurationType", content)
             self.assertIn("Python Debug Server", content)
+
+    def test_update_removes_stale_debug_server_when_switching_to_dap_attach(self) -> None:
+        with tempfile.TemporaryDirectory() as project_dir:
+            odoo_src = os.path.join(project_dir, "sources", "odoo")
+            os.makedirs(odoo_src)
+            env = make_debugger_env_mock(
+                project_dir=project_dir,
+                mapped_folders=[
+                    MappedPath(local=odoo_src, docker="/home/odoo/odoo"),
+                ],
+            )
+            configurator = PycharmConfigurator(env)
+            run_dir = os.path.join(project_dir, ".run")
+            os.makedirs(run_dir)
+            stale_path = configurator.odpm_run_config_path(
+                PYCHARM_DEBUG_SERVER_RUN_CONFIG_BASENAME
+            )
+            with open(stale_path, "w", encoding="utf-8") as stale_file:
+                stale_file.write("<stale/>")
+            custom_path = os.path.join(run_dir, "My Custom.run.xml")
+            with open(custom_path, "w", encoding="utf-8") as custom_file:
+                custom_file.write("<custom/>")
+
+            configurator.update_pycharm_run_configuration()
+
+            self.assertFalse(os.path.isfile(stale_path))
+            self.assertTrue(os.path.isfile(configurator.run_config_path()))
+            self.assertTrue(os.path.isfile(custom_path))
+
+    def test_update_removes_stale_dap_attach_when_switching_to_debug_server(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as project_dir:
+            odoo_src = os.path.join(project_dir, "sources", "odoo")
+            os.makedirs(odoo_src)
+            env = make_debugger_env_mock(
+                project_dir=project_dir,
+                mapped_folders=[
+                    MappedPath(local=odoo_src, docker="/home/odoo/odoo"),
+                ],
+            )
+            env.user_env.debugger_backend = DEBUGGER_BACKEND_PYDEVD_CONNECT
+            configurator = PycharmConfigurator(env)
+            os.makedirs(os.path.join(project_dir, ".run"))
+            stale_path = configurator.odpm_run_config_path(PYCHARM_RUN_CONFIG_BASENAME)
+            with open(stale_path, "w", encoding="utf-8") as stale_file:
+                stale_file.write("<stale/>")
+
+            configurator.update_pycharm_run_configuration()
+
+            self.assertFalse(os.path.isfile(stale_path))
+            self.assertTrue(os.path.isfile(configurator.run_config_path()))
 
     def test_should_generate_true_for_pydevd_connect(self) -> None:
         env = make_debugger_env_mock(
