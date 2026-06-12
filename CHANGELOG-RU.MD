@@ -19,6 +19,7 @@
 
 ### Изменено
 
+- **`--init --branch` синхронизирует developing до чтения `odpm.json`** — если в клоне уже есть `odpm.json` (например на default branch), при указании `--branch` выполняются checkout и симлинки на проект, а не пропуск git. Исправляет ошибку версии и отсутствие symlink при повторном init. Тесты: `test_developing_repo_materializer.py`.
 - **`ScenarioPolicy.skip_ide_config`** — переименовано с `skip_vscode`; отключает генерацию конфигов VS Code и PyCharm (в `ci` IDE-файлы не создаются). Свойство `skip_vscode` оставлено как read-only alias.
 - **`release-packages`: артефакты на push в ветки** — workflow на push в `4.0-beta` / `4.0-rc1` / `main` (не только тег `v*` / `workflow_dispatch`); combined-артефакт Actions `release-packages` (`.deb`, `.rpm`, `SHA256SUMS`). GitHub Release — только по тегу. README EN+RU, матрица CI.
 - **`VscodeConfigurator`: symlink `pathMappings`** — в `launch.json` добавляются alias-пути для симлинков в корне проекта и в `dependencies/` (тот же `remoteRoot`, что у смонтированного real path). Исправляет серые breakpoints при открытии модулей через `project/...` в дереве odpm-проекта вместо `~/odoo_projects/...`. `tests/test_vscode_debugger_mappings.py`.

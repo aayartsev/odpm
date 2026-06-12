@@ -40,8 +40,19 @@ class DevelopingRepoMaterializer:
             constants.GITLINK_TYPE_SSH,
         )
 
+    @staticmethod
+    def _requested_branch(config: DevelopingRepoConfig) -> str | None:
+        branch = config.arguments.branch
+        if isinstance(branch, str) and branch.strip():
+            return branch.strip()
+        return None
+
     def materialize_for_odpm_json(self, config: DevelopingRepoConfig) -> bool:
         """Clone developing repo before reading odpm.json when it lives in git.
+
+        When ``--branch`` is set, always sync the clone and symlinks before
+        ``odpm.json`` is loaded—even if the manifest file already exists on
+        the current checkout (e.g. default branch with an older schema).
 
         Returns True when the repository was cloned or updated in this call.
         """
@@ -57,7 +68,10 @@ class DevelopingRepoMaterializer:
             config.project_dir,
             constants.PROJECT_CONFIG_FILE_NAME,
         )
-        if os.path.exists(repo_odpm_json) or os.path.exists(project_odpm_json):
+        odpm_json_exists = os.path.exists(repo_odpm_json) or os.path.exists(
+            project_odpm_json
+        )
+        if odpm_json_exists and not self._requested_branch(config):
             return False
         self._build_developing(config)
         return True
@@ -68,10 +82,11 @@ class DevelopingRepoMaterializer:
             self._build_developing(config)
 
     def _build_developing(self, config: DevelopingRepoConfig) -> None:
+        branch = self._requested_branch(config)
         try:
             config.developing_project.build_project()
-            if config.arguments.branch and isinstance(config.arguments.branch, str):
-                config.developing_project.switch_to_branch(config.arguments.branch)
+            if branch:
+                config.developing_project.switch_to_branch(branch)
         finally:
             ensure_developing_repo_symlinks(config)
         config.developing_project_dir_path = config.developing_project.project_path

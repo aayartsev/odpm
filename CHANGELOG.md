@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **`--init --branch` syncs developing repo before reading `odpm.json`** — when the developing clone already contains `odpm.json` (e.g. default branch), `materialize_for_odpm_json` now runs checkout + project symlinks if `--branch` is set instead of skipping git update. Fixes version mismatch and missing developing symlink on re-init. Tests: `test_developing_repo_materializer.py`.
 - **`ScenarioPolicy.skip_ide_config`** — renamed from `skip_vscode`; gates VS Code and PyCharm configurators (CI skips all IDE files). `skip_vscode` remains a read-only alias on the policy object.
 - **`release-packages` branch artifacts** — workflow runs on push to `4.0-beta` / `4.0-rc1` / `main` (not only tag `v*` / `workflow_dispatch`); uploads combined Actions artifact `release-packages` (`.deb`, `.rpm`, `SHA256SUMS`). GitHub Release assets remain tag-only. README EN+RU CI matrix.
 - **`VscodeConfigurator` symlink `pathMappings`** — `launch.json` now adds debugger aliases for project-root and `dependencies/` symlinks (same `remoteRoot` as the mounted real path). Fixes grey breakpoints when opening modules via `project/...` in the odpm tree instead of `~/odoo_projects/...`. `tests/test_vscode_debugger_mappings.py`.
