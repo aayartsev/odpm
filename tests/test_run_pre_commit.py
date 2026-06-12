@@ -94,5 +94,49 @@ class RunPreCommitTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, 1)
 
 
+class RunPreCommitMainTests(unittest.TestCase):
+    @patch("dev_project.inside_docker_app.run_pre_commit.parse_project_dir", return_value="/p")
+    @patch("dev_project.inside_docker_app.run_pre_commit.run_pre_commit")
+    @patch("dev_project.inside_docker_app.run_pre_commit._logger")
+    def test_main_logs_container_error_and_exits(
+        self, mock_logger, mock_run, _mock_parse
+    ):
+        mock_run.side_effect = ContainerError("git config failed")
+
+        with self.assertRaises(SystemExit) as ctx:
+            run_pre_commit.main()
+
+        self.assertEqual(ctx.exception.code, 1)
+        mock_logger.error.assert_called_once()
+
+    @patch("dev_project.inside_docker_app.run_pre_commit.parse_project_dir", return_value="/p")
+    @patch("dev_project.inside_docker_app.run_pre_commit.run_pre_commit")
+    @patch("dev_project.inside_docker_app.run_pre_commit._logger")
+    def test_main_logs_pre_commit_nonzero_exit(
+        self, mock_logger, mock_run, _mock_parse
+    ):
+        mock_run.side_effect = SystemExit(2)
+
+        with self.assertRaises(SystemExit) as ctx:
+            run_pre_commit.main()
+
+        self.assertEqual(ctx.exception.code, 2)
+        mock_logger.error.assert_called_once_with("pre-commit exited with code %s", 2)
+
+    @patch("dev_project.inside_docker_app.run_pre_commit.parse_project_dir", return_value="/p")
+    @patch("dev_project.inside_docker_app.run_pre_commit.run_pre_commit")
+    @patch("dev_project.inside_docker_app.run_pre_commit._logger")
+    def test_main_logs_unexpected_exception_and_exits(
+        self, mock_logger, mock_run, _mock_parse
+    ):
+        mock_run.side_effect = ValueError("unexpected")
+
+        with self.assertRaises(SystemExit) as ctx:
+            run_pre_commit.main()
+
+        self.assertEqual(ctx.exception.code, 1)
+        mock_logger.exception.assert_called_once_with("run_pre_commit failed")
+
+
 if __name__ == "__main__":
     unittest.main()

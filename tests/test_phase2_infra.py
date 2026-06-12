@@ -321,16 +321,18 @@ class ProjectDirManagerErrorTests(unittest.TestCase):
 
 
 class OdpmPipelineErrorHandlingTests(unittest.TestCase):
+    @patch("dev_project.odpm_pipeline._logger")
     @patch("dev_project.odpm_pipeline.sys.exit")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     def test_run_exits_on_system_check_error(
-        self, mock_prepare, _mock_setup, mock_exit
+        self, mock_prepare, _mock_setup, mock_exit, mock_logger
     ):
         mock_prepare.side_effect = SystemCheckError("docker down", exit_code=1)
         pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
         pipeline.run()
         mock_exit.assert_called_once_with(1)
+        mock_logger.error.assert_called_once_with("%s", "docker down")
 
     def test_run_catches_system_check_error_as_odpm_error(self):
         self.assertTrue(issubclass(SystemCheckError, OdpmError))

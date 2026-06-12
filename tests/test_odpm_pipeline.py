@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.errors import PipelineError
+from dev_project.errors import ConfigError, PipelineError
 from dev_project.odpm_pipeline import OdpmPipeline
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
@@ -360,12 +360,13 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_chdir.assert_not_called()
         mock_runtime_cls.return_value.run_after_prepare.assert_called_once()
 
+    @patch("dev_project.odpm_pipeline._logger")
     @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     @patch("dev_project.odpm_pipeline.sys.exit")
     def test_run_exits_on_pipeline_error(
-        self, mock_exit, mock_setup, mock_prepare, mock_runtime_cls
+        self, mock_exit, mock_setup, mock_prepare, mock_runtime_cls, mock_logger
     ):
         pipeline = OdpmPipeline(OdpmCliArgs(build_image=True), "/opt/odpm")
         pipeline.config = MagicMock()
@@ -375,6 +376,19 @@ class OdpmPipelineRunTests(unittest.TestCase):
         )
         pipeline.run()
         mock_exit.assert_called_once_with(1)
+        mock_logger.error.assert_called_once_with("%s", "forbidden")
+
+    @patch("dev_project.odpm_pipeline._logger")
+    @patch("dev_project.odpm_pipeline.sys.exit")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_does_not_log_empty_odpm_error_message(
+        self, mock_setup, mock_exit, mock_logger
+    ):
+        mock_setup.side_effect = ConfigError("", exit_code=0)
+        pipeline = OdpmPipeline(OdpmCliArgs(), "/opt/odpm")
+        pipeline.run()
+        mock_exit.assert_called_once_with(0)
+        mock_logger.error.assert_not_called()
 
 
 class OdpmPipelineSetupTests(unittest.TestCase):

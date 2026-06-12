@@ -49,6 +49,36 @@ class RunWithPydevdTests(unittest.TestCase):
             stderr_to_server=True,
         )
 
+    def test_attach_pydevd_debugger_connection_error_raises_container_error(
+        self,
+    ) -> None:
+        mock_pydevd = MagicMock()
+        mock_pydevd.settrace.side_effect = ConnectionRefusedError(
+            "[Errno 111] Connection refused"
+        )
+        with patch.dict("sys.modules", {"pydevd_pycharm": mock_pydevd}):
+            with self.assertRaises(ContainerError) as ctx:
+                run_with_pydevd.attach_pydevd_debugger(
+                    connect_host="host.docker.internal",
+                    port=5678,
+                    suspend=False,
+                )
+        message = str(ctx.exception)
+        self.assertIn("host.docker.internal:5678", message)
+        self.assertIn("Odoo Debug Server", message)
+
+    @patch("dev_project.inside_docker_app.run_with_pydevd._logger")
+    def test_attach_pydevd_debugger_logs_connecting_phase(self, mock_logger) -> None:
+        mock_pydevd = MagicMock()
+        with patch.dict("sys.modules", {"pydevd_pycharm": mock_pydevd}):
+            run_with_pydevd.attach_pydevd_debugger(
+                connect_host="host.docker.internal",
+                port=5678,
+                suspend=True,
+            )
+        mock_logger.info.assert_called_once()
+        self.assertIn("host.docker.internal", mock_logger.info.call_args.args[1])
+
     def test_attach_pydevd_debugger_requires_package(self) -> None:
         import builtins
 
@@ -126,6 +156,28 @@ class RunWithPydevdTests(unittest.TestCase):
             run_with_pydevd.run_with_pydevd(["--", "/home/odoo/odoo/odoo-bin"])
         self.assertIn("pydevd_connect", str(ctx.exception))
         mock_bootstrap.assert_called_once()
+
+    @patch("dev_project.inside_docker_app.run_with_pydevd.run_with_pydevd")
+    @patch("dev_project.inside_docker_app.run_with_pydevd._logger")
+    def test_main_logs_container_error_and_exits(
+        self, mock_logger, mock_run
+    ) -> None:
+        mock_run.side_effect = ContainerError("bootstrap failed")
+        with self.assertRaises(SystemExit) as ctx:
+            run_with_pydevd.main()
+        self.assertEqual(ctx.exception.code, 1)
+        mock_logger.error.assert_called_once()
+
+    @patch("dev_project.inside_docker_app.run_with_pydevd.run_with_pydevd")
+    @patch("dev_project.inside_docker_app.run_with_pydevd._logger")
+    def test_main_logs_unexpected_exception_and_exits(
+        self, mock_logger, mock_run
+    ) -> None:
+        mock_run.side_effect = ValueError("unexpected")
+        with self.assertRaises(SystemExit) as ctx:
+            run_with_pydevd.main()
+        self.assertEqual(ctx.exception.code, 1)
+        mock_logger.exception.assert_called_once_with("run_with_pydevd failed")
 
 
 if __name__ == "__main__":

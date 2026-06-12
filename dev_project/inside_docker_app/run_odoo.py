@@ -10,8 +10,11 @@ from .. import constants
 from ..container_config import ContainerConfig, load_container_config_from_env
 from ..debugger.exec_settings import debugger_exec_settings_from_config
 from ..debugger.resolve import resolve_debugger_backend
+from ..logging import get_module_logger
 from .container_bootstrap import run_container_bootstrap
 from .exceptions import ContainerError
+
+_logger = get_module_logger(__name__)
 
 
 def parse_odoo_argv(argv: list[str] | None = None) -> list[str]:
@@ -53,12 +56,14 @@ def run_odoo(argv: list[str] | None = None) -> None:
 
 
 def main() -> None:
-    from .exceptions import ContainerError
-
     try:
         run_odoo()
     except ContainerError as exc:
+        _logger.error("%s", exc)
         sys.exit(exc.exit_code)
+    except Exception:
+        _logger.exception("run_odoo failed")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

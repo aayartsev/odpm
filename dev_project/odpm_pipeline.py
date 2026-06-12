@@ -136,6 +136,9 @@ class OdpmPipeline:
             self.prepare_project_files()
             self._runtime().run_after_prepare()
         except OdpmError as exc:
+            message = str(exc)
+            if message:
+                _logger.error("%s", message)
             sys.exit(exc.exit_code)
 
     def _config(self) -> Config:
