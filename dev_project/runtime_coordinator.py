@@ -46,6 +46,13 @@ class RuntimeCoordinator:
         CiImageBuildService(self.project_env).build_ci_image()
         return True
 
+    def write_debug_profile(self) -> None:
+        if not self.config.policy.include_debugpy:
+            return
+        from .project_env.debug_profile import write_debug_profile
+
+        write_debug_profile(self.project_env)
+
     def configure_vscode(self) -> None:
         if self.config.policy.skip_vscode:
             return
@@ -84,6 +91,7 @@ class RuntimeCoordinator:
     def run_after_prepare(self) -> None:
         if self.handle_build_image():
             return
+        self.write_debug_profile()
         self.configure_vscode()
         if self.cli_args.update_lock:
             host_summaries.log_update_lock_skip()

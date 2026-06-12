@@ -2,15 +2,41 @@
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
-from .types import DebuggerPathRecord, SymlinksSources
+from .types import DebuggerPathRecord
 
 if TYPE_CHECKING:
     from .environment import CreateProjectEnvironment
+
+
+def _normalize_local_path(path: str) -> str:
+    return os.path.realpath(path)
+
+
+def debug_profile_path(project_dir: str) -> str:
+    return os.path.join(project_dir, constants.ODPM_DEBUG_PROFILE_REL_PATH)
+
+
+def write_debug_profile_to_path(env: CreateProjectEnvironment, path: str) -> str:
+    profile = DebuggerProfileBuilder(env).build()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    payload = json.dumps(profile.to_dict(), ensure_ascii=False, indent=4) + "\n"
+    Path(path).write_text(payload, encoding="utf-8")
+    return path
+
+
+def write_debug_profile(env: CreateProjectEnvironment) -> str:
+    from ..config.payload import ensure_runtime_dir_gitignore
+
+    project_dir = env.config.project_dir
+    ensure_runtime_dir_gitignore(project_dir)
+    return write_debug_profile_to_path(env, debug_profile_path(project_dir))
 
 DEBUG_PROFILE_SCHEMA_VERSION = 1
 DEBUGGER_PROTOCOL_DEBUGPY = "debugpy"
@@ -127,10 +153,10 @@ class DebuggerProfileBuilder:
         return canonical + self._symlink_alias_mappings(canonical)
 
     def _canonical_volume_mappings(self) -> list[DebuggerPathMapping]:
-        backups = os.path.abspath(self.env.user_env.backups)
+        backups = _normalize_local_path(self.env.user_env.backups)
         mappings: list[DebuggerPathMapping] = []
         for mapped_folder in self.env.mapped_folders:
-            local_root = os.path.abspath(mapped_folder.local)
+            local_root = _normalize_local_path(mapped_folder.local)
             if local_root == backups:
                 continue
             mappings.append(
@@ -158,10 +184,7 @@ class DebuggerProfileBuilder:
             candidates.append(pair)
 
         for entry in self.config.symlinks_sources:
-            if isinstance(entry, SymlinksSources):
-                add(entry.link_path, entry.source_path)
-            else:
-                add(entry.link_path, entry.source_path)
+            add(entry.link_path, entry.source_path)
 
         for scan_dir in (
             self.config.project_dir,
@@ -187,7 +210,7 @@ class DebuggerProfileBuilder:
 
         for link_path, source_path in self._symlink_candidates():
             abs_link = os.path.abspath(link_path)
-            abs_source = os.path.abspath(source_path)
+            abs_source = _normalize_local_path(source_path)
             if abs_link == abs_source or abs_link in canonical_locals:
                 continue
             remote_root = remote_by_local.get(abs_source)

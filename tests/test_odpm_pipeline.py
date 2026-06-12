@@ -56,6 +56,49 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         mock_vscode_cls.return_value.update_vscode_debugger_launcher.assert_called_once()
         mock_vscode_cls.return_value.generate_vscode_settings_json.assert_called_once()
 
+    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    def test_write_debug_profile_skipped_without_debugpy(self, mock_write):
+        coordinator = self._coordinator()
+        coordinator.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        coordinator.write_debug_profile()
+        mock_write.assert_not_called()
+
+    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    def test_write_debug_profile_runs_for_developer_policy(self, mock_write):
+        coordinator = self._coordinator()
+        coordinator.config.policy = ScenarioPolicy.from_scenario(
+            constants.DEVELOPER_SCENARIO
+        )
+        coordinator.write_debug_profile()
+        mock_write.assert_called_once_with(coordinator.project_env)
+
+    @patch("dev_project.runtime_coordinator.VscodeConfigurator")
+    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    def test_run_after_prepare_writes_debug_profile_before_vscode(
+        self, mock_write, mock_vscode_cls
+    ):
+        coordinator = self._coordinator(skip_start=True)
+        coordinator.config.policy = ScenarioPolicy.from_scenario(
+            constants.DEVELOPER_SCENARIO
+        )
+        call_order: list[str] = []
+
+        def record_write(*_args, **_kwargs):
+            call_order.append("write")
+
+        def record_vscode(*_args, **_kwargs):
+            call_order.append("vscode")
+            return MagicMock()
+
+        mock_write.side_effect = record_write
+        mock_vscode_cls.side_effect = record_vscode
+
+        coordinator.run_after_prepare()
+
+        mock_write.assert_called_once_with(coordinator.project_env)
+        mock_vscode_cls.assert_called_once_with(coordinator.project_env)
+        self.assertEqual(call_order, ["write", "vscode"])
+
 
 class OdpmPipelinePolicyTests(unittest.TestCase):
     def _pipeline(self, **args_overrides) -> OdpmPipeline:
