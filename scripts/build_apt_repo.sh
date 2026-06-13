@@ -13,6 +13,15 @@ if [[ ! -f "${DEB}" ]]; then
     exit 1
 fi
 
+if [[ "${DEB}" != /* ]]; then
+    DEB="${PROJECT_ROOT}/${DEB}"
+fi
+DEB="$(readlink -f "${DEB}")"
+if [[ ! -f "${DEB}" ]]; then
+    echo "deb not found after resolve: ${DEB}" >&2
+    exit 1
+fi
+
 KEYRING="${PROJECT_ROOT}/packaging/apt/odpm-archive-keyring.gpg"
 if [[ ! -f "${KEYRING}" ]]; then
     echo "missing public keyring: ${KEYRING}" >&2
