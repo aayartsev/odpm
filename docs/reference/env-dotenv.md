@@ -12,7 +12,7 @@
 | `ODOO_PROJECTS_DIR` | Куда клонировать platform и git-зависимости | `~/odoo_projects` |
 | `ODOO_PORT` | HTTP-порт Odoo на компьютере | `8069` |
 | `POSTGRES_PORT` | Порт PostgreSQL на компьютере (в сценарии `server` — только localhost) | `5432` |
-| `DEBUGGER_PORT` | Порт отладчика; см. [семантику по backend](#debugger_port-и-backend) | `5678` |
+| `DEBUGGER_PORT` | Порт отладчика; см. [семантику по backend](#debugger_port-backend) | `5678` |
 | `ODPM_DEBUGGER_BACKEND` | `debugpy_listen` или `pydevd_connect` | `debugpy_listen` |
 | `ODPM_IDE` | Какие настройки IDE генерировать: `vscode`, `pycharm`, `both`, `none` | `vscode` |
 | `ODPM_DEBUGGER_CONNECT_HOST` | Хост IDE для `pydevd_connect` (откуда контейнер подключается к Debug Server) | `host.docker.internal` |

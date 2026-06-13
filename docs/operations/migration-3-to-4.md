@@ -29,4 +29,4 @@
 - Файл фиксации **`.odpm/deps.lock.json`**, команда **`odpm plan`**.
 - Служебная конфигурация **`.odpm/runtime/config.json`** вместо разрозненной передачи параметров.
 
-Для разработчиков **самого** odpm — таблица переименований модулей Python: [импорты 4.0→4.1](../contributing/imports-migration.md).
+Для разработчиков **самого** odpm — таблица переименований модулей Python: [импорты 4.0→4.1](https://github.com/aayartsev/odoo_dev_project/blob/main/docs/contributing/imports-migration.md) (в репозитории odpm).
