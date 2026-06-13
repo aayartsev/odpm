@@ -15,6 +15,7 @@ from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
 from .bootstrap import bootstrap_config, normalize_project_requirements
+from .transforms.env_substitution import EnvResolver
 from .nested_compatibility import collect_nested_compatibility_issues
 from .payload import compute_extras_stamp, compute_venv_lock_hash, config_to_json
 from .runtime_facade import ConfigRuntimeFacadeMixin
@@ -77,6 +78,10 @@ class Config(ConfigRuntimeFacadeMixin):
     @property
     def bootstrap(self) -> BootstrapState:
         return _ensure_bootstrap_state(self)
+
+    @property
+    def env_resolver(self) -> EnvResolver:
+        return self._env_resolver
 
     @property
     def host_context(self) -> HostProjectContext:

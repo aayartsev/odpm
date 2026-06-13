@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 from dev_project.config.transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
@@ -31,6 +32,17 @@ class EnvResolverTests(unittest.TestCase):
     def test_resolve_returns_none_when_unset(self):
         resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
         self.assertIsNone(resolver.resolve("MISSING"))
+
+    def test_from_user_env_uses_project_dotenv_dict(self):
+        user_env = mock.MagicMock()
+        user_env.project_dotenv_dict.return_value = {"PLATFORM_DIR": "/tmp/platform"}
+        resolver = EnvResolver.from_user_env(
+            user_env,
+            process_environ={"GIT_HOST": "from-process"},
+        )
+        self.assertEqual(resolver.resolve("GIT_HOST"), "from-process")
+        self.assertEqual(resolver.resolve("PLATFORM_DIR"), "/tmp/platform")
+        user_env.project_dotenv_dict.assert_called_once_with()
 
 
 class ExpandEnvStringTests(unittest.TestCase):

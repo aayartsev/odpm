@@ -6,9 +6,12 @@ import os
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ...errors import ConfigError
+
+if TYPE_CHECKING:
+    from ...host.user_env import CreateUserEnvironment
 
 ODPM_JSON_ENV_EXPAND_FIELDS = frozenset({
     "dependencies",
@@ -44,6 +47,18 @@ class EnvResolver:
             project_dotenv={
                 key: str(value) for key, value in (project_dotenv or {}).items()
             },
+        )
+
+    @classmethod
+    def from_user_env(
+        cls,
+        user_env: CreateUserEnvironment,
+        *,
+        process_environ: Mapping[str, str] | None = None,
+    ) -> EnvResolver:
+        return cls.from_sources(
+            process_environ=process_environ,
+            project_dotenv=user_env.project_dotenv_dict(),
         )
 
     def resolve(self, name: str) -> str | None:

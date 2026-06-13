@@ -20,7 +20,11 @@ from dev_project.config.artifacts import DeprecatedConfigHandler
 from dev_project.config.bootstrap_context import ConfigBootstrapContext
 from dev_project.config.defaults import ConfigDefaultsFactory
 from dev_project.config.manifests import OdpmJsonReader, UserSettingsReader, rewrite_odpm_json
-from dev_project.config.transforms import OdooBuildDateResolver, beautify_module_list
+from dev_project.config.transforms import (
+    EnvResolver,
+    OdooBuildDateResolver,
+    beautify_module_list,
+)
 from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.config.odoo_conf import OdooConfBuilder
 from dev_project.config.paths import ConfigPaths
@@ -531,6 +535,40 @@ class ConfigBootstrapStateTests(unittest.TestCase):
         self.assertFalse(config.bootstrap.user_loaded)
         self.assertFalse(config.bootstrap.project_loaded)
         self.assertEqual(config.bootstrap.repo_odpm_json, "")
+
+    def test_init_context_creates_env_resolver_from_user_env(self):
+        config = Config.__new__(Config)
+        user_env = MagicMock(odpm_scenario=constants.DEVELOPER_SCENARIO)
+        user_env.project_dotenv_dict.return_value = {
+            "ODOO_PLATFORM_DIR": "/from/dotenv",
+            "GIT_HOST": "git.dotenv.example",
+        }
+        with patch.dict(
+            os.environ,
+            {
+                "ODOO_PLATFORM_DIR": "/from/process",
+            },
+            clear=False,
+        ):
+            init_context(
+                config,
+                MagicMock(project_path="/tmp/project"),
+                OdpmCliArgs(
+                    odoo_version=None,
+                    python_version=None,
+                    distro_name=None,
+                    distro_version=None,
+                    postgres_version=None,
+                    requirements_txt="",
+                ),
+                "/tmp/odpm",
+                user_env,
+            )
+
+        self.assertIsInstance(config.env_resolver, EnvResolver)
+        self.assertEqual(config.env_resolver.resolve("ODOO_PLATFORM_DIR"), "/from/process")
+        self.assertEqual(config.env_resolver.resolve("GIT_HOST"), "git.dotenv.example")
+        user_env.project_dotenv_dict.assert_called_once_with()
 
     def test_property_shims_delegate_to_bootstrap(self):
         config = Config.__new__(Config)

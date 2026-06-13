@@ -90,10 +90,18 @@ class CreateUserEnvironment:
         self.ensure_default_env_file(env_path)
         return env_path
 
+    def project_dotenv_dict(self) -> dict[str, str]:
+        """Return all key/value pairs from the resolved .env file for manifest ${VAR} lookup."""
+        return dict(self._project_dotenv)
+
     def parse_env_file(self) -> None:
         parser = ConfigParser()
+        parser.optionxform = str
         with open(self.env_file) as stream:
             parser.read_string("[env]\n" + stream.read())
+        self._project_dotenv = {
+            key: str(value) for key, value in parser["env"].items()
+        }
         self.backups = parser["env"]["BACKUP_DIR"]
         self.odoo_projects_dir = parser["env"]["ODOO_PROJECTS_DIR"]
         self.debugger_port = int(

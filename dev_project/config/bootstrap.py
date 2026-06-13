@@ -20,6 +20,7 @@ from .bootstrap_phases import (
     normalize_project_requirements,
 )
 from .layout import apply_policy_and_layout
+from .transforms.env_substitution import EnvResolver
 from .state import (
     BootstrapState,
     DockerLayoutState,
@@ -74,6 +75,7 @@ def init_context(
     config.project_dir = config.pd_manager.project_path
     config.config_home_dir = config.pd_manager.home_config_dir
     config.user_env = user_env
+    config._env_resolver = EnvResolver.from_user_env(user_env)
     config.policy = ScenarioPolicy.from_scenario(config.user_env.odpm_scenario)
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()
