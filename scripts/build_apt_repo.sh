@@ -8,6 +8,10 @@ OUT="${3:-apt-repo-out}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
+if [[ "${OUT}" != /* ]]; then
+    OUT="${PROJECT_ROOT}/${OUT}"
+fi
+
 if [[ ! -f "${DEB}" ]]; then
     echo "deb not found: ${DEB}" >&2
     exit 1
@@ -61,4 +65,4 @@ reprepro includedeb "${SUITE}" "${DEB}"
 reprepro export "${SUITE}"
 
 echo "APT repo ready in ${OUT} (suite=${SUITE})"
-find "${OUT}" -type f | sort
+find . -type f | sort
