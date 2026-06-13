@@ -1,0 +1,144 @@
+"""Tests for manifest ${VAR} / ${VAR:-default} substitution."""
+
+from __future__ import annotations
+
+import unittest
+
+from dev_project.config.transforms.env_substitution import (
+    ODPM_JSON_ENV_EXPAND_FIELDS,
+    EnvResolver,
+    expand_env_in_json,
+    expand_env_string,
+)
+from dev_project.errors import ConfigError
+
+
+class EnvResolverTests(unittest.TestCase):
+    def test_resolve_prefers_process_environ_over_project_dotenv(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"GIT_HOST": "from-process"},
+            project_dotenv={"GIT_HOST": "from-dotenv"},
+        )
+        self.assertEqual(resolver.resolve("GIT_HOST"), "from-process")
+
+    def test_resolve_falls_back_to_project_dotenv(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={"PLATFORM_DIR": "/tmp/platform"},
+        )
+        self.assertEqual(resolver.resolve("PLATFORM_DIR"), "/tmp/platform")
+
+    def test_resolve_returns_none_when_unset(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        self.assertIsNone(resolver.resolve("MISSING"))
+
+
+class ExpandEnvStringTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.resolver = EnvResolver.from_sources(
+            process_environ={"GIT_HOST": "git.company.example"},
+            project_dotenv={"ODOO_PLATFORM_DIR": "/home/dev/odoo/19.0"},
+        )
+
+    def test_expands_file_url_from_dotenv(self):
+        result = expand_env_string(
+            "file://${ODOO_PLATFORM_DIR}",
+            self.resolver,
+            field_path="odoo_git_link",
+        )
+        self.assertEqual(result, "file:///home/dev/odoo/19.0")
+
+    def test_expands_git_url_from_process_environ(self):
+        result = expand_env_string(
+            "https://${GIT_HOST}/company/extra.git 17.0",
+            self.resolver,
+            field_path="dependencies[]",
+        )
+        self.assertEqual(
+            result,
+            "https://git.company.example/company/extra.git 17.0",
+        )
+
+    def test_expands_default_when_var_missing(self):
+        result = expand_env_string(
+            "file://${MISSING:-/default/path}",
+            self.resolver,
+            field_path="developing_project",
+        )
+        self.assertEqual(result, "file:///default/path")
+
+    def test_missing_var_without_default_raises_config_error(self):
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "file://${MISSING}",
+                self.resolver,
+                field_path="odoo_git_link",
+            )
+        self.assertIn("MISSING", str(ctx.exception))
+        self.assertIn("odoo_git_link", str(ctx.exception))
+
+    def test_dollar_dollar_escape(self):
+        result = expand_env_string(
+            "cost is $$100",
+            self.resolver,
+            field_path="odoo_git_link",
+        )
+        self.assertEqual(result, "cost is $100")
+
+    def test_dollar_escape_before_expansion(self):
+        result = expand_env_string(
+            "file://$$${ODOO_PLATFORM_DIR}",
+            self.resolver,
+            field_path="odoo_git_link",
+        )
+        self.assertEqual(result, "file://$/home/dev/odoo/19.0")
+
+    def test_string_without_dollar_unchanged(self):
+        result = expand_env_string(
+            "file:///fixed/path",
+            self.resolver,
+            field_path="odoo_git_link",
+        )
+        self.assertEqual(result, "file:///fixed/path")
+
+
+class ExpandEnvInJsonTests(unittest.TestCase):
+    def test_expands_whitelist_fields_only(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={
+                "PLATFORM": "/tmp/odoo",
+                "DEP": "/tmp/oca/web",
+            },
+        )
+        raw = {
+            "odoo_version": "17.${ODOO_VER}",
+            "odoo_git_link": "file://${PLATFORM}",
+            "dependencies": [
+                "file://${DEP}",
+                "https://github.com/OCA/sale.git 17.0",
+            ],
+            "requirements_txt": ["${PIP_EXTRA}"],
+        }
+        expanded = expand_env_in_json(
+            raw,
+            resolver=resolver,
+            allowed_fields=ODPM_JSON_ENV_EXPAND_FIELDS,
+        )
+        self.assertEqual(expanded["odoo_version"], "17.${ODOO_VER}")
+        self.assertEqual(expanded["odoo_git_link"], "file:///tmp/odoo")
+        self.assertEqual(
+            expanded["dependencies"],
+            ["file:///tmp/oca/web", "https://github.com/OCA/sale.git 17.0"],
+        )
+        self.assertEqual(expanded["requirements_txt"], ["${PIP_EXTRA}"])
+
+    def test_non_dict_input_returned_unchanged(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        self.assertIsNone(
+            expand_env_in_json(None, resolver=resolver, allowed_fields=frozenset())
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
