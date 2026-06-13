@@ -1,12 +1,12 @@
-[![CI](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml)
-[![CI Docker](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml)
-[![Release packages](https://github.com/aayartsev/odoo_dev_project/actions/workflows/release-packages.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/release-packages.yml)
-[![GitHub release](https://img.shields.io/github/v/release/aayartsev/odoo_dev_project?include_prereleases&label=release)](https://github.com/aayartsev/odoo_dev_project/releases)
-[![packages](https://img.shields.io/badge/packages-.deb%20%7C%20.rpm-2ea44f?style=flat-square)](https://github.com/aayartsev/odoo_dev_project/releases)
+[![CI](https://github.com/aayartsev/odpm/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odpm/actions/workflows/ci.yml)
+[![CI Docker](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml)
+[![Release packages](https://github.com/aayartsev/odpm/actions/workflows/release-packages.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odpm/actions/workflows/release-packages.yml)
+[![GitHub release](https://img.shields.io/github/v/release/aayartsev/odpm?include_prereleases&label=release)](https://github.com/aayartsev/odpm/releases)
+[![packages](https://img.shields.io/badge/packages-.deb%20%7C%20.rpm-2ea44f?style=flat-square)](https://github.com/aayartsev/odpm/releases)
 
 [![ru](https://img.shields.io/badge/lang-ru-green.svg)](README-RU.MD)
 [![code AI-assisted](https://img.shields.io/badge/code-AI--assisted-6366F1?style=flat-square)](docs/contributing/README.md#ai-disclosure)
-[![AI-assisted docs](https://img.shields.io/badge/docs-AI--assisted-8B5CF6?style=flat-square)](docs/README.md)
+[![AI-assisted docs](https://img.shields.io/badge/docs-AI--assisted-8B5CF6?style=flat-square)](https://aayartsev.github.io/odpm/)
 
 # Odoo Developers Project Manager
 
@@ -22,7 +22,7 @@ The main goal is - to create tool for developing on odoo platform, which will me
     - ... and more
     - mechanisms for extending the functionality, for the future
 
-If you are new, follow the step-by-step guide in [`docs/getting-started/local-dev-from-scratch.md`](docs/getting-started/local-dev-from-scratch.md) with your team's repository (it must include `odpm.json`).
+If you are new, follow the step-by-step guide in [`docs/getting-started/local-dev-from-scratch.md`](docs/getting-started/local-dev-from-scratch.md) with your team's repository (it must include `odpm.json`). User documentation (RU / EN): [https://aayartsev.github.io/odpm/](https://aayartsev.github.io/odpm/).
 
 ## Prepare
 You need to download and install the following programs:
@@ -35,7 +35,7 @@ You need to download and install the following programs:
 
 ### Debian / Ubuntu (.deb) — recommended on Linux
 
-Download **`odpm_*_all.deb`** from [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases) (built by [`.github/workflows/release-packages.yml`](.github/workflows/release-packages.yml) on version tags), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.0-beta` / `4.0-rc1` / `main`, or build locally:
+Download **`odpm_*_all.deb`** from [GitHub Releases](https://github.com/aayartsev/odpm/releases) (built by [`.github/workflows/release-packages.yml`](.github/workflows/release-packages.yml) on version tags), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.0-beta` / `4.0-rc1` / `main`, or build locally:
 
 ```bash
 ./scripts/build_deb.sh
@@ -49,7 +49,7 @@ Verify checksums from release `SHA256SUMS` when installing from GitHub.
 
 ### Fedora / RHEL (.rpm) — recommended on Fedora
 
-Download **`odpm-*.noarch.rpm`** from [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases), or build locally (Fedora 41+):
+Download **`odpm-*.noarch.rpm`** from [GitHub Releases](https://github.com/aayartsev/odpm/releases), or build locally (Fedora 41+):
 
 ```bash
 ./scripts/build_rpm.sh
@@ -66,9 +66,9 @@ For development or non-native-package systems. `pip install` uses the **binary d
 From a clone of this repository:
 
 ```bash
-pip install /path/to/odoo_dev_project
+pip install /path/to/odpm
 # editable dev install:
-pip install -e /path/to/odoo_dev_project
+pip install -e /path/to/odpm
 odpm --version
 ```
 
@@ -79,7 +79,7 @@ The `odpm` console script uses templates from the installed `dev_project` packag
 Copy `odpm.py` and the `dev_project/` directory into your workspace (or clone this repo) and run:
 
 ```bash
-python3 /path/to/odoo_dev_project/odpm.py --version
+python3 /path/to/odpm/odpm.py --version
 ```
 
 Both installation modes are supported.
@@ -146,12 +146,12 @@ Compiled `dev_project/i18n/**/LC_MESSAGES/*.mo` files are tracked in git (see `.
 
 ## Repository tests
 
-Unit tests run on every push and pull request to `4.0-beta` and `main` via [GitHub Actions](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml) (Python 3.10 and 3.12). The status badge at the top of this file reflects the latest run on `4.0-beta` after the workflow has been pushed at least once.
+Unit tests run on every push and pull request to `4.0-beta` and `main` via [GitHub Actions](https://github.com/aayartsev/odpm/actions/workflows/ci.yml) (Python 3.10 and 3.12). The status badge at the top of this file reflects the latest run on `4.0-beta` after the workflow has been pushed at least once.
 
 Local run (same command as CI):
 
 ```bash
-cd /path/to/odoo_dev_project
+cd /path/to/odpm
 pip install -e .
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
@@ -259,12 +259,12 @@ Now we cat enable Terminal threw menu Terminal - New Terminal. Then in it you ca
 
 At the very first launch of the previously described command:
 ```bash
-python3 /path/to/cloned/odoo_dev_project/odpm.py --init https://github.com/your-org/your-odoo-project.git --branch 17.0
+python3 /path/to/cloned/odpm/odpm.py --init https://github.com/your-org/your-odoo-project.git --branch 17.0
 ```
 If you do not wish to contact the `git` repository for any reason, you can easily create a local development environment by simply specifying a desired directory location.
 
 ```bash
-python3 /path/to/cloned/odoo_dev_project/odpm.py --init file:///your/path/to/my-odoo-project-17/name_of_development_directory
+python3 /path/to/cloned/odpm/odpm.py --init file:///your/path/to/my-odoo-project-17/name_of_development_directory
 ```
 
 The utility will try to prepare your computer:
@@ -286,7 +286,7 @@ You can stop this running process by using the keyboard shortcut `Ctrl+C`.
 
 After that, you can run odoo in developer mode:
 ```bash
-python3 /path/to/cloned/odoo_dev_project/odpm.py -d test_db -i -u
+python3 /path/to/cloned/odpm/odpm.py -d test_db -i -u
 ```
 This command will launch odoo inside the `Docker container` and create a new database named `test_db` and install the module from the specified project there
 
@@ -428,7 +428,7 @@ export ODPM_GOLDEN_PATH_PROJECT=/path/to/your/odpm/project
 # Run from the odpm repository root (tests/ lives there), or use the helper script:
 ./scripts/run_golden_path_test.sh
 # Equivalent:
-# cd /path/to/odoo_dev_project && ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_golden_path -v
+# cd /path/to/odpm && ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_golden_path -v
 ```
 
 Optional: `ODPM_GOLDEN_PATH_TIMEOUT=600` (seconds, default 300). Stop the project's default compose stack first (`docker compose down` in the project directory): the golden-path test reuses the same Postgres data directory and uses ephemeral host ports (Postgres is not published; Odoo HTTP is mapped to a free port).

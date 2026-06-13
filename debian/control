@@ -11,9 +11,9 @@ Build-Depends: debhelper-compat (= 13),
                python3-wheel,
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
-Homepage: https://github.com/aayartsev/odoo_dev_project
-Vcs-Git: https://github.com/aayartsev/odoo_dev_project.git
-Vcs-Browser: https://github.com/aayartsev/odoo_dev_project
+Homepage: https://github.com/aayartsev/odpm
+Vcs-Git: https://github.com/aayartsev/odpm.git
+Vcs-Browser: https://github.com/aayartsev/odpm
 X-Python3-Version: >= 3.10
 
 Package: odpm

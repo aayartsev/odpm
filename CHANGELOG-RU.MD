@@ -221,9 +221,9 @@ odpm можно **установить через pip** — в PATH появит
 
 1. **Установите odpm 4.0.** Нужен Python 3.10 или новее; на дистрибутивах с PEP 668 (защита системного Python) удобнее venv или `pipx`. Предпочтительный способ:
    ```bash
-   pip install /путь/к/клону/odoo_dev_project
+   pip install /путь/к/клону/odpm
    # или editable для разработки самого odpm:
-   pip install -e /путь/к/клону/odoo_dev_project
+   pip install -e /путь/к/клону/odpm
    odpm --version
    ```
    Альтернатива — скопировать `odpm.py` и каталог `dev_project` с ветки `4.0-beta`.

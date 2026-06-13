@@ -1,12 +1,12 @@
-[![CI](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml)
-[![CI Docker](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml)
-[![Release packages](https://github.com/aayartsev/odoo_dev_project/actions/workflows/release-packages.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odoo_dev_project/actions/workflows/release-packages.yml)
-[![GitHub release](https://img.shields.io/github/v/release/aayartsev/odoo_dev_project?include_prereleases&label=release)](https://github.com/aayartsev/odoo_dev_project/releases)
-[![packages](https://img.shields.io/badge/packages-.deb%20%7C%20.rpm-2ea44f?style=flat-square)](https://github.com/aayartsev/odoo_dev_project/releases)
+[![CI](https://github.com/aayartsev/odpm/actions/workflows/ci.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odpm/actions/workflows/ci.yml)
+[![CI Docker](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml)
+[![Release packages](https://github.com/aayartsev/odpm/actions/workflows/release-packages.yml/badge.svg?branch=4.0-beta)](https://github.com/aayartsev/odpm/actions/workflows/release-packages.yml)
+[![GitHub release](https://img.shields.io/github/v/release/aayartsev/odpm?include_prereleases&label=release)](https://github.com/aayartsev/odpm/releases)
+[![packages](https://img.shields.io/badge/packages-.deb%20%7C%20.rpm-2ea44f?style=flat-square)](https://github.com/aayartsev/odpm/releases)
 
 [![en](https://img.shields.io/badge/lang-en-red.svg)](README.MD)
 [![code AI-assisted](https://img.shields.io/badge/code-AI--assisted-6366F1?style=flat-square)](docs/contributing/README.md#ai-disclosure)
-[![AI-assisted docs](https://img.shields.io/badge/docs-AI--assisted-8B5CF6?style=flat-square)](docs/README.md)
+[![AI-assisted docs](https://img.shields.io/badge/docs-AI--assisted-8B5CF6?style=flat-square)](https://aayartsev.github.io/odpm/)
 
 #  odpm (Odoo Developer Project Manager)
 
@@ -83,7 +83,7 @@ odpm -d test_db -i -u
 
 ## Полная документация
 
-Оглавление всех статей: **[docs/README.md](docs/README.md)**.
+Опубликованный сайт: **[https://aayartsev.github.io/odpm/](https://aayartsev.github.io/odpm/)** (RU / EN). Оглавление в репозитории: **[docs/README.md](docs/README.md)**.
 
 | Тема | Ссылка |
 |------|--------|

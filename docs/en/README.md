@@ -2,7 +2,7 @@
 
 [![ru](https://img.shields.io/badge/lang-ru-blue.svg)](../README.md)
 
-> **AI-translated** from Russian (`docs/`). Reviewed by maintainers incrementally; report issues on [GitHub](https://github.com/aayartsev/odoo_dev_project/issues).
+> **AI-translated** from Russian (`docs/`). Reviewed by maintainers incrementally; report issues on [GitHub](https://github.com/aayartsev/odpm/issues).
 
 **odpm** (Odoo Developer Project Manager) helps developers and administrators **build a unified Odoo workspace**: your code, the platform, dependencies, configuration, and containers — from a single `odpm.json` manifest, without manually wiring paths and settings.
 
@@ -74,4 +74,4 @@ You always choose the scenario yourself; each has its own default behavior — k
 
 ## For odpm contributors
 
-Contributor docs live in the GitHub repository: [docs/contributing/](https://github.com/aayartsev/odoo_dev_project/tree/main/docs/contributing).
+Contributor docs live in the GitHub repository: [docs/contributing/](https://github.com/aayartsev/odpm/tree/main/docs/contributing).

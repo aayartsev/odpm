@@ -1,6 +1,6 @@
 # Документация odpm
 
-[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/aayartsev/odoo_dev_project/blob/main/README.MD)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://aayartsev.github.io/odpm/en/)
 
 Пользовательская документация на этой странице подготовлена **с помощью ИИ** (AI-assisted) и вычитана авторами. Английская версия — в переключателе языка на сайте (`docs/en/`); перевод **AI-translated**, вычитывается постепенно.
 
@@ -74,4 +74,4 @@
 
 ## Разработчикам odpm
 
-Материалы для контрибьюторов odpm — в репозитории на GitHub: [docs/contributing/](https://github.com/aayartsev/odoo_dev_project/tree/main/docs/contributing).
+Материалы для контрибьюторов odpm — в репозитории на GitHub: [docs/contributing/](https://github.com/aayartsev/odpm/tree/main/docs/contributing).

@@ -15,7 +15,7 @@
 ```bash
 pipx install odpm  # когда пакет опубликован на PyPI
 # или из клона / wheel файла:
-pipx install /path/to/odoo_dev_project
+pipx install /path/to/odpm
 odpm --version
 ```
 

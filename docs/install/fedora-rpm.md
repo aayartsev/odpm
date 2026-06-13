@@ -15,4 +15,4 @@ odpm --version
 
 Ставит `/usr/bin/odpm`, `dev_project` в `python3/site-packages`.
 
-Артефакт также в [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases) и workflow `release-packages`.
+Артефакт также в [GitHub Releases](https://github.com/aayartsev/odpm/releases) и workflow `release-packages`.

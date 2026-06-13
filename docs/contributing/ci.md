@@ -1,6 +1,6 @@
 # CI и workflows
 
-Badges в README указывают на [ci.yml](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci.yml) и [ci-docker.yml](https://github.com/aayartsev/odoo_dev_project/actions/workflows/ci-docker.yml).
+Badges в README указывают на [ci.yml](https://github.com/aayartsev/odpm/actions/workflows/ci.yml) и [ci-docker.yml](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml).
 
 ## Матрица jobs
 

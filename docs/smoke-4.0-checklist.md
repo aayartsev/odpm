@@ -7,7 +7,7 @@ Manual verification protocol before tagging **4.0.0**. Fill in **Result** and **
 Set these in your shell before running project-scoped steps:
 
 ```bash
-export ODPM_REPO=/path/to/odoo_dev_project   # clone of this repository
+export ODPM_REPO=/path/to/odpm   # clone of this repository
 export ODPM_PROJECT=/path/to/your-odpm-env   # initialized odpm project directory
 export ODPM_SCENARIO=developer                 # or server / ci as required
 ```

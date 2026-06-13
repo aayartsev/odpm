@@ -8,7 +8,7 @@ Version:        4.0
 Release:        1%{?dist}
 Summary:        Declarative developer environment manager (odpm)
 License:        GPL-3.0-or-later
-URL:            https://github.com/aayartsev/odoo_dev_project
+URL:            https://github.com/aayartsev/odpm
 Source0:        %{srcname}-%{version}.tar.gz
 BuildArch:      noarch
 

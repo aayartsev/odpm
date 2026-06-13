@@ -4,7 +4,7 @@
 
 ## Установка
 
-Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odoo_dev_project/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.0-beta` / `4.0-rc1` / `main`, или соберите локально:
+Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.0-beta` / `4.0-rc1` / `main`, или соберите локально:
 
 ```bash
 ./scripts/build_deb.sh

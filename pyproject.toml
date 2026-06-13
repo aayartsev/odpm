@@ -32,11 +32,11 @@ dependencies = [
 test = ["tomli>=2.0; python_version<'3.11'"]
 
 [project.urls]
-Homepage = "https://github.com/aayartsev/odoo_dev_project"
-Documentation = "https://github.com/aayartsev/odoo_dev_project/tree/4.0-beta/docs"
-Repository = "https://github.com/aayartsev/odoo_dev_project"
-Issues = "https://github.com/aayartsev/odoo_dev_project/issues"
-Changelog = "https://github.com/aayartsev/odoo_dev_project/blob/4.0-beta/CHANGELOG.md"
+Homepage = "https://github.com/aayartsev/odpm"
+Documentation = "https://aayartsev.github.io/odpm/"
+Repository = "https://github.com/aayartsev/odpm"
+Issues = "https://github.com/aayartsev/odpm/issues"
+Changelog = "https://github.com/aayartsev/odpm/blob/4.0-beta/CHANGELOG.md"
 
 [project.scripts]
 odpm = "dev_project.cli:main"

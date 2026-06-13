@@ -220,9 +220,9 @@ Version 4.0 is a major architectural release. The user-facing goal is unchanged:
 
 1. **Install odpm 4.0** (requires Python ≥ 3.10; on PEP 668 systems use a venv or `pipx`)
    ```bash
-   pip install /path/to/odoo_dev_project
+   pip install /path/to/odpm
    # or editable:
-   pip install -e /path/to/odoo_dev_project
+   pip install -e /path/to/odpm
    odpm --version
    ```
    Legacy mode: copy `odpm.py` and `dev_project/` from the `4.0-beta` branch.

@@ -30,4 +30,4 @@ ODPM_LOCALE=ru_RU
 
 ## Обновление переводов (для разработчиков odpm)
 
-См. [contributing/i18n.md](https://github.com/aayartsev/odoo_dev_project/blob/main/docs/contributing/i18n.md) в репозитории odpm.
+См. [contributing/i18n.md](https://github.com/aayartsev/odpm/blob/main/docs/contributing/i18n.md) в репозитории odpm.

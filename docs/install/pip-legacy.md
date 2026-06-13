@@ -7,9 +7,9 @@
 Нужен **Python 3.10+**. На Linux с [PEP 668](https://peps.python.org/pep-0668/) используйте venv или [pipx](https://pipx.pypa.io/), не `pip install` в систему.
 
 ```bash
-pip install /path/to/odoo_dev_project
+pip install /path/to/odpm
 # для разработки odpm:
-pip install -e /path/to/odoo_dev_project
+pip install -e /path/to/odpm
 odpm --version
 ```
 
@@ -20,7 +20,7 @@ odpm --version
 Скопируйте `odpm.py` и каталог `dev_project/` или клонируйте репозиторий целиком:
 
 ```bash
-python3 /path/to/odoo_dev_project/odpm.py --version
+python3 /path/to/odpm/odpm.py --version
 ```
 
 Оба способа поддерживаются.

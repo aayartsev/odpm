@@ -45,7 +45,7 @@ class PyprojectPackagingTests(unittest.TestCase):
         self.assertEqual(project["license"], {"file": "LICENSE"})
         urls = project["urls"]
         self.assertIn("Repository", urls)
-        self.assertIn("github.com/aayartsev/odoo_dev_project", urls["Repository"])
+        self.assertIn("github.com/aayartsev/odpm", urls["Repository"])
 
     def test_dynamic_version_from_constants(self):
         dynamic = _load_pyproject()["project"]["dynamic"]

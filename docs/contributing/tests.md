@@ -3,7 +3,7 @@
 ## Unit
 
 ```bash
-cd /path/to/odoo_dev_project
+cd /path/to/odpm
 pip install -e ".[test]"
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
