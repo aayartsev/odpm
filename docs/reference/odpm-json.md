@@ -59,6 +59,4 @@ GIT_HOST=git.company.example
 - **Debian 12:** Python 3.10 — Odoo 16–17.
 - **Debian 13:** Python 3.10, 3.12.
 
-Поддержка Ubuntu — в экспериментальном состоянии.
-
 См. [свой репозиторий платформы](../scenarios/platform-fork.md), [ссылки на репозитории](git-links.md).

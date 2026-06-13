@@ -19,7 +19,7 @@
 | `ODPM_DEBUGGER_SUSPEND` | `1` / `y` — Odoo ждёт IDE после `settrace` (`pydevd_connect`) | `0` |
 | `GEVENT_PORT` | Порт веб-сокетов gevent | `8072` |
 | `ODPM_SCENARIO` | `developer`, `server` или `ci` | `developer` |
-| `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | по системе | см. [locale.md](locale.md) |
+| `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
 
 ## `DEBUGGER_PORT` и backend

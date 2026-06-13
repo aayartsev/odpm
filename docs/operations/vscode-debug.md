@@ -1,12 +1,14 @@
-# Отладка в IDE (VS Code, Cursor, PyCharm)
+# Отладка в IDE (VS Code, PyCharm)
 
 Отладка с точками останова доступна в сценарии **`developer`**. Режим задаётся **`ODPM_DEBUGGER_BACKEND`** в `.env` (см. [env-dotenv](../reference/env-dotenv.md)).
+
+Кода говориться о VSCode, то подразумеваются все его производные, поддерживающие такой же механизм отладки
 
 ## Два режима (backends)
 
 | Backend | Кто слушает порт | IDE | Compose |
 |---------|------------------|-----|---------|
-| **`debugpy_listen`** (по умолчанию) | контейнер (`debugpy --listen`) | VS Code / Cursor, PyCharm **Attach to DAP** | publish `DEBUGGER_PORT:DEBUGGER_PORT` |
+| **`debugpy_listen`** (по умолчанию) | контейнер (`debugpy --listen`) | VS Code, PyCharm **Attach to DAP** | publish `DEBUGGER_PORT:DEBUGGER_PORT` |
 | **`pydevd_connect`** | **IDE** (PyCharm Debug Server на хосте) | **только PyCharm Professional** | `extra_hosts: host.docker.internal:host-gateway`, **без** publish debugger-порта |
 
 Семантика **`DEBUGGER_PORT`** зависит от backend:
@@ -19,13 +21,13 @@
 - В venv контейнера ставится пакет отладчика: **`debugpy`** или **`pydevd-pycharm`** (pin в `dev_project/constants/core.py`; при смене backend лишний пакет убирается из requirements).
 - В **`.odpm/runtime/config.json`** — объект `debugger` (backend, port, connect_host, suspend_on_connect). Поля `connect_host` и `suspend_on_connect` записываются всегда; для `debugpy_listen` runtime их **не использует**.
 - В **`.odpm/runtime/debug-profile.json`** — IDE-neutral профиль (`schema_version: 2`): `backend`, `direction`, `protocol`, host/port, `path_mappings`.
-- По **`ODPM_IDE`**: `vscode` / `both` → `.vscode/`; `pycharm` / `both` → `.run/*.run.xml` (какой файл — зависит от backend); `none` — только `debug-profile.json`.
+- По **`ODPM_IDE`**: `vscode` / `both` → `.vscode/`; `pycharm` / `both` → `.run/*.run.xml` (какой файл — зависит от backend); `none` — создаст только `debug-profile.json`.
 
 Перегенерация: `odpm` или `odpm --skip-start`. Шаги плана: `ide.debug_profile`, `pycharm.settings`; diff — `odpm plan --plan-show-diff`.
 
 ---
 
-## `debugpy_listen` — VS Code / Cursor / PyCharm Attach to DAP
+## `debugpy_listen` — VS Code / PyCharm Attach to DAP
 
 ### Профиль (пример)
 
@@ -46,7 +48,7 @@
 }
 ```
 
-### Порядок работы (VS Code / Cursor)
+### Порядок работы (VS Code)
 
 1. `.env`: `ODPM_DEBUGGER_BACKEND=debugpy_listen`, `ODPM_IDE=vscode` (или `both`).
 2. `odpm` — Odoo в контейнере слушает debugger-порт.
@@ -60,7 +62,7 @@
 1. Запустите Odoo через odpm.
 2. В PyCharm подключитесь к **Odoo: Remote Attach**.
 
-**PyCharm Community Edition** не поддерживает remote debug в этом режиме — используйте VS Code/Cursor или PyCharm Professional.
+**PyCharm Community Edition** не поддерживает remote debug в этом режиме — используйте VS Code или PyCharm Professional.
 
 ---
 
@@ -159,7 +161,7 @@ pydevd_pycharm.settrace(
 - корни **subprojects** (монорепо с несколькими addon-каталогами);
 - **venv** `site-packages`.
 
-Если в каталоге проекта есть симлинки (`odoo`, `dependencies/<repo>`), в `extraPaths` попадают **относительные** пути workspace — удобнее для Cursor/VS Code.
+Если в каталоге проекта есть симлинки (`odoo`, `dependencies/<repo>`), в `extraPaths` попадают **относительные** пути workspace — удобнее для VS Code.
 
 Ограничения:
 
