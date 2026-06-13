@@ -43,6 +43,18 @@ cp "${PROJECT_ROOT}/packaging/apt/reprepro/conf/"* "${OUT}/conf/"
 sed -i "s/%%GPG_KEY_ID%%/${KEY_ID}/g" "${OUT}/conf/distributions"
 cp "${KEYRING}" "${OUT}/odpm-archive-keyring.gpg"
 
+GNUPGHOME="${GNUPGHOME:-${HOME}/.gnupg}"
+if [[ -n "${APT_REPO_GPG_PASSPHRASE:-}" ]]; then
+    KEYGRIP="$(
+        gpg --with-keygrip --list-secret-keys "${KEY_ID}" |
+            awk '/Keygrip/ { print $3; exit }'
+    )"
+    if [[ -n "${KEYGRIP}" ]]; then
+        gpg-connect-agent --homedir "${GNUPGHOME}" \
+            "PRESET_PASSPHRASE ${KEYGRIP} -1 ${APT_REPO_GPG_PASSPHRASE}" /bye >/dev/null
+    fi
+fi
+
 export GPG_TTY="${GPG_TTY:-/dev/console}"
 cd "${OUT}"
 reprepro includedeb "${SUITE}" "${DEB}"

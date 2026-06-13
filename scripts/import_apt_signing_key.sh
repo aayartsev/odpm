@@ -7,8 +7,12 @@ set -euo pipefail
 GNUPGHOME="${GNUPGHOME:-${HOME}/.gnupg}"
 mkdir -p "${GNUPGHOME}"
 chmod 700 "${GNUPGHOME}"
+
 if ! grep -q '^pinentry-mode loopback$' "${GNUPGHOME}/gpg.conf" 2>/dev/null; then
     echo "pinentry-mode loopback" >> "${GNUPGHOME}/gpg.conf"
+fi
+if ! grep -q '^allow-loopback-pinentry$' "${GNUPGHOME}/gpg-agent.conf" 2>/dev/null; then
+    echo "allow-loopback-pinentry" >> "${GNUPGHOME}/gpg-agent.conf"
 fi
 
 gpg --batch --yes --pinentry-mode loopback \
@@ -24,7 +28,27 @@ if [[ -z "${KEY_ID}" ]]; then
     exit 1
 fi
 
-echo "Imported APT signing key ${KEY_ID}"
+gpgconf --kill gpg-agent 2>/dev/null || true
+gpgconf --launch gpg-agent
+
+KEYGRIP="$(
+    gpg --with-keygrip --list-secret-keys "${KEY_ID}" |
+        awk '/Keygrip/ { print $3; exit }'
+)"
+if [[ -z "${KEYGRIP}" ]]; then
+    echo "No keygrip for signing key ${KEY_ID}" >&2
+    exit 1
+fi
+
+gpg-connect-agent --homedir "${GNUPGHOME}" \
+    "PRESET_PASSPHRASE ${KEYGRIP} -1 ${APT_REPO_GPG_PASSPHRASE}" /bye >/dev/null
+
+gpg --batch --pinentry-mode loopback \
+    --passphrase "${APT_REPO_GPG_PASSPHRASE}" \
+    --local-user "${KEY_ID}" \
+    --clearsign <<< "odpm-apt-signing-smoke" >/dev/null
+
+echo "Imported APT signing key ${KEY_ID} (gpg-agent preset OK)"
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "key_id=${KEY_ID}" >> "${GITHUB_OUTPUT}"
 fi
