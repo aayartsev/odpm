@@ -13,6 +13,23 @@ Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/
 
 ## deb
 
+### APT repository (recommended)
+
+Published on tag builds to `https://aayartsev.github.io/odpm/apt/` (`stable` / `testing` suites).
+
+GitHub Actions secrets:
+
+| Secret | Purpose |
+|--------|---------|
+| `APT_REPO_GPG_PRIVATE_KEY` | Sign `Release` / `InRelease` |
+| `APT_REPO_GPG_PASSPHRASE` | Key passphrase |
+
+Public keyring: `packaging/apt/odpm-archive-keyring.gpg`. Maintainer notes: [`packaging/apt/README.md`](../../packaging/apt/README.md).
+
+User install: [install/linux-deb.md](../install/linux-deb.md).
+
+### Local / manual .deb
+
 ```bash
 ./scripts/build_deb.sh
 sudo apt install ./dist/odpm_*_all.deb

@@ -1,0 +1,17 @@
+Origin: odpm
+Label: odpm
+Suite: stable
+Codename: stable
+Architectures: all
+Components: main
+UDebComponents: main
+SignWith: %%GPG_KEY_ID%%
+
+Origin: odpm
+Label: odpm testing
+Suite: testing
+Codename: testing
+Architectures: all
+Components: main
+UDebComponents: main
+SignWith: %%GPG_KEY_ID%%

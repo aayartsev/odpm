@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SUITE="${1:?suite (stable|testing)}"
+DEB="${2:?path to .deb}"
+OUT="${3:-apt-repo-out}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+if [[ ! -f "${DEB}" ]]; then
+    echo "deb not found: ${DEB}" >&2
+    exit 1
+fi
+
+KEYRING="${PROJECT_ROOT}/packaging/apt/odpm-archive-keyring.gpg"
+if [[ ! -f "${KEYRING}" ]]; then
+    echo "missing public keyring: ${KEYRING}" >&2
+    exit 1
+fi
+
+KEY_ID="$(
+    gpg --list-secret-keys --keyid-format=long |
+        awk '/^sec/ { sub(/.*\//, "", $2); print $2; exit }'
+)"
+if [[ -z "${KEY_ID}" ]]; then
+    echo "import signing key first (scripts/import_apt_signing_key.sh)" >&2
+    exit 1
+fi
+
+rm -rf "${OUT}"
+mkdir -p "${OUT}/conf"
+cp "${PROJECT_ROOT}/packaging/apt/reprepro/conf/"* "${OUT}/conf/"
+sed -i "s/%%GPG_KEY_ID%%/${KEY_ID}/g" "${OUT}/conf/distributions"
+cp "${KEYRING}" "${OUT}/odpm-archive-keyring.gpg"
+
+export GPG_TTY="${GPG_TTY:-/dev/console}"
+cd "${OUT}"
+reprepro includedeb "${SUITE}" "${DEB}"
+reprepro export "${SUITE}"
+
+echo "APT repo ready in ${OUT} (suite=${SUITE})"
+find "${OUT}" -type f | sort

@@ -14,8 +14,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: docs-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: pages-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -35,6 +35,20 @@ jobs:
 
       - name: Build site
         run: mkdocs build --strict
+
+      - name: Preserve published APT repo on Pages
+        run: |
+          set -euo pipefail
+          BASE="https://aayartsev.github.io/odpm/apt"
+          if curl -fsSL "${BASE}/dists/stable/Release" -o /tmp/apt-release 2>/dev/null || \
+             curl -fsSL "${BASE}/dists/testing/Release" -o /tmp/apt-release 2>/dev/null; then
+            mkdir -p site/apt
+            wget -q -r -np -nH --cut-dirs=2 -P site/apt "${BASE}/" || true
+            echo "Preserved apt/ from live Pages"
+            find site/apt -type f | head -20
+          else
+            echo "No live apt repo yet; skipping preserve"
+          fi
 
       - uses: actions/configure-pages@v5
 
