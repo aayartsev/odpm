@@ -42,6 +42,62 @@ theme:
 
 plugins:
   - search
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: ru
+          name: Русский
+          default: true
+          build: true
+        - locale: en
+          name: English
+          build: true
+          site_description: Odoo Developer Project Manager documentation
+          theme:
+            language: en
+            palette:
+              - scheme: default
+                toggle:
+                  name: Dark mode
+              - scheme: slate
+                toggle:
+                  name: Light mode
+          nav_translations:
+            Главная: Home
+            С чего начать: Getting started
+            Зачем odpm: Why odpm
+            Дружелюбность к новичкам: Beginner-friendly
+            Локальная разработка с нуля: Local dev from scratch
+            Чужой или унаследованный проект: Legacy project
+            Установка odpm: Installing odpm
+            Debian / Ubuntu (.deb): Debian / Ubuntu (.deb)
+            Fedora / RHEL (.rpm): Fedora / RHEL (.rpm)
+            macOS: macOS
+            Windows (WSL): Windows (WSL)
+            pip и копирование исходников: pip and source checkout
+            Сценарии: Scenarios
+            Координатор команды: Team coordinator
+            Свой репозиторий платформы Odoo: Custom Odoo platform repo
+            Масштабирование: Scaling
+            Справочник: Reference
+            Инструменты по сценариям: Tools by scenario
+            Иерархия конфигурации: Config hierarchy
+            odpm.json и user_settings.json: odpm.json and user_settings.json
+            Переменные .env: .env variables
+            Ссылки на репозитории: Git repository links
+            Параметры командной строки: Command-line options
+            Структура каталога проекта: Project directory layout
+            Сгенерированные файлы: Generated files
+            Язык сообщений odpm: odpm message locale
+            Эксплуатация: Operations
+            Отладка в IDE: IDE debugging
+            Локальные секреты: Local secrets
+            Запуск без диалогов: Non-interactive mode
+            Безопасность: Security
+            Переход с версии 3.0: Migrating from 3.0
 
 markdown_extensions:
   - admonition
