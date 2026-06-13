@@ -189,8 +189,6 @@
 3. [Координатор команды](../scenarios/team-coordinator.md) — lock, non-interactive, CI.
 4. [Сценарий developer](../scenarios/developer.md) — отладка и `dev_mode`.
 
-Учебный репозиторий: [odoo_demo_project](https://github.com/aayartsev/odoo_demo_project).
-
 ---
 
 ## Кратко

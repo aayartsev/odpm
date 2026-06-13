@@ -22,7 +22,7 @@ The main goal is - to create tool for developing on odoo platform, which will me
     - ... and more
     - mechanisms for extending the functionality, for the future
 
-If you are new, i recommend using this project in conjunction with the training demo [`https://github.com/aayartsev/odoo_demo_project`](https://github.com/aayartsev/odoo_demo_project).
+If you are new, follow the step-by-step guide in [`docs/getting-started/local-dev-from-scratch.md`](docs/getting-started/local-dev-from-scratch.md) with your team's repository (it must include `odpm.json`).
 
 ## Prepare
 You need to download and install the following programs:
@@ -250,21 +250,21 @@ Container-side checker flag names: `dev_project.inside_docker_app.params` (host 
 
 ## How to start work
 
-Create a folder where your new project environment will be located. At the end of the folder name, I add the odoo version number through a hyphen. For example, `odoo_demo_project-17`. This is due to the fact that the difference between versions is significant, and I consider the same modules for different versions as different development projects. Each version of Odoo requires its own environment. Even though the code of the same project can be located in the same repository.To get the utility to start creating an environment, you need to navigate to the directory you created earlier, for example `odoo_demo_project-17`, and then initialize it using the `--init` parameter command. As a parameter for the `--init` command, we can specify a link to a git repository (or a local directory). Also, by adding the `--branch` parameter, you can specify a specific branch to which you want to switch the repository of the project being developed. If the `--branch` parameter is not specified, the default branch will be selected:
+Create a folder where your new project environment will be located. At the end of the folder name, I add the odoo version number through a hyphen. For example, `my-odoo-project-17`. This is due to the fact that the difference between versions is significant, and I consider the same modules for different versions as different development projects. Each version of Odoo requires its own environment. Even though the code of the same project can be located in the same repository.To get the utility to start creating an environment, you need to navigate to the directory you created earlier, for example `my-odoo-project-17`, and then initialize it using the `--init` parameter command. As a parameter for the `--init` command, we can specify a link to a git repository (or a local directory). Also, by adding the `--branch` parameter, you can specify a specific branch to which you want to switch the repository of the project being developed. If the `--branch` parameter is not specified, the default branch will be selected:
 
 
-Launch `VSCode` then threw menu File - Open Folder, open our folder `odoo_demo_project-17`.
+Launch `VSCode` then threw menu File - Open Folder, open our folder `my-odoo-project-17`.
 
 Now we cat enable Terminal threw menu Terminal - New Terminal. Then in it you can input commands that are written below. If someone, looking at a python script, wants to run it inside a virtual environment, then do not do this. In this case, it is used instead of system scripting languages and you will only complicate your life. The virtual environment for the project will be installed inside the container.
 
 At the very first launch of the previously described command:
 ```bash
-python3 /path/to/cloned/odoo_dev_project/odpm.py --init https://github.com/aayartsev/odoo_demo_project.git --branch 17.0-test_odpm_json
+python3 /path/to/cloned/odoo_dev_project/odpm.py --init https://github.com/your-org/your-odoo-project.git --branch 17.0
 ```
 If you do not wish to contact the `git` repository for any reason, you can easily create a local development environment by simply specifying a desired directory location.
 
 ```bash
-python3 /path/to/cloned/odoo_dev_project/odpm.py --init file:///your/path/to/odoo_demo_project-17/name_of_development_directory
+python3 /path/to/cloned/odoo_dev_project/odpm.py --init file:///your/path/to/my-odoo-project-17/name_of_development_directory
 ```
 
 The utility will try to prepare your computer:
@@ -478,7 +478,7 @@ Generated `docker-compose.yml` uses exec-form `command:` (YAML list), `working_d
 - `update_git_repos` - `type: Boolean`. Indicates whether the dependency repositories and odoo itself will be updated when the system is restarted
 - `clean_git_repos` - `type: Boolean`. Indicates whether changes to odoo itself and dependency projects will be reset on restart
 - `check_system` - `type: Boolean`. Default `true`. When `true`, enables beginner checks gated by `SystemCheckPolicy` (`dev_project/system_check_policy.py`): `beginner_git` (`git --version` at pipeline setup) and prepare step `docker.engine.check` (Docker group membership, `docker info`, base image). Does **not** control port release — `developer_port_release` runs prepare step `docker.ports.release` in the **developer** scenario only, even when `check_system` is `false`. Does **not** gate `compose.validate` (`compose_validate` is always enabled). `file_system_on_init` always ensures backup/project directories on checker init and validates the platform git tree in the **developer** scenario (clone/update runs later in prepare step `git.materialize`, not during init). Free disk space is checked only when odpm clones Odoo sources, not via this flag.
-- `developing_project` - `type: String`.A link to the project you are developing. Example: `"git@github.com:aayartsev/odoo_demo_project.git "`
+- `developing_project` - `type: String`.A link to the project you are developing. Example: `"git@github.com:your-org/your-odoo-project.git"`
 - `pre_commit_map_files` - `type: String`. A list of files for the `pre-commit` system that are taken out of the project and pushed there through the docker file mapping. It is necessary to work on non-Linux systems
 - `dev_mode` - `type: String` or `false`. Comma-separated [Odoo `--dev` flags](https://www.odoo.com/documentation/16.0/developer/reference/cli.html?highlight=dev#cmdoption-odoo-bin-dev) (`reload`, `qweb`, `werkzeug`, `xml`, `access`, `all`). **Only applied when `ODPM_SCENARIO=developer`**; on `server`/`ci` the value is ignored with a warning. When `reload` or `all` is set, odpm adds `inotify` to Python requirements for code autoreload. Regenerate compose after changes (`odpm --skip-start`).
 - `db_manager_password` - `type: String`. password for the database manager

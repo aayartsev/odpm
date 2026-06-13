@@ -38,15 +38,13 @@
 
 Краткий вход для новичков: [Дружелюбность к новичкам](docs/getting-started/beginner-friendly.md).
 
-Рекомендуемый учебный репозиторий: [odoo_demo_project](https://github.com/aayartsev/odoo_demo_project).
-
 ## Быстрый старт
 
 На компьютере должны быть установлены **Docker**, **git** и **odpm** (см. [установку](docs/install/linux-deb.md)).
 
 ```bash
-mkdir odoo_demo_project-17 && cd odoo_demo_project-17
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 17.0
+mkdir my-odoo-project-17 && cd my-odoo-project-17
+odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
 ```
 
 При первом запуске мастер настройки задаст вопросы о каталогах и сценарии использования; на незнакомые пункты можно отвечать клавишей Enter.
