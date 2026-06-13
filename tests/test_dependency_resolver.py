@@ -17,6 +17,8 @@ from dev_project.dependency_resolver import (
     resolve_dependencies,
     resolve_dependency_urls,
 )
+from dev_project.config.transforms.env_substitution import EnvResolver
+from dev_project.errors import ConfigError
 
 
 class ParseOcaDependenciesLineTests(unittest.TestCase):
@@ -103,6 +105,67 @@ class ReadNestedOdpmFragmentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             (Path(project_dir) / "odpm.json").write_text("{}", encoding="utf-8")
             self.assertIsNone(read_nested_odpm_fragment(project_dir))
+
+    def test_expands_dependencies_env_ref_when_resolver_provided(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manifest = Path(project_dir) / "odpm.json"
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "dependencies": [
+                            "file://${OCA_WEB_PATH}",
+                            "https://github.com/OCA/sale.git 17.0",
+                        ],
+                        "odoo_version": "17.${ODOO_VER}",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            resolver = EnvResolver.from_sources(
+                process_environ={},
+                project_dotenv={"OCA_WEB_PATH": "/home/dev/oca/web"},
+            )
+            fragment = read_nested_odpm_fragment(project_dir, resolver=resolver)
+
+            self.assertIsNotNone(fragment)
+            assert fragment is not None
+            self.assertEqual(
+                fragment.dependencies,
+                [
+                    "file:///home/dev/oca/web",
+                    "https://github.com/OCA/sale.git 17.0",
+                ],
+            )
+            self.assertEqual(fragment.odoo_version, "17.${ODOO_VER}")
+
+    def test_missing_env_var_raises_config_error_when_resolver_provided(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            (Path(project_dir) / "odpm.json").write_text(
+                json.dumps({"dependencies": ["file://${MISSING}"]}),
+                encoding="utf-8",
+            )
+            resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+
+            with self.assertRaises(ConfigError) as ctx:
+                read_nested_odpm_fragment(project_dir, resolver=resolver)
+
+            self.assertIn("MISSING", str(ctx.exception))
+            self.assertIn("dependencies", str(ctx.exception))
+
+    def test_without_resolver_leaves_env_refs_literal(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            (Path(project_dir) / "odpm.json").write_text(
+                json.dumps({"dependencies": ["file://${OCA_WEB_PATH}"]}),
+                encoding="utf-8",
+            )
+            fragment = read_nested_odpm_fragment(project_dir)
+
+            self.assertIsNotNone(fragment)
+            assert fragment is not None
+            self.assertEqual(
+                fragment.dependencies,
+                ["file://${OCA_WEB_PATH}"],
+            )
 
 
 class ReadOcaDependencyUrlsTests(unittest.TestCase):

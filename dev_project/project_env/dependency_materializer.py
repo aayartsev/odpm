@@ -72,7 +72,10 @@ class DependencyMaterializer:
                 return DependencyDiscovery()
             self._checkout_fn(project)
             urls = read_oca_dependency_urls(project.project_path)
-            nested = read_nested_odpm_fragment(project.project_path)
+            nested = read_nested_odpm_fragment(
+                project.project_path,
+                resolver=self.config.env_resolver,
+            )
             if nested is None:
                 return DependencyDiscovery(urls=urls)
             merged_urls = list(urls)

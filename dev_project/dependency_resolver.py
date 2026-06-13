@@ -6,10 +6,14 @@ import json
 import os
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from . import constants
 from .translations import _
 from .logging import get_module_logger
+
+if TYPE_CHECKING:
+    from .config.transforms.env_substitution import EnvResolver
 
 _logger = get_module_logger(__name__)
 
@@ -36,7 +40,11 @@ def _normalize_string_list(value: object) -> list[str]:
     return normalized
 
 
-def read_nested_odpm_fragment(project_path: str) -> NestedOdpmFragment | None:
+def read_nested_odpm_fragment(
+    project_path: str,
+    *,
+    resolver: EnvResolver | None = None,
+) -> NestedOdpmFragment | None:
     """Read dependency discovery fields from odpm.json at a dependency repo root."""
     manifest_path = os.path.join(project_path, constants.PROJECT_CONFIG_FILE_NAME)
     if not os.path.exists(manifest_path):
@@ -61,6 +69,18 @@ def read_nested_odpm_fragment(project_path: str) -> NestedOdpmFragment | None:
             )
         )
         return None
+
+    if resolver is not None:
+        from .config.transforms.env_substitution import (
+            ODPM_JSON_ENV_EXPAND_FIELDS,
+            expand_env_in_json,
+        )
+
+        raw = expand_env_in_json(
+            raw,
+            resolver=resolver,
+            allowed_fields=ODPM_JSON_ENV_EXPAND_FIELDS,
+        )
 
     odoo_version = raw.get("odoo_version")
     if odoo_version is not None and not isinstance(odoo_version, (str, int, float)):

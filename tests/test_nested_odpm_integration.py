@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.config import Config, config_to_json
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
+from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 from dev_project.errors import PipelineError
 from dev_project.git.deps_lock import canonical_repo_url, load_deps_lock
@@ -91,6 +92,10 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
     config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
     config.db_manager_password = ""
     config.user_env = MagicMock(odpm_scenario=scenario)
+    config._env_resolver = EnvResolver.from_sources(
+        process_environ={},
+        project_dotenv={},
+    )
     return config
 
 
