@@ -15,6 +15,7 @@ from .debugger.constants import (
     DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEFAULT_DEBUGGER_CONNECT_HOST,
 )
+from .ide_stubs import normalize_odoo_stubs_requirements
 
 VenvMode = Literal["fresh", "baked"]
 
@@ -28,6 +29,7 @@ class ScenarioPolicy:
     bind_postgres_localhost: bool
     include_debugpy: bool
     install_debugpy: bool
+    install_odoo_stubs: bool
     apply_dev_mode: bool
     skip_ide_config: bool
     allow_build_image: bool
@@ -55,6 +57,7 @@ class ScenarioPolicy:
                 bind_postgres_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
+                install_odoo_stubs=False,
                 apply_dev_mode=False,
                 skip_ide_config=True,
                 allow_build_image=True,
@@ -70,6 +73,7 @@ class ScenarioPolicy:
                 bind_postgres_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
+                install_odoo_stubs=False,
                 apply_dev_mode=False,
                 skip_ide_config=False,
                 allow_build_image=False,
@@ -84,6 +88,7 @@ class ScenarioPolicy:
             bind_postgres_localhost=False,
             include_debugpy=True,
             install_debugpy=True,
+            install_odoo_stubs=True,
             apply_dev_mode=True,
             skip_ide_config=False,
             allow_build_image=False,
@@ -151,14 +156,20 @@ class ScenarioPolicy:
         requirements_txt: list[str],
         *,
         python_version: str,
+        odoo_version: str = "",
         debugger_backend: str | None = None,
     ) -> list[str]:
         backend_id = debugger_backend or DEFAULT_DEBUGGER_BACKEND
-        return normalize_debugger_requirements(
+        after_debugger = normalize_debugger_requirements(
             requirements_txt,
             python_version=python_version,
             debugger_backend=backend_id,
             install_debugger=self.install_debugpy,
+        )
+        return normalize_odoo_stubs_requirements(
+            after_debugger,
+            odoo_version=odoo_version,
+            install_odoo_stubs=self.install_odoo_stubs,
         )
 
     def should_publish_debugger_port(self, debugger_backend: str | None = None) -> bool:

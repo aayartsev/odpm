@@ -14,6 +14,7 @@ from ..debugger.constants import (
     ODPM_IDE_VSCODE,
 )
 from ..debugger import is_debugger_requirement
+from ..ide_stubs import is_odoo_stubs_requirement
 from .state import DockerLayoutState, ProjectSettingsState
 
 if TYPE_CHECKING:
@@ -94,6 +95,31 @@ def apply_policy_and_layout(config: Config) -> None:
                     "debugger requirement normalized for scenario %s: %s",
                     config.policy.scenario,
                     normalized_debugger[0],
+                )
+
+    if any(is_odoo_stubs_requirement(req) for req in original_requirements_txt):
+        if not config.policy.install_odoo_stubs:
+            _logger.warning(
+                "odoo-stubs is forbidden in scenario %s and will not be installed",
+                config.policy.scenario,
+            )
+        else:
+            normalized_stubs = [
+                req
+                for req in normalized_requirements
+                if is_odoo_stubs_requirement(req)
+            ]
+            if normalized_stubs:
+                _logger.info(
+                    "odoo-stubs requirement normalized for scenario %s: %s",
+                    config.policy.scenario,
+                    normalized_stubs[0],
+                )
+            elif config.policy.install_odoo_stubs:
+                _logger.info(
+                    "odoo-stubs skipped for scenario %s (Odoo %s has built-in typing or unsupported version)",
+                    config.policy.scenario,
+                    config.odoo_version,
                 )
 
     if not dev_mode_disabled(config.dev_mode) and not config.policy.apply_dev_mode:

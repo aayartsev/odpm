@@ -149,6 +149,26 @@ pydevd_pycharm.settrace(
 
 По умолчанию опция **выключена**.
 
+## Импорты и анализ кода (Pylance / Pyright)
+
+При `odpm --skip-start` (сценарий `developer`, `ODPM_IDE=vscode` или `both`) odpm генерирует `.vscode/settings.json` с **`python.analysis.extraPaths`** из того же графа репозиториев, что использует prepare:
+
+- корень **platform** (`odoo_src_dir`);
+- **developing** project;
+- каждая **git-зависимость** из `dependencies_projects`;
+- корни **subprojects** (монорепо с несколькими addon-каталогами);
+- **venv** `site-packages`.
+
+Если в каталоге проекта есть симлинки (`odoo`, `dependencies/<repo>`), в `extraPaths` попадают **относительные** пути workspace — удобнее для Cursor/VS Code.
+
+Ограничения:
+
+- **`odoo-stubs`** (сценарий **developer**, Odoo ≤ 18) ставится **автоматически** в `requirements_txt` — как `debugpy`. Источник: [odoo-ide/odoo-stubs](https://github.com/odoo-ide/odoo-stubs) (git-зависимость; для `pip install` нужен **git** на хосте). После пересоздания venv Pylance подхватит stubs из `site-packages` (уже в `extraPaths`). Для **Odoo ≥ 19** stubs не добавляются — в ядре встроен typing.
+- Stubs покрывают **ядро** `odoo`, не `odoo.addons.*` (namespace addons создаётся в рантайме).
+- Расширение [vscode-odoo](https://marketplace.visualstudio.com/items?itemName=trinhanhngoc.vscode-odoo) уже содержит свои stubs — дублирование безвредно.
+- На **server** / **ci** `odoo-stubs` в `odpm.json` удаляется (как debugger-пакеты).
+- файл **перезаписывается** при каждом `odpm --skip-start` — не правьте `extraPaths` вручную в `.vscode/settings.json`.
+
 ---
 
 ## Устранение неполадок

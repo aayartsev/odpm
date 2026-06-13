@@ -224,6 +224,12 @@ ODOO_DEV_MODE_FEATURES = ("reload", "qweb", "werkzeug", "xml", "access")
 # Odoo autoreload (--dev=reload|all) on Linux uses the PyPI ``inotify`` package.
 ODOO_AUTORELOAD_PACKAGE_NAMES = ("inotify", "watchdog")
 ODOO_AUTORELOAD_INOTIFY_REQUIREMENT = "inotify"
+
+# Odoo core type stubs for IDE static analysis (developer scenario only).
+# Source: https://github.com/odoo-ide/odoo-stubs — branches X.0 per Odoo major; not needed >= 19.
+ODOO_STUBS_MIN_ODOO_MAJOR_WITH_BUILTIN_TYPING = 19
+ODOO_STUBS_PACKAGE_NAMES = ("odoo-stubs", "odoo_stubs")
+ODOO_STUBS_GIT_REPO = "https://github.com/odoo-ide/odoo-stubs.git"
 DEFAULT_DEVELOPING_PROJECT = ""
 DEFAULT_PRE_COMMIT_MAP_FILES = []
 DEFAULT_SQL_QUERIES = []

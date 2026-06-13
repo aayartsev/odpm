@@ -35,6 +35,7 @@ from dev_project.config.state import (
     UserSettingsState,
 )
 from dev_project.errors import ConfigError, PipelineError
+from dev_project.ide_stubs import odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.dependency_resolver import NestedOdpmFragment
 
@@ -866,9 +867,10 @@ class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
             ["openupgradelib", "requests==2.31.0"],
         )
         expected_debugpy = config.policy.debugpy_requirement("3.12")
+        expected_stubs = odoo_stubs_pip_requirement("17.0")
         self.assertEqual(
             config.requirements_txt,
-            ["requests==2.31.0", "openupgradelib", expected_debugpy],
+            ["requests==2.31.0", "openupgradelib", expected_debugpy, expected_stubs],
         )
 
     def test_dev_mode_reload_adds_inotify_to_requirements(self):

@@ -11,7 +11,7 @@
 | `.odpm/secrets.example.json` | шаблон при init; в git |
 | `.odpm/secrets.json` | вручную или `--secrets-file`; в `.odpm/.gitignore` |
 | `.odpm/runtime/secrets.json` | шаг `secrets.materialize`; mount в контейнер; в gitignore; см. [секреты](../operations/secrets.md) |
-| `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` при `ODPM_IDE=vscode` или `both` и `ODPM_DEBUGGER_BACKEND=debugpy_listen` |
+| `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` при `ODPM_IDE=vscode` или `both` и `ODPM_DEBUGGER_BACKEND=debugpy_listen`; `settings.json` включает `python.analysis.extraPaths` для platform, developing и зависимостей |
 | `.run/Odoo Remote Attach.run.xml` | `odpm --skip-start` при `ODPM_IDE=pycharm` или `both` и **`debugpy_listen`** (PyCharm Attach to DAP) |
 | `.run/Odoo Debug Server.run.xml` | `odpm --skip-start` при `ODPM_IDE=pycharm` или `both` и **`pydevd_connect`** (PyCharm Debug Server, Pro) |
 

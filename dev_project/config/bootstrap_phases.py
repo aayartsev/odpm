@@ -97,6 +97,7 @@ def normalize_project_requirements(
     normalized = config.policy.normalize_requirements(
         requirements_txt,
         python_version=config.python_version,
+        odoo_version=config.odoo_version,
         debugger_backend=resolve_debugger_backend_id(
             getattr(config, "user_env", None)
         ),

@@ -21,6 +21,7 @@ from dev_project.debugger.constants import (
     DEFAULT_DEBUGGER_CONNECT_HOST,
 )
 from dev_project.debugger import is_debugpy_requirement
+from dev_project.ide_stubs import is_odoo_stubs_requirement, odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -28,12 +29,17 @@ DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
 
 
 def normalize_project_requirements(
-    scenario: str, requirements_txt: list[str], python_version: str = "3.12"
+    scenario: str,
+    requirements_txt: list[str],
+    python_version: str = "3.12",
+    odoo_version: str = "17.0",
 ) -> list[str]:
     """Same normalization path as Config after reading odpm.json."""
     policy = ScenarioPolicy.from_scenario(scenario)
     return policy.normalize_requirements(
-        requirements_txt, python_version=python_version
+        requirements_txt,
+        python_version=python_version,
+        odoo_version=odoo_version,
     )
 
 
@@ -46,6 +52,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.include_debugger_port)
         self.assertFalse(policy.include_debugpy)
         self.assertFalse(policy.install_debugpy)
+        self.assertFalse(policy.install_odoo_stubs)
         self.assertFalse(policy.apply_dev_mode)
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertTrue(policy.allow_build_image)
@@ -79,6 +86,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.include_debugger_port)
         self.assertFalse(policy.include_debugpy)
         self.assertFalse(policy.install_debugpy)
+        self.assertFalse(policy.install_odoo_stubs)
         self.assertFalse(policy.apply_dev_mode)
         self.assertTrue(policy.bind_postgres_localhost)
         self.assertFalse(policy.allow_build_image)
@@ -109,6 +117,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.include_debugger_port)
         self.assertTrue(policy.include_debugpy)
         self.assertTrue(policy.install_debugpy)
+        self.assertTrue(policy.install_odoo_stubs)
         self.assertTrue(policy.apply_dev_mode)
         self.assertFalse(policy.bind_postgres_localhost)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
@@ -210,6 +219,49 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertIn("requests==2.31.0", normalized)
         self.assertNotIn("debugpy==0.0.1", normalized)
 
+    def test_developer_typical_odpm_json_gets_pinned_odoo_stubs(self):
+        normalized = normalize_project_requirements(
+            constants.DEVELOPER_SCENARIO,
+            ["pre-commit", "black"],
+            python_version="3.12",
+            odoo_version="17.0",
+        )
+        expected = odoo_stubs_pip_requirement("17.0")
+        self.assertIn(expected, normalized)
+        self.assertEqual(
+            sum(1 for req in normalized if is_odoo_stubs_requirement(req)),
+            1,
+        )
+
+    def test_developer_odoo_19_skips_odoo_stubs(self):
+        normalized = normalize_project_requirements(
+            constants.DEVELOPER_SCENARIO,
+            ["pre-commit"],
+            python_version="3.12",
+            odoo_version="19.0",
+        )
+        self.assertFalse(any(is_odoo_stubs_requirement(req) for req in normalized))
+
+    def test_developer_replaces_user_odoo_stubs_with_pinned_git_ref(self):
+        normalized = normalize_project_requirements(
+            constants.DEVELOPER_SCENARIO,
+            ["odoo-stubs==0.0.1", "requests==2.31.0"],
+            python_version="3.12",
+            odoo_version="17.0",
+        )
+        self.assertIn(odoo_stubs_pip_requirement("17.0"), normalized)
+        self.assertNotIn("odoo-stubs==0.0.1", normalized)
+
+    def test_server_strips_odoo_stubs_from_odpm_json_like_list(self):
+        normalized = normalize_project_requirements(
+            constants.SERVER_SCENARIO,
+            ["odoo-stubs==1.0", "requests==2.31.0"],
+            python_version="3.12",
+            odoo_version="17.0",
+        )
+        self.assertFalse(any(is_odoo_stubs_requirement(req) for req in normalized))
+        self.assertIn("requests==2.31.0", normalized)
+
     def test_ci_venv_spec_excludes_debugpy_after_normalization(self):
         # Simulates CiImageBuildService.build_ci_venv_install_spec input.
         normalized = normalize_project_requirements(
@@ -227,6 +279,15 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(
             any(is_debugpy_requirement(pkg) for pkg in spec.extra_packages)
         )
+
+    def test_ci_venv_spec_excludes_odoo_stubs_after_normalization(self):
+        normalized = normalize_project_requirements(
+            constants.CI_SCENARIO,
+            ["odoo-stubs==1.0", "requests==2.31.0"],
+            odoo_version="17.0",
+        )
+        self.assertIn("requests==2.31.0", normalized)
+        self.assertFalse(any(is_odoo_stubs_requirement(req) for req in normalized))
 
     def test_compose_fragments_ci(self):
         policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)

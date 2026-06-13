@@ -7,8 +7,8 @@ import os
 from typing import TYPE_CHECKING
 
 from ... import constants
-from ...translations import _
 from ..debug_profile import DebuggerProfile, DebuggerProfileBuilder
+from .python_analysis_paths import PythonAnalysisPathsBuilder
 from ..types import DebuggerPathRecord, DebuggerUnit
 
 if TYPE_CHECKING:
@@ -75,14 +75,16 @@ class VscodeConfigurator:
             lines = reader.readlines()
         content = "".join(lines[1:]).replace(
             "{PYTHON_VERSION}",
-            self.config.python_version,
+            str(self.config.python_version),
         )
-        content = content.replace(
-            _('If you want drop this file to default values, just delete it'),
-            _('Do not change this file, its content is generating automatically'),
-        )
+        settings = json.loads(content)
+        extra_paths = PythonAnalysisPathsBuilder(self.env).build()
+        settings["python.analysis.extraPaths"] = extra_paths
+        settings["python.autoComplete.extraPaths"] = extra_paths
+        settings["python.analysis.diagnosticMode"] = "workspace"
         vscode_settings_json_path = os.path.join(
             self.get_vscode_dir_path(), "settings.json"
         )
-        with open(vscode_settings_json_path, "w") as writer:
-            writer.write(content)
+        with open(vscode_settings_json_path, "w", encoding="utf-8") as writer:
+            json.dump(settings, writer, indent=4)
+            writer.write("\n")
