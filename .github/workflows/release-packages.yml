@@ -280,11 +280,13 @@ jobs:
               gh release edit "${TAG}" \
                 --title "${VERSION}" \
                 --notes-file "${NOTES}" \
-                --prerelease
+                --prerelease \
+                --draft=false
             else
               gh release edit "${TAG}" \
                 --title "${VERSION}" \
-                --notes-file "${NOTES}"
+                --notes-file "${NOTES}" \
+                --draft=false
             fi
           else
             if [[ "${PRERELEASE}" == "true" ]]; then
