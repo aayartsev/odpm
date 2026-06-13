@@ -17,6 +17,6 @@
 
 ## AI disclosure
 
-Parts of the **odpm codebase** and the **Russian user documentation** in `docs/` are **AI-assisted** and reviewed by maintainers. Planned **English documentation** will be **AI-translated** from Russian (`AI-translated docs` badge on `README.MD`).
+Parts of the **odpm codebase** and user documentation in `docs/` are **AI-assisted** and reviewed by maintainers. English pages under `docs/en/` are **AI-translated** from Russian.
 
-Отдельные части **кода odpm** и **русской пользовательской документации** в `docs/` подготовлены **с помощью ИИ** (AI-assisted) и вычитаны авторами. Планируемая **английская документация** будет **переводом** с русской (плашка AI-translated docs в `README.MD`).
+Отдельные части **кода odpm** и **пользовательской документации** в `docs/` подготовлены **с помощью ИИ** (AI-assisted) и вычитаны авторами. Английские страницы в `docs/en/` — **перевод** с русской (плашка AI-translated docs в `README.MD`).

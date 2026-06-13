@@ -40,13 +40,13 @@ python3 -m unittest discover -s tests -p "test_*.py"
 | Test suite | All tests OK; 7 skipped (opt-in Docker unless `ODPM_RUN_DOCKER_*` env) | | |
 | Test count | **634** tests OK (7 skipped by default); re-run after adding tests | | |
 
-**Branch protection (recommended):** require GitHub status checks **CI** (unit) and **CI Docker** / **compose-smoke** on `4.0-beta` / `main` before merge. Full **golden-path** is opt-in (not required on every PR). Canonical policy: [README.MD § Docker CI / CI matrix](../README.MD#docker-ci).
+**Branch protection (recommended):** require GitHub status checks **CI** (unit) and **CI Docker** / **compose-smoke** on `4.0-beta` / `main` before merge. Full **golden-path** is opt-in (not required on every PR). Canonical policy: [contributing/ci.md](../contributing/ci.md).
 
 ---
 
 ## 2A+ — Docker CI (compose smoke + golden-path)
 
-See [README.MD § CI matrix (4.2 policy)](../README.MD#docker-ci) for the full table. Summary:
+See [contributing/ci.md](../contributing/ci.md) for the full table. Summary:
 
 | Job | Workflow | Trigger | Merge gate | Inputs |
 |-----|----------|---------|------------|--------|
@@ -69,7 +69,7 @@ cd "$ODPM_REPO"
 | `odpm --skip-start` on minimal fixture | Exit 0 | | |
 | `docker compose config` | Exit 0; `services:` in output | | |
 
-**Golden-path** (compose up + HTTP 200): `ODPM_GOLDEN_PATH_PROJECT=/path/to/your-odpm-env ./scripts/run_golden_path_test.sh` locally; in CI — self-hosted runner, secret `ODPM_GOLDEN_PATH_PROJECT`, nightly, **workflow_dispatch** with golden flag, or PR label **`run-docker`** when `ODPM_GOLDEN_PATH_ENABLED=true` (see [README.MD § Docker CI](../README.MD#docker-ci)). Re-run **CI Docker** manually after adding `run-docker` to a PR.
+**Golden-path** (compose up + HTTP 200): `ODPM_GOLDEN_PATH_PROJECT=/path/to/your-odpm-env ./scripts/run_golden_path_test.sh` locally; in CI — self-hosted runner, secret `ODPM_GOLDEN_PATH_PROJECT`, nightly, **workflow_dispatch** with golden flag, or PR label **`run-docker`** when `ODPM_GOLDEN_PATH_ENABLED=true` (see [contributing/ci.md](../contributing/ci.md)). Re-run **CI Docker** manually after adding `run-docker` to a PR.
 
 **Troubleshooting compose smoke**
 

@@ -4,7 +4,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/aayartsev/odpm?include_prereleases&label=release)](https://github.com/aayartsev/odpm/releases)
 [![packages](https://img.shields.io/badge/packages-.deb%20%7C%20.rpm-2ea44f?style=flat-square)](https://github.com/aayartsev/odpm/releases)
 
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.MD)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://aayartsev.github.io/odpm/en/)
 [![code AI-assisted](https://img.shields.io/badge/code-AI--assisted-6366F1?style=flat-square)](docs/contributing/README.md#ai-disclosure)
 [![AI-assisted docs](https://img.shields.io/badge/docs-AI--assisted-8B5CF6?style=flat-square)](https://aayartsev.github.io/odpm/)
 
