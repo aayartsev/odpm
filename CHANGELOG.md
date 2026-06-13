@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.3-rc1] - 2026-06-08
+
+**Release line 4.3-rc1; `odpm.json` manifest format (`odpm_version`) and `odpm --version` remain 4.0.**
+
 ### Added
 
 - **VS Code `extraPaths` from Odoo addon graph** — `PythonAnalysisPathsBuilder` fills `python.analysis.extraPaths` / `python.autoComplete.extraPaths` in generated `.vscode/settings.json` from platform, developing project, dependency repos, subproject roots, and venv site-packages; prefers workspace-relative symlink paths. Tests: `test_vscode_python_paths.py`. Docs: `vscode-debug.md`, `generated-files.md`.

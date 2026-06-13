@@ -2,6 +2,15 @@
 
 Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/release-packages.yml)
 
+## Version axes
+
+| Constant / artifact | Example | Meaning |
+|---------------------|---------|---------|
+| `RELEASE_VERSION` | `4.3-rc1` | Git tag (`v4.3-rc1`), deb/rpm filenames, GitHub Release title |
+| `ODPM_VERSION` | `4.0` | `odpm.json` → `odpm_version`, `odpm --version`, pip wheel metadata |
+
+Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release.
+
 ## deb
 
 ```bash

@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+## [4.3-rc1] - 2026-06-08
+
+**Релизная линия 4.3-rc1; формат manifest `odpm.json` (`odpm_version`) и `odpm --version` остаются на линии 4.0.**
+
 ### Добавлено
 
 - **VS Code `extraPaths` из графа Odoo-репозиториев** — `PythonAnalysisPathsBuilder` заполняет `python.analysis.extraPaths` в генерируемом `.vscode/settings.json` из platform, developing, зависимостей, subproject roots и venv; предпочитает относительные пути симлинков. Тесты: `test_vscode_python_paths.py`. Документация: `vscode-debug.md`, `generated-files.md`.
