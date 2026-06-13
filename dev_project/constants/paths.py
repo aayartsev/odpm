@@ -1,0 +1,86 @@
+import os
+
+DEV_PROJECT_DIR = "dev_project"
+CONFIG_FILE_NAME = "config.json"
+PLATFORM_NAME = "odoo"
+
+PROJECT_NAME = "odpm"
+PROJECT_CONFIG_FILE_NAME = f"{PROJECT_NAME.lower()}.json"
+USER_CONFIG_FILE_NAME = "user_settings.json"
+CONFIG_DIR_IN_HOME_DIR = f".{PROJECT_NAME.lower()}"
+PROJECT_SERVICE_DIRECTORY = f".{PROJECT_NAME.lower()}"
+DEPS_LOCK_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "deps.lock.json")
+BASE_IMAGE_IDENTITY_REL_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "base_image_identity.json"
+)
+
+DOCKERIGNORE = ".dockerignore"
+DOCKERIGNORE_TEMPLATE = "dockerignore"
+PROGRAM_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", DOCKERIGNORE_TEMPLATE
+)
+PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, DOCKERIGNORE_TEMPLATE
+)
+PROGRAM_CI_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "ci_dockerignore"
+)
+DOCKERIGNORE_TEMPLATE_MARKERS = [".odpm/ci-build-context"]
+DOCKERFILE_TEMPLATE_MARKERS = ["{PYTHON_VERSION}"]
+COMPOSE_TEMPLATE_MARKERS = [
+    "{DEV_EXTRA_HOSTS}",
+    "{DEV_EXTRA_PORTS}",
+    "{START_COMMAND_BLOCK}",
+    "{ODPM_CONFIG_PATH_ENV_LINE}",
+    "{ODPM_SECRETS_PATH_ENV_LINE}",
+    "{COMPOSE_USER}",
+]
+
+ENV_FILE_NAME = ".env"
+VENV_DIR_NAME = ".venv"
+DOCKERFILE = "Dockerfile"
+ODOO_CONF_NAME = f"{PLATFORM_NAME}.conf"
+
+PROGRAM_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "docker-compose.yml"
+)
+PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "docker-compose.yml"
+)
+
+PROGRAM_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
+    DEV_PROJECT_DIR, "templates", "dev_odoo_docker_config_file.conf"
+)
+PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "dev_odoo_docker_config_file.conf"
+)
+
+PROGRAM_VSCODE_SETTINGS_TEMPLATE = os.path.join(
+    DEV_PROJECT_DIR, "templates", "vscode_settings.json"
+)
+PROJECT_VSCODE_SETTINGS_TEMPLATE = os.path.join(
+    PROJECT_SERVICE_DIRECTORY, "vscode_settings.json"
+)
+
+NO_LOG_PREFIX = "--no-log-prefix"
+DOCKER_COMPOSE_DEFAULT_FILE_VERSION = "3.3"
+
+DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
+LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]
+
+DEPENDENCIES_DIR = "dependencies"
+POSTGRES_LOCAL_STORAGE_DIR = "data/postgresql/var/lib/postgresql/data"
+
+DEPRECATED_WORDS = [
+    "debian_version",
+    "debian_name",
+    "{DEBUGGER_PORT}:{DEBUGGER_DOCKER_PORT}",
+    "{POSTGRES_PORT}:{POSTGRES_DOCKER_PORT}",
+    "{DEBUGGER_PORT_MAP}",
+    "{MAPPED_VOLUMES}",
+    "command: {START_STRING}",
+    "{START_STRING}",
+    "ODPM_CONFIG_B64",
+    "{ODPM_CONFIG_ENV_LINE}",
+    "healthcheck:",
+]

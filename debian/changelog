@@ -1,0 +1,13 @@
+odpm (4.3.0~rc1-1) unstable; urgency=medium
+
+  * Pre-release 4.3-rc1 (see CHANGELOG.md). Manifest format `odpm_version` remains 4.0.
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Mon, 08 Jun 2026 18:00:00 +0000
+
+odpm (4.0-1) unstable; urgency=medium
+
+  * Initial Debian package for odpm 4.0 (roadmap 4.3 B1).
+  * Console script /usr/bin/odpm; dev_project templates and i18n .mo in
+    site-packages.
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Mon, 08 Jun 2026 12:00:00 +0000

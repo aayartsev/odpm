@@ -1,0 +1,54 @@
+# Manual PyPI publish gate — run only after PyPI account/token is configured.
+# Does not run on push or tag; use workflow_dispatch with confirm_publish=true.
+name: Publish PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_publish:
+        description: Set to true to upload the wheel/sdist to PyPI
+        type: boolean
+        default: false
+      use_testpypi:
+        description: Upload to TestPyPI instead of production PyPI
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-pypi-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    if: inputs.confirm_publish
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Publish to TestPyPI
+        if: inputs.use_testpypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.use_testpypi }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

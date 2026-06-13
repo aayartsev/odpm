@@ -1,0 +1,54 @@
+"""Debugger backend and IDE selection constants (.env / ContainerConfig)."""
+
+from __future__ import annotations
+
+DEBUGGER_BACKEND_DEBUGPY_LISTEN = "debugpy_listen"
+DEBUGGER_BACKEND_PYDEVD_CONNECT = "pydevd_connect"
+
+DEBUGGER_BACKEND_VALUES = frozenset(
+    {
+        DEBUGGER_BACKEND_DEBUGPY_LISTEN,
+        DEBUGGER_BACKEND_PYDEVD_CONNECT,
+    }
+)
+DEFAULT_DEBUGGER_BACKEND = DEBUGGER_BACKEND_DEBUGPY_LISTEN
+
+DEBUGGER_DIRECTION_ATTACH = "attach"
+DEBUGGER_DIRECTION_CONNECT = "connect"
+
+DEBUGGER_PROTOCOL_DEBUGPY = "debugpy"
+DEBUGGER_PROTOCOL_PYDEVD = "pydevd"
+
+ODPM_IDE_VSCODE = "vscode"
+ODPM_IDE_PYCHARM = "pycharm"
+ODPM_IDE_BOTH = "both"
+ODPM_IDE_NONE = "none"
+
+ODPM_IDE_VALUES = frozenset(
+    {
+        ODPM_IDE_VSCODE,
+        ODPM_IDE_PYCHARM,
+        ODPM_IDE_BOTH,
+        ODPM_IDE_NONE,
+    }
+)
+DEFAULT_ODPM_IDE = ODPM_IDE_VSCODE
+
+DEFAULT_DEBUGGER_CONNECT_HOST = "host.docker.internal"
+
+ODPM_DEBUGGER_BACKEND_ENV = "ODPM_DEBUGGER_BACKEND"
+ODPM_IDE_ENV = "ODPM_IDE"
+ODPM_DEBUGGER_CONNECT_HOST_ENV = "ODPM_DEBUGGER_CONNECT_HOST"
+ODPM_DEBUGGER_SUSPEND_ENV = "ODPM_DEBUGGER_SUSPEND"
+
+DEBUGGER_BACKEND_LABELS: dict[str, str] = {
+    DEBUGGER_BACKEND_DEBUGPY_LISTEN: "debugpy listen (VS Code / PyCharm Attach to DAP)",
+    DEBUGGER_BACKEND_PYDEVD_CONNECT: "pydevd connect (PyCharm Debug Server, Pro)",
+}
+
+ODPM_IDE_LABELS: dict[str, str] = {
+    ODPM_IDE_VSCODE: "VS Code / Cursor",
+    ODPM_IDE_PYCHARM: "PyCharm",
+    ODPM_IDE_BOTH: "VS Code and PyCharm",
+    ODPM_IDE_NONE: "none (debug-profile only)",
+}

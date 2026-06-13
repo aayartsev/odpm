@@ -1,0 +1,60 @@
+"""Container runtime must not depend on host CLI packages directly."""
+
+from __future__ import annotations
+
+import ast
+import unittest
+from pathlib import Path
+
+_CONTAINER_ROOT = Path(__file__).resolve().parents[1] / "dev_project" / "inside_docker_app"
+_FORBIDDEN_ROOTS = ("host", "host_cli")
+
+
+def _iter_container_python_files() -> list[Path]:
+    return sorted(_CONTAINER_ROOT.rglob("*.py"))
+
+
+def _imports_forbidden_host_modules(source: str) -> list[str]:
+    tree = ast.parse(source)
+    hits: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                root = alias.name.split(".", 1)[0]
+                if root in _FORBIDDEN_ROOTS:
+                    hits.append(f"import {alias.name}")
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                root = node.module.split(".", 1)[0]
+                if root in _FORBIDDEN_ROOTS:
+                    hits.append(f"from {node.module} import ...")
+            elif node.level and any(
+                part in _FORBIDDEN_ROOTS for part in (node.module or "").split(".")
+            ):
+                hits.append(f"relative from {node.module!r}")
+    return hits
+
+
+class HostCliIsolationTests(unittest.TestCase):
+    def test_container_modules_do_not_import_host_packages(self):
+        violations: list[str] = []
+        for path in _iter_container_python_files():
+            hits = _imports_forbidden_host_modules(path.read_text(encoding="utf-8"))
+            if hits:
+                rel = path.relative_to(_CONTAINER_ROOT.parent.parent)
+                violations.append(f"{rel}: {', '.join(hits)}")
+        self.assertEqual(violations, [])
+
+    def test_container_bootstrap_entry_does_not_import_host_packages(self):
+        source = (
+            _CONTAINER_ROOT / "container_bootstrap.py"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(_imports_forbidden_host_modules(source), [])
+
+    def test_run_odoo_entry_does_not_import_host_packages(self):
+        source = (_CONTAINER_ROOT / "run_odoo.py").read_text(encoding="utf-8")
+        self.assertEqual(_imports_forbidden_host_modules(source), [])
+
+
+if __name__ == "__main__":
+    unittest.main()

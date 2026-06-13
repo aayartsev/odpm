@@ -1,14 +1,8 @@
 # #MESSAGE#
 {
     "cSpell.ignoreWords": ["odoo", "comodel", "ondelete", "werkzeug"],
-    "python.analysis.extraPaths": [
-        "venv/lib64/python{PYTHON_VERSION}/site-packages",
-        "odoo"
-    ],
-    "python.autoComplete.extraPaths":[
-        "venv/lib64/python{PYTHON_VERSION}/site-packages",
-        "odoo"
-    ],
+    "python.analysis.extraPaths": [],
+    "python.autoComplete.extraPaths": [],
     "files.exclude": {
         "**/*.pyc": true, 
         "**/__pycache__": true

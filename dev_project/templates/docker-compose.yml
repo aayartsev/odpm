@@ -16,20 +16,19 @@ services:
 
   odoo:
     image: {ODOO_IMAGE}
-    user: {CURRENT_USER}
+    user: {COMPOSE_USER}
     tty: true
     depends_on:
       - {DATABASE_NAME_INSTANCE}
+    working_dir: {DOCKER_PROJECT_DIR}
     environment:
       - PYTHONUNBUFFERED=1
+      - PYTHONWARNINGS=ignore::DeprecationWarning:docutils
+{ODPM_CONFIG_PATH_ENV_LINE}{ODPM_SECRETS_PATH_ENV_LINE}{START_COMMAND_BLOCK}
     ports:
       - {ODOO_PORT}:{ODOO_DOCKER_PORT}
       - {GEVENT_PORT}:{GEVENT_DOCKER_PORT}
-      - {DEBUGGER_PORT_MAP}
-
-    volumes: {MAPPED_VOLUMES}
-
-    command: {START_STRING}
+{DEV_EXTRA_PORTS}{DEV_EXTRA_HOSTS}{ODOO_VOLUMES_BLOCK}
 
 volumes:
   postgres-data:

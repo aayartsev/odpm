@@ -9,6 +9,16 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+.pybuild/
+# debian/dpkg-buildpackage outputs (keep debian/control, rules, changelog, etc.)
+debian/odpm/
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/*.debhelper
+# rpmbuild outputs (keep packaging/odpm.spec)
+.rpmbuild/
 build/
 develop-eggs/
 dist/
@@ -52,8 +62,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
+# Translations (ship compiled host CLI catalogs; see dev_project/i18n/)
 *.mo
+!dev_project/i18n/**/LC_MESSAGES/*.mo
 *.pot
 
 # Django stuff:
@@ -104,6 +115,7 @@ celerybeat.pid
 
 # Environments
 .venv
+.venv-docs
 env/
 venv/
 ENV/
@@ -137,4 +149,18 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# unittest.mock path artifact (os.makedirs on MagicMock().project_dir)
+MagicMock/
+MockMagic/
+
+# Cursor IDE
+.cursor
+
+# Local prep artifacts and private smoke reports (use docs/smoke-4.0-checklist.md in repo)
+docs/changelog-prep/
+docs/smoke-local*.md
+docs/smoke-4.0-*.md
+!docs/smoke-4.0-checklist.md
+docs/post-4.0-hardening-plan.md
+docs/cross-cutting-debt-plan.md
 

@@ -1,0 +1,8 @@
+# #MESSAGE#
+
+**/.git
+**/__pycache__
+*.pyc
+**/node_modules
+.venv
+.odpm/ci-build-context

@@ -1,0 +1,150 @@
+site_name: odpm
+site_description: Документация Odoo Developer Project Manager
+site_url: https://aayartsev.github.io/odpm/
+repo_url: https://github.com/aayartsev/odpm
+repo_name: aayartsev/odpm
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+exclude_docs: |
+  contributing/**
+  smoke-4.0-checklist.md
+  how-to/**
+  changelog-prep/**
+  cross-cutting-debt-plan.md
+
+theme:
+  name: material
+  language: ru
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Тёмная тема
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Светлая тема
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: ru
+          name: Русский
+          default: true
+          build: true
+        - locale: en
+          name: English
+          build: true
+          site_description: Odoo Developer Project Manager documentation
+          theme:
+            language: en
+            palette:
+              - scheme: default
+                toggle:
+                  name: Dark mode
+              - scheme: slate
+                toggle:
+                  name: Light mode
+          nav_translations:
+            Главная: Home
+            С чего начать: Getting started
+            Зачем odpm: Why odpm
+            Дружелюбность к новичкам: Beginner-friendly
+            Локальная разработка с нуля: Local dev from scratch
+            Чужой или унаследованный проект: Legacy project
+            Установка odpm: Installing odpm
+            Debian / Ubuntu (.deb): Debian / Ubuntu (.deb)
+            Fedora / RHEL (.rpm): Fedora / RHEL (.rpm)
+            macOS: macOS
+            Windows (WSL): Windows (WSL)
+            pip и копирование исходников: pip and source checkout
+            Сценарии: Scenarios
+            Координатор команды: Team coordinator
+            Свой репозиторий платформы Odoo: Custom Odoo platform repo
+            Масштабирование: Scaling
+            Справочник: Reference
+            Инструменты по сценариям: Tools by scenario
+            Иерархия конфигурации: Config hierarchy
+            odpm.json и user_settings.json: odpm.json and user_settings.json
+            Переменные .env: .env variables
+            Ссылки на репозитории: Git repository links
+            Параметры командной строки: Command-line options
+            Структура каталога проекта: Project directory layout
+            Сгенерированные файлы: Generated files
+            Язык сообщений odpm: odpm message locale
+            Эксплуатация: Operations
+            Отладка в IDE: IDE debugging
+            Локальные секреты: Local secrets
+            Запуск без диалогов: Non-interactive mode
+            Безопасность: Security
+            Переход с версии 3.0: Migrating from 3.0
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Главная: README.md
+  - С чего начать:
+      - Зачем odpm: getting-started/why-odpm.md
+      - Дружелюбность к новичкам: getting-started/beginner-friendly.md
+      - Локальная разработка с нуля: getting-started/local-dev-from-scratch.md
+      - Чужой или унаследованный проект: getting-started/legacy-project.md
+  - Установка odpm:
+      - Debian / Ubuntu (.deb): install/linux-deb.md
+      - Fedora / RHEL (.rpm): install/fedora-rpm.md
+      - macOS: install/macos-pipx.md
+      - Windows (WSL): install/windows-wsl.md
+      - pip и копирование исходников: install/pip-legacy.md
+  - Сценарии:
+      - developer: scenarios/developer.md
+      - server: scenarios/server.md
+      - ci: scenarios/ci.md
+      - Координатор команды: scenarios/team-coordinator.md
+      - Свой репозиторий платформы Odoo: scenarios/platform-fork.md
+      - Масштабирование: scenarios/scaling.md
+  - Справочник:
+      - Инструменты по сценариям: reference/tools-by-scenario.md
+      - Иерархия конфигурации: reference/config-hierarchy.md
+      - odpm.json и user_settings.json: reference/config-split.md
+      - Переменные .env: reference/env-dotenv.md
+      - Ссылки на репозитории: reference/git-links.md
+      - odpm.json: reference/odpm-json.md
+      - user_settings.json: reference/user-settings.md
+      - odoo.conf: reference/odoo-conf.md
+      - Параметры командной строки: reference/cli.md
+      - deps.lock.json: reference/deps-lock.md
+      - Структура каталога проекта: reference/project-layout.md
+      - Сгенерированные файлы: reference/generated-files.md
+      - Язык сообщений odpm: reference/locale.md
+  - Эксплуатация:
+      - Отладка в IDE: operations/vscode-debug.md
+      - Локальные секреты: operations/secrets.md
+      - Запуск без диалогов: operations/non-interactive.md
+      - Безопасность: operations/security.md
+      - Переход с версии 3.0: operations/migration-3-to-4.md

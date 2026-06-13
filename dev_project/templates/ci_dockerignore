@@ -1,0 +1,9 @@
+**/.git
+**/__pycache__
+*.pyc
+**/node_modules
+dev_project/templates/**
+dev_project/i18n/**
+dev_project/plugins/**
+**/.cursor
+**/*.md

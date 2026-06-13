@@ -1,46 +1,71 @@
-import subprocess
-import platform
 import json
 import os
+import platform
 from pathlib import Path
 from typing import NamedTuple
 
-if platform.system() == "Linux":
-    import pwd
-    import grp
-
 from . import constants
-from . import translations
-from .host_config import Config
-
-from .inside_docker_app.logger import get_module_logger
+from .translations import _
+from .config import Config
+from .errors import SubprocessError, SystemCheckError
+from .interactive import prompt_input, stdin_is_interactive
 from .inside_docker_app import utils
-
+from .logging import get_module_logger
+from .project_env import CreateProjectEnvironment
+from .project_env.services import BaseImageService, PlatformSourcesService
 from .protocols import SystemCheckerProtocol
+from .subprocess_runner import run_checked, run_logged, run_or_raise
+from .system_check_policy import SystemCheckPolicy
 
 _logger = get_module_logger(__name__)
+
 
 class ContainerData(NamedTuple):
     ports: list[int]
     container_id: str
 
-class SystemChecker(SystemCheckerProtocol):
 
-    def __init__(self, config:Config) -> None:
+class SystemChecker(SystemCheckerProtocol):
+    def __init__(
+        self,
+        config: Config,
+        project_environment: CreateProjectEnvironment,
+    ) -> None:
         self.config = config
-        self.config.system_checker = self
-        if self.config.check_system:
-            self.check_git()
-        self.check_file_system()
-    
+        self.project_environment = project_environment
+        policy = SystemCheckPolicy.from_config(config)
+        if policy.file_system_on_init:
+            self.check_file_system()
+
     def check_git(self) -> None:
-        process_result = subprocess.run(["git",  "--version"], capture_output=True)
-        output_string = process_result.stdout.decode("utf-8")
-        if constants.GIT_WORKING_MESSAGE not in output_string:
-            _logger.error(translations.get_translation(translations.IS_GIT_INSTALLED))
-            exit(1)
-    
-    def get_groups(self, user:str) -> list:
+        message = _('Did you install git?')
+        self._run_required_command(
+            ["git", "--version"],
+            expected_in_stdout=constants.GIT_WORKING_MESSAGE,
+            error_message=message,
+        )
+
+    def _run_required_command(
+        self,
+        argv: list[str],
+        *,
+        expected_in_stdout: str,
+        error_message: str,
+    ):
+        try:
+            result = run_or_raise(argv)
+        except SubprocessError as exc:
+            _logger.error(error_message)
+            raise SystemCheckError(error_message) from exc
+        if expected_in_stdout not in result.stdout:
+            _logger.error(error_message)
+            raise SystemCheckError(error_message)
+        return result
+
+    def get_system_groups(self, user: str) -> list:
+        import grp
+        import pwd
+
         gids = [g.gr_gid for g in grp.getgrall() if user in g.gr_mem]
         gid = pwd.getpwnam(user).pw_gid
         gids.append(grp.getgrgid(gid).gr_gid)
@@ -48,88 +73,142 @@ class SystemChecker(SystemCheckerProtocol):
 
     def check_docker(self) -> None:
         if platform.system() == "Linux":
-            groups = self.get_groups(constants.CURRENT_USER)
+            groups = self.get_system_groups(constants.HOST_USER)
             if constants.LINUX_DOCKER_GROUPNAME not in groups:
-                _logger.error(translations.get_translation(translations.USER_NOT_IN_DOCKER_GROUP).format(
-                        CURRENT_USER=constants.CURRENT_USER,
-                        LINUX_DOCKER_GROUPNAME=constants.LINUX_DOCKER_GROUPNAME,
-                    )
+                message = _('You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer').format(
+                    CURRENT_USER=constants.HOST_USER,
+                    LINUX_DOCKER_GROUPNAME=constants.LINUX_DOCKER_GROUPNAME,
                 )
-                exit(1)
-        process_result = subprocess.run(["docker",  "info"], capture_output=True)
-        output_string = process_result.stdout.decode("utf-8")
-        if constants.DOCKER_WORKING_MESSAGE not in output_string:
-            _logger.error(translations.get_translation(translations.CAN_NOT_CONNECT_DOCKER))
-            exit(1)
-        
-        process_result = subprocess.run(["docker",  "images", "--format", "'{{json .}}'"], capture_output=True)
-        output_string = process_result.stdout.decode("utf-8")
-        result_list = []
-        for record in output_string.split("\n"):
-            if record:
-                new_record = json.loads(record.replace("'", ""))
-                if self.config.odoo_image_name == new_record["Repository"]:
-                    result_list.append(new_record)
-        if not result_list:
-            self.config.project_env.build_image()
-    
+                _logger.error(message)
+                raise SystemCheckError(message)
+        message = _('Cannot connect to the Docker daemon. Is the docker daemon running?')
+        self._run_required_command(
+            ["docker", "info"],
+            expected_in_stdout=constants.DOCKER_WORKING_MESSAGE,
+            error_message=message,
+        )
+
+        BaseImageService(self.project_environment).ensure_base_image()
+
     def check_running_containers(self) -> None:
         ports_to_check = [
             self.config.user_env.odoo_port,
             self.config.user_env.debugger_port,
             self.config.user_env.postgres_port,
+            self.config.user_env.gevent_port,
         ]
+
         def get_ports(data_port_string):
             busy_ports = []
-            port_items =  data_port_string.split(",")
+            port_items = data_port_string.split(",")
             for port_item in port_items:
                 port_item = port_item.strip()
                 port_map = port_item.split("->")
                 if len(port_map) >= 2:
                     host_port = port_map[0].split(":")[-1]
                 else:
-                    host_port = 0
-                busy_ports.append(int(host_port))
+                    host_port = "0"
+                if "-" in host_port:
+                    busy_ports.extend([int(item) for item in host_port.split("-")])
+                else:
+                    busy_ports.append(int(host_port))
             return busy_ports
-        process_result = subprocess.run(["docker",  "container", "ls", "--format", "'{{json .}}'"], capture_output=True)
-        output_string = process_result.stdout.decode("utf-8")
+
+        try:
+            process_result = run_or_raise(
+                ["docker", "container", "ls", "--format", "'{{json .}}'"],
+            )
+        except SubprocessError as exc:
+            message = _('Cannot list Docker containers: {DETAILS}').format(DETAILS=str(exc))
+            _logger.error(message)
+            raise SystemCheckError(message) from exc
+        output_string = process_result.stdout
         result_list = []
         for record in output_string.split("\n"):
             if record:
                 new_record = json.loads(record.replace("'", ""))
                 data_port_string = new_record["Ports"]
                 busy_ports = get_ports(data_port_string)
-                result_list.append(ContainerData(
-                    ports=busy_ports,
-                    container_id=new_record["ID"]
-                ))
+                result_list.append(
+                    ContainerData(ports=busy_ports, container_id=new_record["ID"])
+                )
 
         for result in result_list:
             used_ports = list(set(result.ports) & set(ports_to_check))
             if used_ports:
-                subprocess.run(["docker",  "stop", result.container_id])
+                run_logged(["docker", "stop", result.container_id])
 
     def check_docker_compose(self) -> None:
         self.config.no_log_prefix = True
         docker_compose_working_message_in_output_string = False
         for command in constants.LIST_OF_DOCKER_COMPOSE_COMMANDS:
             up_help_command_list = [*command.split(" "), "up", "--help"]
-            up_help_result = subprocess.run(up_help_command_list, capture_output=True)
-            up_help_string = up_help_result.stdout.decode("utf-8")
-            if constants.NO_LOG_PREFIX not in up_help_string:
+            up_help_result = run_checked(up_help_command_list)
+            if constants.NO_LOG_PREFIX not in up_help_result.stdout:
                 self.config.no_log_prefix = False
-            version_command_list = [*command.split(" "), "version" ]
-            process_result = subprocess.run(version_command_list, capture_output=True)
-            output_string = process_result.stdout.decode("utf-8")
-            output_string = output_string.lower().replace("-"," ")
+            version_command_list = [*command.split(" "), "version"]
+            process_result = run_checked(version_command_list)
+            output_string = process_result.stdout.lower().replace("-", " ")
             if constants.DOCKER_COMPOSE_WORKING_MESSAGE in output_string:
                 docker_compose_working_message_in_output_string = True
                 self.config.docker_compose_command = command
                 break
         if not docker_compose_working_message_in_output_string:
-            _logger.error(translations.get_translation(translations.CAN_NOT_GET_DOCKER_COMPOSE_INFO))
-            exit(1)
-    
+            message = _('Cannot get docker-compose info, did you install it?')
+            _logger.error(message)
+            raise SystemCheckError(message)
+
+    def _platform_git_repo_ready(self) -> bool:
+        odoo_src_dir = self.config.odoo_src_dir
+        if not odoo_src_dir or not os.path.isdir(odoo_src_dir):
+            return False
+        if not os.path.exists(os.path.join(odoo_src_dir, ".git")):
+            return False
+        try:
+            result = run_or_raise(
+                ["git", "rev-parse", "--is-inside-work-tree"],
+                cwd=odoo_src_dir,
+            )
+        except SubprocessError:
+            return False
+        return "true" in result.stdout
+
+    def _ensure_platform_sources(self) -> None:
+        policy = self.config.policy
+        if policy.is_ci():
+            return
+        if policy.is_developer():
+            platform = getattr(self.config, "odoo_platform_project", None)
+            if (
+                platform
+                and getattr(platform, "link_type", None) == constants.GITLINK_TYPE_FILE
+            ):
+                return
+            if not self._platform_git_repo_ready():
+                message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step).').format(odoo_src_dir=self.config.odoo_src_dir)
+                _logger.warning(message)
+            return
+        if policy.scenario != constants.SERVER_SCENARIO:
+            return
+        odoo_bin = os.path.join(self.config.odoo_src_dir, "odoo-bin")
+        if os.path.exists(odoo_bin):
+            return
+        if not stdin_is_interactive():
+            message = _('Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare.').format(odoo_src_dir=self.config.odoo_src_dir)
+            _logger.error(message)
+            raise SystemCheckError(message)
+        clone_odoo = prompt_input(
+            _('Do you want to clone odoo? y/n\n')
+        )
+        if clone_odoo and clone_odoo.lower() == "y":
+            PlatformSourcesService(self.project_environment).download_odoo_nightly_build()
+            return
+        message = _('Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git').format(
+            odoo_src_dir=self.config.odoo_src_dir,
+        )
+        _logger.error(message)
+        raise SystemCheckError(message)
+
     def check_file_system(self) -> None:
         for dir_path in [
             self.config.user_env.backups,
@@ -138,44 +217,22 @@ class SystemChecker(SystemCheckerProtocol):
             if not os.path.exists(dir_path):
                 try:
                     os.makedirs(dir_path)
-                except BaseException:
-                    _logger.error(translations.get_translation(translations.CAN_NOT_CREATE_DIR).format(
+                except BaseException as err:
+                    message = _('Cannot create dir, {dir_path}, please check it').format(
                         dir_path=dir_path,
-                    ))
-                    exit(1)
-        if not os.path.exists(self.config.user_env.odoo_src_dir):
-            os.mkdir(self.config.user_env.odoo_src_dir)
-        os.chdir(self.config.user_env.odoo_src_dir)
-        # todo сделать переключатель
-        if self.config.user_env.odpm_scenario == constants.DEVELOPER_SCENARIO:
-            odoo_src_state_bytes = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], capture_output=True)
-            odoo_src_state_string = odoo_src_state_bytes.stdout.decode("utf-8")
-            if not "true" in odoo_src_state_string:
-                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
-                if clone_odoo and clone_odoo.lower() == "y":
-                    self.config.project_env.download_odoo_repository()
-                else:
-                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
-                        odoo_src_dir= self.config.user_env.odoo_src_dir
-                    ))
-                    exit(1)
-        if self.config.user_env.odpm_scenario == constants.SERVER_SCENARIO:
-            if not os.path.exists(os.path.join(self.config.user_env.odoo_src_dir, "odoo-bin")):
-                clone_odoo = input(translations.get_translation(translations.DO_YOU_WANT_CLONE_ODOO))
-                if clone_odoo and clone_odoo.lower() == "y":
-                    self.config.project_env.download_odoo_nightly_build()
-                else:
-                    _logger.error(translations.get_translation(translations.CHECK_ODOO_REPO).format(
-                        odoo_src_dir= self.config.user_env.odoo_src_dir
-                    ))
-                    exit(1)
+                    )
+                    _logger.error(message)
+                    raise SystemCheckError(message) from err
+        self._ensure_platform_sources()
 
-    
-    def check_free_space_for_odoo_developing(self, free_space_size:float=constants.FREE_SPACE_FOR_USAGE) -> None:
+    def check_free_space_for_odoo_developing(
+        self, free_space_size: float = constants.FREE_SPACE_FOR_USAGE
+    ) -> None:
         free_space = utils.get_free_space(Path.home())
         if free_space < free_space_size:
-            _logger.error(translations.get_translation(translations.YOU_NEED_TO_HAVE_FREE_SPACE).format(
+            message = _('You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory').format(
                 NECESSARY_FREE_SPACE=free_space_size,
                 DIR_FOR_FREE_SPACE=Path.home(),
-            ))
-            exit(1)
+            )
+            _logger.error(message)
+            raise SystemCheckError(message)
