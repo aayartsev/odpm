@@ -25,6 +25,8 @@ class AptRepoPackagingTests(unittest.TestCase):
         self.assertIn("Codename: stable", distributions)
         self.assertIn("Codename: testing", distributions)
         self.assertIn("SignWith: %%GPG_KEY_ID%%", distributions)
+        self.assertIn("Architectures: amd64 arm64 armhf i386", distributions)
+        self.assertNotRegex(distributions, r"(?m)^Architectures: all$")
 
     def test_apt_scripts_exist_and_executable(self):
         for name in ("import_apt_signing_key.sh", "build_apt_repo.sh"):

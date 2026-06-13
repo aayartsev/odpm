@@ -2,7 +2,7 @@ Origin: odpm
 Label: odpm
 Suite: stable
 Codename: stable
-Architectures: all
+Architectures: amd64 arm64 armhf i386
 Components: main
 UDebComponents: main
 SignWith: %%GPG_KEY_ID%%
@@ -11,7 +11,7 @@ Origin: odpm
 Label: odpm testing
 Suite: testing
 Codename: testing
-Architectures: all
+Architectures: amd64 arm64 armhf i386
 Components: main
 UDebComponents: main
 SignWith: %%GPG_KEY_ID%%
