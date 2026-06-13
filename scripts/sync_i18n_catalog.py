@@ -45,6 +45,9 @@ RU_MESSAGES: dict[str, str] = {
         "Каталог {START_DIR_PATH} не является odpm катлогом, пожалуйста выполните "
         "команду cd {PROJECT_PATH} для перехода в нужный вам каталог"
     ),
+    "Environment variable {VAR} is not set (required for manifest field {FIELD})": (
+        "Переменная окружения {VAR} не задана (нужна для поля manifest {FIELD})"
+    ),
     "Do not change this file, its content is generating automatically": (
         "Не изменяйте данный файл, его содержимое генерируется автоматически"
     ),

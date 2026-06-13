@@ -10,6 +10,7 @@
 
 ### Добавлено
 
+- **Подстановка `${VAR}` в manifest (MVP)** — `${VAR}` / `${VAR:-default}` и экранирование `$$` в whitelist-полях: host `odpm.json` (`dependencies`, `odoo_git_link`), host `user_settings.developing_project`, вложенный `odpm.json` в зависимостях. `EnvResolver`: `os.environ` перекрывает project `.env`; раскрытие сразу после `json.load`. Отсутствующая переменная → локализованный `ConfigError`. В `deps.lock.json` — уже раскрытые URL/пути (тесты `test_env_substitution_lock_integration.py`). Документация RU: `odpm-json.md`, `user-settings.md`, `git-links.md`, `env-dotenv.md`, `config-hierarchy.md`, `deps-lock.md`, `non-interactive.md`, `team-coordinator.md`. i18n для ошибки missing var.
 - **План architecture debt восстановлен как status doc** — `docs/contributing/architecture-debt.md` (ретроспектива G/C/E); синхронизирован `todo.md`. Локальное правило Cursor обновлено (`.cursor/` в gitignore).
 - **CI secrets import smoke (TD-FEAT-09 MVP)** — `tests/test_ci_secrets_smoke.py`: `--secrets-file` → materialize → mount в compose (developer); в `ci` шаг `secrets.materialize` — `skip`. Шаг в `ci-docker.yml`. Документация: `docs/operations/secrets.md` (пример GitHub Actions).
 - **Метаданные PyPI и ручной workflow публикации** — расширен `pyproject.toml` (зависимость `packaging`, GPL-3.0-or-later, URLs, classifiers); [`.github/workflows/publish-pypi.yml`](.github/workflows/publish-pypi.yml) только через `workflow_dispatch` (по умолчанию TestPyPI). Тесты: `test_pyproject_packaging.py`. Документация: `docs/contributing/packaging.md`.

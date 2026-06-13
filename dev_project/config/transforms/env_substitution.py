@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from ...errors import ConfigError
+from ...translations import _
 
 if TYPE_CHECKING:
     from ...host.user_env import CreateUserEnvironment
@@ -92,8 +93,10 @@ def expand_env_string(value: str, resolver: EnvResolver, *, field_path: str) -> 
                 parts.append(default)
             else:
                 raise ConfigError(
-                    f"Environment variable {name!r} is not set "
-                    f"(required for manifest field {field_path})"
+                    _(
+                        "Environment variable {VAR} is not set "
+                        "(required for manifest field {FIELD})"
+                    ).format(VAR=name, FIELD=field_path)
                 )
         last_end = match.end()
 

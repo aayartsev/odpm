@@ -27,6 +27,18 @@
 - один раз выполнить подготовку из обычного терминала;
 - не использовать `server` для самого первого клонирования platform.
 
+## Manifest с `${VAR}`
+
+Если в `odpm.json` или `user_settings.json` используются `${ИМЯ}`, задайте значения **до** запуска:
+
+| Способ | Пример |
+|--------|--------|
+| project `.env` | `ODOO_PLATFORM_DIR=/data/odoo/19.0` |
+| `export` в shell / CI | `export GIT_HOST=git.corp.example` |
+| default в manifest | `"file://${PATH:-/opt/odoo}"` |
+
+Координатор проекта документирует обязательные имена для команды и CI — см. [роль координатора](../scenarios/team-coordinator.md). Отсутствующая переменная без default завершает odpm с ошибкой.
+
 ## Пример для сценария сборки образа
 
 ```bash

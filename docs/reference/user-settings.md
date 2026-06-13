@@ -4,7 +4,7 @@
 
 | Поле | Назначение |
 |------|------------|
-| `developing_project` | Ссылка на разрабатываемый репозиторий или каталог ([форматы ссылок](git-links.md)) |
+| `developing_project` | Ссылка на разрабатываемый репозиторий или каталог ([форматы ссылок](git-links.md)); поддерживает `${VAR}` — см. ниже |
 | `init_modules` | Модули для установки при `-i` (через запятую, без пробелов) |
 | `update_modules` | Модули для обновления при `-u` |
 | `db_creation_data` | Параметры **новой** базы при первом `-d` |
@@ -22,6 +22,22 @@
 | `pre_commit_map_files` | Файлы для pre-commit при работе не на Linux |
 | `use_oca_dependencies` | Расширенный разбор OCA и вложенных `odpm.json` (по умолчанию `false`) |
 | `create_module_links` | Символические ссылки для редактора (по умолчанию `false`) |
+
+## Подстановка `${VAR}` в `developing_project`
+
+Поле **`developing_project`** — единственное в `user_settings.json`, где odpm раскрывает `${ИМЯ}` / `${ИМЯ:-default}` при чтении файла. Источник значений: `export` / CI → project `.env` → default в строке.
+
+```json
+{
+  "developing_project": "file://${DEVELOPING_PROJECT_DIR}"
+}
+```
+
+```ini
+DEVELOPING_PROJECT_DIR=/home/dev/my_addons
+```
+
+Остальные поля `user_settings.json` подстановку **не** получают.
 
 ## Режим разработки Odoo (`dev_mode`)
 

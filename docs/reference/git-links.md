@@ -38,6 +38,18 @@ git@github.com:org/odoo.git 17.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
 
 Для `file://` в файле фиксации версий записывается **отпечаток содержимого** каталога, а не хеш git — для общей сборки надёжнее удалённый репозиторий.
 
+## `${VAR}` в ссылках manifest
+
+В `odpm.json` и в `developing_project` можно писать пути и хосты через переменные, чтобы **один** manifest в git подходил разным машинам:
+
+```json
+"odoo_git_link": "file://${ODOO_PLATFORM_DIR}",
+"dependencies": ["file://${OCA_WEB_PATH}"],
+"developing_project": "file://${DEVELOPING_PROJECT_DIR}"
+```
+
+Значения задают в project `.env` или в окружении процесса (CI). После раскрытия odpm работает с обычной ссылкой `file://` или git URL. Подробнее: [odpm.json](odpm-json.md), [переменные `.env`](env-dotenv.md).
+
 ## Где указывать в конфигурации
 
 - **Разрабатываемый проект:** `--init <ссылка>` или `developing_project` в `user_settings.json`.

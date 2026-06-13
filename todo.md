@@ -29,5 +29,5 @@
 - [ ] сделать мехнизм сборки финального контейнера со всеми исходными кодами
 - [x] архитектура: single-pass resolver зависимостей (OCA `oca_dependencies.txt` — `dependency_resolver.py`, `map_folders()` использует `_resolve_dependencies()`)
 - [x] dependency resolver: если в git-зависимости из `odpm.json` → `dependencies` есть репозиторий с `odpm.json` в корне, после clone/checkout читать оттуда `dependencies` и `requirements_txt` (по аналогии с `oca_dependencies.txt`), добавлять в resolver graph и merge Python requirements; проверять совместимость `odoo_version`, `python_version` и др. с host-проектом (warn/fail), **без** подмены platform/`odoo_git_link`; transitive URLs попадают в `.odpm/deps.lock.json` при `--update-lock`
-- [ ] проработать вариант использования ссылок на переменные окружения в файлах конфигурации (`odpm.json`, `.odpm/deps.lock.json` и др.)
+- [x] проработать вариант использования ссылок на переменные окружения в файлах конфигурации (`odpm.json`, `user_settings.json`; nested `odpm.json`; `${VAR}` в whitelist, `deps.lock` — resolved URL)
 - [ ] реализовать фичу запуска pre-commit линтеров для репозитория platform

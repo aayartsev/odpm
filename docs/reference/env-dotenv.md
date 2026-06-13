@@ -80,3 +80,20 @@ PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 ```
 
 Один ключ применяется ко всем указанным удалённым репозиториям.
+
+## Переменные для подстановки в manifest
+
+Помимо встроенных ключей odpm в `.env` можно задавать **произвольные** имена для `${VAR}` в `odpm.json` и `user_settings.json` (например `ODOO_PLATFORM_DIR`, `OCA_WEB_PATH`, `GIT_HOST`). Они **не** управляют портами или сценарием сами по себе — только подставляются в whitelist-поля manifest при чтении JSON.
+
+Приоритет для `${VAR}`: переменные **процесса** odpm перекрывают project `.env`. Пустой default в manifest: `${VAR:-}`.
+
+Типичный фрагмент project `.env` для локальной разработки:
+
+```ini
+ODOO_PLATFORM_DIR=/home/dev/odoo/19.0
+DEVELOPING_PROJECT_DIR=/home/dev/my_addons
+OCA_WEB_PATH=/home/dev/src/oca/web
+GIT_HOST=git.company.example
+```
+
+См. [odpm.json](odpm-json.md), [user_settings.json](user-settings.md), [иерархия конфигурации](config-hierarchy.md).

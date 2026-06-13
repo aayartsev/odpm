@@ -62,6 +62,9 @@ msgstr "Не изменяйте данный параметр, его значе
 msgid "Do you want to clone odoo? y/n\n"
 msgstr "Вы хотите клонировать odoo? y/n\n"
 
+msgid "Environment variable {VAR} is not set (required for manifest field {FIELD})"
+msgstr "Переменная окружения {VAR} не задана (нужна для поля manifest {FIELD})"
+
 msgid "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
 msgstr "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
 
