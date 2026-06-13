@@ -197,6 +197,32 @@ jobs:
             gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/${id}"
           done
 
+      - name: Clear release assets before re-upload
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          if ! release_id="$(
+            gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null
+          )"; then
+            echo "No release yet for ${TAG}; nothing to clear"
+            exit 0
+          fi
+          mapfile -t asset_ids < <(
+            gh api "repos/${GITHUB_REPOSITORY}/releases/${release_id}/assets" --paginate \
+              --jq '.[].id'
+          )
+          if [[ "${#asset_ids[@]}" -eq 0 ]]; then
+            echo "Release ${release_id} has no assets"
+            exit 0
+          fi
+          for asset_id in "${asset_ids[@]}"; do
+            echo "Deleting release asset ${asset_id} from ${TAG}"
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}"
+          done
+
       - name: Upload release assets
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2.4.2
@@ -206,6 +232,7 @@ jobs:
           body_path: ${{ steps.release_meta.outputs.notes }}
           draft: false
           prerelease: ${{ steps.release_meta.outputs.prerelease == 'true' }}
+          overwrite_files: true
           fail_on_unmatched_files: true
           files: |
             dist/odpm_*.deb
