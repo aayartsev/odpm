@@ -9,6 +9,10 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from ... import constants
+from ..transforms.env_substitution import (
+    ODPM_JSON_ENV_EXPAND_FIELDS,
+    expand_env_in_json,
+)
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -54,4 +58,9 @@ class OdpmJsonReader:
         if not os.path.exists(self.config.repo_odpm_json):
             self._rewrite_odpm_json()
         with open(self.config.repo_odpm_json) as repo_odpm_json:
-            self.config._raw_odpm_json = json.load(repo_odpm_json)
+            raw = json.load(repo_odpm_json)
+        self.config._raw_odpm_json = expand_env_in_json(
+            raw,
+            resolver=self.config.env_resolver,
+            allowed_fields=ODPM_JSON_ENV_EXPAND_FIELDS,
+        )

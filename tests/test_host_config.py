@@ -404,6 +404,10 @@ class OdpmJsonReaderTests(unittest.TestCase):
             config.project_odpm_json = os.path.join(
                 project_dir, constants.PROJECT_CONFIG_FILE_NAME
             )
+            config.env_resolver = EnvResolver.from_sources(
+                process_environ={},
+                project_dotenv={},
+            )
             rewrite_mock = MagicMock()
 
             reader = OdpmJsonReader(config, rewrite_odpm_json=rewrite_mock)
@@ -414,6 +418,80 @@ class OdpmJsonReaderTests(unittest.TestCase):
             self.assertEqual(config.repo_odpm_json, odpm_path)
             self.assertEqual(config._raw_odpm_json["odoo_version"], "17.0")
             self.assertEqual(config._raw_odpm_json["python_version"], "3.10")
+
+    def test_get_odpm_settings_expands_env_refs_in_whitelist_fields(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            dev_path = os.path.join(project_dir, "dev_repo")
+            os.makedirs(dev_path)
+            odpm_content = {
+                "odoo_version": "17.${ODOO_VER}",
+                "odpm_version": constants.ODPM_VERSION,
+                "odoo_git_link": "file://${ODOO_PLATFORM_DIR}",
+                "dependencies": [
+                    "file://${OCA_WEB_PATH}",
+                    "https://github.com/OCA/sale.git 17.0",
+                ],
+            }
+            odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
+            Path(odpm_path).write_text(json.dumps(odpm_content), encoding="utf-8")
+
+            config = MagicMock()
+            config._raw_odpm_json = {}
+            config.project_dir = project_dir
+            config.developing_project = MagicMock(project_path=dev_path)
+            config.repo_odpm_json = odpm_path
+            config.project_odpm_json = os.path.join(
+                project_dir, constants.PROJECT_CONFIG_FILE_NAME
+            )
+            config.env_resolver = EnvResolver.from_sources(
+                process_environ={"GIT_HOST": "git.process.example"},
+                project_dotenv={
+                    "ODOO_PLATFORM_DIR": "/home/dev/odoo/17.0",
+                    "OCA_WEB_PATH": "/home/dev/oca/web",
+                },
+            )
+
+            OdpmJsonReader(config, rewrite_odpm_json=MagicMock()).get_odpm_settings()
+
+            self.assertEqual(config._raw_odpm_json["odoo_version"], "17.${ODOO_VER}")
+            self.assertEqual(
+                config._raw_odpm_json["odoo_git_link"],
+                "file:///home/dev/odoo/17.0",
+            )
+            self.assertEqual(
+                config._raw_odpm_json["dependencies"],
+                [
+                    "file:///home/dev/oca/web",
+                    "https://github.com/OCA/sale.git 17.0",
+                ],
+            )
+
+    def test_get_odpm_settings_missing_env_var_raises_config_error(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            dev_path = os.path.join(project_dir, "dev_repo")
+            os.makedirs(dev_path)
+            odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
+            Path(odpm_path).write_text(
+                json.dumps({"odoo_git_link": "file://${MISSING}"}),
+                encoding="utf-8",
+            )
+
+            config = MagicMock()
+            config._raw_odpm_json = {}
+            config.repo_odpm_json = odpm_path
+            config.project_odpm_json = os.path.join(
+                project_dir, constants.PROJECT_CONFIG_FILE_NAME
+            )
+            config.env_resolver = EnvResolver.from_sources(
+                process_environ={},
+                project_dotenv={},
+            )
+
+            with self.assertRaises(ConfigError) as ctx:
+                OdpmJsonReader(config, rewrite_odpm_json=MagicMock()).get_odpm_settings()
+
+            self.assertIn("MISSING", str(ctx.exception))
+            self.assertIn("odoo_git_link", str(ctx.exception))
 
     def test_get_project_odpm_json_invokes_rewrite_when_manifests_missing(self):
         with tempfile.TemporaryDirectory() as project_dir:
@@ -443,6 +521,10 @@ class UserSettingsReaderTests(unittest.TestCase):
             config.project_dir = project_dir
             config._raw_user_settings = {}
             config.user_settings_json = settings_path
+            config._env_resolver = EnvResolver.from_sources(
+                process_environ={},
+                project_dotenv={},
+            )
 
             UserSettingsReader(
                 config,
@@ -450,6 +532,40 @@ class UserSettingsReaderTests(unittest.TestCase):
             ).get_user_settings()
 
             self.assertEqual(config._raw_user_settings, {"init_modules": ["sale"]})
+
+    def test_get_user_settings_expands_developing_project_env_ref(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            settings_path = os.path.join(
+                project_dir, constants.USER_CONFIG_FILE_NAME
+            )
+            Path(settings_path).write_text(
+                json.dumps(
+                    {
+                        "developing_project": "file://${DEVELOPING_DIR}",
+                        "init_modules": ["sale"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            config = Config.__new__(Config)
+            config.project_dir = project_dir
+            config._raw_user_settings = {}
+            config.user_settings_json = settings_path
+            config._env_resolver = EnvResolver.from_sources(
+                process_environ={},
+                project_dotenv={"DEVELOPING_DIR": "/home/dev/my_addons"},
+            )
+
+            UserSettingsReader(
+                config,
+                create_default_user_settings=MagicMock(),
+            ).get_user_settings()
+
+            self.assertEqual(
+                config._raw_user_settings["developing_project"],
+                "file:///home/dev/my_addons",
+            )
+            self.assertEqual(config._raw_user_settings["init_modules"], ["sale"])
 
     def test_get_user_settings_json_creates_file_via_default_factory(self):
         with tempfile.TemporaryDirectory() as project_dir:

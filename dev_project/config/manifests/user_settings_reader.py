@@ -8,6 +8,10 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from ... import constants
+from ..transforms.env_substitution import (
+    USER_SETTINGS_ENV_EXPAND_FIELDS,
+    expand_env_in_json,
+)
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -42,4 +46,9 @@ class UserSettingsReader:
     def get_user_settings(self) -> None:
         if os.path.exists(self.config.user_settings_json):
             with open(self.config.user_settings_json) as user_settings_file:
-                self.config._raw_user_settings = json.load(user_settings_file)
+                raw = json.load(user_settings_file)
+            self.config._raw_user_settings = expand_env_in_json(
+                raw,
+                resolver=self.config.env_resolver,
+                allowed_fields=USER_SETTINGS_ENV_EXPAND_FIELDS,
+            )
