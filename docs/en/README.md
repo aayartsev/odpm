@@ -42,7 +42,7 @@ Short on-ramp for beginners: [Beginner-friendly guide](getting-started/beginner-
 
 ## Quick start
 
-You need **Docker**, **git**, and **odpm** on the host (see [installation](../install/linux-deb.md)).
+You need **Docker**, **git**, and **odpm** on the host (see [installation](../install/README.md)).
 
 ```bash
 mkdir my-odoo-project-17 && cd my-odoo-project-17
@@ -63,13 +63,7 @@ Step-by-step guide: [Local dev from scratch](getting-started/local-dev-from-scra
 
 ## Installing odpm
 
-| Platform | Article |
-|----------|---------|
-| Debian / Ubuntu (.deb package) | [linux-deb.md](../install/linux-deb.md) |
-| Fedora (.rpm package) | [fedora-rpm.md](../install/fedora-rpm.md) |
-| macOS | [macos-pipx.md](../install/macos-pipx.md) |
-| Windows (WSL) | [windows-wsl.md](../install/windows-wsl.md) |
-| pip or source checkout | [pip-legacy.md](../install/pip-legacy.md) |
+Platform and method overview: **[Installing odpm (all platforms)](../install/README.md)**.
 
 ## Usage scenarios
 

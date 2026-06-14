@@ -47,7 +47,7 @@ On the **host** you only need:
 
 - [Docker](https://www.docker.com/products/docker-desktop/) — Docker Desktop on Windows and macOS;
 - [git](https://git-scm.com/);
-- **odpm** installed — see [installation](../install/linux-deb.md);
+- **odpm** installed — see [installation](../install/README.md);
 - for debugging — [Visual Studio Code](https://code.visualstudio.com/).
 
 The Odoo Python project and its venv live **in the container**. Do **not** wrap `odpm` in a host venv — that only adds friction.

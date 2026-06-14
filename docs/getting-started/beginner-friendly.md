@@ -47,7 +47,7 @@
 
 - [Docker](https://www.docker.com/products/docker-desktop/) — на Windows и macOS обычно Docker Desktop;
 - [git](https://git-scm.com/);
-- установленный **odpm** — см. [раздел установки](../install/linux-deb.md);
+- установленный **odpm** — см. [раздел установки](../install/README.md);
 - для отладки — [Visual Studio Code](https://code.visualstudio.com/).
 
 Сам Python-проект Odoo и его виртуальное окружение живут **в контейнере**. Запускать `odpm` внутри отдельного venv на хосте **не нужно** — так вы только усложните себе жизнь.

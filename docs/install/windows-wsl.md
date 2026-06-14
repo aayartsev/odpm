@@ -25,3 +25,5 @@ file:///home/user/my_addons
 ```
 
 Три слэша после `file:` — см. [git-links.md](../reference/git-links.md).
+
+Полная таблица установки: [Установка odpm (все платформы)](README.md).

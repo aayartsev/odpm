@@ -15,7 +15,7 @@ gpg --armor --export KEYID | gpg --dearmor > packaging/apt/odpm-archive-keyring.
 
 ## User install
 
-See [docs/install/linux-deb.md](../../docs/install/linux-deb.md). Keyring on the user's machine:
+See [docs/install/README.md](../../docs/install/README.md) (hub) and [linux-deb.md](../../docs/install/linux-deb.md). Keyring on the user's machine:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg \

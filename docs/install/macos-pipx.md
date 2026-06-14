@@ -21,6 +21,8 @@ odpm --version
 
 На Apple Silicon Docker Desktop эмулирует linux/amd64 или использует arm64-образы — убедитесь, что Docker запущен.
 
+Полная таблица установки: [Установка odpm (все платформы)](README.md).
+
 ## Дальше
 
 [Локальная разработка с нуля](../getting-started/local-dev-from-scratch.md)

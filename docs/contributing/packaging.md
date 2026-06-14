@@ -26,7 +26,7 @@ GitHub Actions secrets:
 
 Public keyring: `packaging/apt/odpm-archive-keyring.gpg` (binary, for `signed-by=`). Maintainer notes: [`packaging/apt/README.md`](../../packaging/apt/README.md).
 
-User install: [install/linux-deb.md](../install/linux-deb.md).
+User install: [install/README.md](../install/README.md) (hub), [install/linux-deb.md](../install/linux-deb.md) (Debian).
 
 ### Local / manual .deb
 
@@ -63,4 +63,4 @@ Workflow: [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish
 
 Артефакты: GitHub Releases и Actions artifact `release-packages` (deb + rpm). Release на GitHub — только при tag `v*`.
 
-Пользовательская установка: [install/](../install/linux-deb.md), [pip (legacy)](../install/pip-legacy.md).
+Пользовательская установка: [install/README.md](../install/README.md), [pip (legacy)](../install/pip-legacy.md).

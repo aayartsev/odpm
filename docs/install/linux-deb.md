@@ -48,7 +48,7 @@ sudo apt install odpm
 sudo apt update && sudo apt upgrade odpm
 ```
 
-Полная таблица установки на разных ОС: [Установка odpm (все платформы)](../#установка-odpm).
+Полная таблица установки на разных ОС: [Установка odpm (все платформы)](README.md).
 
 ## Установка вручную (.deb с GitHub Releases)
 

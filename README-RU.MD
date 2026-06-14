@@ -40,7 +40,7 @@
 
 ## Быстрый старт
 
-На компьютере должны быть установлены **Docker**, **git** и **odpm** (см. [установку](docs/install/linux-deb.md)).
+На компьютере должны быть установлены **Docker**, **git** и **odpm** (см. [установку](docs/install/README.md)).
 
 ```bash
 mkdir my-odoo-project-17 && cd my-odoo-project-17
@@ -61,13 +61,7 @@ odpm -d test_db -i -u
 
 ## Установка odpm
 
-| Платформа | Статья |
-|-----------|--------|
-| Debian / Ubuntu (пакет .deb) | [linux-deb.md](docs/install/linux-deb.md) |
-| Fedora (пакет .rpm) | [fedora-rpm.md](docs/install/fedora-rpm.md) |
-| macOS | [macos-pipx.md](docs/install/macos-pipx.md) |
-| Windows (подсистема WSL) | [windows-wsl.md](docs/install/windows-wsl.md) |
-| Установка через pip или из исходников | [pip-legacy.md](docs/install/pip-legacy.md) |
+Обзор платформ: **[Установка odpm (все платформы)](docs/install/README.md)**.
 
 ## Сценарии использования
 

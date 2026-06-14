@@ -73,6 +73,7 @@ plugins:
             Локальная разработка с нуля: Local dev from scratch
             Чужой или унаследованный проект: Legacy project
             Установка odpm: Installing odpm
+            Все платформы: All platforms
             Debian / Ubuntu (.deb): Debian / Ubuntu (.deb)
             Fedora / RHEL (.rpm): Fedora / RHEL (.rpm)
             macOS: macOS
@@ -116,6 +117,7 @@ nav:
       - Локальная разработка с нуля: getting-started/local-dev-from-scratch.md
       - Чужой или унаследованный проект: getting-started/legacy-project.md
   - Установка odpm:
+      - Все платформы: install/README.md
       - Debian / Ubuntu (.deb): install/linux-deb.md
       - Fedora / RHEL (.rpm): install/fedora-rpm.md
       - macOS: install/macos-pipx.md

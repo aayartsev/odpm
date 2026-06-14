@@ -1,0 +1,75 @@
+# Debian / Ubuntu (.deb)
+
+Recommended on Linux.
+
+## Install via APT (`apt upgrade` updates)
+
+After a [release tag](https://github.com/aayartsev/odpm/releases), odpm publishes a signed repository on GitHub Pages.
+
+### Repository key (once)
+
+Binary keyring for `signed-by=` (ready for `/usr/share/keyrings/`):
+
+```bash
+sudo curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg \
+  -o /usr/share/keyrings/odpm-archive-keyring.gpg
+```
+
+Verify:
+
+```bash
+sudo gpg --no-default-keyring \
+  --keyring /usr/share/keyrings/odpm-archive-keyring.gpg \
+  --list-keys
+# expected: 03040028F53D7AB8  Alexander Yartsev
+```
+
+**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (packages are here for now; `stable` after final releases):
+
+```bash
+echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
+
+sudo apt update
+sudo apt install odpm
+```
+
+**Stable releases** (`v4.3.0`, without `-rc`/`-beta`):
+
+```bash
+echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
+
+sudo apt update
+sudo apt install odpm
+```
+
+Updates on later releases:
+
+```bash
+sudo apt update && sudo apt upgrade odpm
+```
+
+Full install table for all platforms: [Installing odpm (all platforms)](README.md).
+
+## Manual install (.deb from GitHub Releases)
+
+Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.0-beta` / `4.0-rc1` / `main`, or build locally:
+
+```bash
+./scripts/build_deb.sh
+sudo apt install ./dist/odpm_*_all.deb
+odpm --version
+```
+
+## Package dependencies
+
+- **Depends:** `python3 (>= 3.10)`, `python3-packaging`, `git`
+- **Recommends:** Docker (`docker.io` / `moby-engine`)
+- No PyPI runtime dependencies
+
+The package installs `/usr/bin/odpm`, templates, and i18n under `python3/dist-packages`.
+
+When installing from GitHub Releases, verify checksums from the release `SHA256SUMS`.
+
+## Next
+
+[Local dev from scratch](../getting-started/local-dev-from-scratch.md)
