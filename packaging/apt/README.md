@@ -4,13 +4,13 @@ Signed static APT repo published at `https://aayartsev.github.io/odpm/apt/`.
 
 | File | In git | Purpose |
 |------|--------|---------|
-| `odpm-archive-keyring.gpg` | yes (maintainer) | Armored public key on GitHub Pages; users convert via `gpg --dearmor` |
+| `odpm-archive-keyring.gpg` | yes (maintainer) | Binary public keyring for APT `signed-by=` on GitHub Pages |
 | `reprepro/conf/*` | yes | Repository layout (`stable`, `testing`) |
 
 Generate and commit the public keyring once:
 
 ```bash
-gpg --armor --export KEYID > packaging/apt/odpm-archive-keyring.gpg
+gpg --armor --export KEYID | gpg --dearmor > packaging/apt/odpm-archive-keyring.gpg
 ```
 
 ## User install
@@ -19,7 +19,7 @@ See [docs/install/linux-deb.md](../../docs/install/linux-deb.md). Keyring on the
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg \
-  | sudo gpg --dearmor -o /usr/share/keyrings/odpm-archive-keyring.gpg
+  -o /usr/share/keyrings/odpm-archive-keyring.gpg
 ```
 
 ## Maintainer secrets (GitHub Actions)

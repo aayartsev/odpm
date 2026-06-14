@@ -8,11 +8,11 @@
 
 ### Ключ репозитория (один раз)
 
-Файл на сайте — **armored** GPG (`-----BEGIN PGP PUBLIC KEY BLOCK-----`). Для `signed-by=` в APT нужен **бинарный** keyring в `/usr/share/keyrings/`:
+Бинарный keyring для `signed-by=` (готов для `/usr/share/keyrings/`):
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg \
-  | sudo gpg --dearmor -o /usr/share/keyrings/odpm-archive-keyring.gpg
+  -o /usr/share/keyrings/odpm-archive-keyring.gpg
 ```
 
 Проверка:
@@ -24,23 +24,19 @@ sudo gpg --no-default-keyring \
 # ожидается: 03040028F53D7AB8  Alexander Yartsev
 ```
 
-**Стабильные релизы** (`v4.3.0`, без `-rc`/`-beta`):
+**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (сейчас пакеты здесь; `stable` — после финальных релизов):
 
 ```bash
-echo "deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] \
-  https://aayartsev.github.io/odpm/apt stable main" \
-  | sudo tee /etc/apt/sources.list.d/odpm.list
+echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
 
 sudo apt update
 sudo apt install odpm
 ```
 
-**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (ключ тот же, что выше):
+**Стабильные релизы** (`v4.3.0`, без `-rc`/`-beta`):
 
 ```bash
-echo "deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] \
-  https://aayartsev.github.io/odpm/apt testing main" \
-  | sudo tee /etc/apt/sources.list.d/odpm.list
+echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
 
 sudo apt update
 sudo apt install odpm
@@ -50,19 +46,6 @@ sudo apt install odpm
 
 ```bash
 sudo apt update && sudo apt upgrade odpm
-```
-
-### Ошибка `NO_PUBKEY` / `invalid packet`
-
-Если `apt update` пишет `NO_PUBKEY 03040028F53D7AB8` или `gpg --keyring ... --list-keys` — `invalid packet (ctb=2d)`, keyring установлен **без** `gpg --dearmor` (скачали armored-файл через `curl -o`).
-
-Исправление:
-
-```bash
-sudo rm -f /usr/share/keyrings/odpm-archive-keyring.gpg
-sudo curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg \
-  | sudo gpg --dearmor -o /usr/share/keyrings/odpm-archive-keyring.gpg
-sudo apt update
 ```
 
 Полная таблица установки на разных ОС: [Установка odpm (все платформы)](../#установка-odpm).

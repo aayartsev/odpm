@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -9,14 +10,30 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 class AptRepoPackagingTests(unittest.TestCase):
-    def test_public_keyring_present(self):
+    def test_public_keyring_present_and_binary(self):
         keyring = PROJECT_ROOT / "packaging" / "apt" / "odpm-archive-keyring.gpg"
         if not keyring.is_file():
             self.skipTest(
                 "packaging/apt/odpm-archive-keyring.gpg not committed yet "
-                "(gpg --export KEYID > packaging/apt/odpm-archive-keyring.gpg)"
+                "(gpg --armor --export KEYID | gpg --dearmor > packaging/apt/odpm-archive-keyring.gpg)"
             )
         self.assertGreater(keyring.stat().st_size, 0)
+        head = keyring.read_bytes()[:40]
+        self.assertNotIn(b"BEGIN PGP", head, msg="keyring must be binary, not armored")
+        proc = subprocess.run(
+            [
+                "gpg",
+                "--no-default-keyring",
+                "--keyring",
+                str(keyring),
+                "--list-keys",
+                "--with-colons",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn("03040028F53D7AB8", proc.stdout)
 
     def test_reprepro_distributions_define_stable_and_testing(self):
         distributions = (

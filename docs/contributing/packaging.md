@@ -24,7 +24,9 @@ GitHub Actions secrets:
 | `APT_REPO_GPG_PRIVATE_KEY` | Sign `Release` / `InRelease` |
 | `APT_REPO_GPG_PASSPHRASE` | Key passphrase |
 
-Public keyring: `packaging/apt/odpm-archive-keyring.gpg` (armored on Pages). Users must install the key with `gpg --dearmor` (see [install/linux-deb.md](../install/linux-deb.md)). Maintainer notes: [`packaging/apt/README.md`](../../packaging/apt/README.md).
+Public keyring: `packaging/apt/odpm-archive-keyring.gpg` (binary, for `signed-by=`). Maintainer notes: [`packaging/apt/README.md`](../../packaging/apt/README.md).
+
+User install: [install/linux-deb.md](../install/linux-deb.md).
 
 ### Local / manual .deb
 
