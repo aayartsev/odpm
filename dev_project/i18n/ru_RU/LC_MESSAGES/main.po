@@ -14,6 +14,9 @@ msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .
 msgid "Accepted database drift: {KIND}"
 msgstr "Принят дрейф конфигурации БД: {KIND}"
 
+msgid "Adopting current database configuration as baseline (no last_run snapshot yet)."
+msgstr "Принимаем текущую конфигурацию БД как baseline (снимок last_run ещё не создан)."
+
 msgid "Application role {ROLE} present: {VALUE}"
 msgstr "Роль приложения {ROLE} присутствует: {VALUE}"
 
@@ -25,6 +28,9 @@ msgstr "Обнаружен блокирующий дрейф конфигура�
 
 msgid "Blocking database configuration drift remains after resolution: {KINDS}"
 msgstr "После разрешения дрейфа остаётся блокирующий дрейф конфигурации БД: {KINDS}"
+
+msgid "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
+msgstr "Создание роли приложения PostgreSQL {ROLE} в single-user режиме."
 
 msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgstr "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
@@ -98,17 +104,26 @@ msgstr "Не изменяйте данный параметр, его значе
 msgid "Do you want to clone odoo? y/n\n"
 msgstr "Вы хотите клонировать odoo? y/n\n"
 
+msgid "Ensured PostgreSQL application role {ROLE} during baseline adoption."
+msgstr "Роль приложения PostgreSQL {ROLE} создана при принятии baseline."
+
 msgid "Environment variable {VAR} is not set (required for manifest field {FIELD})"
 msgstr "Переменная окружения {VAR} не задана (нужна для поля manifest {FIELD})"
 
 msgid "Error checking PostgreSQL port: {DETAIL}"
 msgstr "Ошибка при проверке порта PostgreSQL: {DETAIL}"
 
+msgid "Failed to bootstrap PostgreSQL application role {ROLE} in single-user mode."
+msgstr "Не удалось создать роль приложения PostgreSQL {ROLE} в single-user режиме."
+
 msgid "Failed to ensure PostgreSQL role {ROLE}."
 msgstr "Не удалось создать или обновить роль PostgreSQL {ROLE}."
 
 msgid "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
 msgstr "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
+
+msgid "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
+msgstr "Не удалось запустить сервис PostgreSQL {SERVICE} для принятия baseline."
 
 msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 msgstr "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"
@@ -137,8 +152,11 @@ msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_versi
 msgid "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object"
 msgstr "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен быть JSON-объектом"
 
-msgid "No database last_run snapshot yet; settings will be recorded after a successful start."
-msgstr "Снимок last_run для БД ещё не создан; текущие настройки будут записаны после успешного старта."
+msgid "No PostgreSQL admin role is available for service {SERVICE}."
+msgstr "Нет доступной административной роли PostgreSQL для сервиса {SERVICE}."
+
+msgid "No database last_run snapshot yet; baseline will be adopted automatically on startup."
+msgstr "Снимок last_run для БД ещё не создан; baseline будет принят автоматически при запуске."
 
 msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
 msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
@@ -163,6 +181,9 @@ msgstr "Пожалуйта выберите ценарий использова�
 
 msgid "Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Пожалуйста, выберите версию Odoo для текущего проекта. Вот список поддерживаемых версий: {AVAILABEL_ODOO_VERSIONS_ARE}. Вы можете оставить значение по умолчанию {ODOO_LATEST_VERSION} или написать свою версию из списка. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "PostgreSQL admin role did not become available within {SECONDS}s after bootstrap."
+msgstr "Административная роль PostgreSQL не стала доступна за {SECONDS} с после bootstrap."
 
 msgid "PostgreSQL application role {CURRENT} is missing in the running cluster."
 msgstr "Роль приложения PostgreSQL {CURRENT} отсутствует в работающем кластере."
@@ -227,6 +248,12 @@ msgstr "PostgreSQL готов: {VALUE}"
 msgid "PostgreSQL role {USER} does not exist"
 msgstr "Роль PostgreSQL {USER} не существует"
 
+msgid "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s after single-user bootstrap."
+msgstr "Сервис PostgreSQL {SERVICE} не стал готов за {SECONDS} с после single-user bootstrap."
+
+msgid "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s during baseline adoption."
+msgstr "Сервис PostgreSQL {SERVICE} не стал готов за {SECONDS} с при принятии baseline."
+
 msgid "PostgreSQL startup timeout exceeded"
 msgstr "Превышено время ожидания запуска PostgreSQL"
 
@@ -238,6 +265,9 @@ msgstr "Подготовка окружения Odoo (зависимости, ш
 
 msgid "Project files are ready."
 msgstr "Файлы проекта готовы."
+
+msgid "Recorded database baseline snapshot at {PATH}."
+msgstr "Записан снимок baseline БД: {PATH}."
 
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Запуск скрипта от root/sudo запрещен"
@@ -271,6 +301,9 @@ msgstr "Укажите язык сообщений odpm на host. Локаль 
 
 msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
 msgstr "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
+
+msgid "Starting PostgreSQL service {SERVICE} for baseline adoption."
+msgstr "Запуск сервиса PostgreSQL {SERVICE} для принятия baseline."
 
 msgid "Starting containers with Docker Compose..."
 msgstr "Запуск контейнеров через Docker Compose..."

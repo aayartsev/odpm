@@ -21,17 +21,19 @@ def run_checked(
     *,
     cwd: str | None = None,
     capture: bool = True,
+    input_text: str | None = None,
 ) -> CommandResult:
     """Run a subprocess and return the result without checking the exit code.
 
     Prefer :func:`run_or_raise` for commands that must succeed.
     """
-    result = subprocess.run(
-        list(argv),
-        cwd=cwd,
-        capture_output=capture,
-        text=capture,
-    )
+    run_kwargs: dict = {"cwd": cwd, "capture_output": capture}
+    if input_text is not None:
+        run_kwargs["input"] = input_text
+        run_kwargs["text"] = True
+    elif capture:
+        run_kwargs["text"] = True
+    result = subprocess.run(list(argv), **run_kwargs)
     if capture:
         return CommandResult(
             returncode=result.returncode,

@@ -32,6 +32,41 @@ def compose_exec(
     return run_checked(argv, cwd=config.project_dir)
 
 
+def compose_run(
+    config: Config,
+    service: str,
+    *run_args: str,
+    user: str | None = None,
+    input_text: str | None = None,
+    entrypoint: str | None = None,
+) -> CommandResult:
+    argv = _compose_argv(config) + ["run", "--rm", "--no-deps"]
+    if entrypoint is not None:
+        argv.extend(["--entrypoint", entrypoint])
+    if user is not None:
+        argv.extend(["-u", user])
+    argv.extend(["-T", service, *run_args])
+    return run_checked(
+        argv,
+        cwd=config.project_dir,
+        input_text=input_text,
+    )
+
+
+def compose_stop_service(config: Config, service: str) -> CommandResult:
+    return run_checked(
+        _compose_argv(config) + ["stop", service],
+        cwd=config.project_dir,
+    )
+
+
+def compose_up_service_detached(config: Config, service: str) -> CommandResult:
+    return run_checked(
+        _compose_argv(config) + ["up", "-d", service],
+        cwd=config.project_dir,
+    )
+
+
 def postgres_container_id(config: Config) -> str | None:
     from ..compose.runtime import compose_service_container_id
 

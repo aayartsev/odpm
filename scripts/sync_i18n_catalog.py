@@ -41,11 +41,17 @@ RU_MESSAGES: dict[str, str] = {
     "Blocking database configuration drift remains after resolution: {KINDS}": (
         "После разрешения дрейфа остаётся блокирующий дрейф конфигурации БД: {KINDS}"
     ),
+    "Bootstrapping PostgreSQL application role {ROLE} in single-user mode.": (
+        "Создание роли приложения PostgreSQL {ROLE} в single-user режиме."
+    ),
     "Accepted database drift: {KIND}": (
         "Принят дрейф конфигурации БД: {KIND}"
     ),
     "Application role {ROLE} present: {VALUE}": (
         "Роль приложения {ROLE} присутствует: {VALUE}"
+    ),
+    "Adopting current database configuration as baseline (no last_run snapshot yet).": (
+        "Принимаем текущую конфигурацию БД как baseline (снимок last_run ещё не создан)."
     ),
     "Check database configuration drift against last_run snapshot": (
         "Проверить дрейф конфигурации БД относительно снимка last_run"
@@ -81,8 +87,14 @@ RU_MESSAGES: dict[str, str] = {
     "Error checking PostgreSQL port: {DETAIL}": (
         "Ошибка при проверке порта PostgreSQL: {DETAIL}"
     ),
-    "No database last_run snapshot yet; settings will be recorded after a successful start.": (
-        "Снимок last_run для БД ещё не создан; текущие настройки будут записаны после успешного старта."
+    "No database last_run snapshot yet; baseline will be adopted automatically on startup.": (
+        "Снимок last_run для БД ещё не создан; baseline будет принят автоматически при запуске."
+    ),
+    "No PostgreSQL admin role is available for service {SERVICE}.": (
+        "Нет доступной административной роли PostgreSQL для сервиса {SERVICE}."
+    ),
+    "PostgreSQL admin role did not become available within {SECONDS}s after bootstrap.": (
+        "Административная роль PostgreSQL не стала доступна за {SECONDS} с после bootstrap."
     ),
     "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\n"
     "Choose: (a) abort  (c) continue\n": (
@@ -171,6 +183,12 @@ RU_MESSAGES: dict[str, str] = {
     "PostgreSQL role {USER} does not exist": (
         "Роль PostgreSQL {USER} не существует"
     ),
+    "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s during baseline adoption.": (
+        "Сервис PostgreSQL {SERVICE} не стал готов за {SECONDS} с при принятии baseline."
+    ),
+    "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s after single-user bootstrap.": (
+        "Сервис PostgreSQL {SERVICE} не стал готов за {SECONDS} с после single-user bootstrap."
+    ),
     "PostgreSQL startup timeout exceeded": (
         "Превышено время ожидания запуска PostgreSQL"
     ),
@@ -224,6 +242,15 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}": (
         "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
+    ),
+    "Ensured PostgreSQL application role {ROLE} during baseline adoption.": (
+        "Роль приложения PostgreSQL {ROLE} создана при принятии baseline."
+    ),
+    "Failed to start PostgreSQL service {SERVICE} for baseline adoption.": (
+        "Не удалось запустить сервис PostgreSQL {SERVICE} для принятия baseline."
+    ),
+    "Failed to bootstrap PostgreSQL application role {ROLE} in single-user mode.": (
+        "Не удалось создать роль приложения PostgreSQL {ROLE} в single-user режиме."
     ),
     "Failed to ensure PostgreSQL role {ROLE}.": (
         "Не удалось создать или обновить роль PostgreSQL {ROLE}."
@@ -322,6 +349,12 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "psycopg2 is required.": (
         "Требуется psycopg2."
+    ),
+    "Recorded database baseline snapshot at {PATH}.": (
+        "Записан снимок baseline БД: {PATH}."
+    ),
+    "Starting PostgreSQL service {SERVICE} for baseline adoption.": (
+        "Запуск сервиса PostgreSQL {SERVICE} для принятия baseline."
     ),
     "Set directory for odoo creating/restoring backups, You can leave default "
     "{DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default "

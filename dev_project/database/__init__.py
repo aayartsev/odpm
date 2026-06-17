@@ -36,6 +36,7 @@ from .resolve import (
     pending_resolution_drifts,
     resolve_database_drifts,
 )
+from .adopt import adopt_database_baseline, needs_database_adoption
 from .drift import (
     RESOLUTION_DRIFT_KINDS,
     DatabaseDrift,
@@ -64,6 +65,7 @@ __all__ = (
     "EnsureRoleResult",
     "RESOLUTION_DRIFT_KINDS",
     "accepted_drift_kinds",
+    "adopt_database_baseline",
     "collect_database_state",
     "collect_database_status",
     "database_dir_path",
@@ -81,6 +83,7 @@ __all__ = (
     "last_run_path",
     "load_last_run",
     "meaningful_database_drifts",
+    "needs_database_adoption",
     "probe_app_role_exists",
     "probe_postgres_container_running",
     "pending_resolution_drifts",

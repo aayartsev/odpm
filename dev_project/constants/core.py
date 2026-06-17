@@ -55,6 +55,8 @@ CURRENT_PASSWORD = CONTAINER_PASSWORD
 # https://github.com/docker-library/docs/blob/master/postgres/README.md
 # Warning: the Docker specific variables will only have an effect if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup.
 # In this case you need to delete old data or use old variables
+POSTGRES_CONTAINER_DATA_DIR = "/var/lib/postgresql/data"
+POSTGRES_CONTAINER_OS_USER = "postgres"
 POSTGRES_ODOO_USER = CONTAINER_USER
 POSTGRES_ODOO_PASS = CONTAINER_PASSWORD
 POSTGRES_ODOO_HOST = DATABASE_NAME_INSTANCE

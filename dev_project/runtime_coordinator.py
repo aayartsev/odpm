@@ -107,8 +107,10 @@ class RuntimeCoordinator:
         if self.cli_args.skip_start:
             host_summaries.log_skip_start()
             return
+        from .database.adopt import adopt_database_baseline
         from .database.resolve import ensure_no_blocking_database_drift
 
+        adopt_database_baseline(self.config)
         ensure_no_blocking_database_drift(self.config, self.cli_args)
         try:
             self.start_containers()

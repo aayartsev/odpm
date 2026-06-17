@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 _DATABASE_DRIFT_MESSAGES = {
     "first_run": _(
-        "No database last_run snapshot yet; settings will be recorded after a successful start."
+        "No database last_run snapshot yet; baseline will be adopted automatically on startup."
     ),
     "service_name": _(
         "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}."

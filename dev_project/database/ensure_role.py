@@ -8,7 +8,14 @@ from typing import TYPE_CHECKING, Literal
 from .. import constants
 from ..errors import OdpmError
 from ..translations import _
-from .compose_exec import compose_exec, postgres_service_name
+from .compose_exec import postgres_service_name
+from .postgres_admin import (
+    bootstrap_app_role_single_user,
+    psql_role_connects,
+    resolve_psql_admin_role,
+    run_psql_as_admin,
+    wait_for_psql_admin_role,
+)
 from .probe import probe_app_role_exists, probe_postgres_ready
 
 if TYPE_CHECKING:
@@ -43,6 +50,15 @@ def build_ensure_role_sql(role: str, password: str) -> str:
     )
 
 
+def build_single_user_bootstrap_sql(role: str, password: str) -> str:
+    """Plain SQL for postgres --single (PL/pgSQL DO blocks are unavailable there)."""
+    safe_role = role.replace("'", "''")
+    safe_password = password.replace("'", "''")
+    return (
+        f"CREATE ROLE {safe_role} LOGIN SUPERUSER CREATEDB PASSWORD '{safe_password}';\n"
+    )
+
+
 def ensure_app_role(config: Config) -> EnsureRoleResult:
     """Create or update the configured application role in PostgreSQL."""
     role = constants.POSTGRES_ODOO_USER
@@ -62,19 +78,22 @@ def ensure_app_role(config: Config) -> EnsureRoleResult:
         )
     existed_before = probe_app_role_exists(config, role=role) is True
     sql = build_ensure_role_sql(role, password)
-    result = compose_exec(
+    if resolve_psql_admin_role(config) is None:
+        bootstrap_app_role_single_user(
+            config,
+            build_single_user_bootstrap_sql(role, password),
+        )
+        wait_for_psql_admin_role(config)
+    if psql_role_connects(config, role):
+        if not existed_before:
+            return EnsureRoleResult(outcome="created", role=role)
+        return EnsureRoleResult(outcome="updated", role=role)
+    result = run_psql_as_admin(
         config,
-        postgres_service_name(config),
-        "psql",
-        "-U",
-        "postgres",
-        "-d",
-        "postgres",
         "-v",
         "ON_ERROR_STOP=1",
         "-c",
         sql,
-        user="postgres",
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
