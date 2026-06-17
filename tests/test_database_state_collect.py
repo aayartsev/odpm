@@ -99,6 +99,26 @@ class CollectDatabaseStateTests(unittest.TestCase):
             self.assertEqual(state.cluster.app_role, "odoo")
             self.assertIsNone(state.cluster.app_role_present)
 
+    def test_collect_reports_db_host_mismatch_against_service_name(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            conf_path = Path(project_dir) / constants.ODOO_CONF_NAME
+            conf_path.write_text(
+                "\n".join(
+                    [
+                        "[options]",
+                        "db_host = db",
+                        "db_port = 5432",
+                        "db_user = odoo",
+                        "db_password = odoo",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            state = collect_database_state(self._config(project_dir))
+            self.assertEqual(state.compose.service_name, "db-dev")
+            self.assertEqual(state.odoo_conf.db_host, "db")
+
     def test_detects_nonempty_data_dir_and_pg_major(self):
         with tempfile.TemporaryDirectory() as project_dir:
             data_path = Path(project_dir) / constants.POSTGRES_LOCAL_STORAGE_DIR

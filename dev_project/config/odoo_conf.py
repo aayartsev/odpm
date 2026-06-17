@@ -21,7 +21,25 @@ _UNRESOLVED_DB_MARKERS = (
 )
 
 
-def odoo_conf_on_disk_needs_regeneration(path: str) -> bool:
+def odoo_conf_db_host_mismatch(path: str, expected_host: str) -> bool:
+    if not expected_host or not isinstance(path, str) or not path or not os.path.isfile(path):
+        return False
+    parser = configparser.ConfigParser()
+    try:
+        parser.read(path, encoding="utf-8")
+    except OSError:
+        return False
+    if "options" not in parser:
+        return False
+    db_host = (parser["options"].get("db_host") or "").strip()
+    if not db_host:
+        return False
+    return db_host != expected_host
+
+
+def odoo_conf_on_disk_needs_regeneration(
+    path: str, *, expected_db_host: str | None = None
+) -> bool:
     if not isinstance(path, str) or not path or not os.path.isfile(path):
         return True
     try:
@@ -36,7 +54,11 @@ def odoo_conf_on_disk_needs_regeneration(path: str) -> bool:
     if "options" not in parser:
         return True
     options = parser["options"]
-    return any(not options.get(key) for key in _REQUIRED_DB_OPTION_KEYS)
+    if any(not options.get(key) for key in _REQUIRED_DB_OPTION_KEYS):
+        return True
+    if expected_db_host and odoo_conf_db_host_mismatch(path, expected_db_host):
+        return True
+    return False
 
 
 class OdooConfBuilder:
