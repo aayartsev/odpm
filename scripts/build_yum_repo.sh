@@ -83,7 +83,14 @@ cp "${SIGNED_RPM}" "${OUT}/${SUITE}/packages/$(basename "${RPM}")"
 cp "${KEYRING}" "${OUT}/odpm-archive-keyring.gpg"
 
 createrepo_c "${OUT}/${SUITE}"
-createrepo_c --update --gpg-sign "${KEY_ID}" "${OUT}/${SUITE}"
+
+REPOMD="${OUT}/${SUITE}/repodata/repomd.xml"
+gpg --batch --yes --pinentry-mode loopback \
+    --passphrase "${APT_REPO_GPG_PASSPHRASE}" \
+    --local-user "${KEY_ID}" \
+    --detach-sign --armor \
+    -o "${OUT}/${SUITE}/repodata/repomd.xml.asc" \
+    "${REPOMD}"
 
 echo "YUM repo ready in ${OUT} (suite=${SUITE})"
 find "${OUT}" -type f | sort
