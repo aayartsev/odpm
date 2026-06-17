@@ -24,6 +24,10 @@ ODPM_SECRETS_PATH_ENV = "ODPM_SECRETS_PATH"
 ODPM_RUNTIME_CONFIG_CONTAINER_PATH = "/run/odpm/config.json"
 ODPM_CONFIG_PATH_ENV = "ODPM_CONFIG_PATH"
 ODPM_RUNTIME_DIR_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "runtime")
+ODPM_DATABASE_DIR_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "database")
+ODPM_DATABASE_LAST_RUN_REL_PATH = os.path.join(
+    ODPM_DATABASE_DIR_REL_PATH, "last_run.json"
+)
 CI_RUNTIME_CONFIG_CONTEXT_REL_PATH = os.path.join("runtime", "config.json")
 CI_DOCKERFILE = "Dockerfile.ci"
 CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
