@@ -16,6 +16,7 @@ DatabaseDriftKind = Literal[
     "postgres_major",
     "odpm_scenario",
     "data_dir_empty_changed",
+    "app_role_missing",
 ]
 
 DatabaseDriftSeverity = Literal["info", "low", "medium", "high"]
@@ -29,6 +30,7 @@ _DRIFT_SEVERITY: dict[DatabaseDriftKind, DatabaseDriftSeverity] = {
     "postgres_major": "high",
     "odpm_scenario": "medium",
     "data_dir_empty_changed": "medium",
+    "app_role_missing": "medium",
 }
 
 
@@ -68,6 +70,14 @@ def _detect_internal_drifts(current: DatabaseCurrentState) -> list[DatabaseDrift
                 "db_host_mismatch",
                 previous=expected_host,
                 current=actual_host,
+            )
+        )
+    if current.cluster.app_role_present is False:
+        drifts.append(
+            _drift(
+                "app_role_missing",
+                previous="",
+                current=current.cluster.app_role,
             )
         )
     return drifts

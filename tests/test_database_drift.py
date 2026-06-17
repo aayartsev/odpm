@@ -194,6 +194,31 @@ class DatabaseDriftDetectionTests(unittest.TestCase):
         kinds = {drift.kind for drift in drifts}
         self.assertEqual(kinds, {"service_name", "db_host_mismatch"})
 
+    def test_app_role_missing_when_probe_reports_false(self):
+        state = _current()
+        state = DatabaseCurrentState(
+            odpm_scenario=state.odpm_scenario,
+            engine=state.engine,
+            compose=state.compose,
+            odoo_conf=state.odoo_conf,
+            cluster=DatabaseClusterFingerprint(
+                data_dir_nonempty=state.cluster.data_dir_nonempty,
+                pg_major=state.cluster.pg_major,
+                app_role="odoo",
+                app_role_present=False,
+            ),
+        )
+        drifts = detect_database_drift(state, _last_run())
+        self.assertIn(
+            DatabaseDrift(
+                kind="app_role_missing",
+                severity="medium",
+                previous="",
+                current="odoo",
+            ),
+            drifts,
+        )
+
     def test_reason_id_is_stable(self):
         drift = DatabaseDrift(
             kind="data_path",

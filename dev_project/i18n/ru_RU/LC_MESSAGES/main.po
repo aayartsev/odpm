@@ -11,6 +11,9 @@ msgstr " Файл с параметрами \"config.json\" является у�
 msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .env"
 
+msgid "Application role {ROLE} present: {VALUE}"
+msgstr "Роль приложения {ROLE} присутствует: {VALUE}"
+
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
 
@@ -38,8 +41,14 @@ msgstr "Проверить дрейф конфигурации БД относи
 msgid "Checking out {REF} for {PROJECT}"
 msgstr "Переключение на {REF} для {PROJECT}"
 
+msgid "Compose service: {SERVICE}"
+msgstr "Сервис compose: {SERVICE}"
+
 msgid "Compose stack is healthy; reusing existing containers without --force-recreate"
 msgstr "Стек compose в порядке; перезапуск без --force-recreate"
+
+msgid "Configuration drift:"
+msgstr "Дрейф конфигурации:"
 
 msgid "Container start skipped (--skip-start)."
 msgstr "Запуск контейнеров пропущен (--skip-start)."
@@ -47,8 +56,17 @@ msgstr "Запуск контейнеров пропущен (--skip-start)."
 msgid "Control+C pressed; stopping."
 msgstr "Нажато Control+C; остановка."
 
+msgid "Created PostgreSQL application role {ROLE}."
+msgstr "Создана роль приложения PostgreSQL {ROLE}."
+
 msgid "Created {ENV_FILE} from environment variables and defaults (non-interactive mode)."
 msgstr "Создан файл {ENV_FILE} из переменных окружения и значений по умолчанию (неинтерактивный режим)."
+
+msgid "Data path: {PATH}"
+msgstr "Каталог данных: {PATH}"
+
+msgid "Database status"
+msgstr "Состояние базы данных"
 
 msgid "Did you install git?"
 msgstr "Вы установили git?"
@@ -71,6 +89,9 @@ msgstr "Вы хотите клонировать odoo? y/n\n"
 msgid "Environment variable {VAR} is not set (required for manifest field {FIELD})"
 msgstr "Переменная окружения {VAR} не задана (нужна для поля manifest {FIELD})"
 
+msgid "Failed to ensure PostgreSQL role {ROLE}."
+msgstr "Не удалось создать или обновить роль PostgreSQL {ROLE}."
+
 msgid "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
 msgstr "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
 
@@ -82,6 +103,9 @@ msgstr "Git dependency lock обновлён; запуск контейнеро�
 
 msgid "Git dependency {DEPENDENCY_URL} is not available locally; transitive entries from oca_dependencies.txt and nested odpm.json will be skipped"
 msgstr "Git-зависимость {DEPENDENCY_URL} недоступна локально; транзитивные записи из oca_dependencies.txt и вложенного odpm.json будут пропущены"
+
+msgid "Host port: {PORT}"
+msgstr "Порт на host: {PORT}"
 
 msgid "If you want drop this file to default values, just delete it"
 msgstr "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
@@ -119,8 +143,17 @@ msgstr "Пожалуйта выберите ценарий использова�
 msgid "Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Пожалуйста, выберите версию Odoo для текущего проекта. Вот список поддерживаемых версий: {AVAILABEL_ODOO_VERSIONS_ARE}. Вы можете оставить значение по умолчанию {ODOO_LATEST_VERSION} или написать свою версию из списка. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
 
+msgid "PostgreSQL application role {CURRENT} is missing in the running cluster."
+msgstr "Роль приложения PostgreSQL {CURRENT} отсутствует в работающем кластере."
+
 msgid "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Имя сервиса PostgreSQL в compose изменилось: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL container running: {VALUE}"
+msgstr "Контейнер PostgreSQL запущен: {VALUE}"
+
+msgid "PostgreSQL container {SERVICE} is not running; start it before ensuring the role."
+msgstr "Контейнер PostgreSQL {SERVICE} не запущен; запустите его перед созданием роли."
 
 msgid "PostgreSQL data directory changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Каталог данных PostgreSQL изменился: {PREVIOUS} -> {CURRENT}."
@@ -133,6 +166,12 @@ msgstr "Порт PostgreSQL на host изменился: {PREVIOUS} -> {CURRENT
 
 msgid "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Версия образа PostgreSQL изменилась: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role."
+msgstr "PostgreSQL в {SERVICE} ещё не готов; дождитесь запуска перед созданием роли."
+
+msgid "PostgreSQL ready: {VALUE}"
+msgstr "PostgreSQL готов: {VALUE}"
 
 msgid "Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"
 msgstr "Pre-commit файл {PRE_COMMIT_FILE} не был найден в каталоге {ODOO_PROJECT_DIR_PATH}"
@@ -193,6 +232,9 @@ msgstr "Данный каталог уже является {PROJECT_NAME} пр�
 
 msgid "This is not {PROJECT_NAME} directory. If you want to init new project use \"{PROJECT_NAME} {INIT_PARAM}\" command"
 msgstr "Данный каталог не является odpm проектом. Если вы хотите создать новый проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
+
+msgid "Updated PostgreSQL application role {ROLE}."
+msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
 
 msgid "Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project."
 msgstr "Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте версию менеджера соотвествующую версии odpm в проекте. Или созданй новый проект"
@@ -260,6 +302,9 @@ msgstr "Обнаружен дрейф конфигурации БД: {KINDS}"
 msgid "database configuration matches last_run snapshot"
 msgstr "Конфигурация БД совпадает со снимком last_run"
 
+msgid "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
+msgstr "Укажите подкоманду database: \"odpm database status\" или \"odpm database ensure-role\"."
+
 msgid "docker build failed with exit code {EXIT_CODE}"
 msgstr "docker build завершился с кодом {EXIT_CODE}"
 
@@ -274,6 +319,9 @@ msgstr "В odoo.conf db_host ({CURRENT}) не совпадает с именем
 
 msgid "odoo.conf db_host out of sync with postgres service ({EXPECTED})"
 msgstr "В odoo.conf db_host не синхронизирован с сервисом postgres ({EXPECTED})"
+
+msgid "odoo.conf db_host: {HOST}"
+msgstr "odoo.conf db_host: {HOST}"
 
 msgid "running command: → git {GIT_ARGS} for {PROJECT}"
 msgstr "Выполняется команда: → git {GIT_ARGS} для {PROJECT}"

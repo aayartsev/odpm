@@ -38,12 +38,30 @@ RU_MESSAGES: dict[str, str] = {
     "Blocking database configuration drift detected; resolve before starting containers.": (
         "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
     ),
+    "Application role {ROLE} present: {VALUE}": (
+        "Роль приложения {ROLE} присутствует: {VALUE}"
+    ),
     "Check database configuration drift against last_run snapshot": (
         "Проверить дрейф конфигурации БД относительно снимка last_run"
+    ),
+    "Compose service: {SERVICE}": (
+        "Сервис compose: {SERVICE}"
+    ),
+    "Configuration drift:": (
+        "Дрейф конфигурации:"
     ),
     "Created {ENV_FILE} from environment variables and defaults (non-interactive mode).": (
         "Создан файл {ENV_FILE} из переменных окружения и значений по умолчанию "
         "(неинтерактивный режим)."
+    ),
+    "Created PostgreSQL application role {ROLE}.": (
+        "Создана роль приложения PostgreSQL {ROLE}."
+    ),
+    "Data path: {PATH}": (
+        "Каталог данных: {PATH}"
+    ),
+    "Database status": (
+        "Состояние базы данных"
     ),
     "Did you install git?": "Вы установили git?",
     "No database last_run snapshot yet; settings will be recorded after a successful start.": (
@@ -54,6 +72,18 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}.": (
         "Имя сервиса PostgreSQL в compose изменилось: {PREVIOUS} -> {CURRENT}."
+    ),
+    "PostgreSQL application role {CURRENT} is missing in the running cluster.": (
+        "Роль приложения PostgreSQL {CURRENT} отсутствует в работающем кластере."
+    ),
+    "PostgreSQL container running: {VALUE}": (
+        "Контейнер PostgreSQL запущен: {VALUE}"
+    ),
+    "PostgreSQL container {SERVICE} is not running; start it before ensuring the role.": (
+        "Контейнер PostgreSQL {SERVICE} не запущен; запустите его перед созданием роли."
+    ),
+    "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role.": (
+        "PostgreSQL в {SERVICE} ещё не готов; дождитесь запуска перед созданием роли."
     ),
     "PostgreSQL data directory changed: {PREVIOUS} -> {CURRENT}.": (
         "Каталог данных PostgreSQL изменился: {PREVIOUS} -> {CURRENT}."
@@ -67,17 +97,28 @@ RU_MESSAGES: dict[str, str] = {
     "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}.": (
         "Версия образа PostgreSQL изменилась: {PREVIOUS} -> {CURRENT}."
     ),
+    "PostgreSQL ready: {VALUE}": (
+        "PostgreSQL готов: {VALUE}"
+    ),
     "database configuration drift detected: {KINDS}": (
         "Обнаружен дрейф конфигурации БД: {KINDS}"
     ),
     "database configuration matches last_run snapshot": (
         "Конфигурация БД совпадает со снимком last_run"
     ),
+    'database subcommand required: use "odpm database status" or '
+    '"odpm database ensure-role".': (
+        'Укажите подкоманду database: "odpm database status" или '
+        '"odpm database ensure-role".'
+    ),
     "first database run (no last_run snapshot yet)": (
         "Первый запуск БД (снимок last_run ещё не создан)"
     ),
     "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS}).": (
         "В odoo.conf db_host ({CURRENT}) не совпадает с именем сервиса postgres ({PREVIOUS})."
+    ),
+    "odoo.conf db_host: {HOST}": (
+        "odoo.conf db_host: {HOST}"
     ),
     "odoo.conf db_host out of sync with postgres service ({EXPECTED})": (
         "В odoo.conf db_host не синхронизирован с сервисом postgres ({EXPECTED})"
@@ -110,6 +151,9 @@ RU_MESSAGES: dict[str, str] = {
     "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}": (
         "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
     ),
+    "Failed to ensure PostgreSQL role {ROLE}.": (
+        "Не удалось создать или обновить роль PostgreSQL {ROLE}."
+    ),
     "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}": (
         "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в "
         "{DEPRECATED_FILE_NAME}"
@@ -119,6 +163,9 @@ RU_MESSAGES: dict[str, str] = {
         "Git-зависимость {DEPENDENCY_URL} недоступна локально; "
         "транзитивные записи из oca_dependencies.txt и вложенного odpm.json "
         "будут пропущены"
+    ),
+    "Host port: {PORT}": (
+        "Порт на host: {PORT}"
     ),
     "If you want drop this file to default values, just delete it": (
         "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, "
@@ -268,6 +315,9 @@ RU_MESSAGES: dict[str, str] = {
         "текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте "
         "версию менеджера соотвествующую версии odpm в проекте. Или созданй новый "
         "проект"
+    ),
+    "Updated PostgreSQL application role {ROLE}.": (
+        "Обновлена роль приложения PostgreSQL {ROLE}."
     ),
     "You do not set where developing project is situated. You can set it with --init "
     "command. Example: '--init file:///home/user/projects/your_directory_for_project' or "

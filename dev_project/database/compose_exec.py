@@ -1,0 +1,38 @@
+"""Run docker compose exec against the project postgres service."""
+
+from __future__ import annotations
+
+import shlex
+from typing import TYPE_CHECKING
+
+from ..subprocess_runner import CommandResult, run_checked
+
+if TYPE_CHECKING:
+    from ..config import Config
+
+
+def _compose_argv(config: Config) -> list[str]:
+    return shlex.split(config.docker_compose_command)
+
+
+def postgres_service_name(config: Config) -> str:
+    return config.user_env.postgres_service_name
+
+
+def compose_exec(
+    config: Config,
+    service: str,
+    *exec_args: str,
+    user: str | None = None,
+) -> CommandResult:
+    argv = _compose_argv(config) + ["exec"]
+    if user is not None:
+        argv.extend(["-u", user])
+    argv.extend(["-T", service, *exec_args])
+    return run_checked(argv, cwd=config.project_dir)
+
+
+def postgres_container_id(config: Config) -> str | None:
+    from ..compose.runtime import compose_service_container_id
+
+    return compose_service_container_id(config, postgres_service_name(config))

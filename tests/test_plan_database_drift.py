@@ -18,6 +18,11 @@ from dev_project.database.schema import (
     DatabaseOdooConfFingerprint,
 )
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.database.drift import (
+    detect_database_drift_for_config,
+    has_blocking_database_drift,
+    meaningful_database_drifts,
+)
 from dev_project.plan.database_preview import collect_database_drift_warnings
 from dev_project.prepare import build_plan, make_prepare_context
 from dev_project.prepare.steps_database import evaluate_database_drift
@@ -159,8 +164,10 @@ class PlanDatabaseDriftTests(unittest.TestCase):
             os.makedirs(other_data, exist_ok=True)
             (Path(other_data) / "PG_VERSION").write_text("17\n", encoding="utf-8")
             config.postgres_data_local_storage = other_data
-            warnings = collect_database_drift_warnings(config)
-            self.assertTrue(any("Blocking database" in w for w in warnings))
+            _current, drifts = detect_database_drift_for_config(config)
+            meaningful = meaningful_database_drifts(drifts)
+            self.assertTrue(has_blocking_database_drift(meaningful))
+            self.assertTrue(any("data_path" in drift.kind for drift in meaningful))
             step = evaluate_database_drift(self._ctx(config))
             self.assertTrue(step.required)
 
@@ -173,7 +180,9 @@ class PlanDatabaseDriftTests(unittest.TestCase):
             plan = build_plan(config, OdpmCliArgs(skip_start=True), None)
             step_ids = [step.id for step in plan.steps]
             self.assertIn("database.drift", step_ids)
-            self.assertTrue(any("PostgreSQL compose service" in w for w in plan.warnings))
+            drift_step = next(step for step in plan.steps if step.id == "database.drift")
+            self.assertEqual(drift_step.outcome, "run")
+            self.assertIn("service_name", drift_step.reason)
 
 
 if __name__ == "__main__":

@@ -44,6 +44,13 @@ class OdpmCliArgsBridgeTests(unittest.TestCase):
         self.assertEqual(cli_args.scaffold_module_name, "mymod")
         self.assertEqual(cli_args.scaffold_template_name, "default")
 
+    def test_from_namespace_reads_database_fields(self):
+        original = parse_args_module.parse_args(["database", "status", "--format", "json"])
+        cli_args = OdpmCliArgs.from_namespace(original)
+        self.assertEqual(cli_args.command, "database")
+        self.assertEqual(cli_args.database_subcommand, "status")
+        self.assertEqual(cli_args.database_status_format, "json")
+
     def test_parse_cli_args_matches_parse_args(self):
         argv = ["plan", "--skip-start", "--no-git-update"]
         ns = parse_args_module.parse_args(argv)

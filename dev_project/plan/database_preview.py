@@ -40,6 +40,9 @@ _DATABASE_DRIFT_MESSAGES = {
     "data_dir_empty_changed": _(
         "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}."
     ),
+    "app_role_missing": _(
+        "PostgreSQL application role {CURRENT} is missing in the running cluster."
+    ),
 }
 
 MSG_DATABASE_DRIFT_BLOCKING = _(
@@ -51,6 +54,8 @@ def format_database_drift_warning(drift: DatabaseDrift) -> str:
     template = _DATABASE_DRIFT_MESSAGES[drift.kind]
     if drift.kind == "first_run":
         return template
+    if drift.kind == "app_role_missing":
+        return template.format(CURRENT=drift.current)
     return template.format(PREVIOUS=drift.previous, CURRENT=drift.current)
 
 

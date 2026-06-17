@@ -123,13 +123,21 @@ class OdpmPipeline:
 
     def run(self) -> None:
         try:
-            from .plan.cli import is_plan_mode
+            from .plan.cli import is_database_mode, is_plan_mode
 
             for_plan = is_plan_mode(self.cli_args)
-            self.setup(for_plan=for_plan)
+            for_database = is_database_mode(self.cli_args)
+            self.setup(for_plan=for_plan or for_database)
 
             if for_plan:
                 exit_code = self.print_plan()
+                if exit_code:
+                    sys.exit(exit_code)
+                return
+            if for_database:
+                from .database.commands import run_database_command
+
+                exit_code = run_database_command(self.cli_args, self._config())
                 if exit_code:
                     sys.exit(exit_code)
                 return

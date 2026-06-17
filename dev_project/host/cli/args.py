@@ -51,6 +51,8 @@ class OdpmCliArgs:
     command: str | None = None
     scaffold_module_name: str | None = None
     scaffold_template_name: str | None = None
+    database_subcommand: str | None = None
+    database_status_format: str = "table"
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:

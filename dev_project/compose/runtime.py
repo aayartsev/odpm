@@ -32,6 +32,11 @@ def _compose_base_argv(config: Config) -> list[str]:
     return shlex.split(config.docker_compose_command)
 
 
+def compose_service_container_id(config: Config, service: str) -> str | None:
+    """Return the running container id for a compose service, or None."""
+    return _running_container_id(config, service)
+
+
 def _running_container_id(
     config: Config, service: str
 ) -> str | None:

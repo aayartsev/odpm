@@ -10,3 +10,7 @@ def is_plan_mode(args: OdpmCliArgs) -> bool:
     if args.plan:
         return True
     return args.command == cli_params.PLAN_SUBCOMMAND
+
+
+def is_database_mode(args: OdpmCliArgs) -> bool:
+    return args.command == cli_params.DATABASE_SUBCOMMAND
