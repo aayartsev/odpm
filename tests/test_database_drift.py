@@ -212,7 +212,7 @@ class DatabaseDriftDetectionTests(unittest.TestCase):
         self.assertIn(
             DatabaseDrift(
                 kind="app_role_missing",
-                severity="medium",
+                severity="high",
                 previous="",
                 current="odoo",
             ),

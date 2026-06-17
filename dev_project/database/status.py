@@ -20,6 +20,31 @@ if TYPE_CHECKING:
     from ..config import Config
 
 
+def enrich_database_state_with_probe(
+    config: Config, current: DatabaseCurrentState
+) -> tuple[DatabaseCurrentState, bool | None]:
+    """Return *current* with cluster.app_role_present set when probe succeeds."""
+    container_running = probe_postgres_container_running(config)
+    postgres_ready = probe_postgres_ready(config) if container_running else None
+    app_role_present = None
+    if postgres_ready:
+        app_role_present = probe_app_role_exists(
+            config, role=current.cluster.app_role
+        )
+    if app_role_present is None:
+        return current, app_role_present
+    return (
+        replace(
+            current,
+            cluster=replace(
+                current.cluster,
+                app_role_present=app_role_present,
+            ),
+        ),
+        app_role_present,
+    )
+
+
 @dataclass(frozen=True)
 class DatabaseStatusReport:
     current: DatabaseCurrentState
@@ -33,21 +58,9 @@ class DatabaseStatusReport:
 def collect_database_status(config: Config) -> DatabaseStatusReport:
     current = collect_database_state(config)
     last_run = load_last_run(config.project_dir)
+    current, app_role_present = enrich_database_state_with_probe(config, current)
     container_running = probe_postgres_container_running(config)
     postgres_ready = probe_postgres_ready(config) if container_running else None
-    app_role_present = None
-    if postgres_ready:
-        app_role_present = probe_app_role_exists(
-            config, role=current.cluster.app_role
-        )
-    if app_role_present is not None:
-        current = replace(
-            current,
-            cluster=replace(
-                current.cluster,
-                app_role_present=app_role_present,
-            ),
-        )
     drifts = detect_database_drift(current, last_run)
     return DatabaseStatusReport(
         current=current,

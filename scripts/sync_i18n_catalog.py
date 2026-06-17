@@ -38,6 +38,12 @@ RU_MESSAGES: dict[str, str] = {
     "Blocking database configuration drift detected; resolve before starting containers.": (
         "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
     ),
+    "Blocking database configuration drift remains after resolution: {KINDS}": (
+        "После разрешения дрейфа остаётся блокирующий дрейф конфигурации БД: {KINDS}"
+    ),
+    "Accepted database drift: {KIND}": (
+        "Принят дрейф конфигурации БД: {KIND}"
+    ),
     "Application role {ROLE} present: {VALUE}": (
         "Роль приложения {ROLE} присутствует: {VALUE}"
     ),
@@ -63,9 +69,22 @@ RU_MESSAGES: dict[str, str] = {
     "Database status": (
         "Состояние базы данных"
     ),
+    "Database configuration drift requires confirmation in non-interactive mode. "
+    "Drift kinds: {KINDS}. Use --accept-database-drift=KIND for each accepted drift.": (
+        "Дрейф конфигурации БД требует подтверждения в неинтерактивном режиме. "
+        "Типы дрейфа: {KINDS}. Используйте --accept-database-drift=KIND для каждого принятого дрейфа."
+    ),
+    "Database drift resolution aborted.": (
+        "Разрешение дрейфа конфигурации БД отменено."
+    ),
     "Did you install git?": "Вы установили git?",
     "No database last_run snapshot yet; settings will be recorded after a successful start.": (
         "Снимок last_run для БД ещё не создан; текущие настройки будут записаны после успешного старта."
+    ),
+    "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\n"
+    "Choose: (a) abort  (c) continue\n": (
+        "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}.\n"
+        "Выберите: (a) отмена  (c) продолжить\n"
     ),
     "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.": (
         "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}."
@@ -75,6 +94,14 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "PostgreSQL application role {CURRENT} is missing in the running cluster.": (
         "Роль приложения PostgreSQL {CURRENT} отсутствует в работающем кластере."
+    ),
+    "PostgreSQL application role {ROLE} is missing in the running cluster.\n"
+    "Choose: (a) abort  (b) create role now\n": (
+        "Роль приложения PostgreSQL {ROLE} отсутствует в работающем кластере.\n"
+        "Выберите: (a) отмена  (b) создать роль сейчас\n"
+    ),
+    "PostgreSQL application role {ROLE} is ready.": (
+        "Роль приложения PostgreSQL {ROLE} готова."
     ),
     "PostgreSQL container running: {VALUE}": (
         "Контейнер PostgreSQL запущен: {VALUE}"
@@ -91,11 +118,34 @@ RU_MESSAGES: dict[str, str] = {
     "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.": (
         "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}."
     ),
+    "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\n"
+    "Choose: (a) abort  (c) continue\n": (
+        "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}.\n"
+        "Выберите: (a) отмена  (c) продолжить\n"
+    ),
+    "PostgreSQL data directory changed:\n"
+    "  previous: {PREVIOUS}\n"
+    "  current: {CURRENT}\n"
+    "Choose: (a) abort  (b) accept new data path  (c) show wipe instructions\n": (
+        "Каталог данных PostgreSQL изменился:\n"
+        "  было: {PREVIOUS}\n"
+        "  стало: {CURRENT}\n"
+        "Выберите: (a) отмена  (b) принять новый каталог  (c) инструкция по очистке\n"
+    ),
     "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}.": (
         "Порт PostgreSQL на host изменился: {PREVIOUS} -> {CURRENT}."
     ),
     "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}.": (
         "Версия образа PostgreSQL изменилась: {PREVIOUS} -> {CURRENT}."
+    ),
+    "PostgreSQL image version changed:\n"
+    "  previous: {PREVIOUS}\n"
+    "  current: {CURRENT}\n"
+    "Choose: (a) abort  (b) accept and continue  (c) show wipe instructions\n": (
+        "Версия образа PostgreSQL изменилась:\n"
+        "  было: {PREVIOUS}\n"
+        "  стало: {CURRENT}\n"
+        "Выберите: (a) отмена  (b) принять и продолжить  (c) инструкция по очистке\n"
     ),
     "PostgreSQL ready: {VALUE}": (
         "PostgreSQL готов: {VALUE}"
@@ -166,6 +216,9 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Host port: {PORT}": (
         "Порт на host: {PORT}"
+    ),
+    "Invalid choice. Please enter one of: {CHOICES}": (
+        "Неверный выбор. Введите один из вариантов: {CHOICES}"
     ),
     "If you want drop this file to default values, just delete it": (
         "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, "
@@ -302,6 +355,19 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "This dir is already {PROJECT_NAME} project": (
         "Данный каталог уже является {PROJECT_NAME} проектом"
+    ),
+    "To change PostgreSQL major version, stop containers, back up if needed, remove "
+    "the data directory at {CURRENT}, then run odpm again so the cluster re-initializes.": (
+        "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости "
+        "сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm "
+        "для переинициализации кластера."
+    ),
+    "To use a different PostgreSQL data directory, stop containers, move or remove "
+    "the old data under {PREVIOUS}, then run odpm again. Current configured path: "
+    "{CURRENT}.": (
+        "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, "
+        "переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. "
+        "Текущий настроенный путь: {CURRENT}."
     ),
     'This is not {PROJECT_NAME} directory. If you want to init new project use '
     '"{PROJECT_NAME} {INIT_PARAM}" command': (

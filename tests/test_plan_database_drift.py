@@ -132,11 +132,16 @@ class PlanDatabaseDriftTests(unittest.TestCase):
     def test_database_drift_step_run_on_service_rename(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
+            data_path = os.path.join(
+                project_dir, constants.POSTGRES_LOCAL_STORAGE_DIR
+            )
+            os.makedirs(data_path, exist_ok=True)
+            (Path(data_path) / "PG_VERSION").write_text("17\n", encoding="utf-8")
             self._write_odoo_conf(project_dir, db_host="db-dev")
             self._last_run(project_dir, service_name="db")
             step = evaluate_database_drift(self._ctx(config))
             self.assertEqual(step.id, "database.drift")
-            self.assertEqual(step.outcome, "run")
+            self.assertEqual(step.outcome, "noop")
             self.assertIn("service_name", step.reason)
 
     def test_database_drift_step_noop_on_first_run_without_mismatch(self):
@@ -174,6 +179,11 @@ class PlanDatabaseDriftTests(unittest.TestCase):
     def test_build_plan_includes_database_drift_step(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
+            data_path = os.path.join(
+                project_dir, constants.POSTGRES_LOCAL_STORAGE_DIR
+            )
+            os.makedirs(data_path, exist_ok=True)
+            (Path(data_path) / "PG_VERSION").write_text("17\n", encoding="utf-8")
             self._write_odoo_conf(project_dir, db_host="db-dev")
             self._last_run(project_dir, service_name="db")
             ctx = self._ctx(config)
@@ -181,7 +191,7 @@ class PlanDatabaseDriftTests(unittest.TestCase):
             step_ids = [step.id for step in plan.steps]
             self.assertIn("database.drift", step_ids)
             drift_step = next(step for step in plan.steps if step.id == "database.drift")
-            self.assertEqual(drift_step.outcome, "run")
+            self.assertEqual(drift_step.outcome, "noop")
             self.assertIn("service_name", drift_step.reason)
 
 

@@ -51,6 +51,16 @@ class OdpmCliArgsBridgeTests(unittest.TestCase):
         self.assertEqual(cli_args.database_subcommand, "status")
         self.assertEqual(cli_args.database_status_format, "json")
 
+    def test_from_namespace_reads_accept_database_drift(self):
+        original = parse_args_module.parse_args(
+            ["--accept-database-drift", "data_path", "--accept-database-drift", "app_role_missing"]
+        )
+        cli_args = OdpmCliArgs.from_namespace(original)
+        self.assertEqual(
+            cli_args.accept_database_drift,
+            ("data_path", "app_role_missing"),
+        )
+
     def test_parse_cli_args_matches_parse_args(self):
         argv = ["plan", "--skip-start", "--no-git-update"]
         ns = parse_args_module.parse_args(argv)

@@ -53,10 +53,14 @@ class OdpmCliArgs:
     scaffold_template_name: str | None = None
     database_subcommand: str | None = None
     database_status_format: str = "table"
+    accept_database_drift: tuple[str, ...] = ()
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:
         kwargs = {
             field.name: getattr(ns, field.name, field.default) for field in fields(cls)
         }
+        accepted = kwargs.get("accept_database_drift", ())
+        if isinstance(accepted, list):
+            kwargs["accept_database_drift"] = tuple(accepted)
         return cls(**kwargs)

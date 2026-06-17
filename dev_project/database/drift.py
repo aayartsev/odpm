@@ -30,7 +30,7 @@ _DRIFT_SEVERITY: dict[DatabaseDriftKind, DatabaseDriftSeverity] = {
     "postgres_major": "high",
     "odpm_scenario": "medium",
     "data_dir_empty_changed": "medium",
-    "app_role_missing": "medium",
+    "app_role_missing": "high",
 }
 
 
@@ -174,3 +174,23 @@ def meaningful_database_drifts(
     drifts: tuple[DatabaseDrift, ...],
 ) -> tuple[DatabaseDrift, ...]:
     return tuple(drift for drift in drifts if drift.kind != "first_run")
+
+
+RESOLUTION_DRIFT_KINDS: frozenset[DatabaseDriftKind] = frozenset(
+    {
+        "data_path",
+        "postgres_major",
+        "app_role_missing",
+        "odpm_scenario",
+        "data_dir_empty_changed",
+    }
+)
+
+
+def drifts_requiring_resolution(
+    drifts: tuple[DatabaseDrift, ...],
+) -> tuple[DatabaseDrift, ...]:
+    return tuple(
+        drift for drift in meaningful_database_drifts(drifts)
+        if drift.kind in RESOLUTION_DRIFT_KINDS
+    )

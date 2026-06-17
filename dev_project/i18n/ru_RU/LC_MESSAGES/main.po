@@ -11,6 +11,9 @@ msgstr " Файл с параметрами \"config.json\" является у�
 msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .env"
 
+msgid "Accepted database drift: {KIND}"
+msgstr "Принят дрейф конфигурации БД: {KIND}"
+
 msgid "Application role {ROLE} present: {VALUE}"
 msgstr "Роль приложения {ROLE} присутствует: {VALUE}"
 
@@ -19,6 +22,9 @@ msgstr "Подключение к выводу контейнера. Подро�
 
 msgid "Blocking database configuration drift detected; resolve before starting containers."
 msgstr "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
+
+msgid "Blocking database configuration drift remains after resolution: {KINDS}"
+msgstr "После разрешения дрейфа остаётся блокирующий дрейф конфигурации БД: {KINDS}"
 
 msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgstr "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
@@ -65,6 +71,12 @@ msgstr "Создан файл {ENV_FILE} из переменных окруже�
 msgid "Data path: {PATH}"
 msgstr "Каталог данных: {PATH}"
 
+msgid "Database configuration drift requires confirmation in non-interactive mode. Drift kinds: {KINDS}. Use --accept-database-drift=KIND for each accepted drift."
+msgstr "Дрейф конфигурации БД требует подтверждения в неинтерактивном режиме. Типы дрейфа: {KINDS}. Используйте --accept-database-drift=KIND для каждого принятого дрейфа."
+
+msgid "Database drift resolution aborted."
+msgstr "Разрешение дрейфа конфигурации БД отменено."
+
 msgid "Database status"
 msgstr "Состояние базы данных"
 
@@ -110,6 +122,9 @@ msgstr "Порт на host: {PORT}"
 msgid "If you want drop this file to default values, just delete it"
 msgstr "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
 
+msgid "Invalid choice. Please enter one of: {CHOICES}"
+msgstr "Неверный выбор. Введите один из вариантов: {CHOICES}"
+
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
 
@@ -134,6 +149,9 @@ msgstr "В неинтерактивном режиме требуется odoo_v
 msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}."
 
+msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
+msgstr "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}.\nВыберите: (a) отмена  (c) продолжить\n"
+
 msgid "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
 msgstr "Git-репозиторий platform в {odoo_src_dir} ещё не готов; клонирование выполнится на этапе prepare (шаг git.materialize)."
 
@@ -146,6 +164,12 @@ msgstr "Пожалуйста, выберите версию Odoo для теку
 msgid "PostgreSQL application role {CURRENT} is missing in the running cluster."
 msgstr "Роль приложения PostgreSQL {CURRENT} отсутствует в работающем кластере."
 
+msgid "PostgreSQL application role {ROLE} is missing in the running cluster.\nChoose: (a) abort  (b) create role now\n"
+msgstr "Роль приложения PostgreSQL {ROLE} отсутствует в работающем кластере.\nВыберите: (a) отмена  (b) создать роль сейчас\n"
+
+msgid "PostgreSQL application role {ROLE} is ready."
+msgstr "Роль приложения PostgreSQL {ROLE} готова."
+
 msgid "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Имя сервиса PostgreSQL в compose изменилось: {PREVIOUS} -> {CURRENT}."
 
@@ -155,14 +179,23 @@ msgstr "Контейнер PostgreSQL запущен: {VALUE}"
 msgid "PostgreSQL container {SERVICE} is not running; start it before ensuring the role."
 msgstr "Контейнер PostgreSQL {SERVICE} не запущен; запустите его перед созданием роли."
 
+msgid "PostgreSQL data directory changed:\n  previous: {PREVIOUS}\n  current: {CURRENT}\nChoose: (a) abort  (b) accept new data path  (c) show wipe instructions\n"
+msgstr "Каталог данных PostgreSQL изменился:\n  было: {PREVIOUS}\n  стало: {CURRENT}\nВыберите: (a) отмена  (b) принять новый каталог  (c) инструкция по очистке\n"
+
 msgid "PostgreSQL data directory changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Каталог данных PostgreSQL изменился: {PREVIOUS} -> {CURRENT}."
 
 msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}."
 
+msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
+msgstr "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}.\nВыберите: (a) отмена  (c) продолжить\n"
+
 msgid "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Порт PostgreSQL на host изменился: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL image version changed:\n  previous: {PREVIOUS}\n  current: {CURRENT}\nChoose: (a) abort  (b) accept and continue  (c) show wipe instructions\n"
+msgstr "Версия образа PostgreSQL изменилась:\n  было: {PREVIOUS}\n  стало: {CURRENT}\nВыберите: (a) отмена  (b) принять и продолжить  (c) инструкция по очистке\n"
 
 msgid "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Версия образа PostgreSQL изменилась: {PREVIOUS} -> {CURRENT}."
@@ -232,6 +265,12 @@ msgstr "Данный каталог уже является {PROJECT_NAME} пр�
 
 msgid "This is not {PROJECT_NAME} directory. If you want to init new project use \"{PROJECT_NAME} {INIT_PARAM}\" command"
 msgstr "Данный каталог не является odpm проектом. Если вы хотите создать новый проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
+
+msgid "To change PostgreSQL major version, stop containers, back up if needed, remove the data directory at {CURRENT}, then run odpm again so the cluster re-initializes."
+msgstr "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm для переинициализации кластера."
+
+msgid "To use a different PostgreSQL data directory, stop containers, move or remove the old data under {PREVIOUS}, then run odpm again. Current configured path: {CURRENT}."
+msgstr "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. Текущий настроенный путь: {CURRENT}."
 
 msgid "Updated PostgreSQL application role {ROLE}."
 msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
