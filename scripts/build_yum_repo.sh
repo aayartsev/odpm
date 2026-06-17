@@ -82,8 +82,8 @@ mkdir -p "${OUT}/${SUITE}/packages"
 cp "${SIGNED_RPM}" "${OUT}/${SUITE}/packages/$(basename "${RPM}")"
 cp "${KEYRING}" "${OUT}/odpm-archive-keyring.gpg"
 
-createrepo_c --general-compress-types=gz "${OUT}/${SUITE}"
-createrepo_c --update --general-compress-types=gz --gpg-sign "${KEY_ID}" "${OUT}/${SUITE}"
+createrepo_c "${OUT}/${SUITE}"
+createrepo_c --update --gpg-sign "${KEY_ID}" "${OUT}/${SUITE}"
 
 echo "YUM repo ready in ${OUT} (suite=${SUITE})"
 find "${OUT}" -type f | sort
