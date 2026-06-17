@@ -91,6 +91,33 @@
         "suspend_on_connect": { "type": "boolean" }
       },
       "required": ["backend", "port", "connect_host", "suspend_on_connect"]
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_name",
+        "image_tag",
+        "data_path_abs",
+        "host_port",
+        "data_dir_nonempty",
+        "app_role",
+        "db_host",
+        "db_port",
+        "db_user"
+      ],
+      "properties": {
+        "service_name": { "type": "string", "minLength": 1 },
+        "image_tag": { "type": "string", "minLength": 1 },
+        "data_path_abs": { "type": "string", "minLength": 1 },
+        "host_port": { "type": "integer" },
+        "data_dir_nonempty": { "type": "boolean" },
+        "pg_major": { "type": "integer" },
+        "app_role": { "type": "string", "minLength": 1 },
+        "db_host": { "type": "string", "minLength": 1 },
+        "db_port": { "type": "integer" },
+        "db_user": { "type": "string", "minLength": 1 }
+      }
     }
   }
 }

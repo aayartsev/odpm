@@ -23,6 +23,7 @@ from dev_project.debugger.constants import (
 from dev_project.debugger import is_debugpy_requirement
 from dev_project.ide_stubs import is_odoo_stubs_requirement, odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
+from tests.container_config_helpers import apply_odpm_config_database_fields
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
@@ -160,6 +161,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         config.docker_dirs_with_addons = []
         config.compute_venv_lock_hash.return_value = "abc"
         config.container_run_mode = constants.RUN_MODE_ODOO
+        apply_odpm_config_database_fields(config)
 
         payload = json.loads(Config.config_to_json(config).decode("utf-8"))
         self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)

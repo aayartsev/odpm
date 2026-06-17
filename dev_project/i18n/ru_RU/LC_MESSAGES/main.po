@@ -101,6 +101,9 @@ msgstr "Вы хотите клонировать odoo? y/n\n"
 msgid "Environment variable {VAR} is not set (required for manifest field {FIELD})"
 msgstr "Переменная окружения {VAR} не задана (нужна для поля manifest {FIELD})"
 
+msgid "Error checking PostgreSQL port: {DETAIL}"
+msgstr "Ошибка при проверке порта PostgreSQL: {DETAIL}"
+
 msgid "Failed to ensure PostgreSQL role {ROLE}."
 msgstr "Не удалось создать или обновить роль PostgreSQL {ROLE}."
 
@@ -170,14 +173,26 @@ msgstr "Роль приложения PostgreSQL {ROLE} отсутствует �
 msgid "PostgreSQL application role {ROLE} is ready."
 msgstr "Роль приложения PostgreSQL {ROLE} готова."
 
+msgid "PostgreSQL authentication failed for role {USER}"
+msgstr "Ошибка аутентификации PostgreSQL для роли {USER}"
+
 msgid "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Имя сервиса PostgreSQL в compose изменилось: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL connection failed: {DETAIL}"
+msgstr "Не удалось подключиться к PostgreSQL: {DETAIL}"
 
 msgid "PostgreSQL container running: {VALUE}"
 msgstr "Контейнер PostgreSQL запущен: {VALUE}"
 
 msgid "PostgreSQL container {SERVICE} is not running; start it before ensuring the role."
 msgstr "Контейнер PostgreSQL {SERVICE} не запущен; запустите его перед созданием роли."
+
+msgid "PostgreSQL credentials check failed after {ATTEMPTS} attempts"
+msgstr "Проверка учётных данных PostgreSQL не удалась после {ATTEMPTS} попыток"
+
+msgid "PostgreSQL credentials check timed out after {SECONDS}s for database {DBNAME}"
+msgstr "Истекло время проверки учётных данных PostgreSQL ({SECONDS} с) для базы {DBNAME}"
 
 msgid "PostgreSQL data directory changed:\n  previous: {PREVIOUS}\n  current: {CURRENT}\nChoose: (a) abort  (b) accept new data path  (c) show wipe instructions\n"
 msgstr "Каталог данных PostgreSQL изменился:\n  было: {PREVIOUS}\n  стало: {CURRENT}\nВыберите: (a) отмена  (b) принять новый каталог  (c) инструкция по очистке\n"
@@ -203,8 +218,17 @@ msgstr "Версия образа PostgreSQL изменилась: {PREVIOUS} ->
 msgid "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role."
 msgstr "PostgreSQL в {SERVICE} ещё не готов; дождитесь запуска перед созданием роли."
 
+msgid "PostgreSQL is still starting up"
+msgstr "PostgreSQL ещё запускается"
+
 msgid "PostgreSQL ready: {VALUE}"
 msgstr "PostgreSQL готов: {VALUE}"
+
+msgid "PostgreSQL role {USER} does not exist"
+msgstr "Роль PostgreSQL {USER} не существует"
+
+msgid "PostgreSQL startup timeout exceeded"
+msgstr "Превышено время ожидания запуска PostgreSQL"
 
 msgid "Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"
 msgstr "Pre-commit файл {PRE_COMMIT_FILE} не был найден в каталоге {ODOO_PROJECT_DIR_PATH}"
@@ -271,6 +295,9 @@ msgstr "Чтобы сменить major-версию PostgreSQL, останов�
 
 msgid "To use a different PostgreSQL data directory, stop containers, move or remove the old data under {PREVIOUS}, then run odpm again. Current configured path: {CURRENT}."
 msgstr "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. Текущий настроенный путь: {CURRENT}."
+
+msgid "Unexpected PostgreSQL connection error: {DETAIL}"
+msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
 
 msgid "Updated PostgreSQL application role {ROLE}."
 msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
@@ -361,6 +388,9 @@ msgstr "В odoo.conf db_host не синхронизирован с сервис
 
 msgid "odoo.conf db_host: {HOST}"
 msgstr "odoo.conf db_host: {HOST}"
+
+msgid "psycopg2 is required."
+msgstr "Требуется psycopg2."
 
 msgid "running command: → git {GIT_ARGS} for {PROJECT}"
 msgstr "Выполняется команда: → git {GIT_ARGS} для {PROJECT}"

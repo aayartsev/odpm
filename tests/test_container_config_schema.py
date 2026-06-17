@@ -93,6 +93,12 @@ class ContainerConfigSchemaTests(unittest.TestCase):
         config.update_modules = ""
         config.docker_dirs_with_addons = []
         config.container_run_mode = constants.RUN_MODE_ODOO
+        config.project_dir = "/tmp/odpm-project"
+        config.postgres_data_local_storage = "/tmp/odpm-project/postgres-data"
+        config.user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
+        config.user_env.postgres_port = 5432
+        config.path_odoo_conf = "/tmp/odpm-project/odoo.conf"
+        config.postgres_version = "16"
 
         with patch(
             "dev_project.config.payload.compute_venv_lock_hash",
@@ -103,6 +109,11 @@ class ContainerConfigSchemaTests(unittest.TestCase):
         payload = json.loads(container_config.to_json_bytes().decode("utf-8"))
         validate_container_config_dict(payload)
         self.assertEqual(payload["schema_version"], CONTAINER_CONFIG_SCHEMA_VERSION)
+        self.assertIn("database", payload)
+        self.assertEqual(
+            payload["database"]["service_name"],
+            constants.DEFAULT_POSTGRES_SERVICE_NAME,
+        )
 
 
 if __name__ == "__main__":

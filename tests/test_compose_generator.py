@@ -191,6 +191,13 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro",
                 content,
             )
+            database_host = os.path.join(
+                project_dir, constants.ODPM_DATABASE_DIR_REL_PATH
+            )
+            self.assertIn(
+                f"{database_host}:{constants.ODPM_DATABASE_CONTAINER_DIR}",
+                content,
+            )
             self.assertNotIn("ODPM_CONFIG_B64=", content)
             self.assertIn(f"- {constants.RUN_ODOO_ENTRYPOINT}", content)
             self.assertNotIn("bash -c", content)

@@ -16,7 +16,11 @@ from dev_project.container_config import (
 from dev_project.inside_docker_app.exceptions import ConfigValidationError, ContainerError
 from dev_project.scenario_policy import ScenarioPolicy
 
-from tests.container_config_helpers import minimal_container_config_dict
+from tests.container_config_helpers import (
+    apply_odpm_config_database_fields,
+    minimal_container_config,
+    minimal_container_config_dict,
+)
 
 
 class ContainerConfigFromDictTests(unittest.TestCase):
@@ -99,6 +103,7 @@ class ContainerConfigFromHostTests(unittest.TestCase):
         config.update_modules = ""
         config.docker_dirs_with_addons = []
         config.container_run_mode = constants.RUN_MODE_BOOTSTRAP_ONLY
+        apply_odpm_config_database_fields(config)
 
         with patch(
             "dev_project.config.payload.compute_venv_lock_hash",

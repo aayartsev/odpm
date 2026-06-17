@@ -18,7 +18,7 @@ class OdooChecker:
     def __init__(self, config: ContainerConfig):
         _logger.info("Start Odoo Checker")
         flags = checker_cli_flags(config.arguments)
-        wait_for_postgres(config, flags.db_name)
+        wait_for_postgres(config)
 
         from passlib.hash import pbkdf2_sha512  # type: ignore
         import passlib  # type: ignore

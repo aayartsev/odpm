@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
+from tests.container_config_helpers import apply_odpm_config_database_fields
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.bootstrap import (
     bind_developing_link,
@@ -366,6 +367,7 @@ class ConfigPayloadTests(unittest.TestCase):
         config.update_modules = ""
         config.docker_dirs_with_addons = []
         config.container_run_mode = constants.RUN_MODE_ODOO
+        apply_odpm_config_database_fields(config)
 
         payload = json.loads(config_to_json(config).decode("utf-8"))
         self.assertEqual(payload["schema_version"], CONTAINER_CONFIG_SCHEMA_VERSION)

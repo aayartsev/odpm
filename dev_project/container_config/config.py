@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
+from .database_context import DatabaseContainerContext
 from ..debugger.env_parsing import parse_debugger_backend
 from ..debugger.user_env import (
     resolve_debugger_backend_id,
@@ -162,6 +163,7 @@ class ContainerConfig:
     venv_mode: str
     run_mode: str
     debugger: DebuggerSettings | None = None
+    database: DatabaseContainerContext | None = None
 
     @classmethod
     def from_odpm_config(cls, config: Config) -> ContainerConfig:
@@ -169,6 +171,9 @@ class ContainerConfig:
 
         run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)
         debugger = cls._debugger_settings_from_host(config)
+        database = None
+        if config.policy.mount_runtime_config_from_host():
+            database = DatabaseContainerContext.from_host_config(config)
         return cls(
             schema_version=CONTAINER_CONFIG_SCHEMA_VERSION,
             docker_odoo_dir=config.docker_odoo_dir,
@@ -194,6 +199,7 @@ class ContainerConfig:
             venv_mode=config.policy.venv_mode,
             run_mode=run_mode,
             debugger=debugger,
+            database=database,
         )
 
     @staticmethod
@@ -238,6 +244,11 @@ class ContainerConfig:
             venv_mode=str(data["venv_mode"]),
             run_mode=str(data["run_mode"]),
             debugger=DebuggerSettings.from_dict(data.get("debugger")),
+            database=(
+                DatabaseContainerContext.from_dict(data["database"])
+                if isinstance(data.get("database"), dict)
+                else None
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -247,6 +258,10 @@ class ContainerConfig:
             payload.pop("debugger", None)
         else:
             payload["debugger"] = self.debugger.to_dict()
+        if self.database is None:
+            payload.pop("database", None)
+        else:
+            payload["database"] = self.database.to_dict()
         return payload
 
     def to_json_bytes(self) -> bytes:

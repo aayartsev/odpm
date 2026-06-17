@@ -142,7 +142,10 @@ def load_last_run(project_dir: str) -> DatabaseLastRun | None:
 
 def save_last_run(project_dir: str, snapshot: DatabaseLastRun) -> str:
     ensure_database_dir_gitignore(project_dir)
-    path = last_run_path(project_dir)
+    return write_last_run_to_path(last_run_path(project_dir), snapshot)
+
+
+def write_last_run_to_path(path: str, snapshot: DatabaseLastRun) -> str:
     if not snapshot.recorded_at:
         snapshot = DatabaseLastRun(
             schema_version=snapshot.schema_version,

@@ -37,10 +37,11 @@ _ALLOWED_KEYS = frozenset(
         "venv_mode",
         "run_mode",
         "debugger",
+        "database",
     }
 )
 
-_OPTIONAL_KEYS = frozenset({"debugger"})
+_OPTIONAL_KEYS = frozenset({"debugger", "database"})
 
 _NON_EMPTY_STRING_FIELDS = (
     "docker_odoo_dir",
@@ -147,3 +148,10 @@ def validate_container_config_dict(data: dict) -> None:
         from .config import DebuggerSettings
 
         DebuggerSettings.from_dict(data["debugger"])
+
+    if "database" in data and data["database"] is not None:
+        if not isinstance(data["database"], dict):
+            raise ConfigValidationError("database must be an object")
+        from .database_context import DatabaseContainerContext
+
+        DatabaseContainerContext.from_dict(data["database"])

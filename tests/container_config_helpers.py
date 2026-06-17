@@ -1,5 +1,7 @@
 """Shared helpers for ContainerConfig unit tests."""
 
+import os
+
 from dev_project import constants
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION, ContainerConfig
 
@@ -43,6 +45,19 @@ def _apply_debugger_defaults(payload: dict) -> dict:
         else:
             payload["debugger"] = dict(_DEFAULT_DEBUGGER)
     return payload
+
+
+def apply_odpm_config_database_fields(
+    config, *, project_dir: str = "/tmp/odpm-project"
+) -> None:
+    config.project_dir = project_dir
+    config.postgres_data_local_storage = os.path.join(
+        project_dir, constants.POSTGRES_LOCAL_STORAGE_DIR
+    )
+    config.user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
+    config.user_env.postgres_port = 5432
+    config.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
+    config.postgres_version = "16"
 
 
 def minimal_container_config(**overrides) -> ContainerConfig:

@@ -92,6 +92,12 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
     config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
     config.db_manager_password = ""
     config.user_env = MagicMock(odpm_scenario=scenario)
+    config.user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
+    config.user_env.postgres_port = 5432
+    config.project_dir = "/tmp/project"
+    config.postgres_data_local_storage = "/tmp/project/postgres-data"
+    config.path_odoo_conf = "/tmp/project/odoo.conf"
+    config.postgres_version = "16"
     config._env_resolver = EnvResolver.from_sources(
         process_environ={},
         project_dotenv={},

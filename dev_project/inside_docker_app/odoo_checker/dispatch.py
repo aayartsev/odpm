@@ -19,6 +19,7 @@ from .admin_ops import OdooAdminOps
 from .db_ops import OdooDbOps
 from .i18n_ops import OdooI18nOps
 from .postgres_waiter import PostgresWaiter
+from ...database.record import record_last_run_from_container
 from .runtime import LoadedOdooRuntime
 from .sql_runner import OdooSqlRunner
 
@@ -56,7 +57,7 @@ def checker_cli_flags(args_dict: dict) -> CheckerCliFlags:
     )
 
 
-def wait_for_postgres(config: ContainerConfig, db_name: str | bool) -> None:
+def wait_for_postgres(config: ContainerConfig) -> None:
     options = config.odoo_config_data["options"]
     postgres_waiter = PostgresWaiter(
         host=options["db_host"],
@@ -65,13 +66,12 @@ def wait_for_postgres(config: ContainerConfig, db_name: str | bool) -> None:
         check_interval=1,
     )
     postgres_waiter.wait_for_postgres()
-    if db_name:
-        postgres_waiter.wait_for_postgres_db(
-            dbname="postgres",
-            user=options["db_user"],
-            password=options["db_password"],
-            max_attempts=None,
-        )
+    postgres_waiter.verify_postgres_credentials(
+        dbname="postgres",
+        user=options["db_user"],
+        password=options["db_password"],
+    )
+    record_last_run_from_container(config)
 
 
 def run_checker_operations(

@@ -78,6 +78,9 @@ RU_MESSAGES: dict[str, str] = {
         "Разрешение дрейфа конфигурации БД отменено."
     ),
     "Did you install git?": "Вы установили git?",
+    "Error checking PostgreSQL port: {DETAIL}": (
+        "Ошибка при проверке порта PostgreSQL: {DETAIL}"
+    ),
     "No database last_run snapshot yet; settings will be recorded after a successful start.": (
         "Снимок last_run для БД ещё не создан; текущие настройки будут записаны после успешного старта."
     ),
@@ -103,11 +106,23 @@ RU_MESSAGES: dict[str, str] = {
     "PostgreSQL application role {ROLE} is ready.": (
         "Роль приложения PostgreSQL {ROLE} готова."
     ),
+    "PostgreSQL authentication failed for role {USER}": (
+        "Ошибка аутентификации PostgreSQL для роли {USER}"
+    ),
+    "PostgreSQL connection failed: {DETAIL}": (
+        "Не удалось подключиться к PostgreSQL: {DETAIL}"
+    ),
     "PostgreSQL container running: {VALUE}": (
         "Контейнер PostgreSQL запущен: {VALUE}"
     ),
     "PostgreSQL container {SERVICE} is not running; start it before ensuring the role.": (
         "Контейнер PostgreSQL {SERVICE} не запущен; запустите его перед созданием роли."
+    ),
+    "PostgreSQL credentials check failed after {ATTEMPTS} attempts": (
+        "Проверка учётных данных PostgreSQL не удалась после {ATTEMPTS} попыток"
+    ),
+    "PostgreSQL credentials check timed out after {SECONDS}s for database {DBNAME}": (
+        "Истекло время проверки учётных данных PostgreSQL ({SECONDS} с) для базы {DBNAME}"
     ),
     "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role.": (
         "PostgreSQL в {SERVICE} ещё не готов; дождитесь запуска перед созданием роли."
@@ -147,8 +162,17 @@ RU_MESSAGES: dict[str, str] = {
         "  стало: {CURRENT}\n"
         "Выберите: (a) отмена  (b) принять и продолжить  (c) инструкция по очистке\n"
     ),
+    "PostgreSQL is still starting up": (
+        "PostgreSQL ещё запускается"
+    ),
     "PostgreSQL ready: {VALUE}": (
         "PostgreSQL готов: {VALUE}"
+    ),
+    "PostgreSQL role {USER} does not exist": (
+        "Роль PostgreSQL {USER} не существует"
+    ),
+    "PostgreSQL startup timeout exceeded": (
+        "Превышено время ожидания запуска PostgreSQL"
     ),
     "database configuration drift detected: {KINDS}": (
         "Обнаружен дрейф конфигурации БД: {KINDS}"
@@ -296,6 +320,9 @@ RU_MESSAGES: dict[str, str] = {
         "значение по умолчанию {DEFAULT_DEBUGGER_PORT} или укажите свой собственный. "
         "Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
     ),
+    "psycopg2 is required.": (
+        "Требуется psycopg2."
+    ),
     "Set directory for odoo creating/restoring backups, You can leave default "
     "{DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default "
     "value:": (
@@ -381,6 +408,9 @@ RU_MESSAGES: dict[str, str] = {
         "текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте "
         "версию менеджера соотвествующую версии odpm в проекте. Или созданй новый "
         "проект"
+    ),
+    "Unexpected PostgreSQL connection error: {DETAIL}": (
+        "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
     ),
     "Updated PostgreSQL application role {ROLE}.": (
         "Обновлена роль приложения PostgreSQL {ROLE}."

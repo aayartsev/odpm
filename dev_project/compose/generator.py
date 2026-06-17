@@ -8,6 +8,7 @@ from .. import constants
 from ..translations import _
 from ..project_dir_manager import template_needs_upgrade
 from ..config.payload import runtime_config_path
+from ..database.paths import database_dir_path, ensure_database_dir_gitignore
 from ..logging import get_module_logger
 from .command_render import (
     render_compose_command_block,
@@ -51,6 +52,12 @@ class ComposeGenerator:
             volume_lines.append(
                 " " * 6
                 + f"- {local_runtime_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro"
+            )
+            ensure_database_dir_gitignore(self.config.project_dir)
+            local_database_dir = database_dir_path(self.config.project_dir)
+            volume_lines.append(
+                " " * 6
+                + f"- {local_database_dir}:{constants.ODPM_DATABASE_CONTAINER_DIR}"
             )
         if compose_service.include_runtime_secrets:
             local_runtime_secrets_path = os.path.join(
