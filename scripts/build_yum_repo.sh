@@ -2,28 +2,19 @@
 set -euo pipefail
 
 SUITE="${1:?suite (stable|testing)}"
-RPM="${2:?path to .rpm}"
-OUT="${3:-yum-repo-out}"
+OUT="${2:?output directory}"
+shift 2
+
+if [[ $# -lt 1 ]]; then
+    echo "usage: build_yum_repo.sh SUITE OUT RPM [RPM...]" >&2
+    exit 1
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 if [[ "${OUT}" != /* ]]; then
     OUT="${PROJECT_ROOT}/${OUT}"
-fi
-
-if [[ ! -f "${RPM}" ]]; then
-    echo "rpm not found: ${RPM}" >&2
-    exit 1
-fi
-
-if [[ "${RPM}" != /* ]]; then
-    RPM="${PROJECT_ROOT}/${RPM}"
-fi
-RPM="$(readlink -f "${RPM}")"
-if [[ ! -f "${RPM}" ]]; then
-    echo "rpm not found after resolve: ${RPM}" >&2
-    exit 1
 fi
 
 KEYRING="${PROJECT_ROOT}/packaging/apt/odpm-archive-keyring.gpg"
@@ -72,15 +63,31 @@ cat > "${RPMMACROS}" <<EOF
 %__gpg $(command -v gpg)
 EOF
 
-SIGNED_RPM="$(mktemp --suffix=.rpm)"
-trap 'rm -f "${SIGNED_RPM}"' EXIT
-cp "${RPM}" "${SIGNED_RPM}"
-rpmsign --addsign "${SIGNED_RPM}"
-
 rm -rf "${OUT}"
 mkdir -p "${OUT}/${SUITE}/packages"
-cp "${SIGNED_RPM}" "${OUT}/${SUITE}/packages/$(basename "${RPM}")"
 cp "${KEYRING}" "${OUT}/odpm-archive-keyring.gpg"
+
+for rpm_arg in "$@"; do
+    RPM="${rpm_arg}"
+    if [[ ! -f "${RPM}" ]]; then
+        echo "rpm not found: ${RPM}" >&2
+        exit 1
+    fi
+    if [[ "${RPM}" != /* ]]; then
+        RPM="${PROJECT_ROOT}/${RPM}"
+    fi
+    RPM="$(readlink -f "${RPM}")"
+    if [[ ! -f "${RPM}" ]]; then
+        echo "rpm not found after resolve: ${RPM}" >&2
+        exit 1
+    fi
+
+    SIGNED_RPM="$(mktemp --suffix=.rpm)"
+    cp "${RPM}" "${SIGNED_RPM}"
+    rpmsign --addsign "${SIGNED_RPM}"
+    cp "${SIGNED_RPM}" "${OUT}/${SUITE}/packages/$(basename "${RPM}")"
+    rm -f "${SIGNED_RPM}"
+done
 
 createrepo_c "${OUT}/${SUITE}"
 

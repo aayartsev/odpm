@@ -1,4 +1,4 @@
-# odpm RPM spec — Fedora 41+ (pyproject PEP 517 macros).
+# odpm RPM spec — Fedora 40+ (host Python >= 3.10; pyproject PEP 517 macros).
 # Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.3-rc1).
 # ODPM_VERSION (4.0) is the odpm.json manifest line, not the package release.
 

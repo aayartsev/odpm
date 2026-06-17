@@ -69,16 +69,20 @@ jobs:
           path: dist/odpm_*.deb
 
   rpm:
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora: ["40", "41"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Build .rpm (Fedora 41)
+      - name: Build .rpm (Fedora ${{ matrix.fedora }})
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/src" \
             -w /src \
-            fedora:41 \
+            fedora:${{ matrix.fedora }} \
             bash -c '
               set -euo pipefail
               dnf install -y -q rpm-build python3-devel python3-setuptools \
@@ -90,19 +94,19 @@ jobs:
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/src" \
-            fedora:41 \
+            fedora:${{ matrix.fedora }} \
             bash -c '
               set -euo pipefail
               dnf install -y -q rpmlint >/dev/null
               rpmlint -c /src/packaging/rpmlint.toml /src/dist/odpm-*.rpm
             '
 
-      - name: Install smoke (clean Fedora 41)
+      - name: Install smoke (clean Fedora ${{ matrix.fedora }})
         run: |
           docker run --rm \
             -v "${{ github.workspace }}/dist:/pkgs:ro" \
             -v "${{ github.workspace }}/scripts/smoke_rpm_install.sh:/smoke.sh:ro" \
-            fedora:41 \
+            fedora:${{ matrix.fedora }} \
             bash -c '
               set -euo pipefail
               dnf install -y -q passwd >/dev/null
@@ -112,7 +116,7 @@ jobs:
       - name: Upload rpm artifact
         uses: actions/upload-artifact@v6
         with:
-          name: package-rpm
+          name: package-rpm-fc${{ matrix.fedora }}
           path: dist/odpm-*.rpm
 
   publish:
@@ -141,7 +145,12 @@ jobs:
           echo "Release assets in dist/:"
           ls -la dist/
           test -f dist/odpm_*.deb
-          test -f dist/odpm-*.rpm
+          mapfile -t rpm_assets < <(find dist -maxdepth 1 -type f -name 'odpm-*.rpm' | sort)
+          if [[ "${#rpm_assets[@]}" -lt 2 ]]; then
+            echo "expected at least 2 RPM builds (fc40, fc41), got ${#rpm_assets[@]}" >&2
+            printf '  %s\n' "${rpm_assets[@]:-"(none)"}"
+            exit 1
+          fi
 
       - name: Create checksums
         run: |
@@ -198,8 +207,8 @@ jobs:
         run: |
           ./scripts/build_yum_repo.sh \
             "${{ steps.release_meta.outputs.apt_suite }}" \
-            dist/odpm-*.rpm \
-            yum-repo-out
+            yum-repo-out \
+            dist/odpm-*.rpm
 
       - name: Upload apt repo artifact
         if: startsWith(github.ref, 'refs/tags/')

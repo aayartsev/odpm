@@ -38,6 +38,12 @@ class YumRepoPackagingTests(unittest.TestCase):
         self.assertTrue(script.is_file())
         self.assertTrue(script.stat().st_mode & 0o111)
 
+    def test_yum_script_usage_documents_multi_rpm(self):
+        script = (PROJECT_ROOT / "scripts" / "build_yum_repo.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("build_yum_repo.sh SUITE OUT RPM [RPM...]", script)
+
     def test_public_keyring_lists_odpm_signing_key(self):
         keyring = PROJECT_ROOT / "packaging" / "apt" / "odpm-archive-keyring.gpg"
         if not keyring.is_file():

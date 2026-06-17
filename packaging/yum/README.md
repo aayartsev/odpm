@@ -30,7 +30,7 @@ export APT_REPO_GPG_PRIVATE_KEY="$(gpg --armor --export-secret-keys KEYID)"
 export APT_REPO_GPG_PASSPHRASE='...'
 ./scripts/build_rpm.sh   # on Fedora, or use dist/*.rpm from CI
 ./scripts/import_apt_signing_key.sh
-./scripts/build_yum_repo.sh testing dist/odpm-*.rpm /tmp/odpm-yum
+./scripts/build_yum_repo.sh testing /tmp/odpm-yum dist/odpm-*.rpm
 find /tmp/odpm-yum -type f
 ```
 

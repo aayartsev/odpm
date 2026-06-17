@@ -37,6 +37,10 @@ sudo apt install ./dist/odpm_*_all.deb
 
 ## rpm
 
+CI builds **two** `.rpm` artifacts per release (`fc40`, `fc41`) — same package name `odpm`, different `python(abi)` tied to the distro Python. DNF picks the matching build automatically from the YUM repo.
+
+Host Python must be **≥ 3.10** (`requires-python` in `pyproject.toml`). EL9 system `python3` 3.9 is out of scope for native RPMs.
+
 ### YUM / DNF repository (recommended)
 
 Published on tag builds to `https://aayartsev.github.io/odpm/yum/` (`stable` / `testing` suites).
