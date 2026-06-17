@@ -77,7 +77,8 @@ class ProjectTemplates:
         }.items():
             content = content.replace(replace_phrase[0], replace_phrase[1])
         if odoo_conf_on_disk_needs_regeneration(
-            self.config.path_odoo_conf
+            self.config.path_odoo_conf,
+            expected_db_host=self.config.user_env.postgres_service_name,
         ) or self.config.pd_manager.check_project_odoo_config_template(
             config_file_template_path
         ):

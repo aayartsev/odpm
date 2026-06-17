@@ -68,21 +68,32 @@ def evaluate_template_dockerignore(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_template_odoo_conf(ctx: PrepareContext) -> PlanStep:
-    from ..config.odoo_conf import odoo_conf_on_disk_needs_regeneration
+    from ..config.odoo_conf import (
+        odoo_conf_db_host_mismatch,
+        odoo_conf_on_disk_needs_regeneration,
+    )
+    from ..translations import _
 
     description = "Regenerate project odoo.conf from .odpm template"
+    expected_host = ctx.config.user_env.postgres_service_name
     template_stale = project_template_needs_upgrade(
         ctx.config.project_dir,
         constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH,
         constants.ODOO_CONFIG_TEMPLATE_MARKERS,
     )
-    conf_stale = odoo_conf_on_disk_needs_regeneration(ctx.config.path_odoo_conf)
+    conf_stale = odoo_conf_on_disk_needs_regeneration(
+        ctx.config.path_odoo_conf,
+        expected_db_host=expected_host,
+    )
     if template_stale or conf_stale:
-        reason = (
-            "odoo config template stale"
-            if template_stale
-            else "odoo.conf missing db settings"
-        )
+        if template_stale:
+            reason = "odoo config template stale"
+        elif odoo_conf_db_host_mismatch(ctx.config.path_odoo_conf, expected_host):
+            reason = _(
+                "odoo.conf db_host out of sync with postgres service ({EXPECTED})"
+            ).format(EXPECTED=expected_host)
+        else:
+            reason = "odoo.conf missing db settings"
         return make_plan_step(
             "template.odoo_conf",
             description,

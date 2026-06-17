@@ -11,6 +11,7 @@ from .steps_compose import (
     exec_compose_service,
     exec_compose_template,
 )
+from .steps_database import evaluate_database_drift, exec_database_drift
 from .steps_secrets import evaluate_secrets_materialize, exec_secrets_materialize
 from .steps_docker import (
     evaluate_docker_engine_check,
@@ -88,6 +89,9 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "",
         evaluate_template_odoo_conf,
         exec_template_odoo_conf,
+    ),
+    PrepareStepDef(
+        "database.drift", "", evaluate_database_drift, exec_database_drift
     ),
     PrepareStepDef(
         "compose.template", "", evaluate_compose_template, exec_compose_template

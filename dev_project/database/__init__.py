@@ -22,7 +22,9 @@ from .drift import (
     DatabaseDriftSeverity,
     database_drift_kinds,
     detect_database_drift,
+    detect_database_drift_for_config,
     has_blocking_database_drift,
+    meaningful_database_drifts,
 )
 
 __all__ = (
@@ -40,11 +42,13 @@ __all__ = (
     "database_dir_path",
     "database_drift_kinds",
     "detect_database_drift",
+    "detect_database_drift_for_config",
     "ensure_database_dir_gitignore",
     "has_blocking_database_drift",
     "last_run_missing",
     "last_run_path",
     "load_last_run",
+    "meaningful_database_drifts",
     "read_odoo_conf_db_fingerprint",
     "save_last_run",
 )

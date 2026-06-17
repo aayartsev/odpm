@@ -35,11 +35,53 @@ RU_MESSAGES: dict[str, str] = {
     "Cannot list Docker containers: {DETAILS}": (
         "Не удалось получить список контейнеров Docker: {DETAILS}"
     ),
+    "Blocking database configuration drift detected; resolve before starting containers.": (
+        "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
+    ),
+    "Check database configuration drift against last_run snapshot": (
+        "Проверить дрейф конфигурации БД относительно снимка last_run"
+    ),
     "Created {ENV_FILE} from environment variables and defaults (non-interactive mode).": (
         "Создан файл {ENV_FILE} из переменных окружения и значений по умолчанию "
         "(неинтерактивный режим)."
     ),
     "Did you install git?": "Вы установили git?",
+    "No database last_run snapshot yet; settings will be recorded after a successful start.": (
+        "Снимок last_run для БД ещё не создан; текущие настройки будут записаны после успешного старта."
+    ),
+    "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.": (
+        "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}."
+    ),
+    "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}.": (
+        "Имя сервиса PostgreSQL в compose изменилось: {PREVIOUS} -> {CURRENT}."
+    ),
+    "PostgreSQL data directory changed: {PREVIOUS} -> {CURRENT}.": (
+        "Каталог данных PostgreSQL изменился: {PREVIOUS} -> {CURRENT}."
+    ),
+    "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.": (
+        "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}."
+    ),
+    "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}.": (
+        "Порт PostgreSQL на host изменился: {PREVIOUS} -> {CURRENT}."
+    ),
+    "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}.": (
+        "Версия образа PostgreSQL изменилась: {PREVIOUS} -> {CURRENT}."
+    ),
+    "database configuration drift detected: {KINDS}": (
+        "Обнаружен дрейф конфигурации БД: {KINDS}"
+    ),
+    "database configuration matches last_run snapshot": (
+        "Конфигурация БД совпадает со снимком last_run"
+    ),
+    "first database run (no last_run snapshot yet)": (
+        "Первый запуск БД (снимок last_run ещё не создан)"
+    ),
+    "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS}).": (
+        "В odoo.conf db_host ({CURRENT}) не совпадает с именем сервиса postgres ({PREVIOUS})."
+    ),
+    "odoo.conf db_host out of sync with postgres service ({EXPECTED})": (
+        "В odoo.conf db_host не синхронизирован с сервисом postgres ({EXPECTED})"
+    ),
     "Directory {START_DIR_PATH} is not a valid odpm project directory. "
     "Please run \"cd {PROJECT_PATH}\" to navigate to the correct location.": (
         "Каталог {START_DIR_PATH} не является odpm катлогом, пожалуйста выполните "

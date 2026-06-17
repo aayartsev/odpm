@@ -149,3 +149,18 @@ def has_blocking_database_drift(drifts: tuple[DatabaseDrift, ...]) -> bool:
 
 def database_drift_kinds(drifts: tuple[DatabaseDrift, ...]) -> frozenset[DatabaseDriftKind]:
     return frozenset(drift.kind for drift in drifts)
+
+
+def detect_database_drift_for_config(config) -> tuple[DatabaseCurrentState, tuple[DatabaseDrift, ...]]:
+    """Collect current DB fingerprints and compare with on-disk last_run snapshot."""
+    from .state import collect_database_state, load_last_run
+
+    current = collect_database_state(config)
+    last_run = load_last_run(config.project_dir)
+    return current, detect_database_drift(current, last_run)
+
+
+def meaningful_database_drifts(
+    drifts: tuple[DatabaseDrift, ...],
+) -> tuple[DatabaseDrift, ...]:
+    return tuple(drift for drift in drifts if drift.kind != "first_run")

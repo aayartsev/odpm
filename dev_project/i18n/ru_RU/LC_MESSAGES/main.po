@@ -14,6 +14,9 @@ msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
 
+msgid "Blocking database configuration drift detected; resolve before starting containers."
+msgstr "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
+
 msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgstr "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
 
@@ -28,6 +31,9 @@ msgstr "Не удалось получить список контейнеров
 
 msgid "Check `docker compose ps` and the English log output above for details."
 msgstr "Проверьте `docker compose ps` и английский лог выше для подробностей."
+
+msgid "Check database configuration drift against last_run snapshot"
+msgstr "Проверить дрейф конфигурации БД относительно снимка last_run"
 
 msgid "Checking out {REF} for {PROJECT}"
 msgstr "Переключение на {REF} для {PROJECT}"
@@ -89,6 +95,9 @@ msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_versi
 msgid "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object"
 msgstr "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен быть JSON-объектом"
 
+msgid "No database last_run snapshot yet; settings will be recorded after a successful start."
+msgstr "Снимок last_run для БД ещё не создан; текущие настройки будут записаны после успешного старта."
+
 msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
 msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
 
@@ -98,6 +107,9 @@ msgstr "В неинтерактивном режиме нужен готовый
 msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
 msgstr "В неинтерактивном режиме требуется odoo_version в odpm.json разрабатываемого проекта или параметр --odoo-version в командной строке."
 
+msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}."
+msgstr "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}."
+
 msgid "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
 msgstr "Git-репозиторий platform в {odoo_src_dir} ещё не готов; клонирование выполнится на этапе prepare (шаг git.materialize)."
 
@@ -106,6 +118,21 @@ msgstr "Пожалуйта выберите ценарий использова�
 
 msgid "Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Пожалуйста, выберите версию Odoo для текущего проекта. Вот список поддерживаемых версий: {AVAILABEL_ODOO_VERSIONS_ARE}. Вы можете оставить значение по умолчанию {ODOO_LATEST_VERSION} или написать свою версию из списка. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}."
+msgstr "Имя сервиса PostgreSQL в compose изменилось: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL data directory changed: {PREVIOUS} -> {CURRENT}."
+msgstr "Каталог данных PostgreSQL изменился: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}."
+msgstr "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
+msgstr "Порт PostgreSQL на host изменился: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}."
+msgstr "Версия образа PostgreSQL изменилась: {PREVIOUS} -> {CURRENT}."
 
 msgid "Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"
 msgstr "Pre-commit файл {PRE_COMMIT_FILE} не был найден в каталоге {ODOO_PROJECT_DIR_PATH}"
@@ -227,11 +254,26 @@ msgstr "Вы выбрали следующую локаль для сообще�
 msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
 msgstr "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
 
+msgid "database configuration drift detected: {KINDS}"
+msgstr "Обнаружен дрейф конфигурации БД: {KINDS}"
+
+msgid "database configuration matches last_run snapshot"
+msgstr "Конфигурация БД совпадает со снимком last_run"
+
 msgid "docker build failed with exit code {EXIT_CODE}"
 msgstr "docker build завершился с кодом {EXIT_CODE}"
 
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up завершился с кодом {EXIT_CODE}"
+
+msgid "first database run (no last_run snapshot yet)"
+msgstr "Первый запуск БД (снимок last_run ещё не создан)"
+
+msgid "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS})."
+msgstr "В odoo.conf db_host ({CURRENT}) не совпадает с именем сервиса postgres ({PREVIOUS})."
+
+msgid "odoo.conf db_host out of sync with postgres service ({EXPECTED})"
+msgstr "В odoo.conf db_host не синхронизирован с сервисом postgres ({EXPECTED})"
 
 msgid "running command: → git {GIT_ARGS} for {PROJECT}"
 msgstr "Выполняется команда: → git {GIT_ARGS} для {PROJECT}"

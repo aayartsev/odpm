@@ -15,6 +15,7 @@ PREPARE_STEP_IDS = [
     "docker.engine.check",
     "docker.ports.release",
     "template.odoo_conf",
+    "database.drift",
     "compose.template",
     "secrets.materialize",
     "compose.service",
