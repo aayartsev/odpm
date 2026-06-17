@@ -25,6 +25,7 @@ from ..debugger.env_parsing import (
     parse_debugger_suspend,
     parse_odpm_ide,
 )
+from .postgres_service_name import parse_postgres_service_name
 from ..translations import _, apply_locale_from_sources, parse_odpm_locale_setting
 from ..errors import ConfigError
 from ..interactive import prompt_input, stdin_is_interactive
@@ -51,6 +52,7 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_IDE: str
     ODPM_DEBUGGER_CONNECT_HOST: str
     ODPM_DEBUGGER_SUSPEND: str
+    POSTGRES_SERVICE_NAME: str
 
 
 class CreateUserEnvironment:
@@ -112,6 +114,9 @@ class CreateUserEnvironment:
         )
         self.postgres_port = int(
             parser["env"].get("POSTGRES_PORT", str(constants.POSTGRES_DEFAULT_PORT))
+        )
+        self.postgres_service_name = parse_postgres_service_name(
+            parser["env"].get(constants.POSTGRES_SERVICE_NAME_ENV)
         )
         self.gevent_port = int(
             parser["env"].get("GEVENT_PORT", str(constants.GEVENT_DEFAULT_PORT))
@@ -239,6 +244,11 @@ class CreateUserEnvironment:
         if locale_value:
             env_data[constants.ODPM_LOCALE_ENV_KEY] = locale_value
         env_data.update(self._debugger_env_defaults_from_environ())
+        raw_postgres_service = os.environ.get(constants.POSTGRES_SERVICE_NAME_ENV, "").strip()
+        if raw_postgres_service:
+            env_data[constants.POSTGRES_SERVICE_NAME_ENV] = parse_postgres_service_name(
+                raw_postgres_service
+            )
         return env_data
 
     def _debugger_env_defaults_from_environ(self) -> EnvData:

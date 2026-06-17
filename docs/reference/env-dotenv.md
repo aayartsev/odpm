@@ -12,6 +12,7 @@
 | `ODOO_PROJECTS_DIR` | Куда клонировать platform и git-зависимости | `~/odoo_projects` |
 | `ODOO_PORT` | HTTP-порт Odoo на компьютере | `8069` |
 | `POSTGRES_PORT` | Порт PostgreSQL на компьютере (в сценарии `server` — только localhost) | `5432` |
+| `POSTGRES_SERVICE_NAME` | Имя сервиса PostgreSQL в `docker-compose.yml` и `db_host` в `odoo.conf` | `db` |
 | `DEBUGGER_PORT` | Порт отладчика; см. [семантику по backend](#debugger_port-backend) | `5678` |
 | `ODPM_DEBUGGER_BACKEND` | `debugpy_listen` или `pydevd_connect` | `debugpy_listen` |
 | `ODPM_IDE` | Какие настройки IDE генерировать: `vscode`, `pycharm`, `both`, `none` | `vscode` |
@@ -61,6 +62,7 @@ ODOO_PROJECTS_DIR=/home/user/odoo_projects
 PATH_TO_SSH_KEY=
 ODOO_PORT=8069
 POSTGRES_PORT=5432
+POSTGRES_SERVICE_NAME=db
 DEBUGGER_PORT=5678
 ODPM_DEBUGGER_BACKEND=debugpy_listen
 ODPM_IDE=vscode
@@ -80,6 +82,10 @@ PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 ```
 
 Один ключ применяется ко всем указанным удалённым репозиториям.
+
+## `POSTGRES_SERVICE_NAME`
+
+Имя сервиса PostgreSQL в `docker-compose.yml` и значение `db_host` в `odoo.conf` (DNS внутри docker-сети). Допустимы строчные буквы, цифры, `_` и `-`; имя должно начинаться с буквы. После смены перегенерируйте `docker-compose.yml` и `odoo.conf` (обычный запуск `odpm`).
 
 ## Переменные для подстановки в manifest
 

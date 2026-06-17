@@ -71,7 +71,7 @@ class ProjectTemplates:
             constants.MESSAGE_MARKER: _('If you want drop this file to default values, just delete it'),
             constants.POSTGRES_ODOO_USER_MARKER: constants.POSTGRES_ODOO_USER,
             constants.POSTGRES_ODOO_PASS_MARKER: constants.POSTGRES_ODOO_PASS,
-            constants.POSTGRES_ODOO_HOST_MARKER: constants.POSTGRES_ODOO_HOST,
+            constants.POSTGRES_ODOO_HOST_MARKER: self.config.user_env.postgres_service_name,
             constants.POSTGRES_ODOO_PORT_MARKER: str(constants.POSTGRES_ODOO_PORT),
             constants.ODOO_PORT_MARKER: str(constants.ODOO_DOCKER_PORT),
         }.items():

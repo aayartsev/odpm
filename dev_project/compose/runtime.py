@@ -10,7 +10,16 @@ from .. import constants
 if TYPE_CHECKING:
     from ..config import Config
 
-COMPOSE_STACK_SERVICES = ("odoo", constants.DATABASE_NAME_INSTANCE)
+COMPOSE_ODOO_SERVICE = "odoo"
+
+
+def compose_stack_services(config: Config) -> tuple[str, str]:
+    """Return compose service names for stack health checks (odoo, postgres)."""
+    return (COMPOSE_ODOO_SERVICE, config.user_env.postgres_service_name)
+
+
+# Backward-compatible default pair when config is unavailable.
+COMPOSE_STACK_SERVICES = (COMPOSE_ODOO_SERVICE, constants.DEFAULT_POSTGRES_SERVICE_NAME)
 
 
 def _run_checked(*args, **kwargs):
@@ -58,7 +67,7 @@ def container_is_running_and_healthy(container_id: str) -> bool:
 
 def compose_stack_is_healthy(config: Config) -> bool:
     """True when odoo and postgres compose services are up (and healthy if probed)."""
-    for service in COMPOSE_STACK_SERVICES:
+    for service in compose_stack_services(config):
         container_id = _running_container_id(config, service)
         if not container_id:
             return False

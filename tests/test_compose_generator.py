@@ -69,6 +69,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         config.pd_manager = MagicMock()
         user_env = MagicMock()
         user_env.postgres_port = 15432
+        user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
         user_env.debugger_port = 5678
         user_env.debugger_backend = debugger_backend
         user_env.debugger_connect_host = debugger_connect_host
@@ -122,6 +123,19 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             )
             self.assertNotIn("extra_hosts:", content)
             self.assertNotIn("5678:5678", content)
+
+    def test_developer_compose_uses_custom_postgres_service_name(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            self._copy_compose_template(project_dir)
+            env = self._make_env(project_dir, constants.DEVELOPER_SCENARIO)
+            env.config.user_env.postgres_service_name = "postgres"
+            env._compose.generate_docker_compose_file()
+            content = (Path(project_dir) / "docker-compose.yml").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("  postgres:\n", content)
+            self.assertIn("      - postgres\n", content)
+            self.assertNotIn("  db:\n", content)
 
     def test_developer_compose_includes_debugger_port_and_volumes(self):
         with tempfile.TemporaryDirectory() as project_dir:

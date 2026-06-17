@@ -31,11 +31,22 @@ class ContainerHealthTests(unittest.TestCase):
 
 
 class ComposeStackHealthTests(unittest.TestCase):
-    def _config(self) -> MagicMock:
+    def _config(self, *, postgres_service_name: str = "db") -> MagicMock:
         config = MagicMock()
         config.docker_compose_command = "docker compose"
         config.project_dir = "/tmp/project"
+        config.user_env.postgres_service_name = postgres_service_name
         return config
+
+    @patch("dev_project.compose.runtime.container_is_running_and_healthy", return_value=True)
+    @patch("dev_project.compose.runtime._running_container_id")
+    def test_compose_stack_is_healthy_uses_postgres_service_from_env(
+        self, mock_running_id, _mock_health
+    ):
+        config = self._config(postgres_service_name="postgres")
+        mock_running_id.side_effect = ["odoo-id", "postgres-id"]
+        self.assertTrue(compose_stack_is_healthy(config))
+        mock_running_id.assert_any_call(config, "postgres")
 
     @patch("dev_project.compose.runtime.container_is_running_and_healthy", return_value=True)
     @patch("dev_project.compose.runtime._running_container_id")

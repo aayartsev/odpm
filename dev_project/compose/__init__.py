@@ -9,6 +9,7 @@ from .generator import ComposeGenerator
 from .start_command import ComposeOdooService, StartCommand
 
 __all__ = [
+    "COMPOSE_ODOO_SERVICE",
     "COMPOSE_STACK_SERVICES",
     "ComposeGenerator",
     "ComposeOdooService",
@@ -29,7 +30,9 @@ def __getattr__(name: str):
 
         return ComposeServiceBuilder
     if name in (
+        "COMPOSE_ODOO_SERVICE",
         "COMPOSE_STACK_SERVICES",
+        "compose_stack_services",
         "compose_stack_is_healthy",
         "container_is_running_and_healthy",
         "should_force_recreate_compose",

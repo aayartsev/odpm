@@ -152,7 +152,7 @@ class ComposeGenerator:
             DEBUGGER_DOCKER_PORT=constants.DEBUGGER_DOCKER_PORT,
             GEVENT_DOCKER_PORT=constants.GEVENT_DOCKER_PORT,
             COMPOSE_FILE_VERSION=self.config.compose_file_version,
-            DATABASE_NAME_INSTANCE=constants.DATABASE_NAME_INSTANCE,
+            DATABASE_NAME_INSTANCE=self.user_env.postgres_service_name,
             POSTGRES_VERSION=self.config.postgres_version,
             POSTGRES_DATA_LOCAL_STORAGE=self.config.postgres_data_local_storage,
             DEBUGGER_PORT_MAP=debugger_port_map,
