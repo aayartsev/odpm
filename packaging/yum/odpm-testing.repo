@@ -1,0 +1,7 @@
+[odpm-testing]
+name=odpm pre-release
+baseurl=https://aayartsev.github.io/odpm/yum/testing
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.gpg

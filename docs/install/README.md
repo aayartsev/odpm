@@ -5,7 +5,7 @@
 | Платформа | Рекомендуемый способ | Статья |
 |-----------|----------------------|--------|
 | Debian / Ubuntu | пакет `.deb`, APT-репозиторий | [linux-deb.md](linux-deb.md) |
-| Fedora / RHEL | пакет `.rpm` | [fedora-rpm.md](fedora-rpm.md) |
+| Fedora / RHEL | пакет `.rpm`, DNF-репозиторий | [fedora-rpm.md](fedora-rpm.md) |
 | macOS | pipx (нативного `.pkg` пока нет) | [macos-pipx.md](macos-pipx.md) |
 | Windows | WSL2 + Docker Desktop | [windows-wsl.md](windows-wsl.md) |
 | Любая ОС / разработка odpm | pip, editable, `odpm.py` | [pip-legacy.md](pip-legacy.md) |

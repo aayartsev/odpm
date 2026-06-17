@@ -2,19 +2,69 @@
 
 Рекомендуемый способ на Fedora 41+.
 
+## Установка через DNF (обновления `dnf upgrade`)
+
+После [релизного тега](https://github.com/aayartsev/odpm/releases) odpm публикует подписанный репозиторий на GitHub Pages.
+
+### Ключ репозитория
+
+Тот же GPG-ключ, что и для APT (бинарный keyring на GitHub Pages). Проверка после подключения репозитория:
+
+```bash
+sudo rpm --import https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.gpg
+sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i odpm || true
+# ожидается fingerprint: 03040028F53D7AB8  Alexander Yartsev
+```
+
+**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (сейчас пакеты здесь; `stable` — после финальных релизов):
+
+```bash
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-testing.repo \
+  -o /etc/yum.repos.d/odpm.repo
+
+sudo dnf makecache
+sudo dnf install odpm
+```
+
+**Стабильные релизы** (`v4.3.0`, без `-rc`/`-beta`):
+
+```bash
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-stable.repo \
+  -o /etc/yum.repos.d/odpm.repo
+
+sudo dnf makecache
+sudo dnf install odpm
+```
+
+На RHEL / AlmaLinux / Rocky Linux вместо `dnf` используйте `yum` (формат `.repo` тот же).
+
+Обновление при следующих релизах:
+
+```bash
+sudo dnf makecache && sudo dnf upgrade odpm
+```
+
+Полная таблица установки на разных ОС: [Установка odpm (все платформы)](README.md).
+
+## Установка вручную (.rpm с GitHub Releases)
+
+Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.0-beta` / `4.0-rc1` / `main`, или соберите локально:
+
 ```bash
 ./scripts/build_rpm.sh
 sudo dnf install ./dist/odpm-*.rpm
 odpm --version
 ```
 
-## Зависимости
+## Зависимости пакета
 
 - **Requires:** `python3-packaging`, `git`
 - **Recommends:** `moby-engine` / `docker`
 
-Ставит `/usr/bin/odpm`, `dev_project` в `python3/site-packages`.
+Пакет ставит `/usr/bin/odpm` и `dev_project` в `python3/site-packages`.
 
-Артефакт также в [GitHub Releases](https://github.com/aayartsev/odpm/releases) и workflow `release-packages`.
+При установке с GitHub Releases сверяйте checksum из `SHA256SUMS` релиза.
 
-Полная таблица установки: [Установка odpm (все платформы)](README.md).
+## Дальше
+
+[Локальная разработка с нуля](../getting-started/local-dev-from-scratch.md)

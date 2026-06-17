@@ -37,6 +37,16 @@ sudo apt install ./dist/odpm_*_all.deb
 
 ## rpm
 
+### YUM / DNF repository (recommended)
+
+Published on tag builds to `https://aayartsev.github.io/odpm/yum/` (`stable` / `testing` suites).
+
+Uses the same GPG key and GitHub Actions secrets as the APT repo. Example `.repo` files: [`packaging/yum/`](../../packaging/yum/). Maintainer notes: [`packaging/yum/README.md`](../../packaging/yum/README.md).
+
+User install: [install/README.md](../install/README.md) (hub), [install/fedora-rpm.md](../install/fedora-rpm.md) (Fedora).
+
+### Local / manual .rpm
+
 ```bash
 ./scripts/build_rpm.sh
 sudo dnf install ./dist/odpm-*.rpm

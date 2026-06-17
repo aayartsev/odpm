@@ -5,7 +5,7 @@ Choose how to install **odpm** on the host (not the same as deploying an Odoo pr
 | Platform | Recommended method | Article |
 |----------|-------------------|---------|
 | Debian / Ubuntu | `.deb` package, APT repository | [linux-deb.md](linux-deb.md) |
-| Fedora / RHEL | `.rpm` package | [fedora-rpm.md](fedora-rpm.md) |
+| Fedora / RHEL | `.rpm` package, DNF repository | [fedora-rpm.md](fedora-rpm.md) |
 | macOS | pipx (no native `.pkg` yet) | [macos-pipx.md](macos-pipx.md) |
 | Windows | WSL2 + Docker Desktop | [windows-wsl.md](windows-wsl.md) |
 | Any OS / odpm development | pip, editable, `odpm.py` | [pip-legacy.md](pip-legacy.md) |
