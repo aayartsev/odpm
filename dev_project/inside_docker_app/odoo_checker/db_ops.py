@@ -4,11 +4,18 @@ from __future__ import annotations
 
 import datetime
 import os
+import shutil
+from contextlib import closing
 from dataclasses import dataclass
 from typing import Any
 
+from ...logging import get_module_logger
+from ..exceptions import PostgresError
+
 DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"
 DEFAULT_DB_BACKUP_FORMAT = "zip"
+
+_logger = get_module_logger(__name__)
 
 
 def sanitize_backup_basename(name: str) -> str:
@@ -64,10 +71,54 @@ class OdooDbOps:
         target = drop_db_name
         if isinstance(drop_db_name, bool) and db_name:
             target = db_name
-        if not target:
+        if not target or not isinstance(target, str):
             return
+        if not self.odoo.service.db.exp_db_exist(target):
+            return
+
+        if not self.odoo.service.db.exp_drop(target):
+            _logger.info(
+                "Odoo exp_drop skipped database %s (likely wrong owner in list_dbs); "
+                "attempting direct PostgreSQL drop.",
+                target,
+            )
+
         if self.odoo.service.db.exp_db_exist(target):
-            self.odoo.service.db.exp_drop(target)
+            self._force_drop_database(target)
+
+        if self.odoo.service.db.exp_db_exist(target):
+            raise PostgresError(
+                f"Could not drop database {target!r}; "
+                "check PostgreSQL ownership and permissions."
+            )
+
+    def _force_drop_database(self, db_name: str) -> None:
+        """Drop via PostgreSQL when Odoo exp_drop skips non-owned databases."""
+        db_service = self.odoo.service.db
+        _logger.info("Dropping database %s via PostgreSQL", db_name)
+
+        self.odoo.modules.registry.Registry.delete(db_name)
+        self.odoo.sql_db.close_db(db_name)
+
+        db = self.odoo.sql_db.db_connect("postgres")
+        with closing(db.cursor()) as cr:
+            cr._cnx.autocommit = True
+            db_service._drop_conn(cr, db_name)
+            try:
+                cr.execute(
+                    self.odoo.tools.SQL(
+                        "DROP DATABASE %s",
+                        db_service.database_identifier(cr, db_name),
+                    )
+                )
+            except Exception as exc:
+                raise PostgresError(
+                    f"Could not drop database {db_name!r}: {exc}"
+                ) from exc
+
+        filestore = self.odoo.tools.config.filestore(db_name)
+        if os.path.exists(filestore):
+            shutil.rmtree(filestore)
 
     def get_list_of_databases(self) -> str:
         databases = self.odoo.service.db.list_dbs(force=True)

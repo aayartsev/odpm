@@ -2,8 +2,9 @@ import io
 import os
 import tempfile
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
+from dev_project.inside_docker_app.exceptions import PostgresError
 from dev_project.inside_docker_app.odoo_checker.db_ops import (
     DbCreationParams,
     OdooDbOps,
@@ -86,21 +87,49 @@ class OdooDbOpsTests(unittest.TestCase):
 
         odoo.service.db.exp_drop.assert_not_called()
 
-    def test_drop_database_drops_existing_database(self):
+    @patch.object(OdooDbOps, "_force_drop_database")
+    def test_drop_database_drops_existing_database(self, mock_force):
         ops, odoo = _make_db_ops()
-        odoo.service.db.exp_db_exist.return_value = True
+        odoo.service.db.exp_db_exist.side_effect = [True, False, False]
+        odoo.service.db.exp_drop.return_value = True
 
         ops.drop_database("demo", False)
 
         odoo.service.db.exp_drop.assert_called_once_with("demo")
+        mock_force.assert_not_called()
 
-    def test_drop_database_uses_db_name_when_flag_is_true(self):
+    @patch.object(OdooDbOps, "_force_drop_database")
+    def test_drop_database_uses_db_name_when_flag_is_true(self, mock_force):
         ops, odoo = _make_db_ops()
-        odoo.service.db.exp_db_exist.return_value = True
+        odoo.service.db.exp_db_exist.side_effect = [True, False, False]
+        odoo.service.db.exp_drop.return_value = True
 
         ops.drop_database(True, "demo")
 
         odoo.service.db.exp_drop.assert_called_once_with("demo")
+        mock_force.assert_not_called()
+
+    @patch.object(OdooDbOps, "_force_drop_database")
+    def test_drop_database_force_drops_when_exp_drop_returns_false(self, mock_force):
+        ops, odoo = _make_db_ops()
+        odoo.service.db.exp_db_exist.side_effect = [True, True, False]
+        odoo.service.db.exp_drop.return_value = False
+
+        ops.drop_database("demo", False)
+
+        odoo.service.db.exp_drop.assert_called_once_with("demo")
+        mock_force.assert_called_once_with("demo")
+
+    @patch.object(OdooDbOps, "_force_drop_database")
+    def test_drop_database_raises_when_still_exists(self, mock_force):
+        ops, odoo = _make_db_ops()
+        odoo.service.db.exp_db_exist.return_value = True
+        odoo.service.db.exp_drop.return_value = False
+
+        with self.assertRaises(PostgresError):
+            ops.drop_database("demo", False)
+
+        mock_force.assert_called_once_with("demo")
 
     def test_get_list_of_databases_returns_newline_joined_names(self):
         ops, odoo = _make_db_ops()
