@@ -7,6 +7,7 @@
 | `docker-compose.yml` | `odpm` или `odpm --skip-start` |
 | корневой `.dockerignore` | из шаблона `.odpm/dockerignore`; сброс шаблона — удалить `.odpm/dockerignore` и снова запустить odpm |
 | `.odpm/runtime/config.json` | автоматически; в gitignore проекта |
+| `.odpm/database/last_run.json` | при adoption и после успешной проверки checker; mount в контейнер; см. [database-state.md](database-state.md) |
 | `.odpm/runtime/debug-profile.json` | автоматически в сценарии `developer` (`include_debugpy`); в gitignore |
 | `.odpm/secrets.example.json` | шаблон при init; в git |
 | `.odpm/secrets.json` | вручную или `--secrets-file`; в `.odpm/.gitignore` |

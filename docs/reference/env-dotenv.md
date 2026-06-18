@@ -23,6 +23,8 @@
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
 
+Смена `POSTGRES_SERVICE_NAME` или `POSTGRES_PORT` относительно сохранённого снимка даёт **database drift** — см. [состояние PostgreSQL](database-state.md).
+
 ## `DEBUGGER_PORT` и backend
 
 | `ODPM_DEBUGGER_BACKEND` | Что означает `DEBUGGER_PORT` | Compose |

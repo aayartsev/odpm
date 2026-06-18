@@ -56,6 +56,31 @@ odpm --update-lock --skip-start
 
 and commits **`.odpm/deps.lock.json`**. See [deps.lock.json](../reference/deps-lock.md) and [team coordinator](../scenarios/team-coordinator.md).
 
+## Inherited PostgreSQL data directory
+
+If the PostgreSQL data directory existed before odpm 4.3 (postgres log: `Skipping initialization`), on the **first** `odpm` run without `.odpm/database/last_run.json` odpm automatically:
+
+1. starts PostgreSQL;
+2. creates or updates the application role (`odoo`);
+3. writes a baseline to `last_run.json`.
+
+Diagnostics:
+
+```bash
+odpm database status
+odpm plan --skip-start
+```
+
+If the role is missing and adoption has not run yet:
+
+```bash
+odpm database ensure-role
+```
+
+Changing **`POSTGRES_SERVICE_NAME`** or the port in `.env` causes **drift** vs the snapshot — odpm warns in plan. After renaming the postgres service, remove orphan containers: `docker compose down --remove-orphans`.
+
+Adoption does **not** reassign owners of existing Odoo databases in PostgreSQL. For `--db-drop` / `--db-restore` on such databases see [database state](../reference/database-state.md).
+
 ## Common issues
 
 - **Incompatible versions** in nested dependency `odpm.json`: warning in developer, error in `ci`.

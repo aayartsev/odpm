@@ -88,6 +88,7 @@ odpm -d test_db -i -u
 | Свой форк платформы Odoo | [platform-fork.md](scenarios/platform-fork.md) |
 | Ссылки на репозитории (git, https, file) | [git-links.md](reference/git-links.md) |
 | Все параметры командной строки | [cli.md](reference/cli.md) |
+| Состояние PostgreSQL, drift, legacy adoption | [database-state.md](reference/database-state.md) |
 | Файлы `.env`, `odpm.json`, `odoo.conf` | [справочник](reference/config-hierarchy.md) |
 | Безопасность на сервере | [security.md](operations/security.md) |
 | Переход с версии 3.0 | [migration-3-to-4.md](operations/migration-3-to-4.md) |

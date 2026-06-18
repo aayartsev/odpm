@@ -39,6 +39,26 @@
 
 Координатор проекта документирует обязательные имена для команды и CI — см. [роль координатора](../scenarios/team-coordinator.md). Отсутствующая переменная без default завершает odpm с ошибкой.
 
+## Database drift в CI и скриптах
+
+Без TTY odpm **не задаёт** вопросов о расхождении конфигурации PostgreSQL. Если обнаружен blocking drift (`data_path`, `postgres_major`, `app_role_missing` и др.), запуск завершится ошибкой.
+
+Варианты:
+
+1. Один раз разрешить drift из интерактивного терминала (`odpm` или `odpm plan`).
+2. Явно принять вид drift: **`--accept-database-drift=KIND`** (флаг можно повторять для нескольких KIND).
+3. Перед стеком восстановить роль: `odpm database ensure-role` (postgres должен быть запущен).
+
+Пример:
+
+```bash
+odpm --accept-database-drift=odpm_scenario --skip-start
+odpm database ensure-role
+odpm -d test_db -i -u
+```
+
+Подробнее: [состояние PostgreSQL](../reference/database-state.md).
+
 ## Пример для сценария сборки образа
 
 ```bash

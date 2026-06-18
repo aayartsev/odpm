@@ -67,6 +67,28 @@ odpm plan --plan-show-diff --skip-start
 | `--plan-show-diff` | Показать отличия в runtime config, compose, dockerignore |
 | `--plan-no-docker` | Не опрашивать Docker о состоянии контейнеров |
 
+Среди шагов подготовки есть **`database.drift`** — сравнение конфигурации PostgreSQL со снимком `last_run.json`. См. [состояние PostgreSQL](database-state.md).
+
+## Подкоманда `database`
+
+Инспекция и восстановление **кластера PostgreSQL** (не путать с Odoo-базами `-d`):
+
+```bash
+odpm database status
+odpm database status --format json
+odpm database ensure-role
+```
+
+| Команда | Описание |
+|---------|----------|
+| `database status` | Fingerprints, drift, проверка контейнера postgres и роли приложения |
+| `database status --format json` | То же в JSON |
+| `database ensure-role` | Создать или обновить роль приложения в запущенном PostgreSQL |
+
+Флаг **`--accept-database-drift=KIND`** (повторяемый) — принять drift без интерактивного prompt. KIND: `data_path`, `postgres_major`, `app_role_missing`, `odpm_scenario`, `data_dir_empty_changed`.
+
+Подробнее: [состояние PostgreSQL и drift](database-state.md).
+
 ## База данных и модули
 
 | Параметр | Описание |
@@ -96,7 +118,7 @@ odpm -d test_db -i --odoo-bin --stop-after-init
 | `--get-dbs-list` | Список баз |
 | `--db-backup [АРХИВ]` | Резервная копия базы `-d` в `BACKUP_DIR` |
 | `--db-restore АРХИВ` | Восстановить архив в базу `-d` |
-| `--db-drop` | Удалить базу `-d`; с `-i`/`-u` — пересоздать и установить модули |
+| `--db-drop` | Удалить Odoo-базу `-d`; с `-i`/`-u` — пересоздать и установить модули. На legacy-кластере с чужим PostgreSQL-owner odpm выполняет прямой `DROP DATABASE` |
 
 ## Переводы и администратор
 

@@ -139,6 +139,7 @@ nav:
       - odpm.json: reference/odpm-json.md
       - user_settings.json: reference/user-settings.md
       - odoo.conf: reference/odoo-conf.md
+      - Состояние PostgreSQL: reference/database-state.md
       - Параметры командной строки: reference/cli.md
       - deps.lock.json: reference/deps-lock.md
       - Структура каталога проекта: reference/project-layout.md

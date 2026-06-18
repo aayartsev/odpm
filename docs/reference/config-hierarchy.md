@@ -26,7 +26,7 @@ odpm читает **либо** `.env` в каталоге проекта, **ли
 
 ## Сгенерированные файлы
 
-`docker-compose.yml`, `.odpm/runtime/config.json`, корневой `.dockerignore` **генерируются** odpm из описания проекта и сценария. Их не следует считать местом «ручной правды» — см. [сгенерированные файлы](generated-files.md).
+`docker-compose.yml`, `.odpm/runtime/config.json`, `.odpm/database/last_run.json`, корневой `.dockerignore` **генерируются** odpm из описания проекта и сценария. Их не следует считать местом «ручной правды» — см. [сгенерированные файлы](generated-files.md) и [состояние PostgreSQL](database-state.md).
 
 ## Фиксация версий git
 

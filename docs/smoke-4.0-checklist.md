@@ -111,6 +111,28 @@ curl -sf "http://127.0.0.1:${ODOO_PORT:-8069}/web"
 
 ---
 
+## 2C — Database state v1 (4.3+)
+
+On a developer/server project with host-mounted runtime config:
+
+```bash
+cd "$ODPM_PROJECT"
+odpm database status --skip-start
+odpm plan --skip-start
+```
+
+| Check | Expected | Result | Date |
+|-------|----------|--------|------|
+| `database status` | Exit 0; table or JSON with compose fingerprints | | |
+| First run (no `last_run.json`) | Adoption on next full `odpm`; file created under `.odpm/database/` | | |
+| `odpm plan` | Step `database.drift` present (noop or run) | | |
+| Compose mount | `.odpm/database` mounted to `/run/odpm/database` in odoo service | | |
+| `database ensure-role` | Creates/updates app role when postgres is up | | |
+
+Docs: [database-state.md](reference/database-state.md).
+
+---
+
 ## 2B+ — Plan dry-run (`odpm plan` / `odpm --plan`)
 
 Run on the same migrated project as **2B** after templates are in place:

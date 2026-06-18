@@ -28,7 +28,10 @@
 
 - **`addons_path`** — полный список путей к дополнениям внутри контейнера;
 - **`data_dir`** — каталог данных Odoo внутри контейнера;
+- **`db_host`** — синхронизируется с **`POSTGRES_SERVICE_NAME`** из `.env` (имя сервиса PostgreSQL в compose);
 - маркеры базы в шаблоне — реальные значения из runtime.
+
+Если `db_host` в файле на диске не совпадает с `POSTGRES_SERVICE_NAME`, шаг **`template.odoo_conf`** пересоздаёт конфиг; в `odpm plan` появится drift **`db_host_mismatch`**. См. [состояние PostgreSQL](database-state.md).
 
 ## Когда файл пересоздаётся целиком
 
