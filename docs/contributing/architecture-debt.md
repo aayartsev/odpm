@@ -1,9 +1,9 @@
 # Architecture debt (A10 / A4 / A11) — status
 
 **Status:** G/C/E tracks **completed** on branch `4.0-beta`; **4.4 extension hub** (C-8…C-10, manifest v2, plugins) **completed** on `4.4-dev`.  
-This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
+**4.4 debt closure (phases 0–6):** см. [Debt tracker](#debt-tracker-44-closure) ниже — living tracker для аудитов и onboarding.
 
-**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **1000+ OK**, 7 skipped; CI job **`contract`** runs manifest/extension suite without Docker.
+**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **1100+ OK**, 8 skipped; CI jobs **`contract`**, **`compose-smoke`**, **`compose-smoke-mailpit`**.
 
 ---
 
@@ -68,8 +68,9 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Area | Outcome | Docs / tests |
 |------|---------|--------------|
-| Manifest v2 | dual-read, jsonschema, migrate CLI | `test_manifest_v2_reader`, `test_manifest_migrate` |
-| Locks in manifest | **DONE** | dual-source docs, plan warnings, `git.lock_verify` divergence warning |
+| Manifest v2 | dual-read, jsonschema, migrate, validate CLI | `test_manifest_v2_reader`, `test_manifest_migrate`, `test_manifest_cli` |
+| Locks in manifest | dual-source docs, plan warnings, `git.lock_verify` divergence | `test_manifest_locks_sync`, `test_plan_locks_preview` |
+| Mailpit compose smoke | manifest v2 `services.mailpit` in minimal fixture + CI | `ComposeSmokeMailpitIntegrationTests`, `ci-docker.yml` |
 | Extension registry | pluggy prepare steps, compose fragments | `test_extension_entry_points` |
 | Compose fragments | `compose.fragments` prepare step | `test_compose_fragments` |
 | Lifecycle hooks | `post_prepare`, `pre_up` | `test_manifest_hooks` |
@@ -79,15 +80,29 @@ ADR: [adr-001-extensions-and-manifest-v2.md](adr-001-extensions-and-manifest-v2.
 
 ---
 
-## Remaining micro-debt (not G/C/E)
+## Debt tracker (4.4 closure)
+
+Поэтапное закрытие техдолга после roadmap 4.4 (balanced). Детали — в плане `.cursor/plans/tech_debt_closure_*.plan.md` (локально).
+
+| Phase | Scope | Status | KPI / артефакты |
+|-------|--------|--------|-----------------|
+| **P0** | Release gate `4.4.0-beta`, green CI | **DONE** | tag `v4.4.0-beta`, CHANGELOG |
+| **P1** | TD-FEAT-09 B CI secrets bake | **DONE** | ADR-002, `ODPM_BAKE_SECRETS`, `tests/odpm_subprocess.py` |
+| **P2** | C-11 prepare boundary (`host_ctx`) | **DONE** | `test_prepare_config_coupling`, no `ctx.config` in `steps_*.py` |
+| **P3** | Version axes + manifest validate + strict v2 `services` | **DONE** | `odpm manifest validate`, `odpm-json.md` |
+| **P4** | Locks dual-source UX | **DONE** | `deps-lock.md`, `locks_preview.py`, divergence warning |
+| **P5** | Mailpit compose-smoke + golden-path criteria | **DONE** | `ODPM_COMPOSE_SMOKE_MAILPIT`, `docs/contributing/ci.md` |
+| **P6** | Documentation hygiene | **DONE** | этот tracker, `todo.md` triage, `plugins/todo_ru.md` redirect |
+
+### Open horizon (post-4.4 closure)
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 | C-11a/b slimmed prepare steps; shims remain for bootstrap boundary |
-| `DEFAULT_ODPM_VERSION` "3.0" vs `MANIFEST_V1_CONTRACT_LINE` "4.0" | **DONE** | Documented in odpm-json.md; `odpm manifest validate` |
-| Env variable refs in `odpm.json` | **DONE (MVP)** | `${VAR}` whitelist — see CHANGELOG 4.3 |
-| CI image secrets bake (TD-FEAT-09 Phase B) | **DONE** | `ODPM_BAKE_SECRETS=1` + ADR-002; `test_ci_secrets_smoke` bake cases |
-| PyYAML for compose fragments | P3 | Stage-1 stdlib renderer; revisit if external YAML fragments needed |
+| `Config` facade still central | P2 | C-11 slimmed prepare; shims at bootstrap boundary |
+| PyYAML compose engine v2 | P3 | Отложить до external YAML fragments; ADR if needed |
+| Mandatory golden-path on every PR | backlog | Критерии в [ci.md](ci.md); self-hosted capacity |
+| `hooks.post_clone`, Doodba-parity | backlog | [goals_ru.md](../../goals_ru.md) |
+| Отдельный pip package `odpm-services-mailpit` | backlog | reference spec в manifest достаточен для MVP |
 
 ---
 
@@ -109,4 +124,4 @@ New prepare/plan evaluation code should prefer:
 
 ## Next architecture work
 
-See [goals_ru.md](../../goals_ru.md) horizon items not covered by 4.4 (full Doodba-style hook surface, mandatory golden-path on every PR, etc.).
+Закрытые пункты debt closure P0–P6 — в [Debt tracker](#debt-tracker-44-closure). Новая архитектурная работа — отдельный план; горизонт: [goals_ru.md](../../goals_ru.md).

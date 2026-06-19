@@ -156,3 +156,4 @@ dependencies = ["odpm>=4.4"]
 
 - [Сгенерированные файлы](generated-files.md) — `.odpm/compose/fragments/`
 - [Примеры сервисов](../../dev_project/plugins/services_ru.md) (legacy markdown)
+- Устаревший черновик плагинов: [plugins/todo_ru.md](../../dev_project/plugins/todo_ru.md) → redirect сюда

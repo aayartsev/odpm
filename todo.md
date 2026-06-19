@@ -1,5 +1,24 @@
-- [x] Сделать загрузку requirements.txt для оду в папку docker_home и потом проверять на наличие установленных пакетов, можно так же сделать счетчик попыток
+# Исторический backlog odpm
 
+Активный техдолг и статусы фаз 4.4 — в [docs/contributing/architecture-debt.md](docs/contributing/architecture-debt.md#debt-tracker-44-closure).
+
+## Backlog (post-4.4 closure, triage 2026-06)
+
+Открытые пункты из старого списка **не блокируют** релиз 4.4; приоритет ниже debt closure P0–P6.
+
+| Тема | Было в списке | Решение | Приоритет |
+|------|---------------|---------|-----------|
+| VSCode Dev Containers | запуск через docker окружение VSCode | **Отложено** — DebuggerProfile + [vscode-debug.md](docs/operations/vscode-debug.md); отдельный devcontainer spec | P3 |
+| `pip list` в odpm CLI | команда версий пакетов в venv | **Отложено** — `docker compose exec odoo pip list` / inspect venv lock | P4 |
+| Автопоиск Python-зависимостей | поиск и добавление в проект | **Отложено** — `requirements_txt` + resolver + nested `odpm.json` покрывают основной кейс | P3 |
+| Финальный production-образ | сборка контейнера со всеми исходниками | **Отложено** — horizon; CI image bake частично закрывает ci scenario | P2 |
+| pre-commit для platform | линтеры в репозитории platform | **Отложено** — вне scope odpm manager; настраивается в git platform | P4 |
+
+---
+
+## Выполнено (архив)
+
+- [x] Сделать загрузку requirements.txt для оду в папку docker_home и потом проверять на наличие установленных пакетов, можно так же сделать счетчик попыток
 - [x] Сделать мультиязычность сообщений для пользователя и логов
 - [x] Разобраться почему логгер не работает внутри контейнера
 - [x] разбить приложение, которое запускается внутри контейнера на модули, а не хранить все в одном файле
@@ -14,23 +33,18 @@
 - [x] CI secrets bake (`ODPM_BAKE_SECRETS=1`, ADR-002, `test_ci_secrets_smoke` bake cases)
 - [x] архитектура G/C/E (A10/A4/A11): plan status — `docs/contributing/architecture-debt.md`
 - [x] надо подумать как выносить шаблон конфигурации odoo в папку проекта, чтобы разработчик мог его модифицировать под свои нужды
-- [ ] проработать вариант для запуска проекта через VSCode docker окружения
 - [x] IDE-neutral DebuggerProfile v1 + `.odpm/runtime/debug-profile.json` (profile_only; VS Code из профиля)
 - [x] TD-FEAT-08a: генератор run/debug конфигурации PyCharm из `debug-profile.json`
 - [x] TD-FEAT-08b: документация ручного attach для IDE без генератора (пути из профиля)
 - [x] рассмотреть вариант разделения файл config.json на две части: одна будет с личными настройками разработчика, а вторая с настройками самого проекта
 - [x] рассмотреть вариант использования разных версий python для разных версий odoo
 - [x] сделать каталог(правда это расходится с идеей передачи всего контекста проекта в одном файле конфигурации) для sql файлов, чтобы менеджер при развертывании базы из архива мог применять эти изменения
-- [ ] добавить команду для просмотра версий установленных python пакетов
 - [x] docker-compose up --force-recreate - проверка health compose stack (`compose_runtime.py`, условный `--force-recreate`)
 - [x] сделать возможным переход по методам системы с помощью Ctrl+Click.
 - [x] сделать автоматический парсер зависимостей oca модулей и автоматическое их добавление к проекту
-- [ ] сделать автоматический поиск python зависимостей и добавление их к проекту
 - [x] dev_mode: при `reload`/`all` в venv автоматически добавляется `inotify`, используется только в сценарии `developer` (`ScenarioPolicy.apply_dev_mode`); на server/ci — warning и параметр игнорируется
-- [ ] сделать мехнизм сборки финального контейнера со всеми исходными кодами
 - [x] архитектура: single-pass resolver зависимостей (OCA `oca_dependencies.txt` — `dependency_resolver.py`, `map_folders()` использует `_resolve_dependencies()`)
 - [x] dependency resolver: если в git-зависимости из `odpm.json` → `dependencies` есть репозиторий с `odpm.json` в корне, после clone/checkout читать оттуда `dependencies` и `requirements_txt` (по аналогии с `oca_dependencies.txt`), добавлять в resolver graph и merge Python requirements; проверять совместимость `odoo_version`, `python_version` и др. с host-проектом (warn/fail), **без** подмены platform/`odoo_git_link`; transitive URLs попадают в `.odpm/deps.lock.json` при `--update-lock`
 - [x] проработать вариант использования ссылок на переменные окружения в файлах конфигурации (`odpm.json`, `user_settings.json`; nested `odpm.json`; `${VAR}` в whitelist, `deps.lock` — resolved URL)
 - [x] автогенерация `python.analysis.extraPaths` в `.vscode/settings.json` из графа platform/developing/dependencies (Pylance)
 - [x] автоустановка `odoo-stubs` в сценарии developer (git-пин odoo-ide/odoo-stubs; Odoo ≥ 19 пропуск)
-- [ ] реализовать фичу запуска pre-commit линтеров для репозитория platform

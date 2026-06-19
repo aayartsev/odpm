@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Documentation hygiene (Phase 6)** — `architecture-debt.md` debt tracker P0–P6; `todo.md` backlog triage; `plugins/todo_ru.md` redirect to `plugins.md`; `goals_ru.md` golden-path post-4.4 backlog.
+
 - **Config slimming C-11 (prepare boundary)** — prepare steps read via `host_ctx`, `git_repos`, and `DepsLockManager` helpers instead of `ctx.config`; `SystemCheckPolicy.from_host_context`; plan compose/database previews use host paths where sufficient. Contract: `tests/test_prepare_config_coupling.py`.
 
 ### Added
