@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import json
 import pathlib
-from collections.abc import Callable
-from typing import TYPE_CHECKING
-
-from ..types import OdpmJson
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -16,7 +14,7 @@ if TYPE_CHECKING:
 def rewrite_odpm_json(
     config: Config,
     *,
-    create_default: Callable[[], OdpmJson],
+    create_default: Callable[[], Mapping[str, Any]],
 ) -> None:
     default_odpm_json_content = create_default()
     pathlib.Path(config.developing_project.project_path).mkdir(

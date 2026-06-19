@@ -92,6 +92,14 @@
         "type": "object",
         "additionalProperties": true
       }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "language": { "type": "string", "minLength": 1 },
+        "country": { "type": ["string", "null", "boolean"] }
+      }
     }
   }
 }

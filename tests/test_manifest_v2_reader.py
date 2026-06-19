@@ -87,6 +87,7 @@ class LoadManifestTests(unittest.TestCase):
             services={"mailpit": {"image": "axllent/mailpit"}},
             locks={"git": {"https://github.com/OCA/web.git 19.0": "abc123"}},
             developing={"git": "https://github.com/acme/demo.git"},
+            database={"language": "ru_RU", "country": "RU"},
         )
         view = load_manifest(raw)
         self.assertEqual(view.manifest_schema, constants.MANIFEST_SCHEMA_V2)
@@ -99,6 +100,7 @@ class LoadManifestTests(unittest.TestCase):
             {"git": {"https://github.com/OCA/web.git 19.0": "abc123"}},
         )
         self.assertEqual(view.raw_normalized["odoo_version"], "19.0")
+        self.assertEqual(view.source_raw["database"]["language"], "ru_RU")
 
     def test_v2_invalid_schema_raises(self):
         broken = _minimal_v2()
