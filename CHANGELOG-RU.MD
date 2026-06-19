@@ -8,6 +8,18 @@
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-06-19
+
+**Релизная линия 4.3.0; формат manifest `odpm.json` (`odpm_version`) и `odpm --version` остаются на линии 4.0.**
+
+### Добавлено
+
+- **Database state v1** — `.odpm/database/last_run.json` фиксирует конфигурацию кластера PostgreSQL (compose-сервис, путь к данным, настройки БД в `odoo.conf`, роль приложения). Пакет `dev_project/database/`: обнаружение drift, `odpm database status` / `odpm database ensure-role`, интерактивное разрешение drift с `--accept-database-drift=KIND`, шаг prepare `database.drift` в `odpm plan`, **adoption baseline** для legacy-проектов при первом запуске, восстановление `postgres_admin` для кластеров без login-ролей. Checker проверяет учётные данные PostgreSQL и записывает `last_run` из контейнера; монтирование `.odpm/database` в сервис odoo. Документация: `docs/reference/database-state.md`, обновления `cli.md`, `legacy-project.md`, `non-interactive.md`, `generated-files.md`, `project-layout.md`, `odoo-conf.md`, smoke checklist.
+
+### Исправлено
+
+- **`--db-drop` на legacy-кластерах** — если БД Odoo существует, но принадлежит другой роли PostgreSQL, `exp_drop` Odoo молча пропускался; checker теперь выполняет прямой `DROP DATABASE` и выбрасывает `PostgresError`, если БД осталась.
+
 ## [4.3-rc1] - 2026-06-08
 
 **Релизная линия 4.3-rc1; формат manifest `odpm.json` (`odpm_version`) и `odpm --version` остаются на линии 4.0.**

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-06-19
+
+**Release line 4.3.0; `odpm.json` manifest format (`odpm_version`) and `odpm --version` remain 4.0.**
+
 ### Added
 
 - **Database state v1** — `.odpm/database/last_run.json` fingerprints PostgreSQL cluster configuration (compose service, data path, `odoo.conf` db settings, application role). Package `dev_project/database/`: drift detection, `odpm database status` / `odpm database ensure-role`, interactive drift resolution with `--accept-database-drift=KIND`, prepare step `database.drift` in `odpm plan`, legacy **adoption baseline** on first run, `postgres_admin` recovery for clusters without login roles. Checker verifies PostgreSQL credentials and records `last_run` from the container; mount `.odpm/database` into the odoo service. Docs: `docs/reference/database-state.md`, updates to `cli.md`, `legacy-project.md`, `non-interactive.md`, `generated-files.md`, `project-layout.md`, `odoo-conf.md`, smoke checklist.

@@ -1,12 +1,12 @@
 # odpm RPM spec — Fedora 40+ (host Python >= 3.10; pyproject PEP 517 macros).
-# Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.3-rc1).
+# Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.3.0).
 # ODPM_VERSION (4.0) is the odpm.json manifest line, not the package release.
 
 %global srcname odpm
 
 Name:           %{srcname}
-Version:        4.3
-Release:        rc1%{?dist}
+Version:        4.3.0
+Release:        1%{?dist}
 Summary:        Declarative developer environment manager (odpm)
 License:        GPL-3.0-or-later
 URL:            https://github.com/aayartsev/odpm
@@ -51,6 +51,8 @@ PostgreSQL and Odoo). Zero PyPI runtime dependencies.
 %{python3_sitelib}/odpm-*.dist-info/
 
 %changelog
+* Thu Jun 19 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.3.0-1
+- Stable release 4.3.0. Manifest format odpm_version remains 4.0.
 * Mon Jun 08 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.3-rc1
 - Pre-release 4.3-rc1. Manifest format odpm_version remains 4.0.
 * Mon Jun 08 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.0-1
