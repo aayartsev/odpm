@@ -143,8 +143,14 @@ msgstr "Если вы хотите сбросить настройки этог�
 msgid "Invalid choice. Please enter one of: {CHOICES}"
 msgstr "Неверный выбор. Введите один из вариантов: {CHOICES}"
 
-msgid "Invalid manifest v2 odpm.json at {PATH}: {DETAIL}"
-msgstr "Недопустимый manifest v2 odpm.json в {PATH}: {DETAIL}"
+msgid "Invalid manifest hook {PHASE}: empty command"
+msgstr "Недопустимый manifest hook {PHASE}: пустая команда"
+
+msgid "Invalid manifest hook {PHASE}: empty plugin id"
+msgstr "Недопустимый manifest hook {PHASE}: пустой id плагина"
+
+msgid "Invalid manifest hook {PHASE}: expected command argv or plugin id"
+msgstr "Недопустимый manifest hook {PHASE}: ожидается argv команды или id плагина"
 
 msgid "Invalid manifest_schema value {VALUE!r}; expected an integer."
 msgstr "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
@@ -152,8 +158,26 @@ msgstr "Недопустимое значение manifest_schema {VALUE!r}; о�
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия (например 4.4 или 4.4.0)."
 
+msgid "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
+msgstr "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
+
+msgid "Manifest at {PATH} is valid ({SCHEMA} JSON Schema)."
+msgstr "Манифест {PATH} корректен (JSON Schema {SCHEMA})."
+
+msgid "Manifest file not found at {PATH}."
+msgstr "Файл манифеста не найден: {PATH}."
+
+msgid "Manifest hook {PHASE} failed: {COMMAND}"
+msgstr "Manifest hook {PHASE} завершился с ошибкой: {COMMAND}"
+
+msgid "Manifest is already manifest_schema 2."
+msgstr "Манифест уже использует manifest_schema 2."
+
 msgid "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
 msgstr "Manifest требует odpm менеджер {REQUIRES} или новее; текущий менеджер {ODPM_VERSION}."
+
+msgid "Manifest root must be a JSON object."
+msgstr "Корень манифеста должен быть JSON-объектом."
 
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
@@ -169,6 +193,9 @@ msgstr "Нет доступной административной роли Post
 
 msgid "No database last_run snapshot yet; baseline will be adopted automatically on startup."
 msgstr "Снимок last_run для БД ещё не создан; baseline будет принят автоматически при запуске."
+
+msgid "No manifest changes to apply."
+msgstr "Нет изменений манифеста для применения."
 
 msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
 msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
@@ -344,6 +371,9 @@ msgstr "Чтобы использовать другой каталог данн
 msgid "Unexpected PostgreSQL connection error: {DETAIL}"
 msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
 
+msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
+msgstr "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
+
 msgid "Unsupported manifest_schema {SCHEMA}."
 msgstr "Неподдерживаемый manifest_schema {SCHEMA}."
 
@@ -358,6 +388,9 @@ msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
 
 msgid "When Odoo is ready, open http://localhost:{ODOO_PORT}"
 msgstr "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
+
+msgid "Wrote manifest v2 to {PATH}."
+msgstr "Записан manifest v2 в {PATH}."
 
 msgid "You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"
 msgstr "Вы не указали разрабатываемый проект. Вы можете указать это при использовании --init команды. Например: '--init file:///home/user/projects/your_directory_for_project' или напрямую из git репозитория --init https://github.com/aayartsev/odoo_demo_project.git'. Вы так же можете указать это в файле user_settings.json в ключе 'developing_project'"
@@ -422,21 +455,6 @@ msgstr "Конфигурация БД совпадает со снимком las
 msgid "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
 msgstr "Укажите подкоманду database: \"odpm database status\" или \"odpm database ensure-role\"."
 
-msgid "Manifest is already manifest_schema 2."
-msgstr "Манифест уже использует manifest_schema 2."
-
-msgid "Manifest file not found at {PATH}."
-msgstr "Файл манифеста не найден: {PATH}."
-
-msgid "manifest subcommand required: use \"odpm manifest migrate\"."
-msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\"."
-
-msgid "No manifest changes to apply."
-msgstr "Нет изменений манифеста для применения."
-
-msgid "Wrote manifest v2 to {PATH}."
-msgstr "Записан manifest v2 в {PATH}."
-
 msgid "docker build failed with exit code {EXIT_CODE}"
 msgstr "docker build завершился с кодом {EXIT_CODE}"
 
@@ -445,6 +463,9 @@ msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
 msgid "first database run (no last_run snapshot yet)"
 msgstr "Первый запуск БД (снимок last_run ещё не создан)"
+
+msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
+msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\" или \"odpm manifest validate\"."
 
 msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
 msgstr "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."

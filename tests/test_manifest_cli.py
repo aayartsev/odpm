@@ -56,6 +56,24 @@ class ManifestValidateCommandTests(unittest.TestCase):
             code = run_manifest_command(cli_args, config)
             self.assertEqual(code, 0)
 
+    def test_validate_v2_manifest_ok(self):
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_path = f"{tmp}/developing/odpm.json"
+            import os
+
+            os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+            with open(manifest_path, "w", encoding="utf-8") as handle:
+                json.dump(_minimal_v2(), handle)
+
+            config = MagicMock()
+            config.repo_odpm_json = manifest_path
+
+            cli_args = parse_cli_args(["manifest", "validate"])
+            code = run_manifest_command(cli_args, config)
+            self.assertEqual(code, 0)
+
     def test_validate_rejects_invalid_v2_service(self):
         from tests.test_manifest_v2_reader import _minimal_v2
 

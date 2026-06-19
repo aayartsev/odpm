@@ -90,6 +90,9 @@ RU_MESSAGES: dict[str, str] = {
     "No database last_run snapshot yet; baseline will be adopted automatically on startup.": (
         "Снимок last_run для БД ещё не создан; baseline будет принят автоматически при запуске."
     ),
+    "No manifest changes to apply.": (
+        "Нет изменений манифеста для применения."
+    ),
     "No PostgreSQL admin role is available for service {SERVICE}.": (
         "Нет доступной административной роли PostgreSQL для сервиса {SERVICE}."
     ),
@@ -271,8 +274,17 @@ RU_MESSAGES: dict[str, str] = {
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
     ),
-    "Invalid manifest v2 odpm.json at {PATH}: {DETAIL}": (
-        "Недопустимый manifest v2 odpm.json в {PATH}: {DETAIL}"
+    "Invalid manifest hook {PHASE}: empty command": (
+        "Недопустимый manifest hook {PHASE}: пустая команда"
+    ),
+    "Invalid manifest hook {PHASE}: empty plugin id": (
+        "Недопустимый manifest hook {PHASE}: пустой id плагина"
+    ),
+    "Invalid manifest hook {PHASE}: expected command argv or plugin id": (
+        "Недопустимый manifest hook {PHASE}: ожидается argv команды или id плагина"
+    ),
+    "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}": (
+        "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
     ),
     "Invalid manifest_schema value {VALUE!r}; expected an integer.": (
         "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
@@ -299,10 +311,30 @@ RU_MESSAGES: dict[str, str] = {
         "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_version {NESTED_VERSION}, "
         "в host-проекте используется {HOST_VERSION}"
     ),
+    "Manifest at {PATH} is valid ({SCHEMA} JSON Schema).": (
+        "Манифест {PATH} корректен (JSON Schema {SCHEMA})."
+    ),
+    "Manifest file not found at {PATH}.": (
+        "Файл манифеста не найден: {PATH}."
+    ),
+    "Manifest hook {PHASE} failed: {COMMAND}": (
+        "Manifest hook {PHASE} завершился с ошибкой: {COMMAND}"
+    ),
+    "Manifest is already manifest_schema 2.": (
+        "Манифест уже использует manifest_schema 2."
+    ),
+    "Manifest root must be a JSON object.": (
+        "Корень манифеста должен быть JSON-объектом."
+    ),
     "Manifest requires odpm manager {REQUIRES} or newer; "
     "current manager is {ODPM_VERSION}.": (
         "Manifest требует odpm менеджер {REQUIRES} или новее; "
         "текущий менеджер {ODPM_VERSION}."
+    ),
+    'manifest subcommand required: use "odpm manifest migrate" or '
+    '"odpm manifest validate".': (
+        'Укажите подкоманду manifest: "odpm manifest migrate" или '
+        '"odpm manifest validate".'
     ),
     "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
         "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
@@ -464,6 +496,9 @@ RU_MESSAGES: dict[str, str] = {
         "Неподдерживаемый manifest_schema {SCHEMA}; этот менеджер поддерживает "
         "manifest_schema до {MAX_SCHEMA}."
     ),
+    "Unknown manifest hook plugin id: {PLUGIN_ID}": (
+        "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
+    ),
     "Unsupported odpm.json contract line {CONTRACT}; supported values are "
     "{SUPPORTED}.": (
         "Неподдерживаемая строка контракта odpm.json {CONTRACT}; допустимые "
@@ -587,6 +622,9 @@ RU_MESSAGES: dict[str, str] = {
     "Project files are ready.": "Файлы проекта готовы.",
     "Starting containers with Docker Compose...": (
         "Запуск контейнеров через Docker Compose..."
+    ),
+    "Wrote manifest v2 to {PATH}.": (
+        "Записан manifest v2 в {PATH}."
     ),
     "When Odoo is ready, open http://localhost:{ODOO_PORT}": (
         "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
