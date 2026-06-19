@@ -143,6 +143,9 @@ msgstr "Если вы хотите сбросить настройки этог�
 msgid "Invalid choice. Please enter one of: {CHOICES}"
 msgstr "Неверный выбор. Введите один из вариантов: {CHOICES}"
 
+msgid "Invalid manifest v2 odpm.json at {PATH}: {DETAIL}"
+msgstr "Недопустимый manifest v2 odpm.json в {PATH}: {DETAIL}"
+
 msgid "Invalid manifest_schema value {VALUE!r}; expected an integer."
 msgstr "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
 

@@ -45,6 +45,15 @@ def parse_manifest_version_info(raw: dict[str, Any]) -> ManifestVersionInfo:
         requires_odpm = None
         if requires is not None:
             requires_odpm = str(requires).strip() or None
+        if schema == constants.MANIFEST_SCHEMA_V1:
+            contract = str(
+                raw.get("odpm_version", constants.DEFAULT_ODPM_VERSION)
+            ).strip()
+            return ManifestVersionInfo(
+                manifest_schema=schema,
+                v1_contract_line=contract,
+                requires_odpm=requires_odpm,
+            )
         return ManifestVersionInfo(
             manifest_schema=schema,
             requires_odpm=requires_odpm,

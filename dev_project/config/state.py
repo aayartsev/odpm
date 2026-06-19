@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from typing import TYPE_CHECKING, Any, Callable, Union
+
 from ..host.cli.args import OdpmCliArgs
-from typing import Any, Callable, Union
+
+if TYPE_CHECKING:
+    from ..manifest.reader import ManifestView
 
 from .. import constants
 from ..git import HandleOdooProjectLink
@@ -145,6 +149,7 @@ class BootstrapState:
     project_odpm_json: str = ""
     raw_user_settings: dict = field(default_factory=dict)
     raw_odpm_json: dict = field(default_factory=dict)
+    manifest_view: ManifestView | None = None
     user_loaded: bool = False
     project_loaded: bool = False
 

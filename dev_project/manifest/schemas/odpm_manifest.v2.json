@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "odpm://schemas/odpm_manifest.v2.json",
+  "title": "odpm.json manifest v2 (nested)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_schema",
+    "requires_odpm",
+    "platform",
+    "python",
+    "distro",
+    "postgres"
+  ],
+  "properties": {
+    "manifest_schema": {
+      "type": "integer",
+      "const": 2
+    },
+    "requires_odpm": {
+      "type": "string",
+      "minLength": 1
+    },
+    "odoo_version": {
+      "type": ["string", "number"]
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["git"],
+      "properties": {
+        "git": { "type": "string", "minLength": 1 },
+        "build_date": { "type": "string" }
+      }
+    },
+    "python": { "type": "string", "minLength": 1 },
+    "distro": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "postgres": { "type": "string", "minLength": 1 },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "requirements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "developing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "git": { "type": "string", "minLength": 1 }
+      }
+    },
+    "platform_name": { "type": "string" },
+    "arch": { "type": "string" },
+    "locks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "git": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "venv": { "type": "string" }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "post_prepare": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "pre_up": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  }
+}

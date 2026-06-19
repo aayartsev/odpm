@@ -271,6 +271,9 @@ RU_MESSAGES: dict[str, str] = {
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
     ),
+    "Invalid manifest v2 odpm.json at {PATH}: {DETAIL}": (
+        "Недопустимый manifest v2 odpm.json в {PATH}: {DETAIL}"
+    ),
     "Invalid manifest_schema value {VALUE!r}; expected an integer.": (
         "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
     ),

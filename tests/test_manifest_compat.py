@@ -31,6 +31,13 @@ class ParseManifestVersionInfoTests(unittest.TestCase):
         self.assertEqual(info.requires_odpm, "4.4")
         self.assertIsNone(info.v1_contract_line)
 
+    def test_explicit_manifest_schema_v1_reads_odpm_version(self):
+        info = parse_manifest_version_info(
+            {"manifest_schema": 1, "odpm_version": "4.0"}
+        )
+        self.assertEqual(info.manifest_schema, constants.MANIFEST_SCHEMA_V1)
+        self.assertEqual(info.v1_contract_line, "4.0")
+
 
 class AssertManagerSupportsManifestTests(unittest.TestCase):
     def test_v1_contract_4_0_accepted_by_manager_4_4(self):

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "odpm://schemas/odpm_manifest.v1.json",
+  "title": "odpm.json manifest v1 (flat)",
+  "description": "Legacy flat odpm.json shape; additionalProperties allowed for forward-compatible keys.",
+  "type": "object",
+  "properties": {
+    "odpm_version": { "type": "string" },
+    "odoo_version": { "type": ["string", "number"] },
+    "python_version": { "type": "string" },
+    "distro_name": { "type": "string" },
+    "distro_version": { "type": "string" },
+    "postgres_version": { "type": "string" },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "requirements_txt": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "odoo_git_link": { "type": "string" },
+    "odoo_build_date": { "type": "string" },
+    "platform_name": { "type": "string" },
+    "arch": { "type": "string" }
+  },
+  "additionalProperties": true
+}

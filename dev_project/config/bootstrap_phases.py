@@ -10,7 +10,6 @@ from ..translations import _
 from ..dev_mode import effective_dev_mode, merge_autoreload_requirements
 from ..errors import ConfigError
 from ..logging import get_module_logger
-from ..manifest.compat import assert_manager_supports_manifest
 from .transforms import beautify_module_list
 from .state import project_settings_from_raw, user_settings_from_raw
 
@@ -66,7 +65,6 @@ def load_project_settings(config: Config) -> None:
     if not os.path.exists(config.bootstrap.repo_odpm_json):
         ctx.rewrite_odpm_json()
 
-    assert_manager_supports_manifest(config.bootstrap.raw_odpm_json)
     config._project = project_settings_from_raw(
         config.bootstrap.raw_odpm_json,
         config.arguments,

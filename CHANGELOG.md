@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Manifest v2 core (4.4)** — JSON Schema files `odpm_manifest.v1.json` / `v2.json`, `dev_project/manifest/schema.py` and `reader.py` (dual-read v1 flat | v2 nested → normalized flat `ManifestView`). Bootstrap loads via `OdpmJsonReader` → env expand on flat projection; v2 `hooks` / `services` / `locks` on `BootstrapState.manifest_view`. Tests: `tests/test_manifest_v2_reader.py`.
+
 - **Config hub C-8…C-10 (4.4)** — `AddonLayoutState` for addon catalogs and developing subprojects; prepare steps read project paths and policy via `HostProjectContext`; `ConfigPaths.apply_docker_layout()` writes to `docker_layout` slice. Property shims on `Config` preserved.
 
 - **ADR-001 and manifest version model (4.4)** — [docs/contributing/adr-001-extensions-and-manifest-v2.md](docs/contributing/adr-001-extensions-and-manifest-v2.md): separate axes `ODPM_VERSION` (manager `4.4`), `RELEASE_VERSION` (`4.4.0-alpha`), `manifest_schema` / `requires_odpm` (v2), legacy flat `odpm_version` contract line (`4.0`). Package `dev_project/manifest/compat.py` replaces float `odpm_version` vs manager check; v1 `odpm_version: "4.0"` works on manager 4.4. Runtime deps: `jsonschema`, `pluggy`. Tests: `tests/test_manifest_compat.py`. Docs: [packaging.md](docs/contributing/packaging.md).
