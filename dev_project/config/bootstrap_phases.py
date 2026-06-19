@@ -5,12 +5,12 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from .. import constants
 from ..debugger.user_env import resolve_debugger_backend_id
 from ..translations import _
 from ..dev_mode import effective_dev_mode, merge_autoreload_requirements
 from ..errors import ConfigError
 from ..logging import get_module_logger
+from ..manifest.compat import assert_manager_supports_manifest
 from .transforms import beautify_module_list
 from .state import project_settings_from_raw, user_settings_from_raw
 
@@ -66,18 +66,12 @@ def load_project_settings(config: Config) -> None:
     if not os.path.exists(config.bootstrap.repo_odpm_json):
         ctx.rewrite_odpm_json()
 
+    assert_manager_supports_manifest(config.bootstrap.raw_odpm_json)
     config._project = project_settings_from_raw(
         config.bootstrap.raw_odpm_json,
         config.arguments,
         odoo_build_date=ctx.build_date.get_effective_odoo_build_date(),
     )
-    if float(config.project_odpm_version) < float(constants.ODPM_VERSION):
-        message = _('Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project.').format(
-            PROJECT_ODPM_VERSION=config.project_odpm_version,
-            ODPM_VERSION=constants.ODPM_VERSION,
-        )
-        _logger.warning(message)
-        raise ConfigError(message)
     config.bootstrap.project_loaded = True
 
 

@@ -9,6 +9,7 @@
 | [Переводы интерфейса](i18n.md) | gettext, каталоги ru_RU |
 | [Сборка пакетов](packaging.md) | deb, rpm, wheel |
 | [Architecture debt (status)](architecture-debt.md) | Ретроспектива G/C/E (A10, A4, A11) |
+| [ADR-001: extensions and manifest v2](adr-001-extensions-and-manifest-v2.md) | Версии, manifest v2, plugins, locks |
 | [Переименование модулей 4.0→4.1](imports-migration.md) | Таблица импортов Python |
 
 Пользовательская документация по работе **с Odoo через odpm**: [оглавление](../README.md).

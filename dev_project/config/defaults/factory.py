@@ -198,7 +198,7 @@ class ConfigDefaultsFactory:
                     self.config.arguments.platform_name or constants.PLATFORM_NAME,
                 ),
                 odpm_version=self.config._raw_odpm_json.get(
-                    "odpm_version", constants.ODPM_VERSION
+                    "odpm_version", constants.MANIFEST_V1_CONTRACT_LINE
                 ),
             )
 
@@ -244,6 +244,6 @@ class ConfigDefaultsFactory:
                 self.config.arguments.platform_name or constants.PLATFORM_NAME,
             ),
             odpm_version=self.config._raw_odpm_json.get(
-                "odpm_version", constants.ODPM_VERSION
+                "odpm_version", constants.MANIFEST_V1_CONTRACT_LINE
             ),
         )

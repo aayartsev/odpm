@@ -143,6 +143,15 @@ msgstr "Если вы хотите сбросить настройки этог�
 msgid "Invalid choice. Please enter one of: {CHOICES}"
 msgstr "Неверный выбор. Введите один из вариантов: {CHOICES}"
 
+msgid "Invalid manifest_schema value {VALUE!r}; expected an integer."
+msgstr "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
+
+msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
+msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия (например 4.4 или 4.4.0)."
+
+msgid "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
+msgstr "Manifest требует odpm менеджер {REQUIRES} или новее; текущий менеджер {ODPM_VERSION}."
+
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
 
@@ -332,11 +341,17 @@ msgstr "Чтобы использовать другой каталог данн
 msgid "Unexpected PostgreSQL connection error: {DETAIL}"
 msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
 
+msgid "Unsupported manifest_schema {SCHEMA}."
+msgstr "Неподдерживаемый manifest_schema {SCHEMA}."
+
+msgid "Unsupported manifest_schema {SCHEMA}; this manager supports manifest_schema up to {MAX_SCHEMA}."
+msgstr "Неподдерживаемый manifest_schema {SCHEMA}; этот менеджер поддерживает manifest_schema до {MAX_SCHEMA}."
+
+msgid "Unsupported odpm.json contract line {CONTRACT}; supported values are {SUPPORTED}."
+msgstr "Неподдерживаемая строка контракта odpm.json {CONTRACT}; допустимые значения: {SUPPORTED}."
+
 msgid "Updated PostgreSQL application role {ROLE}."
 msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
-
-msgid "Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project."
-msgstr "Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте версию менеджера соотвествующую версии odpm в проекте. Или созданй новый проект"
 
 msgid "When Odoo is ready, open http://localhost:{ODOO_PORT}"
 msgstr "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
@@ -412,6 +427,9 @@ msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
 msgid "first database run (no last_run snapshot yet)"
 msgstr "Первый запуск БД (снимок last_run ещё не создан)"
+
+msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
+msgstr "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
 
 msgid "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS})."
 msgstr "В odoo.conf db_host ({CURRENT}) не совпадает с именем сервиса postgres ({PREVIOUS})."

@@ -1,12 +1,12 @@
 # odpm RPM spec — Fedora 40+ (host Python >= 3.10; pyproject PEP 517 macros).
-# Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.3-rc1).
-# ODPM_VERSION (4.0) is the odpm.json manifest line, not the package release.
+# Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.4.0-alpha).
+# ODPM_VERSION (4.4) is the manager line; flat odpm.json contract line stays 4.0 until v2 migrate.
 
 %global srcname odpm
 
 Name:           %{srcname}
-Version:        4.3
-Release:        rc1%{?dist}
+Version:        4.4
+Release:        0.alpha%{?dist}
 Summary:        Declarative developer environment manager (odpm)
 License:        GPL-3.0-or-later
 URL:            https://github.com/aayartsev/odpm
@@ -19,6 +19,8 @@ BuildRequires:  python3-wheel
 BuildRequires:  python3-packaging
 
 Requires:       python3-packaging
+Requires:       python3-jsonschema
+Requires:       python3-pluggy
 Requires:       git
 Recommends:     moby-engine
 Recommends:     docker
@@ -27,7 +29,7 @@ Recommends:     docker
 Declarative environment manager for Odoo development projects.
 Reads the odpm project descriptor from a repository and prepares
 Docker-based development stacks (clone sources, build images, compose up
-PostgreSQL and Odoo). Zero PyPI runtime dependencies.
+PostgreSQL and Odoo). Host CLI uses jsonschema and pluggy (PyPI or distro packages).
 
 %prep
 %autosetup -n %{srcname}-%{version}

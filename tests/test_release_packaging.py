@@ -12,18 +12,19 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 class ReleasePackagingVersionTests(unittest.TestCase):
-    def test_manifest_and_release_versions_differ_by_design(self):
-        self.assertEqual(constants.ODPM_VERSION, "4.0")
-        self.assertEqual(constants.RELEASE_VERSION, "4.3-rc1")
+    def test_manager_and_release_versions_differ_by_design(self):
+        self.assertEqual(constants.ODPM_VERSION, "4.4")
+        self.assertEqual(constants.RELEASE_VERSION, "4.4.0-alpha")
+        self.assertEqual(constants.MANIFEST_V1_CONTRACT_LINE, "4.0")
 
     def test_debian_changelog_matches_release_line(self):
         changelog = (PROJECT_ROOT / "debian" / "changelog").read_text(encoding="utf-8")
-        self.assertRegex(changelog, r"^odpm \(4\.3\.0~rc1-1\)", re.MULTILINE)
+        self.assertRegex(changelog, r"^odpm \(4\.4\.0~alpha-1\)", re.MULTILINE)
 
     def test_rpm_spec_matches_release_line(self):
         spec = (PROJECT_ROOT / "packaging" / "odpm.spec").read_text(encoding="utf-8")
-        self.assertIn("Version:        4.3", spec)
-        self.assertIn("Release:        rc1%{?dist}", spec)
+        self.assertIn("Version:        4.4", spec)
+        self.assertIn("Release:        0.alpha%{?dist}", spec)
 
     def test_release_version_parses_for_rpm(self):
         match = re.fullmatch(
@@ -31,8 +32,8 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         )
         self.assertIsNotNone(match)
         assert match is not None
-        self.assertEqual(match.group(1), "4.3")
-        self.assertEqual(match.group(2), "rc1")
+        self.assertEqual(match.group(1), "4.4.0")
+        self.assertEqual(match.group(2), "alpha")
 
 
 if __name__ == "__main__":

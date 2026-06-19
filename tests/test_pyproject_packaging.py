@@ -39,6 +39,8 @@ class PyprojectPackagingTests(unittest.TestCase):
     def test_runtime_dependencies_include_packaging(self):
         dependencies = _load_pyproject()["project"]["dependencies"]
         self.assertTrue(any(dep.startswith("packaging>=") for dep in dependencies))
+        self.assertTrue(any(dep.startswith("jsonschema>=") for dep in dependencies))
+        self.assertTrue(any(dep.startswith("pluggy>=") for dep in dependencies))
 
     def test_project_urls_and_license(self):
         project = _load_pyproject()["project"]

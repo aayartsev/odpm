@@ -6,8 +6,13 @@ Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/rel
 
 | Constant / artifact | Example | Meaning |
 |---------------------|---------|---------|
-| `RELEASE_VERSION` | `4.3-rc1` | Git tag (`v4.3-rc1`), deb/rpm filenames, GitHub Release title |
-| `ODPM_VERSION` | `4.0` | `odpm.json` → `odpm_version`, `odpm --version`, pip wheel metadata |
+| `RELEASE_VERSION` | `4.4.0-alpha` | Git tag (`v4.4.0-alpha`), deb/rpm filenames, GitHub Release title |
+| `ODPM_VERSION` | `4.4` | `odpm --version`, pip wheel metadata (manager line) |
+| `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new projects |
+| `manifest_schema` | `1`, `2` | Manifest shape in `odpm.json` (v2 field) |
+| `requires_odpm` | `4.4` | Minimum manager for manifest v2 |
+
+See [ADR-001](adr-001-extensions-and-manifest-v2.md) for compatibility rules and v2 nested shape.
 
 Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release.
 

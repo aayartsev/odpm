@@ -121,7 +121,7 @@ class OdpmJsonWriterTests(unittest.TestCase):
             )
             default_content = {
                 "odoo_version": "19.0",
-                "odpm_version": constants.ODPM_VERSION,
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
             }
             create_default = MagicMock(return_value=default_content)
             rewrite_odpm_json(config, create_default=create_default)
@@ -264,7 +264,7 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
             odoo_git_link=None,
             platform_name=None,
         )
-        config._raw_odpm_json = {"odpm_version": constants.ODPM_VERSION}
+        config._raw_odpm_json = {"odpm_version": constants.MANIFEST_V1_CONTRACT_LINE}
 
         content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
 
@@ -394,7 +394,7 @@ class OdpmJsonReaderTests(unittest.TestCase):
             odpm_content = {
                 "odoo_version": "17.0",
                 "python_version": "3.10",
-                "odpm_version": constants.ODPM_VERSION,
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
             }
             odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
             Path(odpm_path).write_text(json.dumps(odpm_content), encoding="utf-8")
@@ -428,7 +428,7 @@ class OdpmJsonReaderTests(unittest.TestCase):
             os.makedirs(dev_path)
             odpm_content = {
                 "odoo_version": "17.${ODOO_VER}",
-                "odpm_version": constants.ODPM_VERSION,
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
                 "odoo_git_link": "file://${ODOO_PLATFORM_DIR}",
                 "dependencies": [
                     "file://${OCA_WEB_PATH}",
@@ -816,7 +816,7 @@ class ConfigStateSliceTests(unittest.TestCase):
             "odoo_version": "18.0",
             "python_version": "3.12",
             "platform_name": "odoo",
-            "odpm_version": constants.ODPM_VERSION,
+            "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
         }
         config.arguments = OdpmCliArgs(
             odoo_version=None,

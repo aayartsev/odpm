@@ -44,7 +44,7 @@ class MinimalOdpmFixtureTests(unittest.TestCase):
 
             self.assertEqual(user_settings["developing_project"], developing.as_uri())
             self.assertEqual(odpm_json["odoo_git_link"], platform.as_uri())
-            self.assertEqual(odpm_json["odpm_version"], constants.ODPM_VERSION)
+            self.assertEqual(odpm_json["odpm_version"], constants.MANIFEST_V1_CONTRACT_LINE)
             self.assertFalse(user_settings["check_system"])
             self.assertFalse(user_settings["create_module_links"])
 

@@ -25,7 +25,9 @@ classifiers = [
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
+    "jsonschema>=4.0",
     "packaging>=23.0",
+    "pluggy>=1.5",
 ]
 
 [project.optional-dependencies]
@@ -51,6 +53,7 @@ version = { attr = "dev_project.constants.ODPM_VERSION" }
 [tool.setuptools.package-data]
 dev_project = [
     "container_config/schemas/*.json",
+    "manifest/schemas/*.json",
     "templates/*",
     "i18n/**/LC_MESSAGES/*.mo",
 ]

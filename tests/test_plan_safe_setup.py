@@ -81,7 +81,7 @@ class PlanSafeBootstrapTests(unittest.TestCase):
         config._raw_odpm_json = {
             "odoo_version": "18.0",
             "python_version": "3.12",
-            "odpm_version": constants.ODPM_VERSION,
+            "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
         }
         config.arguments = OdpmCliArgs(
             odoo_version=None,

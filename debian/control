@@ -21,10 +21,12 @@ Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
          python3-packaging,
+         python3-jsonschema,
+         python3-pluggy,
          git,
 Recommends: docker.io | moby-engine | docker-ce,
 Description: Odoo Developers Project Manager
  Declarative environment manager for Odoo development projects.
  Reads odpm.json from a project repository and prepares Docker-based
  development stacks (clone sources, build images, compose up PostgreSQL
- and Odoo). Zero runtime Python dependencies beyond the system interpreter.
+ and Odoo). Host CLI uses jsonschema and pluggy.

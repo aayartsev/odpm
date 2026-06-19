@@ -1,3 +1,9 @@
+odpm (4.4.0~alpha-1) unstable; urgency=medium
+
+  * Development release 4.4.0-alpha on branch 4.4-dev (ADR-001, manager 4.4).
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Mon, 16 Jun 2026 12:00:00 +0000
+
 odpm (4.3.0~rc1-1) unstable; urgency=medium
 
   * Pre-release 4.3-rc1 (see CHANGELOG.md). Manifest format `odpm_version` remains 4.0.

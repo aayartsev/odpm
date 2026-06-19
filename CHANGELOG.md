@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **ADR-001 and manifest version model (4.4)** — [docs/contributing/adr-001-extensions-and-manifest-v2.md](docs/contributing/adr-001-extensions-and-manifest-v2.md): separate axes `ODPM_VERSION` (manager `4.4`), `RELEASE_VERSION` (`4.4.0-alpha`), `manifest_schema` / `requires_odpm` (v2), legacy flat `odpm_version` contract line (`4.0`). Package `dev_project/manifest/compat.py` replaces float `odpm_version` vs manager check; v1 `odpm_version: "4.0"` works on manager 4.4. Runtime deps: `jsonschema`, `pluggy`. Tests: `tests/test_manifest_compat.py`. Docs: [packaging.md](docs/contributing/packaging.md).
+
 - **Database state v1** — `.odpm/database/last_run.json` fingerprints PostgreSQL cluster configuration (compose service, data path, `odoo.conf` db settings, application role). Package `dev_project/database/`: drift detection, `odpm database status` / `odpm database ensure-role`, interactive drift resolution with `--accept-database-drift=KIND`, prepare step `database.drift` in `odpm plan`, legacy **adoption baseline** on first run, `postgres_admin` recovery for clusters without login roles. Checker verifies PostgreSQL credentials and records `last_run` from the container; mount `.odpm/database` into the odoo service. Docs: `docs/reference/database-state.md`, updates to `cli.md`, `legacy-project.md`, `non-interactive.md`, `generated-files.md`, `project-layout.md`, `odoo-conf.md`, smoke checklist.
 
 ### Fixed

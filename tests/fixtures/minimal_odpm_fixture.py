@@ -41,7 +41,7 @@ def provision_minimal_odpm_project(project_dir: Path) -> Path:
     )
 
     odpm_json = json.loads((developing / "odpm.json").read_text(encoding="utf-8"))
-    odpm_json["odpm_version"] = constants.ODPM_VERSION
+    odpm_json["odpm_version"] = constants.MANIFEST_V1_CONTRACT_LINE
     odpm_json["odoo_git_link"] = platform.as_uri()
     (developing / "odpm.json").write_text(
         json.dumps(odpm_json, indent=2) + "\n",

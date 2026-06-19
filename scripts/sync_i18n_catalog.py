@@ -271,6 +271,14 @@ RU_MESSAGES: dict[str, str] = {
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
     ),
+    "Invalid manifest_schema value {VALUE!r}; expected an integer.": (
+        "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
+    ),
+    "Invalid {FIELD} value {VALUE!r}; expected a semantic version "
+    "(for example 4.4 or 4.4.0).": (
+        "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия "
+        "(например 4.4 или 4.4.0)."
+    ),
     "If you want drop this file to default values, just delete it": (
         "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, "
         "просто удалите его."
@@ -287,6 +295,14 @@ RU_MESSAGES: dict[str, str] = {
     "host project uses {HOST_VERSION}": (
         "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_version {NESTED_VERSION}, "
         "в host-проекте используется {HOST_VERSION}"
+    ),
+    "Manifest requires odpm manager {REQUIRES} or newer; "
+    "current manager is {ODPM_VERSION}.": (
+        "Manifest требует odpm менеджер {REQUIRES} или новее; "
+        "текущий менеджер {ODPM_VERSION}."
+    ),
+    "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
+        "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
     ),
     "Non-interactive mode cannot prompt to download Odoo platform sources for the "
     "server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. "
@@ -434,16 +450,21 @@ RU_MESSAGES: dict[str, str] = {
         "Данный каталог не является odpm проектом. Если вы хотите создать новый "
         "проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
     ),
-    "Version mismatch: The project requires an older version of odpm - "
-    "{PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch "
-    "to a manager version compatible with the project.": (
-        "Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем "
-        "текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте "
-        "версию менеджера соотвествующую версии odpm в проекте. Или созданй новый "
-        "проект"
-    ),
     "Unexpected PostgreSQL connection error: {DETAIL}": (
         "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
+    ),
+    "Unsupported manifest_schema {SCHEMA}.": (
+        "Неподдерживаемый manifest_schema {SCHEMA}."
+    ),
+    "Unsupported manifest_schema {SCHEMA}; this manager supports "
+    "manifest_schema up to {MAX_SCHEMA}.": (
+        "Неподдерживаемый manifest_schema {SCHEMA}; этот менеджер поддерживает "
+        "manifest_schema до {MAX_SCHEMA}."
+    ),
+    "Unsupported odpm.json contract line {CONTRACT}; supported values are "
+    "{SUPPORTED}.": (
+        "Неподдерживаемая строка контракта odpm.json {CONTRACT}; допустимые "
+        "значения: {SUPPORTED}."
     ),
     "Updated PostgreSQL application role {ROLE}.": (
         "Обновлена роль приложения PostgreSQL {ROLE}."
