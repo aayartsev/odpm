@@ -43,6 +43,8 @@ Changelog = "https://github.com/aayartsev/odpm/blob/4.0-beta/CHANGELOG.md"
 [project.scripts]
 odpm = "dev_project.cli:main"
 
+[project.entry-points."odpm.prepare_steps"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dev_project*"]

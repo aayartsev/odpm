@@ -16,6 +16,7 @@ from ..project_env.templates import ProjectTemplates
 
 if TYPE_CHECKING:
     from ..config import Config
+    from ..extensions.context import ExtensionHostContext
     from ..project_env import CreateProjectEnvironment
     from ..protocols import SystemCheckerProtocol
 
@@ -31,6 +32,11 @@ class PrepareContext:
     args: OdpmCliArgs
     host_ctx: HostProjectContext
     lock_manager: DepsLockManager | None = None
+
+    def extension_host(self) -> ExtensionHostContext:
+        from ..extensions.context import ExtensionHostContext
+
+        return ExtensionHostContext.from_config(self.config)
 
 
 @dataclass(frozen=True)

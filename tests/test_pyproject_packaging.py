@@ -42,6 +42,10 @@ class PyprojectPackagingTests(unittest.TestCase):
         self.assertTrue(any(dep.startswith("jsonschema>=") for dep in dependencies))
         self.assertTrue(any(dep.startswith("pluggy>=") for dep in dependencies))
 
+    def test_prepare_steps_entry_point_group_declared(self):
+        entry_points = _load_pyproject().get("project", {}).get("entry-points", {})
+        self.assertIn("odpm.prepare_steps", entry_points)
+
     def test_project_urls_and_license(self):
         project = _load_pyproject()["project"]
         self.assertEqual(project["license"], {"file": "LICENSE"})
