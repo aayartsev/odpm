@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 import ast
+import importlib
+import sys
 import unittest
 from pathlib import Path
 
 _CONTAINER_ROOT = Path(__file__).resolve().parents[1] / "dev_project" / "inside_docker_app"
 _FORBIDDEN_ROOTS = ("host", "host_cli")
+_HOST_ONLY_MODULES = (
+    "dev_project.plan",
+    "dev_project.config.config",
+    "dev_project.manifest.compat",
+)
 
 
 def _iter_container_python_files() -> list[Path]:
@@ -54,6 +61,24 @@ class HostCliIsolationTests(unittest.TestCase):
     def test_run_odoo_entry_does_not_import_host_packages(self):
         source = (_CONTAINER_ROOT / "run_odoo.py").read_text(encoding="utf-8")
         self.assertEqual(_imports_forbidden_host_modules(source), [])
+
+    def test_database_record_import_does_not_load_host_plan_or_config(self):
+        purge_prefixes = ("dev_project.database",)
+        preserved = {
+            name: sys.modules.pop(name)
+            for name in list(sys.modules)
+            if name.startswith(purge_prefixes) or name in _HOST_ONLY_MODULES
+        }
+        try:
+            importlib.import_module("dev_project.database.record")
+            for name in _HOST_ONLY_MODULES:
+                self.assertNotIn(
+                    name,
+                    sys.modules,
+                    msg=f"{name} must not load when importing database.record from container",
+                )
+        finally:
+            sys.modules.update(preserved)
 
 
 if __name__ == "__main__":

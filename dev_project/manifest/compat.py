@@ -5,7 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from packaging.version import InvalidVersion, Version
+try:
+    from packaging.version import InvalidVersion, Version
+except ImportError:
+    from pip._vendor.packaging.version import InvalidVersion, Version
 
 from .. import constants
 from ..errors import ConfigError

@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from ..errors import PipelineError
 from ..interactive import prompt_input, stdin_is_interactive
 from ..logging import get_module_logger
-from ..plan.database_preview import format_database_drift_warning
 from ..translations import _
+from .drift_format import format_database_drift_warning
 from .drift import (
     DatabaseDrift,
     drifts_requiring_resolution,
