@@ -170,7 +170,9 @@ class ComposeServiceGenerateAlignmentTests(unittest.TestCase):
 class EvaluateDockerEngineCheckTests(unittest.TestCase):
     def test_skips_when_check_system_disabled(self) -> None:
         ctx = MagicMock()
-        ctx.config.check_system = False
+        ctx.host_ctx = MagicMock()
+        ctx.host_ctx.user_settings = MagicMock(check_system=False)
+        ctx.host_ctx.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
 
         step = evaluate_docker_engine_check(ctx)
 
@@ -181,7 +183,9 @@ class EvaluateDockerEngineCheckTests(unittest.TestCase):
 
     def test_runs_when_check_system_enabled(self) -> None:
         ctx = MagicMock()
-        ctx.config.check_system = True
+        ctx.host_ctx = MagicMock()
+        ctx.host_ctx.user_settings = MagicMock(check_system=True)
+        ctx.host_ctx.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
 
         step = evaluate_docker_engine_check(ctx)
 
@@ -199,8 +203,9 @@ class EvaluateDockerEngineCheckTests(unittest.TestCase):
 class EvaluateDockerPortsReleaseTests(unittest.TestCase):
     def _ctx(self, *, check_system: bool, scenario: str) -> MagicMock:
         ctx = MagicMock()
-        ctx.config.check_system = check_system
-        ctx.config.policy = ScenarioPolicy.from_scenario(scenario)
+        ctx.host_ctx = MagicMock()
+        ctx.host_ctx.user_settings = MagicMock(check_system=check_system)
+        ctx.host_ctx.policy = ScenarioPolicy.from_scenario(scenario)
         return ctx
 
     def test_runs_in_developer_even_when_check_system_disabled(self) -> None:

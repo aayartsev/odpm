@@ -5,7 +5,6 @@ from __future__ import annotations
 from .. import constants
 from ..plan import PlanStep, project_template_needs_upgrade
 from ..system_check_policy import SystemCheckPolicy
-from ..compose.service_builder import ComposeServiceBuilder
 from ..plan.compose_preview import (
     compose_generate_needs_execute,
     compose_service_needs_update,
@@ -111,7 +110,7 @@ def evaluate_compose_generate(ctx: PrepareContext) -> PlanStep:
 
 def evaluate_compose_validate(ctx: PrepareContext) -> PlanStep:
     description = "Validate generated docker-compose.yml"
-    policy = SystemCheckPolicy.from_config(ctx.config)
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
     if not policy.compose_validate:
         return make_plan_step(
             "compose.validate",
@@ -130,7 +129,7 @@ def evaluate_compose_validate(ctx: PrepareContext) -> PlanStep:
 
 
 def exec_compose_template(ctx: PrepareContext) -> None:
-    ctx.config.pd_manager.rebuild_docker_compose_template()
+    ctx.rebuild_compose_template()
 
 
 def exec_compose_fragments(ctx: PrepareContext) -> None:
@@ -141,7 +140,7 @@ def exec_compose_fragments(ctx: PrepareContext) -> None:
 
 
 def exec_compose_service(ctx: PrepareContext) -> None:
-    ComposeServiceBuilder(ctx.config).build()
+    ctx.build_compose_service()
 
 
 def exec_compose_generate(ctx: PrepareContext) -> None:

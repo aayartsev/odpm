@@ -83,11 +83,27 @@ ADR: [adr-001-extensions-and-manifest-v2.md](adr-001-extensions-and-manifest-v2.
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 | C-8…C-10 done; shims remain for compatibility |
+| `Config` facade still central | P2 | C-11a/b slimmed prepare steps; shims remain for bootstrap boundary |
 | `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.4" | P2 | Fallback for legacy `odpm.json` |
 | Env variable refs in `odpm.json` | **DONE (MVP)** | `${VAR}` whitelist — see CHANGELOG 4.3 |
 | CI image secrets bake (TD-FEAT-09 Phase B) | **DONE** | `ODPM_BAKE_SECRETS=1` + ADR-002; `test_ci_secrets_smoke` bake cases |
 | PyYAML for compose fragments | P3 | Stage-1 stdlib renderer; revisit if external YAML fragments needed |
+
+---
+
+## C-11 prepare boundary (4.4 debt closure)
+
+New prepare/plan evaluation code should prefer:
+
+| Read path | Use |
+|-----------|-----|
+| Paths, policy, CLI flags, settings slices | `PrepareContext.host_ctx` (`HostProjectContext`) |
+| Extension compose/prepare plugins | `PrepareContext.extension_host()` |
+| Git materialize / ensure present | `PrepareContext.git_repos` (`GitRepoCoordinator`) |
+| Lock apply / verify / collect | `DepsLockManager.apply_pinned_locks()` and related helpers |
+| Bootstrap-only mutations | `PrepareContext.config` (compose service build, drift collection, lock manager ctor) |
+
+`prepare/steps_*.py` must not reference `ctx.config` directly (enforced by `tests/test_prepare_config_coupling.py`).
 
 ---
 

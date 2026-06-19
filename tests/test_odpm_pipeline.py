@@ -514,10 +514,10 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         with stub_prepare_service_executions() as service_mocks:
             pipeline.prepare_project_files()
             checkout_dependencies = service_mocks[-1]
-        pipeline.config.materialize_git_repos.assert_called_once_with(
+        pipeline.config._git_repos.materialize_git_repos.assert_called_once_with(
             skip_build_date=False
         )
-        pipeline.config.ensure_git_repos_present.assert_not_called()
+        pipeline.config._git_repos.ensure_git_repos_present.assert_not_called()
         checkout_dependencies.assert_called_once()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
@@ -526,8 +526,8 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         with stub_prepare_service_executions() as service_mocks:
             pipeline.prepare_project_files()
             checkout_dependencies = service_mocks[-1]
-        pipeline.config.ensure_git_repos_present.assert_called_once()
-        pipeline.config.materialize_git_repos.assert_not_called()
+        pipeline.config._git_repos.ensure_git_repos_present.assert_called_once()
+        pipeline.config._git_repos.materialize_git_repos.assert_not_called()
         checkout_dependencies.assert_not_called()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
@@ -539,7 +539,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             mock_manager_cls.return_value = manager
             with stub_prepare_service_executions():
                 pipeline.prepare_project_files()
-        pipeline.config.materialize_git_repos.assert_called_once_with(
+        pipeline.config._git_repos.materialize_git_repos.assert_called_once_with(
             skip_build_date=True
         )
         manager.load.assert_called_once()
@@ -555,10 +555,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
                 pipeline.prepare_project_files()
                 checkout_dependencies = service_mocks[-1]
         manager.load.assert_not_called()
-        manager.collect_and_save.assert_called_once()
-        manager.collect_and_save.assert_called_with(
-            developing=pipeline.config.developing_project,
-        )
+        manager.collect_and_save_from_config.assert_called_once()
         checkout_dependencies.assert_called_once()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
@@ -578,7 +575,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
                 mock_manager_cls.return_value = manager
                 with stub_prepare_service_executions():
                     pipeline.prepare_project_files()
-            manager.verify_after_checkout.assert_called_once()
+            manager.verify_pinned_checkout.assert_called_once()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_rejects_update_lock_with_no_git_update(self, _mock_builder):

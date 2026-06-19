@@ -171,21 +171,19 @@ def exec_lock_load(ctx: PrepareContext) -> None:
 
 
 def exec_git_ensure_present(ctx: PrepareContext) -> None:
-    ctx.config.ensure_git_repos_present()
+    ctx.git_repos.ensure_git_repos_present()
 
 
 def exec_git_materialize(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.config.materialize_git_repos(
+    ctx.git_repos.materialize_git_repos(
         skip_build_date=ctx.lock_manager.has_platform_lock()
     )
 
 
 def exec_lock_apply(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.lock_manager.apply_to_platform(ctx.config.odoo_platform_project)
-    ctx.lock_manager.apply_to_developing(ctx.config.developing_project)
-    ctx.lock_manager.apply_to_dependencies(ctx.config.dependencies_projects)
+    ctx.lock_manager.apply_pinned_locks()
 
 
 def exec_git_checkout(ctx: PrepareContext) -> None:
@@ -195,15 +193,11 @@ def exec_git_checkout(ctx: PrepareContext) -> None:
 
 def exec_lock_collect(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.lock_manager.collect_and_save(developing=ctx.config.developing_project)
+    ctx.lock_manager.collect_and_save_from_config()
 
 
 def exec_lock_verify(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
     if not ctx.lock_manager.apply_mode:
         return
-    ctx.lock_manager.verify_after_checkout(
-        platform=ctx.config.odoo_platform_project,
-        developing=ctx.config.developing_project,
-        dependencies=ctx.config.dependencies_projects,
-    )
+    ctx.lock_manager.verify_pinned_checkout()

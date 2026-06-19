@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from ..database.drift import (
-    detect_database_drift_for_config,
     drifts_requiring_resolution,
     has_blocking_database_drift,
     meaningful_database_drifts,
@@ -20,7 +19,7 @@ _MSG_FIRST_RUN = _("first database run (no last_run snapshot yet)")
 
 
 def evaluate_database_drift(ctx: PrepareContext) -> PlanStep:
-    _current, drifts = detect_database_drift_for_config(ctx.config)
+    _current, drifts = ctx.detect_database_drift()
     meaningful = meaningful_database_drifts(drifts)
     pending = drifts_requiring_resolution(drifts)
     if not meaningful:

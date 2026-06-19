@@ -5,17 +5,17 @@ from __future__ import annotations
 from .. import constants
 from ..plan import (
     PlanStep,
-    dockerfile_template_relative,
+    dockerfile_template_relative_host,
     project_template_needs_upgrade,
 )
-from ..project_env.base_image_identity import base_image_identity_matches
+from ..project_env.base_image_identity import base_image_identity_matches_host
 from .helpers import make_plan_step
 from .types import PrepareContext
 
 
 def evaluate_template_dockerfile(ctx: PrepareContext) -> PlanStep:
     description = "Regenerate project Dockerfile from odpm template"
-    if not base_image_identity_matches(ctx.config):
+    if not base_image_identity_matches_host(ctx.host_ctx):
         return make_plan_step(
             "template.dockerfile",
             description,
@@ -25,7 +25,7 @@ def evaluate_template_dockerfile(ctx: PrepareContext) -> PlanStep:
         )
     if project_template_needs_upgrade(
         ctx.host_ctx.project_dir,
-        dockerfile_template_relative(ctx.config),
+        dockerfile_template_relative_host(ctx.host_ctx),
         constants.DOCKERFILE_TEMPLATE_MARKERS,
     ):
         return make_plan_step(

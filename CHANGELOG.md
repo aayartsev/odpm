@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Config slimming C-11 (prepare boundary)** — prepare steps read via `host_ctx`, `git_repos`, and `DepsLockManager` helpers instead of `ctx.config`; `SystemCheckPolicy.from_host_context`; plan compose/database previews use host paths where sufficient. Contract: `tests/test_prepare_config_coupling.py`.
+
 ### Added
 
 - **CI secrets bake (TD-FEAT-09 Phase B)** — `ODPM_BAKE_SECRETS=1` copies materialized `.odpm/runtime/secrets.json` into CI build context and Dockerfile (`COPY` + `ENV ODPM_SECRETS_PATH`). ADR-002; extended `test_ci_secrets_smoke`; `tests/odpm_subprocess.py` for stable CLI subprocess tests.

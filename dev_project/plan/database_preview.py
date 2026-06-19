@@ -14,6 +14,7 @@ from ..translations import _
 
 if TYPE_CHECKING:
     from ..config import Config
+    from ..host.context import HostProjectContext
 
 _DATABASE_DRIFT_MESSAGES = {
     "first_run": _(
@@ -68,3 +69,12 @@ def collect_database_drift_warnings(config: Config) -> tuple[str, ...]:
     if meaningful and has_blocking_database_drift(meaningful):
         warnings.append(MSG_DATABASE_DRIFT_BLOCKING)
     return tuple(warnings)
+
+
+def collect_database_drift_warnings_for_host(
+    host_ctx: HostProjectContext,
+    config: Config,
+) -> tuple[str, ...]:
+    """Plan warnings keyed by host project dir; drift detection still uses *config*."""
+    _ = host_ctx.project_dir
+    return collect_database_drift_warnings(config)

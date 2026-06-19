@@ -83,3 +83,10 @@ def dockerfile_template_relative(config: Config) -> str:
         constants.PROJECT_SERVICE_DIRECTORY,
         config.dockerfile_template_name,
     )
+
+
+def dockerfile_template_relative_host(host_ctx) -> str:
+    return os.path.join(
+        constants.PROJECT_SERVICE_DIRECTORY,
+        host_ctx.docker_layout.dockerfile_template_name,
+    )

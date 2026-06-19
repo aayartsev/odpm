@@ -89,9 +89,11 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     gitignore_warning = secrets_gitignore_warning(ctx.host_ctx.project_dir)
     if gitignore_warning:
         warnings.append(gitignore_warning)
-    from ..plan.database_preview import collect_database_drift_warnings
+    from ..plan.database_preview import collect_database_drift_warnings_for_host
 
-    warnings.extend(collect_database_drift_warnings(ctx.config))
+    warnings.extend(
+        collect_database_drift_warnings_for_host(ctx.host_ctx, ctx.config)
+    )
     return tuple(warnings)
 
 

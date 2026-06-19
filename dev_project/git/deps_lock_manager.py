@@ -182,6 +182,22 @@ class DepsLockManager:
         save_deps_lock(self._path, lock)
         _logger.info("Wrote git dependency lock to %s", self._path)
 
+    def apply_pinned_locks(self) -> None:
+        """Apply loaded lock entries to platform, developing, and dependency repos."""
+        self.apply_to_platform(self._config.odoo_platform_project)
+        self.apply_to_developing(self._config.developing_project)
+        self.apply_to_dependencies(self._config.dependencies_projects)
+
+    def collect_and_save_from_config(self) -> None:
+        self.collect_and_save(developing=self._config.developing_project)
+
+    def verify_pinned_checkout(self) -> None:
+        self.verify_after_checkout(
+            platform=self._config.odoo_platform_project,
+            developing=self._config.developing_project,
+            dependencies=self._config.dependencies_projects,
+        )
+
     def _entry_from_project(self, project: HandleOdooProjectLink) -> LockEntry:
         commit = resolve_lock_commit(project)
         branch = project.branch if project.branch_explicit else None

@@ -69,3 +69,16 @@ def base_image_identity_matches(config: Config) -> bool:
     if stamp is None:
         return False
     return stamp == expected_base_image_identity(config)
+
+
+def base_image_identity_matches_host(host_ctx) -> bool:
+    stamp = read_base_image_identity(host_ctx.project_dir)
+    if stamp is None:
+        return False
+    policy = host_ctx.policy
+    expected = {
+        "user": policy.runtime_unix_user(),
+        "uid": policy.runtime_unix_uid(),
+        "gid": policy.runtime_unix_gid(),
+    }
+    return stamp == expected
