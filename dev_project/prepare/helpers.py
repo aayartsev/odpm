@@ -18,10 +18,10 @@ def update_lock(ctx: PrepareContext) -> bool:
 def lock_verify_available(ctx: PrepareContext) -> bool:
     if skip_git(ctx) or update_lock(ctx):
         return False
-    if not deps_lock_file_exists(ctx.config.project_dir):
+    if not deps_lock_file_exists(ctx.host_ctx.project_dir):
         return False
     try:
-        load_deps_lock(deps_lock_path(ctx.config.project_dir))
+        load_deps_lock(deps_lock_path(ctx.host_ctx.project_dir))
     except ValueError:
         return False
     return True

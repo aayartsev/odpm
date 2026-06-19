@@ -41,9 +41,9 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Slice | Status | Outcome |
 |-------|--------|---------|
 | C-7 | **DONE** | `BootstrapState` + property shims; `config.bootstrap`; `bootstrap_phases` internal |
-| C-8 | backlog | `AddonLayoutState` (`catalogs_of_modules_data`, …) |
-| C-9 | backlog | prepare steps → `host_ctx` |
-| C-10 | backlog | `ConfigPaths` writes to `docker_layout` |
+| C-8 | **DONE** | `AddonLayoutState` (`catalogs_of_modules_data`, developing subprojects) |
+| C-9 | **DONE** | prepare steps → `host_ctx` (paths, policy, docker_layout reads) |
+| C-10 | **DONE** | `ConfigPaths` writes to `docker_layout` slice |
 
 **C-7 KPI:** bootstrap-only fields no longer scattered on `Config.__dict__`; callers unchanged via shims; `developing_project` link on `bootstrap`, URL string on `UserSettingsState`.
 
@@ -68,7 +68,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 | C-7 started; C-8…C-10 remain |
+| `Config` facade still central | P2 | C-8…C-10 done; extension API next |
 | `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.0" | P2 | Fallback for legacy `odpm.json` |
 | Plugin/hook API | backlog | `goals_ru.md` vision only |
 | Env variable refs in `odpm.json` | backlog | `todo.md` |

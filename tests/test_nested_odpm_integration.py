@@ -13,7 +13,12 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.config import Config, config_to_json
-from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
+from dev_project.config.state import (
+    AddonLayoutState,
+    DockerLayoutState,
+    ProjectSettingsState,
+    UserSettingsState,
+)
 from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 from dev_project.errors import PipelineError
@@ -77,6 +82,7 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
         docker_path_odoo_conf="/home/odoo/odoo.conf",
         odoo_config_data={},
     )
+    config._addon_layout = AddonLayoutState()
     config.program_dir = "/tmp/program"
     config.odoo_src_dir = "/tmp/odoo"
     config.developing_project_dir_path = "/tmp/developing"

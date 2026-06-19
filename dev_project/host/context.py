@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ..config.state import (
+    AddonLayoutState,
     DockerLayoutState,
     ProjectSettingsState,
     UserSettingsState,
@@ -31,6 +32,7 @@ class HostProjectContext:
     user_settings: UserSettingsState
     project_settings: ProjectSettingsState
     docker_layout: DockerLayoutState
+    addon_layout: AddonLayoutState
 
     @classmethod
     def from_config(
@@ -49,6 +51,7 @@ class HostProjectContext:
             user_settings=config.user_settings,
             project_settings=config.project_settings,
             docker_layout=config.docker_layout,
+            addon_layout=config.addon_layout,
         )
 
     @property

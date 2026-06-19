@@ -24,7 +24,7 @@ def evaluate_template_dockerfile(ctx: PrepareContext) -> PlanStep:
             "base image identity mismatch",
         )
     if project_template_needs_upgrade(
-        ctx.config.project_dir,
+        ctx.host_ctx.project_dir,
         dockerfile_template_relative(ctx.config),
         constants.DOCKERFILE_TEMPLATE_MARKERS,
     ):
@@ -47,7 +47,7 @@ def evaluate_template_dockerfile(ctx: PrepareContext) -> PlanStep:
 def evaluate_template_dockerignore(ctx: PrepareContext) -> PlanStep:
     description = "Regenerate root .dockerignore from .odpm/dockerignore"
     if project_template_needs_upgrade(
-        ctx.config.project_dir,
+        ctx.host_ctx.project_dir,
         constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
         constants.DOCKERIGNORE_TEMPLATE_MARKERS,
     ):
@@ -75,20 +75,21 @@ def evaluate_template_odoo_conf(ctx: PrepareContext) -> PlanStep:
     from ..translations import _
 
     description = "Regenerate project odoo.conf from .odpm template"
-    expected_host = ctx.config.user_env.postgres_service_name
+    expected_host = ctx.host_ctx.user_env.postgres_service_name
     template_stale = project_template_needs_upgrade(
-        ctx.config.project_dir,
+        ctx.host_ctx.project_dir,
         constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH,
         constants.ODOO_CONFIG_TEMPLATE_MARKERS,
     )
+    path_odoo_conf = ctx.host_ctx.docker_layout.path_odoo_conf
     conf_stale = odoo_conf_on_disk_needs_regeneration(
-        ctx.config.path_odoo_conf,
+        path_odoo_conf,
         expected_db_host=expected_host,
     )
     if template_stale or conf_stale:
         if template_stale:
             reason = "odoo config template stale"
-        elif odoo_conf_db_host_mismatch(ctx.config.path_odoo_conf, expected_host):
+        elif odoo_conf_db_host_mismatch(path_odoo_conf, expected_host):
             reason = _(
                 "odoo.conf db_host out of sync with postgres service ({EXPECTED})"
             ).format(EXPECTED=expected_host)

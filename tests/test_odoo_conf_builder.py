@@ -9,7 +9,15 @@ from dev_project.config.odoo_conf import (
     odoo_conf_db_host_mismatch,
     odoo_conf_on_disk_needs_regeneration,
 )
+from dev_project.config.state import AddonLayoutState, DockerLayoutState
 from dev_project.config.types import SubProject
+
+
+def _config_with_layout_slices() -> MagicMock:
+    config = MagicMock()
+    config.docker_layout = DockerLayoutState()
+    config.addon_layout = AddonLayoutState()
+    return config
 
 
 class OdooConfBuilderTests(unittest.TestCase):
@@ -49,22 +57,22 @@ class OdooConfBuilderTests(unittest.TestCase):
             conf_path = Path(project_dir) / constants.ODOO_CONF_NAME
             conf_path.write_text("[options]\nadmin_passwd = admin\n", encoding="utf-8")
 
-            config = MagicMock()
-            config.path_odoo_conf = str(conf_path)
-            config.docker_dirs_with_addons = [
+            config = _config_with_layout_slices()
+            config.docker_layout.path_odoo_conf = str(conf_path)
+            config.docker_layout.docker_dirs_with_addons = [
                 "/home/odoo/extra-addons",
                 "/home/odoo/odoo/addons",
             ]
-            config.docker_project_dir = "/home/odoo"
+            config.docker_layout.docker_project_dir = "/home/odoo"
 
             OdooConfBuilder(config).generate_odoo_conf_docker_data()
 
             self.assertEqual(
-                config.odoo_config_data["options"]["addons_path"],
+                config.docker_layout.odoo_config_data["options"]["addons_path"],
                 "/home/odoo/extra-addons,/home/odoo/odoo/addons",
             )
             self.assertEqual(
-                config.odoo_config_data["options"]["data_dir"],
+                config.docker_layout.odoo_config_data["options"]["data_dir"],
                 "/home/odoo/.local/share/Odoo",
             )
 
@@ -134,27 +142,24 @@ class OdooConfBuilderTests(unittest.TestCase):
             self.assertFalse(odoo_conf_db_host_mismatch(str(conf_path), "db"))
 
     def test_populate_addons_paths_without_subprojects_uses_project_dir(self):
-        config = MagicMock()
+        config = _config_with_layout_slices()
         config.developing_project = MagicMock(project_path="/tmp/dev/project")
         config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
         config.odoo_src_dir = "/tmp/odoo/src"
         config.docker_odoo_dir = "/home/odoo/odoo"
         config.platform_name = "odoo"
-        config.catalogs_of_modules_data = []
-        config.docker_dirs_with_addons = []
-        config.list_of_developing_project_subprojects_data = []
 
         builder = OdooConfBuilder(config)
         builder.check_project_for_subprojects = MagicMock(return_value=[])
         builder.populate_addons_paths()
 
         self.assertEqual(
-            config.docker_dirs_with_addons[0],
+            config.docker_layout.docker_dirs_with_addons[0],
             "/home/odoo/extra-addons/project",
         )
         self.assertIn(
             "/home/odoo/odoo/odoo/addons",
-            config.docker_dirs_with_addons,
+            config.docker_layout.docker_dirs_with_addons,
         )
 
 

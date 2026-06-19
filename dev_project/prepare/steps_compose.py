@@ -17,7 +17,7 @@ from .types import PrepareContext
 def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
     description = "Upgrade .odpm/docker-compose.yml project template"
     if project_template_needs_upgrade(
-        ctx.config.project_dir,
+        ctx.host_ctx.project_dir,
         constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
         constants.COMPOSE_TEMPLATE_MARKERS,
     ):

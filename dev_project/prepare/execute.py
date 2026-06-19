@@ -74,19 +74,19 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
         warnings.append("--update-lock cannot be used together with --no-git-update")
     if (
-        deps_lock_file_exists(ctx.config.project_dir)
+        deps_lock_file_exists(ctx.host_ctx.project_dir)
         and not skip_git(ctx)
         and not update_lock(ctx)
     ):
         try:
-            load_deps_lock(deps_lock_path(ctx.config.project_dir))
+            load_deps_lock(deps_lock_path(ctx.host_ctx.project_dir))
         except ValueError:
             warnings.append(
                 "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
             )
     from ..plan.secrets_preview import secrets_gitignore_warning
 
-    gitignore_warning = secrets_gitignore_warning(ctx.config.project_dir)
+    gitignore_warning = secrets_gitignore_warning(ctx.host_ctx.project_dir)
     if gitignore_warning:
         warnings.append(gitignore_warning)
     from ..plan.database_preview import collect_database_drift_warnings

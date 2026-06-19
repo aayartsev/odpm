@@ -90,7 +90,7 @@ def evaluate_git_lock_apply(ctx: PrepareContext) -> PlanStep:
             False,
             "lock apply not used in this mode",
         )
-    if not deps_lock_file_exists(ctx.config.project_dir):
+    if not deps_lock_file_exists(ctx.host_ctx.project_dir):
         return make_plan_step(
             "git.lock_apply",
             description,
@@ -159,7 +159,7 @@ def evaluate_git_lock_verify(ctx: PrepareContext) -> PlanStep:
         "git.lock_verify",
         description,
         "run",
-        ctx.config.policy.is_ci(),
+        ctx.host_ctx.policy.is_ci(),
         "verify checked-out commits match deps.lock.json",
     )
 

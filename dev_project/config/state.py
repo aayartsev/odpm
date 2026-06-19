@@ -203,6 +203,14 @@ class ProjectSettingsState:
 
 
 @dataclass
+class AddonLayoutState:
+    """Addon catalogs, developing subprojects, and related layout metadata."""
+
+    catalogs_of_modules_data: list = field(default_factory=list)
+    list_of_developing_project_subprojects_data: list = field(default_factory=list)
+
+
+@dataclass
 class DockerLayoutState:
     dockerfile_template_name: str = ""
     project_dockerfile_template_path: str = ""
@@ -247,3 +255,4 @@ DOCKER_SLICE_FIELDS = tuple(
     for name in DockerLayoutState.__dataclass_fields__
     if name != "docker_compose_command"
 )
+ADDON_LAYOUT_SLICE_FIELDS = tuple(AddonLayoutState.__dataclass_fields__)
