@@ -112,6 +112,14 @@ class RuntimeCoordinator:
 
         adopt_database_baseline(self.config)
         ensure_no_blocking_database_drift(self.config, self.cli_args)
+        from .extensions.hooks import run_lifecycle_hooks
+        from .extensions.context import ExtensionHostContext
+
+        run_lifecycle_hooks(
+            ExtensionHostContext.from_config(self.config),
+            "pre_up",
+            cwd=self.config.project_dir,
+        )
         try:
             self.start_containers()
         except KeyboardInterrupt:

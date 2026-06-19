@@ -11,8 +11,12 @@ hookimpl = pluggy.HookimplMarker(PROJECT_NAME)
 
 
 class OdpmExtensionSpecs:
-    """Host extension hooks for prepare steps and future lifecycle hooks."""
+    """Host extension hooks for prepare steps and lifecycle hook runners."""
 
     @hookspec
     def odpm_prepare_steps(self):
         """Return :class:`PrepareStepPlugin`, :class:`PrepareStepDef`, or a sequence."""
+
+    @hookspec
+    def odpm_hook_runners(self):
+        """Return :class:`HookRunner` plugins or a sequence."""

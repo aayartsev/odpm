@@ -45,6 +45,8 @@ odpm = "dev_project.cli:main"
 
 [project.entry-points."odpm.prepare_steps"]
 
+[project.entry-points."odpm.hooks"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dev_project*"]

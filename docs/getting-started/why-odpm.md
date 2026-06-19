@@ -177,7 +177,7 @@
 - **Не PaaS** — нет staging/prod как у Odoo.sh.
 - **Не полный prod-hardening** — [`server`](../scenarios/server.md) даёт профиль, nginx/TLS/backup — на вас ([безопасность](../operations/security.md)).
 - **Не замена знанию Odoo** — framework, ORM, модули нужно учить.
-- **Plugins/hooks** — в разработке; объём Doodba `custom/` hooks **сегодня** не покрыт.
+- **Plugins/hooks** — в 4.4: manifest `services` / `hooks`, entry points `odpm.prepare_steps` и `odpm.hooks`; см. [plugins.md](../reference/plugins.md). Объём Doodba `custom/` hooks **полностью** не покрыт.
 - **Не byte-identical reproducibility** (как Nix) — **практическая** воспроизводимость через lock + image + manifest.
 
 ---

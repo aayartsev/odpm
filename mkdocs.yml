@@ -142,6 +142,7 @@ nav:
       - Состояние PostgreSQL: reference/database-state.md
       - Параметры командной строки: reference/cli.md
       - deps.lock.json: reference/deps-lock.md
+      - Плагины и расширения: reference/plugins.md
       - Структура каталога проекта: reference/project-layout.md
       - Сгенерированные файлы: reference/generated-files.md
       - Язык сообщений odpm: reference/locale.md

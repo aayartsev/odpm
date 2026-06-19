@@ -179,7 +179,7 @@ Niche **between** “plain Docker Odoo” and **heavy Doodba / Odoo.sh**:
 - **Not a PaaS** — no Odoo.sh-style staging/prod.
 - **Not full production hardening** — [`server`](../scenarios/server.md) is a profile; nginx/TLS/backup is on you ([security](../operations/security.md)).
 - **Not a substitute for learning Odoo** — framework, ORM, modules still require study.
-- **Plugins/hooks** — in development; Doodba-style `custom/` hooks are **not** fully covered today.
+- **Plugins/hooks** — in 4.4: manifest `services` / `hooks`, entry points `odpm.prepare_steps` and `odpm.hooks`; see [plugins.md](../reference/plugins.md). Doodba-style `custom/` hooks are **not** fully covered.
 - **Not byte-identical reproducibility** (like Nix) — **practical** reproducibility via lock + image + manifest.
 
 ---

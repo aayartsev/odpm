@@ -117,6 +117,10 @@ class ExtensionRegistryTests(unittest.TestCase):
         self.assertIsNotNone(spec)
         assert spec is not None
         self.assertEqual(spec.name, "odpm_prepare_steps")
+        hook_spec = plugin_manager.hook.odpm_hook_runners.spec
+        self.assertIsNotNone(hook_spec)
+        assert hook_spec is not None
+        self.assertEqual(hook_spec.name, "odpm_hook_runners")
 
 
 class ExtensionEntryPointHookTests(unittest.TestCase):

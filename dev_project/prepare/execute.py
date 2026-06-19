@@ -148,6 +148,13 @@ def execute_prepare(ctx: PrepareContext) -> None:
         outcome = step_def.evaluate(ctx)
         if outcome.should_execute():
             step_def.execute(ctx)
+    from ..extensions.hooks import run_lifecycle_hooks
+
+    run_lifecycle_hooks(
+        ctx.extension_host(),
+        "post_prepare",
+        cwd=ctx.host_ctx.project_dir,
+    )
 
 
 collect_prepare_step_ids = collect_execute_step_ids

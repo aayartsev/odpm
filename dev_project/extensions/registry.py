@@ -9,20 +9,23 @@ from typing import Any
 import pluggy
 
 from ..prepare.types import PrepareStepDef
-from .protocols import ComposeFragmentPlugin, PrepareStepPlugin
+from .protocols import ComposeFragmentPlugin, HookRunner, PrepareStepPlugin
 from .specs import OdpmExtensionSpecs, PROJECT_NAME, hookimpl, hookspec
 
 __all__ = [
     "PrepareStepRegistration",
     "clear_registered_prepare_steps",
     "get_compose_fragment",
+    "get_hook_runner",
     "get_prepare_steps",
     "hookimpl",
     "hookspec",
     "iter_compose_fragments",
+    "load_hook_runners",
     "load_entry_point_prepare_steps",
     "plugin_manager",
     "register_compose_fragment",
+    "register_hook_runner",
     "register_prepare_step",
     "reset_extension_registry_state",
 ]
@@ -32,7 +35,9 @@ plugin_manager.add_hookspecs(OdpmExtensionSpecs)
 
 _MANUAL_PREPARE_STEPS: list[PrepareStepRegistration] = []
 _COMPOSE_FRAGMENTS: dict[str, ComposeFragmentPlugin] = {}
+_HOOK_RUNNERS: dict[str, HookRunner] = {}
 _ENTRY_POINTS_LOADED = False
+_HOOK_ENTRY_POINTS_LOADED = False
 
 
 @dataclass(frozen=True)
@@ -70,11 +75,14 @@ def clear_registered_prepare_steps() -> None:
 
 def reset_extension_registry_state() -> None:
     """Reset manual steps and pluggy plugins (tests only)."""
-    global _ENTRY_POINTS_LOADED
+    global _ENTRY_POINTS_LOADED, _HOOK_ENTRY_POINTS_LOADED
     clear_registered_prepare_steps()
+    _COMPOSE_FRAGMENTS.clear()
+    _HOOK_RUNNERS.clear()
     for _name, plugin in list(plugin_manager.list_name_plugin()):
         plugin_manager.unregister(plugin=plugin)
     _ENTRY_POINTS_LOADED = False
+    _HOOK_ENTRY_POINTS_LOADED = False
 
 
 def register_compose_fragment(name: str, plugin: ComposeFragmentPlugin) -> None:
@@ -90,6 +98,68 @@ def get_compose_fragment(name: str) -> ComposeFragmentPlugin | None:
 
 def iter_compose_fragments() -> tuple[tuple[str, ComposeFragmentPlugin], ...]:
     return tuple(sorted(_COMPOSE_FRAGMENTS.items()))
+
+
+def register_hook_runner(name: str, runner: HookRunner) -> None:
+    """Register a lifecycle hook runner by manifest plugin id."""
+    if name in _HOOK_RUNNERS:
+        raise ValueError(f"duplicate hook runner name: {name!r}")
+    _HOOK_RUNNERS[name] = runner
+
+
+def get_hook_runner(name: str) -> HookRunner | None:
+    return _HOOK_RUNNERS.get(name)
+
+
+def _coerce_hook_runner(item: Any) -> HookRunner | None:
+    if item is None:
+        return None
+    if hasattr(item, "name") and (
+        hasattr(item, "run_post_prepare") or hasattr(item, "run_pre_up")
+    ):
+        return item  # type: ignore[return-value]
+    if callable(item):
+        return _coerce_hook_runner(item())
+    if isinstance(item, Sequence) and not isinstance(item, (str, bytes)):
+        return None
+    return None
+
+
+def _flatten_hook_runner_results(results: Iterable[Any]) -> list[HookRunner]:
+    runners: list[HookRunner] = []
+    for result in results:
+        if result is None:
+            continue
+        if isinstance(result, Sequence) and not isinstance(result, (str, bytes)):
+            for item in result:
+                runner = _coerce_hook_runner(item)
+                if runner is not None:
+                    runners.append(runner)
+            continue
+        runner = _coerce_hook_runner(result)
+        if runner is not None:
+            runners.append(runner)
+    return runners
+
+
+def _ensure_hook_entry_points_loaded() -> None:
+    global _HOOK_ENTRY_POINTS_LOADED
+    if _HOOK_ENTRY_POINTS_LOADED:
+        return
+    plugin_manager.load_setuptools_entrypoints("odpm.hooks")
+    _HOOK_ENTRY_POINTS_LOADED = True
+
+
+def load_hook_runners() -> None:
+    """Load third-party hook runners from pluggy entry points."""
+    _ensure_hook_entry_points_loaded()
+    hook_results = plugin_manager.hook.odpm_hook_runners()
+    for runner in _flatten_hook_runner_results(hook_results):
+        name = str(getattr(runner, "name", "")).strip()
+        if not name:
+            raise ValueError("hook runner plugin must define non-empty name")
+        if name not in _HOOK_RUNNERS:
+            register_hook_runner(name, runner)
 
 
 def _coerce_prepare_step_plugin(item: Any) -> PrepareStepPlugin | None:
