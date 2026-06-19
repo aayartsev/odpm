@@ -2,6 +2,17 @@
 
 Файл **`odpm.json`** — формальное **описание стека** Odoo-проекта: версии, репозитории, зависимости. Его коммитят в git вместе с модулями, чтобы любой участник команды и машина сборки получили **одинаковый состав**.
 
+odpm 4.4 поддерживает два формата:
+
+| Формат | Маркер | Когда использовать |
+|--------|--------|-------------------|
+| **v1 flat** (по умолчанию) | `odpm_version: "4.0"`, без `manifest_schema` | Существующие проекты, без изменений |
+| **v2 nested** | `manifest_schema: 2`, `requires_odpm: "4.4"` | `services`, `hooks`, `locks` в манифесте |
+
+Миграция: **`odpm manifest migrate`** — см. [manifest-migration.md](manifest-migration.md).
+
+## Flat v1 (поля верхнего уровня)
+
 | Поле | Назначение |
 |------|------------|
 | `python_version` | Версия Python в контейнере, напр. `"3.10"` |
@@ -14,7 +25,32 @@
 | `odoo_git_link` | Репозиторий **платформы**; ветка/коммит через пробел |
 | `platform_name` | Имя Python-пакета форка (по умолчанию `"odoo"`) |
 | `odoo_build_date` | Дата ночной сборки `ГГГГММДД` или `"latest"` |
-| `odpm_version` | Версия **формата** этого файла |
+| `odpm_version` | **Контрактная строка формата** v1 (`"4.0"`), не версия менеджера |
+
+## Nested v2 (дополнительные блоки)
+
+Обязательные поля v2: `manifest_schema`, `requires_odpm`, `platform`, `python`, `distro`, `postgres`.
+
+| Блок / поле | Назначение |
+|-------------|------------|
+| `manifest_schema` | `2` |
+| `requires_odpm` | Минимальная версия odpm, напр. `"4.4"` |
+| `platform.git` | Аналог `odoo_git_link` |
+| `platform.build_date` | Аналог `odoo_build_date` |
+| `python` | Аналог `python_version` |
+| `distro.name` / `distro.version` | Аналог `distro_name` / `distro_version` |
+| `postgres` | Аналог `postgres_version` |
+| `requirements` | Аналог `requirements_txt` |
+| `developing.git` | URI разрабатываемого проекта |
+| `locks.git` | Декларативные git SHA (синхрон с `.odpm/deps.lock.json`) |
+| `locks.venv` | Хеш venv lock (опционально) |
+| `hooks.post_prepare` | Shell argv или plugin id после prepare |
+| `hooks.pre_up` | Shell argv или plugin id перед `docker compose up` |
+| `services.<name>` | Дополнительные compose-сервисы (image, ports, env, …) |
+
+Пример Mailpit: [plugins.md](plugins.md).
+
+Валидация v2: JSON Schema + **jsonschema** на host. v1 проходит compat-check без jsonschema.
 
 ## Блок `database` (язык и страна новой базы)
 
@@ -38,7 +74,7 @@
 
 ## Миграция v1 → v2
 
-Команда **`odpm manifest migrate`** показывает unified diff преобразования flat-манифеста в nested v2. С флагом **`--write`** записывает результат в `odpm.json` разрабатываемого проекта.
+Команда **`odpm manifest migrate`** показывает unified diff преобразования flat-манифеста в nested v2. С флагом **`--write`** записывает результат в `odpm.json` разрабатываемого проекта. Подробнее: [manifest-migration.md](manifest-migration.md).
 
 При миграции odpm переносит:
 

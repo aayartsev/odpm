@@ -87,6 +87,8 @@ plugins:
             Инструменты по сценариям: Tools by scenario
             Иерархия конфигурации: Config hierarchy
             odpm.json и user_settings.json: odpm.json and user_settings.json
+            Миграция manifest v1→v2: Manifest v1 to v2 migration
+            Плагины и расширения: Plugins and extensions
             Переменные .env: .env variables
             Ссылки на репозитории: Git repository links
             Параметры командной строки: Command-line options
@@ -137,6 +139,7 @@ nav:
       - Переменные .env: reference/env-dotenv.md
       - Ссылки на репозитории: reference/git-links.md
       - odpm.json: reference/odpm-json.md
+      - Миграция manifest v1→v2: reference/manifest-migration.md
       - user_settings.json: reference/user-settings.md
       - odoo.conf: reference/odoo-conf.md
       - Состояние PostgreSQL: reference/database-state.md

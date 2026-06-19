@@ -1,9 +1,9 @@
 # Architecture debt (A10 / A4 / A11) — status
 
-**Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
+**Status:** G/C/E tracks **completed** on branch `4.0-beta`; **4.4 extension hub** (C-8…C-10, manifest v2, plugins) **completed** on `4.4-dev`.  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **773+ OK**, 7 skipped.
+**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **1000+ OK**, 7 skipped; CI job **`contract`** runs manifest/extension suite without Docker.
 
 ---
 
@@ -36,7 +36,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## A4-2 Config hub slimming (C-7…) — IN PROGRESS
+## A4-2 Config hub slimming (C-7…C-10) — DONE
 
 | Slice | Status | Outcome |
 |-------|--------|---------|
@@ -64,20 +64,33 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
+## 4.4 Extension API (manifest v2, plugins) — DONE
+
+| Area | Outcome | Docs / tests |
+|------|---------|--------------|
+| Manifest v2 | dual-read, jsonschema, migrate CLI | `test_manifest_v2_reader`, `test_manifest_migrate` |
+| Locks in manifest | `LockSource.MANIFEST`, sync deps.lock | `test_manifest_locks_sync` |
+| Extension registry | pluggy prepare steps, compose fragments | `test_extension_entry_points` |
+| Compose fragments | `compose.fragments` prepare step | `test_compose_fragments` |
+| Lifecycle hooks | `post_prepare`, `pre_up` | `test_manifest_hooks` |
+| Contract CI | `tests.test_manifest_contract` | `.github/workflows/ci.yml` job `contract` |
+
+ADR: [adr-001-extensions-and-manifest-v2.md](adr-001-extensions-and-manifest-v2.md). User docs: [plugins.md](../reference/plugins.md), [manifest-migration.md](../reference/manifest-migration.md).
+
+---
+
 ## Remaining micro-debt (not G/C/E)
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 | C-8…C-10 done; extension API next |
-| `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.0" | P2 | Fallback for legacy `odpm.json` |
-| Plugin/hook API | backlog | `goals_ru.md` vision only |
-| Env variable refs in `odpm.json` | backlog | `todo.md` |
+| `Config` facade still central | P2 | C-8…C-10 done; shims remain for compatibility |
+| `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.4" | P2 | Fallback for legacy `odpm.json` |
+| Env variable refs in `odpm.json` | **DONE (MVP)** | `${VAR}` whitelist — see CHANGELOG 4.3 |
 | CI image secrets bake (TD-FEAT-09 Phase B) | P1 | Separate from developer `--secrets-file` MVP |
+| PyYAML for compose fragments | P3 | Stage-1 stdlib renderer; revisit if external YAML fragments needed |
 
 ---
 
 ## Next architecture work
 
-When starting a **new** track, add a new plan document rather than reopening G/C/E slices.
-
-Maintainers using Cursor: local workflow rule `.cursor/rules/architecture-debt-workflow.mdc` (not in git; `.cursor/` is gitignored).
+See [goals_ru.md](../../goals_ru.md) horizon items not covered by 4.4 (full Doodba-style hook surface, mandatory golden-path on every PR, etc.).

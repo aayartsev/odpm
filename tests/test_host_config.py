@@ -623,7 +623,7 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
             ctx.rewrite_odpm_json()
         mock_rewrite.assert_called_once_with(
             config,
-            create_default=ctx.defaults.create_default_odpm_json_content,
+            create_default=ctx.defaults.create_default_odpm_json_write_payload,
         )
 
     def test_bootstrap_context_wires_host_services(self):

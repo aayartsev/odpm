@@ -8,7 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.4.0-alpha] - 2026-06-19
+
+**Release line 4.4.0-alpha on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Breaking changes for existing v1 projects: none.**
+
 ### Added
+
+- **4.4 release docs and CI contract (4.4)** — [docs/reference/manifest-migration.md](docs/reference/manifest-migration.md); v2 fields in [odpm-json.md](docs/reference/odpm-json.md); CI job `contract` (`tests.test_manifest_contract`) and branch `4.4-dev` in workflows; [architecture-debt.md](docs/contributing/architecture-debt.md) 4.4 section; [goals_ru.md](goals_ru.md) plugin API marked done.
 
 - **Extension registry foundation (4.4)** — package `dev_project/extensions/`: frozen `ExtensionHostContext`, prepare-step plugin protocols, pluggy hook `odpm_prepare_steps` with entry-point group `odpm.prepare_steps`, `register_prepare_step` / `register_compose_fragment`. `prepare.get_prepare_steps()` merges built-in steps with extensions sorted by `order`. Tests: `tests/test_extension_entry_points.py`.
 
