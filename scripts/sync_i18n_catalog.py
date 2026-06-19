@@ -41,6 +41,11 @@ RU_MESSAGES: dict[str, str] = {
     "Blocking database configuration drift remains after resolution: {KINDS}": (
         "После разрешения дрейфа остаётся блокирующий дрейф конфигурации БД: {KINDS}"
     ),
+    "Canonical git pins: odpm.json locks.git; run --update-lock to "
+    "refresh .odpm/deps.lock.json.": (
+        "Канонические git-пины: locks.git в odpm.json; выполните --update-lock, "
+        "чтобы обновить .odpm/deps.lock.json."
+    ),
     "Bootstrapping PostgreSQL application role {ROLE} in single-user mode.": (
         "Создание роли приложения PostgreSQL {ROLE} в single-user режиме."
     ),
@@ -268,6 +273,17 @@ RU_MESSAGES: dict[str, str] = {
         "транзитивные записи из oca_dependencies.txt и вложенного odpm.json "
         "будут пропущены"
     ),
+    "Git lock source: .odpm/deps.lock.json; run --update-lock after "
+    "changing dependencies.": (
+        "Источник git lock: .odpm/deps.lock.json; после смены зависимостей "
+        "выполните --update-lock."
+    ),
+    "Git lock source: manifest locks.git in odpm.json (canonical); "
+    "edit SHA in locks.git and run --update-lock to sync "
+    ".odpm/deps.lock.json.": (
+        "Источник git lock: locks.git в odpm.json (канон); правьте SHA в locks.git "
+        "и выполните --update-lock для синхронизации .odpm/deps.lock.json."
+    ),
     "Host port: {PORT}": (
         "Порт на host: {PORT}"
     ),
@@ -335,6 +351,9 @@ RU_MESSAGES: dict[str, str] = {
     '"odpm manifest validate".': (
         'Укажите подкоманду manifest: "odpm manifest migrate" или '
         '"odpm manifest validate".'
+    ),
+    "manifest locks.git vs deps.lock.json differ: {DETAIL}": (
+        "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
     ),
     "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
         "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."

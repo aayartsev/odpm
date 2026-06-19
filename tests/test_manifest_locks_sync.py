@@ -10,6 +10,7 @@ from dev_project.git.deps_lock import DepsLock, LockEntry
 from dev_project.git.deps_lock_manager import DepsLockManager
 from dev_project.manifest.locks import (
     LockSource,
+    compare_manifest_and_deps_git_locks,
     deps_lock_from_manifest_git_locks,
     git_locks_map_from_deps_lock,
     lookup_git_lock_commit,
@@ -75,6 +76,85 @@ class ResolveLockSourceTests(unittest.TestCase):
             locks=None,
         )
         self.assertEqual(resolve_lock_source(config), LockSource.DEPS_FILE)
+
+
+class CompareManifestDepsLocksTests(unittest.TestCase):
+    def test_detects_commit_mismatch(self):
+        manifest_locks = {"https://github.com/odoo/odoo.git": "a" * 40}
+        deps_lock = DepsLock(
+            platform=LockEntry(
+                url="https://github.com/odoo/odoo.git",
+                commit="b" * 40,
+            )
+        )
+        divergences = compare_manifest_and_deps_git_locks(
+            manifest_locks,
+            deps_lock,
+        )
+        self.assertEqual(len(divergences), 1)
+        self.assertIn("manifest locks.git has", divergences[0])
+        self.assertIn("deps.lock.json has", divergences[0])
+
+    def test_empty_when_maps_match(self):
+        commit = "c" * 40
+        manifest_locks = {"https://github.com/odoo/odoo.git 17.0": commit}
+        deps_lock = DepsLock(
+            platform=LockEntry(
+                url="https://github.com/odoo/odoo.git",
+                commit=commit,
+            )
+        )
+        self.assertEqual(
+            compare_manifest_and_deps_git_locks(manifest_locks, deps_lock),
+            [],
+        )
+
+
+class DepsLockManagerDivergenceWarningTests(unittest.TestCase):
+    def test_verify_warns_when_manifest_and_deps_lock_differ(self):
+        import tempfile
+
+        from dev_project.git.deps_lock import save_deps_lock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            config = MagicMock()
+            config.project_dir = tmp
+            config.policy.is_ci.return_value = False
+            config.policy.is_developer.return_value = True
+            config.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
+            config.dependencies = []
+            config.bootstrap.developing_project = None
+            config.bootstrap.manifest_view = ManifestView(
+                manifest_schema=constants.MANIFEST_SCHEMA_V2,
+                requires_odpm="4.4",
+                raw_normalized={},
+                locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
+            )
+            config.odoo_platform_project.resolve_head_sha.return_value = "a" * 40
+            config.dependencies_projects = []
+
+            save_deps_lock(
+                f"{tmp}/.odpm/deps.lock.json",
+                DepsLock(
+                    platform=LockEntry(
+                        url="https://github.com/odoo/odoo.git",
+                        commit="b" * 40,
+                    )
+                ),
+            )
+
+            manager = DepsLockManager(config)
+            manager.load()
+            manager.enter_apply_mode()
+
+            with self.assertLogs(
+                "dev_project.git.deps_lock_manager", level="WARNING"
+            ) as logs:
+                manager.verify_pinned_checkout()
+
+            output = "\n".join(logs.output)
+            self.assertIn("manifest locks.git vs deps.lock.json differ", output)
+            self.assertIn("Canonical git pins", output)
 
 
 class DepsLockManagerManifestSourceTests(unittest.TestCase):

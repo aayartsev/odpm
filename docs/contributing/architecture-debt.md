@@ -69,7 +69,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Area | Outcome | Docs / tests |
 |------|---------|--------------|
 | Manifest v2 | dual-read, jsonschema, migrate CLI | `test_manifest_v2_reader`, `test_manifest_migrate` |
-| Locks in manifest | `LockSource.MANIFEST`, sync deps.lock | `test_manifest_locks_sync` |
+| Locks in manifest | **DONE** | dual-source docs, plan warnings, `git.lock_verify` divergence warning |
 | Extension registry | pluggy prepare steps, compose fragments | `test_extension_entry_points` |
 | Compose fragments | `compose.fragments` prepare step | `test_compose_fragments` |
 | Lifecycle hooks | `post_prepare`, `pre_up` | `test_manifest_hooks` |

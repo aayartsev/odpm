@@ -47,6 +47,51 @@ def git_locks_map_from_deps_lock(lock: DepsLock) -> dict[str, str]:
     return git_map
 
 
+def normalized_git_lock_commits(git_locks: dict[str, str]) -> dict[str, str]:
+    """Map canonical repo URL → commit for manifest or deps.lock git maps."""
+    normalized: dict[str, str] = {}
+    for key, commit in git_locks.items():
+        normalized[canonical_repo_url(key)] = commit
+    return normalized
+
+
+def compare_manifest_and_deps_git_locks(
+    manifest_git_locks: dict[str, str],
+    deps_lock: DepsLock,
+) -> list[str]:
+    """Return human-readable per-repo divergences (empty when maps match)."""
+    manifest_map = normalized_git_lock_commits(manifest_git_locks)
+    deps_map = normalized_git_lock_commits(git_locks_map_from_deps_lock(deps_lock))
+    divergences: list[str] = []
+    for url in sorted(set(manifest_map) | set(deps_map)):
+        manifest_commit = manifest_map.get(url)
+        deps_commit = deps_map.get(url)
+        if manifest_commit == deps_commit:
+            continue
+        if manifest_commit and deps_commit:
+            divergences.append(
+                f"{url}: manifest locks.git has {manifest_commit[:12]}, "
+                f"deps.lock.json has {deps_commit[:12]}"
+            )
+        elif manifest_commit:
+            divergences.append(f"{url}: present only in manifest locks.git")
+        else:
+            divergences.append(f"{url}: present only in deps.lock.json")
+    return divergences
+
+
+def manifest_git_locks_from_config(config: Config) -> dict[str, str]:
+    """Return manifest ``locks.git`` map when present on a v2 manifest."""
+    view = config.bootstrap.manifest_view
+    if view is None:
+        return {}
+    locks = view.locks or {}
+    git_locks = locks.get("git")
+    if not isinstance(git_locks, dict):
+        return {}
+    return {str(key): str(value) for key, value in git_locks.items()}
+
+
 def manifest_locks_from_deps_lock(lock: DepsLock) -> dict[str, Any]:
     """Convert :class:`DepsLock` to manifest v2 ``locks`` object."""
     git_map = git_locks_map_from_deps_lock(lock)

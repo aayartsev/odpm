@@ -16,6 +16,24 @@
 
 `--no-git-update` → `--update-lock` → чтение lock → конец ветки / дата nightly.
 
+## Два источника lock (v1 flat vs v2 nested)
+
+| Формат `odpm.json` | Канонический источник SHA | Роль `.odpm/deps.lock.json` |
+|--------------------|---------------------------|-----------------------------|
+| **v1 flat** (без `manifest_schema: 2`) | `.odpm/deps.lock.json` | Единственный источник; коммитят в git |
+| **v2 nested** с непустым `locks.git` | **`locks.git` в `odpm.json`** | Операционная копия для tooling и legacy-путей |
+
+На **v2** `DepsLockManager` читает пины из `locks.git`. Файл `.odpm/deps.lock.json` остаётся на диске после миграции и при `--update-lock`.
+
+**Где править SHA:**
+
+- v1 — отредактируйте `.odpm/deps.lock.json` или пересчитайте `odpm --update-lock --skip-start`.
+- v2 — отредактируйте `locks.git` в `odpm.json` (канон); затем `odpm --update-lock --skip-start`, чтобы синхронизировать `.odpm/deps.lock.json`.
+
+**Расхождение источников:** если `locks.git` и `.odpm/deps.lock.json` различаются, `odpm plan` показывает предупреждение, а шаг `git.lock_verify` пишет warning в лог. Канон — `locks.git`; для выравнивания файла на диске используйте `--update-lock`.
+
+См. [manifest-migration.md](manifest-migration.md#locks-после-миграции-v2).
+
 ## Содержимое (схема версии 1)
 
 - `platform` — репозиторий платформы Odoo или форка;

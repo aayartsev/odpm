@@ -3,12 +3,20 @@
 from __future__ import annotations
 
 from ..plan import PlanStep, deps_lock_file_exists
-from .helpers import lock_verify_available, make_plan_step, skip_git, update_lock
+from .helpers import (
+    lock_source_label,
+    lock_verify_available,
+    make_plan_step,
+    manifest_lock_apply_available,
+    skip_git,
+    update_lock,
+)
 from .types import PrepareContext
 
 
 def evaluate_git_lock_load(ctx: PrepareContext) -> PlanStep:
-    description = "Load .odpm/deps.lock.json and enter apply mode before checkout"
+    source = lock_source_label(ctx)
+    description = f"Load git lock from {source} and enter apply mode before checkout"
     if skip_git(ctx):
         return make_plan_step(
             "git.lock_load",
@@ -30,7 +38,7 @@ def evaluate_git_lock_load(ctx: PrepareContext) -> PlanStep:
         description,
         "run",
         True,
-        "load deps.lock before checkout",
+        f"load git lock from {source} before checkout",
     )
 
 
@@ -81,7 +89,8 @@ def evaluate_git_materialize(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_git_lock_apply(ctx: PrepareContext) -> PlanStep:
-    description = "Apply pinned commits from .odpm/deps.lock.json before checkout"
+    source = lock_source_label(ctx)
+    description = f"Apply pinned commits from {source} before checkout"
     if skip_git(ctx) or update_lock(ctx):
         return make_plan_step(
             "git.lock_apply",
@@ -90,20 +99,23 @@ def evaluate_git_lock_apply(ctx: PrepareContext) -> PlanStep:
             False,
             "lock apply not used in this mode",
         )
-    if not deps_lock_file_exists(ctx.host_ctx.project_dir):
+    if (
+        not deps_lock_file_exists(ctx.host_ctx.project_dir)
+        and not manifest_lock_apply_available(ctx)
+    ):
         return make_plan_step(
             "git.lock_apply",
             description,
             "skip",
             False,
-            "deps.lock.json not present",
+            "no git lock source available",
         )
     return make_plan_step(
         "git.lock_apply",
         description,
         "run",
         True,
-        "apply pinned commits from deps.lock.json",
+        f"apply pinned commits from {source}",
     )
 
 
@@ -146,7 +158,8 @@ def evaluate_git_lock_collect(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_git_lock_verify(ctx: PrepareContext) -> PlanStep:
-    description = "Verify checked-out commits match deps.lock.json"
+    source = lock_source_label(ctx)
+    description = f"Verify checked-out commits match {source}"
     if not lock_verify_available(ctx):
         return make_plan_step(
             "git.lock_verify",
@@ -160,7 +173,7 @@ def evaluate_git_lock_verify(ctx: PrepareContext) -> PlanStep:
         description,
         "run",
         ctx.host_ctx.policy.is_ci(),
-        "verify checked-out commits match deps.lock.json",
+        f"verify checked-out commits match {source}",
     )
 
 

@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Locks UX (Phase 4)** — dual-source docs (v1 deps.lock vs v2 `locks.git`); `odpm plan` warnings for lock source and manifest↔deps.lock drift; warning on `git.lock_verify` when sources diverge.
+
 - **Manifest contracts (Phase 3)** — `odpm manifest validate` (JSON Schema v1/v2 + compat); stricter v2 `services` schema (`image` required); version axes documented in odpm-json.md.
 
 - **CI secrets bake (TD-FEAT-09 Phase B)** — `ODPM_BAKE_SECRETS=1` copies materialized `.odpm/runtime/secrets.json` into CI build context and Dockerfile (`COPY` + `ENV ODPM_SECRETS_PATH`). ADR-002; extended `test_ci_secrets_smoke`; `tests/odpm_subprocess.py` for stable CLI subprocess tests.

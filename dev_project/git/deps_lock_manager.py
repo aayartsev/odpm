@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 from ..errors import PipelineError
 from ..logging import get_module_logger
 from ..manifest.locks import (
     LockSource,
+    compare_manifest_and_deps_git_locks,
     deps_lock_from_manifest_git_locks,
     developing_git_link_from_config,
+    manifest_git_locks_from_config,
     resolve_lock_source,
 )
 from .deps_lock import (
@@ -192,11 +195,36 @@ class DepsLockManager:
         self.collect_and_save(developing=self._config.developing_project)
 
     def verify_pinned_checkout(self) -> None:
+        self._warn_manifest_deps_lock_divergence()
         self.verify_after_checkout(
             platform=self._config.odoo_platform_project,
             developing=self._config.developing_project,
             dependencies=self._config.dependencies_projects,
         )
+
+    def _warn_manifest_deps_lock_divergence(self) -> None:
+        if self._lock_source != LockSource.MANIFEST:
+            return
+        if not os.path.isfile(self._path):
+            return
+        try:
+            file_lock = load_deps_lock(self._path)
+        except ValueError:
+            return
+        divergences = compare_manifest_and_deps_git_locks(
+            manifest_git_locks_from_config(self._config),
+            file_lock,
+        )
+        for detail in divergences:
+            _logger.warning(
+                "manifest locks.git vs deps.lock.json differ: %s",
+                detail,
+            )
+        if divergences:
+            _logger.warning(
+                "Canonical git pins: odpm.json locks.git; run --update-lock to "
+                "refresh .odpm/deps.lock.json"
+            )
 
     def _entry_from_project(self, project: HandleOdooProjectLink) -> LockEntry:
         commit = resolve_lock_commit(project)
