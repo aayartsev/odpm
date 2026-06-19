@@ -188,14 +188,14 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 project_dir, constants.ODPM_RUNTIME_CONFIG_REL_PATH
             )
             self.assertIn(
-                f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro",
+                f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro,Z",
                 content,
             )
             database_host = os.path.join(
                 project_dir, constants.ODPM_DATABASE_DIR_REL_PATH
             )
             self.assertIn(
-                f"{database_host}:{constants.ODPM_DATABASE_CONTAINER_DIR}",
+                f"{database_host}:{constants.ODPM_DATABASE_CONTAINER_DIR}:Z",
                 content,
             )
             self.assertNotIn("ODPM_CONFIG_B64=", content)
@@ -228,7 +228,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 content,
             )
             self.assertIn(
-                f"{runtime_secrets_host}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro",
+                f"{runtime_secrets_host}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro,Z",
                 content,
             )
 
@@ -239,7 +239,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 project_dir, constants.ODPM_RUNTIME_CONFIG_REL_PATH
             )
             self.assertNotIn(
-                f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro",
+                f"{runtime_config_host}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro,Z",
                 content,
             )
             self.assertNotIn(

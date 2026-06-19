@@ -78,7 +78,7 @@ docker compose up -d
 В `docker-compose.yml` сервиса `odoo` (при наличии source):
 
 - переменная `ODPM_SECRETS_PATH=/run/odpm/secrets.json`
-- volume `.odpm/runtime/secrets.json:/run/odpm/secrets.json:ro`
+- volume `.odpm/runtime/secrets.json:/run/odpm/secrets.json:ro,Z`
 
 Внутри контейнера:
 

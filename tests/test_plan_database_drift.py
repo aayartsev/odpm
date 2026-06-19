@@ -186,7 +186,6 @@ class PlanDatabaseDriftTests(unittest.TestCase):
             (Path(data_path) / "PG_VERSION").write_text("17\n", encoding="utf-8")
             self._write_odoo_conf(project_dir, db_host="db-dev")
             self._last_run(project_dir, service_name="db")
-            ctx = self._ctx(config)
             plan = build_plan(config, OdpmCliArgs(skip_start=True), None)
             step_ids = [step.id for step in plan.steps]
             self.assertIn("database.drift", step_ids)

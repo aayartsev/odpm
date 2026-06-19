@@ -51,13 +51,13 @@ class ComposeGenerator:
             local_runtime_config_path = runtime_config_path(self.config.project_dir)
             volume_lines.append(
                 " " * 6
-                + f"- {local_runtime_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro"
+                + f"- {local_runtime_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro,Z"
             )
             ensure_database_dir_gitignore(self.config.project_dir)
             local_database_dir = database_dir_path(self.config.project_dir)
             volume_lines.append(
                 " " * 6
-                + f"- {local_database_dir}:{constants.ODPM_DATABASE_CONTAINER_DIR}"
+                + f"- {local_database_dir}:{constants.ODPM_DATABASE_CONTAINER_DIR}:Z"
             )
         if compose_service.include_runtime_secrets:
             local_runtime_secrets_path = os.path.join(
@@ -65,7 +65,7 @@ class ComposeGenerator:
             )
             volume_lines.append(
                 " " * 6
-                + f"- {local_runtime_secrets_path}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro"
+                + f"- {local_runtime_secrets_path}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro,Z"
             )
         if self.config.policy.include_odoo_volumes:
             for mapped_volume in self.env.mapped_folders:

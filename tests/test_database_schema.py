@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import json
-import tempfile
 import unittest
-from pathlib import Path
 
 from dev_project.database.schema import (
     DATABASE_LAST_RUN_SCHEMA_VERSION,
