@@ -71,6 +71,7 @@ def _write_ci_dockerfile(context_dir: Path, *, base_image: str) -> Path:
         CI_RUNTIME_CONFIG_CONTEXT_REL=constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH,
         ODPM_CONFIG_PATH_ENV=constants.ODPM_CONFIG_PATH_ENV,
         ODPM_RUNTIME_CONFIG_CONTAINER_PATH=constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
+        CI_SECRETS_DOCKERFILE_BLOCK="",
     )
     content = content.replace(
         constants.MESSAGE_MARKER,

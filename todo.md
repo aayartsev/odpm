@@ -10,7 +10,8 @@
 - [x] добавить dev режим
 - [x] сделать механизм формирования окружения: т.е. опросить пользователя, где он хочет создать те или иные каталоги и сделать возможность клонирования основного репозитория odoo частью менеджера
 - [x] создать пакеты deb и rpm и, возможно для mac
-- [x] TD-FEAT-09 (MVP): CI secrets import через `--secrets-file` (`test_ci_secrets_smoke`, `ci-docker.yml`)
+- [x] CI secrets import через `--secrets-file` (`test_ci_secrets_smoke`, `ci-docker.yml`)
+- [x] CI secrets bake (`ODPM_BAKE_SECRETS=1`, ADR-002, `test_ci_secrets_smoke` bake cases)
 - [x] архитектура G/C/E (A10/A4/A11): plan status — `docs/contributing/architecture-debt.md`
 - [x] надо подумать как выносить шаблон конфигурации odoo в папку проекта, чтобы разработчик мог его модифицировать под свои нужды
 - [ ] проработать вариант для запуска проекта через VSCode docker окружения

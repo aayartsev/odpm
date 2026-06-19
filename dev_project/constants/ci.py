@@ -33,6 +33,8 @@ ODPM_DATABASE_LAST_RUN_CONTAINER_PATH = os.path.join(
     ODPM_DATABASE_CONTAINER_DIR, "last_run.json"
 )
 CI_RUNTIME_CONFIG_CONTEXT_REL_PATH = os.path.join("runtime", "config.json")
+CI_SECRETS_RUNTIME_CONTEXT_REL_PATH = os.path.join("runtime", "secrets.json")
+ODPM_BAKE_SECRETS_ENV = "ODPM_BAKE_SECRETS"
 CI_DOCKERFILE = "Dockerfile.ci"
 CI_DOCKERFILE_TEMPLATE = os.path.join(DEV_PROJECT_DIR, "templates", "dockerfile_ci")
 # Subdirectories omitted when copying dev_project/ into CI build context.

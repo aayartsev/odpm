@@ -1,6 +1,6 @@
 # Docker integration CI (4.2 policy):
 # - compose-smoke: required PR gate — minimal in-repo fixture; secrets pipeline
-#   validated separately via tests.test_ci_secrets_smoke (TD-FEAT-09 MVP).
+#   validated via tests.test_ci_secrets_smoke (developer mount + ci bake).
 # - golden-path: opt-in on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED +
 #   secret ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
