@@ -29,7 +29,7 @@ services:
       - {ODOO_PORT}:{ODOO_DOCKER_PORT}
       - {GEVENT_PORT}:{GEVENT_DOCKER_PORT}
 {DEV_EXTRA_PORTS}{DEV_EXTRA_HOSTS}{ODOO_VOLUMES_BLOCK}
-
+{COMPOSE_SERVICE_FRAGMENTS}
 volumes:
   postgres-data:
     driver: local

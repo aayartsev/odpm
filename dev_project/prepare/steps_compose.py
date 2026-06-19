@@ -37,6 +37,33 @@ def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
     )
 
 
+def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
+    from ..compose.fragments import collect_compose_services, compose_fragments_need_materialize
+
+    description = "Materialize manifest and plugin compose service fragments"
+    services = collect_compose_services(ctx.extension_host())
+    if compose_fragments_need_materialize(ctx.host_ctx.project_dir, services):
+        reason = (
+            "compose service fragments stale"
+            if services
+            else "compose service fragments cleanup"
+        )
+        return make_plan_step(
+            "compose.fragments",
+            description,
+            "update",
+            True,
+            reason,
+        )
+    return make_plan_step(
+        "compose.fragments",
+        description,
+        "noop",
+        True,
+        "compose service fragments up to date",
+    )
+
+
 def evaluate_compose_service(ctx: PrepareContext) -> PlanStep:
     description = (
         "Build compose start command and write .odpm/runtime/config.json when stale"
@@ -104,6 +131,13 @@ def evaluate_compose_validate(ctx: PrepareContext) -> PlanStep:
 
 def exec_compose_template(ctx: PrepareContext) -> None:
     ctx.config.pd_manager.rebuild_docker_compose_template()
+
+
+def exec_compose_fragments(ctx: PrepareContext) -> None:
+    from ..compose.fragments import collect_compose_services, materialize_compose_fragments
+
+    services = collect_compose_services(ctx.extension_host())
+    materialize_compose_fragments(ctx.host_ctx.project_dir, services)
 
 
 def exec_compose_service(ctx: PrepareContext) -> None:

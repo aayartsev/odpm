@@ -19,6 +19,7 @@ __all__ = [
     "get_prepare_steps",
     "hookimpl",
     "hookspec",
+    "iter_compose_fragments",
     "load_entry_point_prepare_steps",
     "plugin_manager",
     "register_compose_fragment",
@@ -85,6 +86,10 @@ def register_compose_fragment(name: str, plugin: ComposeFragmentPlugin) -> None:
 
 def get_compose_fragment(name: str) -> ComposeFragmentPlugin | None:
     return _COMPOSE_FRAGMENTS.get(name)
+
+
+def iter_compose_fragments() -> tuple[tuple[str, ComposeFragmentPlugin], ...]:
+    return tuple(sorted(_COMPOSE_FRAGMENTS.items()))
 
 
 def _coerce_prepare_step_plugin(item: Any) -> PrepareStepPlugin | None:

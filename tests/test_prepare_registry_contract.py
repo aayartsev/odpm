@@ -17,6 +17,7 @@ PREPARE_STEP_IDS = [
     "template.odoo_conf",
     "database.drift",
     "compose.template",
+    "compose.fragments",
     "secrets.materialize",
     "compose.service",
     "compose.generate",

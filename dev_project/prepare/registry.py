@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from .steps_compose import (
+    evaluate_compose_fragments,
     evaluate_compose_generate,
     evaluate_compose_service,
     evaluate_compose_template,
     evaluate_compose_validate,
+    exec_compose_fragments,
     exec_compose_generate,
     exec_compose_service,
     exec_compose_template,
@@ -95,6 +97,12 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     ),
     PrepareStepDef(
         "compose.template", "", evaluate_compose_template, exec_compose_template
+    ),
+    PrepareStepDef(
+        "compose.fragments",
+        "",
+        evaluate_compose_fragments,
+        exec_compose_fragments,
     ),
     PrepareStepDef(
         "secrets.materialize",

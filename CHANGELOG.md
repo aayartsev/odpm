@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Extension registry foundation (4.4)** — package `dev_project/extensions/`: frozen `ExtensionHostContext`, prepare-step plugin protocols, pluggy hook `odpm_prepare_steps` with entry-point group `odpm.prepare_steps`, `register_prepare_step` / `register_compose_fragment`. `prepare.get_prepare_steps()` merges built-in steps with extensions sorted by `order`. Tests: `tests/test_extension_entry_points.py`.
 
+- **Compose service fragments (4.4)** — `dev_project/compose/fragments.py` merges manifest v2 `services` with `register_compose_fragment` plugins; YAML render without PyYAML. Prepare step `compose.fragments` materializes `.odpm/compose/fragments/*.yml`; `{COMPOSE_SERVICE_FRAGMENTS}` placeholder in docker-compose template; `ComposeGenerator` injects extra services. Tests: `tests/test_compose_fragments.py`.
+
 - **Manifest migrate and locks sync (4.4)** — `odpm manifest migrate [--write]` transforms flat v1 `odpm.json` to nested manifest v2 (platform/distro/requirements, optional `database` from `user_settings`, `locks.git` from `.odpm/deps.lock.json`). `DepsLockManager` reads `locks.git` when `manifest_schema: 2` (`LockSource.MANIFEST`), otherwise `.odpm/deps.lock.json`. Tests: `tests/test_manifest_migrate.py`, `tests/test_manifest_locks_sync.py`, `tests/test_manifest_cli.py`.
 
 - **Manifest database identity (4.4)** — optional `database.language` / `database.country` in `odpm.json` (v1 flat and v2 nested). Bootstrap merges manifest values over `user_settings.json` `db_creation_data` for new DB creation; new projects get `database` block in default manifest. `create_demo` and admin credentials stay in `user_settings`. Tests: `tests/test_manifest_database_merge.py`.

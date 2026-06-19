@@ -6,13 +6,15 @@ import unittest
 from dataclasses import dataclass
 from unittest.mock import MagicMock
 
-from dev_project.extensions import (
-    ExtensionHostContext,
+from dev_project.extensions.registry import (
+    get_compose_fragment,
+    load_entry_point_prepare_steps,
+    plugin_manager,
     register_compose_fragment,
     register_prepare_step,
     reset_extension_registry_state,
 )
-from dev_project.extensions.registry import get_compose_fragment, load_entry_point_prepare_steps, plugin_manager
+from dev_project.extensions.context import ExtensionHostContext
 from dev_project.extensions.specs import OdpmExtensionSpecs, hookimpl
 from dev_project.plan import PlanStep
 from dev_project.prepare.helpers import make_plan_step
