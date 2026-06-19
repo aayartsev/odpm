@@ -12,6 +12,12 @@ Signed static RPM repo published at `https://aayartsev.github.io/odpm/yum/`.
 
 See [docs/install/README.md](../../docs/install/README.md) (hub) and [fedora-rpm.md](../../docs/install/fedora-rpm.md).
 
+Example `.repo` files are fetched from the **release branch** on GitHub (currently `4.3.0`; there is no `main` branch):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-stable.repo
+```
+
 ## Maintainer secrets (GitHub Actions)
 
 Same GPG key as the APT repo:

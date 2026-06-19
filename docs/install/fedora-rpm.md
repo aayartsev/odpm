@@ -19,7 +19,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 **Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (сейчас пакеты здесь; `stable` — после финальных релизов):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-testing.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-testing.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
@@ -29,12 +29,20 @@ sudo dnf install odpm
 **Стабильные релизы** (`v4.3.0`, без `-rc`/`-beta`):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-stable.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-stable.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
+
+> Ветка в URL (`4.3.0`) — текущая стабильная линия релиза; в репозитории нет ветки `main`.
+> Если `odpm-archive-keyring.asc` ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:
+>
+> ```bash
+> curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg -o /tmp/odpm-key.gpg
+> gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
+> ```
 
 На RHEL / AlmaLinux / Rocky Linux вместо `dnf` используйте `yum` (формат `.repo` тот же).
 
@@ -48,7 +56,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Установка вручную (.rpm с GitHub Releases)
 
-Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.0-beta` / `4.0-rc1` / `main`, или соберите локально:
+Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.3.0` / `4.0-beta` / `4.0-rc1`, или соберите локально:
 
 ```bash
 ./scripts/build_rpm.sh

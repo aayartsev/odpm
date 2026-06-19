@@ -7,6 +7,7 @@ on:
     branches:
       - 4.0-beta
       - 4.0-rc1
+      - 4.3.0
       - main
     tags:
       - "v*"

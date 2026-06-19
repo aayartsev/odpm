@@ -19,7 +19,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 **Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (packages are here for now; `stable` after final releases):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-testing.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-testing.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
@@ -29,12 +29,20 @@ sudo dnf install odpm
 **Stable releases** (`v4.3.0`, without `-rc`/`-beta`):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-stable.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-stable.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
+
+> The URL branch (`4.3.0`) is the current stable release line; there is no `main` branch in the repo.
+> If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
+>
+> ```bash
+> curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg -o /tmp/odpm-key.gpg
+> gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
+> ```
 
 On RHEL / AlmaLinux / Rocky Linux use `yum` instead of `dnf` (same `.repo` format).
 
@@ -48,7 +56,7 @@ Full install table for all platforms: [Installing odpm (all platforms)](README.m
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.0-beta` / `4.0-rc1` / `main`, or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.3.0` / `4.0-beta` / `4.0-rc1`, or build locally:
 
 ```bash
 ./scripts/build_rpm.sh
