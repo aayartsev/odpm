@@ -8,11 +8,11 @@ After a [release tag](https://github.com/aayartsev/odpm/releases), odpm publishe
 
 ### Repository key
 
-Same GPG key as the APT repo (binary keyring on GitHub Pages). Verify after enabling the repo:
+Same GPG key as the APT repo; GitHub Pages publishes an **ASCII-armored** file (`.asc`) for RPM/DNF because `rpm --import` does not accept APT's binary keyring (`gpg --dearmor`).
 
 ```bash
-sudo rpm --import https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.gpg
-sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i odpm || true
+sudo rpm --import https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.asc
+sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i yartsev || true
 # expected fingerprint: 03040028F53D7AB8  Alexander Yartsev
 ```
 

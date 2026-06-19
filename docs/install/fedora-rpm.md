@@ -8,11 +8,11 @@
 
 ### Ключ репозитория
 
-Тот же GPG-ключ, что и для APT (бинарный keyring на GitHub Pages). Проверка после подключения репозитория:
+Тот же GPG-ключ, что и для APT; для RPM/DNF на GitHub Pages публикуется **ASCII-armored** файл (`.asc`), потому что `rpm --import` не принимает бинарный keyring APT (`gpg --dearmor`).
 
 ```bash
-sudo rpm --import https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.gpg
-sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i odpm || true
+sudo rpm --import https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.asc
+sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i yartsev || true
 # ожидается fingerprint: 03040028F53D7AB8  Alexander Yartsev
 ```
 

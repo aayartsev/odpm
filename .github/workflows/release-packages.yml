@@ -397,7 +397,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p site/yum
-          cp yum-repo-out/odpm-archive-keyring.gpg site/yum/
+          cp yum-repo-out/odpm-archive-keyring.asc site/yum/
           for suite in stable testing; do
             if [[ -d yum-repo-out/${suite} ]]; then
               cp -a "yum-repo-out/${suite}" "site/yum/${suite}"

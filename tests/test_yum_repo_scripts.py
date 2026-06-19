@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -29,9 +31,40 @@ class YumRepoPackagingTests(unittest.TestCase):
             self.assertIn("gpgcheck=1", content)
             self.assertIn("repo_gpgcheck=1", content)
             self.assertIn(
-                "gpgkey=https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.gpg",
+                "gpgkey=https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.asc",
                 content,
             )
+
+    def test_armored_key_export_for_rpm(self):
+        keyring = PROJECT_ROOT / "packaging" / "apt" / "odpm-archive-keyring.gpg"
+        if not keyring.is_file():
+            self.skipTest("packaging/apt/odpm-archive-keyring.gpg not committed yet")
+        with tempfile.TemporaryDirectory() as gnupg_home:
+            env = {**os.environ, "GNUPGHOME": gnupg_home}
+            proc = subprocess.run(
+                [
+                    "gpg",
+                    "--no-default-keyring",
+                    "--keyring",
+                    str(keyring),
+                    "--export",
+                    "--armor",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertIn("-----BEGIN PGP PUBLIC KEY BLOCK-----", proc.stdout)
+            show = subprocess.run(
+                ["gpg", "--import-options", "show-only", "--import"],
+                input=proc.stdout,
+                check=True,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+        self.assertIn("03040028F53D7AB8", show.stdout)
 
     def test_yum_script_exists_and_executable(self):
         script = PROJECT_ROOT / "scripts" / "build_yum_repo.sh"

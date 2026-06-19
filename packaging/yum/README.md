@@ -6,7 +6,7 @@ Signed static RPM repo published at `https://aayartsev.github.io/odpm/yum/`.
 |------|--------|---------|
 | `odpm-testing.repo` | yes | Example `.repo` for pre-releases (`testing` suite) |
 | `odpm-stable.repo` | yes | Example `.repo` for stable releases |
-| `odpm-archive-keyring.gpg` | no (copied at publish) | Same binary keyring as APT (`packaging/apt/odpm-archive-keyring.gpg`) |
+| `odpm-archive-keyring.asc` | no (generated at publish) | ASCII-armored public key for `rpm --import` / DNF `gpgkey=` (exported from `packaging/apt/odpm-archive-keyring.gpg`) |
 
 ## User install
 

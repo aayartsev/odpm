@@ -65,7 +65,9 @@ EOF
 
 rm -rf "${OUT}"
 mkdir -p "${OUT}/${SUITE}/packages"
-cp "${KEYRING}" "${OUT}/odpm-archive-keyring.gpg"
+# RPM/DNF expect an ASCII-armored public key; APT uses the binary keyring in packaging/apt/.
+gpg --no-default-keyring --keyring "${KEYRING}" --export --armor \
+    > "${OUT}/odpm-archive-keyring.asc"
 
 for rpm_arg in "$@"; do
     RPM="${rpm_arg}"
