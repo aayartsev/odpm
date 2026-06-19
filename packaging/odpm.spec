@@ -1,12 +1,12 @@
 # odpm RPM spec — Fedora 40+ (host Python >= 3.10; pyproject PEP 517 macros).
-# Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.4.0-alpha).
+# Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.4.0-beta).
 # ODPM_VERSION (4.4) is the manager line; flat odpm.json contract line stays 4.0 until v2 migrate.
 
 %global srcname odpm
 
 Name:           %{srcname}
 Version:        4.4
-Release:        0.alpha%{?dist}
+Release:        0.beta%{?dist}
 Summary:        Declarative developer environment manager (odpm)
 License:        GPL-3.0-or-later
 URL:            https://github.com/aayartsev/odpm

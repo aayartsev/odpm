@@ -10,7 +10,7 @@ from ..host.context import HostProjectContext
 from ..logging import get_module_logger
 from ..plan import OdpmPlan, PlanStep, deps_lock_file_exists
 from .helpers import skip_git, update_lock
-from .registry import PREPARE_STEPS, get_prepare_steps
+from .registry import get_prepare_steps
 from .runtime import build_runtime_plan_steps, build_runtime_plan_warnings
 from ..config import Config
 from ..compose.generator import ComposeGenerator

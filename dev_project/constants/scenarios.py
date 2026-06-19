@@ -17,7 +17,7 @@ DEFAULT_ODPM_VERSION = "3.0"
 # Installed manager line (`odpm --version`, pip wheel metadata).
 ODPM_VERSION = "4.4"
 # Git tag and native package release line (deb/rpm); not the manifest schema version.
-RELEASE_VERSION = "4.4.0-alpha"
+RELEASE_VERSION = "4.4.0-beta"
 # Flat odpm.json → odpm_version written for new projects (manifest contract v1).
 MANIFEST_V1_CONTRACT_LINE = "4.0"
 MANIFEST_SCHEMA_V1 = 1

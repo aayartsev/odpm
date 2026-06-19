@@ -18,7 +18,6 @@ from dev_project.scenario_policy import ScenarioPolicy
 
 from tests.container_config_helpers import (
     apply_odpm_config_database_fields,
-    minimal_container_config,
     minimal_container_config_dict,
 )
 

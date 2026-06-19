@@ -89,7 +89,7 @@ def _require_string_list(data: dict, field_name: str) -> None:
             raise ConfigValidationError(f"{field_name}[{index}] must be a string")
 
 
-def validate_container_config_dict(data: dict) -> None:
+def validate_container_config_dict(data: dict) -> None:  # noqa: C901
     """Validate a normalized ContainerConfig v1 payload."""
     if not isinstance(data, dict):
         raise ConfigValidationError("Container config must be a JSON object")

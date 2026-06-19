@@ -7,7 +7,6 @@ import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
-import dev_project.host.cli.parse_args as parse_args_module
 from dev_project.database.schema import (
     DatabaseClusterFingerprint,
     DatabaseComposeFingerprint,

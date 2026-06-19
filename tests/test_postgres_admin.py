@@ -9,7 +9,6 @@ from dev_project import constants
 from dev_project.database.postgres_admin import (
     admin_role_candidates,
     bootstrap_app_role_single_user,
-    psql_role_connects,
     resolve_psql_admin_role,
     run_psql_as_admin,
 )

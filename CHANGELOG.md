@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.4.0-beta] - 2026-06-19
+
+**Release line 4.4.0-beta on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Roadmap 4.4 epics complete; no breaking changes for existing v1 projects.**
+
+### Changed
+
+- **Release gate (4.4.0-beta)** — `RELEASE_VERSION` → `4.4.0-beta`; deb/rpm packaging synced; ruff lint baseline fixes (unused imports, complexity noqa on container config validator).
+
 ## [4.4.0-alpha] - 2026-06-19
 
 **Release line 4.4.0-alpha on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Breaking changes for existing v1 projects: none.**

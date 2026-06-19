@@ -15,7 +15,7 @@ from dev_project.extensions.registry import (
     reset_extension_registry_state,
 )
 from dev_project.extensions.context import ExtensionHostContext
-from dev_project.extensions.specs import OdpmExtensionSpecs, hookimpl
+from dev_project.extensions.specs import hookimpl
 from dev_project.plan import PlanStep
 from dev_project.prepare.helpers import make_plan_step
 from dev_project.prepare.registry import BUILTIN_PREPARE_STEPS, get_prepare_steps as all_prepare_steps

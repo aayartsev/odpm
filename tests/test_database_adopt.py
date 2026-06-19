@@ -16,7 +16,6 @@ from dev_project.database.adopt import (
     wait_for_postgres_ready,
 )
 from dev_project.database.schema import DATABASE_LAST_RUN_SCHEMA_VERSION
-from dev_project.database.state import load_last_run
 from dev_project.errors import OdpmError
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -82,7 +81,7 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
     ):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
-            snapshot = build_adoption_last_run(config)
+            build_adoption_last_run(config)
             mock_save.return_value = os.path.join(
                 project_dir, constants.ODPM_DATABASE_LAST_RUN_REL_PATH
             )

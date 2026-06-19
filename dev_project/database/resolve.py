@@ -12,7 +12,6 @@ from ..translations import _
 from .drift import (
     DatabaseDrift,
     drifts_requiring_resolution,
-    has_blocking_database_drift,
 )
 from .ensure_role import ensure_app_role
 from .status import collect_database_status
