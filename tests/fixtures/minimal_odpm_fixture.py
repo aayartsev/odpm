@@ -5,8 +5,13 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
+from typing import Any
 
 from dev_project import constants
+from dev_project.extensions.reference.mailpit import (
+    MAILPIT_SERVICE_NAME,
+    MAILPIT_SERVICE_SPEC,
+)
 
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 
@@ -19,8 +24,40 @@ def _stub_repo(path: Path) -> None:
     (path / "odoo-bin").write_text("#!/usr/bin/env python3\n", encoding="utf-8")
 
 
-def provision_minimal_odpm_project(project_dir: Path) -> Path:
+def build_v2_manifest_with_mailpit(
+    *,
+    platform_uri: str,
+    developing_uri: str,
+    flat: dict[str, Any],
+) -> dict[str, Any]:
+    """Nested manifest v2 with reference Mailpit service for compose smoke."""
+    return {
+        "manifest_schema": constants.MANIFEST_SCHEMA_V2,
+        "requires_odpm": constants.ODPM_VERSION,
+        "odoo_version": flat.get("odoo_version"),
+        "platform": {"git": platform_uri, "build_date": "latest"},
+        "python": flat["python_version"],
+        "distro": {
+            "name": flat["distro_name"],
+            "version": flat["distro_version"],
+        },
+        "postgres": flat["postgres_version"],
+        "dependencies": list(flat.get("dependencies") or []),
+        "requirements": list(flat.get("requirements_txt") or []),
+        "developing": {"git": developing_uri},
+        "services": {MAILPIT_SERVICE_NAME: dict(MAILPIT_SERVICE_SPEC)},
+    }
+
+
+def provision_minimal_odpm_project(
+    project_dir: Path,
+    *,
+    manifest_v2_mailpit: bool = False,
+) -> Path:
     """Materialize a minimal initialized project tree under *project_dir*.
+
+    When *manifest_v2_mailpit* is true, ``developing/odpm.json`` is written as
+    nested manifest v2 with the reference Mailpit ``services`` entry.
 
     Returns the project root (same as *project_dir*).
     """
@@ -41,10 +78,20 @@ def provision_minimal_odpm_project(project_dir: Path) -> Path:
     )
 
     odpm_json = json.loads((developing / "odpm.json").read_text(encoding="utf-8"))
-    odpm_json["odpm_version"] = constants.MANIFEST_V1_CONTRACT_LINE
-    odpm_json["odoo_git_link"] = platform.as_uri()
+    platform_uri = platform.as_uri()
+    developing_uri = developing.as_uri()
+    if manifest_v2_mailpit:
+        odpm_payload = build_v2_manifest_with_mailpit(
+            platform_uri=platform_uri,
+            developing_uri=developing_uri,
+            flat=odpm_json,
+        )
+    else:
+        odpm_payload = dict(odpm_json)
+        odpm_payload["odpm_version"] = constants.MANIFEST_V1_CONTRACT_LINE
+        odpm_payload["odoo_git_link"] = platform_uri
     (developing / "odpm.json").write_text(
-        json.dumps(odpm_json, indent=2) + "\n",
+        json.dumps(odpm_payload, indent=2) + "\n",
         encoding="utf-8",
     )
 

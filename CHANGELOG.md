@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **CI / compose smoke (Phase 5)** — `minimal_odpm_fixture` optional manifest v2 + Mailpit; `ComposeSmokeMailpitIntegrationTests` with `ODPM_COMPOSE_SMOKE_MAILPIT=1`; compose-smoke uses `tests/odpm_subprocess.py`; golden-path mandatory criteria in `docs/contributing/ci.md`.
+
 - **Locks UX (Phase 4)** — dual-source docs (v1 deps.lock vs v2 `locks.git`); `odpm plan` warnings for lock source and manifest↔deps.lock drift; warning on `git.lock_verify` when sources diverge.
 
 - **Manifest contracts (Phase 3)** — `odpm manifest validate` (JSON Schema v1/v2 + compat); stricter v2 `services` schema (`image` required); version axes documented in odpm-json.md.

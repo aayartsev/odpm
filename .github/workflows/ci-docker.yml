@@ -1,6 +1,7 @@
 # Docker integration CI (4.2 policy):
-# - compose-smoke: required PR gate — minimal in-repo fixture; secrets pipeline
-#   validated via tests.test_ci_secrets_smoke (developer mount + ci bake).
+# - compose-smoke: required PR gate — minimal in-repo fixture (v1 flat); secrets
+#   pipeline validated via tests.test_ci_secrets_smoke (developer mount + ci bake).
+# - compose-smoke-mailpit: manifest v2 + services.mailpit (ODPM_COMPOSE_SMOKE_MAILPIT=1).
 # - golden-path: opt-in on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED +
 #   secret ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
@@ -78,6 +79,13 @@ jobs:
           ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
           ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
         run: python -m unittest tests.integration.test_compose_smoke -v
+
+      - name: Run compose smoke mailpit (manifest v2 services)
+        env:
+          ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
+          ODPM_COMPOSE_SMOKE_MAILPIT: "1"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+        run: python -m unittest tests.integration.test_compose_smoke.ComposeSmokeMailpitIntegrationTests -v
 
       - name: Save odpm base image to cache
         if: steps.docker-image-cache.outputs.cache-hit != 'true'

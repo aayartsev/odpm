@@ -8,7 +8,11 @@ import unittest
 from pathlib import Path
 
 from dev_project import constants
-from tests.fixtures.minimal_odpm_fixture import provision_minimal_odpm_project
+from tests.fixtures.minimal_odpm_fixture import (
+    build_v2_manifest_with_mailpit,
+    provision_minimal_odpm_project,
+)
+from dev_project.extensions.reference.mailpit import MAILPIT_SERVICE_NAME
 
 
 class MinimalOdpmFixtureTests(unittest.TestCase):
@@ -47,6 +51,43 @@ class MinimalOdpmFixtureTests(unittest.TestCase):
             self.assertEqual(odpm_json["odpm_version"], constants.MANIFEST_V1_CONTRACT_LINE)
             self.assertFalse(user_settings["check_system"])
             self.assertFalse(user_settings["create_module_links"])
+
+    def test_provision_v2_mailpit_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_dir = provision_minimal_odpm_project(
+                Path(tmp) / "project",
+                manifest_v2_mailpit=True,
+            )
+            developing = project_dir / "developing"
+            platform = project_dir / "platform" / "odoo"
+            odpm_json = json.loads(
+                (developing / "odpm.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(odpm_json["manifest_schema"], constants.MANIFEST_SCHEMA_V2)
+            self.assertEqual(
+                odpm_json["services"][MAILPIT_SERVICE_NAME]["image"],
+                "axllent/mailpit",
+            )
+            self.assertEqual(odpm_json["platform"]["git"], platform.as_uri())
+            self.assertEqual(odpm_json["developing"]["git"], developing.as_uri())
+
+    def test_build_v2_manifest_with_mailpit_helper(self) -> None:
+        flat = {
+            "odoo_version": "17.0",
+            "python_version": "3.12",
+            "distro_name": "debian",
+            "distro_version": "12",
+            "postgres_version": "16",
+            "dependencies": [],
+            "requirements_txt": [],
+        }
+        manifest = build_v2_manifest_with_mailpit(
+            platform_uri="file:///platform",
+            developing_uri="file:///developing",
+            flat=flat,
+        )
+        self.assertEqual(manifest["manifest_schema"], 2)
+        self.assertIn(MAILPIT_SERVICE_NAME, manifest["services"])
 
 
 if __name__ == "__main__":
