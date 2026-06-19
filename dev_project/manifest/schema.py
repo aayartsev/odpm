@@ -1,4 +1,4 @@
-"""JSON Schema validation for odpm.json manifest v2."""
+"""JSON Schema validation for odpm.json manifest v1 and v2."""
 
 from __future__ import annotations
 
@@ -24,16 +24,27 @@ def manifest_schema_v2() -> dict:
         return json.load(schema_file)
 
 
-def validate_manifest_v2(raw: dict) -> None:
-    """Raise :class:`ConfigError` when *raw* does not match manifest v2 schema."""
+def _validate_against_schema(raw: dict, schema: dict, *, label: str) -> None:
     import jsonschema
     from jsonschema.exceptions import ValidationError
 
     try:
-        jsonschema.validate(raw, manifest_schema_v2())
+        jsonschema.validate(raw, schema)
     except ValidationError as exc:
         path = ".".join(str(part) for part in exc.absolute_path) or "(root)"
-        message = _(
-            "Invalid manifest v2 odpm.json at {PATH}: {DETAIL}"
-        ).format(PATH=path, DETAIL=exc.message)
+        message = _("Invalid {LABEL} odpm.json at {PATH}: {DETAIL}").format(
+            LABEL=label,
+            PATH=path,
+            DETAIL=exc.message,
+        )
         raise ConfigError(message) from exc
+
+
+def validate_manifest_v1(raw: dict) -> None:
+    """Raise :class:`ConfigError` when *raw* does not match manifest v1 schema."""
+    _validate_against_schema(raw, manifest_schema_v1(), label="manifest v1")
+
+
+def validate_manifest_v2(raw: dict) -> None:
+    """Raise :class:`ConfigError` when *raw* does not match manifest v2 schema."""
+    _validate_against_schema(raw, manifest_schema_v2(), label="manifest v2")

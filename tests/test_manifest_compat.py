@@ -52,6 +52,14 @@ class AssertManagerSupportsManifestTests(unittest.TestCase):
             manager_version="4.4",
         )
 
+    def test_missing_odpm_version_uses_legacy_3_0_compat(self):
+        info = assert_manager_supports_manifest(
+            {"odoo_version": "17.0"},
+            manager_version="4.4",
+        )
+        self.assertEqual(info.manifest_schema, constants.MANIFEST_SCHEMA_V1)
+        self.assertEqual(info.v1_contract_line, constants.DEFAULT_ODPM_VERSION)
+
     def test_v1_unsupported_contract_raises(self):
         with self.assertRaises(ConfigError):
             assert_manager_supports_manifest(

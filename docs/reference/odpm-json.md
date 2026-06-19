@@ -27,6 +27,24 @@ odpm 4.4 поддерживает два формата:
 | `odoo_build_date` | Дата ночной сборки `ГГГГММДД` или `"latest"` |
 | `odpm_version` | **Контрактная строка формата** v1 (`"4.0"`), не версия менеджера |
 
+## Оси версий (manager vs manifest)
+
+В odpm три разные «версии» — не смешивайте их:
+
+| Константа / поле | Пример | Назначение |
+|------------------|--------|------------|
+| `ODPM_VERSION` | `"4.4"` | Версия **установленного менеджера** (`odpm --version`) |
+| `MANIFEST_V1_CONTRACT_LINE` | `"4.0"` | Строка `odpm_version`, которую odpm **пишет в новые** flat-проекты |
+| `DEFAULT_ODPM_VERSION` | `"3.0"` | **Legacy fallback**, если поле `odpm_version` **отсутствует** в flat v1 |
+
+Поведение compat (`dev_project/manifest/compat.py`):
+
+- Flat v1 **без** `manifest_schema` и **без** `odpm_version` → контракт считается `"3.0"` (поддерживается manager 4.4).
+- Новые проекты и миграции → `odpm_version: "4.0"`.
+- v2 nested → `requires_odpm: "4.4"` (минимальная версия менеджера), не `odpm_version`.
+
+Проверка без bootstrap: **`odpm manifest validate`** (JSON Schema v1 или v2 + compat-check).
+
 ## Nested v2 (дополнительные блоки)
 
 Обязательные поля v2: `manifest_schema`, `requires_odpm`, `platform`, `python`, `distro`, `postgres`.
@@ -46,11 +64,11 @@ odpm 4.4 поддерживает два формата:
 | `locks.venv` | Хеш venv lock (опционально) |
 | `hooks.post_prepare` | Shell argv или plugin id после prepare |
 | `hooks.pre_up` | Shell argv или plugin id перед `docker compose up` |
-| `services.<name>` | Дополнительные compose-сервисы (image, ports, env, …) |
+| `services.<name>` | Дополнительные compose-сервисы: обязателен `image`; опционально `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart` |
 
 Пример Mailpit: [plugins.md](plugins.md).
 
-Валидация v2: JSON Schema + **jsonschema** на host. v1 проходит compat-check без jsonschema.
+Валидация: **`odpm manifest validate`** (JSON Schema v1/v2 на host, read-only). При bootstrap v1 проходит compat-check без jsonschema; v2 — jsonschema в `load_manifest`.
 
 ## Блок `database` (язык и страна новой базы)
 

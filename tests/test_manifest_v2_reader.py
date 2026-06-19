@@ -11,7 +11,7 @@ from dev_project.manifest.reader import (
     load_manifest,
     normalize_v2_to_flat,
 )
-from dev_project.manifest.schema import manifest_schema_v1, manifest_schema_v2
+from dev_project.manifest.schema import manifest_schema_v1, manifest_schema_v2, validate_manifest_v1
 
 
 def _minimal_v2(**overrides) -> dict:
@@ -111,6 +111,18 @@ class LoadManifestTests(unittest.TestCase):
         broken = _minimal_v2(extra_field="nope")
         with self.assertRaises(ConfigError):
             load_manifest(broken)
+
+    def test_v2_invalid_service_spec_raises(self):
+        with self.assertRaises(ConfigError):
+            load_manifest(_minimal_v2(services={"mailpit": {"ports": ["8025:8025"]}}))
+
+    def test_v1_validate_accepts_minimal_flat_manifest(self):
+        validate_manifest_v1(
+            {
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
+                "odoo_version": "17.0",
+            }
+        )
 
     def test_v1_unsupported_contract_still_raises(self):
         with self.assertRaises(ConfigError):

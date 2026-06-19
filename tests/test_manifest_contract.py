@@ -6,9 +6,13 @@ import unittest
 from unittest.mock import MagicMock
 
 from dev_project import constants
+from dev_project.errors import ConfigError
 from dev_project.compose.fragments import collect_compose_services, render_compose_services_block
 from dev_project.extensions.context import ExtensionHostContext
-from dev_project.extensions.reference.mailpit import MAILPIT_SERVICE_SPEC
+from dev_project.extensions.reference.mailpit import (
+    MAILPIT_SERVICE_NAME,
+    MAILPIT_SERVICE_SPEC,
+)
 from dev_project.manifest.reader import load_manifest
 from tests.fixtures.compose.mailpit_fragment import MAILPIT_COMPOSE_FRAGMENT
 from tests.test_manifest_v2_reader import _minimal_v2
@@ -21,6 +25,7 @@ def _load_contract_modules() -> unittest.TestSuite:
     modules = (
         "tests.test_manifest_v2_reader",
         "tests.test_manifest_compat",
+        "tests.test_manifest_cli",
         "tests.test_manifest_migrate",
         "tests.test_manifest_locks_sync",
         "tests.test_manifest_hooks",
@@ -64,6 +69,19 @@ class ManifestExtensionContractTests(unittest.TestCase):
             step_ids.index("compose.fragments"),
             step_ids.index("compose.generate"),
         )
+
+    def test_mailpit_reference_spec_passes_v2_services_schema(self):
+        view = load_manifest(
+            _minimal_v2(services={MAILPIT_SERVICE_NAME: dict(MAILPIT_SERVICE_SPEC)})
+        )
+        self.assertEqual(
+            view.services[MAILPIT_SERVICE_NAME],
+            MAILPIT_SERVICE_SPEC,
+        )
+
+    def test_v2_service_without_image_rejected_by_schema(self):
+        with self.assertRaises(ConfigError):
+            load_manifest(_minimal_v2(services={"broken": {"ports": ["8025:8025"]}}))
 
 
 def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite, pattern: str):

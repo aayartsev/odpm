@@ -96,12 +96,14 @@ odpm database ensure-role
 ```bash
 odpm manifest migrate
 odpm manifest migrate --write
+odpm manifest validate
 ```
 
 | Команда | Описание |
 |---------|----------|
 | `manifest migrate` | Показать unified diff преобразования flat v1 → nested v2 |
 | `manifest migrate --write` | Записать manifest v2 в репозиторий разрабатываемого проекта |
+| `manifest validate` | Проверить `odpm.json` по JSON Schema (v1 flat или v2 nested) + compat-check |
 
 При миграции переносятся `database` (из манифеста или `user_settings`), `developing.git` и `locks.git` (из `.odpm/deps.lock.json`). См. [odpm.json](odpm-json.md#миграция-v1--v2).
 

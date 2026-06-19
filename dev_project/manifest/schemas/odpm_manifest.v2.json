@@ -106,10 +106,7 @@
     },
     "services": {
       "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "additionalProperties": true
-      }
+      "additionalProperties": { "$ref": "#/$defs/composeService" }
     },
     "database": {
       "type": "object",
@@ -117,6 +114,33 @@
       "properties": {
         "language": { "type": "string", "minLength": 1 },
         "country": { "type": ["string", "null", "boolean"] }
+      }
+    }
+  },
+  "$defs": {
+    "composeService": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["image"],
+      "properties": {
+        "image": { "type": "string", "minLength": 1 },
+        "ports": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "volumes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "restart": { "type": "string", "minLength": 1 }
       }
     }
   }

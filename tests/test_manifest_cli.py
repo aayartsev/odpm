@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
+from dev_project.errors import ConfigError
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.manifest.commands import run_manifest_command
 from dev_project.plan.cli import is_manifest_mode
@@ -24,6 +25,55 @@ class ManifestCliArgsTests(unittest.TestCase):
     def test_parse_manifest_migrate_write(self):
         cli_args = parse_cli_args(["manifest", "migrate", "--write"])
         self.assertTrue(cli_args.manifest_migrate_write)
+
+
+    def test_parse_manifest_validate(self):
+        cli_args = parse_cli_args(["manifest", "validate"])
+        self.assertEqual(cli_args.command, "manifest")
+        self.assertEqual(cli_args.manifest_subcommand, "validate")
+        self.assertTrue(is_manifest_mode(cli_args))
+
+
+class ManifestValidateCommandTests(unittest.TestCase):
+    def test_validate_v1_manifest_ok(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_path = f"{tmp}/developing/odpm.json"
+            import os
+
+            os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+            v1 = {
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
+                "odoo_version": "17.0",
+                "python_version": "3.12",
+            }
+            with open(manifest_path, "w", encoding="utf-8") as handle:
+                json.dump(v1, handle)
+
+            config = MagicMock()
+            config.repo_odpm_json = manifest_path
+
+            cli_args = parse_cli_args(["manifest", "validate"])
+            code = run_manifest_command(cli_args, config)
+            self.assertEqual(code, 0)
+
+    def test_validate_rejects_invalid_v2_service(self):
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_path = f"{tmp}/developing/odpm.json"
+            import os
+
+            os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+            broken = _minimal_v2(services={"bad": {"ports": ["1:1"]}})
+            with open(manifest_path, "w", encoding="utf-8") as handle:
+                json.dump(broken, handle)
+
+            config = MagicMock()
+            config.repo_odpm_json = manifest_path
+
+            cli_args = parse_cli_args(["manifest", "validate"])
+            with self.assertRaises(ConfigError):
+                run_manifest_command(cli_args, config)
 
 
 class ManifestMigrateCommandTests(unittest.TestCase):

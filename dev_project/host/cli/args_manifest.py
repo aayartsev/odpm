@@ -14,8 +14,8 @@ def register_manifest_subparser(
     parser = command_subparsers.add_parser(
         params.MANIFEST_SUBCOMMAND,
         parents=[common_parser],
-        help="""Migrate or inspect project manifest. Example: odpm manifest migrate""",
-        description="Migrate odpm.json between manifest schema versions.",
+        help="""Migrate or validate project manifest. Example: odpm manifest validate""",
+        description="Migrate or validate odpm.json manifest schema.",
     )
     manifest_subparsers = parser.add_subparsers(
         dest="manifest_subcommand",
@@ -31,5 +31,9 @@ def register_manifest_subparser(
         dest="manifest_migrate_write",
         action="store_true",
         help="""Write migrated manifest v2 to the developing project odpm.json.""",
+    )
+    manifest_subparsers.add_parser(
+        params.MANIFEST_VALIDATE_SUBCOMMAND,
+        help="""Validate odpm.json against packaged JSON Schema (read-only).""",
     )
     return parser

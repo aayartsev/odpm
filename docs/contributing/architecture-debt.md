@@ -84,7 +84,7 @@ ADR: [adr-001-extensions-and-manifest-v2.md](adr-001-extensions-and-manifest-v2.
 | Item | Priority | Notes |
 |------|----------|-------|
 | `Config` facade still central | P2 | C-11a/b slimmed prepare steps; shims remain for bootstrap boundary |
-| `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.4" | P2 | Fallback for legacy `odpm.json` |
+| `DEFAULT_ODPM_VERSION` "3.0" vs `MANIFEST_V1_CONTRACT_LINE` "4.0" | **DONE** | Documented in odpm-json.md; `odpm manifest validate` |
 | Env variable refs in `odpm.json` | **DONE (MVP)** | `${VAR}` whitelist — see CHANGELOG 4.3 |
 | CI image secrets bake (TD-FEAT-09 Phase B) | **DONE** | `ODPM_BAKE_SECRETS=1` + ADR-002; `test_ci_secrets_smoke` bake cases |
 | PyYAML for compose fragments | P3 | Stage-1 stdlib renderer; revisit if external YAML fragments needed |
