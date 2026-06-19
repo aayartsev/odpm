@@ -2,11 +2,33 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _list_odpm_keyring(keyring: Path) -> subprocess.CompletedProcess[str]:
+    """List keys from a shipped keyring without the host gpg keyboxd config."""
+    with tempfile.TemporaryDirectory() as tmp:
+        env = {**os.environ, "GNUPGHOME": tmp}
+        return subprocess.run(
+            [
+                "gpg",
+                "--no-default-keyring",
+                "--keyring",
+                str(keyring),
+                "--list-keys",
+                "--with-colons",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
 
 
 class AptRepoPackagingTests(unittest.TestCase):
@@ -20,19 +42,7 @@ class AptRepoPackagingTests(unittest.TestCase):
         self.assertGreater(keyring.stat().st_size, 0)
         head = keyring.read_bytes()[:40]
         self.assertNotIn(b"BEGIN PGP", head, msg="keyring must be binary, not armored")
-        proc = subprocess.run(
-            [
-                "gpg",
-                "--no-default-keyring",
-                "--keyring",
-                str(keyring),
-                "--list-keys",
-                "--with-colons",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        proc = _list_odpm_keyring(keyring)
         self.assertIn("03040028F53D7AB8", proc.stdout)
 
     def test_reprepro_distributions_define_stable_and_testing(self):

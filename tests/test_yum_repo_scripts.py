@@ -11,6 +11,26 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
+def _list_odpm_keyring(keyring: Path) -> subprocess.CompletedProcess[str]:
+    """List keys from a shipped keyring without the host gpg keyboxd config."""
+    with tempfile.TemporaryDirectory() as tmp:
+        env = {**os.environ, "GNUPGHOME": tmp}
+        return subprocess.run(
+            [
+                "gpg",
+                "--no-default-keyring",
+                "--keyring",
+                str(keyring),
+                "--list-keys",
+                "--with-colons",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+
 class YumRepoPackagingTests(unittest.TestCase):
     def test_public_keyring_shared_with_apt(self):
         keyring = PROJECT_ROOT / "packaging" / "apt" / "odpm-archive-keyring.gpg"
@@ -81,19 +101,7 @@ class YumRepoPackagingTests(unittest.TestCase):
         keyring = PROJECT_ROOT / "packaging" / "apt" / "odpm-archive-keyring.gpg"
         if not keyring.is_file():
             self.skipTest("packaging/apt/odpm-archive-keyring.gpg not committed yet")
-        proc = subprocess.run(
-            [
-                "gpg",
-                "--no-default-keyring",
-                "--keyring",
-                str(keyring),
-                "--list-keys",
-                "--with-colons",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        proc = _list_odpm_keyring(keyring)
         self.assertIn("03040028F53D7AB8", proc.stdout)
 
 
