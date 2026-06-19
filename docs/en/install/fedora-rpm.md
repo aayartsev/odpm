@@ -1,6 +1,6 @@
 # Fedora / RHEL (.rpm)
 
-Recommended on **Fedora 40+** (system Python ≥ 3.10). On EL9 / RHEL 9 the stock `python3` 3.9 is not supported — use pip/pipx or build the RPM on Fedora.
+Recommended on **Fedora 40+** (system Python ≥ 3.10). The YUM repo ships builds for Fedora 40, 41, and 44 (`fc40` / `fc41` / `fc44` in the RPM name). On EL9 / RHEL 9 the stock `python3` 3.9 is not supported — use pip/pipx or build the RPM on Fedora.
 
 ## Install via DNF (`dnf upgrade` updates)
 

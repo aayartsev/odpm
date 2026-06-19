@@ -73,7 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fedora: ["40", "41"]
+        fedora: ["40", "41", "44"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -147,8 +147,8 @@ jobs:
           ls -la dist/
           test -f dist/odpm_*.deb
           mapfile -t rpm_assets < <(find dist -maxdepth 1 -type f -name 'odpm-*.rpm' | sort)
-          if [[ "${#rpm_assets[@]}" -lt 2 ]]; then
-            echo "expected at least 2 RPM builds (fc40, fc41), got ${#rpm_assets[@]}" >&2
+          if [[ "${#rpm_assets[@]}" -lt 3 ]]; then
+            echo "expected at least 3 RPM builds (fc40, fc41, fc44), got ${#rpm_assets[@]}" >&2
             printf '  %s\n' "${rpm_assets[@]:-"(none)"}"
             exit 1
           fi
