@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Manifest migrate and locks sync (4.4)** — `odpm manifest migrate [--write]` transforms flat v1 `odpm.json` to nested manifest v2 (platform/distro/requirements, optional `database` from `user_settings`, `locks.git` from `.odpm/deps.lock.json`). `DepsLockManager` reads `locks.git` when `manifest_schema: 2` (`LockSource.MANIFEST`), otherwise `.odpm/deps.lock.json`. Tests: `tests/test_manifest_migrate.py`, `tests/test_manifest_locks_sync.py`, `tests/test_manifest_cli.py`.
+
 - **Manifest database identity (4.4)** — optional `database.language` / `database.country` in `odpm.json` (v1 flat and v2 nested). Bootstrap merges manifest values over `user_settings.json` `db_creation_data` for new DB creation; new projects get `database` block in default manifest. `create_demo` and admin credentials stay in `user_settings`. Tests: `tests/test_manifest_database_merge.py`.
 
 - **Manifest v2 core (4.4)** — JSON Schema files `odpm_manifest.v1.json` / `v2.json`, `dev_project/manifest/schema.py` and `reader.py` (dual-read v1 flat | v2 nested → normalized flat `ManifestView`). Bootstrap loads via `OdpmJsonReader` → env expand on flat projection; v2 `hooks` / `services` / `locks` on `BootstrapState.manifest_view`. Tests: `tests/test_manifest_v2_reader.py`.

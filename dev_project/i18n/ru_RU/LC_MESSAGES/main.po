@@ -422,6 +422,21 @@ msgstr "Конфигурация БД совпадает со снимком las
 msgid "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
 msgstr "Укажите подкоманду database: \"odpm database status\" или \"odpm database ensure-role\"."
 
+msgid "Manifest is already manifest_schema 2."
+msgstr "Манифест уже использует manifest_schema 2."
+
+msgid "Manifest file not found at {PATH}."
+msgstr "Файл манифеста не найден: {PATH}."
+
+msgid "manifest subcommand required: use \"odpm manifest migrate\"."
+msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\"."
+
+msgid "No manifest changes to apply."
+msgstr "Нет изменений манифеста для применения."
+
+msgid "Wrote manifest v2 to {PATH}."
+msgstr "Записан manifest v2 в {PATH}."
+
 msgid "docker build failed with exit code {EXIT_CODE}"
 msgstr "docker build завершился с кодом {EXIT_CODE}"
 

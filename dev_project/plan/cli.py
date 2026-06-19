@@ -14,3 +14,7 @@ def is_plan_mode(args: OdpmCliArgs) -> bool:
 
 def is_database_mode(args: OdpmCliArgs) -> bool:
     return args.command == cli_params.DATABASE_SUBCOMMAND
+
+
+def is_manifest_mode(args: OdpmCliArgs) -> bool:
+    return args.command == cli_params.MANIFEST_SUBCOMMAND

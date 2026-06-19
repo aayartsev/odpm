@@ -36,6 +36,21 @@
 }
 ```
 
+## Миграция v1 → v2
+
+Команда **`odpm manifest migrate`** показывает unified diff преобразования flat-манифеста в nested v2. С флагом **`--write`** записывает результат в `odpm.json` разрабатываемого проекта.
+
+При миграции odpm переносит:
+
+| Источник | Куда в v2 |
+|----------|-----------|
+| flat-поля (`python_version`, `odoo_git_link`, …) | `python`, `platform`, `distro`, … |
+| `database` в манифесте или `db_creation_data` в `user_settings.json` | `database` |
+| `developing_project` в `user_settings.json` | `developing.git` |
+| `.odpm/deps.lock.json` | `locks.git` |
+
+После миграции v1 flat по-прежнему читается менеджером 4.4 до переключения файла. Проекты без миграции не ломаются.
+
 ## Подстановка `${VAR}` в строковых полях
 
 В **whitelist-полях** odpm раскрывает ссылки на переменные окружения сразу после чтения JSON:
