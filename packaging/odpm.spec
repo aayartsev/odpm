@@ -31,7 +31,8 @@ Recommends:     docker
 Declarative environment manager for Odoo development projects.
 Reads the odpm project descriptor from a repository and prepares
 Docker-based development stacks (clone sources, build images, compose up
-PostgreSQL and Odoo). Host CLI uses jsonschema and pluggy (PyPI or distro packages).
+PostgreSQL and Odoo).
+Host CLI uses PyPI or distribution Python packages for validation and plugins.
 
 %prep
 %autosetup -n %{srcname}-%{version}
