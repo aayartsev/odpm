@@ -17,6 +17,8 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
 BuildRequires:  python3-wheel
 BuildRequires:  python3-packaging
+BuildRequires:  python3-jsonschema
+BuildRequires:  python3-pluggy
 
 Requires:       python3-packaging
 Requires:       python3-jsonschema

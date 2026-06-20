@@ -87,7 +87,8 @@ jobs:
             bash -c '
               set -euo pipefail
               dnf install -y -q rpm-build python3-devel python3-setuptools \
-                python3-wheel python3-packaging git >/dev/null
+                python3-wheel python3-packaging python3-jsonschema python3-pluggy \
+                git >/dev/null
               ./scripts/build_rpm.sh
             '
 
