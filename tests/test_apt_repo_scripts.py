@@ -55,8 +55,13 @@ class AptRepoPackagingTests(unittest.TestCase):
         self.assertIn("Architectures: amd64 arm64 armhf i386", distributions)
         self.assertNotRegex(distributions, r"(?m)^Architectures: all$")
 
-    def test_apt_scripts_exist_and_executable(self):
-        for name in ("import_apt_signing_key.sh", "build_apt_repo.sh"):
+    def test_package_repo_scripts_exist_and_executable(self):
+        for name in (
+            "import_apt_signing_key.sh",
+            "build_apt_repo.sh",
+            "build_yum_repo.sh",
+            "preserve_pages_package_repos.sh",
+        ):
             script = PROJECT_ROOT / "scripts" / name
             self.assertTrue(script.is_file(), msg=name)
             self.assertTrue(script.stat().st_mode & 0o111, msg=f"{name} not executable")

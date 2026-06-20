@@ -17,6 +17,8 @@ Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/
 
 Published on tag builds to `https://aayartsev.github.io/odpm/apt/` (`stable` / `testing` suites).
 
+Docs deploys (`.github/workflows/docs.yml`) rebuild MkDocs on branch pushes and share the same GitHub Pages site. Before upload, `./scripts/preserve_pages_package_repos.sh` mirrors any live `apt/` and `yum/` trees into `site/` (explicit file fetch from `Release` / `repomd.xml`; `wget -r` does not work on Pages). If a live repo exists but mirroring fails, the workflow fails instead of wiping package repos.
+
 GitHub Actions secrets:
 
 | Secret | Purpose |
