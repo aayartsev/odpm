@@ -374,8 +374,14 @@ msgstr "Данный каталог не является odpm проектом.
 msgid "To change PostgreSQL major version, stop containers, back up if needed, remove the data directory at {CURRENT}, then run odpm again so the cluster re-initializes."
 msgstr "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm для переинициализации кластера."
 
+msgid "To change PostgreSQL major version:\n1. Stop containers (docker compose down).\n2. Back up Odoo databases if needed.\n3. Remove the PostgreSQL data directory: {DATA_PATH}\n4. Run: odpm --accept-database-drift=postgres_major\nAlternatively delete {LAST_RUN_REL} and run odpm again."
+msgstr "Чтобы сменить major-версию PostgreSQL:\n1. Остановите контейнеры (docker compose down).\n2. При необходимости сделайте резервную копию баз Odoo.\n3. Удалите каталог данных PostgreSQL: {DATA_PATH}\n4. Запустите: odpm --accept-database-drift=postgres_major\nЛибо удалите {LAST_RUN_REL} и снова запустите odpm."
+
 msgid "To use a different PostgreSQL data directory, stop containers, move or remove the old data under {PREVIOUS}, then run odpm again. Current configured path: {CURRENT}."
 msgstr "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. Текущий настроенный путь: {CURRENT}."
+
+msgid "To use a different PostgreSQL data directory:\n1. Stop containers (docker compose down).\n2. Move or remove the old data under {PREVIOUS}.\n3. Run: odpm --accept-database-drift=data_path\nCurrent configured path: {CURRENT}."
+msgstr "Чтобы использовать другой каталог данных PostgreSQL:\n1. Остановите контейнеры (docker compose down).\n2. Переместите или удалите старые данные в {PREVIOUS}.\n3. Запустите: odpm --accept-database-drift=data_path\nТекущий настроенный путь: {CURRENT}."
 
 msgid "Unexpected PostgreSQL connection error: {DETAIL}"
 msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
@@ -394,6 +400,9 @@ msgstr "Неподдерживаемая строка контракта odpm.js
 
 msgid "Updated PostgreSQL application role {ROLE}."
 msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
+
+msgid "Updated database baseline snapshot at {PATH}."
+msgstr "Обновлён снимок baseline базы данных: {PATH}."
 
 msgid "When Odoo is ready, open http://localhost:{ODOO_PORT}"
 msgstr "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"

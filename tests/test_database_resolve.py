@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.database import save_last_run
+from dev_project.database import load_last_run, save_last_run
 from dev_project.database.resolve import (
     ensure_no_blocking_database_drift,
     resolve_database_drifts,
@@ -65,7 +65,13 @@ class DatabaseResolveTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def _last_run(self, project_dir: str, *, data_path: str) -> None:
+    def _last_run(
+        self,
+        project_dir: str,
+        *,
+        data_path: str,
+        image_tag: str = "17",
+    ) -> None:
         save_last_run(
             project_dir,
             DatabaseLastRun(
@@ -75,7 +81,7 @@ class DatabaseResolveTests(unittest.TestCase):
                 engine="postgres",
                 compose=DatabaseComposeFingerprint(
                     service_name="db-dev",
-                    image_tag="17",
+                    image_tag=image_tag,
                     data_path_abs=data_path,
                     host_port=5432,
                 ),
@@ -86,7 +92,7 @@ class DatabaseResolveTests(unittest.TestCase):
                 ),
                 cluster=DatabaseClusterFingerprint(
                     data_dir_nonempty=True,
-                    pg_major=17,
+                    pg_major=int(image_tag),
                     app_role="odoo",
                     app_role_present=True,
                 ),
@@ -128,8 +134,60 @@ class DatabaseResolveTests(unittest.TestCase):
                     self._ctx(config, accept=("data_path",))
                 )
             ensure_no_blocking_database_drift(
-                config, OdpmCliArgs(accept_database_drift=("data_path",))
+                config, OdpmCliArgs(accept_database_drift=())
             )
+            snapshot = load_last_run(project_dir)
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertEqual(snapshot.compose.data_path_abs, other_data)
+
+    @patch("dev_project.database.status.probe_postgres_container_running", return_value=False)
+    def test_interactive_postgres_major_accept_updates_baseline(self, _mock_running):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = self._config(project_dir)
+            self._write_odoo_conf(project_dir)
+            data_path = os.path.join(project_dir, constants.POSTGRES_LOCAL_STORAGE_DIR)
+            os.makedirs(data_path, exist_ok=True)
+            self._last_run(project_dir, data_path=data_path, image_tag="13")
+            with patch(
+                "dev_project.database.resolve.stdin_is_interactive",
+                return_value=True,
+            ), patch(
+                "dev_project.database.resolve.prompt_input",
+                return_value="b",
+            ):
+                resolve_database_drifts(self._ctx(config))
+            ensure_no_blocking_database_drift(
+                config, OdpmCliArgs(accept_database_drift=())
+            )
+            snapshot = load_last_run(project_dir)
+            self.assertIsNotNone(snapshot)
+            assert snapshot is not None
+            self.assertEqual(snapshot.compose.image_tag, "17")
+
+    @patch("dev_project.database.status.probe_postgres_container_running", return_value=False)
+    def test_interactive_postgres_major_wipe_instructions_use_data_path(
+        self, _mock_running
+    ):
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = self._config(project_dir)
+            self._write_odoo_conf(project_dir)
+            data_path = os.path.join(project_dir, constants.POSTGRES_LOCAL_STORAGE_DIR)
+            os.makedirs(data_path, exist_ok=True)
+            self._last_run(project_dir, data_path=data_path, image_tag="13")
+            with patch(
+                "dev_project.database.resolve.stdin_is_interactive",
+                return_value=True,
+            ), patch(
+                "dev_project.database.resolve.prompt_input",
+                return_value="c",
+            ), self.assertLogs("dev_project.database.resolve", level="INFO") as logs:
+                with self.assertRaises(PipelineError):
+                    resolve_database_drifts(self._ctx(config))
+            logged = "\n".join(logs.output)
+            self.assertIn(data_path, logged)
+            self.assertIn("--accept-database-drift=postgres_major", logged)
+            self.assertIn(constants.ODPM_DATABASE_LAST_RUN_REL_PATH, logged)
 
     @patch("dev_project.database.resolve.ensure_app_role")
     @patch("dev_project.database.status.probe_app_role_exists")
@@ -142,7 +200,7 @@ class DatabaseResolveTests(unittest.TestCase):
         mock_role,
         mock_ensure,
     ):
-        mock_role.side_effect = [False, True]
+        mock_role.side_effect = [False, True, True, True]
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
             self._write_odoo_conf(project_dir)

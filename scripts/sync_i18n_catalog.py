@@ -486,11 +486,32 @@ RU_MESSAGES: dict[str, str] = {
     "This dir is already {PROJECT_NAME} project": (
         "Данный каталог уже является {PROJECT_NAME} проектом"
     ),
-    "To change PostgreSQL major version, stop containers, back up if needed, remove "
-    "the data directory at {CURRENT}, then run odpm again so the cluster re-initializes.": (
-        "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости "
-        "сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm "
-        "для переинициализации кластера."
+    "To change PostgreSQL major version:\n"
+    "1. Stop containers (docker compose down).\n"
+    "2. Back up Odoo databases if needed.\n"
+    "3. Remove the PostgreSQL data directory: {DATA_PATH}\n"
+    "4. Run: odpm --accept-database-drift=postgres_major\n"
+    "Alternatively delete {LAST_RUN_REL} and run odpm again.": (
+        "Чтобы сменить major-версию PostgreSQL:\n"
+        "1. Остановите контейнеры (docker compose down).\n"
+        "2. При необходимости сделайте резервную копию баз Odoo.\n"
+        "3. Удалите каталог данных PostgreSQL: {DATA_PATH}\n"
+        "4. Запустите: odpm --accept-database-drift=postgres_major\n"
+        "Либо удалите {LAST_RUN_REL} и снова запустите odpm."
+    ),
+    "To use a different PostgreSQL data directory:\n"
+    "1. Stop containers (docker compose down).\n"
+    "2. Move or remove the old data under {PREVIOUS}.\n"
+    "3. Run: odpm --accept-database-drift=data_path\n"
+    "Current configured path: {CURRENT}.": (
+        "Чтобы использовать другой каталог данных PostgreSQL:\n"
+        "1. Остановите контейнеры (docker compose down).\n"
+        "2. Переместите или удалите старые данные в {PREVIOUS}.\n"
+        "3. Запустите: odpm --accept-database-drift=data_path\n"
+        "Текущий настроенный путь: {CURRENT}."
+    ),
+    "Updated database baseline snapshot at {PATH}.": (
+        "Обновлён снимок baseline базы данных: {PATH}."
     ),
     "To use a different PostgreSQL data directory, stop containers, move or remove "
     "the old data under {PREVIOUS}, then run odpm again. Current configured path: "
@@ -498,6 +519,12 @@ RU_MESSAGES: dict[str, str] = {
         "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, "
         "переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. "
         "Текущий настроенный путь: {CURRENT}."
+    ),
+    "To change PostgreSQL major version, stop containers, back up if needed, remove "
+    "the data directory at {CURRENT}, then run odpm again so the cluster re-initializes.": (
+        "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости "
+        "сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm "
+        "для переинициализации кластера."
     ),
     'This is not {PROJECT_NAME} directory. If you want to init new project use '
     '"{PROJECT_NAME} {INIT_PARAM}" command': (

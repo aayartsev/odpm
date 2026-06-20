@@ -68,7 +68,17 @@ Prepare step **`database.drift`** in `odpm plan` reflects mismatches before comp
 
 ### Interactive resolution
 
-With a TTY, odpm prompts (accept new data path, create role, show wipe instructions, etc.). Without TTY — error listing KINDs; use **`--accept-database-drift=KIND`** (repeatable).
+With a TTY, odpm prompts (accept new data path, create role, show wipe instructions, etc.). Choosing **accept and continue** updates `.odpm/database/last_run.json` to the current configuration. Without TTY — error listing KINDs; use **`--accept-database-drift=KIND`** (repeatable; baseline is updated as well).
+
+### PostgreSQL major version change
+
+odpm does **not** migrate data directories across major versions. Interactive option **(c)** prints step-by-step instructions: stop containers, remove the data directory, then:
+
+```bash
+odpm --accept-database-drift=postgres_major
+```
+
+Or delete `.odpm/database/last_run.json` and run `odpm` again. Option **(b)** accepts the drift and updates the baseline without wipe — use only when the data directory is already compatible with the new major or you will re-initialize the cluster manually.
 
 Accepted KIND values:
 
