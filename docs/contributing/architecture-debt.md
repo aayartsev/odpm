@@ -87,12 +87,14 @@ ADR: [adr-001-extensions-and-manifest-v2.md](adr-001-extensions-and-manifest-v2.
 | Phase | Scope | Status | KPI / артефакты |
 |-------|--------|--------|-----------------|
 | **P0** | Release gate `4.4.0-beta`, green CI | **DONE** | tag `v4.4.0-beta`, CHANGELOG |
-| **P1** | TD-FEAT-09 B CI secrets bake | **DONE** | ADR-002, `ODPM_BAKE_SECRETS`, `tests/odpm_subprocess.py` |
-| **P2** | C-11 prepare boundary (`host_ctx`) | **DONE** | `test_prepare_config_coupling`, no `ctx.config` in `steps_*.py` |
-| **P3** | Version axes + manifest validate + strict v2 `services` | **DONE** | `odpm manifest validate`, `odpm-json.md` |
-| **P4** | Locks dual-source UX | **DONE** | `deps-lock.md`, `locks_preview.py`, divergence warning |
-| **P5** | Mailpit compose-smoke + golden-path criteria | **DONE** | `ODPM_COMPOSE_SMOKE_MAILPIT`, `docs/contributing/ci.md` |
-| **P6** | Documentation hygiene | **DONE** | этот tracker, `todo.md` triage, `plugins/todo_ru.md` redirect |
+| **P1** | TD-FEAT-09 B CI secrets bake | **RELEASED 4.4.2** | ADR-002, `ODPM_BAKE_SECRETS`, `tests/odpm_subprocess.py` |
+| **P2** | C-11 prepare boundary (`host_ctx`) | **RELEASED 4.4.2** | `test_prepare_config_coupling`, no `ctx.config` in `steps_*.py` |
+| **P3** | Version axes + manifest validate + strict v2 `services` | **RELEASED 4.4.2** | `odpm manifest validate`, `odpm-json.md` |
+| **P4** | Locks dual-source UX | **RELEASED 4.4.2** | `deps-lock.md`, `locks_preview.py`, divergence warning |
+| **P5** | Mailpit compose-smoke + golden-path criteria | **RELEASED 4.4.2** | `ODPM_COMPOSE_SMOKE_MAILPIT`, `docs/contributing/ci.md` |
+| **P6** | Documentation hygiene | **RELEASED 4.4.2** | этот tracker, `todo.md` triage, `plugins/todo_ru.md` redirect |
+
+Patch release **4.4.2** (2026-06-20): P1–P6 shipped on branch `4.4-dev`; tag `v4.4.2`.
 
 ### Open horizon (post-4.4 closure)
 

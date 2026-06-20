@@ -8,11 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.4.2] - 2026-06-20
+
+**Patch release 4.4.2 on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Ships debt-closure phases P1–P6 after `4.4.0-beta`; no breaking changes for existing v1 projects.**
+
 ### Changed
 
 - **Documentation hygiene (Phase 6)** — `architecture-debt.md` debt tracker P0–P6; `todo.md` backlog triage; `plugins/todo_ru.md` redirect to `plugins.md`; `goals_ru.md` golden-path post-4.4 backlog.
 
 - **Config slimming C-11 (prepare boundary)** — prepare steps read via `host_ctx`, `git_repos`, and `DepsLockManager` helpers instead of `ctx.config`; `SystemCheckPolicy.from_host_context`; plan compose/database previews use host paths where sufficient. Contract: `tests/test_prepare_config_coupling.py`.
+
+- **Release gate (4.4.2)** — `RELEASE_VERSION` → `4.4.2`; deb/rpm packaging synced; debt tracker P1–P6 marked released.
 
 ### Added
 

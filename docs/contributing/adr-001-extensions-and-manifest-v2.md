@@ -16,7 +16,7 @@ Historically, flat `odpm.json` used a single field `odpm_version` both as a mani
 | Axis | Constant / field | Example | Meaning |
 |------|------------------|---------|---------|
 | Manager / CLI | `ODPM_VERSION`, `odpm --version`, pip wheel | `4.4` | Installed odpm manager line |
-| Native package release | `RELEASE_VERSION` | `4.4.0-beta` | Git tag, deb/rpm filenames |
+| Native package release | `RELEASE_VERSION` | `4.4.2` | Git tag, deb/rpm filenames |
 | Manifest schema | `manifest_schema` in JSON | `1`, `2` | Shape and semantics of `odpm.json` |
 | Min manager (v2 only) | `requires_odpm` | `4.4` | Semver: manager must be ≥ this |
 | Legacy flat contract | `odpm_version` (v1 only) | `4.0` | Manifest contract line, **not** manager version |
@@ -99,7 +99,7 @@ Implemented in [dev_project/manifest/compat.py](../../dev_project/manifest/compa
 ## Consequences
 
 - `ODPM_VERSION` bumps to `4.4` without breaking existing `odpm_version: "4.0"` projects.
-- `RELEASE_VERSION` on `4.4-dev` is `4.4.0-beta` (roadmap 4.4 complete); rc/stable follows after debt-closure phases.
+- `RELEASE_VERSION` on `4.4-dev` is `4.4.2` (debt-closure P1–P6 shipped); further 4.4.x patches follow C-12/L2/H plan.
 - Factory and fixtures use `MANIFEST_V1_CONTRACT_LINE` for new flat `odpm_version`, not `ODPM_VERSION`.
 - Follow-up epics: C-8…C-10, manifest reader/schemas, migrator CLI, extensions registry, compose fragments.
 
