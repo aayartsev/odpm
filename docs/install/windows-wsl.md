@@ -141,17 +141,17 @@ sudo apt install -y mc
 ```bash
 mkdir -p ~/projects
 cd ~/projects
-mkdir my-odoo-project-17
-cd my-odoo-project-17
+mkdir odoo_demo_project-19
+cd odoo_demo_project-19
 ```
 
-Инициализация (подставьте **свой** git-репозиторий ):
+Инициализация с публичным demo-репозиторием (Odoo 19.0):
 
 ```bash
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
 ```
 
-> Подробный сценарий без привязки к demo-репо — [Локальная разработка с нуля](../getting-started/local-dev-from-scratch.md).
+> Подробный сценарий и другие major — [Локальная разработка с нуля](../getting-started/local-dev-from-scratch.md), [demo-проекты](../contributing/demo-projects.md).
 
 Мастер спросит про каталоги и сценарий; на незнакомые пункты можно жать **Enter** (значения по умолчанию).
 
@@ -163,7 +163,7 @@ odpm -d test_db -i -u
 
 Браузер: `http://127.0.0.1:8069`.
 
-Откройте каталог проекта в VS Code через **Open Folder** → `/home/odoo/projects/my-odoo-project-17` (уже в сессии WSL).
+Откройте каталог проекта в VS Code через **Open Folder** → `/home/odoo/projects/odoo_demo_project-19` (уже в сессии WSL).
 
 ---
 

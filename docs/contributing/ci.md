@@ -21,6 +21,8 @@ ODPM_COMPOSE_SMOKE_MAILPIT=1 ./scripts/run_compose_smoke_test.sh
 ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 ```
 
+Рекомендуемая площадка для golden-path и ручного E2E — [demo-проекты](demo-projects.md) (`$ODPM_DEMO_19`, secret `ODPM_GOLDEN_PATH_PROJECT` на self-hosted runner). Обёртки для других major — в той же статье. Обязательный PR gate по-прежнему использует `tests/fixtures/minimal_odpm_project/`.
+
 ## Golden-path: opt-in и критерии перехода на mandatory
 
 Сейчас **full golden-path** (`init` → `docker compose up` → HTTP 200) остаётся **opt-in**: nightly, `workflow_dispatch`, label PR `run-docker`, self-hosted runner + `ODPM_GOLDEN_PATH_ENABLED` + secret `ODPM_GOLDEN_PATH_PROJECT`.

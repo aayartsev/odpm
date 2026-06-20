@@ -49,6 +49,8 @@
 2. Явно принять вид drift: **`--accept-database-drift=KIND`** (флаг можно повторять для нескольких KIND).
 3. Перед стеком восстановить роль: `odpm database ensure-role` (postgres должен быть запущен).
 
+Пример на demo-обёртке (`$ODPM_DEMO_19`): [demo-projects § S6](../contributing/demo-projects.md#s6--non-interactive-и-drift).
+
 Пример:
 
 ```bash
@@ -70,7 +72,7 @@ docker volume rm ИМЯ_ПРОЕКТА_postgres-data
 odpm
 ```
 
-Имя тома совпадает с префиксом каталога проекта (например `odoo_demo_project-17_postgres-data`). Подробнее о миграции каталога: [переход с 3.0](migration-3-to-4.md).
+Имя тома совпадает с префиксом каталога проекта (например `odoo_demo_project-19_postgres-data`). Подробнее о миграции каталога: [переход с 3.0](migration-3-to-4.md).
 
 ## Пример для сценария сборки образа
 
@@ -78,5 +80,5 @@ odpm
 export ODPM_SCENARIO=ci
 export ODOO_PROJECTS_DIR=/data/odoo_projects
 export BACKUP_DIR=/data/backups
-odpm --init https://github.com/example/demo.git --skip-start
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 --skip-start
 ```

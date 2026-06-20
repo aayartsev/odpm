@@ -45,8 +45,8 @@ Short on-ramp for beginners: [Beginner-friendly guide](getting-started/beginner-
 You need **Docker**, **git**, and **odpm** on the host (see [installation](../install/README.md)).
 
 ```bash
-mkdir my-odoo-project-17 && cd my-odoo-project-17
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
+mkdir odoo_demo_project-19 && cd odoo_demo_project-19
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
 ```
 
 On first run the setup wizard asks about directories and scenario; press Enter for unknown answers to use defaults.

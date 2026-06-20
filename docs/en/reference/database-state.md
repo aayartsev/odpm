@@ -80,6 +80,8 @@ odpm --accept-database-drift=postgres_major
 
 Or delete `.odpm/database/last_run.json` and run `odpm` again. Option **(b)** accepts the drift and updates the baseline without wipe — use only when the data directory is already compatible with the new major or you will re-initialize the cluster manually.
 
+Regression walkthrough on a demo wrapper: [demo-projects § S3](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md#s3--смена-major-postgresql).
+
 Accepted KIND values:
 
 - `data_path`

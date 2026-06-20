@@ -78,6 +78,8 @@ odpm --accept-database-drift=postgres_major
 
 Либо удалить `.odpm/database/last_run.json` и снова запустить `odpm`. Вариант **(b)** принимает drift и обновляет baseline без wipe — используйте только если data dir уже совместим с новой major или вы готовы переинициализировать кластер вручную.
 
+Пошаговый регрессионный сценарий на demo-обёртке: [demo-projects § S3](../contributing/demo-projects.md#s3--смена-major-postgresql).
+
 Допустимые KIND для `--accept-database-drift`:
 
 - `data_path`

@@ -10,7 +10,7 @@ from . import params
 def add_init_core_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         params.INIT_PARAM,
-        help="""Use this param to initiate dir as odpm project. You need to set link to developing project. Example for git '--init git@github.com:aayartsev/odoo_demo_project.git' or '--init file:///your/path/to/odoo_demo_project-17/name_of_development_project_directory' for local folder""",
+        help="""Use this param to initiate dir as odpm project. You need to set link to developing project. Example for git '--init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0' or '--init file:///your/path/to/odoo_demo_project-19' for local folder""",
     )
 
     parser.add_argument(

@@ -4,11 +4,14 @@
 
 ## Зачем отдельный каталог под каждую версию Odoo
 
-Создайте на диске каталог, в котором будет жить **окружение** проекта, а не обязательно только исходники модулей. Удобно добавлять к имени суффикс с версией Odoo, например `my-odoo-project-17`: различия между major-версиями существенны, и для 16.0 и 17.0 разумно иметь **разные** каталоги odpm, даже если модули лежат в одном git-репозитории.
+Создайте на диске каталог, в котором будет жить **окружение** проекта, а не обязательно только исходники модулей. Удобно добавлять к имени суффикс с версией Odoo, например `odoo_demo_project-19`: различия между major-версиями существенны, и для 17.0 и 19.0 разумно иметь **разные** каталоги odpm, даже если модули лежат в одном git-репозитории.
+
+Публичный репозиторий для практики — [odoo_demo_project](https://github.com/aayartsev/odoo_demo_project) (Odoo **19.0**). Обёртки для других major и сценарии maintainer’ов — только в [demo-проектах](../contributing/demo-projects.md).
 
 ```bash
-mkdir my-odoo-project-17
-cd my-odoo-project-17
+mkdir -p "$HOME/projects/odoo_demo_project-19"
+cd "$HOME/projects/odoo_demo_project-19"
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
 ```
 
 Этот каталог odpm заполнит служебными файлами (`docker-compose.yml`, `user_settings.json`, каталог `.odpm` и др.). **Разрабатываемый проект** (ваши модули) может находиться в другом месте на диске или в отдельном git-репозитории — odpm подключит его по ссылке при инициализации.
@@ -22,7 +25,7 @@ cd my-odoo-project-17
 ## Инициализация из git-репозитория
 
 ```bash
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
 ```
 
 Параметр `--branch` задаёт ветку **разрабатываемого** репозитория. Если ветку не указать, будет использована ветка по умолчанию на сервере git.

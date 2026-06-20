@@ -31,6 +31,8 @@
 3. Отладчик в VS Code — по необходимости.
 4. `http://127.0.0.1:8069` — проверка в браузере.
 
+Ручные сценарии (plan, drift, отладка) на demo-обёртках: [demo-projects](../contributing/demo-projects.md).
+
 После смены `POSTGRES_SERVICE_NAME` или порта в `.env` — `odpm database status` и `odpm plan --skip-start` перед полным перезапуском.
 
 ## Смена на другой сценарий

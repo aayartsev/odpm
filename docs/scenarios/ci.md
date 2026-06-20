@@ -56,7 +56,7 @@ odpm -d test_db -i --odoo-bin --stop-after-init
 export ODPM_SCENARIO=ci
 export ODOO_PROJECTS_DIR=/data/odoo_projects
 export BACKUP_DIR=/data/backups
-odpm --init https://github.com/example/demo.git --skip-start
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --skip-start
 ```
 
 См. [запуск без диалогов](../operations/non-interactive.md).

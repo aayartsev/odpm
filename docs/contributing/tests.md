@@ -37,4 +37,6 @@ ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_imag
 ODPM_GOLDEN_PATH_PROJECT=/path ./scripts/run_golden_path_test.sh
 ```
 
+Полный E2E на реальном Odoo — [demo-проекты](demo-projects.md) (`$ODPM_DEMO_*`, golden-path). In-repo fixture: `tests/fixtures/minimal_odpm_project/`.
+
 По умолчанию пропускаются в `unittest discover` (быстрый CI).

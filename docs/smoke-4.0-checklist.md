@@ -86,10 +86,12 @@ cd "$ODPM_REPO"
 
 Use a **real** odpm project directory that was on 3.x compose or an old 4.0-beta template.
 
+**Recommended demo wrapper** (maintainer-maintained): set `ODPM_DEMO_19` and use as `$ODPM_PROJECT` — see [contributing/demo-projects.md](../contributing/demo-projects.md) (other Odoo majors documented there only).
+
 **Legacy markers to replace:** `bash -c`, `main.py --config-base64-data`, compose `healthcheck`, placeholders `{START_STRING}`, `{MAPPED_VOLUMES}`, `{DEBUGGER_PORT_MAP}`.
 
 ```bash
-cd "$ODPM_PROJECT"
+cd "${ODPM_PROJECT:-$ODPM_DEMO_19}"
 odpm --skip-start
 # review docker-compose.yml, then:
 docker compose up -d
@@ -113,7 +115,7 @@ curl -sf "http://127.0.0.1:${ODOO_PORT:-8069}/web"
 
 ## 2C — Database state v1 (4.3+)
 
-On a developer/server project with host-mounted runtime config:
+On a developer/server project with host-mounted runtime config (e.g. `$ODPM_DEMO_19` — [demo-projects.md](../contributing/demo-projects.md)):
 
 ```bash
 cd "$ODPM_PROJECT"
@@ -172,12 +174,12 @@ python3 -m unittest tests.test_odpm_plan_smoke tests.test_plan_compose_probe tes
 
 ## 2C — Golden path E2E (opt-in integration)
 
-Requires Docker and an **initialized** project at `$ODPM_GOLDEN_PATH_PROJECT` (same as `$ODPM_PROJECT`).
+Requires Docker and an **initialized** project at `$ODPM_GOLDEN_PATH_PROJECT` (same as `$ODPM_PROJECT`). Default: `$ODPM_DEMO_19` — [demo-projects.md](../contributing/demo-projects.md).
 
 ```bash
-cd "$ODPM_PROJECT"
+export ODPM_GOLDEN_PATH_PROJECT="${ODPM_GOLDEN_PATH_PROJECT:-$ODPM_DEMO_19}"
+cd "$ODPM_GOLDEN_PATH_PROJECT"
 docker compose down
-export ODPM_GOLDEN_PATH_PROJECT="$ODPM_PROJECT"
 export ODPM_RUN_DOCKER_INTEGRATION=1
 "$ODPM_REPO/scripts/run_golden_path_test.sh"
 ```
