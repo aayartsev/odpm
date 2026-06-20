@@ -15,6 +15,14 @@ from dev_project.database.postgres_admin import (
 from dev_project.errors import OdpmError
 
 
+def _postgres_config() -> MagicMock:
+    config = MagicMock()
+    config.project_dir = "/tmp/project"
+    config.docker_compose_command = "docker compose"
+    config.user_env.postgres_service_name = "db"
+    return config
+
+
 class AdminRoleCandidatesTests(unittest.TestCase):
     def test_prefers_app_role_then_legacy_postgres(self):
         self.assertEqual(admin_role_candidates(), ("odoo", "postgres"))
@@ -22,11 +30,7 @@ class AdminRoleCandidatesTests(unittest.TestCase):
 
 class ResolvePsqlAdminRoleTests(unittest.TestCase):
     def _config(self) -> MagicMock:
-        config = MagicMock()
-        config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
-        config.user_env.postgres_service_name = "db"
-        return config
+        return _postgres_config()
 
     @patch("dev_project.database.postgres_admin.psql_role_connects", side_effect=[False, True])
     def test_returns_first_working_candidate(self, _mock_connect):
@@ -45,7 +49,7 @@ class RunPsqlAsAdminTests(unittest.TestCase):
     @patch("dev_project.database.postgres_admin.resolve_psql_admin_role", return_value="odoo")
     @patch("dev_project.database.postgres_admin._run_psql")
     def test_uses_resolved_admin_role(self, mock_run, _mock_resolve):
-        config = MagicMock()
+        config = _postgres_config()
         mock_run.return_value = MagicMock(returncode=0, stdout="1", stderr="")
         result = run_psql_as_admin(config, "-tAc", "SELECT 1")
         self.assertEqual(result.returncode, 0)
@@ -53,19 +57,13 @@ class RunPsqlAsAdminTests(unittest.TestCase):
 
     @patch("dev_project.database.postgres_admin.resolve_psql_admin_role", return_value=None)
     def test_fails_when_admin_missing(self, _mock_resolve):
-        config = MagicMock()
-        config.user_env.postgres_service_name = "db"
-        result = run_psql_as_admin(config, "-c", "SELECT 1")
+        result = run_psql_as_admin(_postgres_config(), "-c", "SELECT 1")
         self.assertNotEqual(result.returncode, 0)
 
 
 class BootstrapAppRoleSingleUserTests(unittest.TestCase):
     def _config(self) -> MagicMock:
-        config = MagicMock()
-        config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
-        config.user_env.postgres_service_name = "db"
-        return config
+        return _postgres_config()
 
     @patch("dev_project.database.postgres_admin._wait_for_postgres_ready")
     @patch("dev_project.database.postgres_admin.compose_up_service_detached")
@@ -113,8 +111,7 @@ class EnsureAppRoleAdminIntegrationTests(unittest.TestCase):
         from dev_project.database.ensure_role import ensure_app_role
 
         mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
-        config = MagicMock()
-        config.user_env.postgres_service_name = "db"
+        config = _postgres_config()
         with patch(
             "dev_project.database.ensure_role.psql_role_connects", return_value=True
         ):

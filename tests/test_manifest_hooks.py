@@ -149,6 +149,7 @@ class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
 
 
 class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
+    @patch("dev_project.runtime_coordinator.should_force_recreate_compose", return_value=False)
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
     @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
     @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
@@ -159,6 +160,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         _mock_drift,
         mock_run_hooks,
         mock_run_logged,
+        _mock_force_recreate,
     ):
         config = MagicMock()
         config.project_dir = "/tmp/project"
