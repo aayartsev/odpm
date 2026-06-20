@@ -1,6 +1,6 @@
 # Плагины и расширения odpm (4.4+)
 
-odpm 4.4 добавляет **extension API** на host: prepare steps, compose fragments и lifecycle hooks. Плагины не получают прямой доступ к mutable `Config` — только frozen [`ExtensionHostContext`](../../dev_project/extensions/context.py).
+odpm 4.4 добавляет **extension API** на host: prepare steps, compose fragments и lifecycle hooks. Плагины не получают прямой доступ к mutable `Config` — только frozen [`ExtensionHostContext`](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py).
 
 ## Три способа расширить проект
 
@@ -155,5 +155,5 @@ dependencies = ["odpm>=4.4"]
 ## См. также
 
 - [Сгенерированные файлы](generated-files.md) — `.odpm/compose/fragments/`
-- [Примеры сервисов](../../dev_project/plugins/services_ru.md) (legacy markdown)
-- Устаревший черновик плагинов: [plugins/todo_ru.md](../../dev_project/plugins/todo_ru.md) → redirect сюда
+- [Примеры сервисов](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/services_ru.md) (legacy markdown)
+- Устаревший черновик плагинов: [plugins/todo_ru.md](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/todo_ru.md) → redirect сюда
