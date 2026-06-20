@@ -6,7 +6,7 @@
 
 **odpm** was created to **lower the very high barrier** to Odoo development. The goal is not “install Odoo one more time”, but to give you a **ready workspace**: open a folder in your editor, write a module, run an update — paths, dependencies, and services are already aligned.
 
-If you are just starting, follow [Local dev from scratch](local-dev-from-scratch.md) with your own repository or your team’s (it must include `odpm.json`).
+If you are just starting, follow [Local dev from scratch](local-dev-from-scratch.md) with your own repository or your team’s (it must include `odpm.json`). For practice use public [odoo_demo_project](https://github.com/aayartsev/odoo_demo_project) (Odoo 19.0); other majors — [demo-projects (RU)](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md).
 
 ## “Odoo is installed” ≠ “ready to develop”
 

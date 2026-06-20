@@ -90,7 +90,7 @@ Accepted KIND values:
 - `odpm_scenario`
 - `data_dir_empty_changed`
 
-See [non-interactive runs](../../operations/non-interactive.md).
+See [non-interactive runs](../operations/non-interactive.md).
 
 ## `database` subcommand
 
@@ -114,6 +114,8 @@ Commands run prepare (without `compose up`) when needed to read configuration.
 
 - prepare step **`template.odoo_conf`** regenerates the config;
 - drift **`db_host_mismatch`** appears in plan.
+
+See also [`.env` variables](env-dotenv.md), [odoo.conf](odoo-conf.md).
 
 ## Odoo databases: backup, restore, drop
 
