@@ -109,8 +109,11 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
 
 def __getattr__(name: str) -> Any:
     target = _LAZY_EXPORTS.get(name)
-    if target is None:
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    module_name, attr_name = target
-    module = importlib.import_module(module_name, __name__)
-    return getattr(module, attr_name)
+    if target is not None:
+        module_name, attr_name = target
+        module = importlib.import_module(module_name, __name__)
+        return getattr(module, attr_name)
+    try:
+        return importlib.import_module(f".{name}", __name__)
+    except ModuleNotFoundError as exc:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc
