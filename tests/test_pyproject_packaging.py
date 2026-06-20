@@ -16,6 +16,8 @@ except ModuleNotFoundError:
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+_SUBPROCESS_TEXT = {"capture_output": True, "text": True, "encoding": "utf-8", "errors": "replace"}
+
 
 def _prepare_minimal_build_tree(dest: Path) -> None:
     dest.mkdir(parents=True, exist_ok=True)
@@ -68,15 +70,13 @@ class PyprojectPackagingTests(unittest.TestCase):
             subprocess.run(
                 [sys.executable, "-m", "venv", str(venv_dir)],
                 check=True,
-                capture_output=True,
-                text=True,
+                **_SUBPROCESS_TEXT,
             )
             venv_python = venv_dir / "bin" / "python"
             subprocess.run(
                 [str(venv_python), "-m", "pip", "install", "build"],
                 check=True,
-                capture_output=True,
-                text=True,
+                **_SUBPROCESS_TEXT,
             )
             completed = subprocess.run(
                 [
@@ -87,8 +87,7 @@ class PyprojectPackagingTests(unittest.TestCase):
                     str(dist_dir),
                 ],
                 cwd=workdir,
-                capture_output=True,
-                text=True,
+                **_SUBPROCESS_TEXT,
             )
             self.assertEqual(
                 completed.returncode,

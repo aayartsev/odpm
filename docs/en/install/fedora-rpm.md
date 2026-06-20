@@ -1,6 +1,6 @@
 # Fedora / RHEL (.rpm)
 
-Recommended on **Fedora 40+** (system Python ≥ 3.10). On EL9 / RHEL 9 the stock `python3` 3.9 is not supported — use pip/pipx or build the RPM on Fedora.
+Recommended on **Fedora 40+** (system Python ≥ 3.10). The YUM repo ships builds for Fedora 40, 41, and 44 (`fc40` / `fc41` / `fc44` in the RPM name). On EL9 / RHEL 9 the stock `python3` 3.9 is not supported — use pip/pipx or build the RPM on Fedora.
 
 ## Install via DNF (`dnf upgrade` updates)
 
@@ -8,33 +8,41 @@ After a [release tag](https://github.com/aayartsev/odpm/releases), odpm publishe
 
 ### Repository key
 
-Same GPG key as the APT repo (binary keyring on GitHub Pages). Verify after enabling the repo:
+Same GPG key as the APT repo; GitHub Pages publishes an **ASCII-armored** file (`.asc`) for RPM/DNF because `rpm --import` does not accept APT's binary keyring (`gpg --dearmor`).
 
 ```bash
-sudo rpm --import https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.gpg
-sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i odpm || true
+sudo rpm --import https://aayartsev.github.io/odpm/yum/odpm-archive-keyring.asc
+sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i yartsev || true
 # expected fingerprint: 03040028F53D7AB8  Alexander Yartsev
 ```
 
-**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (packages are here for now; `stable` after final releases):
+**Pre-release** (`v4.4-beta`, `*-beta`) — suite **`testing`** (packages are here for now; `stable` after final releases):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-testing.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.4-dev/packaging/yum/odpm-testing.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
 
-**Stable releases** (`v4.3.0`, without `-rc`/`-beta`):
+**Stable releases** (`v4.4.x`, without `-rc`/`-beta`):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/main/packaging/yum/odpm-stable.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.4-dev/packaging/yum/odpm-stable.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
+
+> The URL branch (`4.4-dev`) is the current 4.4 development line; there is no `main` branch in the repo.
+> If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
+>
+> ```bash
+> curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg -o /tmp/odpm-key.gpg
+> gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
+> ```
 
 On RHEL / AlmaLinux / Rocky Linux use `yum` instead of `dnf` (same `.repo` format).
 
@@ -48,7 +56,7 @@ Full install table for all platforms: [Installing odpm (all platforms)](README.m
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.0-beta` / `4.0-rc1` / `main`, or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.4-dev` / `4.0-beta` / `4.0-rc1`, or build locally:
 
 ```bash
 ./scripts/build_rpm.sh

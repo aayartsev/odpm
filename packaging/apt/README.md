@@ -13,6 +13,8 @@ Generate and commit the public keyring once:
 gpg --armor --export KEYID | gpg --dearmor > packaging/apt/odpm-archive-keyring.gpg
 ```
 
+YUM/DNF repo publish derives `odpm-archive-keyring.asc` from this file at build time (`scripts/build_yum_repo.sh`).
+
 ## User install
 
 See [docs/install/README.md](../../docs/install/README.md) (hub) and [linux-deb.md](../../docs/install/linux-deb.md). Keyring on the user's machine:

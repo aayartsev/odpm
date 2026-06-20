@@ -81,7 +81,6 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
     ):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
-            build_adoption_last_run(config)
             mock_save.return_value = os.path.join(
                 project_dir, constants.ODPM_DATABASE_LAST_RUN_REL_PATH
             )

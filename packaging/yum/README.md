@@ -6,11 +6,17 @@ Signed static RPM repo published at `https://aayartsev.github.io/odpm/yum/`.
 |------|--------|---------|
 | `odpm-testing.repo` | yes | Example `.repo` for pre-releases (`testing` suite) |
 | `odpm-stable.repo` | yes | Example `.repo` for stable releases |
-| `odpm-archive-keyring.gpg` | no (copied at publish) | Same binary keyring as APT (`packaging/apt/odpm-archive-keyring.gpg`) |
+| `odpm-archive-keyring.asc` | no (generated at publish) | ASCII-armored public key for `rpm --import` / DNF `gpgkey=` (exported from `packaging/apt/odpm-archive-keyring.gpg`) |
 
 ## User install
 
 See [docs/install/README.md](../../docs/install/README.md) (hub) and [fedora-rpm.md](../../docs/install/fedora-rpm.md).
+
+Example `.repo` files are fetched from the **release branch** on GitHub (currently `4.4-dev`; there is no `main` branch):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.4-dev/packaging/yum/odpm-stable.repo
+```
 
 ## Maintainer secrets (GitHub Actions)
 
@@ -40,5 +46,5 @@ Requires `createrepo_c`, `rpm` (`rpmsign`), and `gpg`.
 
 | Release tag | YUM suite |
 |-------------|-----------|
-| Stable (`v4.3.0`) | `stable` |
-| Pre-release (`v4.3-rc1`, `*-beta`) | `testing` |
+| Stable (`v4.4.x`) | `stable` |
+| Pre-release (`v4.4-beta`, `*-beta`) | `testing` |

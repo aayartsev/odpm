@@ -37,12 +37,13 @@ class EnsureAppRoleTests(unittest.TestCase):
         config.user_env.postgres_service_name = "db-dev"
         return config
 
+    @patch("dev_project.database.ensure_role.psql_role_connects", return_value=False)
     @patch("dev_project.database.ensure_role.run_psql_as_admin")
     @patch("dev_project.database.ensure_role.resolve_psql_admin_role", return_value="odoo")
     @patch("dev_project.database.ensure_role.probe_app_role_exists")
     @patch("dev_project.database.ensure_role.probe_postgres_ready", return_value=True)
     def test_ensure_role_created_when_missing(
-        self, _mock_ready, mock_role_exists, _mock_resolve, mock_psql
+        self, _mock_ready, mock_role_exists, _mock_resolve, mock_psql, _mock_connects
     ):
         mock_role_exists.return_value = False
         mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
@@ -53,17 +54,18 @@ class EnsureAppRoleTests(unittest.TestCase):
         args = mock_psql.call_args.args
         self.assertIn("-c", args)
 
+    @patch("dev_project.database.ensure_role.psql_role_connects", return_value=True)
     @patch("dev_project.database.ensure_role.run_psql_as_admin")
     @patch("dev_project.database.ensure_role.resolve_psql_admin_role", return_value="odoo")
     @patch("dev_project.database.ensure_role.probe_app_role_exists")
     @patch("dev_project.database.ensure_role.probe_postgres_ready", return_value=True)
     def test_ensure_role_updated_when_present(
-        self, _mock_ready, mock_role_exists, _mock_resolve, mock_psql
+        self, _mock_ready, mock_role_exists, _mock_resolve, mock_psql, _mock_connects
     ):
         mock_role_exists.return_value = True
-        mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
         result = ensure_app_role(self._config())
         self.assertEqual(result.outcome, "updated")
+        mock_psql.assert_not_called()
 
     @patch("dev_project.database.ensure_role.probe_postgres_ready", return_value=None)
     def test_ensure_role_fails_when_container_not_running(self, _mock_ready):
@@ -75,12 +77,13 @@ class EnsureAppRoleTests(unittest.TestCase):
         with self.assertRaises(OdpmError):
             ensure_app_role(self._config())
 
+    @patch("dev_project.database.ensure_role.psql_role_connects", return_value=False)
     @patch("dev_project.database.ensure_role.run_psql_as_admin")
     @patch("dev_project.database.ensure_role.resolve_psql_admin_role", return_value="odoo")
     @patch("dev_project.database.ensure_role.probe_app_role_exists", return_value=False)
     @patch("dev_project.database.ensure_role.probe_postgres_ready", return_value=True)
     def test_ensure_role_raises_on_psql_failure(
-        self, _mock_ready, _mock_role_exists, _mock_resolve, mock_psql
+        self, _mock_ready, _mock_role_exists, _mock_resolve, mock_psql, _mock_connects
     ):
         mock_psql.return_value = MagicMock(
             returncode=1, stdout="", stderr="permission denied"

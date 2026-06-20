@@ -3,7 +3,7 @@ site_description: Документация Odoo Developer Project Manager
 site_url: https://aayartsev.github.io/odpm/
 repo_url: https://github.com/aayartsev/odpm
 repo_name: aayartsev/odpm
-edit_uri: edit/main/docs/
+edit_uri: edit/4.4-dev/docs/
 
 docs_dir: docs
 

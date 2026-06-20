@@ -89,7 +89,32 @@ def _require_string_list(data: dict, field_name: str) -> None:
             raise ConfigValidationError(f"{field_name}[{index}] must be a string")
 
 
-def validate_container_config_dict(data: dict) -> None:  # noqa: C901
+def _validate_container_config_enums(data: dict) -> None:
+    if data["odpm_scenario"] not in constants.ODPM_SCENARIO_VALUES:
+        raise ConfigValidationError(
+            f"Invalid odpm_scenario: {data['odpm_scenario']!r}"
+        )
+    if data["venv_mode"] not in constants.VENV_MODE_VALUES:
+        raise ConfigValidationError(f"Invalid venv_mode: {data['venv_mode']!r}")
+    if data["run_mode"] not in constants.RUN_MODE_VALUES:
+        raise ConfigValidationError(f"Invalid run_mode: {data['run_mode']!r}")
+
+
+def _validate_container_config_optional_sections(data: dict) -> None:
+    if "debugger" in data:
+        from .config import DebuggerSettings
+
+        DebuggerSettings.from_dict(data["debugger"])
+
+    if "database" in data and data["database"] is not None:
+        if not isinstance(data["database"], dict):
+            raise ConfigValidationError("database must be an object")
+        from .database_context import DatabaseContainerContext
+
+        DatabaseContainerContext.from_dict(data["database"])
+
+
+def validate_container_config_dict(data: dict) -> None:
     """Validate a normalized ContainerConfig v1 payload."""
     if not isinstance(data, dict):
         raise ConfigValidationError("Container config must be a JSON object")
@@ -133,25 +158,5 @@ def validate_container_config_dict(data: dict) -> None:  # noqa: C901
 
     _require_list(data, "sql_queries")
 
-    if data["odpm_scenario"] not in constants.ODPM_SCENARIO_VALUES:
-        raise ConfigValidationError(
-            f"Invalid odpm_scenario: {data['odpm_scenario']!r}"
-        )
-
-    if data["venv_mode"] not in constants.VENV_MODE_VALUES:
-        raise ConfigValidationError(f"Invalid venv_mode: {data['venv_mode']!r}")
-
-    if data["run_mode"] not in constants.RUN_MODE_VALUES:
-        raise ConfigValidationError(f"Invalid run_mode: {data['run_mode']!r}")
-
-    if "debugger" in data:
-        from .config import DebuggerSettings
-
-        DebuggerSettings.from_dict(data["debugger"])
-
-    if "database" in data and data["database"] is not None:
-        if not isinstance(data["database"], dict):
-            raise ConfigValidationError("database must be an object")
-        from .database_context import DatabaseContainerContext
-
-        DatabaseContainerContext.from_dict(data["database"])
+    _validate_container_config_enums(data)
+    _validate_container_config_optional_sections(data)

@@ -256,7 +256,7 @@ class CiSecretsOdpmCliSmokeTests(unittest.TestCase):
             compose_text,
         )
         self.assertIn(
-            f"{runtime_path}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro",
+            f"{runtime_path}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro,Z",
             compose_text,
         )
 
