@@ -55,6 +55,8 @@ def start_postgres_detached(config: Config) -> None:
     result = compose_up_service_detached(config, service)
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
+        if detail:
+            _logger.error(detail)
         message = _MSG_COMPOSE_UP_FAILED.format(SERVICE=service)
         if detail:
             message = f"{message} {detail}"
