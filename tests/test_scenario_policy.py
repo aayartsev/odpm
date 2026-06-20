@@ -304,6 +304,20 @@ class ScenarioPolicyTests(unittest.TestCase):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         self.assertIn("5678:5678", policy.build_dev_extra_ports("5678:5678"))
         self.assertIn("volumes:", policy.build_odoo_volumes_block("\n      - x:y\n"))
+        self.assertIn(
+            constants.PYTHONWARNINGS_DEV_DOCUTILS,
+            policy.build_pythonwarnings_env_line(),
+        )
+
+    def test_build_pythonwarnings_env_line_only_for_developer(self):
+        dev = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        self.assertIn(
+            f"- {constants.PYTHONWARNINGS_ENV}={constants.PYTHONWARNINGS_DEV_DOCUTILS}",
+            dev.build_pythonwarnings_env_line(),
+        )
+        for scenario in (constants.SERVER_SCENARIO, constants.CI_SCENARIO):
+            policy = ScenarioPolicy.from_scenario(scenario)
+            self.assertEqual(policy.build_pythonwarnings_env_line(), "")
 
     def test_should_publish_debugger_port_by_backend(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)

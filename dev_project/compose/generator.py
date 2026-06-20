@@ -144,6 +144,7 @@ class ComposeGenerator:
             ODOO_IMAGE=odoo_image,
             DEV_EXTRA_PORTS=dev_extra_ports,
             DEV_EXTRA_HOSTS=dev_extra_hosts,
+            PYTHONWARNINGS_ENV_LINE=policy.build_pythonwarnings_env_line(),
             ODOO_VOLUMES_BLOCK=odoo_volumes_block,
             ODOO_PORT=self.user_env.odoo_port or constants.ODOO_DEFAULT_PORT,
             POSTGRES_PORT_MAP=postgres_port_map,

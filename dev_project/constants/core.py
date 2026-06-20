@@ -15,6 +15,10 @@ POSTGRES_DOCKER_PORT = POSTGRES_DEFAULT_PORT
 GEVENT_DEFAULT_PORT = 8072
 GEVENT_DOCKER_PORT = GEVENT_DEFAULT_PORT
 
+# Developer compose: hide noisy third-party DeprecationWarning from docutils in Odoo logs.
+PYTHONWARNINGS_ENV = "PYTHONWARNINGS"
+PYTHONWARNINGS_DEV_DOCUTILS = "ignore::DeprecationWarning:docutils"
+
 DEBUGGER_UNIT_NAME = "Odoo: Remote Attach"
 GITLINK_TYPE_GIT = "git"
 GITLINK_TYPE_HTTP = "http"

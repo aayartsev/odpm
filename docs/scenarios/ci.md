@@ -18,6 +18,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 | **Отладчик** | Нет. |
 | **Секреты модулей** | Mount с хоста **отключён**. Опционально bake в образ: `ODPM_BAKE_SECRETS=1` при `--build-image` — см. [локальные секреты](../operations/secrets.md), [ADR-002](../contributing/adr-002-ci-secrets-bake.md). |
 | **Фиксация версий** | Строгая проверка `.odpm/deps.lock.json`; несовместимости версий во вложенных описаниях — **ошибка**. |
+| **Предупреждения Python в логах** | Как на `server`: `PYTHONWARNINGS` не фильтруется — `DeprecationWarning` от docutils при старте Odoo остаются в выводе сборки и контейнера. Учитывайте это в логах CI и при smoke-тестах образа. |
 
 ## Типичный конвейер
 

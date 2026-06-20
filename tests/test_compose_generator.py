@@ -153,6 +153,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertIn("odoo-base:dev", content)
             self.assertIn("127.0.0.1:15432:5432", content)
             self.assertNotIn("5678:5678", content)
+            self.assertNotIn(constants.PYTHONWARNINGS_ENV, content)
             self.assertIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
             policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
             self.assertIn(f"user: {policy.runtime_unix_user()}", content)
@@ -164,6 +165,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertNotIn("odoo-base:dev", content)
             self.assertIn("127.0.0.1:15432:5432", content)
             self.assertNotIn("5678:5678", content)
+            self.assertNotIn(constants.PYTHONWARNINGS_ENV, content)
             self.assertNotIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
             self.assertIn(f"user: {constants.CONTAINER_USER}", content)
 
@@ -180,6 +182,10 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             content = self._compose_content(project_dir, constants.DEVELOPER_SCENARIO)
             self.assertIn("working_dir: /home/odoo", content)
+            self.assertIn(
+                f"{constants.PYTHONWARNINGS_ENV}={constants.PYTHONWARNINGS_DEV_DOCUTILS}",
+                content,
+            )
             self.assertIn(
                 f"{constants.ODPM_CONFIG_PATH_ENV}={constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}",
                 content,

@@ -207,6 +207,16 @@ class ScenarioPolicy:
             return f"127.0.0.1:{port_map}"
         return port_map
 
+    def build_pythonwarnings_env_line(self, *, indent: int = 6) -> str:
+        """Suppress docutils DeprecationWarning noise in developer logs only."""
+        if not self.is_developer():
+            return ""
+        prefix = " " * indent
+        return (
+            f"{prefix}- {constants.PYTHONWARNINGS_ENV}="
+            f"{constants.PYTHONWARNINGS_DEV_DOCUTILS}\n"
+        )
+
     def build_odoo_volumes_block(self, mapped_volumes: str) -> str:
         if not mapped_volumes.strip():
             return ""
