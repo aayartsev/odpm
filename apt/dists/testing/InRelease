@@ -5,7 +5,7 @@ Origin: odpm
 Label: odpm testing
 Suite: testing
 Codename: testing
-Date: Sun, 21 Jun 2026 12:48:09 UTC
+Date: Sun, 21 Jun 2026 14:35:50 UTC
 Architectures: amd64 arm64 armhf i386
 Components: main
 MD5Sum:
@@ -73,17 +73,17 @@ SHA256:
  59869db34853933b239f1e2219cf7d431da006aa919635478511fabbfc8849d2 20 main/debian-installer/binary-i386/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEiwYpf0BqIk7MCDHyAwQAKPU9ergFAmo33YoACgkQAwQAKPU9
-erjedQ/8CRAG1Zx+DYI9gff6cMzccL0l2Gop9FRSXcNKV3fNhMQi6wd0H8YqUPQj
-KUikOBOrvmveLED7KH+Vwppo77+EgOZwuK6az6+Fq7syu9iGGn9V1tkuIjETsO1j
-QS2I1EvNgKdZ84p9q/iKdzt+qAHH+M2zTm9Gu1AYKtrzr2yxWDeF+lDtRNUjgSoy
-zY3qwSOMq1+PDTXjmyYsDq/7ifihLhfS1YOLWd1I1cYFpNaX9K/xn0Tt/A49f8Vp
-snJC+Pk8u6gPzUb5+GxbSEfBV1y8EnX2I+MpaISEeuAk4U4Mq9Dkc+btMWDIQ84T
-U49Vi6Uz1J+8B3h4QoiqesQXgYbdfr5rHR7xwpq/rBSznyVqxu6hmgoxLox2R4Lz
-6koKXjWY0wAVPPsNP3chFWZ613yhEUqRqbRWk4k0Jq7mdX79bnhXIEoxSYMrA4xH
-BqcN0dEgXcGzN1VoU62B58nUiArbweJXcWvNhxO4TP//x2HU/LZD2rp/BiWToUq6
-kGc+B00HCwor7J0d3VO525hvjycUO4/emZrYp8ykTma16ISwxx/Y8Gc/nZaARIUe
-DAPb0Ao4JBwVGDGEpgSvfjW6XojmVoMcCjODPY2wkDd1kGx3QXDXXc3S6ms3QLlU
-1li3PyZqMxBS22e7bOrBfAkFS/20oYbAY6jdxdWHxYPC1vP03B4=
-=PCuE
+iQIzBAEBCgAdFiEEiwYpf0BqIk7MCDHyAwQAKPU9ergFAmo39scACgkQAwQAKPU9
+erhzEQ/+KXXemiMfWcV6YzB8DGHzb0vOXlWDlOJ10sfooTav50MgnLENQ9mQInvT
+iweuyyp6UV4jxuKw2E9R8s1mTMKoIaYClryFkWErPss9ixJ8x2EyxBJm3yihjosD
+ur84Ni7nxfAFDRDuk52vJnVz1p4tyvwn71zpxW4xBkgvcswfNK/y6DqVng5y5APV
+90NPliwlLfwj6ymc4DkgeiUtnpeyQWsty7UP+spGlJFbHOUnR32CG7xWd0t1svaC
+SgvRHKhtKdnNpHvtkFD+ICcbSU+g49o5gvU/IrGPd9NrlasTNP1ps5jRzllG6Dvg
+0u0LMWjopLQL9KPhp9yNuJrax6Y3w2oxqN7wdF7QbyiD4ynoARB9OrnvnlhChAfd
+b5w50G5ovIlNyrWQhPy39BuyHRJVGjDjPIz/gW1onjX+uOZrd80L4O5yyl8FWYha
+UoJ0DbI4zcG4jMQk3rryvP6I+3HTkbO7dvYCIpm2lkWK/HS/1OAKuDiJxjL+rNez
+FEgtatWRt6WalnFNkjN/feFW+PMWQnKTZ0RaddZowzS8YBKJVJzjeyi2dHrG5PKd
+7Nf0UdnzEe+loGpPMjMHwZao17U7HXoN5P1FZRK+Bsib0eQQtcWGLGz4Lgsk5gHZ
+InAYy9P4e3URrb1A8/x1sVQ8od7LYLwRKdCtq3EZEcPf6M5kavE=
+=wVea
 -----END PGP SIGNATURE-----
