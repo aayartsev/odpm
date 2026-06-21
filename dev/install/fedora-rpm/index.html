@@ -2107,14 +2107,14 @@ sudo<span class="w"> </span>rpm<span class="w"> </span>-q<span class="w"> </span
 <span class="c1"># ожидается fingerprint: 03040028F53D7AB8  Alexander Yartsev</span>
 </code></pre></div>
 <h3 id="stable-production">Stable (рекомендуется для production)<a class="headerlink" href="#stable-production" title="Permanent link">&para;</a></h3>
-<p>Suite <strong><code>stable</code></strong> — сейчас odpm <strong>4.4.2</strong>:</p>
+<p>Suite <strong><code>stable</code></strong> — сейчас odpm <strong>4.3.0</strong>:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/yum/odpm-stable.repo<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-o<span class="w"> </span>/etc/yum.repos.d/odpm.repo
 
 sudo<span class="w"> </span>dnf<span class="w"> </span>makecache
 sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>odpm
 odpm<span class="w"> </span>--version
-<span class="c1"># ожидается: odpm version: 4.4.2</span>
+<span class="c1"># ожидается: odpm version: 4.3.0</span>
 </code></pre></div>
 <h3 id="pre-release-44-beta-rc">Pre-release (4.4 beta / RC)<a class="headerlink" href="#pre-release-44-beta-rc" title="Permanent link">&para;</a></h3>
 <p>Suite <strong><code>testing</code></strong> — pre-release теги, например <strong>4.4.2-beta</strong>:</p>
