@@ -1,10 +1,10 @@
 # Debian / Ubuntu (.deb)
 
-Recommended on Linux.
+Recommended on Linux. Full platform table: [Installing odpm (all platforms)](README.md) · docs: [stable](https://aayartsev.github.io/odpm/stable/en/install/linux-deb/).
 
 ## Install via APT (`apt upgrade` updates)
 
-After a [release tag](https://github.com/aayartsev/odpm/releases), odpm publishes a signed repository on GitHub Pages.
+After a [release tag](https://github.com/aayartsev/odpm/releases), odpm publishes a signed repository on GitHub Pages (`https://aayartsev.github.io/odpm/apt/`).
 
 ### Repository key (once)
 
@@ -24,7 +24,22 @@ sudo gpg --no-default-keyring \
 # expected: 03040028F53D7AB8  Alexander Yartsev
 ```
 
-**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (packages are here for now; `stable` after final releases):
+### Stable (recommended for production)
+
+Suite **`stable`** — currently odpm **4.3.0** (tag `v4.3.0`, without `-rc`/`-beta`):
+
+```bash
+echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
+
+sudo apt update
+sudo apt install odpm
+odpm --version
+# expected: odpm version: 4.3.0
+```
+
+### Pre-release (4.4 beta / RC)
+
+Suite **`testing`** — pre-release tags (`*-beta`, `*-rc*`), e.g. **4.4.2-beta**:
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -33,14 +48,7 @@ sudo apt update
 sudo apt install odpm
 ```
 
-**Stable releases** (`v4.3.0`, without `-rc`/`-beta`):
-
-```bash
-echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
-
-sudo apt update
-sudo apt install odpm
-```
+Archived 4.4 beta docs: [4.4.2-beta install guide](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/).
 
 Updates on later releases:
 
@@ -48,17 +56,17 @@ Updates on later releases:
 sudo apt update && sudo apt upgrade odpm
 ```
 
-Full install table for all platforms: [Installing odpm (all platforms)](README.md).
-
 ## Manual install (.deb from GitHub Releases)
 
-Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.0-beta` / `4.0-rc1` / `main`, or build locally:
+Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.4.2` — stable, `v4.4.2-beta` — testing), or build locally:
 
 ```bash
 ./scripts/build_deb.sh
 sudo apt install ./dist/odpm_*_all.deb
 odpm --version
 ```
+
+Verify checksums from the release `SHA256SUMS`.
 
 ## Package dependencies
 
@@ -67,8 +75,6 @@ odpm --version
 - No PyPI runtime dependencies
 
 The package installs `/usr/bin/odpm`, templates, and i18n under `python3/dist-packages`.
-
-When installing from GitHub Releases, verify checksums from the release `SHA256SUMS`.
 
 ## Next
 

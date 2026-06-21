@@ -5,7 +5,6 @@ from __future__ import annotations
 from .. import constants
 from ..plan import PlanStep, project_template_needs_upgrade
 from ..system_check_policy import SystemCheckPolicy
-from ..compose.service_builder import ComposeServiceBuilder
 from ..plan.compose_preview import (
     compose_generate_needs_execute,
     compose_service_needs_update,
@@ -17,7 +16,7 @@ from .types import PrepareContext
 def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
     description = "Upgrade .odpm/docker-compose.yml project template"
     if project_template_needs_upgrade(
-        ctx.config.project_dir,
+        ctx.host_ctx.project_dir,
         constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
         constants.COMPOSE_TEMPLATE_MARKERS,
     ):
@@ -34,6 +33,33 @@ def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
         "noop",
         True,
         "compose template up to date",
+    )
+
+
+def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
+    from ..compose.fragments import collect_compose_services, compose_fragments_need_materialize
+
+    description = "Materialize manifest and plugin compose service fragments"
+    services = collect_compose_services(ctx.extension_host())
+    if compose_fragments_need_materialize(ctx.host_ctx.project_dir, services):
+        reason = (
+            "compose service fragments stale"
+            if services
+            else "compose service fragments cleanup"
+        )
+        return make_plan_step(
+            "compose.fragments",
+            description,
+            "update",
+            True,
+            reason,
+        )
+    return make_plan_step(
+        "compose.fragments",
+        description,
+        "noop",
+        True,
+        "compose service fragments up to date",
     )
 
 
@@ -84,7 +110,7 @@ def evaluate_compose_generate(ctx: PrepareContext) -> PlanStep:
 
 def evaluate_compose_validate(ctx: PrepareContext) -> PlanStep:
     description = "Validate generated docker-compose.yml"
-    policy = SystemCheckPolicy.from_config(ctx.config)
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
     if not policy.compose_validate:
         return make_plan_step(
             "compose.validate",
@@ -103,11 +129,18 @@ def evaluate_compose_validate(ctx: PrepareContext) -> PlanStep:
 
 
 def exec_compose_template(ctx: PrepareContext) -> None:
-    ctx.config.pd_manager.rebuild_docker_compose_template()
+    ctx.rebuild_compose_template()
+
+
+def exec_compose_fragments(ctx: PrepareContext) -> None:
+    from ..compose.fragments import collect_compose_services, materialize_compose_fragments
+
+    services = collect_compose_services(ctx.extension_host())
+    materialize_compose_fragments(ctx.host_ctx.project_dir, services)
 
 
 def exec_compose_service(ctx: PrepareContext) -> None:
-    ComposeServiceBuilder(ctx.config).build()
+    ctx.build_compose_service()
 
 
 def exec_compose_generate(ctx: PrepareContext) -> None:

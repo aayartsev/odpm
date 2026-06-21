@@ -30,6 +30,7 @@ from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.config.odoo_conf import OdooConfBuilder
 from dev_project.config.paths import ConfigPaths
 from dev_project.config.state import (
+    AddonLayoutState,
     BootstrapState,
     DockerLayoutState,
     ProjectSettingsState,
@@ -121,7 +122,7 @@ class OdpmJsonWriterTests(unittest.TestCase):
             )
             default_content = {
                 "odoo_version": "19.0",
-                "odpm_version": constants.ODPM_VERSION,
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
             }
             create_default = MagicMock(return_value=default_content)
             rewrite_odpm_json(config, create_default=create_default)
@@ -164,28 +165,35 @@ class ConfigPathsTests(unittest.TestCase):
 
     def test_apply_symlink_sources_includes_repo_odpm_json_once(self):
         config = MagicMock()
+        config.docker_layout = DockerLayoutState()
         config.user_env = MagicMock(backups="/tmp/backups")
         config.odoo_src_dir = "/tmp/odoo"
         config.developing_project_dir_path = "/tmp/dev"
         config.repo_odpm_json = "/tmp/dev/odpm.json"
         config.create_module_links = False
         ConfigPaths(config).apply_symlink_sources()
-        self.assertEqual(config.list_for_symlinks.count("/tmp/dev/odpm.json"), 1)
+        self.assertEqual(
+            config.docker_layout.list_for_symlinks.count("/tmp/dev/odpm.json"), 1
+        )
 
     def test_apply_symlink_sources_no_duplicate_when_create_module_links_true(self):
         config = MagicMock()
+        config.docker_layout = DockerLayoutState()
         config.user_env = MagicMock(backups="/tmp/backups")
         config.odoo_src_dir = "/tmp/odoo"
         config.developing_project_dir_path = "/tmp/dev"
         config.repo_odpm_json = "/tmp/dev/odpm.json"
         config.create_module_links = True
         ConfigPaths(config).apply_symlink_sources()
-        self.assertEqual(config.list_for_symlinks.count("/tmp/dev/odpm.json"), 1)
-        self.assertEqual(len(config.list_for_symlinks), 4)
+        self.assertEqual(
+            config.docker_layout.list_for_symlinks.count("/tmp/dev/odpm.json"), 1
+        )
+        self.assertEqual(len(config.docker_layout.list_for_symlinks), 4)
 
     def test_apply_docker_layout_developer_uses_host_identity(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()
+            config.docker_layout = DockerLayoutState()
             config.project_dir = project_dir
             config.platform_name = constants.PLATFORM_NAME
             config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -193,26 +201,29 @@ class ConfigPathsTests(unittest.TestCase):
 
             ConfigPaths(config).apply_docker_layout()
 
-            self.assertEqual(config.docker_project_dir, f"/home/{runtime_user}")
+            self.assertEqual(
+                config.docker_layout.docker_project_dir, f"/home/{runtime_user}"
+            )
             expected_home = os.path.join(
                 project_dir, "data/odoo", f"home/{runtime_user}"
             )
-            self.assertEqual(config.dir_for_odoo_container_home, expected_home)
+            self.assertEqual(config.docker_layout.dir_for_odoo_container_home, expected_home)
             self.assertTrue(os.path.isdir(os.path.join(expected_home, ".cache")))
             self.assertTrue(os.path.isdir(os.path.join(expected_home, ".local")))
 
     def test_apply_docker_layout_ci_uses_container_identity(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()
+            config.docker_layout = DockerLayoutState()
             config.project_dir = project_dir
             config.platform_name = constants.PLATFORM_NAME
             config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
 
             ConfigPaths(config).apply_docker_layout()
 
-            self.assertEqual(config.docker_project_dir, "/home/odoo")
+            self.assertEqual(config.docker_layout.docker_project_dir, "/home/odoo")
             expected_home = os.path.join(project_dir, "data/odoo", "home/odoo")
-            self.assertEqual(config.dir_for_odoo_container_home, expected_home)
+            self.assertEqual(config.docker_layout.dir_for_odoo_container_home, expected_home)
             self.assertTrue(os.path.isdir(os.path.join(expected_home, ".cache")))
 
 
@@ -264,7 +275,7 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
             odoo_git_link=None,
             platform_name=None,
         )
-        config._raw_odpm_json = {"odpm_version": constants.ODPM_VERSION}
+        config._raw_odpm_json = {"odpm_version": constants.MANIFEST_V1_CONTRACT_LINE}
 
         content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
 
@@ -394,7 +405,7 @@ class OdpmJsonReaderTests(unittest.TestCase):
             odpm_content = {
                 "odoo_version": "17.0",
                 "python_version": "3.10",
-                "odpm_version": constants.ODPM_VERSION,
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
             }
             odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
             Path(odpm_path).write_text(json.dumps(odpm_content), encoding="utf-8")
@@ -428,7 +439,7 @@ class OdpmJsonReaderTests(unittest.TestCase):
             os.makedirs(dev_path)
             odpm_content = {
                 "odoo_version": "17.${ODOO_VER}",
-                "odpm_version": constants.ODPM_VERSION,
+                "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
                 "odoo_git_link": "file://${ODOO_PLATFORM_DIR}",
                 "dependencies": [
                     "file://${OCA_WEB_PATH}",
@@ -612,7 +623,7 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
             ctx.rewrite_odpm_json()
         mock_rewrite.assert_called_once_with(
             config,
-            create_default=ctx.defaults.create_default_odpm_json_content,
+            create_default=ctx.defaults.create_default_odpm_json_write_payload,
         )
 
     def test_bootstrap_context_wires_host_services(self):
@@ -649,6 +660,7 @@ class ConfigBootstrapStateTests(unittest.TestCase):
         )
 
         self.assertIsInstance(config.bootstrap, BootstrapState)
+        self.assertIsInstance(config.addon_layout, AddonLayoutState)
         self.assertEqual(config.bootstrap.raw_user_settings, {})
         self.assertEqual(config.bootstrap.raw_odpm_json, {})
         self.assertFalse(config.bootstrap.user_loaded)
@@ -778,6 +790,19 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertEqual(config.project_settings.odoo_version, "19.0")
         self.assertEqual(config.docker_layout.docker_project_dir, "/home/odoo")
 
+    def test_addon_layout_property_facade_reads_and_writes(self):
+        config = Config.__new__(Config)
+        config._addon_layout = AddonLayoutState()
+
+        config.catalogs_of_modules_data = [{"name": "demo"}]
+        config.list_of_developing_project_subprojects_data = [{"rel": "addons"}]
+
+        self.assertEqual(config.addon_layout.catalogs_of_modules_data, [{"name": "demo"}])
+        self.assertEqual(
+            config.addon_layout.list_of_developing_project_subprojects_data,
+            [{"rel": "addons"}],
+        )
+
     def test_seed_dependency_urls_reads_odpm_json(self):
         config = Config.__new__(Config)
         config._raw_odpm_json = {
@@ -816,7 +841,7 @@ class ConfigStateSliceTests(unittest.TestCase):
             "odoo_version": "18.0",
             "python_version": "3.12",
             "platform_name": "odoo",
-            "odpm_version": constants.ODPM_VERSION,
+            "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
         }
         config.arguments = OdpmCliArgs(
             odoo_version=None,

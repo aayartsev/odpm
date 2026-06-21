@@ -23,6 +23,8 @@ def evaluate_runtime_ci_build_image(
 ) -> PlanStep | None:
     if not args.build_image:
         return None
+    if not config.policy.allow_build_image:
+        return None
     return make_plan_step(
         "ci.build_image",
         "Build CI Docker image from prepared context",

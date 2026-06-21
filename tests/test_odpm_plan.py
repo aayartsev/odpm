@@ -85,7 +85,8 @@ class OdpmPlannerTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.arguments = args or OdpmCliArgs()
-        config.check_system = True
+        config.user_settings = MagicMock()
+        config.user_settings.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -222,7 +223,8 @@ class PrepareRegistryContractTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.arguments = OdpmCliArgs()
-        config.check_system = True
+        config.user_settings = MagicMock()
+        config.user_settings.check_system = True
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -289,7 +291,7 @@ class PrepareRegistryContractTests(unittest.TestCase):
     def test_developer_plan_releases_ports_when_check_system_disabled(self):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
-            config.check_system = False
+            config.user_settings.check_system = False
             ctx = make_prepare_context(
                 config,
                 MagicMock(),
@@ -332,6 +334,7 @@ PREPARE_STEP_IDS = [
     "template.odoo_conf",
     "database.drift",
     "compose.template",
+    "compose.fragments",
     "secrets.materialize",
     "compose.service",
     "compose.generate",

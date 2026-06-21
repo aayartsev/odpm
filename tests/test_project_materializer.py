@@ -32,8 +32,10 @@ class ProjectMaterializerTests(unittest.TestCase):
             update_links,
             checkout_dependencies,
         ) = service_mocks
-        config.materialize_git_repos.assert_called_once_with(skip_build_date=False)
-        config.ensure_git_repos_present.assert_not_called()
+        config._git_repos.materialize_git_repos.assert_called_once_with(
+            skip_build_date=False
+        )
+        config._git_repos.ensure_git_repos_present.assert_not_called()
         checkout_dependencies.assert_called_once()
         system_checker.check_docker.assert_called_once()
         system_checker.check_docker_compose.assert_called_once()
@@ -44,8 +46,9 @@ class ProjectMaterializerTests(unittest.TestCase):
         config, project_env, _system_checker, service_mocks = self._run_with_mocks(
             no_git_update=True
         )
-        config.ensure_git_repos_present.assert_called_once()
-        config.materialize_git_repos.assert_not_called()
+        config.ensure_git_repos_present.assert_not_called()
+        config._git_repos.ensure_git_repos_present.assert_called_once()
+        config._git_repos.materialize_git_repos.assert_not_called()
         service_mocks[-1].assert_not_called()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")

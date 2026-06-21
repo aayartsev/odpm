@@ -52,7 +52,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
             odoo_git_link=None,
             platform_name=None,
         )
-        config._raw_odpm_json = {"odpm_version": constants.ODPM_VERSION}
+        config._raw_odpm_json = {"odpm_version": constants.MANIFEST_V1_CONTRACT_LINE}
 
         content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
 

@@ -77,21 +77,23 @@ def compose_start_command_changed(config: Config) -> bool:
 
 
 def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
-    if runtime_config_stale(ctx.config):
+    config = ctx.config
+    host = ctx.host_ctx
+    if runtime_config_stale(config):
         return True, "venv_lock_hash changed"
-    runtime_path = runtime_config_path(ctx.config.project_dir)
+    runtime_path = runtime_config_path(host.project_dir)
     if os.path.isfile(runtime_path):
         try:
-            preview = preview_runtime_config_text(ctx.config)
+            preview = preview_runtime_config_text(config)
             on_disk = normalized_runtime_config_text_from_disk(
-                ctx.config.project_dir,
-                config=ctx.config,
+                host.project_dir,
+                config=config,
             )
             if preview is not None and preview != on_disk:
                 return True, "runtime config payload changed"
         except (OSError, TypeError, ValueError, ConfigValidationError):
             pass
-    if compose_start_command_changed(ctx.config):
+    if compose_start_command_changed(config):
         return True, "compose start command changed"
     return False, "runtime config and start command unchanged"
 
@@ -102,8 +104,9 @@ def _project_env_has_volume_map(ctx: PrepareContext) -> bool:
 
 
 def compose_generate_needs_execute(ctx: PrepareContext) -> tuple[bool, str]:
+    host = ctx.host_ctx
     if project_template_needs_upgrade(
-        ctx.config.project_dir,
+        host.project_dir,
         constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
         constants.COMPOSE_TEMPLATE_MARKERS,
     ):
@@ -111,7 +114,7 @@ def compose_generate_needs_execute(ctx: PrepareContext) -> tuple[bool, str]:
     needs_service, service_reason = compose_service_needs_update(ctx)
     if needs_service:
         return True, service_reason
-    compose_path = docker_compose_path(ctx.config.project_dir)
+    compose_path = docker_compose_path(host.project_dir)
     if not os.path.isfile(compose_path):
         return True, "docker-compose.yml missing"
     if docker_compose_matches_preview(ctx):
@@ -122,7 +125,8 @@ def compose_generate_needs_execute(ctx: PrepareContext) -> tuple[bool, str]:
 
 
 def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
-    compose_path = docker_compose_path(ctx.config.project_dir)
+    host = ctx.host_ctx
+    compose_path = docker_compose_path(host.project_dir)
     if not os.path.isfile(compose_path):
         return False
     if not _project_env_has_volume_map(ctx):

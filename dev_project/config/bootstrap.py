@@ -22,6 +22,7 @@ from .bootstrap_phases import (
 from .layout import apply_policy_and_layout
 from .transforms.env_substitution import EnvResolver
 from .state import (
+    AddonLayoutState,
     BootstrapState,
     DockerLayoutState,
     ProjectSettingsState,
@@ -80,6 +81,7 @@ def init_context(
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()
     config._docker = DockerLayoutState()
+    config._addon_layout = AddonLayoutState()
     config._bootstrap_ctx = ConfigBootstrapContext(
         config,
         bind_platform_link=bind_platform_link,

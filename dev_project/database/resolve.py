@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
+from .. import constants
 from ..errors import PipelineError
 from ..interactive import prompt_input, stdin_is_interactive
 from ..logging import get_module_logger
-from ..plan.database_preview import format_database_drift_warning
 from ..translations import _
+from .drift_format import format_database_drift_warning
 from .drift import (
     DatabaseDrift,
     drifts_requiring_resolution,
 )
 from .ensure_role import ensure_app_role
+from .state import save_current_database_baseline
 from .status import collect_database_status
 
 if TYPE_CHECKING:
@@ -32,6 +35,7 @@ _MSG_NON_INTERACTIVE = _(
 _MSG_STILL_BLOCKING = _(
     "Blocking database configuration drift remains after resolution: {KINDS}"
 )
+_MSG_BASELINE_UPDATED = _("Updated database baseline snapshot at {PATH}.")
 _MSG_DATA_PATH_PROMPT = _(
     "PostgreSQL data directory changed:\n"
     "  previous: {PREVIOUS}\n"
@@ -57,13 +61,19 @@ _MSG_DATA_DIR_STATE_PROMPT = _(
     "Choose: (a) abort  (c) continue\n"
 )
 _MSG_WIPE_DATA_PATH = _(
-    "To use a different PostgreSQL data directory, stop containers, move or remove "
-    "the old data under {PREVIOUS}, then run odpm again. Current configured path: "
-    "{CURRENT}."
+    "To use a different PostgreSQL data directory:\n"
+    "1. Stop containers (docker compose down).\n"
+    "2. Move or remove the old data under {PREVIOUS}.\n"
+    "3. Run: odpm --accept-database-drift=data_path\n"
+    "Current configured path: {CURRENT}."
 )
 _MSG_WIPE_POSTGRES_MAJOR = _(
-    "To change PostgreSQL major version, stop containers, back up if needed, remove "
-    "the data directory at {CURRENT}, then run odpm again so the cluster re-initializes."
+    "To change PostgreSQL major version:\n"
+    "1. Stop containers (docker compose down).\n"
+    "2. Back up Odoo databases if needed.\n"
+    "3. Remove the PostgreSQL data directory: {DATA_PATH}\n"
+    "4. Run: odpm --accept-database-drift=postgres_major\n"
+    "Alternatively delete {LAST_RUN_REL} and run odpm again."
 )
 _MSG_INVALID_CHOICE = _("Invalid choice. Please enter one of: {CHOICES}")
 
@@ -111,7 +121,19 @@ def _abort_resolution() -> None:
     raise PipelineError(_MSG_ABORTED)
 
 
-def _resolve_data_path(drift: DatabaseDrift) -> None:
+def _accept_drift_baseline(
+    config: Config,
+    drift: DatabaseDrift,
+    *,
+    assume_app_role_present: bool = False,
+) -> None:
+    path = save_current_database_baseline(
+        config, assume_app_role_present=assume_app_role_present
+    )
+    _logger.info(_MSG_BASELINE_UPDATED.format(PATH=path))
+
+
+def _resolve_data_path(ctx: PrepareContext, drift: DatabaseDrift) -> None:
     prompt = _MSG_DATA_PATH_PROMPT.format(
         PREVIOUS=drift.previous, CURRENT=drift.current
     )
@@ -125,9 +147,10 @@ def _resolve_data_path(drift: DatabaseDrift) -> None:
             )
         )
         _abort_resolution()
+    _accept_drift_baseline(ctx.config, drift)
 
 
-def _resolve_postgres_major(drift: DatabaseDrift) -> None:
+def _resolve_postgres_major(ctx: PrepareContext, drift: DatabaseDrift) -> None:
     prompt = _MSG_POSTGRES_MAJOR_PROMPT.format(
         PREVIOUS=drift.previous, CURRENT=drift.current
     )
@@ -135,10 +158,15 @@ def _resolve_postgres_major(drift: DatabaseDrift) -> None:
     if choice == "a":
         _abort_resolution()
     if choice == "c":
+        data_path = os.path.realpath(ctx.config.postgres_data_local_storage)
         _logger.info(
-            _MSG_WIPE_POSTGRES_MAJOR.format(CURRENT=drift.current)
+            _MSG_WIPE_POSTGRES_MAJOR.format(
+                DATA_PATH=data_path,
+                LAST_RUN_REL=constants.ODPM_DATABASE_LAST_RUN_REL_PATH,
+            )
         )
         _abort_resolution()
+    _accept_drift_baseline(ctx.config, drift)
 
 
 def _resolve_app_role_missing(ctx: PrepareContext, drift: DatabaseDrift) -> None:
@@ -150,28 +178,32 @@ def _resolve_app_role_missing(ctx: PrepareContext, drift: DatabaseDrift) -> None
     _logger.info(
         _("PostgreSQL application role {ROLE} is ready.").format(ROLE=drift.current)
     )
+    _accept_drift_baseline(ctx.config, drift, assume_app_role_present=True)
 
 
-def _resolve_continue_or_abort(drift: DatabaseDrift, *, prompt_template: str) -> None:
+def _resolve_continue_or_abort(
+    ctx: PrepareContext, drift: DatabaseDrift, *, prompt_template: str
+) -> None:
     prompt = prompt_template.format(PREVIOUS=drift.previous, CURRENT=drift.current)
     choice = _prompt_choice(prompt, frozenset({"a", "c"}))
     if choice == "a":
         _abort_resolution()
+    _accept_drift_baseline(ctx.config, drift)
 
 
 def _resolve_interactive(ctx: PrepareContext, drift: DatabaseDrift) -> None:
     _logger.warning(format_database_drift_warning(drift))
     if drift.kind == "data_path":
-        _resolve_data_path(drift)
+        _resolve_data_path(ctx, drift)
     elif drift.kind == "postgres_major":
-        _resolve_postgres_major(drift)
+        _resolve_postgres_major(ctx, drift)
     elif drift.kind == "app_role_missing":
         _resolve_app_role_missing(ctx, drift)
     elif drift.kind == "odpm_scenario":
-        _resolve_continue_or_abort(drift, prompt_template=_MSG_SCENARIO_PROMPT)
+        _resolve_continue_or_abort(ctx, drift, prompt_template=_MSG_SCENARIO_PROMPT)
     elif drift.kind == "data_dir_empty_changed":
         _resolve_continue_or_abort(
-            drift, prompt_template=_MSG_DATA_DIR_STATE_PROMPT
+            ctx, drift, prompt_template=_MSG_DATA_DIR_STATE_PROMPT
         )
 
 
@@ -181,13 +213,15 @@ def _non_interactive_error(pending: tuple[DatabaseDrift, ...]) -> str:
 
 
 def resolve_database_drifts(ctx: PrepareContext) -> None:
-    pending = pending_resolution_drifts(ctx.config)
-    if not pending:
-        return
     accepted = accepted_drift_kinds(ctx.args)
-    for drift in pending:
+    while True:
+        pending = pending_resolution_drifts(ctx.config)
+        if not pending:
+            break
+        drift = pending[0]
         if drift.kind in accepted:
             _logger.info(_MSG_ACCEPTED.format(KIND=drift.kind))
+            _accept_drift_baseline(ctx.config, drift)
             continue
         if not stdin_is_interactive():
             raise PipelineError(_non_interactive_error(pending))

@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+MERGE=false
+if [[ "${1:-}" == "--merge" ]]; then
+    MERGE=true
+    shift
+fi
+
 SUITE="${1:?suite (stable|testing)}"
 DEB="${2:?path to .deb}"
 OUT="${3:-apt-repo-out}"
@@ -41,12 +47,6 @@ if [[ -z "${KEY_ID}" ]]; then
     exit 1
 fi
 
-rm -rf "${OUT}"
-mkdir -p "${OUT}/conf"
-cp "${PROJECT_ROOT}/packaging/apt/reprepro/conf/"* "${OUT}/conf/"
-sed -i "s/%%GPG_KEY_ID%%/${KEY_ID}/g" "${OUT}/conf/distributions"
-cp "${KEYRING}" "${OUT}/odpm-archive-keyring.gpg"
-
 GNUPGHOME="${GNUPGHOME:-${HOME}/.gnupg}"
 if [[ -n "${APT_REPO_GPG_PASSPHRASE:-}" ]]; then
     KEYGRIP="$(
@@ -60,9 +60,35 @@ if [[ -n "${APT_REPO_GPG_PASSPHRASE:-}" ]]; then
 fi
 
 export GPG_TTY="${GPG_TTY:-/dev/console}"
-cd "${OUT}"
-reprepro includedeb "${SUITE}" "${DEB}"
-reprepro export "${SUITE}"
 
-echo "APT repo ready in ${OUT} (suite=${SUITE})"
-find . -type f | sort
+_build_into() {
+    local target="${1:?}"
+    local suite="${2:?}"
+    local deb="${3:?}"
+
+    rm -rf "${target}"
+    mkdir -p "${target}/conf"
+    cp "${PROJECT_ROOT}/packaging/apt/reprepro/conf/"* "${target}/conf/"
+    sed -i "s/%%GPG_KEY_ID%%/${KEY_ID}/g" "${target}/conf/distributions"
+    cp "${KEYRING}" "${target}/odpm-archive-keyring.gpg"
+
+    cd "${target}"
+    reprepro includedeb "${suite}" "${deb}"
+    reprepro export "${suite}"
+}
+
+if [[ "${MERGE}" == true && -d "${OUT}/dists" ]]; then
+    WORK="$(mktemp -d)"
+    trap 'rm -rf "${WORK}"' EXIT
+    _build_into "${WORK}" "${SUITE}" "${DEB}"
+    mkdir -p "${OUT}/pool" "${OUT}/dists/${SUITE}"
+    rsync -a "${WORK}/pool/" "${OUT}/pool/"
+    rsync -a "${WORK}/dists/${SUITE}/" "${OUT}/dists/${SUITE}/"
+    cp "${WORK}/odpm-archive-keyring.gpg" "${OUT}/"
+    echo "APT repo merged into ${OUT} (suite=${SUITE}, preserved other suites)"
+else
+    _build_into "${OUT}" "${SUITE}" "${DEB}"
+    echo "APT repo ready in ${OUT} (suite=${SUITE})"
+fi
+
+find "${OUT}" -type f | sort

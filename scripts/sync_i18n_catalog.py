@@ -41,6 +41,11 @@ RU_MESSAGES: dict[str, str] = {
     "Blocking database configuration drift remains after resolution: {KINDS}": (
         "После разрешения дрейфа остаётся блокирующий дрейф конфигурации БД: {KINDS}"
     ),
+    "Canonical git pins: odpm.json locks.git; run --update-lock to "
+    "refresh .odpm/deps.lock.json.": (
+        "Канонические git-пины: locks.git в odpm.json; выполните --update-lock, "
+        "чтобы обновить .odpm/deps.lock.json."
+    ),
     "Bootstrapping PostgreSQL application role {ROLE} in single-user mode.": (
         "Создание роли приложения PostgreSQL {ROLE} в single-user режиме."
     ),
@@ -89,6 +94,9 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "No database last_run snapshot yet; baseline will be adopted automatically on startup.": (
         "Снимок last_run для БД ещё не создан; baseline будет принят автоматически при запуске."
+    ),
+    "No manifest changes to apply.": (
+        "Нет изменений манифеста для применения."
     ),
     "No PostgreSQL admin role is available for service {SERVICE}.": (
         "Нет доступной административной роли PostgreSQL для сервиса {SERVICE}."
@@ -265,11 +273,42 @@ RU_MESSAGES: dict[str, str] = {
         "транзитивные записи из oca_dependencies.txt и вложенного odpm.json "
         "будут пропущены"
     ),
+    "Git lock source: .odpm/deps.lock.json; run --update-lock after "
+    "changing dependencies.": (
+        "Источник git lock: .odpm/deps.lock.json; после смены зависимостей "
+        "выполните --update-lock."
+    ),
+    "Git lock source: manifest locks.git in odpm.json (canonical); "
+    "edit SHA in locks.git and run --update-lock to sync "
+    ".odpm/deps.lock.json.": (
+        "Источник git lock: locks.git в odpm.json (канон); правьте SHA в locks.git "
+        "и выполните --update-lock для синхронизации .odpm/deps.lock.json."
+    ),
     "Host port: {PORT}": (
         "Порт на host: {PORT}"
     ),
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
+    ),
+    "Invalid manifest hook {PHASE}: empty command": (
+        "Недопустимый manifest hook {PHASE}: пустая команда"
+    ),
+    "Invalid manifest hook {PHASE}: empty plugin id": (
+        "Недопустимый manifest hook {PHASE}: пустой id плагина"
+    ),
+    "Invalid manifest hook {PHASE}: expected command argv or plugin id": (
+        "Недопустимый manifest hook {PHASE}: ожидается argv команды или id плагина"
+    ),
+    "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}": (
+        "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
+    ),
+    "Invalid manifest_schema value {VALUE!r}; expected an integer.": (
+        "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
+    ),
+    "Invalid {FIELD} value {VALUE!r}; expected a semantic version "
+    "(for example 4.4 or 4.4.0).": (
+        "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия "
+        "(например 4.4 или 4.4.0)."
     ),
     "If you want drop this file to default values, just delete it": (
         "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, "
@@ -287,6 +326,37 @@ RU_MESSAGES: dict[str, str] = {
     "host project uses {HOST_VERSION}": (
         "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_version {NESTED_VERSION}, "
         "в host-проекте используется {HOST_VERSION}"
+    ),
+    "Manifest at {PATH} is valid ({SCHEMA} JSON Schema).": (
+        "Манифест {PATH} корректен (JSON Schema {SCHEMA})."
+    ),
+    "Manifest file not found at {PATH}.": (
+        "Файл манифеста не найден: {PATH}."
+    ),
+    "Manifest hook {PHASE} failed: {COMMAND}": (
+        "Manifest hook {PHASE} завершился с ошибкой: {COMMAND}"
+    ),
+    "Manifest is already manifest_schema 2.": (
+        "Манифест уже использует manifest_schema 2."
+    ),
+    "Manifest root must be a JSON object.": (
+        "Корень манифеста должен быть JSON-объектом."
+    ),
+    "Manifest requires odpm manager {REQUIRES} or newer; "
+    "current manager is {ODPM_VERSION}.": (
+        "Manifest требует odpm менеджер {REQUIRES} или новее; "
+        "текущий менеджер {ODPM_VERSION}."
+    ),
+    'manifest subcommand required: use "odpm manifest migrate" or '
+    '"odpm manifest validate".': (
+        'Укажите подкоманду manifest: "odpm manifest migrate" или '
+        '"odpm manifest validate".'
+    ),
+    "manifest locks.git vs deps.lock.json differ: {DETAIL}": (
+        "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
+    ),
+    "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
+        "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
     ),
     "Non-interactive mode cannot prompt to download Odoo platform sources for the "
     "server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. "
@@ -416,11 +486,32 @@ RU_MESSAGES: dict[str, str] = {
     "This dir is already {PROJECT_NAME} project": (
         "Данный каталог уже является {PROJECT_NAME} проектом"
     ),
-    "To change PostgreSQL major version, stop containers, back up if needed, remove "
-    "the data directory at {CURRENT}, then run odpm again so the cluster re-initializes.": (
-        "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости "
-        "сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm "
-        "для переинициализации кластера."
+    "To change PostgreSQL major version:\n"
+    "1. Stop containers (docker compose down).\n"
+    "2. Back up Odoo databases if needed.\n"
+    "3. Remove the PostgreSQL data directory: {DATA_PATH}\n"
+    "4. Run: odpm --accept-database-drift=postgres_major\n"
+    "Alternatively delete {LAST_RUN_REL} and run odpm again.": (
+        "Чтобы сменить major-версию PostgreSQL:\n"
+        "1. Остановите контейнеры (docker compose down).\n"
+        "2. При необходимости сделайте резервную копию баз Odoo.\n"
+        "3. Удалите каталог данных PostgreSQL: {DATA_PATH}\n"
+        "4. Запустите: odpm --accept-database-drift=postgres_major\n"
+        "Либо удалите {LAST_RUN_REL} и снова запустите odpm."
+    ),
+    "To use a different PostgreSQL data directory:\n"
+    "1. Stop containers (docker compose down).\n"
+    "2. Move or remove the old data under {PREVIOUS}.\n"
+    "3. Run: odpm --accept-database-drift=data_path\n"
+    "Current configured path: {CURRENT}.": (
+        "Чтобы использовать другой каталог данных PostgreSQL:\n"
+        "1. Остановите контейнеры (docker compose down).\n"
+        "2. Переместите или удалите старые данные в {PREVIOUS}.\n"
+        "3. Запустите: odpm --accept-database-drift=data_path\n"
+        "Текущий настроенный путь: {CURRENT}."
+    ),
+    "Updated database baseline snapshot at {PATH}.": (
+        "Обновлён снимок baseline базы данных: {PATH}."
     ),
     "To use a different PostgreSQL data directory, stop containers, move or remove "
     "the old data under {PREVIOUS}, then run odpm again. Current configured path: "
@@ -429,21 +520,35 @@ RU_MESSAGES: dict[str, str] = {
         "переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. "
         "Текущий настроенный путь: {CURRENT}."
     ),
+    "To change PostgreSQL major version, stop containers, back up if needed, remove "
+    "the data directory at {CURRENT}, then run odpm again so the cluster re-initializes.": (
+        "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости "
+        "сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm "
+        "для переинициализации кластера."
+    ),
     'This is not {PROJECT_NAME} directory. If you want to init new project use '
     '"{PROJECT_NAME} {INIT_PARAM}" command': (
         "Данный каталог не является odpm проектом. Если вы хотите создать новый "
         "проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
     ),
-    "Version mismatch: The project requires an older version of odpm - "
-    "{PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch "
-    "to a manager version compatible with the project.": (
-        "Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем "
-        "текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте "
-        "версию менеджера соотвествующую версии odpm в проекте. Или созданй новый "
-        "проект"
-    ),
     "Unexpected PostgreSQL connection error: {DETAIL}": (
         "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
+    ),
+    "Unsupported manifest_schema {SCHEMA}.": (
+        "Неподдерживаемый manifest_schema {SCHEMA}."
+    ),
+    "Unsupported manifest_schema {SCHEMA}; this manager supports "
+    "manifest_schema up to {MAX_SCHEMA}.": (
+        "Неподдерживаемый manifest_schema {SCHEMA}; этот менеджер поддерживает "
+        "manifest_schema до {MAX_SCHEMA}."
+    ),
+    "Unknown manifest hook plugin id: {PLUGIN_ID}": (
+        "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
+    ),
+    "Unsupported odpm.json contract line {CONTRACT}; supported values are "
+    "{SUPPORTED}.": (
+        "Неподдерживаемая строка контракта odpm.json {CONTRACT}; допустимые "
+        "значения: {SUPPORTED}."
     ),
     "Updated PostgreSQL application role {ROLE}.": (
         "Обновлена роль приложения PostgreSQL {ROLE}."
@@ -563,6 +668,9 @@ RU_MESSAGES: dict[str, str] = {
     "Project files are ready.": "Файлы проекта готовы.",
     "Starting containers with Docker Compose...": (
         "Запуск контейнеров через Docker Compose..."
+    ),
+    "Wrote manifest v2 to {PATH}.": (
+        "Записан manifest v2 в {PATH}."
     ),
     "When Odoo is ready, open http://localhost:{ODOO_PORT}": (
         "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"

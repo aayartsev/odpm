@@ -152,5 +152,5 @@ def apply_policy_and_layout(config: Config) -> None:
     ctx.paths.apply_developing_project_docker_path()
     ctx.odoo_conf.populate_addons_paths()
 
-    config.odoo_config_data = {}
+    config.docker_layout.odoo_config_data = {}
     ctx.paths.apply_symlink_sources()

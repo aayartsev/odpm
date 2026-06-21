@@ -14,13 +14,15 @@ from .execute import (
     make_prepare_context,
     validate_prepare_context,
 )
-from .registry import PREPARE_STEPS
+from .registry import BUILTIN_PREPARE_STEPS, PREPARE_STEPS, get_prepare_steps
 from .types import PrepareContext, PrepareStepDef
 
 __all__ = (
+    "BUILTIN_PREPARE_STEPS",
     "PREPARE_STEPS",
     "PrepareContext",
     "PrepareStepDef",
+    "get_prepare_steps",
     "build_plan",
     "build_prepare_plan",
     "build_runtime_plan_steps",

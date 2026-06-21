@@ -17,8 +17,10 @@ class PlanRuntimePreviewTests(unittest.TestCase):
     def test_strip_plan_only_arguments(self):
         arguments = {
             "plan": True,
+            "plan_format": "json",
             "plan_no_docker": False,
             "plan_show_diff": True,
+            "plan_strict": True,
             "branch": "dev",
         }
         self.assertEqual(

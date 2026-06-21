@@ -1,0 +1,50 @@
+"""JSON Schema validation for odpm.json manifest v1 and v2."""
+
+from __future__ import annotations
+
+import json
+from functools import lru_cache
+from pathlib import Path
+
+from ..errors import ConfigError
+from ..translations import _
+
+_SCHEMAS_DIR = Path(__file__).resolve().parent / "schemas"
+
+
+@lru_cache(maxsize=1)
+def manifest_schema_v1() -> dict:
+    with (_SCHEMAS_DIR / "odpm_manifest.v1.json").open(encoding="utf-8") as schema_file:
+        return json.load(schema_file)
+
+
+@lru_cache(maxsize=1)
+def manifest_schema_v2() -> dict:
+    with (_SCHEMAS_DIR / "odpm_manifest.v2.json").open(encoding="utf-8") as schema_file:
+        return json.load(schema_file)
+
+
+def _validate_against_schema(raw: dict, schema: dict, *, label: str) -> None:
+    import jsonschema
+    from jsonschema.exceptions import ValidationError
+
+    try:
+        jsonschema.validate(raw, schema)
+    except ValidationError as exc:
+        path = ".".join(str(part) for part in exc.absolute_path) or "(root)"
+        message = _("Invalid {LABEL} odpm.json at {PATH}: {DETAIL}").format(
+            LABEL=label,
+            PATH=path,
+            DETAIL=exc.message,
+        )
+        raise ConfigError(message) from exc
+
+
+def validate_manifest_v1(raw: dict) -> None:
+    """Raise :class:`ConfigError` when *raw* does not match manifest v1 schema."""
+    _validate_against_schema(raw, manifest_schema_v1(), label="manifest v1")
+
+
+def validate_manifest_v2(raw: dict) -> None:
+    """Raise :class:`ConfigError` when *raw* does not match manifest v2 schema."""
+    _validate_against_schema(raw, manifest_schema_v2(), label="manifest v2")

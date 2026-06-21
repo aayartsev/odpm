@@ -46,7 +46,7 @@ class EnvSubstitutionDepsLockIntegrationTests(unittest.TestCase):
             Path(odpm_path).write_text(
                 json.dumps(
                     {
-                        "odpm_version": constants.ODPM_VERSION,
+                        "odpm_version": constants.MANIFEST_V1_CONTRACT_LINE,
                         "odoo_git_link": "file://${ODOO_PLATFORM_DIR}",
                         "dependencies": ["file://${OCA_WEB_PATH}"],
                     }

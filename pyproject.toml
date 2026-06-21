@@ -25,7 +25,9 @@ classifiers = [
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
+    "jsonschema>=4.0",
     "packaging>=23.0",
+    "pluggy>=1.3",
 ]
 
 [project.optional-dependencies]
@@ -41,16 +43,21 @@ Changelog = "https://github.com/aayartsev/odpm/blob/4.0-beta/CHANGELOG.md"
 [project.scripts]
 odpm = "dev_project.cli:main"
 
+[project.entry-points."odpm.prepare_steps"]
+
+[project.entry-points."odpm.hooks"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dev_project*"]
 
 [tool.setuptools.dynamic]
-version = { attr = "dev_project.constants.ODPM_VERSION" }
+version = { attr = "dev_project.constants.RELEASE_VERSION" }
 
 [tool.setuptools.package-data]
 dev_project = [
     "container_config/schemas/*.json",
+    "manifest/schemas/*.json",
     "templates/*",
     "i18n/**/LC_MESSAGES/*.mo",
 ]

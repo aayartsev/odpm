@@ -9,6 +9,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from ... import constants
+from ...manifest.reader import load_manifest
 from ..transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
     expand_env_in_json,
@@ -59,8 +60,10 @@ class OdpmJsonReader:
             self._rewrite_odpm_json()
         with open(self.config.repo_odpm_json) as repo_odpm_json:
             raw = json.load(repo_odpm_json)
+        view = load_manifest(raw)
+        self.config.bootstrap.manifest_view = view
         self.config._raw_odpm_json = expand_env_in_json(
-            raw,
+            view.raw_normalized,
             resolver=self.config.env_resolver,
             allowed_fields=ODPM_JSON_ENV_EXPAND_FIELDS,
         )

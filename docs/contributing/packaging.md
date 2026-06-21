@@ -2,14 +2,20 @@
 
 Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/release-packages.yml)
 
+Release policy (git lines, stable/testing, docs, checklists): [release-lines.md](release-lines.md).
+
 ## Version axes
+
+See [ADR-001](adr-001-extensions-and-manifest-v2.md) for manifest vs manager version.
 
 | Constant / artifact | Example | Meaning |
 |---------------------|---------|---------|
-| `RELEASE_VERSION` | `4.3-rc1` | Git tag (`v4.3-rc1`), deb/rpm filenames, GitHub Release title |
-| `ODPM_VERSION` | `4.0` | `odpm.json` → `odpm_version`, `odpm --version`, pip wheel metadata |
+| `RELEASE_VERSION` | `4.4.2-beta` | Git tag (`v4.4.2-beta`), deb/rpm filenames, GitHub Release title, `odpm --version` |
+| `LATEST_STABLE_RELEASE` | `4.3.0` | Recommended stable line for install docs and mike `stable` alias; bump **only** on stable tags |
+| `ODPM_VERSION` | same as `RELEASE_VERSION` | Alias; pip wheel metadata |
+| `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new v1 projects — **not** the installed manager version |
 
-Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release.
+Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release. Tag `v{RELEASE_VERSION}` must match (`scripts/verify_release_tag_version.py`).
 
 ## deb
 
@@ -17,7 +23,20 @@ Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/
 
 Published on tag builds to `https://aayartsev.github.io/odpm/apt/` (`stable` / `testing` suites).
 
-Docs deploys (`.github/workflows/docs.yml`) rebuild MkDocs on branch pushes and share the same GitHub Pages site. Before upload, `./scripts/preserve_pages_package_repos.sh` mirrors any live `apt/` and `yum/` trees into `site/` (explicit file fetch from `Release` / `repomd.xml`; `wget -r` does not work on Pages). If a live repo exists but mirroring fails, the workflow fails instead of wiping package repos.
+| Release tag pattern | APT suite |
+|---------------------|-----------|
+| Stable (`v4.3.0`, `v4.4.2`, …) | `stable` |
+| Pre-release (`*-beta`, `*-rc`, `*-alpha`) | `testing` |
+
+CI flow (tag push):
+
+1. `scripts/fetch_pages_repo.sh apt …` — download live repo from GitHub Pages.
+2. `scripts/build_apt_repo.sh --merge SUITE dist/odpm_*.deb …` — publish into one suite without wiping the other.
+3. `publish-pages` merges the apt tree into the mike site via `scripts/mike_pages_finalize.sh`.
+
+Branch pushes deploy docs only ([`.github/workflows/docs.yml`](../../.github/workflows/docs.yml)): `mike deploy dev` + finalize (preserves live apt/yum via fetch inside finalize when no new repo artifact).
+
+One-shot bootstrap of **stable** suite from an existing release: workflow **Bootstrap Pages repos** (`.github/workflows/bootstrap-pages-repos.yml`), input e.g. `v4.3.0` — checks out `4.4-dev`, downloads GitHub Release assets, `--merge stable`.
 
 GitHub Actions secrets:
 
@@ -45,9 +64,9 @@ Host Python must be **≥ 3.10** (`requires-python` in `pyproject.toml`). EL9 sy
 
 ### YUM / DNF repository (recommended)
 
-Published on tag builds to `https://aayartsev.github.io/odpm/yum/` (`stable` / `testing` suites).
+Published on tag builds to `https://aayartsev.github.io/odpm/yum/` (`stable` / `testing` suites). Same merge/fetch/bootstrap pattern as APT (`scripts/build_yum_repo.sh --merge`).
 
-Uses the same GPG key and GitHub Actions secrets as the APT repo. Example `.repo` files: [`packaging/yum/`](../../packaging/yum/). Maintainer notes: [`packaging/yum/README.md`](../../packaging/yum/README.md).
+Example `.repo` files (also copied to Pages on docs finalize): [`packaging/yum/`](../../packaging/yum/). User-facing URLs: `https://aayartsev.github.io/odpm/yum/odpm-stable.repo` and `odpm-testing.repo`.
 
 User install: [install/README.md](../install/README.md) (hub), [install/fedora-rpm.md](../install/fedora-rpm.md) (Fedora).
 
@@ -69,13 +88,27 @@ odpm --version
 
 Runtime dependency: `packaging` (declared in `pyproject.toml`; Debian package uses `python3-packaging`).
 
-### PyPI publish (maintainers)
+### PyPI publish
 
-Workflow: [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml)
+**On tag** (`release-packages.yml` job `publish-pypi`):
 
-- **Manual only** — `workflow_dispatch` with `confirm_publish=true` (no automatic upload on tag).
-- Default target: **TestPyPI** (`use_testpypi=true`); production PyPI requires `use_testpypi=false` and configured secrets.
-- GitHub Environment `pypi` + secrets `TEST_PYPI_API_TOKEN` / `PYPI_API_TOKEN` (or OIDC trusted publishing when enabled).
+- Stable tag → **production PyPI**
+- Pre-release tag (`*-beta`, `*-rc`, `*-alpha`) → **TestPyPI** (`skip-existing: true` — safe retag/re-run when the wheel is already uploaded)
+- Wheel/sdist also attached to the GitHub Release
+
+**Manual ad-hoc** (no tag): [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) — `workflow_dispatch` with `confirm_publish=true`; default target TestPyPI (`use_testpypi=true`).
+
+GitHub Environment `pypi` + secrets `TEST_PYPI_API_TOKEN` / `PYPI_API_TOKEN` (or OIDC trusted publishing when enabled).
+
+## Documentation deploy (mike)
+
+| Trigger | Workflow | Result |
+|---------|----------|--------|
+| Push `4.4-dev` | `docs.yml` | `/dev/` docs |
+| Tag `v*` | `release-packages.yml` → `publish-pages` | Version dir + stable alias on stable tags |
+| One-shot | `bootstrap-docs-versions.yml` | Seed e.g. `4.3.0` + aliases |
+
+Scripts: `scripts/mike_pages_deploy.sh`, `scripts/mike_pages_finalize.sh`, `scripts/prepare_bootstrap_docs.sh`.
 
 Артефакты: GitHub Releases и Actions artifact `release-packages` (deb + rpm). Release на GitHub — только при tag `v*`.
 

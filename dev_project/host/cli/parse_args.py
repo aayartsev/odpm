@@ -8,6 +8,7 @@ import sys
 from . import params
 from .args_common import add_common_arguments
 from .args_database import register_database_subparser
+from .args_manifest import register_manifest_subparser
 from .args_plan import register_plan_subparser
 from .args_scaffold import register_scaffold_subparser
 
@@ -26,6 +27,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     command_subparsers = parser.add_subparsers(dest="command", help="Commands")
     register_plan_subparser(command_subparsers, common_parser)
     register_database_subparser(command_subparsers, common_parser)
+    register_manifest_subparser(command_subparsers, common_parser)
     register_scaffold_subparser(command_subparsers)
     return parser
 

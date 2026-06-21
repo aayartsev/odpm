@@ -54,6 +54,8 @@ class OdpmCliArgs:
     database_subcommand: str | None = None
     database_status_format: str = "table"
     accept_database_drift: tuple[str, ...] = ()
+    manifest_subcommand: str | None = None
+    manifest_migrate_write: bool = False
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:

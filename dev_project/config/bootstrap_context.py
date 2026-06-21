@@ -52,5 +52,5 @@ class ConfigBootstrapContext:
     def rewrite_odpm_json(self) -> None:
         write_odpm_json(
             self.config,
-            create_default=self.defaults.create_default_odpm_json_content,
+            create_default=self.defaults.create_default_odpm_json_write_payload,
         )

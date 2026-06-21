@@ -14,10 +14,20 @@ VENV_MODE_BAKED = "baked"
 VENV_MODE_VALUES = frozenset((VENV_MODE_FRESH, VENV_MODE_BAKED))
 
 DEFAULT_ODPM_VERSION = "3.0"
-# Manifest / manager compatibility line (`odpm.json` → `odpm_version`, `odpm --version`).
-ODPM_VERSION = "4.0"
-# Git tag and native package release line (deb/rpm); not the manifest contract version.
-RELEASE_VERSION = "4.3.0"
+# Single user-facing product version: CLI, pip/PyPI, deb/rpm, git tag (v{RELEASE_VERSION}).
+RELEASE_VERSION = "4.4.2-beta"
+# Recommended stable line for install docs and mike `stable` alias (bump on stable tag only).
+LATEST_STABLE_RELEASE = "4.3.0"
+# Alias for installed manager version (`odpm --version`, compat checks, new manifest defaults).
+ODPM_VERSION = RELEASE_VERSION
+# Flat odpm.json → odpm_version written for new projects (manifest contract v1).
+MANIFEST_V1_CONTRACT_LINE = "4.0"
+MANIFEST_SCHEMA_V1 = 1
+MANIFEST_SCHEMA_V2 = 2
+MANIFEST_SCHEMA_SUPPORTED_MAX = MANIFEST_SCHEMA_V2
+SUPPORTED_V1_MANIFEST_CONTRACT_LINES = frozenset(
+    {DEFAULT_ODPM_VERSION, MANIFEST_V1_CONTRACT_LINE}
+)
 
 RUN_MODE_ODOO = "odoo"
 RUN_MODE_BOOTSTRAP_ONLY = "bootstrap_only"

@@ -123,6 +123,40 @@ class CiImageBuilder:
         )
         write_runtime_config_to_path(self.config, config_path)
 
+    def _write_ci_secrets_runtime(self, context_dir: str) -> bool:
+        from .secrets import prepare_secrets_for_ci_bake, secrets_runtime_path
+
+        if not prepare_secrets_for_ci_bake(self.config.project_dir):
+            return False
+
+        source_path = secrets_runtime_path(self.config.project_dir)
+        dest_path = os.path.join(
+            context_dir, constants.CI_SECRETS_RUNTIME_CONTEXT_REL_PATH
+        )
+        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+        shutil.copy2(source_path, dest_path)
+        os.chmod(dest_path, 0o600)
+        return True
+
+    def _ci_context_has_baked_secrets(self) -> bool:
+        path = os.path.join(
+            self.config.ci_build_context_dir,
+            constants.CI_SECRETS_RUNTIME_CONTEXT_REL_PATH,
+        )
+        return os.path.isfile(path)
+
+    def _render_ci_secrets_dockerfile_block(self) -> str:
+        if not self._ci_context_has_baked_secrets():
+            return ""
+        user = constants.CONTAINER_USER
+        return (
+            f"COPY --chown={user}:{user} "
+            f"{constants.CI_SECRETS_RUNTIME_CONTEXT_REL_PATH} "
+            f"{constants.ODPM_SECRETS_CONTAINER_PATH}\n\n"
+            f"ENV {constants.ODPM_SECRETS_PATH_ENV}="
+            f"{constants.ODPM_SECRETS_CONTAINER_PATH}\n\n"
+        )
+
     def _read_ci_dockerignore_template(self) -> str:
         template_path = os.path.join(
             self.config.program_dir,
@@ -165,15 +199,21 @@ class CiImageBuilder:
         self._copy_dev_project_for_ci(context_dir)
         self._write_ci_venv_spec(context_dir)
         self._write_ci_runtime_config(context_dir)
+        baked_secrets = self._write_ci_secrets_runtime(context_dir)
 
         _logger.info(
-            "prepare_ci_build_context: %s (%s source tree(s), %s, %s, %s, %s)",
+            "prepare_ci_build_context: %s (%s source tree(s), %s, %s, %s, %s%s)",
             context_dir,
             copied,
             constants.ODOO_CONF_NAME,
             constants.DEV_PROJECT_DIR,
             constants.CI_VENV_INSTALL_JSON,
             constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH,
+            (
+                f", {constants.CI_SECRETS_RUNTIME_CONTEXT_REL_PATH}"
+                if baked_secrets
+                else ""
+            ),
         )
 
     def generate_ci_dockerfile(self) -> str:
@@ -191,6 +231,7 @@ class CiImageBuilder:
             CI_RUNTIME_CONFIG_CONTEXT_REL=constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH,
             ODPM_CONFIG_PATH_ENV=constants.ODPM_CONFIG_PATH_ENV,
             ODPM_RUNTIME_CONFIG_CONTAINER_PATH=constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH,
+            CI_SECRETS_DOCKERFILE_BLOCK=self._render_ci_secrets_dockerfile_block(),
         )
         content = content.replace(
             constants.MESSAGE_MARKER,

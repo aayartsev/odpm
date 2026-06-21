@@ -5,6 +5,7 @@ from __future__ import annotations
 import configparser
 import json
 import os
+from dataclasses import replace
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -143,6 +144,24 @@ def load_last_run(project_dir: str) -> DatabaseLastRun | None:
 def save_last_run(project_dir: str, snapshot: DatabaseLastRun) -> str:
     ensure_database_dir_gitignore(project_dir)
     return write_last_run_to_path(last_run_path(project_dir), snapshot)
+
+
+def save_current_database_baseline(
+    config: Config,
+    *,
+    assume_app_role_present: bool = False,
+) -> str:
+    """Persist current configuration fingerprints as the database baseline."""
+    from .status import collect_database_status
+
+    report = collect_database_status(config)
+    current = report.current
+    if assume_app_role_present:
+        current = replace(
+            current,
+            cluster=replace(current.cluster, app_role_present=True),
+        )
+    return save_last_run(config.project_dir, current.to_last_run())
 
 
 def write_last_run_to_path(path: str, snapshot: DatabaseLastRun) -> str:

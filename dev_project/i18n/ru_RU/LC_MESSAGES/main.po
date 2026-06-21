@@ -44,6 +44,9 @@ msgstr "Не удалось получить информацию о Docker Comp
 msgid "Cannot list Docker containers: {DETAILS}"
 msgstr "Не удалось получить список контейнеров Docker: {DETAILS}"
 
+msgid "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
+msgstr "Канонические git-пины: locks.git в odpm.json; выполните --update-lock, чтобы обновить .odpm/deps.lock.json."
+
 msgid "Check `docker compose ps` and the English log output above for details."
 msgstr "Проверьте `docker compose ps` и английский лог выше для подробностей."
 
@@ -134,6 +137,12 @@ msgstr "Git dependency lock обновлён; запуск контейнеро�
 msgid "Git dependency {DEPENDENCY_URL} is not available locally; transitive entries from oca_dependencies.txt and nested odpm.json will be skipped"
 msgstr "Git-зависимость {DEPENDENCY_URL} недоступна локально; транзитивные записи из oca_dependencies.txt и вложенного odpm.json будут пропущены"
 
+msgid "Git lock source: .odpm/deps.lock.json; run --update-lock after changing dependencies."
+msgstr "Источник git lock: .odpm/deps.lock.json; после смены зависимостей выполните --update-lock."
+
+msgid "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA in locks.git and run --update-lock to sync .odpm/deps.lock.json."
+msgstr "Источник git lock: locks.git в odpm.json (канон); правьте SHA в locks.git и выполните --update-lock для синхронизации .odpm/deps.lock.json."
+
 msgid "Host port: {PORT}"
 msgstr "Порт на host: {PORT}"
 
@@ -142,6 +151,42 @@ msgstr "Если вы хотите сбросить настройки этог�
 
 msgid "Invalid choice. Please enter one of: {CHOICES}"
 msgstr "Неверный выбор. Введите один из вариантов: {CHOICES}"
+
+msgid "Invalid manifest hook {PHASE}: empty command"
+msgstr "Недопустимый manifest hook {PHASE}: пустая команда"
+
+msgid "Invalid manifest hook {PHASE}: empty plugin id"
+msgstr "Недопустимый manifest hook {PHASE}: пустой id плагина"
+
+msgid "Invalid manifest hook {PHASE}: expected command argv or plugin id"
+msgstr "Недопустимый manifest hook {PHASE}: ожидается argv команды или id плагина"
+
+msgid "Invalid manifest_schema value {VALUE!r}; expected an integer."
+msgstr "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
+
+msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
+msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия (например 4.4 или 4.4.0)."
+
+msgid "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
+msgstr "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
+
+msgid "Manifest at {PATH} is valid ({SCHEMA} JSON Schema)."
+msgstr "Манифест {PATH} корректен (JSON Schema {SCHEMA})."
+
+msgid "Manifest file not found at {PATH}."
+msgstr "Файл манифеста не найден: {PATH}."
+
+msgid "Manifest hook {PHASE} failed: {COMMAND}"
+msgstr "Manifest hook {PHASE} завершился с ошибкой: {COMMAND}"
+
+msgid "Manifest is already manifest_schema 2."
+msgstr "Манифест уже использует manifest_schema 2."
+
+msgid "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
+msgstr "Manifest требует odpm менеджер {REQUIRES} или новее; текущий менеджер {ODPM_VERSION}."
+
+msgid "Manifest root must be a JSON object."
+msgstr "Корень манифеста должен быть JSON-объектом."
 
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
@@ -157,6 +202,9 @@ msgstr "Нет доступной административной роли Post
 
 msgid "No database last_run snapshot yet; baseline will be adopted automatically on startup."
 msgstr "Снимок last_run для БД ещё не создан; baseline будет принят автоматически при запуске."
+
+msgid "No manifest changes to apply."
+msgstr "Нет изменений манифеста для применения."
 
 msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
 msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
@@ -326,20 +374,41 @@ msgstr "Данный каталог не является odpm проектом.
 msgid "To change PostgreSQL major version, stop containers, back up if needed, remove the data directory at {CURRENT}, then run odpm again so the cluster re-initializes."
 msgstr "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm для переинициализации кластера."
 
+msgid "To change PostgreSQL major version:\n1. Stop containers (docker compose down).\n2. Back up Odoo databases if needed.\n3. Remove the PostgreSQL data directory: {DATA_PATH}\n4. Run: odpm --accept-database-drift=postgres_major\nAlternatively delete {LAST_RUN_REL} and run odpm again."
+msgstr "Чтобы сменить major-версию PostgreSQL:\n1. Остановите контейнеры (docker compose down).\n2. При необходимости сделайте резервную копию баз Odoo.\n3. Удалите каталог данных PostgreSQL: {DATA_PATH}\n4. Запустите: odpm --accept-database-drift=postgres_major\nЛибо удалите {LAST_RUN_REL} и снова запустите odpm."
+
 msgid "To use a different PostgreSQL data directory, stop containers, move or remove the old data under {PREVIOUS}, then run odpm again. Current configured path: {CURRENT}."
 msgstr "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. Текущий настроенный путь: {CURRENT}."
+
+msgid "To use a different PostgreSQL data directory:\n1. Stop containers (docker compose down).\n2. Move or remove the old data under {PREVIOUS}.\n3. Run: odpm --accept-database-drift=data_path\nCurrent configured path: {CURRENT}."
+msgstr "Чтобы использовать другой каталог данных PostgreSQL:\n1. Остановите контейнеры (docker compose down).\n2. Переместите или удалите старые данные в {PREVIOUS}.\n3. Запустите: odpm --accept-database-drift=data_path\nТекущий настроенный путь: {CURRENT}."
 
 msgid "Unexpected PostgreSQL connection error: {DETAIL}"
 msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
 
+msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
+msgstr "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
+
+msgid "Unsupported manifest_schema {SCHEMA}."
+msgstr "Неподдерживаемый manifest_schema {SCHEMA}."
+
+msgid "Unsupported manifest_schema {SCHEMA}; this manager supports manifest_schema up to {MAX_SCHEMA}."
+msgstr "Неподдерживаемый manifest_schema {SCHEMA}; этот менеджер поддерживает manifest_schema до {MAX_SCHEMA}."
+
+msgid "Unsupported odpm.json contract line {CONTRACT}; supported values are {SUPPORTED}."
+msgstr "Неподдерживаемая строка контракта odpm.json {CONTRACT}; допустимые значения: {SUPPORTED}."
+
 msgid "Updated PostgreSQL application role {ROLE}."
 msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
 
-msgid "Version mismatch: The project requires an older version of odpm - {PROJECT_ODPM_VERSION}  than your current manager-{ODPM_VERSION}. Please switch to a manager version compatible with the project."
-msgstr "Версия odpm используемая в проекте - {PROJECT_ODPM_VERSION} меньше чем текущия версия менеджера odpm - {ODPM_VERSION}, пожалуйста используйте версию менеджера соотвествующую версии odpm в проекте. Или созданй новый проект"
+msgid "Updated database baseline snapshot at {PATH}."
+msgstr "Обновлён снимок baseline базы данных: {PATH}."
 
 msgid "When Odoo is ready, open http://localhost:{ODOO_PORT}"
 msgstr "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
+
+msgid "Wrote manifest v2 to {PATH}."
+msgstr "Записан manifest v2 в {PATH}."
 
 msgid "You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"
 msgstr "Вы не указали разрабатываемый проект. Вы можете указать это при использовании --init команды. Например: '--init file:///home/user/projects/your_directory_for_project' или напрямую из git репозитория --init https://github.com/aayartsev/odoo_demo_project.git'. Вы так же можете указать это в файле user_settings.json в ключе 'developing_project'"
@@ -412,6 +481,15 @@ msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
 msgid "first database run (no last_run snapshot yet)"
 msgstr "Первый запуск БД (снимок last_run ещё не создан)"
+
+msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
+msgstr "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
+
+msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
+msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\" или \"odpm manifest validate\"."
+
+msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
+msgstr "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
 
 msgid "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS})."
 msgstr "В odoo.conf db_host ({CURRENT}) не совпадает с именем сервиса postgres ({PREVIOUS})."

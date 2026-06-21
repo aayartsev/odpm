@@ -61,8 +61,9 @@ def compose_stop_service(config: Config, service: str) -> CommandResult:
 
 
 def compose_up_service_detached(config: Config, service: str) -> CommandResult:
+    """Start one compose service detached; ``-y`` avoids Compose volume prompts hanging when stdout is captured."""
     return run_checked(
-        _compose_argv(config) + ["up", "-d", service],
+        _compose_argv(config) + ["up", "-d", "-y", service],
         cwd=config.project_dir,
     )
 

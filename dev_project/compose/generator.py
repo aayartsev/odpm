@@ -134,10 +134,17 @@ class ComposeGenerator:
             )
 
         compose_user = policy.runtime_unix_user()
+        from ..extensions.context import ExtensionHostContext
+        from .fragments import collect_compose_services, render_compose_services_block
+
+        compose_service_fragments = render_compose_services_block(
+            collect_compose_services(ExtensionHostContext.from_config(self.config))
+        )
         content = "".join(lines).format(
             ODOO_IMAGE=odoo_image,
             DEV_EXTRA_PORTS=dev_extra_ports,
             DEV_EXTRA_HOSTS=dev_extra_hosts,
+            PYTHONWARNINGS_ENV_LINE=policy.build_pythonwarnings_env_line(),
             ODOO_VOLUMES_BLOCK=odoo_volumes_block,
             ODOO_PORT=self.user_env.odoo_port or constants.ODOO_DEFAULT_PORT,
             POSTGRES_PORT_MAP=postgres_port_map,
@@ -149,6 +156,7 @@ class ComposeGenerator:
                 compose_service.command
             ),
             COMPOSE_USER=compose_user,
+            COMPOSE_SERVICE_FRAGMENTS=compose_service_fragments,
             CONTAINER_USER=compose_user,
             CONTAINER_PASSWORD=constants.CONTAINER_PASSWORD,
             CURRENT_USER=compose_user,

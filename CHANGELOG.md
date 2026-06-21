@@ -14,6 +14,72 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Plan/dry-run unit gate** — `tests/test_scenario_plan_matrix.py` covers documented `odpm plan` / manifest CLI behaviour without a Docker daemon (scenarios `developer` / `server` / `ci`); traceability in `tests/PLAN_MATRIX.md`; `docs/contributing/ci.md`.
+
+### Fixed
+
+- **`--plan-strict` false positives on compose steps** — `plan_strict` and `plan_format` are stripped from runtime-config preview comparison (`PLAN_ONLY_ARGUMENT_KEYS`), so `--plan-strict` no longer marks `compose.service` / `compose.generate` as required updates when runtime config is already materialized.
+
+### Changed
+
+- **Unified user-facing version** — `ODPM_VERSION` aliases `RELEASE_VERSION` (`4.4.2`): `odpm --version`, pip/PyPI wheel, deb/rpm, and git tags now show the same value. Manifest contract `odpm_version: "4.0"` unchanged. Docs: `packaging.md`, ADR-001, `odpm-json.md`. Tests: `test_release_packaging.py`, `test_pyproject_packaging.py`.
+
+- **Automatic PyPI on release tags** — `release-packages.yml` job `publish-pypi` uploads wheel/sdist after deb/rpm smoke: stable `v*` tags to production PyPI, pre-release tags to TestPyPI; pip assets attached to GitHub Release. Tag must match `RELEASE_VERSION` (`scripts/verify_release_tag_version.py`). Manual `publish-pypi.yml` kept for ad-hoc uploads.
+
+## [4.4.2] - 2026-06-20
+
+**Patch release 4.4.2 on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Ships debt-closure phases P1–P6 after `4.4.0-beta`; no breaking changes for existing v1 projects.**
+
+### Changed
+
+- **Documentation hygiene (Phase 6)** — `architecture-debt.md` debt tracker P0–P6; `todo.md` backlog triage; `plugins/todo_ru.md` redirect to `plugins.md`; `goals_ru.md` golden-path post-4.4 backlog.
+
+- **Config slimming C-11 (prepare boundary)** — prepare steps read via `host_ctx`, `git_repos`, and `DepsLockManager` helpers instead of `ctx.config`; `SystemCheckPolicy.from_host_context`; plan compose/database previews use host paths where sufficient. Contract: `tests/test_prepare_config_coupling.py`.
+
+- **Release gate (4.4.2)** — `RELEASE_VERSION` → `4.4.2`; deb/rpm packaging synced; debt tracker P1–P6 marked released.
+
+### Added
+
+- **CI / compose smoke (Phase 5)** — `minimal_odpm_fixture` optional manifest v2 + Mailpit; `ComposeSmokeMailpitIntegrationTests` with `ODPM_COMPOSE_SMOKE_MAILPIT=1`; compose-smoke uses `tests/odpm_subprocess.py`; golden-path mandatory criteria in `docs/contributing/ci.md`.
+
+- **Locks UX (Phase 4)** — dual-source docs (v1 deps.lock vs v2 `locks.git`); `odpm plan` warnings for lock source and manifest↔deps.lock drift; warning on `git.lock_verify` when sources diverge.
+
+- **Manifest contracts (Phase 3)** — `odpm manifest validate` (JSON Schema v1/v2 + compat); stricter v2 `services` schema (`image` required); version axes documented in odpm-json.md.
+
+- **CI secrets bake (TD-FEAT-09 Phase B)** — `ODPM_BAKE_SECRETS=1` copies materialized `.odpm/runtime/secrets.json` into CI build context and Dockerfile (`COPY` + `ENV ODPM_SECRETS_PATH`). ADR-002; extended `test_ci_secrets_smoke`; `tests/odpm_subprocess.py` for stable CLI subprocess tests.
+
+## [4.4.0-beta] - 2026-06-19
+
+**Release line 4.4.0-beta on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Roadmap 4.4 epics complete; no breaking changes for existing v1 projects.**
+
+### Changed
+
+- **Release gate (4.4.0-beta)** — `RELEASE_VERSION` → `4.4.0-beta`; deb/rpm packaging synced; ruff lint baseline fixes (unused imports, complexity noqa on container config validator).
+
+## [4.4.0-alpha] - 2026-06-19
+
+**Release line 4.4.0-alpha on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Breaking changes for existing v1 projects: none.**
+
+### Added
+
+- **4.4 release docs and CI contract (4.4)** — [docs/reference/manifest-migration.md](docs/reference/manifest-migration.md); v2 fields in [odpm-json.md](docs/reference/odpm-json.md); CI job `contract` (`tests.test_manifest_contract`) and branch `4.4-dev` in workflows; [architecture-debt.md](docs/contributing/architecture-debt.md) 4.4 section; [goals_ru.md](goals_ru.md) plugin API marked done.
+
+- **Extension registry foundation (4.4)** — package `dev_project/extensions/`: frozen `ExtensionHostContext`, prepare-step plugin protocols, pluggy hook `odpm_prepare_steps` with entry-point group `odpm.prepare_steps`, `register_prepare_step` / `register_compose_fragment`. `prepare.get_prepare_steps()` merges built-in steps with extensions sorted by `order`. Tests: `tests/test_extension_entry_points.py`.
+
+- **Manifest lifecycle hooks (4.4)** — `hooks.post_prepare` / `hooks.pre_up` in manifest v2 (shell argv and pluggy plugin ids). `run_lifecycle_hooks` after prepare and before `docker compose up`. Entry-point group `odpm.hooks`. Reference Mailpit service spec and [docs/reference/plugins.md](docs/reference/plugins.md). Tests: `tests/test_manifest_hooks.py`.
+
+- **Compose service fragments (4.4)** — `dev_project/compose/fragments.py` merges manifest v2 `services` with `register_compose_fragment` plugins; YAML render without PyYAML. Prepare step `compose.fragments` materializes `.odpm/compose/fragments/*.yml`; `{COMPOSE_SERVICE_FRAGMENTS}` placeholder in docker-compose template; `ComposeGenerator` injects extra services. Tests: `tests/test_compose_fragments.py`.
+
+- **Manifest migrate and locks sync (4.4)** — `odpm manifest migrate [--write]` transforms flat v1 `odpm.json` to nested manifest v2 (platform/distro/requirements, optional `database` from `user_settings`, `locks.git` from `.odpm/deps.lock.json`). `DepsLockManager` reads `locks.git` when `manifest_schema: 2` (`LockSource.MANIFEST`), otherwise `.odpm/deps.lock.json`. Tests: `tests/test_manifest_migrate.py`, `tests/test_manifest_locks_sync.py`, `tests/test_manifest_cli.py`.
+
+- **Manifest database identity (4.4)** — optional `database.language` / `database.country` in `odpm.json` (v1 flat and v2 nested). Bootstrap merges manifest values over `user_settings.json` `db_creation_data` for new DB creation; new projects get `database` block in default manifest. `create_demo` and admin credentials stay in `user_settings`. Tests: `tests/test_manifest_database_merge.py`.
+
+- **Manifest v2 core (4.4)** — JSON Schema files `odpm_manifest.v1.json` / `v2.json`, `dev_project/manifest/schema.py` and `reader.py` (dual-read v1 flat | v2 nested → normalized flat `ManifestView`). Bootstrap loads via `OdpmJsonReader` → env expand on flat projection; v2 `hooks` / `services` / `locks` on `BootstrapState.manifest_view`. Tests: `tests/test_manifest_v2_reader.py`.
+
+- **Config hub C-8…C-10 (4.4)** — `AddonLayoutState` for addon catalogs and developing subprojects; prepare steps read project paths and policy via `HostProjectContext`; `ConfigPaths.apply_docker_layout()` writes to `docker_layout` slice. Property shims on `Config` preserved.
+
+- **ADR-001 and manifest version model (4.4)** — [docs/contributing/adr-001-extensions-and-manifest-v2.md](docs/contributing/adr-001-extensions-and-manifest-v2.md): separate axes `ODPM_VERSION` (manager `4.4`), `RELEASE_VERSION` (`4.4.0-alpha`), `manifest_schema` / `requires_odpm` (v2), legacy flat `odpm_version` contract line (`4.0`). Package `dev_project/manifest/compat.py` replaces float `odpm_version` vs manager check; v1 `odpm_version: "4.0"` works on manager 4.4. Runtime deps: `jsonschema`, `pluggy`. Tests: `tests/test_manifest_compat.py`. Docs: [packaging.md](docs/contributing/packaging.md).
+
 - **Database state v1** — `.odpm/database/last_run.json` fingerprints PostgreSQL cluster configuration (compose service, data path, `odoo.conf` db settings, application role). Package `dev_project/database/`: drift detection, `odpm database status` / `odpm database ensure-role`, interactive drift resolution with `--accept-database-drift=KIND`, prepare step `database.drift` in `odpm plan`, legacy **adoption baseline** on first run, `postgres_admin` recovery for clusters without login roles. Checker verifies PostgreSQL credentials and records `last_run` from the container; mount `.odpm/database` into the odoo service. Docs: `docs/reference/database-state.md`, updates to `cli.md`, `legacy-project.md`, `non-interactive.md`, `generated-files.md`, `project-layout.md`, `odoo-conf.md`, smoke checklist.
 
 ### Fixed

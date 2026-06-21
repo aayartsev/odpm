@@ -10,7 +10,7 @@ from .types import PrepareContext
 
 def evaluate_docker_engine_check(ctx: PrepareContext) -> PlanStep:
     description = "Check Docker engine"
-    policy = SystemCheckPolicy.from_config(ctx.config)
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
     if not policy.beginner_docker:
         return make_plan_step(
             "docker.engine.check",
@@ -34,7 +34,7 @@ def exec_docker_engine_check(ctx: PrepareContext) -> None:
 
 def evaluate_docker_ports_release(ctx: PrepareContext) -> PlanStep:
     description = "Stop containers occupying odpm ports"
-    policy = SystemCheckPolicy.from_config(ctx.config)
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
     if not policy.developer_port_release:
         return make_plan_step(
             "docker.ports.release",

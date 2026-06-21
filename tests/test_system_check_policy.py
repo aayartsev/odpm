@@ -16,7 +16,8 @@ from dev_project.system_check_policy import SystemCheckPolicy
 class SystemCheckPolicyMatrixTests(unittest.TestCase):
     def _config(self, *, check_system: bool, scenario: str) -> MagicMock:
         config = MagicMock()
-        config.check_system = check_system
+        config.user_settings = MagicMock()
+        config.user_settings.check_system = check_system
         config.policy = ScenarioPolicy.from_scenario(scenario)
         return config
 
@@ -75,7 +76,9 @@ class SystemCheckPolicyMatrixTests(unittest.TestCase):
             with self.subTest(scenario=scenario, check_system=check_system):
                 config = self._config(check_system=check_system, scenario=scenario)
                 ctx = MagicMock()
-                ctx.config = config
+                ctx.host_ctx = MagicMock()
+                ctx.host_ctx.user_settings = config.user_settings
+                ctx.host_ctx.policy = config.policy
                 docker = evaluate_docker_engine_check(ctx)
                 ports = evaluate_docker_ports_release(ctx)
                 compose = evaluate_compose_validate(ctx)

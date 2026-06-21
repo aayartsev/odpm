@@ -3,12 +3,20 @@
 from __future__ import annotations
 
 from ..plan import PlanStep, deps_lock_file_exists
-from .helpers import lock_verify_available, make_plan_step, skip_git, update_lock
+from .helpers import (
+    lock_source_label,
+    lock_verify_available,
+    make_plan_step,
+    manifest_lock_apply_available,
+    skip_git,
+    update_lock,
+)
 from .types import PrepareContext
 
 
 def evaluate_git_lock_load(ctx: PrepareContext) -> PlanStep:
-    description = "Load .odpm/deps.lock.json and enter apply mode before checkout"
+    source = lock_source_label(ctx)
+    description = f"Load git lock from {source} and enter apply mode before checkout"
     if skip_git(ctx):
         return make_plan_step(
             "git.lock_load",
@@ -30,7 +38,7 @@ def evaluate_git_lock_load(ctx: PrepareContext) -> PlanStep:
         description,
         "run",
         True,
-        "load deps.lock before checkout",
+        f"load git lock from {source} before checkout",
     )
 
 
@@ -81,7 +89,8 @@ def evaluate_git_materialize(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_git_lock_apply(ctx: PrepareContext) -> PlanStep:
-    description = "Apply pinned commits from .odpm/deps.lock.json before checkout"
+    source = lock_source_label(ctx)
+    description = f"Apply pinned commits from {source} before checkout"
     if skip_git(ctx) or update_lock(ctx):
         return make_plan_step(
             "git.lock_apply",
@@ -90,20 +99,23 @@ def evaluate_git_lock_apply(ctx: PrepareContext) -> PlanStep:
             False,
             "lock apply not used in this mode",
         )
-    if not deps_lock_file_exists(ctx.config.project_dir):
+    if (
+        not deps_lock_file_exists(ctx.host_ctx.project_dir)
+        and not manifest_lock_apply_available(ctx)
+    ):
         return make_plan_step(
             "git.lock_apply",
             description,
             "skip",
             False,
-            "deps.lock.json not present",
+            "no git lock source available",
         )
     return make_plan_step(
         "git.lock_apply",
         description,
         "run",
         True,
-        "apply pinned commits from deps.lock.json",
+        f"apply pinned commits from {source}",
     )
 
 
@@ -146,7 +158,8 @@ def evaluate_git_lock_collect(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_git_lock_verify(ctx: PrepareContext) -> PlanStep:
-    description = "Verify checked-out commits match deps.lock.json"
+    source = lock_source_label(ctx)
+    description = f"Verify checked-out commits match {source}"
     if not lock_verify_available(ctx):
         return make_plan_step(
             "git.lock_verify",
@@ -159,8 +172,8 @@ def evaluate_git_lock_verify(ctx: PrepareContext) -> PlanStep:
         "git.lock_verify",
         description,
         "run",
-        ctx.config.policy.is_ci(),
-        "verify checked-out commits match deps.lock.json",
+        ctx.host_ctx.policy.is_ci(),
+        f"verify checked-out commits match {source}",
     )
 
 
@@ -171,21 +184,19 @@ def exec_lock_load(ctx: PrepareContext) -> None:
 
 
 def exec_git_ensure_present(ctx: PrepareContext) -> None:
-    ctx.config.ensure_git_repos_present()
+    ctx.git_repos.ensure_git_repos_present()
 
 
 def exec_git_materialize(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.config.materialize_git_repos(
+    ctx.git_repos.materialize_git_repos(
         skip_build_date=ctx.lock_manager.has_platform_lock()
     )
 
 
 def exec_lock_apply(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.lock_manager.apply_to_platform(ctx.config.odoo_platform_project)
-    ctx.lock_manager.apply_to_developing(ctx.config.developing_project)
-    ctx.lock_manager.apply_to_dependencies(ctx.config.dependencies_projects)
+    ctx.lock_manager.apply_pinned_locks()
 
 
 def exec_git_checkout(ctx: PrepareContext) -> None:
@@ -195,15 +206,11 @@ def exec_git_checkout(ctx: PrepareContext) -> None:
 
 def exec_lock_collect(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.lock_manager.collect_and_save(developing=ctx.config.developing_project)
+    ctx.lock_manager.collect_and_save_from_config()
 
 
 def exec_lock_verify(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
     if not ctx.lock_manager.apply_mode:
         return
-    ctx.lock_manager.verify_after_checkout(
-        platform=ctx.config.odoo_platform_project,
-        developing=ctx.config.developing_project,
-        dependencies=ctx.config.dependencies_projects,
-    )
+    ctx.lock_manager.verify_pinned_checkout()

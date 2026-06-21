@@ -1,10 +1,10 @@
 # Debian / Ubuntu (.deb)
 
-Рекомендуемый способ на Linux.
+Рекомендуемый способ на Linux. Полная таблица платформ: [Установка odpm (все платформы)](README.md) · docs: [stable](https://aayartsev.github.io/odpm/stable/install/linux-deb/).
 
 ## Установка через APT (обновления `apt upgrade`)
 
-После [релизного тега](https://github.com/aayartsev/odpm/releases) odpm публикует подписанный репозиторий на GitHub Pages.
+После [релизного тега](https://github.com/aayartsev/odpm/releases) odpm публикует подписанный репозиторий на GitHub Pages (`https://aayartsev.github.io/odpm/apt/`).
 
 ### Ключ репозитория (один раз)
 
@@ -24,7 +24,22 @@ sudo gpg --no-default-keyring \
 # ожидается: 03040028F53D7AB8  Alexander Yartsev
 ```
 
-**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (сейчас пакеты здесь; `stable` — после финальных релизов):
+### Stable (рекомендуется для production)
+
+Suite **`stable`** — сейчас odpm **4.3.0** (тег `v4.3.0`, без `-rc`/`-beta`):
+
+```bash
+echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
+
+sudo apt update
+sudo apt install odpm
+odpm --version
+# ожидается: odpm version: 4.3.0
+```
+
+### Pre-release (4.4 beta / RC)
+
+Suite **`testing`** — pre-release теги (`*-beta`, `*-rc*`), например **4.4.2-beta**:
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -33,14 +48,7 @@ sudo apt update
 sudo apt install odpm
 ```
 
-**Стабильные релизы** (`v4.3.0`, без `-rc`/`-beta`):
-
-```bash
-echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
-
-sudo apt update
-sudo apt install odpm
-```
+Инструкции beta 4.4 (архив): [docs 4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
 
 Обновление при следующих релизах:
 
@@ -48,17 +56,17 @@ sudo apt install odpm
 sudo apt update && sudo apt upgrade odpm
 ```
 
-Полная таблица установки на разных ОС: [Установка odpm (все платформы)](README.md).
-
 ## Установка вручную (.deb с GitHub Releases)
 
-Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.0-beta` / `4.0-rc1` / `main`, или соберите локально:
+Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для нужного тега (`v4.4.2` — stable, `v4.4.2-beta` — testing) или соберите локально:
 
 ```bash
 ./scripts/build_deb.sh
 sudo apt install ./dist/odpm_*_all.deb
 odpm --version
 ```
+
+Сверяйте checksum из `SHA256SUMS` релиза.
 
 ## Зависимости пакета
 
@@ -67,8 +75,6 @@ odpm --version
 - Без PyPI runtime-зависимостей
 
 Пакет ставит `/usr/bin/odpm`, шаблоны и i18n в `python3/dist-packages`.
-
-При установке с GitHub Releases сверяйте checksum из `SHA256SUMS` релиза.
 
 ## Дальше
 

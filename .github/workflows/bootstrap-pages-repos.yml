@@ -1,0 +1,145 @@
+# One-shot: bootstrap stable APT/YUM suites on GitHub Pages from an existing release tag.
+# Checks out 4.4-dev (merge scripts) and downloads .deb/.rpm from the GitHub Release.
+name: Bootstrap Pages repos
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag whose GitHub Release assets go into the stable suite (e.g. v4.3.0)
+        default: v4.3.0
+        required: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-stable-repos:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 4.4-dev
+
+      - name: Install signing tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq reprepro gnupg createrepo-c rpm
+
+      - name: Download release packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.tag }}"
+          mkdir -p dist
+          gh release download "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --pattern 'odpm_*.deb' \
+            --pattern 'odpm-*.rpm' \
+            --dir dist
+          echo "Release assets for ${TAG}:"
+          ls -la dist/
+          compgen -G 'dist/odpm_*.deb' >/dev/null || {
+            echo "Missing odpm_*.deb on release ${TAG}" >&2
+            exit 1
+          }
+          mapfile -t rpm_assets < <(find dist -maxdepth 1 -type f -name 'odpm-*.rpm' | sort)
+          if [[ "${#rpm_assets[@]}" -lt 1 ]]; then
+            echo "Missing odpm-*.rpm on release ${TAG}" >&2
+            exit 1
+          fi
+
+      - name: Import APT signing key
+        env:
+          APT_REPO_GPG_PRIVATE_KEY: ${{ secrets.APT_REPO_GPG_PRIVATE_KEY }}
+          APT_REPO_GPG_PASSPHRASE: ${{ secrets.APT_REPO_GPG_PASSPHRASE }}
+        run: ./scripts/import_apt_signing_key.sh
+
+      - name: Fetch live APT repo from Pages
+        run: ./scripts/fetch_pages_repo.sh apt apt-repo-out
+
+      - name: Build signed APT stable repository
+        env:
+          APT_REPO_GPG_PASSPHRASE: ${{ secrets.APT_REPO_GPG_PASSPHRASE }}
+        run: |
+          ./scripts/build_apt_repo.sh --merge stable dist/odpm_*.deb apt-repo-out
+
+      - name: Fetch live YUM repo from Pages
+        run: ./scripts/fetch_pages_repo.sh yum yum-repo-out
+
+      - name: Build signed YUM stable repository
+        env:
+          APT_REPO_GPG_PASSPHRASE: ${{ secrets.APT_REPO_GPG_PASSPHRASE }}
+        run: |
+          ./scripts/build_yum_repo.sh --merge stable yum-repo-out dist/odpm-*.rpm
+
+      - name: Upload apt repo artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: apt-repo
+          path: apt-repo-out/
+          include-hidden-files: true
+
+      - name: Upload yum repo artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: yum-repo
+          path: yum-repo-out/
+          include-hidden-files: true
+
+  publish:
+    needs: build-stable-repos
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: 4.4-dev
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: apt-repo
+          path: apt-repo-out
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: yum-repo
+          path: yum-repo-out
+
+      - name: Materialize gh-pages tree and overlay repos
+        id: site
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages --depth=1 2>/dev/null || true
+          SITE_DIR="$(mktemp -d)"
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git worktree add "${SITE_DIR}" gh-pages
+          else
+            mkdir -p "${SITE_DIR}"
+          fi
+          ./scripts/mike_pages_finalize.sh "${SITE_DIR}" apt-repo-out yum-repo-out
+          echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ steps.site.outputs.site_dir }}
+          include-hidden-files: true
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -5,7 +5,6 @@ from .command_render import (
     render_odpm_config_path_env_line,
     yaml_scalar,
 )
-from .generator import ComposeGenerator
 from .start_command import ComposeOdooService, StartCommand
 
 __all__ = [
@@ -25,6 +24,10 @@ __all__ = [
 
 
 def __getattr__(name: str):
+    if name == "ComposeGenerator":
+        from .generator import ComposeGenerator
+
+        return ComposeGenerator
     if name == "ComposeServiceBuilder":
         from .service_builder import ComposeServiceBuilder
 

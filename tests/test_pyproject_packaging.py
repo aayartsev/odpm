@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+from dev_project import constants
+from packaging.version import Version
 
 try:
     import tomllib
@@ -41,6 +45,12 @@ class PyprojectPackagingTests(unittest.TestCase):
     def test_runtime_dependencies_include_packaging(self):
         dependencies = _load_pyproject()["project"]["dependencies"]
         self.assertTrue(any(dep.startswith("packaging>=") for dep in dependencies))
+        self.assertTrue(any(dep.startswith("jsonschema>=") for dep in dependencies))
+        self.assertTrue(any(dep.startswith("pluggy>=") for dep in dependencies))
+
+    def test_prepare_steps_entry_point_group_declared(self):
+        entry_points = _load_pyproject().get("project", {}).get("entry-points", {})
+        self.assertIn("odpm.prepare_steps", entry_points)
 
     def test_project_urls_and_license(self):
         project = _load_pyproject()["project"]
@@ -53,7 +63,7 @@ class PyprojectPackagingTests(unittest.TestCase):
         dynamic = _load_pyproject()["project"]["dynamic"]
         self.assertIn("version", dynamic)
         version_attr = _load_pyproject()["tool"]["setuptools"]["dynamic"]["version"]["attr"]
-        self.assertEqual(version_attr, "dev_project.constants.ODPM_VERSION")
+        self.assertEqual(version_attr, "dev_project.constants.RELEASE_VERSION")
 
     def test_wheel_build_produces_single_wheel(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -91,6 +101,11 @@ class PyprojectPackagingTests(unittest.TestCase):
             wheels = list(dist_dir.glob("odpm-*.whl"))
             self.assertEqual(len(wheels), 1)
             self.assertTrue(wheels[0].name.endswith(".whl"))
+            wheel_version = re.escape(str(Version(constants.RELEASE_VERSION)))
+            self.assertRegex(
+                wheels[0].name,
+                rf"^odpm-{wheel_version}-py3-none-any\.whl$",
+            )
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@
 
 Signed static RPM repo published at `https://aayartsev.github.io/odpm/yum/`.
 
+Release policy: [docs/contributing/release-lines.md](../../docs/contributing/release-lines.md). CI: [docs/contributing/packaging.md](../../docs/contributing/packaging.md).
+
 | File | In git | Purpose |
 |------|--------|---------|
 | `odpm-testing.repo` | yes | Example `.repo` for pre-releases (`testing` suite) |
@@ -12,11 +14,14 @@ Signed static RPM repo published at `https://aayartsev.github.io/odpm/yum/`.
 
 See [docs/install/README.md](../../docs/install/README.md) (hub) and [fedora-rpm.md](../../docs/install/fedora-rpm.md).
 
-Example `.repo` files are fetched from the **release branch** on GitHub (currently `4.3.0`; there is no `main` branch):
+Example `.repo` files are published on GitHub Pages (same content as in git):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-stable.repo
+curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo
+curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-testing.repo
 ```
+
+Canonical copies in git: `packaging/yum/odpm-stable.repo`, `packaging/yum/odpm-testing.repo`.
 
 ## Maintainer secrets (GitHub Actions)
 
@@ -46,5 +51,5 @@ Requires `createrepo_c`, `rpm` (`rpmsign`), and `gpg`.
 
 | Release tag | YUM suite |
 |-------------|-----------|
-| Stable (`v4.3.0`) | `stable` |
-| Pre-release (`v4.3-rc1`, `*-beta`) | `testing` |
+| Stable (`v4.4.x`) | `stable` |
+| Pre-release (`v4.4-beta`, `*-beta`) | `testing` |

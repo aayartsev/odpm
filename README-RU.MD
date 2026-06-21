@@ -43,8 +43,8 @@
 На компьютере должны быть установлены **Docker**, **git** и **odpm** (см. [установку](docs/install/README.md)).
 
 ```bash
-mkdir my-odoo-project-17 && cd my-odoo-project-17
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
+mkdir odoo_demo_project-19 && cd odoo_demo_project-19
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
 ```
 
 При первом запуске мастер настройки задаст вопросы о каталогах и сценарии использования; на незнакомые пункты можно отвечать клавишей Enter.

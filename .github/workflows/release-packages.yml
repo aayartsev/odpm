@@ -1,5 +1,8 @@
 # Build .deb + .rpm; upload Actions artifacts on branch push / workflow_dispatch;
 # attach assets to GitHub Release on version tags (v*) only.
+# Stable tags (v*) also publish wheel/sdist to production PyPI; pre-release tags to TestPyPI.
+# Pre-release tags (v*-beta/*-rc*/*-alpha): golden-path on self-hosted runner gates publish
+# (vars.ODPM_GOLDEN_PATH_ENABLED + secret ODPM_GOLDEN_PATH_PROJECT; .deb install smoke in Docker).
 name: Release packages
 
 on:
@@ -7,7 +10,7 @@ on:
     branches:
       - 4.0-beta
       - 4.0-rc1
-      - 4.3.0
+      - 4.4-dev
       - main
     tags:
       - "v*"
@@ -87,7 +90,8 @@ jobs:
             bash -c '
               set -euo pipefail
               dnf install -y -q rpm-build python3-devel python3-setuptools \
-                python3-wheel python3-packaging git >/dev/null
+                python3-wheel python3-packaging python3-jsonschema python3-pluggy \
+                git >/dev/null
               ./scripts/build_rpm.sh
             '
 
@@ -120,8 +124,106 @@ jobs:
           name: package-rpm-fc${{ matrix.fedora }}
           path: dist/odpm-*.rpm
 
+  golden-path:
+    needs: deb
+    if: >-
+      startsWith(github.ref, 'refs/tags/v')
+      && (
+        contains(github.ref, '-beta')
+        || contains(github.ref, '-rc')
+        || contains(github.ref, '-alpha')
+      )
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Require golden-path enabled for pre-release tags
+        run: |
+          if [[ "${ODPM_GOLDEN_PATH_ENABLED}" != "true" ]]; then
+            echo "::error::Pre-release tags require vars.ODPM_GOLDEN_PATH_ENABLED=true"
+            exit 1
+          fi
+        env:
+          ODPM_GOLDEN_PATH_ENABLED: ${{ vars.ODPM_GOLDEN_PATH_ENABLED }}
+
+      - name: Require golden-path secret and project directory
+        run: |
+          if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
+            echo "::error::ODPM_GOLDEN_PATH_PROJECT secret is not configured"
+            exit 1
+          fi
+          if [[ ! -d "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
+            echo "::error::Project directory not found on the self-hosted runner"
+            exit 1
+          fi
+          if [[ ! -f "${ODPM_GOLDEN_PATH_PROJECT}/docker-compose.yml" ]]; then
+            echo "::error::Missing docker-compose.yml in project directory"
+            exit 1
+          fi
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+
+      - name: Verify Python 3.12 on runner
+        run: |
+          if ! command -v python3.12 >/dev/null 2>&1; then
+            echo "::error::python3.12 not found on self-hosted runner"
+            exit 1
+          fi
+          python3.12 --version
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: package-deb
+          path: dist
+
+      - name: Install smoke (built .deb from this tag, clean Ubuntu 24.04)
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/v}"
+          mapfile -t debs < <(find dist -maxdepth 1 -type f -name 'odpm_*.deb' | sort)
+          if [[ "${#debs[@]}" -ne 1 ]]; then
+            echo "expected exactly one .deb artifact, got ${#debs[@]}" >&2
+            exit 1
+          fi
+          docker run --rm \
+            -v "${{ github.workspace }}/dist:/pkgs:ro" \
+            ubuntu:24.04 \
+            bash -c "
+              set -euo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -qq
+              apt-get install -y -qq /pkgs/odpm_*.deb
+              useradd -m -s /bin/bash odpm-smoke
+              expected='odpm version: ${TAG}'
+              version_out=\$(runuser -u odpm-smoke -- odpm --version 2>&1 | tr -d '\r')
+              if ! grep -Fq \"\${expected}\" <<< \"\${version_out}\"; then
+                echo \"expected substring not found: \${expected}\" >&2
+                echo \"odpm --version output:\" >&2
+                printf '%s\n' \"\${version_out}\" >&2
+                exit 1
+              fi
+              echo \"deb install smoke OK: \${expected}\"
+            "
+
+      - name: Run golden-path integration test
+        env:
+          ODPM_RUN_DOCKER_INTEGRATION: "1"
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+          ODPM_GOLDEN_PATH_TIMEOUT: "900"
+        run: python3.12 -m unittest tests.integration.test_golden_path -v
+
   publish:
-    needs: [deb, rpm]
+    needs: [deb, rpm, golden-path]
+    if: >-
+      always()
+      && !cancelled()
+      && needs.deb.result == 'success'
+      && needs.rpm.result == 'success'
+      && (
+        needs.golden-path.result == 'success'
+        || needs.golden-path.result == 'skipped'
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -191,22 +293,30 @@ jobs:
           sudo apt-get install -y -qq reprepro gnupg createrepo-c rpm
           ./scripts/import_apt_signing_key.sh
 
+      - name: Fetch live APT repo from Pages
+        if: startsWith(github.ref, 'refs/tags/')
+        run: ./scripts/fetch_pages_repo.sh apt apt-repo-out
+
       - name: Build signed APT repository
         if: startsWith(github.ref, 'refs/tags/')
         env:
           APT_REPO_GPG_PASSPHRASE: ${{ secrets.APT_REPO_GPG_PASSPHRASE }}
         run: |
-          ./scripts/build_apt_repo.sh \
+          ./scripts/build_apt_repo.sh --merge \
             "${{ steps.release_meta.outputs.apt_suite }}" \
             dist/odpm_*.deb \
             apt-repo-out
+
+      - name: Fetch live YUM repo from Pages
+        if: startsWith(github.ref, 'refs/tags/')
+        run: ./scripts/fetch_pages_repo.sh yum yum-repo-out
 
       - name: Build signed YUM repository
         if: startsWith(github.ref, 'refs/tags/')
         env:
           APT_REPO_GPG_PASSPHRASE: ${{ secrets.APT_REPO_GPG_PASSPHRASE }}
         run: |
-          ./scripts/build_yum_repo.sh \
+          ./scripts/build_yum_repo.sh --merge \
             "${{ steps.release_meta.outputs.apt_suite }}" \
             yum-repo-out \
             dist/odpm-*.rpm
@@ -348,6 +458,68 @@ jobs:
             dist/odpm-*.rpm
             dist/SHA256SUMS
 
+  publish-pypi:
+    needs: [deb, rpm, publish]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify tag matches RELEASE_VERSION
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          python3 scripts/verify_release_tag_version.py "${VERSION}"
+
+      - name: Resolve PyPI target
+        id: pypi_meta
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          if [[ "${VERSION}" == *-rc* || "${VERSION}" == *-beta* || "${VERSION}" == *-alpha* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Publish to production PyPI
+        if: steps.pypi_meta.outputs.prerelease != 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish to TestPyPI
+        if: steps.pypi_meta.outputs.prerelease == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          skip-existing: true
+
+      - name: Upload pip assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "${TAG}" dist/odpm-*.whl dist/odpm-*.tar.gz --clobber
+
   publish-pages:
     needs: [deb, publish]
     if: startsWith(github.ref, 'refs/tags/')
@@ -356,7 +528,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
     concurrency:
@@ -364,16 +536,16 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Install MkDocs
+      - name: Install MkDocs and mike
         run: pip install -r requirements-docs.txt
-
-      - name: Build site
-        run: mkdocs build --strict
 
       - uses: actions/download-artifact@v7
         with:
@@ -385,32 +557,43 @@ jobs:
           name: yum-repo
           path: yum-repo-out
 
-      - name: Merge APT repo into site
+      - name: Configure git for mike
         run: |
-          set -euo pipefail
-          mkdir -p site/apt
-          cp -a apt-repo-out/dists site/apt/
-          cp -a apt-repo-out/pool site/apt/
-          cp apt-repo-out/odpm-archive-keyring.gpg site/apt/
-          find site/apt -type f | sort
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Merge YUM repo into site
+      - name: Deploy release docs with mike
+        id: mike
         run: |
           set -euo pipefail
-          mkdir -p site/yum
-          cp yum-repo-out/odpm-archive-keyring.asc site/yum/
-          for suite in stable testing; do
-            if [[ -d yum-repo-out/${suite} ]]; then
-              cp -a "yum-repo-out/${suite}" "site/yum/${suite}"
-            fi
-          done
-          find site/yum -type f | sort
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
+            DEPLOY_CMD=(
+              ./scripts/mike_pages_deploy.sh "${VERSION}"
+              --title "${VERSION} (pre-release)"
+            )
+          else
+            DEPLOY_CMD=(
+              ./scripts/mike_pages_deploy.sh "${VERSION}" stable
+              --title "${VERSION} (stable)"
+              --update-aliases
+              --set-default stable
+            )
+          fi
+          SITE_DIR="$(
+            "${DEPLOY_CMD[@]}" | tee /dev/stderr |
+              awk -F= '/^SITE_DIR=/ { print $2; exit }'
+          )"
+          ./scripts/mike_pages_finalize.sh "${SITE_DIR}" apt-repo-out yum-repo-out
+          echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/configure-pages@v5
 
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
-          path: site
+          path: ${{ steps.mike.outputs.site_dir }}
+          include-hidden-files: true
 
       - id: deployment
         uses: actions/deploy-pages@v4

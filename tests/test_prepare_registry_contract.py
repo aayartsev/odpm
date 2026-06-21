@@ -2,7 +2,7 @@
 
 import unittest
 
-from dev_project.prepare import PREPARE_STEPS
+from dev_project.prepare import BUILTIN_PREPARE_STEPS, PREPARE_STEPS, get_prepare_steps
 
 PREPARE_STEP_IDS = [
     "git.lock_load",
@@ -17,6 +17,7 @@ PREPARE_STEP_IDS = [
     "template.odoo_conf",
     "database.drift",
     "compose.template",
+    "compose.fragments",
     "secrets.materialize",
     "compose.service",
     "compose.generate",
@@ -36,10 +37,19 @@ class PrepareRegistryContractTests(unittest.TestCase):
         self.assertTrue(callable(prepare_pkg.execute_prepare))
 
     def test_prepare_steps_ids_and_order_unchanged(self):
+        self.assertEqual([step.id for step in BUILTIN_PREPARE_STEPS], PREPARE_STEP_IDS)
         self.assertEqual([step.id for step in PREPARE_STEPS], PREPARE_STEP_IDS)
 
+    def test_get_prepare_steps_starts_with_builtin(self):
+        merged = get_prepare_steps()
+        self.assertGreaterEqual(len(merged), len(BUILTIN_PREPARE_STEPS))
+        self.assertEqual(
+            [step.id for step in merged[: len(BUILTIN_PREPARE_STEPS)]],
+            PREPARE_STEP_IDS,
+        )
+
     def test_prepare_steps_have_evaluate_and_execute(self):
-        for step in PREPARE_STEPS:
+        for step in get_prepare_steps():
             self.assertTrue(callable(step.evaluate))
             self.assertTrue(callable(step.execute))
 

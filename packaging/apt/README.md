@@ -2,6 +2,8 @@
 
 Signed static APT repo published at `https://aayartsev.github.io/odpm/apt/`.
 
+Release policy (stable vs testing, bootstrap, checklists): [docs/contributing/release-lines.md](../../docs/contributing/release-lines.md). CI details: [docs/contributing/packaging.md](../../docs/contributing/packaging.md).
+
 | File | In git | Purpose |
 |------|--------|---------|
 | `odpm-archive-keyring.gpg` | yes (maintainer) | Binary public keyring for APT `signed-by=` on GitHub Pages |
@@ -23,6 +25,11 @@ See [docs/install/README.md](../../docs/install/README.md) (hub) and [linux-deb.
 sudo curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg \
   -o /usr/share/keyrings/odpm-archive-keyring.gpg
 ```
+
+- [`scripts/build_apt_repo.sh`](../../scripts/build_apt_repo.sh): флаг `--merge` сохраняет другие suite при публикации pre-release.
+- [`scripts/fetch_pages_repo.sh`](../../scripts/fetch_pages_repo.sh) + [`scripts/overlay_pages_repo.sh`](../../scripts/overlay_pages_repo.sh): скачать live repo с Pages и наложить новый suite.
+- One-shot bootstrap stable: workflow **Bootstrap Pages repos** (`.github/workflows/bootstrap-pages-repos.yml`) — checkout `4.4-dev`, скачивает `.deb`/`.rpm` с GitHub Release (input `v4.3.0`).
+- One-shot bootstrap docs: workflow **Bootstrap docs versions** — `prepare_bootstrap_docs.sh` (docs/ + mkdocs с тега, hub/overrides с `4.4-dev`, mike patch).
 
 ## Maintainer secrets (GitHub Actions)
 
@@ -48,5 +55,7 @@ find /tmp/odpm-apt -type f
 
 | Release tag | APT suite |
 |-------------|-----------|
-| Stable (`v4.3.0`) | `stable` |
-| Pre-release (`v4.3-rc1`, `*-beta`) | `testing` |
+| Stable (`v4.3.0`, `v4.4.2`, …) | `stable` |
+| Pre-release (`v4.4.2-beta`, `*-rc`, `*-alpha`) | `testing` |
+
+Stable and testing coexist on Pages: tag builds use `--merge` (see [release-lines.md](../../docs/contributing/release-lines.md)).

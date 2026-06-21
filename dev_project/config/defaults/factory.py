@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ... import constants
 from ...translations import _
@@ -44,6 +44,25 @@ class ConfigDefaultsFactory:
         pd_manger_init_dev_link = f"file://{os.path.join(self.config.pd_manager.project_path, pd_manger_init_dev_link)}"
         return pd_manger_init_dev_link
 
+    def _default_manifest_database_block(self) -> dict[str, Any]:
+        legacy = self.config.config_json_content.get("db_creation_data") or {}
+        db_block = self.config.config_json_content.get("database")
+        if not isinstance(db_block, dict):
+            db_block = {}
+        language = db_block.get("language") or legacy.get(
+            "db_lang", constants.DEFAULT_DB_CREATION_DATA_DB_LANG
+        )
+        if "country" in db_block:
+            country = db_block["country"]
+        elif "db_country_code" in legacy:
+            country = legacy["db_country_code"]
+        else:
+            country = constants.DEFAULT_DB_CREATION_DATA_DB_COUNTRY_CODE
+        block: dict[str, Any] = {"language": str(language)}
+        if country is not None or "country" in db_block or "db_country_code" in legacy:
+            block["country"] = country
+        return block
+
     def create_default_user_setting_json_content(self) -> UserSettingsJson:
         user_settings_content = UserSettingsJson(
             init_modules=self.config.config_json_content.get(
@@ -53,15 +72,8 @@ class ConfigDefaultsFactory:
                 "update_modules", constants.DEFAULT_UPDATE_MODULES
             ),
             db_creation_data=DbCreationData(
-                db_lang=self.config.config_json_content.get("db_creation_data", {}).get(
-                    "db_lang", constants.DEFAULT_DB_CREATION_DATA_DB_LANG
-                ),
-                db_country_code=self.config.config_json_content.get(
-                    "db_creation_data", {}
-                ).get(
-                    "db_country_code",
-                    constants.DEFAULT_DB_CREATION_DATA_DB_COUNTRY_CODE,
-                ),
+                db_lang=constants.DEFAULT_DB_CREATION_DATA_DB_LANG,
+                db_country_code=constants.DEFAULT_DB_CREATION_DATA_DB_COUNTRY_CODE,
                 create_demo=self.config.config_json_content.get("db_creation_data", {}).get(
                     "create_demo", constants.DEFAULT_DB_CREATION_DATA_CREATE_DEMO
                 ),
@@ -198,7 +210,7 @@ class ConfigDefaultsFactory:
                     self.config.arguments.platform_name or constants.PLATFORM_NAME,
                 ),
                 odpm_version=self.config._raw_odpm_json.get(
-                    "odpm_version", constants.ODPM_VERSION
+                    "odpm_version", constants.MANIFEST_V1_CONTRACT_LINE
                 ),
             )
 
@@ -244,6 +256,11 @@ class ConfigDefaultsFactory:
                 self.config.arguments.platform_name or constants.PLATFORM_NAME,
             ),
             odpm_version=self.config._raw_odpm_json.get(
-                "odpm_version", constants.ODPM_VERSION
+                "odpm_version", constants.MANIFEST_V1_CONTRACT_LINE
             ),
         )
+
+    def create_default_odpm_json_write_payload(self) -> dict[str, Any]:
+        payload = dict(self.create_default_odpm_json_content())
+        payload["database"] = self._default_manifest_database_block()
+        return payload

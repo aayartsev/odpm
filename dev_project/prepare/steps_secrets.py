@@ -11,7 +11,7 @@ from .types import PrepareContext
 
 def evaluate_secrets_materialize(ctx: PrepareContext) -> PlanStep:
     description = "Materialize .odpm/runtime/secrets.json from .odpm/secrets.json"
-    if not ctx.config.policy.mount_runtime_secrets_from_host():
+    if not ctx.host_ctx.policy.mount_runtime_secrets_from_host():
         return make_plan_step(
             "secrets.materialize",
             description,
@@ -19,7 +19,7 @@ def evaluate_secrets_materialize(ctx: PrepareContext) -> PlanStep:
             True,
             "secrets mount disabled for CI scenario",
         )
-    needs_update, reason = secrets_needs_update(ctx.config.project_dir)
+    needs_update, reason = secrets_needs_update(ctx.host_ctx.project_dir)
     if needs_update:
         return make_plan_step(
             "secrets.materialize",
@@ -38,6 +38,6 @@ def evaluate_secrets_materialize(ctx: PrepareContext) -> PlanStep:
 
 
 def exec_secrets_materialize(ctx: PrepareContext) -> None:
-    if not ctx.config.policy.mount_runtime_secrets_from_host():
+    if not ctx.host_ctx.policy.mount_runtime_secrets_from_host():
         return
-    materialize_secrets(ctx.config.project_dir)
+    materialize_secrets(ctx.host_ctx.project_dir)

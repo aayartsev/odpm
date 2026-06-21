@@ -161,6 +161,23 @@ def secrets_source_is_gitignored(project_dir: str) -> bool:
     ).splitlines()
 
 
+def bake_secrets_enabled() -> bool:
+    """True when CI image build should embed module secrets into the image."""
+    value = os.environ.get(constants.ODPM_BAKE_SECRETS_ENV, "").strip().lower()
+    return value in ("1", "true", "yes")
+
+
+def prepare_secrets_for_ci_bake(project_dir: str) -> bool:
+    """Materialize secrets for CI bake when :envvar:`ODPM_BAKE_SECRETS` is set.
+
+    Returns True when a runtime secrets file exists after preparation.
+    """
+    if not bake_secrets_enabled():
+        return False
+    materialize_secrets(project_dir)
+    return os.path.isfile(secrets_runtime_path(project_dir))
+
+
 def import_secrets_from_path(project_dir: str, external_path: str) -> str:
     external = os.path.abspath(os.path.expanduser(external_path))
     if not os.path.isfile(external):

@@ -13,15 +13,15 @@ fi
 
 eval "$(
     python3 -c '
-import re
 import sys
 
 from dev_project.constants import RELEASE_VERSION
+from scripts.release_native_versions import rpm_version_and_release
 
-match = re.fullmatch(r"(\d+(?:\.\d+)*)(?:-(.+))?", RELEASE_VERSION)
-if not match:
-    sys.exit(f"Invalid RELEASE_VERSION: {RELEASE_VERSION!r}")
-version, release = match.group(1), match.group(2) or "1"
+try:
+    version, release = rpm_version_and_release(RELEASE_VERSION)
+except ValueError as exc:
+    sys.exit(str(exc))
 print(f"RPM_VERSION={version}")
 print(f"RPM_RELEASE={release}")
 '

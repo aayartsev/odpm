@@ -27,6 +27,7 @@ class HostProjectContextTests(unittest.TestCase):
         config.user_settings = MagicMock(name="user_settings")
         config.project_settings = MagicMock(name="project_settings")
         config.docker_layout = MagicMock(name="docker_layout")
+        config.addon_layout = MagicMock(name="addon_layout")
         return config
 
     def test_from_config_copies_host_view_fields(self):
@@ -42,6 +43,7 @@ class HostProjectContextTests(unittest.TestCase):
         self.assertIs(ctx.user_settings, config.user_settings)
         self.assertIs(ctx.project_settings, config.project_settings)
         self.assertIs(ctx.docker_layout, config.docker_layout)
+        self.assertIs(ctx.addon_layout, config.addon_layout)
 
     def test_cli_flag_properties(self):
         config = self._make_config()

@@ -20,9 +20,11 @@ from .nested_compatibility import collect_nested_compatibility_issues
 from .payload import compute_extras_stamp, compute_venv_lock_hash, config_to_json
 from .runtime_facade import ConfigRuntimeFacadeMixin
 from .state import (
+    ADDON_LAYOUT_SLICE_FIELDS,
     DOCKER_SLICE_FIELDS,
     PROJECT_SLICE_FIELDS,
     USER_SLICE_FIELDS,
+    AddonLayoutState,
     BootstrapState,
     DockerLayoutState,
     ProjectSettingsState,
@@ -74,6 +76,10 @@ class Config(ConfigRuntimeFacadeMixin):
     @property
     def docker_layout(self) -> DockerLayoutState:
         return self._docker
+
+    @property
+    def addon_layout(self) -> AddonLayoutState:
+        return self._addon_layout
 
     @property
     def bootstrap(self) -> BootstrapState:
@@ -184,4 +190,5 @@ class Config(ConfigRuntimeFacadeMixin):
 bind_slice_properties(Config, "_user", USER_SLICE_FIELDS)
 bind_slice_properties(Config, "_project", PROJECT_SLICE_FIELDS)
 bind_slice_properties(Config, "_docker", DOCKER_SLICE_FIELDS)
+bind_slice_properties(Config, "_addon_layout", ADDON_LAYOUT_SLICE_FIELDS)
 bind_bootstrap_properties(Config)

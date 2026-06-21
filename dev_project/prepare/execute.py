@@ -10,7 +10,7 @@ from ..host.context import HostProjectContext
 from ..logging import get_module_logger
 from ..plan import OdpmPlan, PlanStep, deps_lock_file_exists
 from .helpers import skip_git, update_lock
-from .registry import PREPARE_STEPS
+from .registry import get_prepare_steps
 from .runtime import build_runtime_plan_steps, build_runtime_plan_warnings
 from ..config import Config
 from ..compose.generator import ComposeGenerator
@@ -74,29 +74,33 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
         warnings.append("--update-lock cannot be used together with --no-git-update")
     if (
-        deps_lock_file_exists(ctx.config.project_dir)
+        deps_lock_file_exists(ctx.host_ctx.project_dir)
         and not skip_git(ctx)
         and not update_lock(ctx)
     ):
         try:
-            load_deps_lock(deps_lock_path(ctx.config.project_dir))
+            load_deps_lock(deps_lock_path(ctx.host_ctx.project_dir))
         except ValueError:
             warnings.append(
                 "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
             )
     from ..plan.secrets_preview import secrets_gitignore_warning
 
-    gitignore_warning = secrets_gitignore_warning(ctx.config.project_dir)
+    gitignore_warning = secrets_gitignore_warning(ctx.host_ctx.project_dir)
     if gitignore_warning:
         warnings.append(gitignore_warning)
-    from ..plan.database_preview import collect_database_drift_warnings
+    from ..plan.database_preview import collect_database_drift_warnings_for_host
+    from ..plan.locks_preview import collect_git_lock_warnings
 
-    warnings.extend(collect_database_drift_warnings(ctx.config))
+    warnings.extend(
+        collect_database_drift_warnings_for_host(ctx.host_ctx, ctx.config)
+    )
+    warnings.extend(collect_git_lock_warnings(ctx.config))
     return tuple(warnings)
 
 
 def evaluate_prepare_plan(ctx: PrepareContext) -> tuple[PlanStep, ...]:
-    return tuple(step_def.evaluate(ctx) for step_def in PREPARE_STEPS)
+    return tuple(step_def.evaluate(ctx) for step_def in get_prepare_steps())
 
 
 def collect_execute_step_ids(ctx: PrepareContext) -> tuple[str, ...]:
@@ -144,10 +148,17 @@ def validate_prepare_context(ctx: PrepareContext) -> None:
 def execute_prepare(ctx: PrepareContext) -> None:
     validate_prepare_context(ctx)
     ctx.lock_manager = DepsLockManager(ctx.config)
-    for step_def in PREPARE_STEPS:
+    for step_def in get_prepare_steps():
         outcome = step_def.evaluate(ctx)
         if outcome.should_execute():
             step_def.execute(ctx)
+    from ..extensions.hooks import run_lifecycle_hooks
+
+    run_lifecycle_hooks(
+        ctx.extension_host(),
+        "post_prepare",
+        cwd=ctx.host_ctx.project_dir,
+    )
 
 
 collect_prepare_step_ids = collect_execute_step_ids

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from .steps_compose import (
+    evaluate_compose_fragments,
     evaluate_compose_generate,
     evaluate_compose_service,
     evaluate_compose_template,
     evaluate_compose_validate,
+    exec_compose_fragments,
     exec_compose_generate,
     exec_compose_service,
     exec_compose_template,
@@ -51,7 +53,7 @@ from .steps_template import (
 )
 from .types import PrepareStepDef
 
-PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
+BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     PrepareStepDef("git.lock_load", "", evaluate_git_lock_load, exec_lock_load),
     PrepareStepDef(
         "git.ensure_present", "", evaluate_git_ensure_present, exec_git_ensure_present
@@ -97,6 +99,12 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "compose.template", "", evaluate_compose_template, exec_compose_template
     ),
     PrepareStepDef(
+        "compose.fragments",
+        "",
+        evaluate_compose_fragments,
+        exec_compose_fragments,
+    ),
+    PrepareStepDef(
         "secrets.materialize",
         "",
         evaluate_secrets_materialize,
@@ -131,3 +139,14 @@ PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         exec_update_links,
     ),
 )
+
+
+def get_prepare_steps() -> tuple[PrepareStepDef, ...]:
+    """Built-in prepare steps plus pluggy/entry-point extensions."""
+    from ..extensions.registry import get_prepare_steps as merge_extension_prepare_steps
+
+    return merge_extension_prepare_steps(BUILTIN_PREPARE_STEPS)
+
+
+# Backward-compatible alias: built-in steps only (extension steps via get_prepare_steps()).
+PREPARE_STEPS = BUILTIN_PREPARE_STEPS

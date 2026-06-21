@@ -6,8 +6,8 @@ import json
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any
 
-from ..plan.database_preview import format_database_drift_warning
 from .drift import DatabaseDrift, detect_database_drift, meaningful_database_drifts
+from .drift_format import format_database_drift_warning
 from .probe import (
     probe_app_role_exists,
     probe_postgres_container_running,

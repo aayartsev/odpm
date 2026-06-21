@@ -1,5 +1,10 @@
 """Database configuration state and last-run snapshots for odpm projects."""
 
+from __future__ import annotations
+
+import importlib
+from typing import Any
+
 from .paths import (
     database_dir_path,
     ensure_database_dir_gitignore,
@@ -15,28 +20,18 @@ from .schema import (
     DatabaseLastRun,
     DatabaseOdooConfFingerprint,
 )
-from .state import collect_database_state, load_last_run, read_odoo_conf_db_fingerprint, save_last_run
-from .commands import run_database_command
+from .state import (
+    collect_database_state,
+    load_last_run,
+    read_odoo_conf_db_fingerprint,
+    save_last_run,
+)
 from .ensure_role import EnsureRoleResult, build_ensure_role_sql, ensure_app_role
 from .probe import (
     probe_app_role_exists,
     probe_postgres_container_running,
     probe_postgres_ready,
 )
-from .status import (
-    DatabaseStatusReport,
-    collect_database_status,
-    database_status_to_dict,
-    format_database_status_json,
-    format_database_status_table,
-)
-from .resolve import (
-    accepted_drift_kinds,
-    ensure_no_blocking_database_drift,
-    pending_resolution_drifts,
-    resolve_database_drifts,
-)
-from .adopt import adopt_database_baseline, needs_database_adoption
 from .drift import (
     RESOLUTION_DRIFT_KINDS,
     DatabaseDrift,
@@ -95,3 +90,30 @@ __all__ = (
     "save_last_run",
     "build_ensure_role_sql",
 )
+
+_LAZY_EXPORTS: dict[str, tuple[str, str]] = {
+    "run_database_command": (".commands", "run_database_command"),
+    "DatabaseStatusReport": (".status", "DatabaseStatusReport"),
+    "collect_database_status": (".status", "collect_database_status"),
+    "database_status_to_dict": (".status", "database_status_to_dict"),
+    "format_database_status_json": (".status", "format_database_status_json"),
+    "format_database_status_table": (".status", "format_database_status_table"),
+    "accepted_drift_kinds": (".resolve", "accepted_drift_kinds"),
+    "ensure_no_blocking_database_drift": (".resolve", "ensure_no_blocking_database_drift"),
+    "pending_resolution_drifts": (".resolve", "pending_resolution_drifts"),
+    "resolve_database_drifts": (".resolve", "resolve_database_drifts"),
+    "adopt_database_baseline": (".adopt", "adopt_database_baseline"),
+    "needs_database_adoption": (".adopt", "needs_database_adoption"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    target = _LAZY_EXPORTS.get(name)
+    if target is not None:
+        module_name, attr_name = target
+        module = importlib.import_module(module_name, __name__)
+        return getattr(module, attr_name)
+    try:
+        return importlib.import_module(f".{name}", __name__)
+    except ModuleNotFoundError as exc:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc

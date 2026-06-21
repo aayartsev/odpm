@@ -1,5 +1,10 @@
 # Установка odpm
 
+!!! info "Рекомендуется stable"
+    Для production используйте документацию **[stable](https://aayartsev.github.io/odpm/stable/install/)** (сейчас odpm **4.3.0**) и APT/YUM suite **`stable`**.
+    Pre-release (например **4.4.2-beta**) — suite **`testing`** и архив docs **[4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/)**.
+    См. [Какую документацию читать](../getting-started/documentation-versions.md).
+
 Выберите способ установки **odpm** на хост (не путать с развёртыванием Odoo-проекта через `odpm --init`).
 
 | Платформа | Рекомендуемый способ | Статья |
@@ -14,7 +19,7 @@
 
 После установки odpm для [локальной разработки](../getting-started/local-dev-from-scratch.md) обычно нужны **Docker** и **git** (см. статью для вашей платформы).
 
-Готовые `.deb` и `.rpm` публикуются в [GitHub Releases](https://github.com/aayartsev/odpm/releases) и в CI-артефактах workflow **Release packages** после push в `4.0-beta` / `4.0-rc1` / `main`.
+Готовые `.deb` и `.rpm` публикуются в [GitHub Releases](https://github.com/aayartsev/odpm/releases) (теги `v*`) и попадают в APT/YUM на [GitHub Pages](https://aayartsev.github.io/odpm/apt/) после релизного CI.
 
 ## Дальше
 

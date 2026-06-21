@@ -13,6 +13,7 @@ from .core import (
     PlanStepOutcome,
     deps_lock_file_exists,
     dockerfile_template_relative,
+    dockerfile_template_relative_host,
     project_template_needs_upgrade,
     runtime_config_stale,
     skip_git_update,

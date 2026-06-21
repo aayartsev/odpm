@@ -1,5 +1,10 @@
 # Installing odpm
 
+!!! info "Use stable for production"
+    For production, read **[stable](https://aayartsev.github.io/odpm/stable/en/install/)** docs (currently odpm **4.3.0**) and the APT/YUM **`stable`** suite.
+    Pre-releases (e.g. **4.4.2-beta**) use **`testing`** and archived **[4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/)** docs.
+    See [Which docs to read](../getting-started/documentation-versions.md).
+
 Choose how to install **odpm** on the host (not the same as deploying an Odoo project with `odpm --init`).
 
 | Platform | Recommended method | Article |
@@ -14,7 +19,7 @@ Choose how to install **odpm** on the host (not the same as deploying an Odoo pr
 
 After installing odpm, [local development](../getting-started/local-dev-from-scratch.md) usually requires **Docker** and **git** (see your platform article).
 
-Prebuilt `.deb` and `.rpm` packages are published on [GitHub Releases](https://github.com/aayartsev/odpm/releases) and in CI artifacts from the **Release packages** workflow after pushes to `4.0-beta` / `4.0-rc1` / `main`.
+Prebuilt `.deb` and `.rpm` packages are published on [GitHub Releases](https://github.com/aayartsev/odpm/releases) (`v*` tags) and mirrored to APT/YUM on [GitHub Pages](https://aayartsev.github.io/odpm/apt/) after the release CI run.
 
 ## Next
 

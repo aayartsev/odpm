@@ -22,3 +22,7 @@ def main(program_dir: str | None = None) -> None:
         sys.exit(1)
 
     OdpmPipeline(parse_cli_args(), resolve_program_dir(program_dir)).run()
+
+
+if __name__ == "__main__":
+    main()

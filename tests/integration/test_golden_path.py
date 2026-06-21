@@ -13,6 +13,7 @@ from pathlib import Path
 from tests.integration.compose_golden_patch import (
     find_free_port,
     patch_compose_for_golden_path,
+    postgres_service_name_from_compose,
 )
 from tests.integration.http_wait import HttpWaitTimeoutError, wait_for_http_ok
 
@@ -83,6 +84,7 @@ class GoldenPathIntegrationTests(unittest.TestCase):
     compose_name: str
     compose_argv: list[str]
     odoo_host_port: int
+    postgres_service: str
     _compose_tempdir: tempfile.TemporaryDirectory[str]
 
     @classmethod
@@ -97,6 +99,7 @@ class GoldenPathIntegrationTests(unittest.TestCase):
         cls.compose_name = f"odpm-golden-{uuid.uuid4().hex[:12]}"
         cls.odoo_host_port = find_free_port()
         source = (cls.project_dir / "docker-compose.yml").read_text(encoding="utf-8")
+        cls.postgres_service = postgres_service_name_from_compose(source)
         cls._compose_tempdir = tempfile.TemporaryDirectory(prefix="odpm-golden-compose-")
         compose_file = Path(cls._compose_tempdir.name) / "docker-compose.yml"
         compose_file.write_text(
@@ -116,12 +119,19 @@ class GoldenPathIntegrationTests(unittest.TestCase):
         cls._compose_tempdir.cleanup()
 
     def test_compose_up_serves_web(self) -> None:
-        subprocess.run(
+        up = subprocess.run(
             self.compose_argv + ["up", "-d"],
             cwd=self.project_dir,
-            check=True,
+            capture_output=True,
             text=True,
         )
+        if up.returncode != 0:
+            raise AssertionError(
+                "docker compose up failed "
+                f"(exit {up.returncode})\n\n"
+                f"--- stdout ---\n{up.stdout}\n\n"
+                f"--- stderr ---\n{up.stderr}"
+            )
         url = f"http://127.0.0.1:{self.odoo_host_port}/web"
         try:
             wait_for_http_ok(url, timeout=GOLDEN_PATH_TIMEOUT)
@@ -130,11 +140,14 @@ class GoldenPathIntegrationTests(unittest.TestCase):
                 self.compose_argv, self.project_dir, "odoo"
             )
             db_logs = _compose_service_logs(
-                self.compose_argv, self.project_dir, "db", tail=15
+                self.compose_argv,
+                self.project_dir,
+                self.postgres_service,
+                tail=15,
             )
             raise AssertionError(
                 f"{error}\n\n--- odoo logs (tail) ---\n{odoo_logs}\n\n"
-                f"--- db logs (tail) ---\n{db_logs}"
+                f"--- {self.postgres_service} logs (tail) ---\n{db_logs}"
             ) from error
 
 
