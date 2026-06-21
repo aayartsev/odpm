@@ -460,7 +460,13 @@ jobs:
 
   publish-pypi:
     needs: [deb, rpm, publish]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: >-
+      always()
+      && !cancelled()
+      && needs.deb.result == 'success'
+      && needs.rpm.result == 'success'
+      && needs.publish.result == 'success'
+      && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -522,7 +528,12 @@ jobs:
 
   publish-pages:
     needs: [deb, publish]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: >-
+      always()
+      && !cancelled()
+      && needs.deb.result == 'success'
+      && needs.publish.result == 'success'
+      && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     environment:
       name: github-pages

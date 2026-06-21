@@ -95,6 +95,11 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertIn("tests.integration.test_golden_path", golden)
         self.assertIn("needs: [deb, rpm, golden-path]", workflow)
         self.assertIn("needs.golden-path.result == 'skipped'", workflow)
+        for job in ("publish-pypi:", "publish-pages:"):
+            block = workflow.split(job, 1)[1].split("\n\n", 1)[0]
+            self.assertIn("always()", block, msg=f"{job} must tolerate skipped golden-path")
+            self.assertIn("needs.publish.result == 'success'", block)
+            self.assertIn("startsWith(github.ref, 'refs/tags/')", block)
 
 
 if __name__ == "__main__":
