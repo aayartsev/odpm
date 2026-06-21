@@ -1,5 +1,6 @@
 # Build .deb + .rpm; upload Actions artifacts on branch push / workflow_dispatch;
 # attach assets to GitHub Release on version tags (v*) only.
+# Stable tags (v*) also publish wheel/sdist to production PyPI; pre-release tags to TestPyPI.
 name: Release packages
 
 on:
@@ -348,6 +349,67 @@ jobs:
             dist/odpm_*.deb
             dist/odpm-*.rpm
             dist/SHA256SUMS
+
+  publish-pypi:
+    needs: [deb, rpm, publish]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify tag matches RELEASE_VERSION
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          python3 scripts/verify_release_tag_version.py "${VERSION}"
+
+      - name: Resolve PyPI target
+        id: pypi_meta
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          if [[ "${VERSION}" == *-rc* || "${VERSION}" == *-beta* || "${VERSION}" == *-alpha* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Publish to production PyPI
+        if: steps.pypi_meta.outputs.prerelease != 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish to TestPyPI
+        if: steps.pypi_meta.outputs.prerelease == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+
+      - name: Upload pip assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "${TAG}" dist/odpm-*.whl dist/odpm-*.tar.gz --clobber
 
   publish-pages:
     needs: [deb, publish]

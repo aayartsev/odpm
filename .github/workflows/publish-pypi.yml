@@ -1,5 +1,6 @@
-# Manual PyPI publish gate — run only after PyPI account/token is configured.
-# Does not run on push or tag; use workflow_dispatch with confirm_publish=true.
+# Manual PyPI publish gate — for ad-hoc uploads without a release tag.
+# Tag releases: production/TestPyPI upload runs in release-packages.yml (publish-pypi job).
+# Use workflow_dispatch with confirm_publish=true when not cutting a v* tag.
 name: Publish PyPI
 
 on:

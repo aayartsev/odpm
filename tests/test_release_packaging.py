@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 from dev_project import constants
+from scripts.verify_release_tag_version import verify_release_tag_version
 from tests.odpm_subprocess import run_odpm
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -49,6 +50,13 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         assert match is not None
         self.assertEqual(match.group(1), constants.RELEASE_VERSION)
         self.assertIsNone(match.group(2))
+
+    def test_release_tag_matches_release_version(self):
+        verify_release_tag_version(constants.RELEASE_VERSION)
+
+    def test_release_tag_mismatch_raises(self):
+        with self.assertRaises(ValueError):
+            verify_release_tag_version("0.0.0")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/rel
 
 See [ADR-001](adr-001-extensions-and-manifest-v2.md) for compatibility rules and v2 nested shape.
 
-Bump **`RELEASE_VERSION`** in `dev_project/constants/scenarios.py` (`ODPM_VERSION` follows automatically) and sync `debian/changelog` + `packaging/odpm.spec` for each native package release. Re-run [Publish PyPI](../../.github/workflows/publish-pypi.yml) when the pip wheel should match the same version.
+Bump **`RELEASE_VERSION`** in `dev_project/constants/scenarios.py` (`ODPM_VERSION` follows automatically) and sync `debian/changelog` + `packaging/odpm.spec` for each native package release. Push tag `v{RELEASE_VERSION}` to trigger deb/rpm, GitHub Release, APT/YUM, and PyPI upload in one CI run.
 
 ## deb
 
@@ -74,12 +74,15 @@ Runtime dependency: `packaging` (declared in `pyproject.toml`; Debian package us
 
 ### PyPI publish (maintainers)
 
-Workflow: [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml)
+**Tag release (recommended):** job `publish-pypi` in [`.github/workflows/release-packages.yml`](../../.github/workflows/release-packages.yml) runs after deb/rpm smoke and GitHub Release on push of tag `v*`.
 
-- **Manual only** — `workflow_dispatch` with `confirm_publish=true` (no automatic upload on tag).
-- Default target: **TestPyPI** (`use_testpypi=true`); production PyPI requires `use_testpypi=false` and configured secrets.
-- GitHub Environment `pypi` + secrets `TEST_PYPI_API_TOKEN` / `PYPI_API_TOKEN` (or OIDC trusted publishing when enabled).
+- Tag `v{RELEASE_VERSION}` must match `dev_project/constants/scenarios.py` (`scripts/verify_release_tag_version.py`).
+- **Stable** tags (no `-alpha`/`-beta`/`-rc`) → production PyPI + wheel/sdist attached to GitHub Release.
+- **Pre-release** tags → TestPyPI (same secrets environment `pypi`).
+- GitHub Environment `pypi` + secrets `PYPI_API_TOKEN` / `TEST_PYPI_API_TOKEN`.
 
-Артефакты: GitHub Releases и Actions artifact `release-packages` (deb + rpm). Release на GitHub — только при tag `v*`.
+**Manual fallback:** [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) — `workflow_dispatch` with `confirm_publish=true` (no tag required; default target TestPyPI).
+
+Артефакты: GitHub Releases (deb, rpm, wheel, sdist, SHA256SUMS) и Actions artifact `release-packages` на push ветки (deb + rpm). Release на GitHub и PyPI — при tag `v*`.
 
 Пользовательская установка: [install/README.md](../install/README.md), [pip (legacy)](../install/pip-legacy.md).
