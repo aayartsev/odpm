@@ -194,8 +194,9 @@ jobs:
               export DEBIAN_FRONTEND=noninteractive
               apt-get update -qq
               apt-get install -y -qq /pkgs/odpm_*.deb
+              useradd -m -s /bin/bash odpm-smoke
               expected='odpm version: ${TAG}'
-              actual=\$(odpm --version 2>&1 | tr -d '\r')
+              actual=\$(runuser -u odpm-smoke -- odpm --version 2>&1 | tr -d '\r')
               if [[ \"\${actual}\" != \"\${expected}\" ]]; then
                 echo \"expected: \${expected}\" >&2
                 echo \"actual:   \${actual}\" >&2
