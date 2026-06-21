@@ -13,6 +13,7 @@
 | Автопоиск Python-зависимостей | поиск и добавление в проект | **Отложено** — `requirements_txt` + resolver + nested `odpm.json` покрывают основной кейс | P3 |
 | Финальный production-образ | сборка контейнера со всеми исходниками | **Отложено** — horizon; CI image bake частично закрывает ci scenario | P2 |
 | pre-commit для platform | линтеры в репозитории platform | **Отложено** — вне scope odpm manager; настраивается в git platform | P4 |
+| Цветной unified diff | `odpm manifest migrate` (и опц. `plan --plan-show-diff`): `-` бледно-красный фон, `+` бледно-зелёный; auto TTY / `NO_COLOR` / `FORCE_COLOR` / `--color=auto\|always\|never`; helper в `plan/diff.py` | **Отложено** — UX; обход: `odpm manifest migrate \| delta` | P4 |
 
 ---
 
