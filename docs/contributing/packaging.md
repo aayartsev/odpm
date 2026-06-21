@@ -6,15 +6,25 @@ Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/rel
 
 | Constant / artifact | Example | Meaning |
 |---------------------|---------|---------|
-| `RELEASE_VERSION` | `4.4.2` | **User-facing product version**: `odpm --version`, pip/PyPI wheel, git tag (`v4.4.2`), deb/rpm filenames |
-| `ODPM_VERSION` | `4.4.2` | Alias of `RELEASE_VERSION` (compat checks, new v2 `requires_odpm` defaults) |
+| `RELEASE_VERSION` | `4.4.2-beta` | **User-facing product version**: `odpm --version`, git tag (`v4.4.2-beta`), PyPI requirement string |
+| `ODPM_VERSION` | `4.4.2-beta` | Alias of `RELEASE_VERSION` (compat checks, new v2 `requires_odpm` defaults) |
 | `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new projects (format contract, not manager version) |
 | `manifest_schema` | `1`, `2` | Manifest shape in `odpm.json` (v2 field) |
 | `requires_odpm` | `4.4.2` | Minimum installed manager for manifest v2 (semver ≥) |
 
 See [ADR-001](adr-001-extensions-and-manifest-v2.md) for compatibility rules and v2 nested shape.
 
-Bump **`RELEASE_VERSION`** in `dev_project/constants/scenarios.py` (`ODPM_VERSION` follows automatically) and sync `debian/changelog` + `packaging/odpm.spec` for each native package release. Push tag `v{RELEASE_VERSION}` to trigger deb/rpm, GitHub Release, APT/YUM, and PyPI upload in one CI run.
+Bump **`RELEASE_VERSION`** in `dev_project/constants/scenarios.py` (`ODPM_VERSION` follows automatically) and sync native packaging for each release:
+
+| Artifact | Stable `4.4.2` | Pre-release `4.4.2-beta` |
+|----------|----------------|---------------------------|
+| Debian upstream | `4.4.2` | `4.4.2~beta` (`debian/changelog`) |
+| RPM `Version` / `Release` | `4.4.2` / `1` | `4.4.2` / `beta` (`packaging/odpm.spec` `%global`) |
+| pip wheel filename | `odpm-4.4.2-…` | PEP 440 `odpm-4.4.2b0-…` |
+
+Mapping helpers: `scripts/release_native_versions.py`; `scripts/build_rpm.sh` reads `RELEASE_VERSION` automatically.
+
+Push tag `v{RELEASE_VERSION}` to trigger deb/rpm, GitHub Release, APT/YUM, and PyPI upload in one CI run.
 
 ## deb
 

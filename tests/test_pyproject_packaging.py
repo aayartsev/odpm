@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from dev_project import constants
+from packaging.version import Version
 
 try:
     import tomllib
@@ -99,10 +101,10 @@ class PyprojectPackagingTests(unittest.TestCase):
             wheels = list(dist_dir.glob("odpm-*.whl"))
             self.assertEqual(len(wheels), 1)
             self.assertTrue(wheels[0].name.endswith(".whl"))
-            version_token = constants.RELEASE_VERSION.replace(".", r"\.")
+            wheel_version = re.escape(str(Version(constants.RELEASE_VERSION)))
             self.assertRegex(
                 wheels[0].name,
-                rf"^odpm-{version_token}-py3-none-any\.whl$",
+                rf"^odpm-{wheel_version}-py3-none-any\.whl$",
             )
 
 
