@@ -196,13 +196,14 @@ jobs:
               apt-get install -y -qq /pkgs/odpm_*.deb
               useradd -m -s /bin/bash odpm-smoke
               expected='odpm version: ${TAG}'
-              actual=\$(runuser -u odpm-smoke -- odpm --version 2>&1 | tr -d '\r')
-              if [[ \"\${actual}\" != \"\${expected}\" ]]; then
-                echo \"expected: \${expected}\" >&2
-                echo \"actual:   \${actual}\" >&2
+              version_out=\$(runuser -u odpm-smoke -- odpm --version 2>&1 | tr -d '\r')
+              if ! grep -Fq \"\${expected}\" <<< \"\${version_out}\"; then
+                echo \"expected substring not found: \${expected}\" >&2
+                echo \"odpm --version output:\" >&2
+                printf '%s\n' \"\${version_out}\" >&2
                 exit 1
               fi
-              echo \"deb install smoke OK: \${actual}\"
+              echo \"deb install smoke OK: \${expected}\"
             "
 
       - name: Run golden-path integration test

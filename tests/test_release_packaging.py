@@ -90,6 +90,7 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertIn("ubuntu:24.04", golden)
         self.assertIn("Install smoke (built .deb", golden)
         self.assertIn("runuser -u odpm-smoke", golden)
+        self.assertIn("grep -Fq", golden)
         self.assertNotIn("sudo apt-get", golden)
         self.assertIn("tests.integration.test_golden_path", golden)
         self.assertIn("needs: [deb, rpm, golden-path]", workflow)
