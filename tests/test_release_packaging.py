@@ -78,6 +78,19 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertEqual(str(Version("4.4.2-beta")), "4.4.2b0")
         self.assertEqual(str(Version(constants.RELEASE_VERSION)), "4.4.2b0")
 
+    def test_release_packages_prerelease_golden_path_gate(self):
+        workflow = (
+            PROJECT_ROOT / ".github" / "workflows" / "release-packages.yml"
+        ).read_text(encoding="utf-8")
+        self.assertIn("golden-path:", workflow)
+        self.assertIn("needs: deb", workflow)
+        self.assertIn("needs: [deb, rpm, golden-path]", workflow)
+        self.assertIn("needs.golden-path.result == 'skipped'", workflow)
+        self.assertIn("contains(github.ref, '-beta')", workflow)
+        self.assertIn("ODPM_GOLDEN_PATH_ENABLED", workflow)
+        self.assertIn("package-deb", workflow)
+        self.assertIn("tests.integration.test_golden_path", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

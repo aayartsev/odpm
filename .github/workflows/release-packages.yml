@@ -1,6 +1,8 @@
 # Build .deb + .rpm; upload Actions artifacts on branch push / workflow_dispatch;
 # attach assets to GitHub Release on version tags (v*) only.
 # Stable tags (v*) also publish wheel/sdist to production PyPI; pre-release tags to TestPyPI.
+# Pre-release tags (v*-beta/*-rc*/*-alpha): golden-path on self-hosted runner gates publish
+# (vars.ODPM_GOLDEN_PATH_ENABLED + secret ODPM_GOLDEN_PATH_PROJECT; installs built .deb).
 name: Release packages
 
 on:
@@ -122,8 +124,100 @@ jobs:
           name: package-rpm-fc${{ matrix.fedora }}
           path: dist/odpm-*.rpm
 
+  golden-path:
+    needs: deb
+    if: >-
+      startsWith(github.ref, 'refs/tags/v')
+      && (
+        contains(github.ref, '-beta')
+        || contains(github.ref, '-rc')
+        || contains(github.ref, '-alpha')
+      )
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Require golden-path enabled for pre-release tags
+        run: |
+          if [[ "${ODPM_GOLDEN_PATH_ENABLED}" != "true" ]]; then
+            echo "::error::Pre-release tags require vars.ODPM_GOLDEN_PATH_ENABLED=true"
+            exit 1
+          fi
+        env:
+          ODPM_GOLDEN_PATH_ENABLED: ${{ vars.ODPM_GOLDEN_PATH_ENABLED }}
+
+      - name: Require golden-path secret and project directory
+        run: |
+          if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
+            echo "::error::ODPM_GOLDEN_PATH_PROJECT secret is not configured"
+            exit 1
+          fi
+          if [[ ! -d "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
+            echo "::error::Project directory not found on the self-hosted runner"
+            exit 1
+          fi
+          if [[ ! -f "${ODPM_GOLDEN_PATH_PROJECT}/docker-compose.yml" ]]; then
+            echo "::error::Missing docker-compose.yml in project directory"
+            exit 1
+          fi
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+
+      - name: Verify Python 3.12 on runner
+        run: |
+          if ! command -v python3.12 >/dev/null 2>&1; then
+            echo "::error::python3.12 not found on self-hosted runner"
+            exit 1
+          fi
+          python3.12 --version
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: package-deb
+          path: dist
+
+      - name: Install built .deb from this tag
+        run: |
+          set -euo pipefail
+          mapfile -t debs < <(find dist -maxdepth 1 -type f -name 'odpm_*.deb' | sort)
+          if [[ "${#debs[@]}" -ne 1 ]]; then
+            echo "expected exactly one .deb artifact, got ${#debs[@]}" >&2
+            exit 1
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq "${debs[0]}" || sudo apt-get install -f -y -qq
+
+      - name: Verify installed odpm version matches tag
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/v}"
+          expected="odpm version: ${TAG}"
+          actual="$(odpm --version 2>&1 | tr -d '\r')"
+          if [[ "${actual}" != "${expected}" ]]; then
+            echo "expected: ${expected}" >&2
+            echo "actual:   ${actual}" >&2
+            exit 1
+          fi
+
+      - name: Run golden-path integration test
+        env:
+          ODPM_RUN_DOCKER_INTEGRATION: "1"
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+          ODPM_GOLDEN_PATH_TIMEOUT: "900"
+        run: python3.12 -m unittest tests.integration.test_golden_path -v
+
   publish:
-    needs: [deb, rpm]
+    needs: [deb, rpm, golden-path]
+    if: >-
+      always()
+      && !cancelled()
+      && needs.deb.result == 'success'
+      && needs.rpm.result == 'success'
+      && (
+        needs.golden-path.result == 'success'
+        || needs.golden-path.result == 'skipped'
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
