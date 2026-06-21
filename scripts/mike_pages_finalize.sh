@@ -29,7 +29,7 @@ for repo_file in odpm-stable.repo odpm-testing.repo; do
     fi
 done
 
-# upload-pages-artifact excludes dotfiles unless include-hidden-files: true; keep marker anyway.
+# upload-pages-artifact@v5+ include-hidden-files; touch anyway for gh-pages branch sync.
 touch "${SITE_DIR}/.nojekyll"
 
 if git -C "${SITE_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then

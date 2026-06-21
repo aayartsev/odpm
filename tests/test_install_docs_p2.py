@@ -62,7 +62,7 @@ class InstallDocsP2Tests(unittest.TestCase):
         self.assertIn("odpm-testing.repo", script)
         self.assertIn(".nojekyll", script)
 
-    def test_pages_workflows_include_hidden_files_in_artifact(self):
+    def test_pages_workflows_use_upload_pages_artifact_v5(self):
         for rel in (
             ".github/workflows/docs.yml",
             ".github/workflows/release-packages.yml",
@@ -71,6 +71,7 @@ class InstallDocsP2Tests(unittest.TestCase):
         ):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             with self.subTest(workflow=rel):
+                self.assertIn("actions/upload-pages-artifact@v5", text)
                 self.assertIn("include-hidden-files: true", text)
 
     def test_preserve_live_pages_repos_script_exists(self):
