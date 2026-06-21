@@ -92,8 +92,8 @@ Runtime dependency: `packaging` (declared in `pyproject.toml`; Debian package us
 
 **On tag** (`release-packages.yml` job `publish-pypi`):
 
-- Stable tag → **production PyPI**
-- Pre-release tag (`*-beta`, `*-rc`, `*-alpha`) → **TestPyPI** (`skip-existing: true` — safe retag/re-run when the wheel is already uploaded)
+- Stable tag → **production PyPI** (`skip-existing: true` — safe retag/re-run when the wheel is already uploaded)
+- Pre-release tag (`*-beta`, `*-rc`, `*-alpha`) → **TestPyPI** (`skip-existing: true`)
 - Wheel/sdist also attached to the GitHub Release
 
 **Manual ad-hoc** (no tag): [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) — `workflow_dispatch` with `confirm_publish=true`; default target TestPyPI (`use_testpypi=true`).

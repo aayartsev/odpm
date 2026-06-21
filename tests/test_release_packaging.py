@@ -100,6 +100,11 @@ class ReleasePackagingVersionTests(unittest.TestCase):
             self.assertIn("always()", block, msg=f"{job} must tolerate skipped golden-path")
             self.assertIn("needs.publish.result == 'success'", block)
             self.assertIn("startsWith(github.ref, 'refs/tags/')", block)
+        pypi_block = workflow.split("publish-pypi:", 1)[1].split("\n  publish-pages:", 1)[0]
+        prod_section = pypi_block.split("Publish to production PyPI", 1)[1]
+        self.assertIn("skip-existing: true", prod_section)
+        test_section = pypi_block.split("Publish to TestPyPI", 1)[1]
+        self.assertIn("skip-existing: true", test_section)
 
 
 if __name__ == "__main__":
