@@ -30,6 +30,7 @@ class InstallDocsP2Tests(unittest.TestCase):
     def test_install_readme_links_stable_and_beta(self):
         for rel in ("docs/install/README.md", "docs/en/install/README.md"):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
+            self.assertIn("4.4.2", text)
             self.assertIn("/odpm/stable/", text)
             self.assertIn("/4.4.2-beta/", text)
             self.assertIn("documentation-versions", text)

@@ -26,7 +26,7 @@ sudo gpg --no-default-keyring \
 
 ### Stable (рекомендуется для production)
 
-Suite **`stable`** — сейчас odpm **4.3.0** (тег `v4.3.0`, без `-rc`/`-beta`):
+Suite **`stable`** — сейчас odpm **4.4.2** (тег `v4.4.2`, без `-rc`/`-beta`):
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -34,12 +34,12 @@ echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayar
 sudo apt update
 sudo apt install odpm
 odpm --version
-# ожидается: odpm version: 4.3.0
+# ожидается: odpm version: 4.4.2
 ```
 
 ### Pre-release (4.4 beta / RC)
 
-Suite **`testing`** — сейчас **4.4.2-beta** и другие pre-release теги (`*-beta`, `*-rc*`):
+Suite **`testing`** — pre-release теги (`*-beta`, `*-rc*`), например **4.4.2-beta**:
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -48,7 +48,7 @@ sudo apt update
 sudo apt install odpm
 ```
 
-Инструкции и новые функции 4.4: [docs 4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
+Инструкции beta 4.4 (архив): [docs 4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
 
 Обновление при следующих релизах:
 
@@ -58,7 +58,7 @@ sudo apt update && sudo apt upgrade odpm
 
 ## Установка вручную (.deb с GitHub Releases)
 
-Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для нужного тега (`v4.3.0` — stable, `v4.4.2-beta` — testing) или соберите локально:
+Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для нужного тега (`v4.4.2` — stable, `v4.4.2-beta` — testing) или соберите локально:
 
 ```bash
 ./scripts/build_deb.sh

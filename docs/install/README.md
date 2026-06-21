@@ -1,8 +1,8 @@
 # Установка odpm
 
 !!! info "Рекомендуется stable"
-    Для production используйте документацию **[stable](https://aayartsev.github.io/odpm/stable/install/)** (сейчас odpm **4.3.0**) и APT/YUM suite **`stable`**.
-    Pre-release **4.4.2-beta** — suite **`testing`** и docs **[4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/)**.
+    Для production используйте документацию **[stable](https://aayartsev.github.io/odpm/stable/install/)** (сейчас odpm **4.4.2**) и APT/YUM suite **`stable`**.
+    Pre-release (например **4.4.2-beta**) — suite **`testing`** и архив docs **[4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/)**.
     См. [Какую документацию читать](../getting-started/documentation-versions.md).
 
 Выберите способ установки **odpm** на хост (не путать с развёртыванием Odoo-проекта через `odpm --init`).
