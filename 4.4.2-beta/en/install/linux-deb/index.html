@@ -2111,13 +2111,13 @@
 <span class="c1"># expected: 03040028F53D7AB8  Alexander Yartsev</span>
 </code></pre></div>
 <h3 id="stable-recommended-for-production">Stable (recommended for production)<a class="headerlink" href="#stable-recommended-for-production" title="Permanent link">&para;</a></h3>
-<p>Suite <strong><code>stable</code></strong> — currently odpm <strong>4.4.2</strong> (tag <code>v4.4.2</code>, without <code>-rc</code>/<code>-beta</code>):</p>
+<p>Suite <strong><code>stable</code></strong> — currently odpm <strong>4.3.0</strong> (tag <code>v4.3.0</code>, without <code>-rc</code>/<code>-beta</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/odpm.list
 
 sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>odpm
 odpm<span class="w"> </span>--version
-<span class="c1"># expected: odpm version: 4.4.2</span>
+<span class="c1"># expected: odpm version: 4.3.0</span>
 </code></pre></div>
 <h3 id="pre-release-44-beta-rc">Pre-release (4.4 beta / RC)<a class="headerlink" href="#pre-release-44-beta-rc" title="Permanent link">&para;</a></h3>
 <p>Suite <strong><code>testing</code></strong> — pre-release tags (<code>*-beta</code>, <code>*-rc*</code>), e.g. <strong>4.4.2-beta</strong>:</p>
