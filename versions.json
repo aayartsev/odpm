@@ -5,6 +5,11 @@
     "aliases": []
   },
   {
+    "version": "4.4.3-beta",
+    "title": "4.4.3-beta (pre-release)",
+    "aliases": []
+  },
+  {
     "version": "4.4.2",
     "title": "4.4.2 (stable)",
     "aliases": [
