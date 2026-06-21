@@ -2,6 +2,8 @@
 
 Signed static RPM repo published at `https://aayartsev.github.io/odpm/yum/`.
 
+Release policy: [docs/contributing/release-lines.md](../../docs/contributing/release-lines.md). CI: [docs/contributing/packaging.md](../../docs/contributing/packaging.md).
+
 | File | In git | Purpose |
 |------|--------|---------|
 | `odpm-testing.repo` | yes | Example `.repo` for pre-releases (`testing` suite) |

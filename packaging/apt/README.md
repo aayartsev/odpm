@@ -2,6 +2,8 @@
 
 Signed static APT repo published at `https://aayartsev.github.io/odpm/apt/`.
 
+Release policy (stable vs testing, bootstrap, checklists): [docs/contributing/release-lines.md](../../docs/contributing/release-lines.md). CI details: [docs/contributing/packaging.md](../../docs/contributing/packaging.md).
+
 | File | In git | Purpose |
 |------|--------|---------|
 | `odpm-archive-keyring.gpg` | yes (maintainer) | Binary public keyring for APT `signed-by=` on GitHub Pages |
@@ -53,5 +55,7 @@ find /tmp/odpm-apt -type f
 
 | Release tag | APT suite |
 |-------------|-----------|
-| Stable (`v4.3.0`) | `stable` |
-| Pre-release (`v4.3-rc1`, `*-beta`) | `testing` |
+| Stable (`v4.3.0`, `v4.4.2`, …) | `stable` |
+| Pre-release (`v4.4.2-beta`, `*-rc`, `*-alpha`) | `testing` |
+
+Stable and testing coexist on Pages: tag builds use `--merge` (see [release-lines.md](../../docs/contributing/release-lines.md)).

@@ -1,0 +1,115 @@
+# Линии релизов и каналы публикации
+
+Политика для **maintainers** odpm: какие git-ветки живы, куда попадают пакеты и документация, и как перевести **4.4.2-beta → stable 4.4.2**.
+
+См. также: [packaging.md](packaging.md) (deb/rpm/wheel, CI), [ADR-001](adr-001-extensions-and-manifest-v2.md) (оси версий manifest vs manager).
+
+## Git-линии
+
+| Линия | Ветка / тег | Статус | Назначение |
+|-------|-------------|--------|------------|
+| **4.3.x** | `4.3.0`, тег `v4.3.0` | **заморожена** | Последний stable до 4.4; только критичные security-fix по решению maintainer (cherry-pick → patch tag). Новые фичи не добавляем. |
+| **4.4.x** | `4.4-dev` | **активная** | Разработка 4.4 (extensions, manifest v2). Pre-release: `v4.4.2-beta`, …; stable: `v4.4.2`, … |
+| Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
+
+**Правило:** все изменения 4.4 merge в `4.4-dev`. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
+
+### Константы в `scenarios.py`
+
+| Константа | Когда менять | Пример сейчас |
+|-----------|--------------|---------------|
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.4-dev` | `4.4.2-beta` |
+| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.3.0` → станет `4.4.2` |
+| `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
+| `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
+
+После stable `v4.4.2` обновить hub [documentation-versions](../getting-started/documentation-versions.md) и install-доки, если меняются рекомендуемые ссылки (см. чеклист ниже).
+
+## Каналы пакетов
+
+Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/release-packages.yml) (только push тега `v*`).
+
+| Канал | URL / registry | Suite / условие | Содержимое |
+|-------|----------------|-----------------|------------|
+| **APT stable** | `https://aayartsev.github.io/odpm/apt/` → `dists/stable` | Stable tag (`v4.3.0`, `v4.4.2`, …) | `.deb` релиза; **merge** с live Pages (`--merge`) |
+| **APT testing** | тот же host → `dists/testing` | Pre-release (`*-beta`, `*-rc`, `*-alpha`) | Beta/rc `.deb`; stable suite не затирается |
+| **YUM stable / testing** | `https://aayartsev.github.io/odpm/yum/` | Те же правила, что APT | fc40/fc41/fc44 RPM; `.repo` на Pages: `odpm-stable.repo`, `odpm-testing.repo` |
+| **GitHub Release** | [releases](https://github.com/aayartsev/odpm/releases) | Любой `v*` | deb, rpm, SHA256SUMS; wheel/sdist после `publish-pypi` |
+| **PyPI production** | https://pypi.org/project/odpm/ | Stable tag | Job `publish-pypi`, `prerelease=false` |
+| **TestPyPI** | https://test.pypi.org/project/odpm/ | Pre-release tag | Job `publish-pypi`, `prerelease=true` |
+| **PyPI вручную** | — | Без тега | [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) — `workflow_dispatch`, ad-hoc |
+
+Pre-release определяется суффиксом в `RELEASE_VERSION` / имени тега: `*-beta`, `*-rc`, `*-alpha` → **testing** + TestPyPI.
+
+### Incremental publish (не затирать другой suite)
+
+1. `scripts/fetch_pages_repo.sh` — скачать live `apt/` или `yum/` с GitHub Pages.
+2. `scripts/build_apt_repo.sh --merge SUITE …` / `scripts/build_yum_repo.sh --merge SUITE …` — добавить пакеты только в нужный suite.
+3. `publish-pages` — `scripts/mike_pages_finalize.sh` кладёт apt/yum поверх mike-дерева сайта.
+
+One-shot bootstrap (если на Pages ещё нет `stable` или mike-версий):
+
+| Workflow | Input | Действие |
+|----------|-------|----------|
+| **Bootstrap docs versions** | `v4.3.0` | `prepare_bootstrap_docs.sh` → mike `4.3.0`, aliases `stable`/`4.3`, default `stable` |
+| **Bootstrap Pages repos** | `v4.3.0` | Скачать assets релиза, `--merge stable` для APT/YUM |
+
+Оба checkout **`4.4-dev`** (скрипты merge/mike). Порядок ops: bootstrap docs → bootstrap repos → push `4.4-dev` (deploy `/dev/`) → retag beta при необходимости.
+
+## Документация (mike)
+
+| Версия на сайте | Alias | Как появляется | Аудитория |
+|-----------------|-------|----------------|-----------|
+| `stable` | default | Stable tag → `mike deploy VERSION stable --set-default stable` | Production, install по умолчанию |
+| `4.3.0` | `4.3` | Bootstrap или ручной deploy | Линия 4.3.x |
+| `4.4.2-beta`, … | — | Pre-release tag (без alias stable) | Early adopters |
+| `dev` | — | Push `4.4-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
+
+`site_url` в `mkdocs.yml`: `/stable/`. Пользовательский hub: [documentation-versions](../getting-started/documentation-versions.md).
+
+Раздел `docs/contributing/**` **не** попадает в публичный MkDocs (`exclude_docs` в `mkdocs.yml`) — только для maintainers в git.
+
+## Чеклист: stable **v4.4.2** (после smoke beta)
+
+Выполнять на `4.4-dev` после успешного smoke `v4.4.2-beta` (APT testing, TestPyPI, docs `/4.4.2-beta/`).
+
+1. **Версия в коде**
+   - [ ] `RELEASE_VERSION = "4.4.2"` в `dev_project/constants/scenarios.py`
+   - [ ] `LATEST_STABLE_RELEASE = "4.4.2"`
+   - [ ] `debian/changelog`, `packaging/odpm.spec` — та же версия
+2. **Release notes**
+   - [ ] `.github/release-notes/4.4.2.md` (ссылки на `/stable/`, не flat `/install/`)
+3. **Install / hub docs**
+   - [ ] `docs/install/*`, `docs/en/install/*` — stable first; beta как optional; `LATEST_STABLE_RELEASE` в тексте
+   - [ ] `docs/getting-started/documentation-versions.md` (+ EN)
+4. **Commit + tag**
+   - [ ] Commit на `4.4-dev`, push
+   - [ ] `git tag v4.4.2` && `git push origin v4.4.2`
+5. **CI (автоматически на тег)**
+   - [ ] `release-packages`: GitHub Release, APT/YUM **stable** merge, `publish-pages` → mike `4.4.2` + alias **stable**
+   - [ ] `publish-pypi` → **production PyPI**
+6. **Проверка live**
+   - [ ] `https://aayartsev.github.io/odpm/stable/` — 200, переключатель версий
+   - [ ] `https://aayartsev.github.io/odpm/apt/dists/stable/Release` — 200
+   - [ ] `pip install odpm` → `4.4.2`
+7. **Следующий pre-release**
+   - [ ] Поднять `RELEASE_VERSION` на `4.4.3-beta` или следующий плановый номер **до** следующего тега
+
+## Чеклист: retag **v4.4.2-beta** (infra fix)
+
+Если beta-тег указывал на commit **без** P0/P1 (merge APT, mike):
+
+1. Удалить remote tag (maintainer): `git push origin :refs/tags/v4.4.2-beta`
+2. Убедиться, что `4.4-dev` содержит merge-скрипты и mike CI
+3. Пересоздать `v4.4.2-beta` на нужном commit, push tag
+4. Дождаться `release-packages`; проверить `/4.4.2-beta/`, `apt/dists/testing`, TestPyPI
+
+## Связанные файлы
+
+| Путь | Назначение |
+|------|------------|
+| [`packaging/apt/README.md`](../../packaging/apt/README.md) | APT keyring, reprepro, local smoke |
+| [`packaging/yum/README.md`](../../packaging/yum/README.md) | `.repo` шаблоны, createrepo |
+| [`scripts/mike_pages_deploy.sh`](../../scripts/mike_pages_deploy.sh) | Deploy версии docs |
+| [`scripts/mike_pages_finalize.sh`](../../scripts/mike_pages_finalize.sh) | Overlay apt/yum на site tree |
+| [`.github/release-notes/`](../../.github/release-notes/) | Текст GitHub Release (обязателен для тега) |
