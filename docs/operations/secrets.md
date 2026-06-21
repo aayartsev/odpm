@@ -156,26 +156,7 @@ odpm plan --skip-start --plan-show-diff
 
 Репозиторий odpm проверяет контракт в **`tests/test_ci_secrets_smoke.py`** (job `compose-smoke` в `ci-docker.yml`). Значения секретов в логи не выводить.
 
-**Follow-up (Phase B, 4.4.1):** bake secrets в CI-образ при `ODPM_BAKE_SECRETS=1` во время `odpm --build-image` — см. [ADR-002](../contributing/adr-002-ci-secrets-bake.md).
-
-### CI image bake (`ODPM_BAKE_SECRETS=1`)
-
-Для сценария **`ci`** секреты модулей **не монтируются** с хоста при `docker compose up`. Чтобы модули видели ключи внутри образа:
-
-```bash
-# 1. Ephemeral secrets на runner (не коммитить)
-cat > /tmp/odpm-ci-secrets.json <<'EOF'
-{"schema_version":1,"secrets":{"payment.api_key":"${{ secrets.MODULE_PAYMENT_API_KEY }}"}}
-EOF
-chmod 600 /tmp/odpm-ci-secrets.json
-odpm --secrets-file /tmp/odpm-ci-secrets.json --skip-start
-
-# 2. Bake в образ (явный opt-in)
-export ODPM_BAKE_SECRETS=1
-odpm --build-image --image-tag myregistry/client-odoo:17.0
-```
-
-В образ попадают `COPY runtime/secrets.json → /run/odpm/secrets.json` и `ENV ODPM_SECRETS_PATH`. Без флага или без `.odpm/secrets.json` bake не выполняется.
+**Follow-up (Phase B):** bake secrets в CI-образ при `ODPM_SCENARIO=ci` — отдельная задача.
 
 ## Отличие от `.env` и паролей Odoo
 

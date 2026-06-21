@@ -427,7 +427,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
     concurrency:
@@ -435,16 +435,16 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Install MkDocs
+      - name: Install MkDocs and mike
         run: pip install -r requirements-docs.txt
-
-      - name: Build site
-        run: mkdocs build --strict
 
       - uses: actions/download-artifact@v7
         with:
@@ -456,23 +456,42 @@ jobs:
           name: yum-repo
           path: yum-repo-out
 
-      - name: Preserve published APT repo on Pages
-        run: ./scripts/fetch_pages_repo.sh apt site/apt
+      - name: Configure git for mike
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Preserve published YUM repo on Pages
-        run: ./scripts/fetch_pages_repo.sh yum site/yum
-
-      - name: Overlay release APT artifact
-        run: ./scripts/overlay_pages_repo.sh apt site/apt apt-repo-out
-
-      - name: Overlay release YUM artifact
-        run: ./scripts/overlay_pages_repo.sh yum site/yum yum-repo-out
+      - name: Deploy release docs with mike
+        id: mike
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
+            DEPLOY_CMD=(
+              ./scripts/mike_pages_deploy.sh "${VERSION}"
+              --title "${VERSION} (pre-release)"
+            )
+          else
+            DEPLOY_CMD=(
+              ./scripts/mike_pages_deploy.sh "${VERSION}" stable
+              --title "${VERSION} (stable)"
+              --update-aliases
+              --set-default stable
+            )
+          fi
+          SITE_DIR="$(
+            "${DEPLOY_CMD[@]}" | tee /dev/stderr |
+              awk -F= '/^SITE_DIR=/ { print $2; exit }'
+          )"
+          ./scripts/mike_pages_finalize.sh "${SITE_DIR}" apt-repo-out yum-repo-out
+          echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: site
+          path: ${{ steps.mike.outputs.site_dir }}
 
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -6,31 +6,18 @@ Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/rel
 
 | Constant / artifact | Example | Meaning |
 |---------------------|---------|---------|
-| `RELEASE_VERSION` | `4.4.2-beta` | **User-facing product version**: `odpm --version`, git tag (`v4.4.2-beta`), PyPI requirement string |
-| `ODPM_VERSION` | `4.4.2-beta` | Alias of `RELEASE_VERSION` (compat checks, new v2 `requires_odpm` defaults) |
-| `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new projects (format contract, not manager version) |
-| `manifest_schema` | `1`, `2` | Manifest shape in `odpm.json` (v2 field) |
-| `requires_odpm` | `4.4.2` | Minimum installed manager for manifest v2 (semver ≥) |
+| `RELEASE_VERSION` | `4.3-rc1` | Git tag (`v4.3-rc1`), deb/rpm filenames, GitHub Release title |
+| `ODPM_VERSION` | `4.0` | `odpm.json` → `odpm_version`, `odpm --version`, pip wheel metadata |
 
-See [ADR-001](adr-001-extensions-and-manifest-v2.md) for compatibility rules and v2 nested shape.
-
-Bump **`RELEASE_VERSION`** in `dev_project/constants/scenarios.py` (`ODPM_VERSION` follows automatically) and sync native packaging for each release:
-
-| Artifact | Stable `4.4.2` | Pre-release `4.4.2-beta` |
-|----------|----------------|---------------------------|
-| Debian upstream | `4.4.2` | `4.4.2~beta` (`debian/changelog`) |
-| RPM `Version` / `Release` | `4.4.2` / `1` | `4.4.2` / `beta` (`packaging/odpm.spec` `%global`) |
-| pip wheel filename | `odpm-4.4.2-…` | PEP 440 `odpm-4.4.2b0-…` |
-
-Mapping helpers: `scripts/release_native_versions.py`; `scripts/build_rpm.sh` reads `RELEASE_VERSION` automatically.
-
-Push tag `v{RELEASE_VERSION}` to trigger deb/rpm, GitHub Release, APT/YUM, and PyPI upload in one CI run.
+Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release.
 
 ## deb
 
 ### APT repository (recommended)
 
 Published on tag builds to `https://aayartsev.github.io/odpm/apt/` (`stable` / `testing` suites).
+
+Docs deploys (`.github/workflows/docs.yml`) rebuild MkDocs on branch pushes and share the same GitHub Pages site. Before upload, `./scripts/preserve_pages_package_repos.sh` mirrors any live `apt/` and `yum/` trees into `site/` (explicit file fetch from `Release` / `repomd.xml`; `wget -r` does not work on Pages). If a live repo exists but mirroring fails, the workflow fails instead of wiping package repos.
 
 GitHub Actions secrets:
 
@@ -84,15 +71,12 @@ Runtime dependency: `packaging` (declared in `pyproject.toml`; Debian package us
 
 ### PyPI publish (maintainers)
 
-**Tag release (recommended):** job `publish-pypi` in [`.github/workflows/release-packages.yml`](../../.github/workflows/release-packages.yml) runs after deb/rpm smoke and GitHub Release on push of tag `v*`.
+Workflow: [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml)
 
-- Tag `v{RELEASE_VERSION}` must match `dev_project/constants/scenarios.py` (`scripts/verify_release_tag_version.py`).
-- **Stable** tags (no `-alpha`/`-beta`/`-rc`) → production PyPI + wheel/sdist attached to GitHub Release.
-- **Pre-release** tags → TestPyPI (same secrets environment `pypi`).
-- GitHub Environment `pypi` + secrets `PYPI_API_TOKEN` / `TEST_PYPI_API_TOKEN`.
+- **Manual only** — `workflow_dispatch` with `confirm_publish=true` (no automatic upload on tag).
+- Default target: **TestPyPI** (`use_testpypi=true`); production PyPI requires `use_testpypi=false` and configured secrets.
+- GitHub Environment `pypi` + secrets `TEST_PYPI_API_TOKEN` / `PYPI_API_TOKEN` (or OIDC trusted publishing when enabled).
 
-**Manual fallback:** [`.github/workflows/publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) — `workflow_dispatch` with `confirm_publish=true` (no tag required; default target TestPyPI).
-
-Артефакты: GitHub Releases (deb, rpm, wheel, sdist, SHA256SUMS) и Actions artifact `release-packages` на push ветки (deb + rpm). Release на GitHub и PyPI — при tag `v*`.
+Артефакты: GitHub Releases и Actions artifact `release-packages` (deb + rpm). Release на GitHub — только при tag `v*`.
 
 Пользовательская установка: [install/README.md](../install/README.md), [pip (legacy)](../install/pip-legacy.md).

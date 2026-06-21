@@ -16,27 +16,27 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 # expected fingerprint: 03040028F53D7AB8  Alexander Yartsev
 ```
 
-**Pre-release** (`v4.4-beta`, `*-beta`) — suite **`testing`** (packages are here for now; `stable` after final releases):
+**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (packages are here for now; `stable` after final releases):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.4-dev/packaging/yum/odpm-testing.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-testing.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
 
-**Stable releases** (`v4.4.x`, without `-rc`/`-beta`):
+**Stable releases** (`v4.3.0`, without `-rc`/`-beta`):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.4-dev/packaging/yum/odpm-stable.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-stable.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
 
-> The URL branch (`4.4-dev`) is the current 4.4 development line; there is no `main` branch in the repo.
+> The URL branch (`4.3.0`) is the current stable release line; there is no `main` branch in the repo.
 > If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
 >
 > ```bash
@@ -56,7 +56,7 @@ Full install table for all platforms: [Installing odpm (all platforms)](README.m
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.4-dev` / `4.0-beta` / `4.0-rc1`, or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases), from **Actions → Release packages → Artifacts** (`release-packages`) after a push to `4.3.0` / `4.0-beta` / `4.0-rc1`, or build locally:
 
 ```bash
 ./scripts/build_rpm.sh

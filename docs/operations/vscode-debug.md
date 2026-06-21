@@ -2,8 +2,6 @@
 
 Отладка с точками останова доступна в сценарии **`developer`**. Режим задаётся **`ODPM_DEBUGGER_BACKEND`** в `.env` (см. [env-dotenv](../reference/env-dotenv.md)).
 
-Практика attach на demo-обёртке (`$ODPM_DEMO_19`): [demo-projects § S5](../contributing/demo-projects.md#s5--отладка-в-vs-code).
-
 Кода говориться о VSCode, то подразумеваются все его производные, поддерживающие такой же механизм отладки
 
 ## Два режима (backends)

@@ -1,9 +1,15 @@
 site_name: odpm
 site_description: Документация Odoo Developer Project Manager
-site_url: https://aayartsev.github.io/odpm/
+site_url: https://aayartsev.github.io/odpm/stable/
 repo_url: https://github.com/aayartsev/odpm
 repo_name: aayartsev/odpm
 edit_uri: edit/4.4-dev/docs/
+
+extra:
+  version:
+    provider: mike
+    default: stable
+    alias: true
 
 docs_dir: docs
 
@@ -16,6 +22,7 @@ exclude_docs: |
 
 theme:
   name: material
+  custom_dir: docs/overrides
   language: ru
   palette:
     - scheme: default
@@ -101,6 +108,7 @@ plugins:
             Запуск без диалогов: Non-interactive mode
             Безопасность: Security
             Переход с версии 3.0: Migrating from 3.0
+            Какую документацию читать: Which docs to read
 
 markdown_extensions:
   - admonition
@@ -114,6 +122,7 @@ markdown_extensions:
 nav:
   - Главная: README.md
   - С чего начать:
+      - Какую документацию читать: getting-started/documentation-versions.md
       - Зачем odpm: getting-started/why-odpm.md
       - Дружелюбность к новичкам: getting-started/beginner-friendly.md
       - Локальная разработка с нуля: getting-started/local-dev-from-scratch.md

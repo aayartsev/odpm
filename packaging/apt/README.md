@@ -27,6 +27,7 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg \
 - [`scripts/build_apt_repo.sh`](../../scripts/build_apt_repo.sh): флаг `--merge` сохраняет другие suite при публикации pre-release.
 - [`scripts/fetch_pages_repo.sh`](../../scripts/fetch_pages_repo.sh) + [`scripts/overlay_pages_repo.sh`](../../scripts/overlay_pages_repo.sh): скачать live repo с Pages и наложить новый suite.
 - One-shot bootstrap stable: workflow **Bootstrap Pages repos** (`.github/workflows/bootstrap-pages-repos.yml`) — checkout `4.4-dev`, скачивает `.deb`/`.rpm` с GitHub Release (input `v4.3.0`).
+- One-shot bootstrap docs: workflow **Bootstrap docs versions** — `prepare_bootstrap_docs.sh` (docs/ + mkdocs с тега, hub/overrides с `4.4-dev`, mike patch).
 
 ## Maintainer secrets (GitHub Actions)
 

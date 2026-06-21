@@ -4,11 +4,11 @@
 
 ## Подготовка каталога окружения
 
-Как и при новом проекте, создайте **отдельный каталог** odpm-окружения (например `odoo_demo_project-19`) и инициализируйте его ссылкой на git:
+Как и при новом проекте, создайте **отдельный каталог** odpm-окружения (например `client_addons-17`) и инициализируйте его ссылкой на git:
 
 ```bash
-mkdir odoo_demo_project-19 && cd odoo_demo_project-19
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
+mkdir client_addons-17 && cd client_addons-17
+odpm --init git@github.com:organization/client_addons.git --branch 17.0
 ```
 
 Если в корне разрабатываемого репозитория уже есть **`odpm.json`**, odpm подхватит версии и зависимости оттуда. Если файла нет — укажите `--odoo-version` при `--init` или добавьте `odoo_version` в репозиторий до подключения.

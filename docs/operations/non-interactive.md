@@ -49,8 +49,6 @@
 2. Явно принять вид drift: **`--accept-database-drift=KIND`** (флаг можно повторять для нескольких KIND).
 3. Перед стеком восстановить роль: `odpm database ensure-role` (postgres должен быть запущен).
 
-Пример на demo-обёртке (`$ODPM_DEMO_19`): [demo-projects § S6](../contributing/demo-projects.md#s6--non-interactive-и-drift).
-
 Пример:
 
 ```bash
@@ -61,24 +59,11 @@ odpm -d test_db -i -u
 
 Подробнее: [состояние PostgreSQL](../reference/database-state.md).
 
-## Docker Compose и том PostgreSQL
-
-При **первом adoption baseline** (нет `.odpm/database/last_run.json`) odpm выполняет `docker compose up -d -y` для сервиса PostgreSQL. Флаг **`--yes`** нужен, чтобы Compose не задавал интерактивный вопрос о пересоздании тома (например после смены пути bind-mount с `data/postgres/...` на `data/postgresql/...`).
-
-Если вы **повторно инициализируете** каталог odpm 3.x под 4.x в том же пути и init «завис» на postgres, удалите старый том и запустите снова:
-
-```bash
-docker volume rm ИМЯ_ПРОЕКТА_postgres-data
-odpm
-```
-
-Имя тома совпадает с префиксом каталога проекта (например `odoo_demo_project-19_postgres-data`). Подробнее о миграции каталога: [переход с 3.0](migration-3-to-4.md).
-
 ## Пример для сценария сборки образа
 
 ```bash
 export ODPM_SCENARIO=ci
 export ODOO_PROJECTS_DIR=/data/odoo_projects
 export BACKUP_DIR=/data/backups
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 --skip-start
+odpm --init https://github.com/example/demo.git --skip-start
 ```

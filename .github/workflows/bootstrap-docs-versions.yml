@@ -1,13 +1,14 @@
-name: Docs
+# One-shot: bootstrap mike docs for stable (4.3.0) + aliases stable/4.3.
+# Run after P1 lands on 4.4-dev, before or after Bootstrap Pages repos.
+name: Bootstrap docs versions
 
 on:
-  push:
-    branches:
-      - 4.0-beta
-      - 4.0-rc1
-      - 4.4-dev
-      - main
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag whose docs/ tree to publish (e.g. v4.3.0)
+        default: v4.3.0
+        required: true
 
 permissions:
   contents: write
@@ -27,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: 4.4-dev
           fetch-depth: 0
           persist-credentials: true
 
@@ -37,19 +39,25 @@ jobs:
       - name: Install MkDocs and mike
         run: pip install -r requirements-docs.txt
 
+      - name: Prepare docs tree for bootstrap
+        run: ./scripts/prepare_bootstrap_docs.sh "${{ inputs.tag }}"
+
       - name: Configure git for mike
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Deploy dev docs with mike
+      - name: Deploy stable docs with mike
         id: mike
         run: |
           set -euo pipefail
-            SITE_DIR="$(
-            ./scripts/mike_pages_deploy.sh dev \
-              --title "Development" \
-              --update-aliases | tee /dev/stderr |
+          TAG="${{ inputs.tag }}"
+          VERSION="${TAG#v}"
+          SITE_DIR="$(
+            ./scripts/mike_pages_deploy.sh "${VERSION}" 4.3 stable \
+              --title "${VERSION} (stable)" \
+              --update-aliases \
+              --set-default stable | tee /dev/stderr |
               awk -F= '/^SITE_DIR=/ { print $2; exit }'
           )"
           ./scripts/mike_pages_finalize.sh "${SITE_DIR}"

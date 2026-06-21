@@ -100,20 +100,15 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
           ref: 4.4-dev
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Install MkDocs
-        run: pip install -r requirements-docs.txt
-
-      - name: Build site
-        run: mkdocs build --strict
+          fetch-depth: 0
 
       - uses: actions/download-artifact@v7
         with:
@@ -125,23 +120,25 @@ jobs:
           name: yum-repo
           path: yum-repo-out
 
-      - name: Preserve published APT repo on Pages
-        run: ./scripts/fetch_pages_repo.sh apt site/apt
-
-      - name: Preserve published YUM repo on Pages
-        run: ./scripts/fetch_pages_repo.sh yum site/yum
-
-      - name: Overlay bootstrap APT artifact
-        run: ./scripts/overlay_pages_repo.sh apt site/apt apt-repo-out
-
-      - name: Overlay bootstrap YUM artifact
-        run: ./scripts/overlay_pages_repo.sh yum site/yum yum-repo-out
+      - name: Materialize gh-pages tree and overlay repos
+        id: site
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages --depth=1 2>/dev/null || true
+          SITE_DIR="$(mktemp -d)"
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git worktree add "${SITE_DIR}" gh-pages
+          else
+            mkdir -p "${SITE_DIR}"
+          fi
+          ./scripts/mike_pages_finalize.sh "${SITE_DIR}" apt-repo-out yum-repo-out
+          echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: site
+          path: ${{ steps.site.outputs.site_dir }}
 
       - id: deployment
         uses: actions/deploy-pages@v4

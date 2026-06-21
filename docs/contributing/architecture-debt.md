@@ -1,9 +1,9 @@
 # Architecture debt (A10 / A4 / A11) — status
 
-**Status:** G/C/E tracks **completed** on branch `4.0-beta`; **4.4 extension hub** (C-8…C-10, manifest v2, plugins) **completed** on `4.4-dev`.  
-**4.4 debt closure (phases 0–6):** см. [Debt tracker](#debt-tracker-44-closure) ниже — living tracker для аудитов и onboarding.
+**Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
+This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **1100+ OK**, 8 skipped; CI jobs **`contract`**, **`compose-smoke`**, **`compose-smoke-mailpit`**.
+**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **773+ OK**, 7 skipped.
 
 ---
 
@@ -36,14 +36,14 @@
 
 ---
 
-## A4-2 Config hub slimming (C-7…C-10) — DONE
+## A4-2 Config hub slimming (C-7…) — IN PROGRESS
 
 | Slice | Status | Outcome |
 |-------|--------|---------|
 | C-7 | **DONE** | `BootstrapState` + property shims; `config.bootstrap`; `bootstrap_phases` internal |
-| C-8 | **DONE** | `AddonLayoutState` (`catalogs_of_modules_data`, developing subprojects) |
-| C-9 | **DONE** | prepare steps → `host_ctx` (paths, policy, docker_layout reads) |
-| C-10 | **DONE** | `ConfigPaths` writes to `docker_layout` slice |
+| C-8 | backlog | `AddonLayoutState` (`catalogs_of_modules_data`, …) |
+| C-9 | backlog | prepare steps → `host_ctx` |
+| C-10 | backlog | `ConfigPaths` writes to `docker_layout` |
 
 **C-7 KPI:** bootstrap-only fields no longer scattered on `Config.__dict__`; callers unchanged via shims; `developing_project` link on `bootstrap`, URL string on `UserSettingsState`.
 
@@ -64,67 +64,20 @@
 
 ---
 
-## 4.4 Extension API (manifest v2, plugins) — DONE
-
-| Area | Outcome | Docs / tests |
-|------|---------|--------------|
-| Manifest v2 | dual-read, jsonschema, migrate, validate CLI | `test_manifest_v2_reader`, `test_manifest_migrate`, `test_manifest_cli` |
-| Locks in manifest | dual-source docs, plan warnings, `git.lock_verify` divergence | `test_manifest_locks_sync`, `test_plan_locks_preview` |
-| Mailpit compose smoke | manifest v2 `services.mailpit` in minimal fixture + CI | `ComposeSmokeMailpitIntegrationTests`, `ci-docker.yml` |
-| Extension registry | pluggy prepare steps, compose fragments | `test_extension_entry_points`, `test_scenario_plan_matrix` |
-| Compose fragments | `compose.fragments` prepare step | `test_compose_fragments`, `test_scenario_plan_matrix` |
-| Scenario × documented dry-run | plan matrix without Docker (A–D registries) | [`tests/PLAN_MATRIX.md`](../../tests/PLAN_MATRIX.md), `test_scenario_plan_matrix` |
-| Lifecycle hooks | `post_prepare`, `pre_up` | `test_manifest_hooks` |
-| Contract CI | `tests.test_manifest_contract` | `.github/workflows/ci.yml` job `contract` |
-
-ADR: [adr-001-extensions-and-manifest-v2.md](adr-001-extensions-and-manifest-v2.md). User docs: [plugins.md](../reference/plugins.md), [manifest-migration.md](../reference/manifest-migration.md).
-
----
-
-## Debt tracker (4.4 closure)
-
-Поэтапное закрытие техдолга после roadmap 4.4 (balanced). Детали — в плане `.cursor/plans/tech_debt_closure_*.plan.md` (локально).
-
-| Phase | Scope | Status | KPI / артефакты |
-|-------|--------|--------|-----------------|
-| **P0** | Release gate `4.4.0-beta`, green CI | **DONE** | tag `v4.4.0-beta`, CHANGELOG |
-| **P1** | TD-FEAT-09 B CI secrets bake | **RELEASED 4.4.2** | ADR-002, `ODPM_BAKE_SECRETS`, `tests/odpm_subprocess.py` |
-| **P2** | C-11 prepare boundary (`host_ctx`) | **RELEASED 4.4.2** | `test_prepare_config_coupling`, no `ctx.config` in `steps_*.py` |
-| **P3** | Version axes + manifest validate + strict v2 `services` | **RELEASED 4.4.2** | `odpm manifest validate`, `odpm-json.md` |
-| **P4** | Locks dual-source UX | **RELEASED 4.4.2** | `deps-lock.md`, `locks_preview.py`, divergence warning |
-| **P5** | Mailpit compose-smoke + golden-path criteria | **RELEASED 4.4.2** | `ODPM_COMPOSE_SMOKE_MAILPIT`, `docs/contributing/ci.md` |
-| **P6** | Documentation hygiene | **RELEASED 4.4.2** | этот tracker, `todo.md` triage, `plugins/todo_ru.md` redirect |
-
-Patch release **4.4.2** (2026-06-20): P1–P6 shipped on branch `4.4-dev`; tag `v4.4.2`.
-
-### Open horizon (post-4.4 closure)
+## Remaining micro-debt (not G/C/E)
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 | C-11 slimmed prepare; shims at bootstrap boundary |
-| PyYAML compose engine v2 | P3 | Отложить до external YAML fragments; ADR if needed |
-| Mandatory golden-path on every PR | backlog | Критерии в [ci.md](ci.md); self-hosted capacity |
-| `hooks.post_clone`, Doodba-parity | backlog | [goals_ru.md](../../goals_ru.md) |
-| Отдельный pip package `odpm-services-mailpit` | backlog | reference spec в manifest достаточен для MVP |
-
----
-
-## C-11 prepare boundary (4.4 debt closure)
-
-New prepare/plan evaluation code should prefer:
-
-| Read path | Use |
-|-----------|-----|
-| Paths, policy, CLI flags, settings slices | `PrepareContext.host_ctx` (`HostProjectContext`) |
-| Extension compose/prepare plugins | `PrepareContext.extension_host()` |
-| Git materialize / ensure present | `PrepareContext.git_repos` (`GitRepoCoordinator`) |
-| Lock apply / verify / collect | `DepsLockManager.apply_pinned_locks()` and related helpers |
-| Bootstrap-only mutations | `PrepareContext.config` (compose service build, drift collection, lock manager ctor) |
-
-`prepare/steps_*.py` must not reference `ctx.config` directly (enforced by `tests/test_prepare_config_coupling.py`).
+| `Config` facade still central | P2 | C-7 started; C-8…C-10 remain |
+| `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.0" | P2 | Fallback for legacy `odpm.json` |
+| Plugin/hook API | backlog | `goals_ru.md` vision only |
+| Env variable refs in `odpm.json` | backlog | `todo.md` |
+| CI image secrets bake (TD-FEAT-09 Phase B) | P1 | Separate from developer `--secrets-file` MVP |
 
 ---
 
 ## Next architecture work
 
-Закрытые пункты debt closure P0–P6 — в [Debt tracker](#debt-tracker-44-closure). Новая архитектурная работа — отдельный план; горизонт: [goals_ru.md](../../goals_ru.md).
+When starting a **new** track, add a new plan document rather than reopening G/C/E slices.
+
+Maintainers using Cursor: local workflow rule `.cursor/rules/architecture-debt-workflow.mdc` (not in git; `.cursor/` is gitignored).

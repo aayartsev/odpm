@@ -10,7 +10,7 @@
 |----------|----------|
 | `--init ССЫЛКА` | Сделать текущий каталог odpm-проектом. Ссылка: HTTPS, `git@…`, `file:///…` |
 | `--branch ИМЯ` | Вместе с `--init`: ветка **разрабатываемого** репозитория |
-| `--odoo-version ВЕР` | Версия Odoo (например `19.0`) в `odpm.json` |
+| `--odoo-version ВЕР` | Версия Odoo (например `17.0`) в `odpm.json` |
 | `--odoo-git-link ССЫЛКА` | Репозиторий **платформы** вместо официального odoo/odoo |
 | `--platform-name ИМЯ` | Имя Python-пакета форка (по умолчанию `odoo`) |
 | `--python-version ВЕР` | Версия Python в образе |
@@ -23,8 +23,8 @@
 Пример:
 
 ```bash
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 \
-  --odoo-version 19.0 --python-version 3.12 --distro-version 12
+odpm --init git@github.com:org/my_addons.git --branch 17.0 \
+  --odoo-version 17.0 --python-version 3.10 --distro-version 12
 ```
 
 Импорт секретов при развёртывании:
@@ -88,24 +88,6 @@ odpm database ensure-role
 Флаг **`--accept-database-drift=KIND`** (повторяемый) — принять drift без интерактивного prompt. KIND: `data_path`, `postgres_major`, `app_role_missing`, `odpm_scenario`, `data_dir_empty_changed`.
 
 Подробнее: [состояние PostgreSQL и drift](database-state.md).
-
-## Подкоманда `manifest`
-
-Миграция `odpm.json` между версиями схемы:
-
-```bash
-odpm manifest migrate
-odpm manifest migrate --write
-odpm manifest validate
-```
-
-| Команда | Описание |
-|---------|----------|
-| `manifest migrate` | Показать unified diff преобразования flat v1 → nested v2 |
-| `manifest migrate --write` | Записать manifest v2 в репозиторий разрабатываемого проекта |
-| `manifest validate` | Проверить `odpm.json` по JSON Schema (v1 flat или v2 nested) + compat-check |
-
-При миграции переносятся `database` (из манифеста или `user_settings`), `developing.git` и `locks.git` (из `.odpm/deps.lock.json`). См. [odpm.json](odpm-json.md#миграция-v1--v2).
 
 ## База данных и модули
 

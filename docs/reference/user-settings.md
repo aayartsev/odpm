@@ -8,8 +8,8 @@
 | `init_modules` | Модули для установки при `-i` (через запятую, без пробелов) |
 | `update_modules` | Модули для обновления при `-u` |
 | `db_creation_data` | Параметры **новой** базы при первом `-d` |
-| `db_creation_data.db_lang` | *(deprecated)* Язык базы — предпочтительно `database.language` в [odpm.json](odpm-json.md) |
-| `db_creation_data.db_country_code` | *(deprecated)* Код страны — предпочтительно `database.country` в [odpm.json](odpm-json.md) |
+| `db_creation_data.db_lang` | Язык базы, напр. `ru_RU` (не язык сообщений odpm) |
+| `db_creation_data.db_country_code` | Код страны или `false` |
 | `db_creation_data.create_demo` | Создавать ли демо-данные |
 | `db_creation_data.db_default_admin_login` | Логин администратора |
 | `db_creation_data.db_default_admin_password` | Пароль администратора |

@@ -16,9 +16,8 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 | **Исходники** | Внутри образа, без подключения с хоста. |
 | **Окружение Python** | Собрано при сборке образа, не пересоздаётся при каждом `up`. |
 | **Отладчик** | Нет. |
-| **Секреты модулей** | Mount с хоста **отключён**. Опционально bake в образ: `ODPM_BAKE_SECRETS=1` при `--build-image` — см. [локальные секреты](../operations/secrets.md), [ADR-002](../contributing/adr-002-ci-secrets-bake.md). |
+| **Секреты модулей** | Mount `.odpm/secrets.json` с хоста **отключён**. Секреты приложения в CI-образ этим механизмом не попадают — см. [локальные секреты](../operations/secrets.md) (TD-FEAT-09). |
 | **Фиксация версий** | Строгая проверка `.odpm/deps.lock.json`; несовместимости версий во вложенных описаниях — **ошибка**. |
-| **Предупреждения Python в логах** | Как на `server`: `PYTHONWARNINGS` не фильтруется — `DeprecationWarning` от docutils при старте Odoo остаются в выводе сборки и контейнера. Учитывайте это в логах CI и при smoke-тестах образа. |
 
 ## Типичный конвейер
 
@@ -43,8 +42,6 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 ```bash
 export ODPM_SCENARIO=ci
 odpm --skip-start
-# optional: odpm --secrets-file /secure/ephemeral.json --skip-start
-export ODPM_BAKE_SECRETS=1   # bake module secrets into image when secrets.json exists
 odpm --build-image --image-tag myregistry/client-odoo:17.0
 docker compose up -d
 odpm -d test_db -i --odoo-bin --stop-after-init
@@ -56,7 +53,7 @@ odpm -d test_db -i --odoo-bin --stop-after-init
 export ODPM_SCENARIO=ci
 export ODOO_PROJECTS_DIR=/data/odoo_projects
 export BACKUP_DIR=/data/backups
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --skip-start
+odpm --init https://github.com/example/demo.git --skip-start
 ```
 
 См. [запуск без диалогов](../operations/non-interactive.md).

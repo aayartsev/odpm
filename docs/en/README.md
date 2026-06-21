@@ -42,11 +42,11 @@ Short on-ramp for beginners: [Beginner-friendly guide](getting-started/beginner-
 
 ## Quick start
 
-You need **Docker**, **git**, and **odpm** on the host (see [installation](install/README.md)).
+You need **Docker**, **git**, and **odpm** on the host (see [installation](../install/README.md)).
 
 ```bash
-mkdir odoo_demo_project-19 && cd odoo_demo_project-19
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
+mkdir my-odoo-project-17 && cd my-odoo-project-17
+odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
 ```
 
 On first run the setup wizard asks about directories and scenario; press Enter for unknown answers to use defaults.
@@ -63,7 +63,7 @@ Step-by-step guide: [Local dev from scratch](getting-started/local-dev-from-scra
 
 ## Installing odpm
 
-Platform and method overview: **[Installing odpm (all platforms)](install/README.md)**.
+Platform and method overview: **[Installing odpm (all platforms)](../install/README.md)**.
 
 ## Usage scenarios
 
@@ -75,7 +75,7 @@ The scenario is set by `ODPM_SCENARIO` in `.env`. Same `odpm.json`; different la
 | `server` | VM or customer server without debugger, restricted DB access |
 | `ci` | Baked image for continuous integration pipeline |
 
-Articles: [developer](scenarios/developer.md) · [server](scenarios/server.md) · [ci](scenarios/ci.md) · [team scaling](scenarios/scaling.md).
+Articles: [developer](../scenarios/developer.md) · [server](../scenarios/server.md) · [ci](../scenarios/ci.md) · [team scaling](../scenarios/scaling.md).
 
 ## Full documentation
 
@@ -84,18 +84,18 @@ Published site: **[English](https://aayartsev.github.io/odpm/en/)** (EN) · **[�
 | Topic | Link |
 |-------|------|
 | Legacy or inherited project | [legacy-project.md](getting-started/legacy-project.md) |
-| Team coordinator role | [team-coordinator.md](scenarios/team-coordinator.md) |
-| Custom Odoo platform fork | [platform-fork.md](scenarios/platform-fork.md) |
-| Git repository links (git, https, file) | [git-links.md](reference/git-links.md) |
-| All command-line options | [cli.md](reference/cli.md) |
+| Team coordinator role | [team-coordinator.md](../scenarios/team-coordinator.md) |
+| Custom Odoo platform fork | [platform-fork.md](../scenarios/platform-fork.md) |
+| Git repository links (git, https, file) | [git-links.md](../reference/git-links.md) |
+| All command-line options | [cli.md](../reference/cli.md) |
 | PostgreSQL state, drift, legacy adoption | [database-state.md](reference/database-state.md) |
-| `.env`, `odpm.json`, `odoo.conf` | [config hierarchy](reference/config-hierarchy.md) |
-| Server security | [security.md](operations/security.md) |
-| Migrating from 3.0 | [migration-3-to-4.md](operations/migration-3-to-4.md) |
+| `.env`, `odpm.json`, `odoo.conf` | [reference](../reference/config-hierarchy.md) |
+| Server security | [security.md](../operations/security.md) |
+| Migrating from 3.0 | [migration-3-to-4.md](../operations/migration-3-to-4.md) |
 
 ## For odpm contributors
 
-Contributing, tests, [demo-projects for manual E2E](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md), UI translations: [contributing/](https://github.com/aayartsev/odpm/tree/main/docs/contributing).
+Contributing, tests, UI translations: [contributing/](https://github.com/aayartsev/odpm/tree/main/docs/contributing).
 
 ## Project goals
 

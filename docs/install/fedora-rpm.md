@@ -16,27 +16,27 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 # ожидается fingerprint: 03040028F53D7AB8  Alexander Yartsev
 ```
 
-**Pre-release** (`v4.4-beta`, `*-beta`) — suite **`testing`** (сейчас пакеты здесь; `stable` — после финальных релизов):
+**Pre-release** (`v4.3-rc1`, `*-beta`) — suite **`testing`** (сейчас пакеты здесь; `stable` — после финальных релизов):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.4-dev/packaging/yum/odpm-testing.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-testing.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
 
-**Стабильные релизы** (`v4.4.x`, без `-rc`/`-beta`):
+**Стабильные релизы** (`v4.3.0`, без `-rc`/`-beta`):
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.4-dev/packaging/yum/odpm-stable.repo \
+sudo curl -fsSL https://raw.githubusercontent.com/aayartsev/odpm/4.3.0/packaging/yum/odpm-stable.repo \
   -o /etc/yum.repos.d/odpm.repo
 
 sudo dnf makecache
 sudo dnf install odpm
 ```
 
-> Ветка в URL (`4.4-dev`) — текущая линия разработки 4.4; в репозитории нет ветки `main`.
+> Ветка в URL (`4.3.0`) — текущая стабильная линия релиза; в репозитории нет ветки `main`.
 > Если `odpm-archive-keyring.asc` ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:
 >
 > ```bash
@@ -56,7 +56,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Установка вручную (.rpm с GitHub Releases)
 
-Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.4-dev` / `4.0-beta` / `4.0-rc1`, или соберите локально:
+Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases), из **Actions → Release packages → Artifacts** (`release-packages`) после push в `4.3.0` / `4.0-beta` / `4.0-rc1`, или соберите локально:
 
 ```bash
 ./scripts/build_rpm.sh

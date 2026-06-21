@@ -24,6 +24,7 @@ class ReleasePackagingVersionTests(unittest.TestCase):
     def test_odpm_version_aliases_release_version(self):
         self.assertEqual(constants.ODPM_VERSION, constants.RELEASE_VERSION)
         self.assertEqual(constants.RELEASE_VERSION, "4.4.2-beta")
+        self.assertEqual(constants.LATEST_STABLE_RELEASE, "4.3.0")
 
     def test_manifest_contract_line_stays_separate_from_product_version(self):
         self.assertEqual(constants.MANIFEST_V1_CONTRACT_LINE, "4.0")

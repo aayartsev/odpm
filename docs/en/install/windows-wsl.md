@@ -141,17 +141,17 @@ User home directory: `/home/odoo` (or your username). Linux filesystem root is `
 ```bash
 mkdir -p ~/projects
 cd ~/projects
-mkdir odoo_demo_project-19
-cd odoo_demo_project-19
+mkdir my-odoo-project-17
+cd my-odoo-project-17
 ```
 
-Initialize with the public demo repository (Odoo 19.0):
+Initialize (substitute **your** git repository):
 
 ```bash
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
+odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
 ```
 
-> Full walkthrough and other majors — [Local dev from scratch](../getting-started/local-dev-from-scratch.md), [demo-projects (RU)](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md).
+> Full walkthrough without a demo repo — [Local development from scratch](../getting-started/local-dev-from-scratch.md).
 
 The wizard will ask about directories and scenario; for unfamiliar items you can press **Enter** (defaults).
 
@@ -163,7 +163,7 @@ odpm -d test_db -i -u
 
 Browser: `http://127.0.0.1:8069`.
 
-Open the project folder in VS Code via **Open Folder** → `/home/odoo/projects/odoo_demo_project-19` (already in a WSL session).
+Open the project folder in VS Code via **Open Folder** → `/home/odoo/projects/my-odoo-project-17` (already in a WSL session).
 
 ---
 

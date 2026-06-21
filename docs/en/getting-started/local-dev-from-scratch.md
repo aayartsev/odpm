@@ -6,14 +6,11 @@ Typical path for a **developer** on their own machine. Usage scenario: **`ODPM_S
 
 ## Why a separate directory per Odoo version
 
-Create a disk folder for the project **environment**, not necessarily only module sources. A version suffix helps, e.g. `odoo_demo_project-19`: major versions differ enough that 17.0 and 19.0 deserve **separate** odpm directories even when modules share one git repo.
-
-For hands-on practice use public [odoo_demo_project](https://github.com/aayartsev/odoo_demo_project) (Odoo **19.0**). Wrappers for other majors and maintainer scenarios — [demo-projects (RU)](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md) only.
+Create a disk folder for the project **environment**, not necessarily only module sources. A version suffix helps, e.g. `my-odoo-project-17`: major versions differ enough that 16.0 and 17.0 deserve **separate** odpm directories even when modules share one git repo.
 
 ```bash
-mkdir -p "$HOME/projects/odoo_demo_project-19"
-cd "$HOME/projects/odoo_demo_project-19"
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
+mkdir my-odoo-project-17
+cd my-odoo-project-17
 ```
 
 odpm fills this folder with service files (`docker-compose.yml`, `user_settings.json`, `.odpm/`, etc.). Your **developing project** (modules) may live elsewhere or in another repo — odpm links it during init.
@@ -27,7 +24,7 @@ Open the folder in **Visual Studio Code** (File → Open Folder). The integrated
 ## Init from a git repository
 
 ```bash
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
+odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
 ```
 
 `--branch` is the **developing** repository branch. If omitted, the git server’s default branch is used.
