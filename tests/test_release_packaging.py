@@ -50,7 +50,7 @@ class ReleasePackagingVersionTests(unittest.TestCase):
     def test_rpm_spec_matches_release_line(self):
         spec = (PROJECT_ROOT / "packaging" / "odpm.spec").read_text(encoding="utf-8")
         rpm_version, rpm_release = rpm_version_and_release(constants.RELEASE_VERSION)
-        self.assertIn(f"Version:        %{{version}}", spec)
+        self.assertIn("Version:        %{version}", spec)
         self.assertIn(f"%global version {rpm_version}", spec)
         self.assertIn(f"%global release {rpm_release}", spec)
 

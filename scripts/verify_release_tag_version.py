@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from dev_project.constants import RELEASE_VERSION
+from dev_project.constants import RELEASE_VERSION  # noqa: E402
 
 
 def verify_release_tag_version(tag_version: str) -> None:

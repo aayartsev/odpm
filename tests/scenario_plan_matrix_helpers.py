@@ -15,7 +15,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.manifest.commands import run_manifest_command
 from dev_project.odpm_pipeline import OdpmPipeline
-from dev_project.plan import OdpmPlan, OdpmPlanner, format_plan
+from dev_project.plan import OdpmPlan, OdpmPlanner
 from dev_project.plan.format import format_plan_json, plan_has_required_changes
 from dev_project.prepare import evaluate_prepare_plan, make_prepare_context
 from dev_project.prepare.steps_compose import exec_compose_generate, exec_compose_service

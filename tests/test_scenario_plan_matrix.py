@@ -15,7 +15,6 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.plan import OdpmPlan, OdpmPlanner, PlanStep, format_plan
 from dev_project.plan.compose_runtime import PLAN_NO_DOCKER_WARNING
 from dev_project.prepare import make_prepare_context
-from dev_project.prepare.steps_compose import exec_compose_fragments
 from dev_project.project_env.secrets import import_secrets_from_path
 from tests.fixtures.minimal_odpm_fixture import provision_minimal_odpm_project
 from tests.scenario_plan_matrix_helpers import (
@@ -543,8 +542,6 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
     """Registry rows C7 and A16 compose content markers."""
 
     def test_c7_compose_markers_by_scenario(self) -> None:
-        from dev_project.compose.generator import ComposeGenerator
-        from dev_project.compose.start_command import ComposeOdooService
         from tests.test_compose_generator import ComposeGeneratorPolicyTests
 
         helper = ComposeGeneratorPolicyTests()
