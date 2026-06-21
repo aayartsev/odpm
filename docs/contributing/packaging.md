@@ -6,15 +6,15 @@ Workflow: [`.github/workflows/release-packages.yml`](../../.github/workflows/rel
 
 | Constant / artifact | Example | Meaning |
 |---------------------|---------|---------|
-| `RELEASE_VERSION` | `4.4.2` | Git tag (`v4.4.2`), deb/rpm filenames, GitHub Release title |
-| `ODPM_VERSION` | `4.4` | `odpm --version`, pip wheel metadata (manager line) |
-| `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new projects |
+| `RELEASE_VERSION` | `4.4.2` | **User-facing product version**: `odpm --version`, pip/PyPI wheel, git tag (`v4.4.2`), deb/rpm filenames |
+| `ODPM_VERSION` | `4.4.2` | Alias of `RELEASE_VERSION` (compat checks, new v2 `requires_odpm` defaults) |
+| `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new projects (format contract, not manager version) |
 | `manifest_schema` | `1`, `2` | Manifest shape in `odpm.json` (v2 field) |
-| `requires_odpm` | `4.4` | Minimum manager for manifest v2 |
+| `requires_odpm` | `4.4.2` | Minimum installed manager for manifest v2 (semver ≥) |
 
 See [ADR-001](adr-001-extensions-and-manifest-v2.md) for compatibility rules and v2 nested shape.
 
-Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release.
+Bump **`RELEASE_VERSION`** in `dev_project/constants/scenarios.py` (`ODPM_VERSION` follows automatically) and sync `debian/changelog` + `packaging/odpm.spec` for each native package release. Re-run [Publish PyPI](../../.github/workflows/publish-pypi.yml) when the pip wheel should match the same version.
 
 ## deb
 

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Unified user-facing version** — `ODPM_VERSION` aliases `RELEASE_VERSION` (`4.4.2`): `odpm --version`, pip/PyPI wheel, deb/rpm, and git tags now show the same value. Manifest contract `odpm_version: "4.0"` unchanged. Docs: `packaging.md`, ADR-001, `odpm-json.md`. Tests: `test_release_packaging.py`, `test_pyproject_packaging.py`.
+
 ## [4.4.2] - 2026-06-20
 
 **Patch release 4.4.2 on branch `4.4-dev`; manager `ODPM_VERSION` 4.4; flat v1 `odpm_version` contract remains `4.0`. Manifest v2 is opt-in (`manifest_schema: 2`). Ships debt-closure phases P1–P6 after `4.4.0-beta`; no breaking changes for existing v1 projects.**

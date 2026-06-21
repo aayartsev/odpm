@@ -7,7 +7,7 @@ odpm 4.4 поддерживает два формата:
 | Формат | Маркер | Когда использовать |
 |--------|--------|-------------------|
 | **v1 flat** (по умолчанию) | `odpm_version: "4.0"`, без `manifest_schema` | Существующие проекты, без изменений |
-| **v2 nested** | `manifest_schema: 2`, `requires_odpm: "4.4"` | `services`, `hooks`, `locks` в манифесте |
+| **v2 nested** | `manifest_schema: 2`, `requires_odpm: "4.4.2"` | `services`, `hooks`, `locks` в манифесте |
 
 Миграция: **`odpm manifest migrate`** — см. [manifest-migration.md](manifest-migration.md).
 
@@ -29,19 +29,19 @@ odpm 4.4 поддерживает два формата:
 
 ## Оси версий (manager vs manifest)
 
-В odpm три разные «версии» — не смешивайте их:
+У **продукта** одна версия; в **манифесте** — отдельные поля формата:
 
 | Константа / поле | Пример | Назначение |
 |------------------|--------|------------|
-| `ODPM_VERSION` | `"4.4"` | Версия **установленного менеджера** (`odpm --version`) |
+| `RELEASE_VERSION` / `ODPM_VERSION` | `"4.4.2"` | Версия **установленного менеджера** (`odpm --version`, pip, deb/rpm) |
 | `MANIFEST_V1_CONTRACT_LINE` | `"4.0"` | Строка `odpm_version`, которую odpm **пишет в новые** flat-проекты |
 | `DEFAULT_ODPM_VERSION` | `"3.0"` | **Legacy fallback**, если поле `odpm_version` **отсутствует** в flat v1 |
 
 Поведение compat (`dev_project/manifest/compat.py`):
 
-- Flat v1 **без** `manifest_schema` и **без** `odpm_version` → контракт считается `"3.0"` (поддерживается manager 4.4).
+- Flat v1 **без** `manifest_schema` и **без** `odpm_version` → контракт считается `"3.0"` (поддерживается manager 4.4.2).
 - Новые проекты и миграции → `odpm_version: "4.0"`.
-- v2 nested → `requires_odpm: "4.4"` (минимальная версия менеджера), не `odpm_version`.
+- v2 nested → `requires_odpm` (минимальная semver-версия менеджера; новые проекты получают текущий `RELEASE_VERSION`), не `odpm_version`.
 
 Проверка без bootstrap: **`odpm manifest validate`** (JSON Schema v1 или v2 + compat-check).
 
@@ -52,7 +52,7 @@ odpm 4.4 поддерживает два формата:
 | Блок / поле | Назначение |
 |-------------|------------|
 | `manifest_schema` | `2` |
-| `requires_odpm` | Минимальная версия odpm, напр. `"4.4"` |
+| `requires_odpm` | Минимальная версия odpm, напр. `"4.4.2"` |
 | `platform.git` | Аналог `odoo_git_link` |
 | `platform.build_date` | Аналог `odoo_build_date` |
 | `python` | Аналог `python_version` |

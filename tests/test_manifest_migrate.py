@@ -123,7 +123,7 @@ class ManifestMigrationDiffTests(unittest.TestCase):
         after = migrate_v1_flat_to_v2(copy.deepcopy(before))
         diff = format_manifest_migration_diff("/tmp/odpm.json", before, after)
         self.assertIn("manifest_schema", diff)
-        self.assertIn('"requires_odpm": "4.4"', diff)
+        self.assertIn(f'"requires_odpm": "{constants.ODPM_VERSION}"', diff)
 
 
 if __name__ == "__main__":

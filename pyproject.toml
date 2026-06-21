@@ -52,7 +52,7 @@ where = ["."]
 include = ["dev_project*"]
 
 [tool.setuptools.dynamic]
-version = { attr = "dev_project.constants.ODPM_VERSION" }
+version = { attr = "dev_project.constants.RELEASE_VERSION" }
 
 [tool.setuptools.package-data]
 dev_project = [

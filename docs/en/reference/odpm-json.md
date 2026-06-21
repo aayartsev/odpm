@@ -9,7 +9,7 @@ odpm 4.4 supports two formats:
 | Format | Marker | When to use |
 |--------|--------|-------------|
 | **v1 flat** (default) | `odpm_version: "4.0"`, no `manifest_schema` | Existing projects, unchanged |
-| **v2 nested** | `manifest_schema: 2`, `requires_odpm: "4.4"` | `services`, `hooks`, `locks` in the manifest |
+| **v2 nested** | `manifest_schema: 2`, `requires_odpm: "4.4.2"` | `services`, `hooks`, `locks` in the manifest |
 
 Migration: **`odpm manifest migrate`** — see [manifest-migration.md](manifest-migration.md).
 
@@ -31,19 +31,19 @@ Migration: **`odpm manifest migrate`** — see [manifest-migration.md](manifest-
 
 ## Version axes (manager vs manifest)
 
-odpm has three different “versions” — do not mix them:
+The **product** has one version; the **manifest** uses separate format fields:
 
 | Constant / field | Example | Purpose |
 |------------------|---------|---------|
-| `ODPM_VERSION` | `"4.4"` | **Installed manager** version (`odpm --version`) |
+| `RELEASE_VERSION` / `ODPM_VERSION` | `"4.4.2"` | **Installed manager** version (`odpm --version`, pip, deb/rpm) |
 | `MANIFEST_V1_CONTRACT_LINE` | `"4.0"` | `odpm_version` string odpm **writes to new** flat projects |
 | `DEFAULT_ODPM_VERSION` | `"3.0"` | **Legacy fallback** when `odpm_version` is **missing** in flat v1 |
 
 Compat behaviour (`dev_project/manifest/compat.py`):
 
-- Flat v1 **without** `manifest_schema` and **without** `odpm_version` → contract is treated as `"3.0"` (supported by manager 4.4).
+- Flat v1 **without** `manifest_schema` and **without** `odpm_version` → contract is treated as `"3.0"` (supported by manager 4.4.2).
 - New projects and migrations → `odpm_version: "4.0"`.
-- v2 nested → `requires_odpm: "4.4"` (minimum manager version), not `odpm_version`.
+- v2 nested → `requires_odpm` (minimum manager semver; new projects get current `RELEASE_VERSION`), not `odpm_version`.
 
 Validation without bootstrap: **`odpm manifest validate`** (JSON Schema v1 or v2 + compat-check).
 
@@ -54,7 +54,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | Block / field | Purpose |
 |---------------|---------|
 | `manifest_schema` | `2` |
-| `requires_odpm` | Minimum odpm version, e.g. `"4.4"` |
+| `requires_odpm` | Minimum odpm version, e.g. `"4.4.2"` |
 | `platform.git` | Analog of `odoo_git_link` |
 | `platform.build_date` | Analog of `odoo_build_date` |
 | `python` | Analog of `python_version` |

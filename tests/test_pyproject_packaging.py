@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from dev_project import constants
+
 try:
     import tomllib
 except ModuleNotFoundError:
@@ -59,7 +61,7 @@ class PyprojectPackagingTests(unittest.TestCase):
         dynamic = _load_pyproject()["project"]["dynamic"]
         self.assertIn("version", dynamic)
         version_attr = _load_pyproject()["tool"]["setuptools"]["dynamic"]["version"]["attr"]
-        self.assertEqual(version_attr, "dev_project.constants.ODPM_VERSION")
+        self.assertEqual(version_attr, "dev_project.constants.RELEASE_VERSION")
 
     def test_wheel_build_produces_single_wheel(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -97,6 +99,11 @@ class PyprojectPackagingTests(unittest.TestCase):
             wheels = list(dist_dir.glob("odpm-*.whl"))
             self.assertEqual(len(wheels), 1)
             self.assertTrue(wheels[0].name.endswith(".whl"))
+            version_token = constants.RELEASE_VERSION.replace(".", r"\.")
+            self.assertRegex(
+                wheels[0].name,
+                rf"^odpm-{version_token}-py3-none-any\.whl$",
+            )
 
 
 if __name__ == "__main__":

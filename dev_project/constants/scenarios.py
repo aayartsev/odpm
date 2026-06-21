@@ -14,10 +14,10 @@ VENV_MODE_BAKED = "baked"
 VENV_MODE_VALUES = frozenset((VENV_MODE_FRESH, VENV_MODE_BAKED))
 
 DEFAULT_ODPM_VERSION = "3.0"
-# Installed manager line (`odpm --version`, pip wheel metadata).
-ODPM_VERSION = "4.4"
-# Git tag and native package release line (deb/rpm); not the manifest schema version.
+# Single user-facing product version: CLI, pip/PyPI, deb/rpm, git tag (v{RELEASE_VERSION}).
 RELEASE_VERSION = "4.4.2"
+# Alias for installed manager version (`odpm --version`, compat checks, new manifest defaults).
+ODPM_VERSION = RELEASE_VERSION
 # Flat odpm.json → odpm_version written for new projects (manifest contract v1).
 MANIFEST_V1_CONTRACT_LINE = "4.0"
 MANIFEST_SCHEMA_V1 = 1

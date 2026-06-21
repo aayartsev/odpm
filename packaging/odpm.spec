@@ -1,6 +1,6 @@
 # odpm RPM spec — Fedora 40+ (host Python >= 3.10; pyproject PEP 517 macros).
 # Version/Release track dev_project.constants.RELEASE_VERSION (currently 4.4.2).
-# ODPM_VERSION (4.4) is the manager line; flat odpm.json contract line stays 4.0 until v2 migrate.
+# ODPM_VERSION aliases RELEASE_VERSION; flat odpm.json contract line stays 4.0 until v2 migrate.
 
 %global srcname odpm
 
