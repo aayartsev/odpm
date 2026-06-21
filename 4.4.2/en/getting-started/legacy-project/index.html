@@ -2089,9 +2089,9 @@
 </blockquote>
 <p>For joining an <strong>existing</strong> Odoo module repository — with or without <code>odpm.json</code> — rather than a greenfield tutorial setup.</p>
 <h2 id="prepare-the-environment-directory">Prepare the environment directory<a class="headerlink" href="#prepare-the-environment-directory" title="Permanent link">&para;</a></h2>
-<p>As with a new project, create a <strong>separate</strong> odpm environment directory (e.g. <code>client_addons-17</code>) and init from git:</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>client_addons-17<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>client_addons-17
-odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">17</span>.0
+<p>As with a new project, create a <strong>separate</strong> odpm environment directory (e.g. <code>client_addons-19</code>) and init from git:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>client_addons-19<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>client_addons-19
+odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
 </code></pre></div>
 <p>If the developing repo root already has <strong><code>odpm.json</code></strong>, odpm picks up versions and dependencies from it. If not, pass <code>--odoo-version</code> on <code>--init</code> or add <code>odoo_version</code> to the repo before connecting.</p>
 <h2 id="reading-error-messages">Reading error messages<a class="headerlink" href="#reading-error-messages" title="Permanent link">&para;</a></h2>

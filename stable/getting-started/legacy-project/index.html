@@ -2086,9 +2086,9 @@
 <h1 id="_1">Чужой или унаследованный проект<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>Статья для ситуации, когда вы подключаетесь к <strong>уже существующему</strong> репозиторию с модулями Odoo — со своим <code>odpm.json</code> или без него — а не создаёте окружение «с чистого листа» по учебному демо.</p>
 <h2 id="_2">Подготовка каталога окружения<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>Как и при новом проекте, создайте <strong>отдельный каталог</strong> odpm-окружения (например <code>client_addons-17</code>) и инициализируйте его ссылкой на git:</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>client_addons-17<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>client_addons-17
-odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">17</span>.0
+<p>Как и при новом проекте, создайте <strong>отдельный каталог</strong> odpm-окружения (например <code>client_addons-19</code>) и инициализируйте его ссылкой на git:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>client_addons-19<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>client_addons-19
+odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
 </code></pre></div>
 <p>Если в корне разрабатываемого репозитория уже есть <strong><code>odpm.json</code></strong>, odpm подхватит версии и зависимости оттуда. Если файла нет — укажите <code>--odoo-version</code> при <code>--init</code> или добавьте <code>odoo_version</code> в репозиторий до подключения.</p>
 <h2 id="_3">Как читать сообщения при ошибках<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
