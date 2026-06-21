@@ -4,14 +4,14 @@
 
 | Версия | Кому | Установка odpm |
 |--------|------|----------------|
-| **stable** (рекомендуется) | production, новые пользователи | APT suite `stable` (**4.4.2**), [релиз v4.4.2](https://github.com/aayartsev/odpm/releases/tag/v4.4.2) |
+| **stable** (рекомендуется) | production, новые пользователи | APT suite `stable` (**4.3.0**), [релиз v4.3.0](https://github.com/aayartsev/odpm/releases/tag/v4.3.0) |
 | **4.3** / **4.3.0** | остаётесь на линии 4.3.x | `.deb` / `.rpm` релиза 4.3.0 |
 | **4.4.2-beta** и др. `*-beta` | архив early adopters | APT suite `testing`, [релиз beta](https://github.com/aayartsev/odpm/releases/tag/v4.4.2-beta) |
 | **dev** | разработка odpm, HEAD `4.4-dev` | не для end-user production |
 
 ## Быстрые ссылки
 
-- Стабильная установка: `/stable/install/` (alias **stable**, сейчас **4.4.2**)
+- Стабильная установка: `/stable/install/` (alias **stable**, сейчас **4.3.0**)
 - Архив 4.3: `/4.3.0/install/` (alias **4.3** в переключателе)
 - Beta 4.4 (архив): `/4.4.2-beta/install/`
 - Разработка: `/dev/install/`

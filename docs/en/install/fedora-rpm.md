@@ -20,7 +20,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 
 ### Stable (recommended for production)
 
-Suite **`stable`** — currently odpm **4.4.2**:
+Suite **`stable`** — currently odpm **4.3.0**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
@@ -29,7 +29,7 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
 sudo dnf makecache
 sudo dnf install odpm
 odpm --version
-# expected: odpm version: 4.4.2
+# expected: odpm version: 4.3.0
 ```
 
 ### Pre-release (4.4 beta / RC)

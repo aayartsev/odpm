@@ -10,6 +10,10 @@ import dev_project.constants as constants
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
+@unittest.skipUnless(
+    constants.RELEASE_VERSION == "4.4.2",
+    "P4 stable prep applies only when RELEASE_VERSION is 4.4.2",
+)
 class ReleaseStableP4Tests(unittest.TestCase):
     def test_release_version_is_stable_4_4_2(self):
         self.assertEqual(constants.RELEASE_VERSION, "4.4.2")

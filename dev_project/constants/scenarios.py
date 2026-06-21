@@ -15,9 +15,9 @@ VENV_MODE_VALUES = frozenset((VENV_MODE_FRESH, VENV_MODE_BAKED))
 
 DEFAULT_ODPM_VERSION = "3.0"
 # Single user-facing product version: CLI, pip/PyPI, deb/rpm, git tag (v{RELEASE_VERSION}).
-RELEASE_VERSION = "4.4.2"
+RELEASE_VERSION = "4.4.2-beta"
 # Recommended stable line for install docs and mike `stable` alias (bump on stable tag only).
-LATEST_STABLE_RELEASE = "4.4.2"
+LATEST_STABLE_RELEASE = "4.3.0"
 # Alias for installed manager version (`odpm --version`, compat checks, new manifest defaults).
 ODPM_VERSION = RELEASE_VERSION
 # Flat odpm.json → odpm_version written for new projects (manifest contract v1).

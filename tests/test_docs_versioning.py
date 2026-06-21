@@ -43,8 +43,8 @@ class DocsVersioningTests(unittest.TestCase):
         self.assertIn("stable", banner.read_text(encoding="utf-8"))
 
     def test_latest_stable_release_constant(self):
-        self.assertEqual(constants.LATEST_STABLE_RELEASE, "4.4.2")
-        self.assertEqual(constants.LATEST_STABLE_RELEASE, constants.RELEASE_VERSION)
+        self.assertEqual(constants.LATEST_STABLE_RELEASE, "4.3.0")
+        self.assertNotEqual(constants.LATEST_STABLE_RELEASE, constants.RELEASE_VERSION)
 
     def test_bootstrap_prepare_scripts_exist(self):
         for name in ("prepare_bootstrap_docs.sh", "patch_mkdocs_bootstrap.py"):
