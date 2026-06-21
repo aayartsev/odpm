@@ -23,7 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 class ReleasePackagingVersionTests(unittest.TestCase):
     def test_odpm_version_aliases_release_version(self):
         self.assertEqual(constants.ODPM_VERSION, constants.RELEASE_VERSION)
-        self.assertEqual(constants.RELEASE_VERSION, "4.4.2")
+        self.assertEqual(constants.RELEASE_VERSION, "4.4.3-beta")
         self.assertEqual(constants.LATEST_STABLE_RELEASE, "4.4.2")
 
     def test_manifest_contract_line_stays_separate_from_product_version(self):
@@ -57,13 +57,14 @@ class ReleasePackagingVersionTests(unittest.TestCase):
 
     def test_release_version_parses_for_rpm(self):
         rpm_version, rpm_release = rpm_version_and_release(constants.RELEASE_VERSION)
-        self.assertEqual(rpm_version, "4.4.2")
-        self.assertEqual(rpm_release, "1")
+        self.assertEqual(rpm_version, "4.4.3")
+        self.assertEqual(rpm_release, "beta")
         base, suffix = parse_release_version(constants.RELEASE_VERSION)
-        self.assertEqual(base, "4.4.2")
-        self.assertIsNone(suffix)
+        self.assertEqual(base, "4.4.3")
+        self.assertEqual(suffix, "beta")
 
     def test_release_version_parses_for_debian(self):
+        self.assertEqual(debian_upstream_version("4.4.3-beta"), "4.4.3~beta")
         self.assertEqual(debian_upstream_version("4.4.2-beta"), "4.4.2~beta")
         self.assertEqual(debian_upstream_version("4.4.2"), "4.4.2")
 
@@ -76,7 +77,7 @@ class ReleasePackagingVersionTests(unittest.TestCase):
 
     def test_wheel_version_uses_pep440_normalization(self):
         self.assertEqual(str(Version("4.4.2-beta")), "4.4.2b0")
-        self.assertEqual(str(Version(constants.RELEASE_VERSION)), "4.4.2")
+        self.assertEqual(str(Version(constants.RELEASE_VERSION)), "4.4.3b0")
 
     def test_release_packages_prerelease_golden_path_gate(self):
         workflow = (

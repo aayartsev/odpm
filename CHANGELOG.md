@@ -8,9 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.4.3-beta] - 2026-06-21
+
+**Pre-release 4.4.3-beta** on branch `4.4.3-dev`; stable line remains **4.4.2** (`LATEST_STABLE_RELEASE`). Patch before planned stable **4.4.3**: debt remainder C-12 (plan boundary), L2 (opt-in locks sync), H (hygiene). No breaking changes for v1 `odpm.json`.
+
 ### Added
 
-- **Opt-in manifest locks sync (4.4.3)** — `--sync-manifest-locks` with `--update-lock` writes `locks.git` in manifest v2 (`developer` scenario) from collected `.odpm/deps.lock.json`; plan warning when sync is omitted. Docs: `deps-lock.md`, `manifest-migration.md`. Tests: `tests/test_manifest_locks_sync.py`.
+- **Opt-in manifest locks sync** — `--sync-manifest-locks` with `--update-lock` writes `locks.git` in manifest v2 (`developer` scenario) from collected `.odpm/deps.lock.json`; plan warning when sync is omitted. Docs: `deps-lock.md`, `manifest-migration.md`. Tests: `tests/test_manifest_locks_sync.py`.
 
 ### Changed
 

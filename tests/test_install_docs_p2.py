@@ -38,6 +38,7 @@ class InstallDocsP2Tests(unittest.TestCase):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             self.assertIn("4.4.2", text)
             self.assertIn("/odpm/stable/", text)
+            self.assertIn("/4.4.3-beta/", text)
             self.assertIn("/4.4.2-beta/", text)
             self.assertIn("documentation-versions", text)
 
@@ -50,9 +51,11 @@ class InstallDocsP2Tests(unittest.TestCase):
                     _LEGACY_DOC_URL.search(text),
                     msg=f"legacy flat docs URL in {path.name}",
                 )
-        beta = (notes_dir / "4.4.2-beta.md").read_text(encoding="utf-8")
+        beta = (notes_dir / "4.4.3-beta.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/stable/", beta)
-        self.assertIn("/odpm/4.4.2-beta/", beta)
+        self.assertIn("/odpm/4.4.3-beta/", beta)
+        archived = (notes_dir / "4.4.2-beta.md").read_text(encoding="utf-8")
+        self.assertIn("/odpm/4.4.2-beta/", archived)
 
     def test_finalize_publishes_yum_repo_templates(self):
         script = (PROJECT_ROOT / "scripts" / "mike_pages_finalize.sh").read_text(
