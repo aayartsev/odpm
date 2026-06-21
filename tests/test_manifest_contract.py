@@ -29,6 +29,8 @@ def _load_contract_modules() -> unittest.TestSuite:
         "tests.test_manifest_migrate",
         "tests.test_manifest_locks_sync",
         "tests.test_manifest_hooks",
+        "tests.test_plan_locks_preview",
+        "tests.test_plan_config_coupling",
         "tests.test_manifest_database_merge",
         "tests.test_compose_fragments",
         "tests.test_extension_entry_points",

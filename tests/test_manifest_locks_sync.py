@@ -111,6 +111,16 @@ class CompareManifestDepsLocksTests(unittest.TestCase):
 
 
 class DepsLockManagerDivergenceWarningTests(unittest.TestCase):
+    def setUp(self) -> None:
+        from dev_project.translations import update_locale
+
+        update_locale("en_US")
+
+    def tearDown(self) -> None:
+        from dev_project.translations import update_locale
+
+        update_locale("en_US")
+
     def test_verify_warns_when_manifest_and_deps_lock_differ(self):
         import tempfile
 
@@ -185,6 +195,73 @@ class DepsLockManagerManifestSourceTests(unittest.TestCase):
         assert lock is not None
         self.assertEqual(lock.platform.commit, "a" * 40)
         self.assertEqual(lock.dependencies[0].commit, "b" * 40)
+
+
+class DepsLockManagerApplyModeLogTests(unittest.TestCase):
+    def setUp(self) -> None:
+        from dev_project.translations import update_locale
+
+        update_locale("en_US")
+
+    def tearDown(self) -> None:
+        from dev_project.translations import update_locale
+
+        update_locale("en_US")
+
+    def test_enter_apply_mode_logs_manifest_source(self):
+        config = MagicMock()
+        config.project_dir = "/tmp/project"
+        config.policy.is_ci.return_value = False
+        config.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
+        config.dependencies = []
+        config.bootstrap.developing_project = None
+        config.bootstrap.manifest_view = ManifestView(
+            manifest_schema=constants.MANIFEST_SCHEMA_V2,
+            requires_odpm="4.4",
+            raw_normalized={},
+            locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
+        )
+
+        manager = DepsLockManager(config)
+        manager.load()
+        with self.assertLogs(
+            "dev_project.git.deps_lock_manager", level="INFO"
+        ) as logs:
+            manager.enter_apply_mode()
+
+        output = "\n".join(logs.output)
+        self.assertIn("manifest locks.git", output)
+        self.assertNotIn("Applying git dependency lock from /tmp", output)
+
+    def test_enter_apply_mode_logs_deps_file_path(self):
+        import tempfile
+
+        from dev_project.git.deps_lock import save_deps_lock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            config = MagicMock()
+            config.project_dir = tmp
+            config.policy.is_ci.return_value = False
+            config.bootstrap.manifest_view = None
+            save_deps_lock(
+                f"{tmp}/.odpm/deps.lock.json",
+                DepsLock(
+                    platform=LockEntry(
+                        url="https://github.com/odoo/odoo.git",
+                        commit="a" * 40,
+                    )
+                ),
+            )
+
+            manager = DepsLockManager(config)
+            manager.load()
+            with self.assertLogs(
+                "dev_project.git.deps_lock_manager", level="INFO"
+            ) as logs:
+                manager.enter_apply_mode()
+
+            output = "\n".join(logs.output)
+            self.assertIn(".odpm/deps.lock.json", output)
 
 
 class WriteManifestGitLocksTests(unittest.TestCase):

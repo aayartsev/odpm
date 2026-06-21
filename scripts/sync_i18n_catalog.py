@@ -21,6 +21,12 @@ RU_MESSAGES: dict[str, str] = {
         ' Файл с параметрами "config.json" является устаревшим. '
         "Пожалуйста обратитесь к документации "
     ),
+    "Applying git dependency lock from manifest locks.git in odpm.json": (
+        "Применение git lock из manifest locks.git в odpm.json"
+    ),
+    "Applying git dependency lock from {PATH}": (
+        "Применение git lock из {PATH}"
+    ),
     "Cannot connect to the Docker daemon. Is the docker daemon running?": (
         "Не удалось выполнить подключение к службе Docker. "
         "Проверьте запущена ли она."

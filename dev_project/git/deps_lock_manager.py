@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from ..errors import PipelineError
 from ..logging import get_module_logger
 from .. import constants
+from ..translations import _
 from ..manifest.locks import (
     LockSource,
     compare_manifest_and_deps_git_locks,
@@ -98,7 +99,16 @@ class DepsLockManager:
         if self._lock is None:
             return
         self._apply_mode = True
-        _logger.info("Applying git dependency lock from %s", self._path)
+        if self._lock_source == LockSource.MANIFEST:
+            _logger.info(
+                _(
+                    "Applying git dependency lock from manifest locks.git in odpm.json"
+                )
+            )
+        else:
+            _logger.info(
+                _("Applying git dependency lock from {PATH}").format(PATH=self._path)
+            )
 
     def apply_to_platform(self, platform: HandleOdooProjectLink) -> None:
         if not self._apply_mode or self._lock is None or self._lock.platform is None:
@@ -249,13 +259,16 @@ class DepsLockManager:
         )
         for detail in divergences:
             _logger.warning(
-                "manifest locks.git vs deps.lock.json differ: %s",
-                detail,
+                _("manifest locks.git vs deps.lock.json differ: {DETAIL}").format(
+                    DETAIL=detail
+                )
             )
         if divergences:
             _logger.warning(
-                "Canonical git pins: odpm.json locks.git; run --update-lock to "
-                "refresh .odpm/deps.lock.json"
+                _(
+                    "Canonical git pins: odpm.json locks.git; run --update-lock to "
+                    "refresh .odpm/deps.lock.json."
+                )
             )
 
     def _entry_from_project(self, project: HandleOdooProjectLink) -> LockEntry:
