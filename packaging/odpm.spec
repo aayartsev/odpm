@@ -4,7 +4,7 @@
 
 %global srcname odpm
 %global version 4.4.2
-%global release beta
+%global release 1
 
 Name:           %{srcname}
 Version:        %{version}
@@ -58,6 +58,8 @@ Host CLI uses PyPI or distribution Python packages for validation and plugins.
 %{python3_sitelib}/odpm-*.dist-info/
 
 %changelog
+* Sat Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.2-1
+- Stable release 4.4.2 (see CHANGELOG.md and .github/release-notes/4.4.2.md).
 * Sat Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.2-beta
 - Pre-release 4.4.2-beta before stable 4.4.2 (see CHANGELOG.md).
 * Mon Jun 08 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.3-rc1

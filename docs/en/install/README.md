@@ -1,7 +1,7 @@
 # Installing odpm
 
 !!! info "Use stable for production"
-    For production, read **[stable](https://aayartsev.github.io/odpm/stable/en/install/)** docs (currently odpm **4.3.0**) and the APT/YUM **`stable`** suite.
+    For production, read **[stable](https://aayartsev.github.io/odpm/stable/en/install/)** docs (currently odpm **4.4.2**) and the APT/YUM **`stable`** suite.
     Pre-releases (e.g. **4.4.2-beta**) use **`testing`** and archived **[4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/)** docs.
     See [Which docs to read](../getting-started/documentation-versions.md).
 

@@ -26,7 +26,7 @@ sudo gpg --no-default-keyring \
 
 ### Stable (recommended for production)
 
-Suite **`stable`** — currently odpm **4.3.0** (tag `v4.3.0`, without `-rc`/`-beta`):
+Suite **`stable`** — currently odpm **4.4.2** (tag `v4.4.2`, without `-rc`/`-beta`):
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -34,7 +34,7 @@ echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayar
 sudo apt update
 sudo apt install odpm
 odpm --version
-# expected: odpm version: 4.3.0
+# expected: odpm version: 4.4.2
 ```
 
 ### Pre-release (4.4 beta / RC)

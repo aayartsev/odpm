@@ -20,7 +20,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 
 ### Stable (рекомендуется для production)
 
-Suite **`stable`** — сейчас odpm **4.3.0**:
+Suite **`stable`** — сейчас odpm **4.4.2**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
@@ -29,7 +29,7 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
 sudo dnf makecache
 sudo dnf install odpm
 odpm --version
-# ожидается: odpm version: 4.3.0
+# ожидается: odpm version: 4.4.2
 ```
 
 ### Pre-release (4.4 beta / RC)
@@ -53,7 +53,7 @@ sudo dnf install odpm
 > gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
 > ```
 
-> Ветка в URL (`4.3.0`) — текущая стабильная линия релиза; в репозитории нет ветки `main`.
+> Ветка в URL (`4.4.2`) — текущая стабильная линия релиза; в репозитории нет ветки `main`.
 > Если `odpm-archive-keyring.asc` ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:
 >
 > ```bash

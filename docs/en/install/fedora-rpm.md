@@ -20,7 +20,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 
 ### Stable (recommended for production)
 
-Suite **`stable`** — currently odpm **4.3.0**:
+Suite **`stable`** — currently odpm **4.4.2**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
@@ -29,7 +29,7 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
 sudo dnf makecache
 sudo dnf install odpm
 odpm --version
-# expected: odpm version: 4.3.0
+# expected: odpm version: 4.4.2
 ```
 
 ### Pre-release (4.4 beta / RC)
@@ -53,7 +53,7 @@ Archived 4.4 beta docs: [4.4.2-beta install guide](https://aayartsev.github.io/o
 > gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
 > ```
 
-> The URL branch (`4.3.0`) is the current stable release line; there is no `main` branch in the repo.
+> The URL branch (`4.4.2`) is the current stable release line; there is no `main` branch in the repo.
 > If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
 >
 > ```bash

@@ -1,3 +1,10 @@
+odpm (4.4.2-1) unstable; urgency=medium
+
+  * Stable release 4.4.2 on branch 4.4-dev (see CHANGELOG.md and
+    .github/release-notes/4.4.2.md).
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Sat, 21 Jun 2026 18:00:00 +0000
+
 odpm (4.4.2~beta-1) unstable; urgency=medium
 
   * Pre-release 4.4.2-beta before stable 4.4.2 (see CHANGELOG.md).
