@@ -16,11 +16,11 @@
 ## Пример при инициализации
 
 ```bash
-odpm --init git@github.com:org/my_addons.git --branch 17.0 \
-  --odoo-version 17.0 \
-  --odoo-git-link 'git@github.com:org/odoo-17.git 17.0' \
+odpm --init git@github.com:org/my_addons.git --branch 19.0 \
+  --odoo-version 19.0 \
+  --odoo-git-link 'git@github.com:org/odoo-19.git 19.0' \
   --platform-name odoo \
-  --python-version 3.10 --distro-version 12
+  --python-version 3.12 --distro-version 12
 ```
 
 ## Ночные сборки и дата коммита

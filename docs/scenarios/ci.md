@@ -42,7 +42,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 ```bash
 export ODPM_SCENARIO=ci
 odpm --skip-start
-odpm --build-image --image-tag myregistry/client-odoo:17.0
+odpm --build-image --image-tag myregistry/client-odoo:19.0
 docker compose up -d
 odpm -d test_db -i --odoo-bin --stop-after-init
 ```

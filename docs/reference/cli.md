@@ -10,7 +10,7 @@
 |----------|----------|
 | `--init ССЫЛКА` | Сделать текущий каталог odpm-проектом. Ссылка: HTTPS, `git@…`, `file:///…` |
 | `--branch ИМЯ` | Вместе с `--init`: ветка **разрабатываемого** репозитория |
-| `--odoo-version ВЕР` | Версия Odoo (например `17.0`) в `odpm.json` |
+| `--odoo-version ВЕР` | Версия Odoo (например `19.0`) в `odpm.json` |
 | `--odoo-git-link ССЫЛКА` | Репозиторий **платформы** вместо официального odoo/odoo |
 | `--platform-name ИМЯ` | Имя Python-пакета форка (по умолчанию `odoo`) |
 | `--python-version ВЕР` | Версия Python в образе |
@@ -23,8 +23,8 @@
 Пример:
 
 ```bash
-odpm --init git@github.com:org/my_addons.git --branch 17.0 \
-  --odoo-version 17.0 --python-version 3.10 --distro-version 12
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 \
+  --odoo-version 19.0 --python-version 3.12 --distro-version 12
 ```
 
 Импорт секретов при развёртывании:

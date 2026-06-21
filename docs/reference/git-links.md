@@ -13,8 +13,8 @@
 После адреса через **пробел** можно указать **ветку** и при необходимости **коммит**:
 
 ```text
-git@github.com:org/odoo.git 17.0
-git@github.com:org/odoo.git 17.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
+git@github.com:org/odoo.git 19.0
+git@github.com:org/odoo.git 19.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
 ```
 
 ## Почему у `file://` три слэша подряд

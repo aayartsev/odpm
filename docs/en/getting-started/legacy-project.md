@@ -6,11 +6,11 @@ For joining an **existing** Odoo module repository — with or without `odpm.jso
 
 ## Prepare the environment directory
 
-As with a new project, create a **separate** odpm environment directory (e.g. `client_addons-17`) and init from git:
+As with a new project, create a **separate** odpm environment directory (e.g. `client_addons-19`) and init from git:
 
 ```bash
-mkdir client_addons-17 && cd client_addons-17
-odpm --init git@github.com:organization/client_addons.git --branch 17.0
+mkdir client_addons-19 && cd client_addons-19
+odpm --init git@github.com:organization/client_addons.git --branch 19.0
 ```
 
 If the developing repo root already has **`odpm.json`**, odpm picks up versions and dependencies from it. If not, pass `--odoo-version` on `--init` or add `odoo_version` to the repo before connecting.

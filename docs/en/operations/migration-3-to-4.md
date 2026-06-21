@@ -11,7 +11,7 @@ A 3.0 environment **must not be “upgraded in place”**. You need a **new proj
 1. **Back up the database** from the 3.0 environment:
    - with `odpm --db-backup` (if the old odpm is still available), or
    - with PostgreSQL tools (`pg_dump`).
-2. Create a **new** odpm environment directory (e.g. `project-17-v4/`).
+2. Create a **new** odpm environment directory (e.g. `project-19-v4/`).
 3. Install **odpm 4.x** — [installation](../install/README.md).
 4. Run `odpm --init` with the current repository and 4.x-format `odpm.json`.
 5. Bring up the environment and **restore the database**:

@@ -21,7 +21,7 @@ Migration: **`odpm manifest migrate`** — see [manifest-migration.md](manifest-
 | `distro_name` | Linux family (currently `"debian"` is supported) |
 | `distro_version` | Distribution version: `"11"`, `"12"`, `"bullseye"` |
 | `postgres_version` | PostgreSQL version in compose, e.g. `"15"` |
-| `odoo_version` | Odoo version: `"17.0"`, `"16.0"` |
+| `odoo_version` | Odoo version: `"19.0"`, `"18.0"` |
 | `dependencies` | List of git links to addon repositories |
 | `requirements_txt` | List of strings as in requirements.txt |
 | `odoo_git_link` | **Platform** repository; branch/commit after a space |
@@ -127,7 +127,7 @@ Example for a team manifest in git and local paths on a developer machine:
   "odoo_git_link": "file://${ODOO_PLATFORM_DIR}",
   "dependencies": [
     "file://${OCA_WEB_PATH}",
-    "https://${GIT_HOST}/company/extra.git 17.0"
+    "https://${GIT_HOST}/company/extra.git 19.0"
   ]
 }
 ```
@@ -147,7 +147,7 @@ See [`.env` variables](env-dotenv.md), [repository links](git-links.md).
 ## Verified combinations
 
 - **Debian 11:** Python 3.7, 3.10 — Odoo 11–16.
-- **Debian 12:** Python 3.10 — Odoo 16–17.
+- **Debian 12:** Python 3.10 — Odoo 16–19.
 - **Debian 13:** Python 3.10, 3.12.
 
 See [your own platform repository](../scenarios/platform-fork.md), [repository links](git-links.md).

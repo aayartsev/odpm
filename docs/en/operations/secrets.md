@@ -174,7 +174,7 @@ odpm --secrets-file /tmp/odpm-ci-secrets.json --skip-start
 
 # 2. Bake into the image (explicit opt-in)
 export ODPM_BAKE_SECRETS=1
-odpm --build-image --image-tag myregistry/client-odoo:17.0
+odpm --build-image --image-tag myregistry/client-odoo:19.0
 ```
 
 The image gets `COPY runtime/secrets.json → /run/odpm/secrets.json` and `ENV ODPM_SECRETS_PATH`. Without the flag or without `.odpm/secrets.json`, bake does not run.

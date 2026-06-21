@@ -8,7 +8,7 @@
 | `distro_name` | Семейство Linux (сейчас поддерживается `"debian"`) |
 | `distro_version` | Версия дистрибутива: `"11"`, `"12"`, `"bullseye"` |
 | `postgres_version` | Версия PostgreSQL в compose, напр. `"15"` |
-| `odoo_version` | Версия Odoo: `"17.0"`, `"16.0"` |
+| `odoo_version` | Версия Odoo: `"19.0"`, `"18.0"` |
 | `dependencies` | Список git-ссылок на репозитории дополнений |
 | `requirements_txt` | Список строк как в requirements.txt |
 | `odoo_git_link` | Репозиторий **платформы**; ветка/коммит через пробел |
@@ -36,7 +36,7 @@
   "odoo_git_link": "file://${ODOO_PLATFORM_DIR}",
   "dependencies": [
     "file://${OCA_WEB_PATH}",
-    "https://${GIT_HOST}/company/extra.git 17.0"
+    "https://${GIT_HOST}/company/extra.git 19.0"
   ]
 }
 ```
@@ -56,7 +56,7 @@ GIT_HOST=git.company.example
 ## Проверенные сочетания
 
 - **Debian 11:** Python 3.7, 3.10 — Odoo 11–16.
-- **Debian 12:** Python 3.10 — Odoo 16–17.
+- **Debian 12:** Python 3.10 — Odoo 16–19.
 - **Debian 13:** Python 3.10, 3.12.
 
 См. [свой репозиторий платформы](../scenarios/platform-fork.md), [ссылки на репозитории](git-links.md).

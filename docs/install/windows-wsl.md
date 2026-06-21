@@ -141,14 +141,14 @@ sudo apt install -y mc
 ```bash
 mkdir -p ~/projects
 cd ~/projects
-mkdir my-odoo-project-17
-cd my-odoo-project-17
+mkdir my-odoo-project-19
+cd my-odoo-project-19
 ```
 
 Инициализация (подставьте **свой** git-репозиторий ):
 
 ```bash
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 17.0
+odpm --init https://github.com/your-org/your-odoo-project.git --branch 19.0
 ```
 
 > Подробный сценарий без привязки к demo-репо — [Локальная разработка с нуля](../getting-started/local-dev-from-scratch.md).
@@ -163,7 +163,7 @@ odpm -d test_db -i -u
 
 Браузер: `http://127.0.0.1:8069`.
 
-Откройте каталог проекта в VS Code через **Open Folder** → `/home/odoo/projects/my-odoo-project-17` (уже в сессии WSL).
+Откройте каталог проекта в VS Code через **Open Folder** → `/home/odoo/projects/my-odoo-project-19` (уже в сессии WSL).
 
 ---
 
