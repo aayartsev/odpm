@@ -46,7 +46,7 @@ jobs:
         id: mike
         run: |
           set -euo pipefail
-            SITE_DIR="$(
+          SITE_DIR="$(
             ./scripts/mike_pages_deploy.sh dev \
               --title "Development" \
               --update-aliases | tee /dev/stderr |
