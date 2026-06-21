@@ -1,18 +1,18 @@
 Package: odpm
-Version: 4.4.2~beta-1
+Version: 4.4.3~beta-1
 Architecture: all
 Maintainer: odpm maintainers <odpm-maintainers@noreply.github.com>
-Installed-Size: 902
+Installed-Size: 909
 Depends: python3-jsonschema, python3-packaging, python3-pluggy, python3:any (>= 3.10~), git
 Recommends: docker.io | moby-engine | docker-ce
 Homepage: https://github.com/aayartsev/odpm
 Priority: optional
 Section: python
-Filename: pool/main/o/odpm/odpm_4.4.2~beta-1_all.deb
-Size: 144028
-SHA256: 395a9e3fcdb44fbaee05f3ddd97cc9db503303f55e9714a4aa1f00679d93301a
-SHA1: c2ab22793ff3992cc5738045f6b0ae6f65deb2c7
-MD5sum: 4362f96f7c563bd42f748b0a22571fbd
+Filename: pool/main/o/odpm/odpm_4.4.3~beta-1_all.deb
+Size: 145242
+SHA256: 924ad6b2451473e442502474caaaf0d504b33b127e0124e9c8ed23e3d220a1b5
+SHA1: 4214d2b4a659d8b447b2412a35dbcf375a6fe687
+MD5sum: 8b0759d4215c55de3f79f84851acc3c8
 Description: Odoo Developers Project Manager
  Declarative environment manager for Odoo development projects.
  Reads odpm.json from a project repository and prepares Docker-based
