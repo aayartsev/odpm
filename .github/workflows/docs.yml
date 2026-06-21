@@ -38,32 +38,10 @@ jobs:
         run: mkdocs build --strict
 
       - name: Preserve published APT repo on Pages
-        run: |
-          set -euo pipefail
-          BASE="https://aayartsev.github.io/odpm/apt"
-          if curl -fsSL "${BASE}/dists/stable/Release" -o /tmp/apt-release 2>/dev/null || \
-             curl -fsSL "${BASE}/dists/testing/Release" -o /tmp/apt-release 2>/dev/null; then
-            mkdir -p site/apt
-            wget -q -r -np -nH --cut-dirs=2 -P site/apt "${BASE}/" || true
-            echo "Preserved apt/ from live Pages"
-            find site/apt -type f | head -20
-          else
-            echo "No live apt repo yet; skipping preserve"
-          fi
+        run: ./scripts/fetch_pages_repo.sh apt site/apt
 
       - name: Preserve published YUM repo on Pages
-        run: |
-          set -euo pipefail
-          BASE="https://aayartsev.github.io/odpm/yum"
-          if curl -fsSL "${BASE}/stable/repodata/repomd.xml" -o /tmp/yum-repomd 2>/dev/null || \
-             curl -fsSL "${BASE}/testing/repodata/repomd.xml" -o /tmp/yum-repomd 2>/dev/null; then
-            mkdir -p site/yum
-            wget -q -r -np -nH --cut-dirs=2 -P site/yum "${BASE}/" || true
-            echo "Preserved yum/ from live Pages"
-            find site/yum -type f | head -20
-          else
-            echo "No live yum repo yet; skipping preserve"
-          fi
+        run: ./scripts/fetch_pages_repo.sh yum site/yum
 
       - uses: actions/configure-pages@v5
 

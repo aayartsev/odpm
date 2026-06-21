@@ -193,22 +193,30 @@ jobs:
           sudo apt-get install -y -qq reprepro gnupg createrepo-c rpm
           ./scripts/import_apt_signing_key.sh
 
+      - name: Fetch live APT repo from Pages
+        if: startsWith(github.ref, 'refs/tags/')
+        run: ./scripts/fetch_pages_repo.sh apt apt-repo-out
+
       - name: Build signed APT repository
         if: startsWith(github.ref, 'refs/tags/')
         env:
           APT_REPO_GPG_PASSPHRASE: ${{ secrets.APT_REPO_GPG_PASSPHRASE }}
         run: |
-          ./scripts/build_apt_repo.sh \
+          ./scripts/build_apt_repo.sh --merge \
             "${{ steps.release_meta.outputs.apt_suite }}" \
             dist/odpm_*.deb \
             apt-repo-out
+
+      - name: Fetch live YUM repo from Pages
+        if: startsWith(github.ref, 'refs/tags/')
+        run: ./scripts/fetch_pages_repo.sh yum yum-repo-out
 
       - name: Build signed YUM repository
         if: startsWith(github.ref, 'refs/tags/')
         env:
           APT_REPO_GPG_PASSPHRASE: ${{ secrets.APT_REPO_GPG_PASSPHRASE }}
         run: |
-          ./scripts/build_yum_repo.sh \
+          ./scripts/build_yum_repo.sh --merge \
             "${{ steps.release_meta.outputs.apt_suite }}" \
             yum-repo-out \
             dist/odpm-*.rpm
@@ -448,26 +456,17 @@ jobs:
           name: yum-repo
           path: yum-repo-out
 
-      - name: Merge APT repo into site
-        run: |
-          set -euo pipefail
-          mkdir -p site/apt
-          cp -a apt-repo-out/dists site/apt/
-          cp -a apt-repo-out/pool site/apt/
-          cp apt-repo-out/odpm-archive-keyring.gpg site/apt/
-          find site/apt -type f | sort
+      - name: Preserve published APT repo on Pages
+        run: ./scripts/fetch_pages_repo.sh apt site/apt
 
-      - name: Merge YUM repo into site
-        run: |
-          set -euo pipefail
-          mkdir -p site/yum
-          cp yum-repo-out/odpm-archive-keyring.asc site/yum/
-          for suite in stable testing; do
-            if [[ -d yum-repo-out/${suite} ]]; then
-              cp -a "yum-repo-out/${suite}" "site/yum/${suite}"
-            fi
-          done
-          find site/yum -type f | sort
+      - name: Preserve published YUM repo on Pages
+        run: ./scripts/fetch_pages_repo.sh yum site/yum
+
+      - name: Overlay release APT artifact
+        run: ./scripts/overlay_pages_repo.sh apt site/apt apt-repo-out
+
+      - name: Overlay release YUM artifact
+        run: ./scripts/overlay_pages_repo.sh yum site/yum yum-repo-out
 
       - uses: actions/configure-pages@v5
 

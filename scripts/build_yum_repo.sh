@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+MERGE=false
+if [[ "${1:-}" == "--merge" ]]; then
+    MERGE=true
+    shift
+fi
+
 SUITE="${1:?suite (stable|testing)}"
 OUT="${2:?output directory}"
 shift 2
 
 if [[ $# -lt 1 ]]; then
-    echo "usage: build_yum_repo.sh SUITE OUT RPM [RPM...]" >&2
+    echo "usage: build_yum_repo.sh [--merge] SUITE OUT RPM [RPM...]" >&2
     exit 1
 fi
 
@@ -63,7 +69,13 @@ cat > "${RPMMACROS}" <<EOF
 %__gpg $(command -v gpg)
 EOF
 
-rm -rf "${OUT}"
+if [[ "${MERGE}" == true && -d "${OUT}" ]]; then
+    echo "YUM merge mode: preserving existing suites in ${OUT}"
+else
+    rm -rf "${OUT}"
+    mkdir -p "${OUT}"
+fi
+
 mkdir -p "${OUT}/${SUITE}/packages"
 # RPM/DNF expect an ASCII-armored public key; APT uses the binary keyring in packaging/apt/.
 gpg --no-default-keyring --keyring "${KEYRING}" --export --armor \
@@ -101,5 +113,9 @@ gpg --batch --yes --pinentry-mode loopback \
     -o "${OUT}/${SUITE}/repodata/repomd.xml.asc" \
     "${REPOMD}"
 
-echo "YUM repo ready in ${OUT} (suite=${SUITE})"
+if [[ "${MERGE}" == true ]]; then
+    echo "YUM repo merged in ${OUT} (suite=${SUITE})"
+else
+    echo "YUM repo ready in ${OUT} (suite=${SUITE})"
+fi
 find "${OUT}" -type f | sort

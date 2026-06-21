@@ -95,7 +95,7 @@ class YumRepoPackagingTests(unittest.TestCase):
         script = (PROJECT_ROOT / "scripts" / "build_yum_repo.sh").read_text(
             encoding="utf-8"
         )
-        self.assertIn("build_yum_repo.sh SUITE OUT RPM [RPM...]", script)
+        self.assertIn("build_yum_repo.sh [--merge] SUITE OUT RPM [RPM...]", script)
 
     def test_public_keyring_lists_odpm_signing_key(self):
         keyring = PROJECT_ROOT / "packaging" / "apt" / "odpm-archive-keyring.gpg"
