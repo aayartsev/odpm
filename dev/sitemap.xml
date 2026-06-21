@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/getting-started/beginner-friendly/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/getting-started/beginner-friendly/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/getting-started/beginner-friendly/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/getting-started/documentation-versions/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/getting-started/documentation-versions/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/getting-started/documentation-versions/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/getting-started/legacy-project/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/getting-started/legacy-project/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/getting-started/legacy-project/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/getting-started/local-dev-from-scratch/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/getting-started/local-dev-from-scratch/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/getting-started/local-dev-from-scratch/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/getting-started/why-odpm/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/getting-started/why-odpm/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/getting-started/why-odpm/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/install/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/install/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/install/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/install/fedora-rpm/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/install/fedora-rpm/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/install/fedora-rpm/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/install/linux-deb/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/install/linux-deb/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/install/linux-deb/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/install/macos-pipx/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/install/macos-pipx/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/install/macos-pipx/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/install/pip-legacy/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/install/pip-legacy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/install/pip-legacy/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/install/windows-wsl/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/install/windows-wsl/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/install/windows-wsl/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/operations/migration-3-to-4/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/operations/migration-3-to-4/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/operations/migration-3-to-4/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/operations/non-interactive/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/operations/non-interactive/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/operations/non-interactive/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/operations/secrets/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/operations/secrets/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/operations/secrets/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/operations/security/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/operations/security/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/operations/security/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/operations/vscode-debug/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/operations/vscode-debug/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/operations/vscode-debug/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/cli/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/cli/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/cli/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/config-hierarchy/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/config-hierarchy/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/config-hierarchy/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/config-split/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/config-split/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/config-split/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/database-state/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/database-state/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/database-state/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/deps-lock/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/deps-lock/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/deps-lock/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/env-dotenv/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/env-dotenv/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/env-dotenv/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/generated-files/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/generated-files/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/generated-files/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/git-links/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/git-links/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/git-links/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/locale/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/locale/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/locale/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/manifest-migration/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/manifest-migration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/manifest-migration/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/odoo-conf/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/odoo-conf/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/odoo-conf/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/odpm-json/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/odpm-json/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/odpm-json/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/plugins/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/plugins/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/plugins/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/project-layout/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/project-layout/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/project-layout/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/tools-by-scenario/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/tools-by-scenario/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/tools-by-scenario/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/user-settings/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/user-settings/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/user-settings/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/scenarios/ci/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/scenarios/ci/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/scenarios/ci/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/scenarios/developer/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/scenarios/developer/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/scenarios/developer/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/scenarios/platform-fork/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/scenarios/platform-fork/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/scenarios/platform-fork/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/scenarios/scaling/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/scenarios/scaling/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/scenarios/scaling/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/scenarios/server/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/scenarios/server/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/scenarios/server/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/scenarios/team-coordinator/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/scenarios/team-coordinator/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/scenarios/team-coordinator/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/getting-started/beginner-friendly/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/getting-started/beginner-friendly/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devgetting-started/beginner-friendly/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/getting-started/documentation-versions/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/getting-started/documentation-versions/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devgetting-started/documentation-versions/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/getting-started/legacy-project/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/getting-started/legacy-project/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devgetting-started/legacy-project/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/getting-started/local-dev-from-scratch/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/getting-started/local-dev-from-scratch/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devgetting-started/local-dev-from-scratch/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/getting-started/why-odpm/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/getting-started/why-odpm/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devgetting-started/why-odpm/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/install/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/install/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devinstall/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/install/fedora-rpm/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/install/fedora-rpm/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devinstall/fedora-rpm/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/install/linux-deb/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/install/linux-deb/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devinstall/linux-deb/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/install/macos-pipx/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/install/macos-pipx/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devinstall/macos-pipx/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/install/pip-legacy/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/install/pip-legacy/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devinstall/pip-legacy/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/install/windows-wsl/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/install/windows-wsl/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devinstall/windows-wsl/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/operations/migration-3-to-4/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/operations/migration-3-to-4/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devoperations/migration-3-to-4/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/operations/non-interactive/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/operations/non-interactive/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devoperations/non-interactive/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/operations/secrets/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/operations/secrets/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devoperations/secrets/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/operations/security/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/operations/security/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devoperations/security/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/operations/vscode-debug/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/operations/vscode-debug/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devoperations/vscode-debug/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/cli/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/cli/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/cli/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/config-hierarchy/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/config-hierarchy/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/config-hierarchy/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/config-split/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/config-split/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/config-split/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/database-state/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/database-state/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/database-state/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/deps-lock/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/deps-lock/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/deps-lock/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/env-dotenv/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/env-dotenv/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/env-dotenv/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/generated-files/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/generated-files/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/generated-files/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/git-links/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/git-links/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/git-links/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/locale/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/locale/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/locale/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/manifest-migration/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/manifest-migration/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/manifest-migration/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/odoo-conf/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/odoo-conf/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/odoo-conf/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/odpm-json/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/odpm-json/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/odpm-json/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/plugins/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/plugins/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/plugins/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/project-layout/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/project-layout/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/project-layout/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/tools-by-scenario/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/tools-by-scenario/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/tools-by-scenario/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/user-settings/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/user-settings/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/user-settings/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/scenarios/ci/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/scenarios/ci/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devscenarios/ci/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/scenarios/developer/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/scenarios/developer/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devscenarios/developer/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/scenarios/platform-fork/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/scenarios/platform-fork/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devscenarios/platform-fork/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/scenarios/scaling/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/scenarios/scaling/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devscenarios/scaling/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/scenarios/server/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/scenarios/server/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devscenarios/server/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/scenarios/team-coordinator/</loc>
+        <lastmod>2026-06-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/scenarios/team-coordinator/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devscenarios/team-coordinator/"/>
+    </url>
+</urlset>
