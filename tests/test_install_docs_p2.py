@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+_LEGACY_DOC_URL = re.compile(
+    r"https://aayartsev\.github\.io/odpm/"
+    r"(?!stable/|4\.|dev/|apt/|yum/)"
+)
 
 
 class InstallDocsP2Tests(unittest.TestCase):
@@ -36,12 +42,17 @@ class InstallDocsP2Tests(unittest.TestCase):
             self.assertIn("documentation-versions", text)
 
     def test_release_notes_use_versioned_doc_urls(self):
-        notes = (
-            PROJECT_ROOT / ".github" / "release-notes" / "4.4.2-beta.md"
-        ).read_text(encoding="utf-8")
-        self.assertIn("/odpm/stable/", notes)
-        self.assertIn("/odpm/4.4.2-beta/", notes)
-        self.assertNotIn("https://aayartsev.github.io/odpm/install/", notes)
+        notes_dir = PROJECT_ROOT / ".github" / "release-notes"
+        for path in sorted(notes_dir.glob("*.md")):
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(release_notes=path.name):
+                self.assertIsNone(
+                    _LEGACY_DOC_URL.search(text),
+                    msg=f"legacy flat docs URL in {path.name}",
+                )
+        beta = (notes_dir / "4.4.2-beta.md").read_text(encoding="utf-8")
+        self.assertIn("/odpm/stable/", beta)
+        self.assertIn("/odpm/4.4.2-beta/", beta)
 
     def test_finalize_publishes_yum_repo_templates(self):
         script = (PROJECT_ROOT / "scripts" / "mike_pages_finalize.sh").read_text(
