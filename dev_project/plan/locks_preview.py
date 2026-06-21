@@ -5,23 +5,28 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..git.deps_lock import deps_lock_path, load_deps_lock
+from ..host.context import HostProjectContext
 from ..manifest.locks import (
     LockSource,
     compare_manifest_and_deps_git_locks,
-    manifest_git_locks_from_config,
-    resolve_lock_source,
+    manifest_git_locks_from_view,
+    resolve_lock_source_from_view,
 )
 from ..translations import _
 from .core import deps_lock_file_exists
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..manifest.reader import ManifestView
 
 
-def collect_git_lock_warnings(config: Config) -> tuple[str, ...]:
+def collect_git_lock_warnings(
+    host_ctx: HostProjectContext,
+    manifest_view: ManifestView | None = None,
+) -> tuple[str, ...]:
     """Warnings about lock source and manifest vs deps.lock drift."""
+    project_dir = host_ctx.project_dir
     warnings: list[str] = []
-    source = resolve_lock_source(config)
+    source = resolve_lock_source_from_view(manifest_view)
 
     if source == LockSource.MANIFEST:
         warnings.append(
@@ -31,7 +36,7 @@ def collect_git_lock_warnings(config: Config) -> tuple[str, ...]:
                 ".odpm/deps.lock.json."
             )
         )
-    elif deps_lock_file_exists(config.project_dir):
+    elif deps_lock_file_exists(project_dir):
         warnings.append(
             _(
                 "Git lock source: .odpm/deps.lock.json; run --update-lock after "
@@ -39,16 +44,16 @@ def collect_git_lock_warnings(config: Config) -> tuple[str, ...]:
             )
         )
 
-    if source != LockSource.MANIFEST or not deps_lock_file_exists(config.project_dir):
+    if source != LockSource.MANIFEST or not deps_lock_file_exists(project_dir):
         return tuple(warnings)
 
     try:
-        file_lock = load_deps_lock(deps_lock_path(config.project_dir))
+        file_lock = load_deps_lock(deps_lock_path(project_dir))
     except ValueError:
         return tuple(warnings)
 
     divergences = compare_manifest_and_deps_git_locks(
-        manifest_git_locks_from_config(config),
+        manifest_git_locks_from_view(manifest_view),
         file_lock,
     )
     for detail in divergences:

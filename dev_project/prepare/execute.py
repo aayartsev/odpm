@@ -95,7 +95,7 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     warnings.extend(
         collect_database_drift_warnings_for_host(ctx.host_ctx, ctx.config)
     )
-    warnings.extend(collect_git_lock_warnings(ctx.config))
+    warnings.extend(collect_git_lock_warnings(ctx.host_ctx, ctx.manifest_view))
     return tuple(warnings)
 
 

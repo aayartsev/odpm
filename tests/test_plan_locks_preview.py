@@ -7,21 +7,43 @@ from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.git.deps_lock import DepsLock, LockEntry, save_deps_lock
+from dev_project.host.context import HostProjectContext
 from dev_project.manifest.reader import ManifestView
 from dev_project.plan.locks_preview import collect_git_lock_warnings
+from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.translations import update_locale
+
+
+def _host_ctx(project_dir: str) -> HostProjectContext:
+    return HostProjectContext(
+        project_dir=project_dir,
+        program_dir="/opt/odpm",
+        config_home_dir="/home/user/.config/odpm",
+        policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO),
+        user_env=MagicMock(),
+        arguments=MagicMock(),
+        user_settings=MagicMock(),
+        project_settings=MagicMock(),
+        docker_layout=MagicMock(),
+        addon_layout=MagicMock(),
+    )
 
 
 class GitLockPlanWarningsTests(unittest.TestCase):
+    def setUp(self) -> None:
+        update_locale("en_US")
+
+    def tearDown(self) -> None:
+        update_locale("en_US")
+
     def test_manifest_source_warning(self):
-        config = MagicMock()
-        config.project_dir = "/tmp/project"
-        config.bootstrap.manifest_view = ManifestView(
+        manifest_view = ManifestView(
             manifest_schema=constants.MANIFEST_SCHEMA_V2,
             requires_odpm="4.4",
             raw_normalized={},
             locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
         )
-        warnings = collect_git_lock_warnings(config)
+        warnings = collect_git_lock_warnings(_host_ctx("/tmp/project"), manifest_view)
         self.assertTrue(
             any("manifest locks.git" in warning for warning in warnings)
         )
@@ -30,9 +52,7 @@ class GitLockPlanWarningsTests(unittest.TestCase):
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
-            config = MagicMock()
-            config.project_dir = tmp
-            config.bootstrap.manifest_view = ManifestView(
+            manifest_view = ManifestView(
                 manifest_schema=constants.MANIFEST_SCHEMA_V2,
                 requires_odpm="4.4",
                 raw_normalized={},
@@ -47,7 +67,7 @@ class GitLockPlanWarningsTests(unittest.TestCase):
                     )
                 ),
             )
-            warnings = collect_git_lock_warnings(config)
+            warnings = collect_git_lock_warnings(_host_ctx(tmp), manifest_view)
             self.assertTrue(
                 any("manifest locks.git vs deps.lock.json differ" in warning
                     for warning in warnings)

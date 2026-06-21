@@ -68,14 +68,24 @@ def project_template_needs_upgrade(
 
 
 def runtime_config_stale(config: Config) -> bool:
-    path = runtime_config_path(config.project_dir)
+    return runtime_config_stale_for_project(
+        config.project_dir,
+        config.compute_venv_lock_hash(),
+    )
+
+
+def runtime_config_stale_for_project(
+    project_dir: str,
+    expected_venv_lock_hash: str,
+) -> bool:
+    path = runtime_config_path(project_dir)
     if not os.path.isfile(path):
         return True
     try:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError, UnicodeDecodeError):
         return True
-    return payload.get("venv_lock_hash") != config.compute_venv_lock_hash()
+    return payload.get("venv_lock_hash") != expected_venv_lock_hash
 
 
 def dockerfile_template_relative(config: Config) -> str:

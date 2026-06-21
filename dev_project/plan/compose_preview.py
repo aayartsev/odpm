@@ -12,7 +12,7 @@ from ..compose.service_builder import ComposeServiceBuilder
 from ..compose.start_command import ComposeOdooService
 from ..config.payload import runtime_config_path
 from ..inside_docker_app.exceptions import ConfigValidationError
-from .core import project_template_needs_upgrade, runtime_config_stale
+from .core import project_template_needs_upgrade, runtime_config_stale_for_project
 from .runtime_preview import (
     format_runtime_config_payload,
     normalized_runtime_config_text_from_disk,
@@ -77,23 +77,25 @@ def compose_start_command_changed(config: Config) -> bool:
 
 
 def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
-    config = ctx.config
     host = ctx.host_ctx
-    if runtime_config_stale(config):
+    if runtime_config_stale_for_project(
+        host.project_dir,
+        ctx.compute_venv_lock_hash(),
+    ):
         return True, "venv_lock_hash changed"
     runtime_path = runtime_config_path(host.project_dir)
     if os.path.isfile(runtime_path):
         try:
-            preview = preview_runtime_config_text(config)
+            preview = ctx.plan_runtime_config_preview_text()
             on_disk = normalized_runtime_config_text_from_disk(
                 host.project_dir,
-                config=config,
+                config=ctx.runtime_preview_cache_config(),
             )
             if preview is not None and preview != on_disk:
                 return True, "runtime config payload changed"
         except (OSError, TypeError, ValueError, ConfigValidationError):
             pass
-    if compose_start_command_changed(config):
+    if ctx.plan_compose_start_command_changed():
         return True, "compose start command changed"
     return False, "runtime config and start command unchanged"
 
@@ -132,7 +134,7 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
     if not _project_env_has_volume_map(ctx):
         return False
     try:
-        preview_compose_service(ctx.config)
+        ctx.plan_preview_compose_service()
         preview = ctx.compose_generator.render_docker_compose_content()
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         return False

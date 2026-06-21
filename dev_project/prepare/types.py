@@ -43,6 +43,32 @@ class PrepareContext:
     def git_repos(self) -> GitRepoCoordinator:
         return self.config._git_repos
 
+    @property
+    def manifest_view(self):
+        return self.config.bootstrap.manifest_view
+
+    def compute_venv_lock_hash(self) -> str:
+        return self.config.compute_venv_lock_hash()
+
+    def runtime_preview_cache_config(self) -> Config:
+        """Config handle used only for plan runtime preview disk cache."""
+        return self.config
+
+    def plan_runtime_config_preview_text(self) -> str | None:
+        from ..plan.compose_preview import preview_runtime_config_text
+
+        return preview_runtime_config_text(self.config)
+
+    def plan_compose_start_command_changed(self) -> bool:
+        from ..plan.compose_preview import compose_start_command_changed
+
+        return compose_start_command_changed(self.config)
+
+    def plan_preview_compose_service(self):
+        from ..plan.compose_preview import preview_compose_service
+
+        return preview_compose_service(self.config)
+
     def rebuild_compose_template(self) -> None:
         self.config.pd_manager.rebuild_docker_compose_template()
 

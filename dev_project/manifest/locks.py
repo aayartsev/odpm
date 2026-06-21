@@ -15,6 +15,7 @@ from ..git.deps_lock import (
 
 if TYPE_CHECKING:
     from ..config import Config
+    from .reader import ManifestView
 
 
 class LockSource(str, Enum):
@@ -80,16 +81,20 @@ def compare_manifest_and_deps_git_locks(
     return divergences
 
 
-def manifest_git_locks_from_config(config: Config) -> dict[str, str]:
+def manifest_git_locks_from_view(manifest_view: ManifestView | None) -> dict[str, str]:
     """Return manifest ``locks.git`` map when present on a v2 manifest."""
-    view = config.bootstrap.manifest_view
-    if view is None:
+    if manifest_view is None:
         return {}
-    locks = view.locks or {}
+    locks = manifest_view.locks or {}
     git_locks = locks.get("git")
     if not isinstance(git_locks, dict):
         return {}
     return {str(key): str(value) for key, value in git_locks.items()}
+
+
+def manifest_git_locks_from_config(config: Config) -> dict[str, str]:
+    """Return manifest ``locks.git`` map when present on a v2 manifest."""
+    return manifest_git_locks_from_view(config.bootstrap.manifest_view)
 
 
 def manifest_locks_from_deps_lock(lock: DepsLock) -> dict[str, Any]:
@@ -138,15 +143,22 @@ def deps_lock_from_manifest_git_locks(
     )
 
 
-def resolve_lock_source(config: Config) -> LockSource:
+def resolve_lock_source_from_view(manifest_view: ManifestView | None) -> LockSource:
     """Prefer manifest ``locks.git`` on v2 manifests; otherwise deps.lock.json."""
-    view = config.bootstrap.manifest_view
-    if view is not None and view.manifest_schema == constants.MANIFEST_SCHEMA_V2:
-        locks = view.locks or {}
+    if (
+        manifest_view is not None
+        and manifest_view.manifest_schema == constants.MANIFEST_SCHEMA_V2
+    ):
+        locks = manifest_view.locks or {}
         git_locks = locks.get("git")
         if isinstance(git_locks, dict) and git_locks:
             return LockSource.MANIFEST
     return LockSource.DEPS_FILE
+
+
+def resolve_lock_source(config: Config) -> LockSource:
+    """Prefer manifest ``locks.git`` on v2 manifests; otherwise deps.lock.json."""
+    return resolve_lock_source_from_view(config.bootstrap.manifest_view)
 
 
 def developing_git_link_from_config(config: Config) -> str | None:
