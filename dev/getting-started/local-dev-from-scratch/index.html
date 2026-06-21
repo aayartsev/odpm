@@ -2152,16 +2152,16 @@
 <h1 id="_1">Локальная разработка с нуля<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>Эта статья описывает типичный путь <strong>разработчика</strong> на своём компьютере. Сценарий использования: <strong><code>ODPM_SCENARIO=developer</code></strong> (значение по умолчанию).</p>
 <h2 id="odoo">Зачем отдельный каталог под каждую версию Odoo<a class="headerlink" href="#odoo" title="Permanent link">&para;</a></h2>
-<p>Создайте на диске каталог, в котором будет жить <strong>окружение</strong> проекта, а не обязательно только исходники модулей. Удобно добавлять к имени суффикс с версией Odoo, например <code>my-odoo-project-17</code>: различия между major-версиями существенны, и для 16.0 и 17.0 разумно иметь <strong>разные</strong> каталоги odpm, даже если модули лежат в одном git-репозитории.</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-odoo-project-17
-<span class="nb">cd</span><span class="w"> </span>my-odoo-project-17
+<p>Создайте на диске каталог, в котором будет жить <strong>окружение</strong> проекта, а не обязательно только исходники модулей. Удобно добавлять к имени суффикс с версией Odoo, например <code>my-odoo-project-19</code>: различия между major-версиями существенны, и для 18.0 и 19.0 разумно иметь <strong>разные</strong> каталоги odpm, даже если модули лежат в одном git-репозитории.</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-odoo-project-19
+<span class="nb">cd</span><span class="w"> </span>my-odoo-project-19
 </code></pre></div>
 <p>Этот каталог odpm заполнит служебными файлами (<code>docker-compose.yml</code>, <code>user_settings.json</code>, каталог <code>.odpm</code> и др.). <strong>Разрабатываемый проект</strong> (ваши модули) может находиться в другом месте на диске или в отдельном git-репозитории — odpm подключит его по ссылке при инициализации.</p>
 <h2 id="_2">Редактор и терминал<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>Откройте созданный каталог в <strong>Visual Studio Code</strong> (меню «Файл → Открыть папку»). Встроенный терминал редактора удобен для всех команд odpm.</p>
 <p><strong>Важно:</strong> не оборачивайте запуск <code>odpm</code> в виртуальное окружение Python на хосте. Утилита рассчитана на запуск системным <code>python3</code> или командой <code>odpm</code> из пакета; изолированное окружение Python для Odoo создаётся <strong>внутри контейнера</strong>.</p>
 <h2 id="git-">Инициализация из git-репозитория<a class="headerlink" href="#git-" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">17</span>.0
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
 </code></pre></div>
 <p>Параметр <code>--branch</code> задаёт ветку <strong>разрабатываемого</strong> репозитория. Если ветку не указать, будет использована ветка по умолчанию на сервере git.</p>
 <h2 id="_3">Инициализация с локального каталога<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>

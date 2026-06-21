@@ -2155,16 +2155,16 @@
 </blockquote>
 <p>Typical path for a <strong>developer</strong> on their own machine. Usage scenario: <strong><code>ODPM_SCENARIO=developer</code></strong> (default).</p>
 <h2 id="why-a-separate-directory-per-odoo-version">Why a separate directory per Odoo version<a class="headerlink" href="#why-a-separate-directory-per-odoo-version" title="Permanent link">&para;</a></h2>
-<p>Create a disk folder for the project <strong>environment</strong>, not necessarily only module sources. A version suffix helps, e.g. <code>my-odoo-project-17</code>: major versions differ enough that 16.0 and 17.0 deserve <strong>separate</strong> odpm directories even when modules share one git repo.</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-odoo-project-17
-<span class="nb">cd</span><span class="w"> </span>my-odoo-project-17
+<p>Create a disk folder for the project <strong>environment</strong>, not necessarily only module sources. A version suffix helps, e.g. <code>my-odoo-project-19</code>: major versions differ enough that 18.0 and 19.0 deserve <strong>separate</strong> odpm directories even when modules share one git repo.</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-odoo-project-19
+<span class="nb">cd</span><span class="w"> </span>my-odoo-project-19
 </code></pre></div>
 <p>odpm fills this folder with service files (<code>docker-compose.yml</code>, <code>user_settings.json</code>, <code>.odpm/</code>, etc.). Your <strong>developing project</strong> (modules) may live elsewhere or in another repo — odpm links it during init.</p>
 <h2 id="editor-and-terminal">Editor and terminal<a class="headerlink" href="#editor-and-terminal" title="Permanent link">&para;</a></h2>
 <p>Open the folder in <strong>Visual Studio Code</strong> (File → Open Folder). The integrated terminal is convenient for odpm commands.</p>
 <p><strong>Important:</strong> do not run <code>odpm</code> inside a host Python venv. Use system <code>python3</code> or the <code>odpm</code> package command; Odoo’s isolated Python env is created <strong>inside the container</strong>.</p>
 <h2 id="init-from-a-git-repository">Init from a git repository<a class="headerlink" href="#init-from-a-git-repository" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">17</span>.0
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
 </code></pre></div>
 <p><code>--branch</code> is the <strong>developing</strong> repository branch. If omitted, the git server’s default branch is used.</p>
 <h2 id="init-from-a-local-directory">Init from a local directory<a class="headerlink" href="#init-from-a-local-directory" title="Permanent link">&para;</a></h2>
