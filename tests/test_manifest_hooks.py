@@ -139,6 +139,7 @@ class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
         ctx.host_ctx.project_dir = "/tmp/project"
         ctx.host_ctx.update_lock = False
         ctx.host_ctx.skip_git_update = False
+        ctx.host_ctx.sync_manifest_locks = False
         ctx.extension_host.return_value = MagicMock()
         execute_prepare(ctx)
         mock_run_hooks.assert_called_once_with(

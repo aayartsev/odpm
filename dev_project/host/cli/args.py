@@ -47,6 +47,7 @@ class OdpmCliArgs:
     skip_start: bool | None = None
     no_git_update: bool = False
     update_lock: bool = False
+    sync_manifest_locks: bool = False
     odoo_bin: list[str] | None = None
     command: str | None = None
     scaffold_module_name: str | None = None

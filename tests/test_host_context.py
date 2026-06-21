@@ -54,6 +54,14 @@ class HostProjectContextTests(unittest.TestCase):
         self.assertTrue(ctx.skip_git_update)
         self.assertTrue(ctx.update_lock)
 
+    def test_sync_manifest_locks_property(self):
+        config = self._make_config()
+        ctx = HostProjectContext.from_config(
+            config,
+            arguments=OdpmCliArgs(update_lock=True, sync_manifest_locks=True),
+        )
+        self.assertTrue(ctx.sync_manifest_locks)
+
     def test_from_config_uses_explicit_arguments_override(self):
         config = self._make_config()
         args = OdpmCliArgs(no_git_update=True, update_lock=False)

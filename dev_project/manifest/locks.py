@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
+import json
 from enum import Enum
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .. import constants
+from ..errors import ConfigError
 from ..git.deps_lock import (
     DepsLock,
     LockEntry,
     canonical_repo_url,
     sort_lock_entries,
 )
+from ..translations import _
+from .schema import validate_manifest_v2
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -171,3 +176,39 @@ def developing_git_link_from_config(config: Config) -> str | None:
     if not link:
         return None
     return str(link).strip() or None
+
+
+def write_manifest_git_locks_from_deps_lock(
+    manifest_path: str,
+    lock: DepsLock,
+) -> bool:
+    """Write ``locks.git`` in a v2 manifest from *lock*. Returns True when updated."""
+    path = Path(manifest_path)
+    if not path.is_file():
+        raise ConfigError(
+            _("Manifest file not found at {PATH}.").format(PATH=manifest_path)
+        )
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise ConfigError(
+            _("Manifest at {PATH} is not valid JSON.").format(PATH=manifest_path)
+        ) from exc
+    if not isinstance(raw, dict):
+        raise ConfigError(_("Manifest root must be a JSON object."))
+    if raw.get("manifest_schema") != constants.MANIFEST_SCHEMA_V2:
+        return False
+    git_map = manifest_locks_from_deps_lock(lock).get("git")
+    if not isinstance(git_map, dict) or not git_map:
+        return False
+    locks = raw.get("locks")
+    if not isinstance(locks, dict):
+        locks = {}
+    locks["git"] = git_map
+    raw["locks"] = locks
+    validate_manifest_v2(raw)
+    path.write_text(
+        json.dumps(raw, ensure_ascii=False, indent=4) + "\n",
+        encoding="utf-8",
+    )
+    return True

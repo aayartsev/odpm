@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Opt-in manifest locks sync (4.4.3)** — `--sync-manifest-locks` with `--update-lock` writes `locks.git` in manifest v2 (`developer` scenario) from collected `.odpm/deps.lock.json`; plan warning when sync is omitted. Docs: `deps-lock.md`, `manifest-migration.md`. Tests: `tests/test_manifest_locks_sync.py`.
+
+### Changed
+
+- **Plan boundary (C-12)** — lock plan warnings and compose preview evaluate paths use `HostProjectContext` / `manifest_view` and `PrepareContext` ports instead of direct `Config` reads; contract test `tests/test_plan_config_coupling.py`.
+
 ## [4.3.0] - 2026-06-19
 
 **Release line 4.3.0; `odpm.json` manifest format (`odpm_version`) and `odpm --version` remain 4.0.**

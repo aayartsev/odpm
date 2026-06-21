@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from ..errors import PipelineError
 from ..logging import get_module_logger
+from .. import constants
 from ..manifest.locks import (
     LockSource,
     compare_manifest_and_deps_git_locks,
@@ -14,6 +15,7 @@ from ..manifest.locks import (
     developing_git_link_from_config,
     manifest_git_locks_from_config,
     resolve_lock_source,
+    write_manifest_git_locks_from_deps_lock,
 )
 from .deps_lock import (
     DepsLock,
@@ -184,6 +186,36 @@ class DepsLockManager:
         )
         save_deps_lock(self._path, lock)
         _logger.info("Wrote git dependency lock to %s", self._path)
+        self._maybe_sync_manifest_git_locks(lock)
+
+    def _sync_manifest_locks_requested(self) -> bool:
+        arguments = getattr(self._config, "arguments", None)
+        return bool(getattr(arguments, "sync_manifest_locks", False))
+
+    def _maybe_sync_manifest_git_locks(self, lock: DepsLock) -> None:
+        view = self._config.bootstrap.manifest_view
+        is_v2 = (
+            view is not None
+            and view.manifest_schema == constants.MANIFEST_SCHEMA_V2
+        )
+        if not self._sync_manifest_locks_requested():
+            if is_v2 and self._config.policy.is_developer():
+                _logger.info(
+                    "Wrote .odpm/deps.lock.json; manifest locks.git unchanged "
+                    "(use --sync-manifest-locks with --update-lock)"
+                )
+            return
+        if not self._config.policy.is_developer():
+            _logger.warning(
+                "--sync-manifest-locks is only supported in developer scenario; "
+                "manifest locks.git unchanged"
+            )
+            return
+        if not is_v2:
+            return
+        manifest_path = self._config.repo_odpm_json
+        if write_manifest_git_locks_from_deps_lock(manifest_path, lock):
+            _logger.info("Wrote locks.git to %s", manifest_path)
 
     def apply_pinned_locks(self) -> None:
         """Apply loaded lock entries to platform, developing, and dependency repos."""

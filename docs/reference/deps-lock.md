@@ -7,6 +7,7 @@
 | Действие | Команда |
 |----------|---------|
 | Пересчитать фиксацию | `odpm --update-lock --skip-start` |
+| Пересчитать deps.lock и записать `locks.git` (v2, developer) | `odpm --update-lock --sync-manifest-locks --skip-start` |
 | Подготовка по существующему lock | `odpm --skip-start` |
 | Только пересоздать Docker-файлы без git | `odpm --no-git-update --skip-start` (lock **не** используется) |
 
@@ -15,6 +16,26 @@
 ## Приоритет правил
 
 `--no-git-update` → `--update-lock` → чтение lock → конец ветки / дата nightly.
+
+## Два источника lock (v1 flat vs v2 nested)
+
+| Формат `odpm.json` | Канонический источник SHA | Роль `.odpm/deps.lock.json` |
+|--------------------|---------------------------|-------------------------------|
+| **v1 flat** (без `manifest_schema: 2`) | `.odpm/deps.lock.json` | Единственный источник; коммитить в git |
+| **v2 nested** с непустым `locks.git` | **`locks.git` в `odpm.json`** | Операционная копия для tooling и legacy-путей |
+
+На **v2** `DepsLockManager` читает пины из `locks.git`. Файл `.odpm/deps.lock.json` остаётся на диске после migrate и при `--update-lock`.
+
+**Где править SHA:**
+
+- v1 — редактируйте `.odpm/deps.lock.json` или пересчитайте `odpm --update-lock --skip-start`.
+- v2 — редактируйте `locks.git` в `odpm.json` (канон); затем `odpm --update-lock --skip-start`, чтобы синхронизировать `.odpm/deps.lock.json`.
+
+**Opt-in dual-write (v2, developer):** по умолчанию `--update-lock` пишет **только** `.odpm/deps.lock.json`. Чтобы также обновить `locks.git` в `odpm.json`, добавьте **`--sync-manifest-locks`** (только с `--update-lock`, сценарий `developer`). Без флага `odpm plan` предупреждает, что manifest не изменится.
+
+**Расхождение источников:** если `locks.git` и `.odpm/deps.lock.json` различаются, `odpm plan` показывает warning, а шаг `git.lock_verify` пишет warning в лог. Канон — `locks.git`; `--update-lock` выравнивает файл на диске.
+
+См. [manifest-migration.md](manifest-migration.md#locks-после-миграции-v2).
 
 ## Содержимое (схема версии 1)
 
