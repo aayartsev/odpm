@@ -2,7 +2,7 @@
 # attach assets to GitHub Release on version tags (v*) only.
 # Stable tags (v*) also publish wheel/sdist to production PyPI; pre-release tags to TestPyPI.
 # Pre-release tags (v*-beta/*-rc*/*-alpha): golden-path on self-hosted runner gates publish
-# (vars.ODPM_GOLDEN_PATH_ENABLED + secret ODPM_GOLDEN_PATH_PROJECT; installs built .deb).
+# (vars.ODPM_GOLDEN_PATH_ENABLED + secret ODPM_GOLDEN_PATH_PROJECT; .deb install smoke in Docker).
 name: Release packages
 
 on:
@@ -177,28 +177,32 @@ jobs:
           name: package-deb
           path: dist
 
-      - name: Install built .deb from this tag
+      - name: Install smoke (built .deb from this tag, clean Ubuntu 24.04)
         run: |
           set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/v}"
           mapfile -t debs < <(find dist -maxdepth 1 -type f -name 'odpm_*.deb' | sort)
           if [[ "${#debs[@]}" -ne 1 ]]; then
             echo "expected exactly one .deb artifact, got ${#debs[@]}" >&2
             exit 1
           fi
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq "${debs[0]}" || sudo apt-get install -f -y -qq
-
-      - name: Verify installed odpm version matches tag
-        run: |
-          set -euo pipefail
-          TAG="${GITHUB_REF#refs/tags/v}"
-          expected="odpm version: ${TAG}"
-          actual="$(odpm --version 2>&1 | tr -d '\r')"
-          if [[ "${actual}" != "${expected}" ]]; then
-            echo "expected: ${expected}" >&2
-            echo "actual:   ${actual}" >&2
-            exit 1
-          fi
+          docker run --rm \
+            -v "${{ github.workspace }}/dist:/pkgs:ro" \
+            ubuntu:24.04 \
+            bash -c "
+              set -euo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -qq
+              apt-get install -y -qq /pkgs/odpm_*.deb
+              expected='odpm version: ${TAG}'
+              actual=\$(odpm --version 2>&1 | tr -d '\r')
+              if [[ \"\${actual}\" != \"\${expected}\" ]]; then
+                echo \"expected: \${expected}\" >&2
+                echo \"actual:   \${actual}\" >&2
+                exit 1
+              fi
+              echo \"deb install smoke OK: \${actual}\"
+            "
 
       - name: Run golden-path integration test
         env:

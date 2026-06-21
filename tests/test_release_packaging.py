@@ -82,14 +82,17 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         workflow = (
             PROJECT_ROOT / ".github" / "workflows" / "release-packages.yml"
         ).read_text(encoding="utf-8")
-        self.assertIn("golden-path:", workflow)
-        self.assertIn("needs: deb", workflow)
+        golden = workflow.split("golden-path:", 1)[1].split("\n  publish:", 1)[0]
+        self.assertIn("needs: deb", golden)
+        self.assertIn("contains(github.ref, '-beta')", golden)
+        self.assertIn("ODPM_GOLDEN_PATH_ENABLED", golden)
+        self.assertIn("package-deb", golden)
+        self.assertIn("ubuntu:24.04", golden)
+        self.assertIn("Install smoke (built .deb", golden)
+        self.assertNotIn("sudo apt-get", golden)
+        self.assertIn("tests.integration.test_golden_path", golden)
         self.assertIn("needs: [deb, rpm, golden-path]", workflow)
         self.assertIn("needs.golden-path.result == 'skipped'", workflow)
-        self.assertIn("contains(github.ref, '-beta')", workflow)
-        self.assertIn("ODPM_GOLDEN_PATH_ENABLED", workflow)
-        self.assertIn("package-deb", workflow)
-        self.assertIn("tests.integration.test_golden_path", workflow)
 
 
 if __name__ == "__main__":

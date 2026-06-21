@@ -35,8 +35,8 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
 На pre-release тегах (`v*-beta`, `v*-rc*`, `v*-alpha`) job **golden-path** в `release-packages.yml`:
 
-1. ставит **собранный .deb** с этого тега;
-2. проверяет `odpm --version`;
+1. проверяет **собранный .deb** в чистом `ubuntu:24.04` (Docker, без `sudo` на runner);
+2. проверяет `odpm --version` внутри контейнера;
 3. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT`.
 
 Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуются `ODPM_GOLDEN_PATH_ENABLED=true` и secret `ODPM_GOLDEN_PATH_PROJECT` (иначе workflow падает явно, без ложного зелёного).
