@@ -5,7 +5,7 @@
 %global srcname odpm
 
 Name:           %{srcname}
-Version:        4.4.2
+Version:        4.4.2-beta
 Release:        1%{?dist}
 Summary:        Declarative developer environment manager (odpm)
 License:        GPL-3.0-or-later
