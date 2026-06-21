@@ -60,6 +60,24 @@ class InstallDocsP2Tests(unittest.TestCase):
         )
         self.assertIn("odpm-stable.repo", script)
         self.assertIn("odpm-testing.repo", script)
+        self.assertIn(".nojekyll", script)
+
+    def test_pages_workflows_include_hidden_files_in_artifact(self):
+        for rel in (
+            ".github/workflows/docs.yml",
+            ".github/workflows/release-packages.yml",
+            ".github/workflows/bootstrap-docs-versions.yml",
+            ".github/workflows/bootstrap-pages-repos.yml",
+        ):
+            text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
+            with self.subTest(workflow=rel):
+                self.assertIn("include-hidden-files: true", text)
+
+    def test_preserve_live_pages_repos_script_exists(self):
+        path = PROJECT_ROOT / "scripts" / "preserve_live_pages_repos.sh"
+        self.assertTrue(path.is_file())
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("fetch_pages_repo.sh", text)
 
 
 if __name__ == "__main__":

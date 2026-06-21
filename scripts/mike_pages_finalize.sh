@@ -29,5 +29,24 @@ for repo_file in odpm-stable.repo odpm-testing.repo; do
     fi
 done
 
+# upload-pages-artifact excludes dotfiles unless include-hidden-files: true; keep marker anyway.
+touch "${SITE_DIR}/.nojekyll"
+
+if git -C "${SITE_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    sync_paths=(.nojekyll)
+    if [[ -f "${SITE_DIR}/apt/dists/stable/Release" || -f "${SITE_DIR}/apt/dists/testing/Release" ]]; then
+        sync_paths+=(apt)
+    fi
+    if [[ -d "${SITE_DIR}/yum/stable" || -d "${SITE_DIR}/yum/testing" \
+        || -f "${SITE_DIR}/yum/odpm-archive-keyring.asc" ]]; then
+        sync_paths+=(yum)
+    fi
+    git -C "${SITE_DIR}" add -f "${sync_paths[@]}"
+    if ! git -C "${SITE_DIR}" diff --staged --quiet; then
+        git -C "${SITE_DIR}" commit -m "pages: sync package repos and .nojekyll"
+        git -C "${SITE_DIR}" push origin HEAD:gh-pages
+    fi
+fi
+
 echo "Pages site ready in ${SITE_DIR}"
 find "${SITE_DIR}" -maxdepth 3 -type f 2>/dev/null | sort | head -60

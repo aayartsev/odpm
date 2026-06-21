@@ -493,6 +493,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ steps.mike.outputs.site_dir }}
+          include-hidden-files: true
 
       - id: deployment
         uses: actions/deploy-pages@v4

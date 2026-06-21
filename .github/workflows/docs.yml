@@ -42,6 +42,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Preserve live package repos
+        run: |
+          set -euo pipefail
+          ./scripts/preserve_live_pages_repos.sh /tmp/preserve-apt /tmp/preserve-yum
+
       - name: Deploy dev docs with mike
         id: mike
         run: |
@@ -52,7 +57,19 @@ jobs:
               --update-aliases | tee /dev/stderr |
               awk -F= '/^SITE_DIR=/ { print $2; exit }'
           )"
-          ./scripts/mike_pages_finalize.sh "${SITE_DIR}"
+          FINALIZE_APT=""
+          FINALIZE_YUM=""
+          if [[ -f /tmp/preserve-apt/dists/stable/Release \
+             || -f /tmp/preserve-apt/dists/testing/Release ]]; then
+            FINALIZE_APT="/tmp/preserve-apt"
+          fi
+          if [[ -f /tmp/preserve-yum/stable/repodata/repomd.xml \
+             || -f /tmp/preserve-yum/testing/repodata/repomd.xml ]]; then
+            FINALIZE_YUM="/tmp/preserve-yum"
+          fi
+          ./scripts/mike_pages_finalize.sh "${SITE_DIR}" \
+            ${FINALIZE_APT:+"${FINALIZE_APT}"} \
+            ${FINALIZE_YUM:+"${FINALIZE_YUM}"}
           echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/configure-pages@v5
@@ -60,6 +77,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ steps.mike.outputs.site_dir }}
+          include-hidden-files: true
 
       - id: deployment
         uses: actions/deploy-pages@v4
