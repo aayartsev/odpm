@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from ..config import Config
 
 PLAN_ONLY_ARGUMENT_KEYS = frozenset(
-    {"plan", "plan_no_docker", "plan_show_diff"},
+    {"plan", "plan_format", "plan_no_docker", "plan_show_diff", "plan_strict"},
 )
 _RUNTIME_PREVIEW_CACHE_KEY = "_odpm_plan_runtime_preview_cache"
 

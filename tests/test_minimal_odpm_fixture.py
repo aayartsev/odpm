@@ -71,6 +71,36 @@ class MinimalOdpmFixtureTests(unittest.TestCase):
             self.assertEqual(odpm_json["platform"]["git"], platform.as_uri())
             self.assertEqual(odpm_json["developing"]["git"], developing.as_uri())
 
+    def test_provision_scenario_ci_env(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_dir = provision_minimal_odpm_project(
+                Path(tmp) / "project",
+                scenario=constants.CI_SCENARIO,
+            )
+            env_text = (project_dir / ".env").read_text(encoding="utf-8")
+            self.assertIn(f"ODPM_SCENARIO={constants.CI_SCENARIO}", env_text)
+
+    def test_provision_locks_drift_seeds_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project_dir = provision_minimal_odpm_project(
+                Path(tmp) / "project",
+                manifest_v2_mailpit=True,
+                locks_drift=True,
+            )
+            odpm_json = json.loads(
+                (project_dir / "developing" / "odpm.json").read_text(encoding="utf-8")
+            )
+            lock_json = json.loads(
+                (
+                    project_dir / constants.DEPS_LOCK_REL_PATH
+                ).read_text(encoding="utf-8")
+            )
+            manifest_commit = odpm_json["locks"]["git"][
+                (project_dir / "platform" / "odoo").as_uri()
+            ]
+            file_commit = lock_json["platform"]["commit"]
+            self.assertNotEqual(manifest_commit, file_commit)
+
     def test_build_v2_manifest_with_mailpit_helper(self) -> None:
         flat = {
             "odoo_version": "17.0",

@@ -40,6 +40,20 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 
 До выполнения критериев достаточно **compose-smoke** + unit/contract на каждый PR.
 
+## Unit gate: plan/dry-run matrix
+
+Job **unit** включает [`tests/test_scenario_plan_matrix.py`](../../tests/test_scenario_plan_matrix.py): задокументированные функции odpm, проверяемые **без Docker daemon** — `odpm plan`, manifest CLI, warnings locks/drift, шаги prepare/runtime по сценариям `developer` / `server` / `ci`.
+
+Traceability (документ → тест): [`tests/PLAN_MATRIX.md`](../../tests/PLAN_MATRIX.md).
+
+Локально:
+
+```bash
+python3 -m unittest tests.test_scenario_plan_matrix -v
+```
+
+`compose validate` и `compose up` — только **ci-docker** ([`ci-docker.yml`](../../.github/workflows/ci-docker.yml)).
+
 ## Golden-path secrets
 
 | Имя | Тип | Назначение |

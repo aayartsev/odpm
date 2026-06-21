@@ -8,6 +8,14 @@
 
 ## [Unreleased]
 
+### Добавлено
+
+- **Unit gate plan/dry-run** — `tests/test_scenario_plan_matrix.py`: задокументированное поведение `odpm plan` и manifest CLI без Docker daemon (сценарии `developer` / `server` / `ci`); таблица трассировки `tests/PLAN_MATRIX.md`; раздел в `docs/contributing/ci.md`.
+
+### Исправлено
+
+- **Ложные срабатывания `--plan-strict` на шагах compose** — флаги `plan_strict` и `plan_format` исключены из сравнения preview runtime config (`PLAN_ONLY_ARGUMENT_KEYS`): при уже материализованном runtime config `compose.service` / `compose.generate` больше не помечаются как обязательные изменения только из‑за `--plan-strict`.
+
 ## [4.3-rc1] - 2026-06-08
 
 **Релизная линия 4.3-rc1; формат manifest `odpm.json` (`odpm_version`) и `odpm --version` остаются на линии 4.0.**

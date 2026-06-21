@@ -71,8 +71,9 @@
 | Manifest v2 | dual-read, jsonschema, migrate, validate CLI | `test_manifest_v2_reader`, `test_manifest_migrate`, `test_manifest_cli` |
 | Locks in manifest | dual-source docs, plan warnings, `git.lock_verify` divergence | `test_manifest_locks_sync`, `test_plan_locks_preview` |
 | Mailpit compose smoke | manifest v2 `services.mailpit` in minimal fixture + CI | `ComposeSmokeMailpitIntegrationTests`, `ci-docker.yml` |
-| Extension registry | pluggy prepare steps, compose fragments | `test_extension_entry_points` |
-| Compose fragments | `compose.fragments` prepare step | `test_compose_fragments` |
+| Extension registry | pluggy prepare steps, compose fragments | `test_extension_entry_points`, `test_scenario_plan_matrix` |
+| Compose fragments | `compose.fragments` prepare step | `test_compose_fragments`, `test_scenario_plan_matrix` |
+| Scenario × documented dry-run | plan matrix without Docker (A–D registries) | [`tests/PLAN_MATRIX.md`](../../tests/PLAN_MATRIX.md), `test_scenario_plan_matrix` |
 | Lifecycle hooks | `post_prepare`, `pre_up` | `test_manifest_hooks` |
 | Contract CI | `tests.test_manifest_contract` | `.github/workflows/ci.yml` job `contract` |
 

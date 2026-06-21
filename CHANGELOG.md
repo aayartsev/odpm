@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Plan/dry-run unit gate** — `tests/test_scenario_plan_matrix.py` covers documented `odpm plan` / manifest CLI behaviour without a Docker daemon (scenarios `developer` / `server` / `ci`); traceability in `tests/PLAN_MATRIX.md`; `docs/contributing/ci.md`.
+
+### Fixed
+
+- **`--plan-strict` false positives on compose steps** — `plan_strict` and `plan_format` are stripped from runtime-config preview comparison (`PLAN_ONLY_ARGUMENT_KEYS`), so `--plan-strict` no longer marks `compose.service` / `compose.generate` as required updates when runtime config is already materialized.
+
 ### Changed
 
 - **Unified user-facing version** — `ODPM_VERSION` aliases `RELEASE_VERSION` (`4.4.2`): `odpm --version`, pip/PyPI wheel, deb/rpm, and git tags now show the same value. Manifest contract `odpm_version: "4.0"` unchanged. Docs: `packaging.md`, ADR-001, `odpm-json.md`. Tests: `test_release_packaging.py`, `test_pyproject_packaging.py`.
