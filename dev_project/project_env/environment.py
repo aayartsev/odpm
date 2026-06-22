@@ -1,6 +1,7 @@
 from ..git import HandleOdooProjectLink
 from ..config import Config
 from ..errors import PipelineError
+from ..host.context import HostProjectContext
 from ..protocols import SystemCheckerProtocol
 from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
@@ -22,9 +23,16 @@ class CreateProjectEnvironment:
         self.odoo_platform_project: HandleOdooProjectLink
         self.mapped_folders: list[MappedPath] = []
         self._system_checker = system_checker
+        self._host_ctx: HostProjectContext | None = None
         self._templates = ProjectTemplates(self)
         self._compose = ComposeGenerator(self)
         self._links = ProjectLinks(self)
+
+    @property
+    def host_ctx(self) -> HostProjectContext:
+        if self._host_ctx is None:
+            self._host_ctx = HostProjectContext.from_config(self.config)
+        return self._host_ctx
 
     def attach_system_checker(self, checker: SystemCheckerProtocol) -> None:
         self._system_checker = checker

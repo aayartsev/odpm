@@ -24,6 +24,15 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
         self.assertIs(ctx.compose_generator, project_env.compose_generator)
         self.assertIs(ctx.links, project_env.links)
 
+    def test_create_project_environment_caches_host_ctx(self):
+        config = MagicMock()
+        config.user_env = MagicMock()
+        project_env = CreateProjectEnvironment(config)
+        first = project_env.host_ctx
+        second = project_env.host_ctx
+        self.assertIs(first, second)
+        self.assertIsInstance(first, HostProjectContext)
+
     def test_make_prepare_context_builds_services_for_generic_project_env(self):
         config = MagicMock()
         project_env = MagicMock()

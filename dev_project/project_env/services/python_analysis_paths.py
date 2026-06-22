@@ -46,7 +46,7 @@ class PythonAnalysisPathsBuilder:
         for dependency in getattr(self.config, "dependencies_projects", []) or []:
             add_raw(getattr(dependency, "project_path", None))
 
-        for catalog in getattr(self.config, "catalogs_of_modules_data", []) or []:
+        for catalog in self.env.host_ctx.addon_layout.catalogs_of_modules_data or []:
             add_raw(getattr(catalog, "subproject_dir_path", None))
 
         return paths

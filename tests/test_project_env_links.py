@@ -13,6 +13,13 @@ from dev_project.dependency_resolver import DependencyResolutionResult, NestedOd
 from dev_project.scenario_policy import ScenarioPolicy
 
 
+def _attach_host_addon_layout(env: MagicMock) -> None:
+    layout = MagicMock()
+    layout.catalogs_of_modules_data = []
+    env.host_ctx = MagicMock()
+    env.host_ctx.addon_layout = layout
+
+
 class ProjectLinksCheckoutTests(unittest.TestCase):
     def test_checkout_project_disables_update_when_pinned(self):
         config = MagicMock()
@@ -281,7 +288,6 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         config.docker_extra_addons = "/docker/addons"
         config.dependencies_projects = []
         config.dependencies_dirs = []
-        config.catalogs_of_modules_data = []
         config.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
         dependency = MagicMock(
@@ -294,6 +300,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         env = MagicMock()
         env.config = config
         env.mapped_folders = []
+        _attach_host_addon_layout(env)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
@@ -337,7 +344,6 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         config.docker_extra_addons = "/docker/addons"
         config.dependencies_projects = []
         config.dependencies_dirs = []
-        config.catalogs_of_modules_data = []
         config.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
         config.apply_transitive_requirements = MagicMock()
@@ -351,6 +357,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         env = MagicMock()
         env.config = config
         env.mapped_folders = []
+        _attach_host_addon_layout(env)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
@@ -390,7 +397,6 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         config.docker_extra_addons = "/docker/addons"
         config.dependencies_projects = []
         config.dependencies_dirs = []
-        config.catalogs_of_modules_data = []
         config.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
         config.apply_transitive_requirements = MagicMock()
@@ -404,6 +410,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         env = MagicMock()
         env.config = config
         env.mapped_folders = []
+        _attach_host_addon_layout(env)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
@@ -426,13 +433,13 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.dependencies_dirs = []
             config.list_for_symlinks = []
-            config.catalogs_of_modules_data = []
             config.create_module_links = False
             config.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.platform_name = "odoo"
             env = MagicMock()
             env.config = config
+            _attach_host_addon_layout(env)
 
             with patch("dev_project.symlinks.manager.os.chdir") as mock_chdir:
                 ProjectLinks(env).update_links()
@@ -449,13 +456,13 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.dependencies_dirs = []
             config.list_for_symlinks = [target_dir]
-            config.catalogs_of_modules_data = []
             config.create_module_links = False
             config.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.platform_name = "odoo"
             env = MagicMock()
             env.config = config
+            _attach_host_addon_layout(env)
 
             ProjectLinks(env).update_links()
 
@@ -473,13 +480,13 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.dependencies_dirs = []
             config.list_for_symlinks = []
-            config.catalogs_of_modules_data = []
             config.create_module_links = False
             config.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.platform_name = "odoo"
             env = MagicMock()
             env.config = config
+            _attach_host_addon_layout(env)
 
             ProjectLinks(env).update_links()
 

@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1229** OK, 8 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1235** OK, 8 skipped.
 
 **Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
@@ -17,7 +17,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | **L2** locks dual-write | **DONE** | opt-in `--sync-manifest-locks` with `--update-lock` (developer, manifest v2) |
 | **H** hygiene | **DONE** | lock source log in `enter_apply_mode`; i18n divergence warnings; contract suite + smoke/ci docs |
 
-**Open horizon (4.5):** см. секцию **4.5 track** ниже; план [roadmap_4.5.plan.md](../../.cursor/plans/roadmap_4.5.plan.md) (в git через maintainer checkout `.cursor/`).
+**Open horizon (4.5):** см. секцию **4.5 track** ниже.
 
 ---
 
@@ -27,12 +27,12 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Track | ID | Статус | Суть |
 |-------|-----|--------|------|
-| Architecture | **A** | open | C-8 `AddonLayoutState` callers; C-13 plan/runtime ports; C-14 Config facade thinning; `user_env` split |
+| Architecture | **A** | open | C-8 **DONE**; C-13 plan/runtime ports; C-14 Config facade thinning; `user_env` split |
 | Plugins | **P** | open | API semver (`EXTENSION_API_VERSION`), `post_clone`, plan steps, local plugins |
 | YAML | **Y** | open | Host `dev_project/yaml/`; structured `ComposeGenerator`; fragment merge (ADR-005) |
 | Integration | **I** | open | Mandatory golden-path or HTTP smoke on PR to `4.5-dev` (ADR-006) |
 | i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
-| Images | **S** | open | Scenario base Dockerfile profiles (ADR-007); [scenario plan](../../.cursor/plans/scenario_base_image_profiles_c9120223.plan.md) |
+| Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
 
 **ADR backlog (4.5):** ADR-003 Host ports; ADR-004 Plugin API; ADR-005 YAML engine; ADR-006 Integration gate; ADR-007 Base image profiles.
 
@@ -74,7 +74,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Slice | Status | Outcome |
 |-------|--------|---------|
 | C-7 | **DONE** | `BootstrapState` + property shims; `config.bootstrap`; `bootstrap_phases` internal |
-| C-8 | backlog | `AddonLayoutState` (`catalogs_of_modules_data`, …) |
+| C-8 | **DONE** (4.5) | addon catalogs via `host_ctx.addon_layout`; `tests/test_addon_layout_ports.py` |
 | C-9 | **DONE** (C-11) | prepare steps → `host_ctx` |
 | C-10 | **DONE** (4.4) | `ConfigPaths` writes to `docker_layout` |
 | C-12 | **DONE** (4.4.3) | plan preview evaluate boundary; see debt remainder table above |

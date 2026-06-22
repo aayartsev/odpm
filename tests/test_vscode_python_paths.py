@@ -37,7 +37,10 @@ def _make_paths_env(
     config.odoo_src_dir = odoo_src_dir
     config.symlinks_sources = symlinks_sources or []
     config.dependencies_projects = []
-    config.catalogs_of_modules_data = catalogs_of_modules_data or []
+    layout = MagicMock()
+    layout.catalogs_of_modules_data = catalogs_of_modules_data or []
+    env.host_ctx = MagicMock()
+    env.host_ctx.addon_layout = layout
 
     developing = MagicMock()
     developing.project_path = developing_path
