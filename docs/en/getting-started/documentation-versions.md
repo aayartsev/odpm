@@ -6,14 +6,16 @@ The site hosts several **documentation versions**. Use the version selector in t
 |---------|----------|--------------|
 | **stable** (recommended) | production, new users | APT `stable` suite (**4.4.2**), [v4.4.2 release](https://github.com/aayartsev/odpm/releases/tag/v4.4.2) |
 | **4.3** / **4.3.0** | staying on 4.3.x | 4.3.0 `.deb` / `.rpm` from Releases |
-| **4.4.2-beta** and other `*-beta` | archived early adopters | APT `testing` suite, [beta release](https://github.com/aayartsev/odpm/releases/tag/v4.4.2-beta) |
+| **4.4.3-beta** | early adopters, pre-release smoke | APT `testing` suite, [beta release](https://github.com/aayartsev/odpm/releases/tag/v4.4.3-beta) |
+| **4.4.2-beta** and other archived `*-beta` | previous beta archive | [v4.4.2-beta release](https://github.com/aayartsev/odpm/releases/tag/v4.4.2-beta) |
 | **dev** | odpm development, `4.4-dev` HEAD | not for production end users |
 
 ## Quick links
 
 - Stable install hub: `/stable/install/` (alias **stable**, currently **4.4.2**)
 - 4.3 archive: `/4.3.0/install/` (alias **4.3** in the selector)
-- 4.4 beta archive: `/4.4.2-beta/install/`
+- Current 4.4 beta: `/4.4.3-beta/install/`
+- Archived 4.4 beta: `/4.4.2-beta/install/`
 - Development docs: `/dev/install/`
 
 !!! tip "odpm version ≠ docs version"

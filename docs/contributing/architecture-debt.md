@@ -3,7 +3,19 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **773+ OK**, 7 skipped.
+**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **1221+ OK**, 8 skipped.
+
+---
+
+## 4.4 debt remainder (4.4.3) — CLOSED
+
+| Phase | Outcome | Notes |
+|-------|---------|-------|
+| **C-12** plan boundary | **DONE** | `locks_preview` / compose preview evaluate via `host_ctx` + `PrepareContext` ports; `tests/test_plan_config_coupling.py` |
+| **L2** locks dual-write | **DONE** | opt-in `--sync-manifest-locks` with `--update-lock` (developer, manifest v2) |
+| **H** hygiene | **DONE** | lock source log in `enter_apply_mode`; i18n divergence warnings; contract suite + smoke/ci docs |
+
+**Open horizon (4.5+):** full `Config` facade removal (C-11/C-12 incremental only); PyYAML compose engine; mandatory golden-path on every PR — see [goals_ru.md](../../goals_ru.md).
 
 ---
 
@@ -42,8 +54,9 @@ This document is a **retrospective** for audits and onboarding; new architecture
 |-------|--------|---------|
 | C-7 | **DONE** | `BootstrapState` + property shims; `config.bootstrap`; `bootstrap_phases` internal |
 | C-8 | backlog | `AddonLayoutState` (`catalogs_of_modules_data`, …) |
-| C-9 | backlog | prepare steps → `host_ctx` |
-| C-10 | backlog | `ConfigPaths` writes to `docker_layout` |
+| C-9 | **DONE** (C-11) | prepare steps → `host_ctx` |
+| C-10 | **DONE** (4.4) | `ConfigPaths` writes to `docker_layout` |
+| C-12 | **DONE** (4.4.3) | plan preview evaluate boundary; see debt remainder table above |
 
 **C-7 KPI:** bootstrap-only fields no longer scattered on `Config.__dict__`; callers unchanged via shims; `developing_project` link on `bootstrap`, URL string on `UserSettingsState`.
 
@@ -68,7 +81,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 | C-7 started; C-8…C-10 remain |
+| `Config` facade still central | P2 (4.5+) | C-11/C-12/L2 slimmed prepare/plan evaluate; full removal deferred |
 | `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.0" | P2 | Fallback for legacy `odpm.json` |
 | Plugin/hook API | backlog | `goals_ru.md` vision only |
 | Env variable refs in `odpm.json` | backlog | `todo.md` |

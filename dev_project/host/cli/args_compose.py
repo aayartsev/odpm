@@ -30,6 +30,12 @@ def add_compose_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
     parser.add_argument(
+        params.SYNC_MANIFEST_LOCKS_PARAM,
+        help="""With --update-lock on manifest v2 (developer scenario), also write locks.git in odpm.json from the collected deps.lock.""",
+        action="store_true",
+    )
+
+    parser.add_argument(
         params.ODOO_BIN_PARAM,
         nargs=argparse.REMAINDER,
         help="""Command to pass through as a single string""",

@@ -100,10 +100,11 @@ odpm manifest migrate --write  # записать odpm.json
 |----------|-----------|
 | Обычный prepare | Чтение пинов из **`locks.git`** в `odpm.json` (канон) |
 | `odpm --update-lock` | Пересчёт коммитов с диска → запись **только** в `.odpm/deps.lock.json` |
+| `odpm --update-lock --sync-manifest-locks` | То же + запись `locks.git` в `odpm.json` (opt-in, **developer**, v2) |
 | Ручное изменение SHA | Редактируйте **`locks.git`**; затем `--update-lock`, чтобы синхронизировать deps.lock |
 | Расхождение manifest ↔ deps.lock | Warning в `odpm plan` и в логе на `git.lock_verify`; prepare использует manifest |
 
-**Dual-write policy:** odpm **не** перезаписывает `locks.git` при `--update-lock`. Канон остаётся в manifest; deps.lock — операционный артефакт. После смены зависимостей: `--update-lock`, закоммитьте обновлённый `.odpm/deps.lock.json` и при необходимости перенесите SHA в `locks.git` (или повторите `odpm manifest migrate --write` из актуального deps.lock).
+**Dual-write policy:** по умолчанию odpm **не** перезаписывает `locks.git` при `--update-lock`. Канон остаётся в manifest; deps.lock — операционный артефакт. Opt-in: **`--sync-manifest-locks`** вместе с `--update-lock` (сценарий `developer`, `manifest_schema: 2`) записывает `locks.git` из собранного deps.lock. После смены зависимостей: `--update-lock`, закоммитьте обновлённый `.odpm/deps.lock.json` и при необходимости перенесите SHA в `locks.git` (или используйте `--sync-manifest-locks`, либо `odpm manifest migrate --write` из актуального deps.lock).
 
 Подробнее: [deps-lock.md](deps-lock.md#два-источника-lock-v1-flat-vs-v2-nested).
 

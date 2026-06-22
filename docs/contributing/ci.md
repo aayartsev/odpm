@@ -9,7 +9,8 @@ Badges в README указывают на [ci.yml](https://github.com/aayartsev/o
 | **lint** | `ci.yml` | push/PR | рекомендуется обязательный |
 | **unit** | `ci.yml` | push/PR, Python 3.10 + 3.12 | рекомендуется обязательный |
 | **release-packages** | `release-packages.yml` | push `4.0-beta`/`4.0-rc1`/`main`, tag `v*`, dispatch | артефакт; Release на tag |
-| **compose-smoke** | `ci-docker.yml` | push/PR | рекомендуется обязательный |
+| **contract** | `ci.yml` | push/PR | рекомендуется обязательный |
+| **compose-smoke** | `ci-docker.yml` | push/PR | рекомендуется обязательный; включает v1 fixture + **compose-smoke-mailpit** (manifest v2 + Mailpit, `ODPM_COMPOSE_SMOKE_MAILPIT=1`) |
 | **golden-path** | `ci-docker.yml` | nightly, dispatch, label `run-docker` | opt-in |
 | **golden-path (pre-release gate)** | `release-packages.yml` | tag `v*-beta`, `v*-rc*`, `v*-alpha` | **обязателен** перед publish |
 
@@ -43,4 +44,4 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
 ## Branch protection
 
-Рекомендуется: обязательные **lint**, **unit**, **compose-smoke** на `4.0-beta` / `main`.
+Рекомендуется: обязательные **lint**, **unit**, **contract**, **compose-smoke** на `4.0-beta` / `main`.

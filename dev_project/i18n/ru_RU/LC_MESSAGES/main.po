@@ -20,6 +20,12 @@ msgstr "Принимаем текущую конфигурацию БД как b
 msgid "Application role {ROLE} present: {VALUE}"
 msgstr "Роль приложения {ROLE} присутствует: {VALUE}"
 
+msgid "Applying git dependency lock from manifest locks.git in odpm.json"
+msgstr "Применение git lock из manifest locks.git в odpm.json"
+
+msgid "Applying git dependency lock from {PATH}"
+msgstr "Применение git lock из {PATH}"
+
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
 

@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 
 from ..errors import PipelineError
 from ..logging import get_module_logger
+from .. import constants
+from ..translations import _
 from ..manifest.locks import (
     LockSource,
     compare_manifest_and_deps_git_locks,
@@ -14,6 +16,7 @@ from ..manifest.locks import (
     developing_git_link_from_config,
     manifest_git_locks_from_config,
     resolve_lock_source,
+    write_manifest_git_locks_from_deps_lock,
 )
 from .deps_lock import (
     DepsLock,
@@ -96,7 +99,16 @@ class DepsLockManager:
         if self._lock is None:
             return
         self._apply_mode = True
-        _logger.info("Applying git dependency lock from %s", self._path)
+        if self._lock_source == LockSource.MANIFEST:
+            _logger.info(
+                _(
+                    "Applying git dependency lock from manifest locks.git in odpm.json"
+                )
+            )
+        else:
+            _logger.info(
+                _("Applying git dependency lock from {PATH}").format(PATH=self._path)
+            )
 
     def apply_to_platform(self, platform: HandleOdooProjectLink) -> None:
         if not self._apply_mode or self._lock is None or self._lock.platform is None:
@@ -184,6 +196,36 @@ class DepsLockManager:
         )
         save_deps_lock(self._path, lock)
         _logger.info("Wrote git dependency lock to %s", self._path)
+        self._maybe_sync_manifest_git_locks(lock)
+
+    def _sync_manifest_locks_requested(self) -> bool:
+        arguments = getattr(self._config, "arguments", None)
+        return bool(getattr(arguments, "sync_manifest_locks", False))
+
+    def _maybe_sync_manifest_git_locks(self, lock: DepsLock) -> None:
+        view = self._config.bootstrap.manifest_view
+        is_v2 = (
+            view is not None
+            and view.manifest_schema == constants.MANIFEST_SCHEMA_V2
+        )
+        if not self._sync_manifest_locks_requested():
+            if is_v2 and self._config.policy.is_developer():
+                _logger.info(
+                    "Wrote .odpm/deps.lock.json; manifest locks.git unchanged "
+                    "(use --sync-manifest-locks with --update-lock)"
+                )
+            return
+        if not self._config.policy.is_developer():
+            _logger.warning(
+                "--sync-manifest-locks is only supported in developer scenario; "
+                "manifest locks.git unchanged"
+            )
+            return
+        if not is_v2:
+            return
+        manifest_path = self._config.repo_odpm_json
+        if write_manifest_git_locks_from_deps_lock(manifest_path, lock):
+            _logger.info("Wrote locks.git to %s", manifest_path)
 
     def apply_pinned_locks(self) -> None:
         """Apply loaded lock entries to platform, developing, and dependency repos."""
@@ -217,13 +259,16 @@ class DepsLockManager:
         )
         for detail in divergences:
             _logger.warning(
-                "manifest locks.git vs deps.lock.json differ: %s",
-                detail,
+                _("manifest locks.git vs deps.lock.json differ: {DETAIL}").format(
+                    DETAIL=detail
+                )
             )
         if divergences:
             _logger.warning(
-                "Canonical git pins: odpm.json locks.git; run --update-lock to "
-                "refresh .odpm/deps.lock.json"
+                _(
+                    "Canonical git pins: odpm.json locks.git; run --update-lock to "
+                    "refresh .odpm/deps.lock.json."
+                )
             )
 
     def _entry_from_project(self, project: HandleOdooProjectLink) -> LockEntry:

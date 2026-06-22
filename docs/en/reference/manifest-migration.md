@@ -102,10 +102,11 @@ Before `--write`, save a copy or commit the current `odpm.json`.
 |--------|-----------|
 | Normal prepare | Read pins from **`locks.git`** in `odpm.json` (canonical) |
 | `odpm --update-lock` | Recompute commits from disk → write **only** to `.odpm/deps.lock.json` |
+| `odpm --update-lock --sync-manifest-locks` | Same plus write `locks.git` in `odpm.json` (opt-in, **developer**, v2) |
 | Manual SHA change | Edit **`locks.git`**; then `--update-lock` to sync deps.lock |
 | Manifest ↔ deps.lock mismatch | Warning in `odpm plan` and in log on `git.lock_verify`; prepare uses manifest |
 
-**Dual-write policy:** odpm does **not** overwrite `locks.git` on `--update-lock`. Canonical source stays in the manifest; deps.lock is an operational artifact. After dependency changes: `--update-lock`, commit the updated `.odpm/deps.lock.json`, and if needed move SHAs into `locks.git` (or rerun `odpm manifest migrate --write` from the current deps.lock).
+**Dual-write policy:** by default odpm does **not** overwrite `locks.git` on `--update-lock`. Canonical source stays in the manifest; deps.lock is an operational artifact. Opt-in: **`--sync-manifest-locks`** with `--update-lock` (`developer` scenario, `manifest_schema: 2`) writes `locks.git` from the collected deps.lock. After dependency changes: `--update-lock`, commit the updated `.odpm/deps.lock.json`, and if needed move SHAs into `locks.git` (or use `--sync-manifest-locks`, or rerun `odpm manifest migrate --write` from the current deps.lock).
 
 Details: [deps-lock.md](deps-lock.md#two-lock-sources-v1-flat-vs-v2-nested).
 

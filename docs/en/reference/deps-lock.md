@@ -9,6 +9,7 @@ Path: **`.odpm/deps.lock.json`**. Pins **git revisions** (and fingerprints for `
 | Action | Command |
 |--------|---------|
 | Recompute lock | `odpm --update-lock --skip-start` |
+| Recompute deps.lock and write `locks.git` (v2, developer) | `odpm --update-lock --sync-manifest-locks --skip-start` |
 | Prepare using existing lock | `odpm --skip-start` |
 | Regenerate Docker files only, no git | `odpm --no-git-update --skip-start` (lock **not** used) |
 
@@ -31,6 +32,8 @@ On **v2**, `DepsLockManager` reads pins from `locks.git`. File `.odpm/deps.lock.
 
 - v1 — edit `.odpm/deps.lock.json` or recompute `odpm --update-lock --skip-start`.
 - v2 — edit `locks.git` in `odpm.json` (canonical); then `odpm --update-lock --skip-start` to sync `.odpm/deps.lock.json`.
+
+**Opt-in dual-write (v2, developer):** by default `--update-lock` writes **only** `.odpm/deps.lock.json`. To also update `locks.git` in `odpm.json`, add **`--sync-manifest-locks`** (requires `--update-lock`, `developer` scenario only). Without the flag, `odpm plan` warns that the manifest will not change.
 
 **Source mismatch:** if `locks.git` and `.odpm/deps.lock.json` differ, `odpm plan` shows a warning and step `git.lock_verify` logs a warning. Canonical is `locks.git`; use `--update-lock` to align the on-disk file.
 

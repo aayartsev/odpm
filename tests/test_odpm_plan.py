@@ -166,6 +166,28 @@ class OdpmPlannerTests(unittest.TestCase):
                 any("cannot be used together" in warning for warning in plan.warnings)
             )
 
+    def test_plan_warns_manifest_unchanged_on_update_lock_for_v2(self):
+        from dev_project.manifest.reader import ManifestView
+
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self._config(project_dir=tmp)
+            config.bootstrap.manifest_view = ManifestView(
+                manifest_schema=constants.MANIFEST_SCHEMA_V2,
+                requires_odpm="4.4",
+                raw_normalized={},
+                locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
+            )
+            plan = OdpmPlanner.build(
+                config,
+                OdpmCliArgs(update_lock=True, plan=True),
+            )
+            self.assertTrue(
+                any(
+                    "manifest locks.git unchanged" in warning
+                    for warning in plan.warnings
+                )
+            )
+
     def test_plan_lock_apply_is_run_when_lock_file_exists(self):
         with tempfile.TemporaryDirectory() as tmp:
             lock_path = Path(tmp) / constants.DEPS_LOCK_REL_PATH

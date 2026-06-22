@@ -69,10 +69,39 @@ def make_prepare_context(
     )
 
 
+def _manifest_schema_v2(manifest_view) -> bool:
+    from .. import constants
+
+    return (
+        manifest_view is not None
+        and manifest_view.manifest_schema == constants.MANIFEST_SCHEMA_V2
+    )
+
+
 def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     warnings: list[str] = []
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
         warnings.append("--update-lock cannot be used together with --no-git-update")
+    if ctx.host_ctx.sync_manifest_locks and not ctx.host_ctx.update_lock:
+        warnings.append("--sync-manifest-locks requires --update-lock")
+    elif (
+        ctx.host_ctx.sync_manifest_locks
+        and ctx.host_ctx.update_lock
+        and not ctx.host_ctx.policy.is_developer()
+    ):
+        warnings.append(
+            "--sync-manifest-locks is only supported in developer scenario"
+        )
+    elif (
+        ctx.host_ctx.update_lock
+        and ctx.host_ctx.policy.is_developer()
+        and not ctx.host_ctx.sync_manifest_locks
+        and _manifest_schema_v2(ctx.manifest_view)
+    ):
+        warnings.append(
+            "deps.lock will be updated; manifest locks.git unchanged "
+            "(use --sync-manifest-locks with --update-lock)"
+        )
     if (
         deps_lock_file_exists(ctx.host_ctx.project_dir)
         and not skip_git(ctx)
@@ -95,7 +124,7 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     warnings.extend(
         collect_database_drift_warnings_for_host(ctx.host_ctx, ctx.config)
     )
-    warnings.extend(collect_git_lock_warnings(ctx.config))
+    warnings.extend(collect_git_lock_warnings(ctx.host_ctx, ctx.manifest_view))
     return tuple(warnings)
 
 
@@ -141,6 +170,10 @@ def build_plan(
 def validate_prepare_context(ctx: PrepareContext) -> None:
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
         message = "--update-lock cannot be used together with --no-git-update"
+        _logger.error(message)
+        raise PipelineError(message, exit_code=1)
+    if ctx.host_ctx.sync_manifest_locks and not ctx.host_ctx.update_lock:
+        message = "--sync-manifest-locks requires --update-lock"
         _logger.error(message)
         raise PipelineError(message, exit_code=1)
 

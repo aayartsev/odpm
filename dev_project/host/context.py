@@ -61,3 +61,7 @@ class HostProjectContext:
     @property
     def update_lock(self) -> bool:
         return bool(self.arguments.update_lock)
+
+    @property
+    def sync_manifest_locks(self) -> bool:
+        return bool(self.arguments.sync_manifest_locks)

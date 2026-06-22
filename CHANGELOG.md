@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.4.3-beta] - 2026-06-21
+
+**Pre-release 4.4.3-beta** on branch `4.4.3-dev`; stable line remains **4.4.2** (`LATEST_STABLE_RELEASE`). Patch before planned stable **4.4.3**: debt remainder C-12 (plan boundary), L2 (opt-in locks sync), H (hygiene). No breaking changes for v1 `odpm.json`.
+
+### Added
+
+- **Opt-in manifest locks sync** — `--sync-manifest-locks` with `--update-lock` writes `locks.git` in manifest v2 (`developer` scenario) from collected `.odpm/deps.lock.json`; plan warning when sync is omitted. Docs: `deps-lock.md`, `manifest-migration.md`. Tests: `tests/test_manifest_locks_sync.py`.
+
+### Changed
+
+- **Plan boundary (C-12)** — lock plan warnings and compose preview evaluate paths use `HostProjectContext` / `manifest_view` and `PrepareContext` ports instead of direct `Config` reads; contract test `tests/test_plan_config_coupling.py`.
+
+- **Hygiene polish (Phase H)** — `enter_apply_mode` logs lock source (manifest `locks.git` vs deps.lock path); i18n for runtime lock divergence warnings; `test_plan_locks_preview` and `test_plan_config_coupling` in contract suite; smoke checklist and `ci.md` document compose-smoke-mailpit and contract job. `architecture-debt.md` 4.4.3 closure table.
+
 ## [4.3.0] - 2026-06-19
 
 **Release line 4.3.0; `odpm.json` manifest format (`odpm_version`) and `odpm --version` remain 4.0.**

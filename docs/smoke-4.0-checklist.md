@@ -51,7 +51,9 @@ See [contributing/ci.md](../contributing/ci.md) for the full table. Summary:
 | Job | Workflow | Trigger | Merge gate | Inputs |
 |-----|----------|---------|------------|--------|
 | **unit** | `ci.yml` | every push/PR | recommended | `tests/`; Python 3.10 + 3.12 |
+| **contract** | `ci.yml` | every push/PR | recommended | `tests.test_manifest_contract` (manifest v2, extensions, plan locks) |
 | **compose-smoke** | `ci-docker.yml` | every push/PR | recommended | [`tests/fixtures/minimal_odpm_project/`](../tests/fixtures/minimal_odpm_project/); Python 3.12 |
+| **compose-smoke-mailpit** | `ci-docker.yml` (step in `compose-smoke` job) | every push/PR | recommended | manifest v2 + `services.mailpit`; `ODPM_COMPOSE_SMOKE_MAILPIT=1` |
 | **golden-path** | `ci-docker.yml` | nightly, `workflow_dispatch`, PR label `run-docker` | opt-in | Self-hosted runner; variable `ODPM_GOLDEN_PATH_ENABLED=true` + secret `ODPM_GOLDEN_PATH_PROJECT`; skipped when variable unset |
 
 **Compose smoke** — automated on every push/PR: [`.github/workflows/ci-docker.yml`](../.github/workflows/ci-docker.yml) (`compose-smoke` job; unit tests in [`ci.yml`](../.github/workflows/ci.yml)).
@@ -66,6 +68,7 @@ cd "$ODPM_REPO"
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
 | GitHub Actions `CI Docker` → compose-smoke | Green on push/PR | | |
+| GitHub Actions `CI Docker` → compose-smoke-mailpit | Green on push/PR (manifest v2 + Mailpit step in same job) | | |
 | `odpm --skip-start` on minimal fixture | Exit 0 | | |
 | `docker compose config` | Exit 0; `services:` in output | | |
 
