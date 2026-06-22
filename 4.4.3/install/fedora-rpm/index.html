@@ -2107,14 +2107,14 @@ sudo<span class="w"> </span>rpm<span class="w"> </span>-q<span class="w"> </span
 <span class="c1"># ожидается fingerprint: 03040028F53D7AB8  Alexander Yartsev</span>
 </code></pre></div>
 <h3 id="stable-production">Stable (рекомендуется для production)<a class="headerlink" href="#stable-production" title="Permanent link">&para;</a></h3>
-<p>Suite <strong><code>stable</code></strong> — сейчас odpm <strong>4.4.2</strong>:</p>
+<p>Suite <strong><code>stable</code></strong> — сейчас odpm <strong>4.4.3</strong>:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/yum/odpm-stable.repo<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-o<span class="w"> </span>/etc/yum.repos.d/odpm.repo
 
 sudo<span class="w"> </span>dnf<span class="w"> </span>makecache
 sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>odpm
 odpm<span class="w"> </span>--version
-<span class="c1"># ожидается: odpm version: 4.4.2</span>
+<span class="c1"># ожидается: odpm version: 4.4.3</span>
 </code></pre></div>
 <h3 id="pre-release-44-beta-rc">Pre-release (4.4 beta / RC)<a class="headerlink" href="#pre-release-44-beta-rc" title="Permanent link">&para;</a></h3>
 <p>Suite <strong><code>testing</code></strong> — pre-release теги, например <strong>4.4.3-beta</strong>:</p>
@@ -2130,7 +2130,7 @@ sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> <
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg<span class="w"> </span>-o<span class="w"> </span>/tmp/odpm-key.gpg
 gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring<span class="w"> </span>/tmp/odpm-key.gpg<span class="w"> </span>--export<span class="w"> </span>--armor<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>rpm<span class="w"> </span>--import<span class="w"> </span>-
 </code></pre></div>
-<p>Ветка в URL (<code>4.4.2</code>) — текущая стабильная линия релиза; в репозитории нет ветки <code>main</code>.
+<p>Ветка в URL (<code>4.4.3</code>) — текущая стабильная линия релиза; в репозитории нет ветки <code>main</code>.
 Если <code>odpm-archive-keyring.asc</code> ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg<span class="w"> </span>-o<span class="w"> </span>/tmp/odpm-key.gpg
 gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring<span class="w"> </span>/tmp/odpm-key.gpg<span class="w"> </span>--export<span class="w"> </span>--armor<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>rpm<span class="w"> </span>--import<span class="w"> </span>-
@@ -2141,7 +2141,7 @@ gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>makecache<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>dnf<span class="w"> </span>upgrade<span class="w"> </span>odpm
 </code></pre></div>
 <h2 id="rpm-github-releases">Установка вручную (.rpm с GitHub Releases)<a class="headerlink" href="#rpm-github-releases" title="Permanent link">&para;</a></h2>
-<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.4.2</code> (stable), <code>v4.4.3-beta</code> (testing) или <code>v4.4.2-beta</code> (archived beta), или соберите локально:</p>
+<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.4.3</code> (stable), <code>v4.4.3-beta</code> (archived testing) или <code>v4.4.2-beta</code> (archived beta), или соберите локально:</p>
 <div class="highlight"><pre><span></span><code>./scripts/build_rpm.sh
 sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>./dist/odpm-*.rpm
 odpm<span class="w"> </span>--version

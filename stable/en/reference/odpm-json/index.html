@@ -2105,7 +2105,7 @@
 </tr>
 <tr>
 <td><strong>v2 nested</strong></td>
-<td><code>manifest_schema: 2</code>, <code>requires_odpm: "4.4.2"</code></td>
+<td><code>manifest_schema: 2</code>, <code>requires_odpm: "4.4.3"</code></td>
 <td><code>services</code>, <code>hooks</code>, <code>locks</code> in the manifest</td>
 </tr>
 </tbody>
@@ -2179,7 +2179,7 @@
 <tbody>
 <tr>
 <td><code>RELEASE_VERSION</code> / <code>ODPM_VERSION</code></td>
-<td><code>"4.4.2"</code></td>
+<td><code>"4.4.3"</code></td>
 <td><strong>Installed manager</strong> version (<code>odpm --version</code>, pip, deb/rpm)</td>
 </tr>
 <tr>
@@ -2196,7 +2196,7 @@
 </table>
 <p>Compat behaviour (<code>dev_project/manifest/compat.py</code>):</p>
 <ul>
-<li>Flat v1 <strong>without</strong> <code>manifest_schema</code> and <strong>without</strong> <code>odpm_version</code> → contract is treated as <code>"3.0"</code> (supported by manager 4.4.2).</li>
+<li>Flat v1 <strong>without</strong> <code>manifest_schema</code> and <strong>without</strong> <code>odpm_version</code> → contract is treated as <code>"3.0"</code> (supported by manager 4.4.3).</li>
 <li>New projects and migrations → <code>odpm_version: "4.0"</code>.</li>
 <li>v2 nested → <code>requires_odpm</code> (minimum manager semver; new projects get current <code>RELEASE_VERSION</code>), not <code>odpm_version</code>.</li>
 </ul>
@@ -2217,7 +2217,7 @@
 </tr>
 <tr>
 <td><code>requires_odpm</code></td>
-<td>Minimum odpm version, e.g. <code>"4.4.2"</code></td>
+<td>Minimum odpm version, e.g. <code>"4.4.3"</code></td>
 </tr>
 <tr>
 <td><code>platform.git</code></td>
