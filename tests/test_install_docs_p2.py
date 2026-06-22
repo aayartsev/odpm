@@ -36,7 +36,7 @@ class InstallDocsP2Tests(unittest.TestCase):
     def test_install_readme_links_stable_and_beta(self):
         for rel in ("docs/install/README.md", "docs/en/install/README.md"):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
-            self.assertIn("4.4.2", text)
+            self.assertIn("4.4.3", text)
             self.assertIn("/odpm/stable/", text)
             self.assertIn("/4.4.3-beta/", text)
             self.assertIn("/4.4.2-beta/", text)
@@ -51,6 +51,8 @@ class InstallDocsP2Tests(unittest.TestCase):
                     _LEGACY_DOC_URL.search(text),
                     msg=f"legacy flat docs URL in {path.name}",
                 )
+        stable = (notes_dir / "4.4.3.md").read_text(encoding="utf-8")
+        self.assertIn("/odpm/stable/", stable)
         beta = (notes_dir / "4.4.3-beta.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/stable/", beta)
         self.assertIn("/odpm/4.4.3-beta/", beta)

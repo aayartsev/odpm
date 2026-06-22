@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.4.3] - 2026-06-21
+
+**Stable release 4.4.3** on branch `4.4-dev`; supersedes **4.4.2** as `LATEST_STABLE_RELEASE`. Ships debt remainder from **4.4.3-beta** (C-12 plan boundary, L2 opt-in locks sync, H hygiene). No breaking changes for v1 `odpm.json`.
+
+### Changed
+
+- **Release gate (4.4.3)** — `RELEASE_VERSION` → `4.4.3`; `LATEST_STABLE_RELEASE` → `4.4.3`; deb/rpm packaging synced; install docs and mike `stable` alias target **4.4.3**.
+
 ## [4.4.3-beta] - 2026-06-21
 
 **Pre-release 4.4.3-beta** on branch `4.4.3-dev`; stable line remains **4.4.2** (`LATEST_STABLE_RELEASE`). Patch before planned stable **4.4.3**: debt remainder C-12 (plan boundary), L2 (opt-in locks sync), H (hygiene). No breaking changes for v1 `odpm.json`.

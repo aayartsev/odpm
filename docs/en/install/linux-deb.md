@@ -26,7 +26,7 @@ sudo gpg --no-default-keyring \
 
 ### Stable (recommended for production)
 
-Suite **`stable`** — currently odpm **4.4.2** (tag `v4.4.2`, without `-rc`/`-beta`):
+Suite **`stable`** — currently odpm **4.4.3** (tag `v4.4.3`, without `-rc`/`-beta`):
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -34,7 +34,7 @@ echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayar
 sudo apt update
 sudo apt install odpm
 odpm --version
-# expected: odpm version: 4.4.2
+# expected: odpm version: 4.4.3
 ```
 
 ### Pre-release (4.4 beta / RC)
@@ -58,7 +58,7 @@ sudo apt update && sudo apt upgrade odpm
 
 ## Manual install (.deb from GitHub Releases)
 
-Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.4.2` — stable, `v4.4.3-beta` — testing, `v4.4.2-beta` — archived beta), or build locally:
+Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.4.3` — stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta), or build locally:
 
 ```bash
 ./scripts/build_deb.sh

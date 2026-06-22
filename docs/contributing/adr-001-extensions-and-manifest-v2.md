@@ -15,9 +15,9 @@ Historically, flat `odpm.json` used a single field `odpm_version` both as a mani
 
 | Axis | Constant / field | Example | Meaning |
 |------|------------------|---------|---------|
-| Product / CLI | `RELEASE_VERSION`, `ODPM_VERSION`, `odpm --version`, pip wheel, deb/rpm | `4.4.2` | Installed odpm version (single user-facing value) |
+| Product / CLI | `RELEASE_VERSION`, `ODPM_VERSION`, `odpm --version`, pip wheel, deb/rpm | `4.4.3` | Installed odpm version (single user-facing value) |
 | Manifest schema | `manifest_schema` in JSON | `1`, `2` | Shape and semantics of `odpm.json` |
-| Min manager (v2 only) | `requires_odpm` | `4.4.2` | Semver: installed manager must be ≥ this |
+| Min manager (v2 only) | `requires_odpm` | `4.4.3` | Semver: installed manager must be ≥ this |
 | Legacy flat contract | `odpm_version` (v1 only) | `4.0` | Manifest contract line, **not** manager version |
 
 `ODPM_VERSION` is an alias of `RELEASE_VERSION`. Pip, deb, and `odpm --version` always show the same patch release.
@@ -37,7 +37,7 @@ Top-level `manifest_schema: 2` and `requires_odpm` (required). Nested shape (con
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.4.2",
+  "requires_odpm": "4.4.3",
   "platform": { "git": "...", "build_date": "latest" },
   "python": "3.12",
   "distro": { "name": "debian", "version": "13" },
@@ -99,7 +99,7 @@ Implemented in [dev_project/manifest/compat.py](../../dev_project/manifest/compa
 
 ## Consequences
 
-- User-facing version is unified: `RELEASE_VERSION` = `ODPM_VERSION` = pip/deb/`odpm --version` (currently `4.4.2`).
+- User-facing version is unified: `RELEASE_VERSION` = `ODPM_VERSION` = pip/deb/`odpm --version` (currently `4.4.3`).
 - Existing `odpm_version: "4.0"` v1 projects remain supported; manifest contract line is unchanged.
 - Factory and fixtures use `MANIFEST_V1_CONTRACT_LINE` for new flat `odpm_version`, not `RELEASE_VERSION`.
 - Follow-up epics: C-8…C-10, manifest reader/schemas, migrator CLI, extensions registry, compose fragments.

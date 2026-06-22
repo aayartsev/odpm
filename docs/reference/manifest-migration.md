@@ -59,7 +59,7 @@ odpm manifest migrate --write  # записать odpm.json
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.4.2",
+  "requires_odpm": "4.4.3",
   "platform": {
     "git": "https://github.com/odoo/odoo.git 19.0",
     "build_date": "latest"
@@ -111,5 +111,5 @@ odpm manifest migrate --write  # записать odpm.json
 ## Совместимость
 
 - **`odpm_version: "4.0"`** в flat v1 — контрактная строка формата, **не** версия менеджера.
-- **`requires_odpm: "4.4.2"`** в v2 — минимальная версия установленного odpm (semver); новые проекты получают текущий `RELEASE_VERSION`.
+- **`requires_odpm: "4.4.3"`** в v2 — минимальная версия установленного odpm (semver); новые проекты получают текущий `RELEASE_VERSION`.
 - Подробнее: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](../contributing/adr-001-extensions-and-manifest-v2.md).
