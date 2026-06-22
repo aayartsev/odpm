@@ -2394,7 +2394,7 @@
 <h2 id="_2">Ограничения<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Container-side <code>ContainerConfig</code> остаётся <strong>stdlib-only</strong> (без новых PyPI deps в образе).</li>
-<li>Compose YAML генерируется без PyYAML (dict → YAML renderer); сложные anchor/merge не поддерживаются.</li>
+<li>Compose YAML генерируется host-движком <code>dev_project/yaml/</code> (ruamel.yaml); YAML anchors/merge aliases не поддерживаются.</li>
 <li>Конфликт имён: plugin compose fragment <strong>перезаписывает</strong> одноимённый service из manifest.</li>
 </ul>
 <h2 id="_3">См. также<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
