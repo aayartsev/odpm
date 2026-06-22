@@ -6,7 +6,6 @@ from ..git.deps_lock_manager import DepsLockManager
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
 from ..git.deps_lock import deps_lock_path, load_deps_lock
-from ..host.context import HostProjectContext
 from ..host.ports import PipelinePorts, ports_from_config
 from ..logging import get_module_logger
 from ..translations import _

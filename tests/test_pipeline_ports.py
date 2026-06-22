@@ -9,7 +9,6 @@ from dev_project.config.state import CONFIG_PROPERTY_SHIMS
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
 from dev_project.host.ports import (
-    BootstrapHandle,
     ComposePorts,
     PipelinePorts,
     PlanPorts,

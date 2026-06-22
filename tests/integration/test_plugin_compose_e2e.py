@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -36,7 +37,7 @@ def _plugin_e2e_skip_reason() -> str | None:
 
 def _ensure_sample_plugin_installed() -> None:
     subprocess.run(
-        ["pip", "install", "-e", str(SAMPLE_PLUGIN_ROOT)],
+        [sys.executable, "-m", "pip", "install", "-e", str(SAMPLE_PLUGIN_ROOT)],
         check=True,
         capture_output=True,
         text=True,

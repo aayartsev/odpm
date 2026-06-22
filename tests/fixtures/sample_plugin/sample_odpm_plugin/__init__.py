@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from dev_project.extensions import ExtensionHostContext, register_hook_runner, register_prepare_step
 from dev_project.extensions.api import EXTENSION_API_VERSION
 from dev_project.extensions.reference.mailpit import MAILPIT_SERVICE_NAME, MAILPIT_SERVICE_SPEC
+from dev_project.extensions.specs import hookimpl
 from dev_project.plan import PlanStep
 from dev_project.prepare.helpers import make_plan_step
 from dev_project.prepare.types import PrepareContext
@@ -57,6 +58,22 @@ class SampleMailpitLocalFragment:
 
     def compose_services(self, ctx: ExtensionHostContext) -> dict:
         return {MAILPIT_SERVICE_NAME: dict(MAILPIT_SERVICE_SPEC)}
+
+
+class SampleOdpmPrepareEntryPoint:
+    @hookimpl
+    def odpm_prepare_steps(self):
+        return SamplePrepareStepPlugin()
+
+
+class SampleOdpmHooksEntryPoint:
+    @hookimpl
+    def odpm_hook_runners(self):
+        return SampleHookRunner()
+
+
+prepare_entry_point = SampleOdpmPrepareEntryPoint()
+hooks_entry_point = SampleOdpmHooksEntryPoint()
 
 
 def register_sample_plugin() -> None:

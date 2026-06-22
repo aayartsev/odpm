@@ -10,10 +10,10 @@ requires-python = ">=3.10"
 dependencies = ["odpm"]
 
 [project.entry-points."odpm.prepare_steps"]
-sample = "sample_odpm_plugin:SamplePrepareStepPlugin"
+sample_prepare = "sample_odpm_plugin:prepare_entry_point"
 
 [project.entry-points."odpm.hooks"]
-sample = "sample_odpm_plugin:SampleHookRunner"
+sample_hooks = "sample_odpm_plugin:hooks_entry_point"
 
 [tool.setuptools.packages.find]
 where = ["."]

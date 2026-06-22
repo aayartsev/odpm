@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ODPM_COMPOSE_SMOKE_IMAGE: odoo-amd64-python-3.12-debian-12:latest
+  ODPM_COMPOSE_SMOKE_IMAGE: odoo-amd64-python-3.12-debian-12-full:latest
 
 jobs:
   fixture-golden-path:

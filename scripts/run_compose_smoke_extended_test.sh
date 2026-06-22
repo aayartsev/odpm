@@ -11,7 +11,7 @@ export ODPM_COMPOSE_SMOKE_HOOKS=1
 export ODPM_COMPOSE_SMOKE_TIMEOUT="${ODPM_COMPOSE_SMOKE_TIMEOUT:-900}"
 
 cd "${REPO_ROOT}"
-pip install -q -e tests/fixtures/sample_plugin
+python3 -m pip install -q -e tests/fixtures/sample_plugin
 exec python3 -m unittest \
   tests.integration.test_plugin_compose_e2e \
   tests.integration.test_hooks_integration_e2e \

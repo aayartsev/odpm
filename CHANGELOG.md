@@ -8,9 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.5.0-beta] - 2026-06-22
+
+**Pre-release 4.5.0-beta** on branch `4.5-dev`; stable line remains **4.4.3** (`LATEST_STABLE_RELEASE`). Major roadmap 4.5: Config hub slimming, Plugins 2.0, host YAML engine, mandatory integration CI gates, full host gettext coverage, scenario base Dockerfile profiles. No breaking changes for v1 flat `odpm.json`; first run after upgrade may rebuild base Docker images (profile suffix + identity fingerprint).
+
 ### Added
 
-- **Scenario base Dockerfile profiles (Phase S)** — `ScenarioPolicy.base_image_profile` (`full` / `medium` / `ci`) selects `debian_12/13_dockerfile_{profile}` templates; `odoo_image_name` includes profile suffix; `base_image_identity.json` records `base_image_profile` and `dockerfile_sha256` for automatic base image rebuild; program template sync by sha256. ADR-007; tests in `tests/test_dockerfile_profiles.py`.
+- **Config hub slimming (Phase A)** — C-8 addon layout callers; C-13 plan/runtime via `host_ctx`; C-14 `PipelinePorts` + ADR-003; A4 `user_env` split and `manifest/v1_contract` deprecation warn. Tests: `test_addon_layout_ports`, `test_plan_config_coupling`, `test_pipeline_ports`.
+- **Plugins 2.0 (Phase P)** — `EXTENSION_API_VERSION` 1.0, ADR-004; `post_clone` hooks; plan `hooks.*` / `compose.fragment.*` steps; project-local `.odpm/plugins/`; sample plugin contract fixture. Docs: `plugins.md` cookbook.
+- **Host YAML engine (Phase Y)** — `dev_project/yaml/`, structured `ComposeGenerator`, fragment merge via ruamel.yaml; ADR-005.
+- **Integration CI (Phase I)** — ADR-006 mandatory `http-smoke` on PR; compose-smoke plugin/hooks E2E; weekly golden-path, CI image, deb smoke; compose debug artifacts; `docs/smoke-4.0-checklist.md` §4.5.
+- **Host i18n (Phase L)** — `plan_msg()` for `odpm plan`; ~290 host msgids; `check_i18n_catalog.py` CI job; `docs/contributing/i18n.md`, ADR-008.
+- **Scenario base Dockerfile profiles (Phase S)** — `ScenarioPolicy.base_image_profile` (`full` / `medium` / `ci`); `debian_12/13_dockerfile_{profile}` templates; `odoo_image_name` profile suffix; `base_image_identity.json` fingerprint (`base_image_profile`, `dockerfile_sha256`); program template sync by sha256. ADR-007; `tests/test_dockerfile_profiles.py`.
+
+### Changed
+
+- **Release gate (4.5.0-beta)** — `RELEASE_VERSION` → `4.5.0-beta`; `LATEST_STABLE_RELEASE` remains `4.4.3`; deb/rpm packaging synced; install docs and documentation-versions hub list **4.5.0-beta** in APT/YUM **testing**.
 
 ## [4.4.3] - 2026-06-21
 

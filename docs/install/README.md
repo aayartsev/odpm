@@ -2,7 +2,7 @@
 
 !!! info "Рекомендуется stable"
     Для production используйте документацию **[stable](https://aayartsev.github.io/odpm/stable/install/)** (сейчас odpm **4.4.3**) и APT/YUM suite **`stable`**.
-    Архив pre-release: [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/), [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/).
+    Архив pre-release: [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/), [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/), [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/).
     См. [Какую документацию читать](../getting-started/documentation-versions.md).
 
 Выберите способ установки **odpm** на хост (не путать с развёртыванием Odoo-проекта через `odpm --init`).

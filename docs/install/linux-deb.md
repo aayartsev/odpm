@@ -37,9 +37,9 @@ odpm --version
 # ожидается: odpm version: 4.4.3
 ```
 
-### Pre-release (4.4 beta / RC)
+### Pre-release (4.5 / 4.4 beta / RC)
 
-Suite **`testing`** — pre-release теги (`*-beta`, `*-rc*`), например **4.4.3-beta**:
+Suite **`testing`** — pre-release теги (`*-beta`, `*-rc*`), например **4.5.0-beta**:
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -48,7 +48,7 @@ sudo apt update
 sudo apt install odpm
 ```
 
-Инструкции beta 4.4: [docs 4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/linux-deb/) · архив [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
+Инструкции beta 4.5: [docs 4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/linux-deb/) · архив 4.4: [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
 
 Обновление при следующих релизах:
 
@@ -58,7 +58,7 @@ sudo apt update && sudo apt upgrade odpm
 
 ## Установка вручную (.deb с GitHub Releases)
 
-Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для нужного тега (`v4.4.3` — stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta) или соберите локально:
+Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для нужного тега (`v4.4.3` — stable, `v4.5.0-beta` — testing, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta) или соберите локально:
 
 ```bash
 ./scripts/build_deb.sh

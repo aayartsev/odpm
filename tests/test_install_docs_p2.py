@@ -38,6 +38,7 @@ class InstallDocsP2Tests(unittest.TestCase):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             self.assertIn("4.4.3", text)
             self.assertIn("/odpm/stable/", text)
+            self.assertIn("/4.5.0-beta/", text)
             self.assertIn("/4.4.3-beta/", text)
             self.assertIn("/4.4.2-beta/", text)
             self.assertIn("documentation-versions", text)
@@ -56,6 +57,9 @@ class InstallDocsP2Tests(unittest.TestCase):
         beta = (notes_dir / "4.4.3-beta.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/stable/", beta)
         self.assertIn("/odpm/4.4.3-beta/", beta)
+        beta45 = (notes_dir / "4.5.0-beta.md").read_text(encoding="utf-8")
+        self.assertIn("/odpm/stable/", beta45)
+        self.assertIn("/odpm/4.5.0-beta/", beta45)
         archived = (notes_dir / "4.4.2-beta.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/4.4.2-beta/", archived)
 

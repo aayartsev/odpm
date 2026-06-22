@@ -3,8 +3,8 @@
 # ODPM_VERSION aliases RELEASE_VERSION; flat odpm.json contract line stays 4.0 until v2 migrate.
 
 %global srcname odpm
-%global version 4.4.3
-%global release 1
+%global version 4.5.0
+%global release beta
 
 Name:           %{srcname}
 Version:        %{version}
@@ -58,6 +58,8 @@ Host CLI uses PyPI or distribution Python packages for validation and plugins.
 %{python3_sitelib}/odpm-*.dist-info/
 
 %changelog
+* Sun Jun 22 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.5.0-beta
+- Pre-release 4.5.0-beta (roadmap 4.5; see CHANGELOG.md and .github/release-notes/4.5.0-beta.md).
 * Sun Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.3-1
 - Stable release 4.4.3 (see CHANGELOG.md and .github/release-notes/4.4.3.md).
 * Sun Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.3-beta

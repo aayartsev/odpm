@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.plan_l10n_ru_batch import PLAN_L10N_RU  # noqa: E402
+
 I18N_DIR = ROOT / "dev_project" / "i18n"
 RU_PO = I18N_DIR / "ru_RU" / "LC_MESSAGES" / "main.po"
 RU_MO = I18N_DIR / "ru_RU" / "LC_MESSAGES" / "main.mo"
@@ -750,14 +755,6 @@ RU_MESSAGES: dict[str, str] = {
         "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
     ),
 }
-
-
-import sys
-
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from scripts.plan_l10n_ru_batch import PLAN_L10N_RU
 
 RU_MESSAGES.update(PLAN_L10N_RU)
 

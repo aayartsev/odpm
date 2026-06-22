@@ -32,9 +32,9 @@ odpm --version
 # expected: odpm version: 4.4.3
 ```
 
-### Pre-release (4.4 beta / RC)
+### Pre-release (4.5 / 4.4 beta / RC)
 
-Suite **`testing`** — pre-release tags, e.g. **4.4.3-beta**:
+Suite **`testing`** — pre-release tags, e.g. **4.5.0-beta**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-testing.repo \
@@ -44,7 +44,7 @@ sudo dnf makecache
 sudo dnf install odpm
 ```
 
-4.4 beta docs: [4.4.3-beta install guide](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · archived [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
+4.5 beta docs: [4.5.0-beta install guide](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/fedora-rpm/) · archived 4.4: [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
 
 > If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
 >
@@ -71,7 +71,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.4.3` (stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.4.3` (stable), `v4.5.0-beta` (testing), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
 
 ```bash
 ./scripts/build_rpm.sh

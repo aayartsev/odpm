@@ -19,7 +19,7 @@
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.5-dev` | `4.4.3` (stable); следующий pre-release — `4.5.0-beta` |
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.5-dev` | `4.5.0-beta` (pre-release); stable — `4.4.3` |
 | `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.4.3` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |

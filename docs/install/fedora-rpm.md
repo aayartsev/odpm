@@ -32,9 +32,9 @@ odpm --version
 # ожидается: odpm version: 4.4.3
 ```
 
-### Pre-release (4.4 beta / RC)
+### Pre-release (4.5 / 4.4 beta / RC)
 
-Suite **`testing`** — pre-release теги, например **4.4.3-beta**:
+Suite **`testing`** — pre-release теги, например **4.5.0-beta**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-testing.repo \
@@ -44,7 +44,7 @@ sudo dnf makecache
 sudo dnf install odpm
 ```
 
-Beta 4.4: [docs 4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/) · архив [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/).
+Beta 4.5: [docs 4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/) · архив 4.4: [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/).
 
 > Если `odpm-archive-keyring.asc` ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:
 >
@@ -71,7 +71,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Установка вручную (.rpm с GitHub Releases)
 
-Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для тега `v4.4.3` (stable), `v4.4.3-beta` (archived testing) или `v4.4.2-beta` (archived beta), или соберите локально:
+Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для тега `v4.4.3` (stable), `v4.5.0-beta` (testing), `v4.4.3-beta` (archived testing) или `v4.4.2-beta` (archived beta), или соберите локально:
 
 ```bash
 ./scripts/build_rpm.sh
