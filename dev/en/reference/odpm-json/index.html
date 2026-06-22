@@ -2190,13 +2190,13 @@
 <tr>
 <td><code>DEFAULT_ODPM_VERSION</code></td>
 <td><code>"3.0"</code></td>
-<td><strong>Legacy fallback</strong> when <code>odpm_version</code> is <strong>missing</strong> in flat v1</td>
+<td><strong>Legacy fallback</strong> when <code>odpm_version</code> is <strong>missing</strong> in flat v1 (manager logs a deprecation warning; behaviour unchanged)</td>
 </tr>
 </tbody>
 </table>
 <p>Compat behaviour (<code>dev_project/manifest/compat.py</code>):</p>
 <ul>
-<li>Flat v1 <strong>without</strong> <code>manifest_schema</code> and <strong>without</strong> <code>odpm_version</code> → contract is treated as <code>"3.0"</code> (supported by manager 4.4.3).</li>
+<li>Flat v1 <strong>without</strong> <code>manifest_schema</code> and <strong>without</strong> <code>odpm_version</code> → contract is treated as <code>"3.0"</code> (supported by manager 4.4.3); odpm logs a <strong>warning</strong> suggesting <code>odpm_version: "4.0"</code>.</li>
 <li>New projects and migrations → <code>odpm_version: "4.0"</code>.</li>
 <li>v2 nested → <code>requires_odpm</code> (minimum manager semver; new projects get current <code>RELEASE_VERSION</code>), not <code>odpm_version</code>.</li>
 </ul>
