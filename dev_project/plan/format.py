@@ -7,6 +7,7 @@ from typing import Any
 
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
+from ..translations import _
 from .core import OdpmPlan, PlanStep
 
 PLAN_JSON_VERSION = 1
@@ -68,7 +69,10 @@ def plan_to_dict(
 
 
 def format_plan_table(plan: OdpmPlan) -> str:
-    lines = ["Action   Required  ID                    Reason", "-" * 72]
+    lines = [
+        _("Action   Required  ID                    Reason"),
+        "-" * 72,
+    ]
     for step in plan.steps:
         lines.append(
             f"{step.outcome.upper():<8} {_format_required(step):<8}  "
@@ -76,12 +80,12 @@ def format_plan_table(plan: OdpmPlan) -> str:
         )
     if plan.warnings:
         lines.append("")
-        lines.append("Warnings:")
+        lines.append(_("Warnings:"))
         for warning in plan.warnings:
             lines.append(f"- {warning}")
     if plan.diffs:
         lines.append("")
-        lines.append("Planned changes:")
+        lines.append(_("Planned changes:"))
         for file_diff in plan.diffs:
             if file_diff.unified_diff:
                 header = file_diff.path

@@ -25,7 +25,7 @@ from ..debugger.env_parsing import (
 from .postgres_service_name import parse_postgres_service_name
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
-from ..translations import parse_odpm_locale_setting
+from ..translations import _, parse_odpm_locale_setting
 
 _logger = get_module_logger(__name__)
 
@@ -93,7 +93,7 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
     raw_scenario = env_dict.get("ODPM_SCENARIO", constants.DEFAULT_ODPM_SCENARIO)
     if raw_scenario not in constants.ODPM_SCENARIO_VALUES:
         _logger.warning(
-            "Unknown ODPM_SCENARIO=%r, using %s",
+            _("Unknown ODPM_SCENARIO=%r, using %s"),
             raw_scenario,
             constants.DEFAULT_ODPM_SCENARIO,
         )
@@ -107,7 +107,7 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         parsed_locale = parse_odpm_locale_setting(raw_locale)
         if parsed_locale is None:
             _logger.warning(
-                "Invalid %s=%r, falling back to system locale",
+                _("Invalid %s=%r, falling back to system locale"),
                 constants.ODPM_LOCALE_ENV_KEY,
                 raw_locale,
             )

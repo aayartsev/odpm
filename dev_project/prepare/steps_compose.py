@@ -4,17 +4,18 @@ from __future__ import annotations
 
 from .. import constants
 from ..plan import PlanStep, project_template_needs_upgrade
-from ..system_check_policy import SystemCheckPolicy
 from ..plan.compose_preview import (
     compose_generate_needs_execute,
     compose_service_needs_update,
 )
+from ..plan.l10n import plan_msg
+from ..system_check_policy import SystemCheckPolicy
 from .helpers import make_plan_step
 from .types import PrepareContext
 
 
 def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
-    description = "Upgrade .odpm/docker-compose.yml project template"
+    description = plan_msg("Upgrade .odpm/docker-compose.yml project template")
     if project_template_needs_upgrade(
         ctx.host_ctx.project_dir,
         constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
@@ -25,27 +26,27 @@ def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
             description,
             "update",
             True,
-            "compose template stale",
+            plan_msg("compose template stale"),
         )
     return make_plan_step(
         "compose.template",
         description,
         "noop",
         True,
-        "compose template up to date",
+        plan_msg("compose template up to date"),
     )
 
 
 def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
     from ..compose.fragments import collect_compose_services, compose_fragments_need_materialize
 
-    description = "Materialize manifest and plugin compose service fragments"
+    description = plan_msg("Materialize manifest and plugin compose service fragments")
     services = collect_compose_services(ctx.extension_host())
     if compose_fragments_need_materialize(ctx.host_ctx.project_dir, services):
         reason = (
-            "compose service fragments stale"
+            plan_msg("compose service fragments stale")
             if services
-            else "compose service fragments cleanup"
+            else plan_msg("compose service fragments cleanup")
         )
         return make_plan_step(
             "compose.fragments",
@@ -59,17 +60,19 @@ def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
         description,
         "noop",
         True,
-        "compose service fragments up to date",
+        plan_msg("compose service fragments up to date"),
     )
 
 
 def evaluate_compose_service(ctx: PrepareContext) -> PlanStep:
-    description = (
+    description = plan_msg(
         "Build compose start command and write .odpm/runtime/config.json when stale"
     )
     needs_update, svc_reason = compose_service_needs_update(ctx)
     if needs_update:
-        return make_plan_step("compose.service", description, "update", True, svc_reason)
+        return make_plan_step(
+            "compose.service", description, "update", True, plan_msg(svc_reason)
+        )
     gen_needs, gen_reason = compose_generate_needs_execute(ctx)
     if gen_needs:
         return make_plan_step(
@@ -77,19 +80,22 @@ def evaluate_compose_service(ctx: PrepareContext) -> PlanStep:
             description,
             "run",
             True,
-            f"build compose service for compose.generate ({gen_reason})",
+            plan_msg(
+                "build compose service for compose.generate ({REASON})",
+                REASON=gen_reason,
+            ),
         )
     return make_plan_step(
         "compose.service",
         description,
         "noop",
         True,
-        svc_reason,
+        plan_msg(svc_reason),
     )
 
 
 def evaluate_compose_generate(ctx: PrepareContext) -> PlanStep:
-    description = "Render docker-compose.yml from project template"
+    description = plan_msg("Render docker-compose.yml from project template")
     gen_needs, gen_reason = compose_generate_needs_execute(ctx)
     if gen_needs:
         return make_plan_step(
@@ -97,19 +103,19 @@ def evaluate_compose_generate(ctx: PrepareContext) -> PlanStep:
             description,
             "update",
             True,
-            gen_reason,
+            plan_msg(gen_reason),
         )
     return make_plan_step(
         "compose.generate",
         description,
         "noop",
         True,
-        gen_reason,
+        plan_msg(gen_reason),
     )
 
 
 def evaluate_compose_validate(ctx: PrepareContext) -> PlanStep:
-    description = "Validate generated docker-compose.yml"
+    description = plan_msg("Validate generated docker-compose.yml")
     policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
     if not policy.compose_validate:
         return make_plan_step(
@@ -117,14 +123,14 @@ def evaluate_compose_validate(ctx: PrepareContext) -> PlanStep:
             description,
             "skip",
             True,
-            "compose validation disabled by policy",
+            plan_msg("compose validation disabled by policy"),
         )
     return make_plan_step(
         "compose.validate",
         description,
         "run",
         True,
-        "validate docker-compose.yml",
+        plan_msg("validate docker-compose.yml"),
     )
 
 

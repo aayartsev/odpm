@@ -87,7 +87,7 @@ class DepsLockManager:
                 self._lock_source = LockSource.DEPS_FILE
                 self._lock = load_deps_lock(self._path)
             else:
-                _logger.info("Loaded git dependency lock from manifest locks.git")
+                _logger.info(_("Loaded git dependency lock from manifest locks.git"))
         else:
             self._lock = load_deps_lock(self._path)
         return self._lock
@@ -122,8 +122,10 @@ class DepsLockManager:
             return
         if self._config.policy.is_developer():
             _logger.info(
-                "Skipping developing lock apply in developer scenario; "
-                "git state is managed by the developer"
+                _(
+                    "Skipping developing lock apply in developer scenario; "
+                    "git state is managed by the developer"
+                )
             )
             return
         self._check_stale_developing_entry(developing)
@@ -195,7 +197,9 @@ class DepsLockManager:
             dependencies=sort_lock_entries(dependency_entries),
         )
         save_deps_lock(self._path, lock)
-        _logger.info("Wrote git dependency lock to %s", self._path)
+        _logger.info(
+            _("Wrote git dependency lock to {PATH}").format(PATH=self._path)
+        )
         self._maybe_sync_manifest_git_locks(lock)
 
     def _sync_manifest_locks_requested(self) -> bool:
@@ -211,21 +215,27 @@ class DepsLockManager:
         if not self._sync_manifest_locks_requested():
             if is_v2 and self._config.policy.is_developer():
                 _logger.info(
-                    "Wrote .odpm/deps.lock.json; manifest locks.git unchanged "
-                    "(use --sync-manifest-locks with --update-lock)"
+                    _(
+                        "Wrote .odpm/deps.lock.json; manifest locks.git unchanged "
+                        "(use --sync-manifest-locks with --update-lock)"
+                    )
                 )
             return
         if not self._config.policy.is_developer():
             _logger.warning(
-                "--sync-manifest-locks is only supported in developer scenario; "
-                "manifest locks.git unchanged"
+                _(
+                    "--sync-manifest-locks is only supported in developer scenario; "
+                    "manifest locks.git unchanged"
+                )
             )
             return
         if not is_v2:
             return
         manifest_path = self._config.repo_odpm_json
         if write_manifest_git_locks_from_deps_lock(manifest_path, lock):
-            _logger.info("Wrote locks.git to %s", manifest_path)
+            _logger.info(
+                _("Wrote locks.git to {PATH}").format(PATH=manifest_path)
+            )
 
     def apply_pinned_locks(self) -> None:
         """Apply loaded lock entries to platform, developing, and dependency repos."""

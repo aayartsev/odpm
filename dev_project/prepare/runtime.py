@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+from ..debugger.ide import ide_includes_pycharm, ide_includes_vscode
 from ..host.ports import RuntimePorts
 from ..plan import PlanStep
-from ..debugger.ide import ide_includes_pycharm, ide_includes_vscode
 from ..plan.compose_preview import vscode_settings_up_to_date
+from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
+from ..plan.debug_profile_preview import debug_profile_needs_update
+from ..plan.l10n import plan_msg
 from ..plan.pycharm_preview import (
     pycharm_run_config_description,
     pycharm_run_config_up_to_date,
 )
-from ..plan.debug_profile_preview import debug_profile_needs_update
-from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
 from ..project_env import CreateProjectEnvironment
 from .helpers import make_plan_step
 
@@ -23,10 +24,10 @@ def evaluate_runtime_ci_build_image(runtime: RuntimePorts) -> PlanStep | None:
         return None
     return make_plan_step(
         "ci.build_image",
-        "Build CI Docker image from prepared context",
+        plan_msg("Build CI Docker image from prepared context"),
         "run",
         True,
-        "build CI image from prepared context",
+        plan_msg("build CI image from prepared context"),
     )
 
 
@@ -36,23 +37,24 @@ def evaluate_runtime_debug_profile(
 ) -> PlanStep | None:
     if not runtime.host_ctx.policy.include_debugpy:
         return None
-    description = "Write .odpm/runtime/debug-profile.json"
+    description = plan_msg("Write .odpm/runtime/debug-profile.json")
     config = runtime.bootstrap.config
     needs_update, reason = debug_profile_needs_update(config, project_env)
+    localized_reason = plan_msg(reason)
     if needs_update:
         return make_plan_step(
             "ide.debug_profile",
             description,
             "run",
             False,
-            reason,
+            localized_reason,
         )
     return make_plan_step(
         "ide.debug_profile",
         description,
         "noop",
         False,
-        reason,
+        localized_reason,
     )
 
 
@@ -64,7 +66,7 @@ def evaluate_runtime_vscode_settings(
         return None
     if not ide_includes_vscode(runtime.host_ctx.user_env.odpm_ide):
         return None
-    description = "Update VS Code launch and workspace settings"
+    description = plan_msg("Update VS Code launch and workspace settings")
     config = runtime.bootstrap.config
     if vscode_settings_up_to_date(config):
         return make_plan_step(
@@ -72,14 +74,14 @@ def evaluate_runtime_vscode_settings(
             description,
             "noop",
             False,
-            "VS Code settings already present",
+            plan_msg("VS Code settings already present"),
         )
     return make_plan_step(
         "vscode.settings",
         description,
         "run",
         False,
-        "refresh VS Code launch and settings",
+        plan_msg("refresh VS Code launch and settings"),
     )
 
 
@@ -92,14 +94,14 @@ def evaluate_runtime_pycharm_settings(
     if not ide_includes_pycharm(runtime.host_ctx.user_env.odpm_ide):
         return None
     config = runtime.bootstrap.config
-    description = pycharm_run_config_description(config)
+    description = plan_msg(pycharm_run_config_description(config))
     if pycharm_run_config_up_to_date(config, project_env):
         return make_plan_step(
             "pycharm.settings",
             description,
             "noop",
             False,
-            "PyCharm run configuration already present",
+            plan_msg("PyCharm run configuration already present"),
         )
     return make_plan_step(
         "pycharm.settings",
@@ -113,7 +115,7 @@ def evaluate_runtime_pycharm_settings(
 def evaluate_runtime_compose_up(runtime: RuntimePorts) -> PlanStep | None:
     if not compose_up_would_run(runtime.args, runtime.host_ctx):
         return None
-    description = "Run docker compose up"
+    description = plan_msg("Run docker compose up")
     reason, _extra_warnings = evaluate_compose_up_plan(runtime.host_ctx, runtime.args)
     return make_plan_step(
         "compose.up",

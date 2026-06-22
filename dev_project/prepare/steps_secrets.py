@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..plan import PlanStep
+from ..plan.l10n import plan_msg
 from ..plan.secrets_preview import secrets_needs_update
 from ..project_env.secrets import materialize_secrets
 from .helpers import make_plan_step
@@ -10,14 +11,16 @@ from .types import PrepareContext
 
 
 def evaluate_secrets_materialize(ctx: PrepareContext) -> PlanStep:
-    description = "Materialize .odpm/runtime/secrets.json from .odpm/secrets.json"
+    description = plan_msg(
+        "Materialize .odpm/runtime/secrets.json from .odpm/secrets.json"
+    )
     if not ctx.host_ctx.policy.mount_runtime_secrets_from_host():
         return make_plan_step(
             "secrets.materialize",
             description,
             "skip",
             True,
-            "secrets mount disabled for CI scenario",
+            plan_msg("secrets mount disabled for CI scenario"),
         )
     needs_update, reason = secrets_needs_update(ctx.host_ctx.project_dir)
     if needs_update:
@@ -26,14 +29,14 @@ def evaluate_secrets_materialize(ctx: PrepareContext) -> PlanStep:
             description,
             "update",
             True,
-            reason,
+            plan_msg(reason),
         )
     return make_plan_step(
         "secrets.materialize",
         description,
         "noop",
         True,
-        reason,
+        plan_msg(reason),
     )
 
 

@@ -16,7 +16,9 @@ from dev_project.plan import OdpmPlan, OdpmPlanner, PlanStep, format_plan
 from dev_project.plan.compose_runtime import PLAN_NO_DOCKER_WARNING
 from dev_project.prepare import make_prepare_context
 from dev_project.project_env.secrets import import_secrets_from_path
+from dev_project.translations import update_locale
 from tests.fixtures.minimal_odpm_fixture import provision_minimal_odpm_project
+from tests.i18n_test_helpers import host_locale
 from tests.scenario_plan_matrix_helpers import (
     build_matrix_plan,
     invalid_v2_manifest_payload,
@@ -41,8 +43,17 @@ class _MatrixProjectTestCase(unittest.TestCase):
         self._previous_home = os.environ.get("HOME")
         os.environ["HOME"] = str(self._home)
         self._provision_seq = 0
+        self._previous_odpm_locale = os.environ.get(constants.ODPM_LOCALE_ENV_KEY)
+        os.environ[constants.ODPM_LOCALE_ENV_KEY] = "en_US"
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
 
     def tearDown(self) -> None:
+        self._locale_cm.__exit__(None, None, None)
+        if self._previous_odpm_locale is None:
+            os.environ.pop(constants.ODPM_LOCALE_ENV_KEY, None)
+        else:
+            os.environ[constants.ODPM_LOCALE_ENV_KEY] = self._previous_odpm_locale
         if self._previous_home is None:
             os.environ.pop("HOME", None)
         else:
@@ -460,8 +471,29 @@ class PlanMatrixFlagsTests(_MatrixProjectTestCase):
             project_dir,
             OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
         )
+        update_locale("en_US")
         text = format_plan(plan, OdpmCliArgs(plan=True), pipeline.project_environment.host_ctx)
         self.assertIn("Action   Required  ID", text)
+
+    def test_a6_plan_format_table_ru_reasons(self) -> None:
+        project_dir = self._provision(scenario=constants.DEVELOPER_SCENARIO)
+        previous = os.environ.get(constants.ODPM_LOCALE_ENV_KEY)
+        os.environ[constants.ODPM_LOCALE_ENV_KEY] = "ru_RU"
+        try:
+            with host_locale("ru_RU"):
+                plan, pipeline = build_matrix_plan(
+                    project_dir,
+                    OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+                )
+                text = format_plan(
+                    plan, OdpmCliArgs(plan=True), pipeline.project_environment.host_ctx
+                )
+        finally:
+            if previous is None:
+                os.environ.pop(constants.ODPM_LOCALE_ENV_KEY, None)
+            else:
+                os.environ[constants.ODPM_LOCALE_ENV_KEY] = previous
+        self.assertIn("пропущено с --no-git-update", text)
 
     def test_a7_plan_show_diff(self) -> None:
         project_dir = self._provision(scenario=constants.CI_SCENARIO)

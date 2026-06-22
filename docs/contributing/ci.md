@@ -9,6 +9,7 @@ Badges в README указывают на [ci.yml](https://github.com/aayartsev/o
 | Job | Workflow | Триггер | Gate |
 |-----|----------|---------|------|
 | **lint** | `ci.yml` | push/PR | рекомендуется обязательный |
+| **i18n** | `ci.yml` | push/PR | **обязательный** (4.5) — `check_i18n_catalog.py` |
 | **unit** | `ci.yml` | push/PR, Python 3.10 + 3.12 | рекомендуется обязательный |
 | **release-packages** | `release-packages.yml` | push `4.0-beta`/`4.0-rc1`/`main`, tag `v*`, dispatch | артефакт; Release на tag |
 | **contract** | `ci.yml` | push/PR | рекомендуется обязательный |
@@ -76,7 +77,7 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
 | Ветка | Required checks |
 |-------|-----------------|
-| `4.5-dev` | **lint**, **unit**, **contract**, **compose-smoke**, **http-smoke** |
+| `4.5-dev` | **lint**, **unit**, **contract**, **i18n**, **compose-smoke**, **http-smoke** |
 | `4.4-dev`, `4.0-beta`, `main` | то же (если ветка ещё принимает PR) |
 
 Настройка: GitHub → Settings → Branches → rule для `4.5-dev` → Require status checks.
@@ -84,7 +85,7 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 ```bash
 # Пример (нужны права admin; имена checks — как в UI Actions после первого green run):
 gh api repos/{owner}/{repo}/branches/4.5-dev/protection -X PUT \
-  -f required_status_checks='{"strict":true,"contexts":["lint","unit","contract","compose-smoke","http-smoke"]}' \
+  -f required_status_checks='{"strict":true,"contexts":["lint","unit","contract","i18n","compose-smoke","http-smoke"]}' \
   -f enforce_admins=false \
   -f required_pull_request_reviews='{"required_approving_review_count":0}' \
   -f restrictions=null

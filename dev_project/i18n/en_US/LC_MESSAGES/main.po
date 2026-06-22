@@ -1,9 +1,937 @@
-# English host CLI catalog.
-# en_US uses gettext fallback (msgid is returned as-is); no main.mo is required.
-#
+# English host CLI catalog (msgstr mirrors msgid).
 msgid ""
 msgstr ""
 "Project-Id-Version: odpm\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en_US\n"
+
+msgid " \"config.json\" is deprecated. Please read documentation"
+msgstr " \"config.json\" is deprecated. Please read documentation"
+
+msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
+msgstr "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
+
+msgid "--sync-manifest-locks is only supported in developer scenario"
+msgstr "--sync-manifest-locks is only supported in developer scenario"
+
+msgid "--sync-manifest-locks is only supported in developer scenario; manifest locks.git unchanged"
+msgstr "--sync-manifest-locks is only supported in developer scenario; manifest locks.git unchanged"
+
+msgid "--sync-manifest-locks requires --update-lock"
+msgstr "--sync-manifest-locks requires --update-lock"
+
+msgid "--update-lock cannot be used together with --no-git-update"
+msgstr "--update-lock cannot be used together with --no-git-update"
+
+msgid ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
+msgstr ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
+
+msgid "Accepted database drift: {KIND}"
+msgstr "Accepted database drift: {KIND}"
+
+msgid "Action   Required  ID                    Reason"
+msgstr "Action   Required  ID                    Reason"
+
+msgid "Adopting current database configuration as baseline (no last_run snapshot yet)."
+msgstr "Adopting current database configuration as baseline (no last_run snapshot yet)."
+
+msgid "Application role {ROLE} present: {VALUE}"
+msgstr "Application role {ROLE} present: {VALUE}"
+
+msgid "Apply pinned commits from {SOURCE} before checkout"
+msgstr "Apply pinned commits from {SOURCE} before checkout"
+
+msgid "Applying git dependency lock from manifest locks.git in odpm.json"
+msgstr "Applying git dependency lock from manifest locks.git in odpm.json"
+
+msgid "Applying git dependency lock from {PATH}"
+msgstr "Applying git dependency lock from {PATH}"
+
+msgid "Attached to container output. Detailed technical logs below are in English."
+msgstr "Attached to container output. Detailed technical logs below are in English."
+
+msgid "Blocking database configuration drift detected; resolve before starting containers."
+msgstr "Blocking database configuration drift detected; resolve before starting containers."
+
+msgid "Blocking database configuration drift remains after resolution: {KINDS}"
+msgstr "Blocking database configuration drift remains after resolution: {KINDS}"
+
+msgid "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
+msgstr "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
+
+msgid "Build CI Docker image from prepared context"
+msgstr "Build CI Docker image from prepared context"
+
+msgid "Build compose start command and write .odpm/runtime/config.json when stale"
+msgstr "Build compose start command and write .odpm/runtime/config.json when stale"
+
+msgid "Build docker volume mapping for Odoo, venv, and addons"
+msgstr "Build docker volume mapping for Odoo, venv, and addons"
+
+msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
+msgstr "Cannot connect to the Docker daemon. Is the docker daemon running?"
+
+msgid "Cannot create dir, {dir_path}, please check it"
+msgstr "Cannot create dir, {dir_path}, please check it"
+
+msgid "Cannot get docker-compose info, did you install it?"
+msgstr "Cannot get docker-compose info, did you install it?"
+
+msgid "Cannot list Docker containers: {DETAILS}"
+msgstr "Cannot list Docker containers: {DETAILS}"
+
+msgid "Cannot load local plugin module: {PATH}"
+msgstr "Cannot load local plugin module: {PATH}"
+
+msgid "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
+msgstr "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
+
+msgid "Check Docker engine"
+msgstr "Check Docker engine"
+
+msgid "Check `docker compose ps` and the English log output above for details."
+msgstr "Check `docker compose ps` and the English log output above for details."
+
+msgid "Check database configuration drift against last_run snapshot"
+msgstr "Check database configuration drift against last_run snapshot"
+
+msgid "Checking out {REF} for {PROJECT}"
+msgstr "Checking out {REF} for {PROJECT}"
+
+msgid "Checkout dependency repos to odoo version branch"
+msgstr "Checkout dependency repos to odoo version branch"
+
+msgid "Clone or update platform, developing, and dependency git repos"
+msgstr "Clone or update platform, developing, and dependency git repos"
+
+msgid "Collect resolved git commits and write .odpm/deps.lock.json"
+msgstr "Collect resolved git commits and write .odpm/deps.lock.json"
+
+msgid "Compose service: {SERVICE}"
+msgstr "Compose service: {SERVICE}"
+
+msgid "Compose stack health was not probed; --force-recreate is unknown"
+msgstr "Compose stack health was not probed; --force-recreate is unknown"
+
+msgid "Compose stack is healthy; reusing existing containers without --force-recreate"
+msgstr "Compose stack is healthy; reusing existing containers without --force-recreate"
+
+msgid "Configuration drift:"
+msgstr "Configuration drift:"
+
+msgid "Container start skipped (--skip-start)."
+msgstr "Container start skipped (--skip-start)."
+
+msgid "Control+C pressed; stopping."
+msgstr "Control+C pressed; stopping."
+
+msgid "Created PostgreSQL application role {ROLE}."
+msgstr "Created PostgreSQL application role {ROLE}."
+
+msgid "Created {ENV_FILE} from environment variables and defaults (non-interactive mode)."
+msgstr "Created {ENV_FILE} from environment variables and defaults (non-interactive mode)."
+
+msgid "Data path: {PATH}"
+msgstr "Data path: {PATH}"
+
+msgid "Database configuration drift requires confirmation in non-interactive mode. Drift kinds: {KINDS}. Use --accept-database-drift=KIND for each accepted drift."
+msgstr "Database configuration drift requires confirmation in non-interactive mode. Drift kinds: {KINDS}. Use --accept-database-drift=KIND for each accepted drift."
+
+msgid "Database drift resolution aborted."
+msgstr "Database drift resolution aborted."
+
+msgid "Database status"
+msgstr "Database status"
+
+msgid "Did you install git?"
+msgstr "Did you install git?"
+
+msgid "Directory {START_DIR_PATH} is not a valid odpm project directory. Please run \"cd {PROJECT_PATH}\" to navigate to the correct location."
+msgstr "Directory {START_DIR_PATH} is not a valid odpm project directory. Please run \"cd {PROJECT_PATH}\" to navigate to the correct location."
+
+msgid "Do not change this file, its content is generating automatically"
+msgstr "Do not change this file, its content is generating automatically"
+
+msgid "Do not change this param, it is generating automatically"
+msgstr "Do not change this param, it is generating automatically"
+
+msgid "Do not change, it will get from \"db_manager_password\" param from config.json file"
+msgstr "Do not change, it will get from \"db_manager_password\" param from config.json file"
+
+msgid "Do you want to clone odoo? y/n\n"
+msgstr "Do you want to clone odoo? y/n\n"
+
+msgid "Docker compose command is not configured; stack health was not probed"
+msgstr "Docker compose command is not configured; stack health was not probed"
+
+msgid "Ensured PostgreSQL application role {ROLE} during baseline adoption."
+msgstr "Ensured PostgreSQL application role {ROLE} during baseline adoption."
+
+msgid "Environment variable {VAR} is not set (required for manifest field {FIELD})"
+msgstr "Environment variable {VAR} is not set (required for manifest field {FIELD})"
+
+msgid "Error checking PostgreSQL port: {DETAIL}"
+msgstr "Error checking PostgreSQL port: {DETAIL}"
+
+msgid "Failed to bootstrap PostgreSQL application role {ROLE} in single-user mode."
+msgstr "Failed to bootstrap PostgreSQL application role {ROLE} in single-user mode."
+
+msgid "Failed to ensure PostgreSQL role {ROLE}."
+msgstr "Failed to ensure PostgreSQL role {ROLE}."
+
+msgid "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
+msgstr "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
+
+msgid "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
+msgstr "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
+
+msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
+msgstr "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
+
+msgid "Git dependency lock updated; container start skipped."
+msgstr "Git dependency lock updated; container start skipped."
+
+msgid "Git dependency {DEPENDENCY_URL} is not available locally; transitive entries from oca_dependencies.txt and nested odpm.json will be skipped"
+msgstr "Git dependency {DEPENDENCY_URL} is not available locally; transitive entries from oca_dependencies.txt and nested odpm.json will be skipped"
+
+msgid "Git lock source: .odpm/deps.lock.json; run --update-lock after changing dependencies."
+msgstr "Git lock source: .odpm/deps.lock.json; run --update-lock after changing dependencies."
+
+msgid "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA in locks.git and run --update-lock to sync .odpm/deps.lock.json."
+msgstr "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA in locks.git and run --update-lock to sync .odpm/deps.lock.json."
+
+msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
+msgstr "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
+
+msgid "Host port: {PORT}"
+msgstr "Host port: {PORT}"
+
+msgid "If you want drop this file to default values, just delete it"
+msgstr "If you want drop this file to default values, just delete it"
+
+msgid "Interactive input is not available in non-interactive mode."
+msgstr "Interactive input is not available in non-interactive mode."
+
+msgid "Invalid %s=%r, falling back to system locale"
+msgstr "Invalid %s=%r, falling back to system locale"
+
+msgid "Invalid %s=%r, using system locale %s"
+msgstr "Invalid %s=%r, using system locale %s"
+
+msgid "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+msgstr "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+
+msgid "Invalid ODPM_IDE choice %r, using %s"
+msgstr "Invalid ODPM_IDE choice %r, using %s"
+
+msgid "Invalid choice. Please enter one of: {CHOICES}"
+msgstr "Invalid choice. Please enter one of: {CHOICES}"
+
+msgid "Invalid debugger backend choice %r, using %s"
+msgstr "Invalid debugger backend choice %r, using %s"
+
+msgid "Invalid local plugin module name: {NAME!r}"
+msgstr "Invalid local plugin module name: {NAME!r}"
+
+msgid "Invalid manifest hook {PHASE}: empty command"
+msgstr "Invalid manifest hook {PHASE}: empty command"
+
+msgid "Invalid manifest hook {PHASE}: empty plugin id"
+msgstr "Invalid manifest hook {PHASE}: empty plugin id"
+
+msgid "Invalid manifest hook {PHASE}: expected command argv or plugin id"
+msgstr "Invalid manifest hook {PHASE}: expected command argv or plugin id"
+
+msgid "Invalid manifest_schema value {VALUE!r}; expected an integer."
+msgstr "Invalid manifest_schema value {VALUE!r}; expected an integer."
+
+msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
+msgstr "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
+
+msgid "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
+msgstr "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
+
+msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
+msgstr "Load git lock from {SOURCE} and enter apply mode before checkout"
+
+msgid "Loaded git dependency lock from manifest locks.git"
+msgstr "Loaded git dependency lock from manifest locks.git"
+
+msgid "Local plugin module not found: {PATH}"
+msgstr "Local plugin module not found: {PATH}"
+
+msgid "Local plugin path escapes .odpm/plugins: {NAME!r}"
+msgstr "Local plugin path escapes .odpm/plugins: {NAME!r}"
+
+msgid "Manifest at {PATH} is not valid JSON."
+msgstr "Manifest at {PATH} is not valid JSON."
+
+msgid "Manifest at {PATH} is valid ({SCHEMA} JSON Schema)."
+msgstr "Manifest at {PATH} is valid ({SCHEMA} JSON Schema)."
+
+msgid "Manifest file not found at {PATH}."
+msgstr "Manifest file not found at {PATH}."
+
+msgid "Manifest hook {PHASE} failed: {COMMAND}"
+msgstr "Manifest hook {PHASE} failed: {COMMAND}"
+
+msgid "Manifest is already manifest_schema 2."
+msgstr "Manifest is already manifest_schema 2."
+
+msgid "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
+msgstr "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
+
+msgid "Manifest root must be a JSON object."
+msgstr "Manifest root must be a JSON object."
+
+msgid "Materialize .odpm/runtime/secrets.json from .odpm/secrets.json"
+msgstr "Materialize .odpm/runtime/secrets.json from .odpm/secrets.json"
+
+msgid "Materialize compose fragment for service {NAME}"
+msgstr "Materialize compose fragment for service {NAME}"
+
+msgid "Materialize manifest and plugin compose service fragments"
+msgstr "Materialize manifest and plugin compose service fragments"
+
+msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
+msgstr "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
+
+msgid "Nested odpm.json at {MANIFEST_PATH} declares python_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
+msgstr "Nested odpm.json at {MANIFEST_PATH} declares python_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
+
+msgid "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object"
+msgstr "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object"
+
+msgid "No PostgreSQL admin role is available for service {SERVICE}."
+msgstr "No PostgreSQL admin role is available for service {SERVICE}."
+
+msgid "No database last_run snapshot yet; baseline will be adopted automatically on startup."
+msgstr "No database last_run snapshot yet; baseline will be adopted automatically on startup."
+
+msgid "No manifest changes to apply."
+msgstr "No manifest changes to apply."
+
+msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
+msgstr "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
+
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
+msgstr "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
+
+msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
+msgstr "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
+
+msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}."
+msgstr "ODPM scenario changed: {PREVIOUS} -> {CURRENT}."
+
+msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
+msgstr "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
+
+msgid "Planned changes:"
+msgstr "Planned changes:"
+
+msgid "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
+msgstr "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
+
+msgid "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
+msgstr "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
+
+msgid "Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Please, enter odoo versions of this project. There is list of supported versions: {AVAILABEL_ODOO_VERSIONS_ARE}. You can leave default {ODOO_LATEST_VERSION} or write your own. Press 'Enter' to leave default value:\n"
+
+msgid "PostgreSQL admin role did not become available within {SECONDS}s after bootstrap."
+msgstr "PostgreSQL admin role did not become available within {SECONDS}s after bootstrap."
+
+msgid "PostgreSQL application role {CURRENT} is missing in the running cluster."
+msgstr "PostgreSQL application role {CURRENT} is missing in the running cluster."
+
+msgid "PostgreSQL application role {ROLE} is missing in the running cluster.\nChoose: (a) abort  (b) create role now\n"
+msgstr "PostgreSQL application role {ROLE} is missing in the running cluster.\nChoose: (a) abort  (b) create role now\n"
+
+msgid "PostgreSQL application role {ROLE} is ready."
+msgstr "PostgreSQL application role {ROLE} is ready."
+
+msgid "PostgreSQL authentication failed for role {USER}"
+msgstr "PostgreSQL authentication failed for role {USER}"
+
+msgid "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}."
+msgstr "PostgreSQL compose service changed: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL connection failed: {DETAIL}"
+msgstr "PostgreSQL connection failed: {DETAIL}"
+
+msgid "PostgreSQL container running: {VALUE}"
+msgstr "PostgreSQL container running: {VALUE}"
+
+msgid "PostgreSQL container {SERVICE} is not running; start it before ensuring the role."
+msgstr "PostgreSQL container {SERVICE} is not running; start it before ensuring the role."
+
+msgid "PostgreSQL credentials check failed after {ATTEMPTS} attempts"
+msgstr "PostgreSQL credentials check failed after {ATTEMPTS} attempts"
+
+msgid "PostgreSQL credentials check timed out after {SECONDS}s for database {DBNAME}"
+msgstr "PostgreSQL credentials check timed out after {SECONDS}s for database {DBNAME}"
+
+msgid "PostgreSQL data directory changed:\n  previous: {PREVIOUS}\n  current: {CURRENT}\nChoose: (a) abort  (b) accept new data path  (c) show wipe instructions\n"
+msgstr "PostgreSQL data directory changed:\n  previous: {PREVIOUS}\n  current: {CURRENT}\nChoose: (a) abort  (b) accept new data path  (c) show wipe instructions\n"
+
+msgid "PostgreSQL data directory changed: {PREVIOUS} -> {CURRENT}."
+msgstr "PostgreSQL data directory changed: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}."
+msgstr "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
+msgstr "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
+
+msgid "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
+msgstr "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL image version changed:\n  previous: {PREVIOUS}\n  current: {CURRENT}\nChoose: (a) abort  (b) accept and continue  (c) show wipe instructions\n"
+msgstr "PostgreSQL image version changed:\n  previous: {PREVIOUS}\n  current: {CURRENT}\nChoose: (a) abort  (b) accept and continue  (c) show wipe instructions\n"
+
+msgid "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}."
+msgstr "PostgreSQL image version changed: {PREVIOUS} -> {CURRENT}."
+
+msgid "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role."
+msgstr "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role."
+
+msgid "PostgreSQL is still starting up"
+msgstr "PostgreSQL is still starting up"
+
+msgid "PostgreSQL ready: {VALUE}"
+msgstr "PostgreSQL ready: {VALUE}"
+
+msgid "PostgreSQL role {USER} does not exist"
+msgstr "PostgreSQL role {USER} does not exist"
+
+msgid "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s after single-user bootstrap."
+msgstr "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s after single-user bootstrap."
+
+msgid "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s during baseline adoption."
+msgstr "PostgreSQL service {SERVICE} did not become ready within {SECONDS}s during baseline adoption."
+
+msgid "PostgreSQL startup timeout exceeded"
+msgstr "PostgreSQL startup timeout exceeded"
+
+msgid "Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"
+msgstr "Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}"
+
+msgid "Preparing your Odoo environment (dependencies, templates, compose files)..."
+msgstr "Preparing your Odoo environment (dependencies, templates, compose files)..."
+
+msgid "Project files are ready."
+msgstr "Project files are ready."
+
+msgid "PyCharm run configuration already present"
+msgstr "PyCharm run configuration already present"
+
+msgid "Recorded database baseline snapshot at {PATH}."
+msgstr "Recorded database baseline snapshot at {PATH}."
+
+msgid "Refresh project symlinks for local codebase access"
+msgstr "Refresh project symlinks for local codebase access"
+
+msgid "Regenerate project Dockerfile from odpm template"
+msgstr "Regenerate project Dockerfile from odpm template"
+
+msgid "Regenerate project odoo.conf from .odpm template"
+msgstr "Regenerate project odoo.conf from .odpm template"
+
+msgid "Regenerate root .dockerignore from .odpm/dockerignore"
+msgstr "Regenerate root .dockerignore from .odpm/dockerignore"
+
+msgid "Render docker-compose.yml from project template"
+msgstr "Render docker-compose.yml from project template"
+
+msgid "Run docker compose up"
+msgstr "Run docker compose up"
+
+msgid "Run manifest {PHASE} lifecycle hooks"
+msgstr "Run manifest {PHASE} lifecycle hooks"
+
+msgid "Running with sudo/root privileges is not permitted."
+msgstr "Running with sudo/root privileges is not permitted."
+
+msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
+msgstr "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
+
+msgid "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
+msgstr "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
+
+msgid "Set IDE host name for pydevd_connect (container connects to Debug Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
+msgstr "Set IDE host name for pydevd_connect (container connects to Debug Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
+
+msgid "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
+
+msgid "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
+
+msgid "Set directory for odoo creating/restoring backups, You can leave default {DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default value:"
+msgstr "Set directory for odoo creating/restoring backups, You can leave default {DEFAULT_ODOO_BACKUP_DIR} or write your own. Press 'Enter' to leave default value:"
+
+msgid "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Set gevent port which it will listen. You can leave default {DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave default value:\n"
+
+msgid "Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave default value:\n"
+msgstr "Set odoo port which it will listen. You can leave default {DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave default value:\n"
+
+msgid "Set odpm host message language. System locale is {SYSTEM_LOCALE}. Press 'Enter' to keep the system default or type a locale (for example ru_RU):"
+msgstr "Set odpm host message language. System locale is {SYSTEM_LOCALE}. Press 'Enter' to keep the system default or type a locale (for example ru_RU):"
+
+msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
+msgstr "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
+
+msgid "Skipping developing lock apply in developer scenario; git state is managed by the developer"
+msgstr "Skipping developing lock apply in developer scenario; git state is managed by the developer"
+
+msgid "Starting PostgreSQL service {SERVICE} for baseline adoption."
+msgstr "Starting PostgreSQL service {SERVICE} for baseline adoption."
+
+msgid "Starting containers with Docker Compose..."
+msgstr "Starting containers with Docker Compose..."
+
+msgid "Stop containers occupying odpm ports"
+msgstr "Stop containers occupying odpm ports"
+
+msgid "Suspend Odoo until PyCharm Debug Server connects? Answer y/yes or n/no (Enter for no):\n"
+msgstr "Suspend Odoo until PyCharm Debug Server connects? Answer y/yes or n/no (Enter for no):\n"
+
+msgid "Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"
+msgstr "Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"
+
+msgid "System checker is not attached to CreateProjectEnvironment"
+msgstr "System checker is not attached to CreateProjectEnvironment"
+
+msgid "The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"
+msgstr "The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"
+
+msgid "This dir is already {PROJECT_NAME} project"
+msgstr "This dir is already {PROJECT_NAME} project"
+
+msgid "This is not {PROJECT_NAME} directory. If you want to init new project use \"{PROJECT_NAME} {INIT_PARAM}\" command"
+msgstr "This is not {PROJECT_NAME} directory. If you want to init new project use \"{PROJECT_NAME} {INIT_PARAM}\" command"
+
+msgid "To change PostgreSQL major version:\n1. Stop containers (docker compose down).\n2. Back up Odoo databases if needed.\n3. Remove the PostgreSQL data directory: {DATA_PATH}\n4. Run: odpm --accept-database-drift=postgres_major\nAlternatively delete {LAST_RUN_REL} and run odpm again."
+msgstr "To change PostgreSQL major version:\n1. Stop containers (docker compose down).\n2. Back up Odoo databases if needed.\n3. Remove the PostgreSQL data directory: {DATA_PATH}\n4. Run: odpm --accept-database-drift=postgres_major\nAlternatively delete {LAST_RUN_REL} and run odpm again."
+
+msgid "To use a different PostgreSQL data directory:\n1. Stop containers (docker compose down).\n2. Move or remove the old data under {PREVIOUS}.\n3. Run: odpm --accept-database-drift=data_path\nCurrent configured path: {CURRENT}."
+msgstr "To use a different PostgreSQL data directory:\n1. Stop containers (docker compose down).\n2. Move or remove the old data under {PREVIOUS}.\n3. Run: odpm --accept-database-drift=data_path\nCurrent configured path: {CURRENT}."
+
+msgid "Unexpected PostgreSQL connection error: {DETAIL}"
+msgstr "Unexpected PostgreSQL connection error: {DETAIL}"
+
+msgid "Unknown ODPM_DEBUGGER_BACKEND=%r, using %s"
+msgstr "Unknown ODPM_DEBUGGER_BACKEND=%r, using %s"
+
+msgid "Unknown ODPM_DEBUGGER_SUSPEND=%r, using false"
+msgstr "Unknown ODPM_DEBUGGER_SUSPEND=%r, using false"
+
+msgid "Unknown ODPM_IDE=%r, using %s"
+msgstr "Unknown ODPM_IDE=%r, using %s"
+
+msgid "Unknown ODPM_SCENARIO=%r, using %s"
+msgstr "Unknown ODPM_SCENARIO=%r, using %s"
+
+msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
+msgstr "Unknown manifest hook plugin id: {PLUGIN_ID}"
+
+msgid "Unsupported manifest_schema {SCHEMA}."
+msgstr "Unsupported manifest_schema {SCHEMA}."
+
+msgid "Unsupported manifest_schema {SCHEMA}; this manager supports manifest_schema up to {MAX_SCHEMA}."
+msgstr "Unsupported manifest_schema {SCHEMA}; this manager supports manifest_schema up to {MAX_SCHEMA}."
+
+msgid "Unsupported odpm extension API version {VERSION}{LABEL}; supported versions: {SUPPORTED}."
+msgstr "Unsupported odpm extension API version {VERSION}{LABEL}; supported versions: {SUPPORTED}."
+
+msgid "Unsupported odpm.json contract line {CONTRACT}; supported values are {SUPPORTED}."
+msgstr "Unsupported odpm.json contract line {CONTRACT}; supported values are {SUPPORTED}."
+
+msgid "Update PyCharm Attach to DAP run configuration"
+msgstr "Update PyCharm Attach to DAP run configuration"
+
+msgid "Update PyCharm Debug Server run configuration"
+msgstr "Update PyCharm Debug Server run configuration"
+
+msgid "Update VS Code launch and workspace settings"
+msgstr "Update VS Code launch and workspace settings"
+
+msgid "Updated PostgreSQL application role {ROLE}."
+msgstr "Updated PostgreSQL application role {ROLE}."
+
+msgid "Updated database baseline snapshot at {PATH}."
+msgstr "Updated database baseline snapshot at {PATH}."
+
+msgid "Upgrade .odpm/docker-compose.yml project template"
+msgstr "Upgrade .odpm/docker-compose.yml project template"
+
+msgid "VS Code settings already present"
+msgstr "VS Code settings already present"
+
+msgid "Validate generated docker-compose.yml"
+msgstr "Validate generated docker-compose.yml"
+
+msgid "Verify checked-out commits match {SOURCE}"
+msgstr "Verify checked-out commits match {SOURCE}"
+
+msgid "Verify local platform and developing git directories exist"
+msgstr "Verify local platform and developing git directories exist"
+
+msgid "Warnings:"
+msgstr "Warnings:"
+
+msgid "When Odoo is ready, open http://localhost:{ODOO_PORT}"
+msgstr "When Odoo is ready, open http://localhost:{ODOO_PORT}"
+
+msgid "Write .odpm/runtime/debug-profile.json"
+msgstr "Write .odpm/runtime/debug-profile.json"
+
+msgid "Wrote .odpm/deps.lock.json; manifest locks.git unchanged (use --sync-manifest-locks with --update-lock)"
+msgstr "Wrote .odpm/deps.lock.json; manifest locks.git unchanged (use --sync-manifest-locks with --update-lock)"
+
+msgid "Wrote git dependency lock to {PATH}"
+msgstr "Wrote git dependency lock to {PATH}"
+
+msgid "Wrote locks.git to {PATH}"
+msgstr "Wrote locks.git to {PATH}"
+
+msgid "Wrote manifest v2 to {PATH}."
+msgstr "Wrote manifest v2 to {PATH}."
+
+msgid "You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"
+msgstr "You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'"
+
+msgid "You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"
+msgstr "You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"
+
+msgid "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"
+msgstr "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"
+
+msgid "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
+msgstr "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
+
+msgid "You select this odoo version: {SELECTED_ODOO_VERSION}\n"
+msgstr "You select this odoo version: {SELECTED_ODOO_VERSION}\n"
+
+msgid "You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n"
+msgstr "You select this other odoo projects sources dir: {SELECTED_ODOO_PROJECTS_DIR}\n"
+
+msgid "You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n"
+msgstr "You select this port for which Odoo Gevent Websocket System will listen: {SELECTED_GEVENT_PORT}\n"
+
+msgid "You select this port for which PostgreSQL database server will listen: {SELECTED_POSTGRES_PORT}\n"
+msgstr "You select this port for which PostgreSQL database server will listen: {SELECTED_POSTGRES_PORT}\n"
+
+msgid "You select this port for which Python Debugger will listen: {SELECTED_DEBUGGER_PORT}\n"
+msgstr "You select this port for which Python Debugger will listen: {SELECTED_DEBUGGER_PORT}\n"
+
+msgid "You select this port for which odoo will listen: {SELECTED_ODOO_PORT}\n"
+msgstr "You select this port for which odoo will listen: {SELECTED_ODOO_PORT}\n"
+
+msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
+msgstr "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
+
+msgid "You selected IDE configuration: {SELECTED_IDE}\n"
+msgstr "You selected IDE configuration: {SELECTED_IDE}\n"
+
+msgid "You selected debugger backend: {SELECTED_BACKEND}\n"
+msgstr "You selected debugger backend: {SELECTED_BACKEND}\n"
+
+msgid "You selected debugger connect host: {SELECTED_HOST}\n"
+msgstr "You selected debugger connect host: {SELECTED_HOST}\n"
+
+msgid "You selected debugger suspend on connect: {SELECTED_SUSPEND}\n"
+msgstr "You selected debugger suspend on connect: {SELECTED_SUSPEND}\n"
+
+msgid "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n"
+msgstr "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n"
+
+msgid "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
+msgstr "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
+
+msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
+msgstr "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
+
+msgid "apply pinned commits from {SOURCE}"
+msgstr "apply pinned commits from {SOURCE}"
+
+msgid "base image identity mismatch"
+msgstr "base image identity mismatch"
+
+msgid "bind_platform_link is not configured"
+msgstr "bind_platform_link is not configured"
+
+msgid "build CI image from prepared context"
+msgstr "build CI image from prepared context"
+
+msgid "build compose service for compose.generate ({REASON})"
+msgstr "build compose service for compose.generate ({REASON})"
+
+msgid "cannot read secrets file {PATH}: {DETAIL}"
+msgstr "cannot read secrets file {PATH}: {DETAIL}"
+
+msgid "check_system disabled; Docker check skipped"
+msgstr "check_system disabled; Docker check skipped"
+
+msgid "checkout dependency repos"
+msgstr "checkout dependency repos"
+
+msgid "clone or update git repos"
+msgstr "clone or update git repos"
+
+msgid "compose fragment {NAME} stale"
+msgstr "compose fragment {NAME} stale"
+
+msgid "compose fragment {NAME} up to date"
+msgstr "compose fragment {NAME} up to date"
+
+msgid "compose service fragments cleanup"
+msgstr "compose service fragments cleanup"
+
+msgid "compose service fragments stale"
+msgstr "compose service fragments stale"
+
+msgid "compose service fragments up to date"
+msgstr "compose service fragments up to date"
+
+msgid "compose start command changed"
+msgstr "compose start command changed"
+
+msgid "compose template stale"
+msgstr "compose template stale"
+
+msgid "compose template up to date"
+msgstr "compose template up to date"
+
+msgid "compose validation disabled by policy"
+msgstr "compose validation disabled by policy"
+
+msgid "database configuration drift detected: {KINDS}"
+msgstr "database configuration drift detected: {KINDS}"
+
+msgid "database configuration matches last_run snapshot"
+msgstr "database configuration matches last_run snapshot"
+
+msgid "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
+msgstr "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
+
+msgid "debug profile missing"
+msgstr "debug profile missing"
+
+msgid "debug profile on disk"
+msgstr "debug profile on disk"
+
+msgid "debug profile payload changed"
+msgstr "debug profile payload changed"
+
+msgid "debug profile unchanged"
+msgstr "debug profile unchanged"
+
+msgid "deps.lock will be updated; manifest locks.git unchanged (use --sync-manifest-locks with --update-lock)"
+msgstr "deps.lock will be updated; manifest locks.git unchanged (use --sync-manifest-locks with --update-lock)"
+
+msgid "deps.lock.json"
+msgstr "deps.lock.json"
+
+msgid "docker build failed with exit code {EXIT_CODE}"
+msgstr "docker build failed with exit code {EXIT_CODE}"
+
+msgid "docker compose up failed with exit code {EXIT_CODE}"
+msgstr "docker compose up failed with exit code {EXIT_CODE}"
+
+msgid "docker-compose.yml differs from preview"
+msgstr "docker-compose.yml differs from preview"
+
+msgid "docker-compose.yml matches preview"
+msgstr "docker-compose.yml matches preview"
+
+msgid "docker-compose.yml missing"
+msgstr "docker-compose.yml missing"
+
+msgid "docker-compose.yml present; full preview needs volume map"
+msgstr "docker-compose.yml present; full preview needs volume map"
+
+msgid "dockerfile template stale"
+msgstr "dockerfile template stale"
+
+msgid "dockerfile template up to date"
+msgstr "dockerfile template up to date"
+
+msgid "dockerignore template stale"
+msgstr "dockerignore template stale"
+
+msgid "dockerignore template up to date"
+msgstr "dockerignore template up to date"
+
+msgid "extensions.local must be a list of module names"
+msgstr "extensions.local must be a list of module names"
+
+msgid "first database run (no last_run snapshot yet)"
+msgstr "first database run (no last_run snapshot yet)"
+
+msgid "free odoo, debugger, postgres, and gevent ports before compose up"
+msgstr "free odoo, debugger, postgres, and gevent ports before compose up"
+
+msgid "git repos will be materialized"
+msgstr "git repos will be materialized"
+
+msgid "invalid JSON in secrets file {PATH}: {DETAIL}"
+msgstr "invalid JSON in secrets file {PATH}: {DETAIL}"
+
+msgid "load git lock from {SOURCE} before checkout"
+msgstr "load git lock from {SOURCE} before checkout"
+
+msgid "lock apply not used in this mode"
+msgstr "lock apply not used in this mode"
+
+msgid "lock verify not applicable"
+msgstr "lock verify not applicable"
+
+msgid "manifest locks.git"
+msgstr "manifest locks.git"
+
+msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
+msgstr "manifest locks.git vs deps.lock.json differ: {DETAIL}"
+
+msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
+msgstr "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
+
+msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
+msgstr "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
+
+msgid "materialize repos before writing deps.lock"
+msgstr "materialize repos before writing deps.lock"
+
+msgid "no git lock source available"
+msgstr "no git lock source available"
+
+msgid "no secrets source"
+msgstr "no secrets source"
+
+msgid "no {PHASE} hooks configured"
+msgstr "no {PHASE} hooks configured"
+
+msgid "odoo config template stale"
+msgstr "odoo config template stale"
+
+msgid "odoo.conf and template up to date"
+msgstr "odoo.conf and template up to date"
+
+msgid "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS})."
+msgstr "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS})."
+
+msgid "odoo.conf db_host out of sync with postgres service ({EXPECTED})"
+msgstr "odoo.conf db_host out of sync with postgres service ({EXPECTED})"
+
+msgid "odoo.conf db_host: {HOST}"
+msgstr "odoo.conf db_host: {HOST}"
+
+msgid "odoo.conf missing db settings"
+msgstr "odoo.conf missing db settings"
+
+msgid "only used with --update-lock"
+msgstr "only used with --update-lock"
+
+msgid "plugins: {PLUGIN_LIST}"
+msgstr "plugins: {PLUGIN_LIST}"
+
+msgid "port release runs only in developer scenario"
+msgstr "port release runs only in developer scenario"
+
+msgid "psycopg2 is required."
+msgstr "psycopg2 is required."
+
+msgid "refresh VS Code launch and settings"
+msgstr "refresh VS Code launch and settings"
+
+msgid "refresh docker volume mapping"
+msgstr "refresh docker volume mapping"
+
+msgid "refresh project symlinks"
+msgstr "refresh project symlinks"
+
+msgid "remove stale runtime secrets"
+msgstr "remove stale runtime secrets"
+
+msgid "running command: → git {GIT_ARGS} for {PROJECT}"
+msgstr "running command: → git {GIT_ARGS} for {PROJECT}"
+
+msgid "runtime config and start command unchanged"
+msgstr "runtime config and start command unchanged"
+
+msgid "runtime config payload changed"
+msgstr "runtime config payload changed"
+
+msgid "runtime secrets missing"
+msgstr "runtime secrets missing"
+
+msgid "secret value for {KEY} must be a string"
+msgstr "secret value for {KEY} must be a string"
+
+msgid "secrets file must be a JSON object"
+msgstr "secrets file must be a JSON object"
+
+msgid "secrets file must contain a 'secrets' object"
+msgstr "secrets file must contain a 'secrets' object"
+
+msgid "secrets file not found: {PATH}"
+msgstr "secrets file not found: {PATH}"
+
+msgid "secrets keys must be non-empty strings"
+msgstr "secrets keys must be non-empty strings"
+
+msgid "secrets mount disabled for CI scenario"
+msgstr "secrets mount disabled for CI scenario"
+
+msgid "secrets runtime up to date"
+msgstr "secrets runtime up to date"
+
+msgid "secrets source changed"
+msgstr "secrets source changed"
+
+msgid "skipped with --no-git-update"
+msgstr "skipped with --no-git-update"
+
+msgid "skipped with --update-lock"
+msgstr "skipped with --update-lock"
+
+msgid "start compose stack (--force-recreate unknown without docker probe)"
+msgstr "start compose stack (--force-recreate unknown without docker probe)"
+
+msgid "start compose stack (--force-recreate unknown; docker compose command unset)"
+msgstr "start compose stack (--force-recreate unknown; docker compose command unset)"
+
+msgid "start compose stack with --force-recreate (stack missing or unhealthy)"
+msgstr "start compose stack with --force-recreate (stack missing or unhealthy)"
+
+msgid "start compose stack without --force-recreate (stack healthy)"
+msgstr "start compose stack without --force-recreate (stack healthy)"
+
+msgid "unable to preview debug profile"
+msgstr "unable to preview debug profile"
+
+msgid "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
+msgstr "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
+
+msgid "validate docker-compose.yml"
+msgstr "validate docker-compose.yml"
+
+msgid "venv_lock_hash changed"
+msgstr "venv_lock_hash changed"
+
+msgid "verify Docker engine"
+msgstr "verify Docker engine"
+
+msgid "verify checked-out commits match {SOURCE}"
+msgstr "verify checked-out commits match {SOURCE}"
+
+msgid "verify local git directories exist"
+msgstr "verify local git directories exist"
+
+msgid "write deps.lock.json from resolved commits"
+msgstr "write deps.lock.json from resolved commits"
+
+msgid "{COUNT} shell command(s)"
+msgstr "{COUNT} shell command(s)"

@@ -69,6 +69,13 @@ class InstallDocsP2Tests(unittest.TestCase):
             with self.subTest(workflow=rel):
                 self.assertIn("4.5-dev", text)
 
+    def test_ci_yml_defines_i18n_job(self):
+        workflow = (PROJECT_ROOT / ".github/workflows/ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("i18n:", workflow)
+        self.assertIn("check_i18n_catalog.py", workflow)
+
     def test_finalize_publishes_yum_repo_templates(self):
         script = (PROJECT_ROOT / "scripts" / "mike_pages_finalize.sh").read_text(
             encoding="utf-8"

@@ -8,6 +8,10 @@ from ..extensions.context import ExtensionHostContext
 from ..extensions.hooks import LifecyclePhase, parse_hook_phase
 from ..plan import PlanStep
 from ..prepare.helpers import make_plan_step
+from .l10n import plan_msg
+
+if TYPE_CHECKING:
+    pass
 
 
 def _hook_step_reason(
@@ -15,13 +19,17 @@ def _hook_step_reason(
     shell_commands: tuple[tuple[str, ...], ...],
     plugin_ids: tuple[str, ...],
 ) -> str:
+    if not shell_commands and not plugin_ids:
+        return plan_msg("no {PHASE} hooks configured", PHASE=phase)
     parts: list[str] = []
     if shell_commands:
-        parts.append(f"{len(shell_commands)} shell command(s)")
+        parts.append(
+            plan_msg("{COUNT} shell command(s)", COUNT=len(shell_commands))
+        )
     if plugin_ids:
-        parts.append(f"plugins: {', '.join(plugin_ids)}")
-    if not parts:
-        return f"no {phase} hooks configured"
+        parts.append(
+            plan_msg("plugins: {PLUGIN_LIST}", PLUGIN_LIST=", ".join(plugin_ids))
+        )
     return "; ".join(parts)
 
 
@@ -29,7 +37,7 @@ def _evaluate_hook_phase(ext: ExtensionHostContext, phase: LifecyclePhase) -> Pl
     shell_commands, plugin_ids = parse_hook_phase(ext.manifest_hooks, phase)
     if not shell_commands and not plugin_ids:
         return None
-    description = f"Run manifest {phase} lifecycle hooks"
+    description = plan_msg("Run manifest {PHASE} lifecycle hooks", PHASE=phase)
     return make_plan_step(
         f"hooks.{phase}",
         description,

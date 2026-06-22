@@ -39,6 +39,33 @@ class GettextCatalogTests(unittest.TestCase):
         msgid = "odpm gettext fallback probe string"
         self.assertEqual(_(msgid), msgid)
 
+    def test_ru_locale_translates_prepare_lock_flag_errors(self):
+        update_locale("ru_RU")
+        self.assertIn(
+            "no-git-update",
+            _("--update-lock cannot be used together with --no-git-update"),
+        )
+        self.assertIn(
+            "--update-lock",
+            _("--sync-manifest-locks requires --update-lock"),
+        )
+
+    def test_ru_locale_translates_extension_api_error(self):
+        update_locale("ru_RU")
+        message = _(
+            "Unsupported odpm extension API version {VERSION}{LABEL}; "
+            "supported versions: {SUPPORTED}."
+        ).format(VERSION="9.9", LABEL="", SUPPORTED="1.0")
+        self.assertIn("9.9", message)
+        self.assertIn("1.0", message)
+
+    def test_ru_locale_translates_plan_table_header(self):
+        update_locale("ru_RU")
+        self.assertIn(
+            "Действие",
+            _("Action   Required  ID                    Reason"),
+        )
+
     def test_ru_locale_translates_git_prepare_status_lines(self):
         update_locale("ru_RU")
         self.assertEqual(

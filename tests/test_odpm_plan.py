@@ -25,6 +25,7 @@ from dev_project.project_materializer import ProjectMaterializer
 from dev_project.scenario_policy import ScenarioPolicy
 
 from tests.debug_profile_test_helpers import make_debugger_env_mock
+from tests.i18n_test_helpers import host_locale
 
 
 class PlanPredicateTests(unittest.TestCase):
@@ -72,6 +73,8 @@ class PlanPredicateTests(unittest.TestCase):
 
 class OdpmPlannerTests(unittest.TestCase):
     def setUp(self):
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
         self._recreate_patcher = patch(
             "dev_project.compose.runtime.should_force_recreate_compose_for_host",
             return_value=False,
@@ -80,6 +83,7 @@ class OdpmPlannerTests(unittest.TestCase):
 
     def tearDown(self):
         self._recreate_patcher.stop()
+        self._locale_cm.__exit__(None, None, None)
 
     def _config(self, *, project_dir: str, args: OdpmCliArgs | None = None) -> MagicMock:
         config = MagicMock()

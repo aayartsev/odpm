@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1283** OK, 12 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1289** OK, 12 skipped.
 
 **Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
@@ -21,7 +21,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I DONE; L / S open
+## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I + L DONE; S open
 
 Старт после stable **v4.4.3** (2026-06-22). Не reopen G/C/E slices.
 
@@ -31,12 +31,12 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Plugins | **P** | **DONE** (4.5) | API 1.0, ADR-004, `post_clone`, plan hooks/fragments, local plugins |
 | YAML | **Y** | **DONE** (4.5) | `dev_project/yaml/`, structured `ComposeGenerator`, ADR-005 |
 | Integration | **I** | **DONE** (4.5 I1–I4) | ADR-006; T1+T2 PR gates; weekly I2 matrix; I3 flakes/artifacts |
-| i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
+| i18n | **L** | **DONE** (4.5 L1–L4) | ADR-008; `check_i18n_catalog` CI gate; ~290 host msgids incl. `plan_msg` |
 | Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
 
-**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1); ADR-007 Base image profiles.
+**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1–I4); ADR-008 i18n host/container **done** (L); ADR-007 Base image profiles.
 
-**R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, compose-smoke.
+**R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, **i18n**, compose-smoke, http-smoke.
 
 ---
 

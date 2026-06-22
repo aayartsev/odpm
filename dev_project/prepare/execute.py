@@ -9,7 +9,9 @@ from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..host.context import HostProjectContext
 from ..host.ports import PipelinePorts, ports_from_config
 from ..logging import get_module_logger
+from ..translations import _
 from ..plan import OdpmPlan, PlanStep, deps_lock_file_exists
+from ..plan.l10n import plan_msg
 from .helpers import skip_git, update_lock
 from .registry import get_prepare_steps
 from .runtime import build_runtime_plan_steps, build_runtime_plan_warnings
@@ -88,16 +90,18 @@ def _manifest_schema_v2(manifest_view) -> bool:
 def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     warnings: list[str] = []
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
-        warnings.append("--update-lock cannot be used together with --no-git-update")
+        warnings.append(
+            plan_msg("--update-lock cannot be used together with --no-git-update")
+        )
     if ctx.host_ctx.sync_manifest_locks and not ctx.host_ctx.update_lock:
-        warnings.append("--sync-manifest-locks requires --update-lock")
+        warnings.append(plan_msg("--sync-manifest-locks requires --update-lock"))
     elif (
         ctx.host_ctx.sync_manifest_locks
         and ctx.host_ctx.update_lock
         and not ctx.host_ctx.policy.is_developer()
     ):
         warnings.append(
-            "--sync-manifest-locks is only supported in developer scenario"
+            plan_msg("--sync-manifest-locks is only supported in developer scenario")
         )
     elif (
         ctx.host_ctx.update_lock
@@ -106,8 +110,10 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
         and _manifest_schema_v2(ctx.manifest_view)
     ):
         warnings.append(
-            "deps.lock will be updated; manifest locks.git unchanged "
-            "(use --sync-manifest-locks with --update-lock)"
+            plan_msg(
+                "deps.lock will be updated; manifest locks.git unchanged "
+                "(use --sync-manifest-locks with --update-lock)"
+            )
         )
     if (
         deps_lock_file_exists(ctx.host_ctx.project_dir)
@@ -118,13 +124,15 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
             load_deps_lock(deps_lock_path(ctx.host_ctx.project_dir))
         except ValueError:
             warnings.append(
-                "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+                plan_msg(
+                    "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+                )
             )
     from ..plan.secrets_preview import secrets_gitignore_warning
 
     gitignore_warning = secrets_gitignore_warning(ctx.host_ctx.project_dir)
     if gitignore_warning:
-        warnings.append(gitignore_warning)
+        warnings.append(plan_msg(gitignore_warning))
     from ..plan.database_preview import collect_database_drift_warnings_for_host
     from ..plan.locks_preview import collect_git_lock_warnings
 
@@ -214,11 +222,11 @@ def build_plan(
 
 def validate_prepare_context(ctx: PrepareContext) -> None:
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
-        message = "--update-lock cannot be used together with --no-git-update"
+        message = _("--update-lock cannot be used together with --no-git-update")
         _logger.error(message)
         raise PipelineError(message, exit_code=1)
     if ctx.host_ctx.sync_manifest_locks and not ctx.host_ctx.update_lock:
-        message = "--sync-manifest-locks requires --update-lock"
+        message = _("--sync-manifest-locks requires --update-lock")
         _logger.error(message)
         raise PipelineError(message, exit_code=1)
 

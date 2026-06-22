@@ -5,6 +5,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
 from ..errors import ConfigError
+from ..translations import _
 from ..git import HandleOdooProjectLink
 from ..logging import get_module_logger
 
@@ -83,7 +84,7 @@ class GitRepoCoordinator:
 
     def get_platform_sources(self) -> None:
         if self._bind_platform_link is None:
-            raise ConfigError("bind_platform_link is not configured")
+            raise ConfigError(_("bind_platform_link is not configured"))
         self._bind_platform_link(self.config)
         self.config.odoo_platform_project.build_project()
         self.apply_odoo_build_date_to_platform()

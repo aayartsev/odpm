@@ -216,7 +216,7 @@ def get_from_user_odpm_locale() -> str:
     parsed_locale = parse_odpm_locale_setting(user_locale)
     if parsed_locale is None:
         _logger.warning(
-            "Invalid %s=%r, using system locale %s",
+            _("Invalid %s=%r, using system locale %s"),
             constants.ODPM_LOCALE_ENV_KEY,
             user_locale,
             system_locale,
@@ -290,7 +290,7 @@ def get_from_user_debugger_backend() -> str:
             selected = available_backends[int(choice) - 1]
         except (ValueError, IndexError):
             _logger.warning(
-                "Invalid debugger backend choice %r, using %s",
+                _("Invalid debugger backend choice %r, using %s"),
                 choice,
                 default_backend,
             )
@@ -323,7 +323,7 @@ def get_from_user_odpm_ide() -> str:
             selected = ordered[int(choice) - 1]
         except (ValueError, IndexError):
             _logger.warning(
-                "Invalid ODPM_IDE choice %r, using %s",
+                _("Invalid ODPM_IDE choice %r, using %s"),
                 choice,
                 default_ide,
             )

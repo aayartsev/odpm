@@ -6,6 +6,7 @@ from ..compose.fragments import collect_compose_services, compose_fragments_need
 from ..plan import PlanStep
 from ..prepare.helpers import make_plan_step
 from ..prepare.types import PrepareContext
+from .l10n import plan_msg
 
 
 def build_compose_fragment_service_plan_steps(
@@ -15,13 +16,15 @@ def build_compose_fragment_service_plan_steps(
     steps: list[PlanStep] = []
     for name in sorted(services):
         single = {name: services[name]}
-        description = f"Materialize compose fragment for service {name}"
+        description = plan_msg(
+            "Materialize compose fragment for service {NAME}", NAME=name
+        )
         if compose_fragments_need_materialize(ctx.host_ctx.project_dir, single):
             outcome = "update"
-            reason = f"compose fragment {name} stale"
+            reason = plan_msg("compose fragment {NAME} stale", NAME=name)
         else:
             outcome = "noop"
-            reason = f"compose fragment {name} up to date"
+            reason = plan_msg("compose fragment {NAME} up to date", NAME=name)
         steps.append(
             make_plan_step(
                 f"compose.fragment.{name}",

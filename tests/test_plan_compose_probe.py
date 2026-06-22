@@ -14,12 +14,21 @@ from dev_project.plan.compose_runtime import (
     evaluate_compose_up_plan,
     plan_probes_compose_stack,
 )
+from dev_project.plan.l10n import plan_msg
 from dev_project.host.ports import RuntimePorts
 from dev_project.prepare import build_runtime_plan_warnings
 from dev_project.scenario_policy import ScenarioPolicy
+from tests.i18n_test_helpers import host_locale
 
 
 class PlanComposeRuntimeTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
+
+    def tearDown(self) -> None:
+        self._locale_cm.__exit__(None, None, None)
+
     def _config(self, project_dir: str = "/tmp/project") -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
@@ -71,7 +80,7 @@ class PlanComposeRuntimeTests(unittest.TestCase):
             OdpmCliArgs(plan_no_docker=True),
         )
         self.assertIn("unknown", reason)
-        self.assertEqual(warnings, (PLAN_NO_DOCKER_WARNING,))
+        self.assertEqual(warnings, (plan_msg(PLAN_NO_DOCKER_WARNING),))
 
     def _runtime_ports(self, *, plan_no_docker: bool = False) -> RuntimePorts:
         return RuntimePorts(
@@ -105,6 +114,13 @@ class PlanComposeRuntimeTests(unittest.TestCase):
 
 
 class PlanComposeProbeIntegrationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
+
+    def tearDown(self) -> None:
+        self._locale_cm.__exit__(None, None, None)
+
     def _config(self, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir

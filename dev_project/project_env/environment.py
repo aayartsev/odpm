@@ -3,6 +3,7 @@ from ..config import Config
 from ..errors import PipelineError
 from ..host.context import HostProjectContext
 from ..protocols import SystemCheckerProtocol
+from ..translations import _
 from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
 from .templates import ProjectTemplates
@@ -40,7 +41,7 @@ class CreateProjectEnvironment:
     def _require_system_checker(self) -> SystemCheckerProtocol:
         if self._system_checker is None:
             raise PipelineError(
-                "System checker is not attached to CreateProjectEnvironment"
+                _("System checker is not attached to CreateProjectEnvironment")
             )
         return self._system_checker
 
