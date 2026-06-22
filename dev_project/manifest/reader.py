@@ -21,6 +21,7 @@ class ManifestView:
     hooks: dict[str, Any] | None = None
     services: dict[str, Any] | None = None
     locks: dict[str, Any] | None = None
+    extensions: dict[str, Any] | None = None
     developing_git: str | None = None
     source_raw: dict[str, Any] = field(repr=False, default_factory=dict)
 
@@ -79,6 +80,7 @@ def load_manifest(raw: dict[str, Any]) -> ManifestView:
         hooks = raw.get("hooks")
         services = raw.get("services")
         locks = raw.get("locks")
+        extensions = raw.get("extensions")
         return ManifestView(
             manifest_schema=constants.MANIFEST_SCHEMA_V2,
             requires_odpm=info.requires_odpm,
@@ -86,6 +88,7 @@ def load_manifest(raw: dict[str, Any]) -> ManifestView:
             hooks=dict(hooks) if isinstance(hooks, dict) else None,
             services=dict(services) if isinstance(services, dict) else None,
             locks=dict(locks) if isinstance(locks, dict) else None,
+            extensions=dict(extensions) if isinstance(extensions, dict) else None,
             developing_git=developing_git,
             source_raw=deepcopy(raw),
         )

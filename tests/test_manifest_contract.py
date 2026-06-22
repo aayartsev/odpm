@@ -36,6 +36,9 @@ def _load_contract_modules() -> unittest.TestSuite:
         "tests.test_manifest_database_merge",
         "tests.test_compose_fragments",
         "tests.test_extension_entry_points",
+        "tests.test_sample_plugin",
+        "tests.test_extensions_local",
+        "tests.test_plan_hooks_preview",
         "tests.test_prepare_registry_contract",
     )
     for module_name in modules:

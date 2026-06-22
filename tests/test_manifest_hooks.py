@@ -30,6 +30,9 @@ class _RecordingHookRunner:
     def __init__(self) -> None:
         self.phases: list[str] = []
 
+    def run_post_clone(self, ctx: ExtensionHostContext) -> None:
+        self.phases.append("post_clone")
+
     def run_post_prepare(self, ctx: ExtensionHostContext) -> None:
         self.phases.append("post_prepare")
 

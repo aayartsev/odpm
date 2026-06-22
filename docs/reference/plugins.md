@@ -1,14 +1,19 @@
 # Плагины и расширения odpm (4.4+)
 
-odpm 4.4 добавляет **extension API** на host: prepare steps, compose fragments и lifecycle hooks. Плагины не получают прямой доступ к mutable `Config` — только frozen [`ExtensionHostContext`](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py).
+odpm 4.4+ добавляет **extension API** на host: prepare steps, compose fragments и lifecycle hooks. Плагины не получают прямой доступ к mutable `Config` — только frozen [`ExtensionHostContext`](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py).
+
+## Версия API (4.5+)
+
+Стабильная версия extension API: **`EXTENSION_API_VERSION = "1.0"`** (`dev_project/extensions/api.py`). Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Три способа расширить проект
 
 | Механизм | Где объявляется | Когда выполняется |
 |----------|-----------------|-------------------|
-| **Manifest `services`** | `odpm.json` v2 → `services` | Prepare `compose.fragments` + рендер `docker-compose.yml` |
-| **Manifest `hooks`** | `odpm.json` v2 → `hooks` | `post_prepare` после prepare; `pre_up` перед `docker compose up` |
-| **Python entry points** | `pyproject.toml` пакета | Pluggy: `odpm.prepare_steps`, `odpm.hooks`, `register_compose_fragment` |
+| **Manifest `services`** | `odpm.json` v2 → `services` | Prepare `compose.fragments` + `odpm plan` → `compose.fragment.<name>` |
+| **Manifest `hooks`** | `odpm.json` v2 → `hooks` | `post_clone` после git materialize; `post_prepare` после prepare; `pre_up` перед compose up |
+| **Python entry points** | `pyproject.toml` пакета | Pluggy: `odpm.prepare_steps`, `odpm.hooks` |
+| **Project-local plugins** | `.odpm/plugins/*.py` или `extensions.local` | Импорт при bootstrap (только внутри `project_dir`) |
 
 Подробнее о полях v2: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](../contributing/adr-001-extensions-and-manifest-v2.md).
 
@@ -50,13 +55,21 @@ odpm 4.4 добавляет **extension API** на host: prepare steps, compose 
 
 Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir`), либо **plugin id** (строка) для pluggy hook runner.
 
-Порядок по ADR:
+Порядок по ADR-004:
 
-1. Все prepare steps (built-in + `odpm.prepare_steps`)
-2. `hooks.post_prepare`
-3. Runtime: debug profile, IDE, database drift
-4. `hooks.pre_up`
-5. `docker compose up`
+1. Git materialize
+2. `hooks.post_clone` (если задан)
+3. Все prepare steps (built-in + `odpm.prepare_steps` + local plugins), сортировка по `order`
+4. `hooks.post_prepare`
+5. Runtime: debug profile, IDE, database drift
+6. `hooks.pre_up`
+7. `docker compose up`
+
+`odpm plan` показывает шаги `hooks.*` и `compose.fragment.<service>` когда они настроены.
+
+### Поле `order` у prepare steps
+
+Меньшее значение `order` выполняется раньше среди **extension** steps (built-in порядок фиксирован в registry). Конфликт `id` с built-in step → `ValueError` при регистрации.
 
 Ошибка shell-hook → `PipelineError` с кодом выхода команды.
 
@@ -120,6 +133,9 @@ warmup = "my_odpm_plugin.hooks:WarmupRunner"
 class WarmupRunner:
     name = "mycompany.odpm.hooks.warmup"
 
+    def run_post_clone(self, ctx) -> None:
+        ...
+
     def run_post_prepare(self, ctx) -> None:
         ...
 
@@ -145,6 +161,28 @@ dependencies = ["odpm>=4.4"]
 ```
 
 Установите пакет в venv host (`pip install -e .`) рядом с odpm.
+
+## Project-local plugins (4.5+)
+
+Без отдельного pip-пакета можно положить модули в **`.odpm/plugins/`** проекта (только этот каталог, без `..` в именах). Опциональный allow-list в manifest v2:
+
+```json
+"extensions": {
+  "local": ["mailpit_local"]
+}
+```
+
+Загружается `project_dir/.odpm/plugins/mailpit_local.py`. Пример fixture: `tests/fixtures/sample_plugin/`.
+
+## Cookbook (минимальный плагин)
+
+1. Manifest v2 `services.mailpit` **или** `register_compose_fragment` в Python.
+2. Prepare step с `evaluate` без side effects + `execute` для записи файлов.
+3. Hook runner с `name`, совпадающим с id в `hooks.post_prepare`.
+4. `pip install -e .` или `.odpm/plugins/my_plugin.py`.
+5. `odpm plan` — проверить шаги `compose.fragment.*`, `hooks.*`, extension prepare step.
+
+Шаблон `pyproject.toml`: `tests/fixtures/sample_plugin/pyproject.toml`.
 
 ## Ограничения
 

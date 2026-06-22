@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1249** OK, 8 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1269** OK, 8 skipped.
 
 **Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
@@ -28,13 +28,13 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Track | ID | Статус | Суть |
 |-------|-----|--------|------|
 | Architecture | **A** | open | C-8/C-13/C-14 **DONE**; A4 micro-debt **DONE** (`user_env` split, `DEFAULT_ODPM_VERSION` warn) |
-| Plugins | **P** | open | API semver (`EXTENSION_API_VERSION`), `post_clone`, plan steps, local plugins |
+| Plugins | **P** | **DONE** (4.5) | API 1.0, ADR-004, `post_clone`, plan hooks/fragments, local plugins |
 | YAML | **Y** | open | Host `dev_project/yaml/`; structured `ComposeGenerator`; fragment merge (ADR-005) |
 | Integration | **I** | open | Mandatory golden-path or HTTP smoke on PR to `4.5-dev` (ADR-006) |
 | i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
 | Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
 
-**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API; ADR-005 YAML engine; ADR-006 Integration gate; ADR-007 Base image profiles.
+**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine; ADR-006 Integration gate; ADR-007 Base image profiles.
 
 **R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, compose-smoke.
 
@@ -107,7 +107,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | `Config` facade still central | P1 (4.5+) | C-11…C-14 slimmed plan/prepare/runtime; bootstrap via `ports.bootstrap.config` |
 | `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` | **DONE** (4.5 A4) | `manifest/v1_contract.py` warns when `odpm_version` missing; v1 compat unchanged |
 | `host/user_env.py` monolith | **DONE** (4.5 A4) | `user_env_parse.py` + `user_env_wizard.py`; facade `user_env.py` |
-| Plugin/hook API | P1 (4.5 P) | 4.4 baseline (prepare steps, fragments, `post_prepare`/`pre_up`); 2.0 in roadmap |
+| Plugin/hook API | **DONE** (4.5 P) | `EXTENSION_API_VERSION` 1.0; `post_clone`; local `.odpm/plugins/`; plan `hooks.*` / `compose.fragment.*` |
 | Env variable refs in `odpm.json` | **DONE** | `${VAR}` whitelist documented; `todo.md` closed |
 | CI image secrets bake (TD-FEAT-09 Phase B) | **DONE** (4.4) | [ADR-002](adr-002-ci-secrets-bake.md); `ODPM_BAKE_SECRETS=1`; `test_ci_secrets_smoke` |
 

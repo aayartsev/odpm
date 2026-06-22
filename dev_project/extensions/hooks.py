@@ -14,8 +14,12 @@ if TYPE_CHECKING:
 
 _logger = get_module_logger(__name__)
 
-LifecyclePhase = Literal["post_prepare", "pre_up"]
-LIFECYCLE_PHASES: tuple[LifecyclePhase, ...] = ("post_prepare", "pre_up")
+LifecyclePhase = Literal["post_clone", "post_prepare", "pre_up"]
+LIFECYCLE_PHASES: tuple[LifecyclePhase, ...] = (
+    "post_clone",
+    "post_prepare",
+    "pre_up",
+)
 
 
 def parse_hook_phase(
@@ -89,7 +93,21 @@ def run_lifecycle_hooks(
                 )
             )
         _logger.info("Running hook plugin %s (%s)", plugin_id, phase)
-        if phase == "post_prepare":
+        if phase == "post_clone":
+            _run_hook_runner_phase(runner, "run_post_clone", ext)
+        elif phase == "post_prepare":
             runner.run_post_prepare(ext)
         else:
             runner.run_pre_up(ext)
+
+
+def _run_hook_runner_phase(runner: object, method_name: str, ext: ExtensionHostContext) -> None:
+    method = getattr(runner, method_name, None)
+    if method is None:
+        raise ConfigError(
+            _("Hook plugin {PLUGIN_ID} does not implement {METHOD}").format(
+                PLUGIN_ID=getattr(runner, "name", runner),
+                METHOD=method_name,
+            )
+        )
+    method(ext)

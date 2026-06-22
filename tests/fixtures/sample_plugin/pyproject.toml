@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odpm-sample-plugin"
+version = "0.1.0"
+description = "Contract-test sample plugin for odpm extension API 1.0"
+requires-python = ">=3.10"
+dependencies = ["odpm"]
+
+[project.entry-points."odpm.prepare_steps"]
+sample = "sample_odpm_plugin:SamplePrepareStepPlugin"
+
+[project.entry-points."odpm.hooks"]
+sample = "sample_odpm_plugin:SampleHookRunner"
+
+[tool.setuptools.packages.find]
+where = ["."]

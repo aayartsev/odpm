@@ -201,6 +201,52 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
             plan_step(plan, "compose.fragments").outcome,
             ("run", "update"),
         )
+        self.assertTrue(plan_has_step(plan, "compose.fragment.mailpit"))
+        self.assertIn(
+            plan_step(plan, "compose.fragment.mailpit").outcome,
+            ("run", "update"),
+        )
+
+    def test_a18_plan_includes_manifest_hook_steps_on_v2(self) -> None:
+        project_dir = self._provision(
+            scenario=constants.DEVELOPER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        odpm_path = project_dir / "developing" / "odpm.json"
+        payload = json.loads(odpm_path.read_text(encoding="utf-8"))
+        payload["hooks"] = {
+            "post_clone": [["echo", "cloned"]],
+            "post_prepare": [["echo", "prepare-done"]],
+            "pre_up": [["echo", "pre-up"]],
+        }
+        odpm_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        plan, _pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertEqual(plan_step(plan, "hooks.post_clone").outcome, "run")
+        self.assertEqual(plan_step(plan, "hooks.post_prepare").outcome, "run")
+        self.assertEqual(plan_step(plan, "hooks.pre_up").outcome, "run")
+
+    def test_a19_extension_prepare_step_in_plan_matrix(self) -> None:
+        from dev_project.extensions.registry import reset_extension_registry_state
+        from tests.fixtures.sample_plugin import sample_odpm_plugin
+
+        reset_extension_registry_state()
+        sample_odpm_plugin.register_sample_plugin()
+        try:
+            project_dir = self._provision(scenario=constants.DEVELOPER_SCENARIO)
+            plan, _pipeline = build_matrix_plan(
+                project_dir,
+                OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+            )
+            self.assertTrue(plan_has_step(plan, sample_odpm_plugin.SAMPLE_PREPARE_STEP_ID))
+            self.assertEqual(
+                plan_step(plan, sample_odpm_plugin.SAMPLE_PREPARE_STEP_ID).outcome,
+                "noop",
+            )
+        finally:
+            reset_extension_registry_state()
 
     @patch("dev_project.config.payload.write_runtime_config")
     def test_a17_plan_evaluate_does_not_write_runtime(self, mock_write) -> None:

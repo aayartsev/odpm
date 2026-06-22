@@ -146,8 +146,26 @@ def collect_execute_step_ids(ctx: PrepareContext) -> tuple[str, ...]:
 
 
 def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
+    from ..extensions.registry import ensure_project_extensions_loaded
+    from ..plan.fragments_preview import expand_compose_fragment_plan_steps
+    from ..plan.hooks_preview import (
+        build_manifest_hook_plan_steps,
+        insert_prepare_hook_steps,
+    )
+
+    manifest_view = ctx.manifest_view
+    ensure_project_extensions_loaded(
+        ctx.host_ctx.project_dir,
+        manifest_extensions=(
+            manifest_view.extensions if manifest_view is not None else None
+        ),
+    )
+    steps = list(evaluate_prepare_plan(ctx))
+    steps = expand_compose_fragment_plan_steps(steps, ctx)
+    hook_steps = build_manifest_hook_plan_steps(ctx.extension_host())
+    steps = insert_prepare_hook_steps(steps, hook_steps)
     return OdpmPlan(
-        steps=evaluate_prepare_plan(ctx),
+        steps=tuple(steps),
         warnings=collect_prepare_warnings(ctx),
     )
 
@@ -179,10 +197,17 @@ def build_plan(
         PlanOnlySystemChecker(),  # type: ignore[arg-type]
     )
     prepare_plan = build_prepare_plan(ctx)
-    runtime_steps = build_runtime_plan_steps(ports.runtime, project_env)
+    from ..plan.hooks_preview import (
+        build_manifest_hook_plan_steps,
+        insert_runtime_hook_steps,
+    )
+
+    hook_steps = build_manifest_hook_plan_steps(ctx.extension_host())
+    runtime_steps = list(build_runtime_plan_steps(ports.runtime, project_env))
+    runtime_steps = insert_runtime_hook_steps(runtime_steps, hook_steps)
     runtime_warnings = build_runtime_plan_warnings(ports.runtime)
     return OdpmPlan(
-        steps=prepare_plan.steps + runtime_steps,
+        steps=prepare_plan.steps + tuple(runtime_steps),
         warnings=prepare_plan.warnings + runtime_warnings,
     )
 
@@ -199,7 +224,16 @@ def validate_prepare_context(ctx: PrepareContext) -> None:
 
 
 def execute_prepare(ctx: PrepareContext) -> None:
+    from ..extensions.registry import ensure_project_extensions_loaded
+
     validate_prepare_context(ctx)
+    manifest_view = ctx.manifest_view
+    ensure_project_extensions_loaded(
+        ctx.host_ctx.project_dir,
+        manifest_extensions=(
+            manifest_view.extensions if manifest_view is not None else None
+        ),
+    )
     ctx.lock_manager = DepsLockManager(ctx.config)
     for step_def in get_prepare_steps():
         outcome = step_def.evaluate(ctx)
