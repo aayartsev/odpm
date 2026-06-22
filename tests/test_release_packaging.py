@@ -54,6 +54,7 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertIn("Version:        %{version}", spec)
         self.assertIn(f"%global version {rpm_version}", spec)
         self.assertIn(f"%global release {rpm_release}", spec)
+        self.assertIn("python3-ruamel-yaml", spec)
 
     def test_release_version_parses_for_rpm(self):
         rpm_version, rpm_release = rpm_version_and_release(constants.RELEASE_VERSION)
