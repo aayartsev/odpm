@@ -846,10 +846,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pre-release-44-beta-rc" class="md-nav__link">
+  <a href="#pre-release-45-44-beta-rc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pre-release (4.4 beta / RC)
+        Pre-release (4.5 / 4.4 beta / RC)
       
     </span>
   </a>
@@ -2022,10 +2022,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pre-release-44-beta-rc" class="md-nav__link">
+  <a href="#pre-release-45-44-beta-rc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pre-release (4.4 beta / RC)
+        Pre-release (4.5 / 4.4 beta / RC)
       
     </span>
   </a>
@@ -2119,19 +2119,19 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 odpm<span class="w"> </span>--version
 <span class="c1"># expected: odpm version: 4.4.3</span>
 </code></pre></div>
-<h3 id="pre-release-44-beta-rc">Pre-release (4.4 beta / RC)<a class="headerlink" href="#pre-release-44-beta-rc" title="Permanent link">&para;</a></h3>
-<p>Suite <strong><code>testing</code></strong> — pre-release tags, e.g. <strong>4.4.3-beta</strong>:</p>
+<h3 id="pre-release-45-44-beta-rc">Pre-release (4.5 / 4.4 beta / RC)<a class="headerlink" href="#pre-release-45-44-beta-rc" title="Permanent link">&para;</a></h3>
+<p>Suite <strong><code>testing</code></strong> — pre-release tags, e.g. <strong>4.5.0-beta</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/odpm.list
 
 sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>odpm
 </code></pre></div>
-<p>4.4 beta docs: <a href="https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/">4.4.3-beta install guide</a> · archived <a href="https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/">4.4.2-beta</a>.</p>
+<p>4.5 beta docs: <a href="https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/">4.5.0-beta install guide</a> · archived 4.4: <a href="https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/">4.4.2-beta</a>.</p>
 <p>Updates on later releases:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>odpm
 </code></pre></div>
 <h2 id="manual-install-deb-from-github-releases">Manual install (.deb from GitHub Releases)<a class="headerlink" href="#manual-install-deb-from-github-releases" title="Permanent link">&para;</a></h2>
-<p>Download <code>odpm_*_all.deb</code> from <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> for the tag you need (<code>v4.4.3</code> — stable, <code>v4.4.3-beta</code> — archived testing, <code>v4.4.2-beta</code> — archived beta), or build locally:</p>
+<p>Download <code>odpm_*_all.deb</code> from <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> for the tag you need (<code>v4.4.3</code> — stable, <code>v4.5.0-beta</code> — testing, <code>v4.4.3-beta</code> — archived testing, <code>v4.4.2-beta</code> — archived beta), or build locally:</p>
 <div class="highlight"><pre><span></span><code>./scripts/build_deb.sh
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>./dist/odpm_*_all.deb
 odpm<span class="w"> </span>--version
