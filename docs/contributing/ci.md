@@ -16,14 +16,38 @@ Badges в README указывают на [ci.yml](https://github.com/aayartsev/o
 | **http-smoke** | `ci-docker.yml` | push/PR | **обязательный** (T2, 4.5); in-repo fixture, Mailpit `compose up`, HTTP 200 — [ADR-006](adr-006-integration-gate-policy.md) |
 | **golden-path** | `ci-docker.yml` | nightly, dispatch, label `run-docker` | opt-in (T3) |
 | **golden-path (pre-release gate)** | `release-packages.yml` | tag `v*-beta`, `v*-rc*`, `v*-alpha` | **обязателен** перед publish |
+| **fixture-golden-path** | `ci-integration-weekly.yml` | weekly, dispatch | I2 — in-repo `/web` |
+| **ci-image-build** | `ci-integration-weekly.yml` | weekly, dispatch | I2 — `test_ci_image_build` |
+| **deb-smoke** | `ci-integration-weekly.yml` | weekly, dispatch | I2 — `build_deb.sh` + install smoke |
+
+Подробнее: [ADR-006 Integration gate](adr-006-integration-gate-policy.md).
 
 ## Локально
 
 ```bash
 ./scripts/run_compose_smoke_test.sh
+ODPM_COMPOSE_SMOKE_MAILPIT=1 ./scripts/run_compose_smoke_mailpit_test.sh
+./scripts/run_compose_smoke_extended_test.sh   # plugin + hooks E2E
 ./scripts/run_http_smoke_test.sh
+./scripts/run_fixture_golden_path_test.sh      # weekly matrix
 ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 ```
+
+### Переменные integration (parity с CI)
+
+| Переменная | Значение по умолчанию | Job |
+|------------|----------------------|-----|
+| `ODPM_COMPOSE_SMOKE_TIMEOUT` | `900` | compose-smoke |
+| `ODPM_HTTP_SMOKE_TIMEOUT` | `600` | http-smoke |
+| `ODPM_GOLDEN_PATH_TIMEOUT` | `900` (локально), `2400` (CI golden-path) | golden-path |
+| `ODPM_FIXTURE_GOLDEN_TIMEOUT` | `900` | fixture-golden-path |
+| `ODPM_COMPOSE_DEBUG_DIR` | пусто | при ошибке — каталог debug bundle |
+
+## Flakes и артефакты (I3)
+
+- Повтор: re-run failed job в GitHub Actions (один раз); локально — `docker compose down` в fixture/project, затем повтор скрипта.
+- `docker pull` / registry: подождать 5–10 минут, re-run.
+- При падении `http-smoke` / `golden-path` CI загружает artifact `*-compose-logs` (compose service logs + `docker-compose.yml`).
 
 ## Golden-path secrets
 

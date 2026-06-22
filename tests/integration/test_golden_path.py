@@ -15,11 +15,13 @@ from tests.integration.compose_golden_patch import (
     patch_compose_for_golden_path,
     postgres_service_name_from_compose,
 )
+from tests.integration.helpers import compose_service_logs, write_compose_debug_bundle
 from tests.integration.http_wait import HttpWaitTimeoutError, wait_for_http_ok
 
 RUN_DOCKER_INTEGRATION = os.environ.get("ODPM_RUN_DOCKER_INTEGRATION") == "1"
 GOLDEN_PATH_PROJECT = os.environ.get("ODPM_GOLDEN_PATH_PROJECT", "").strip()
-GOLDEN_PATH_TIMEOUT = float(os.environ.get("ODPM_GOLDEN_PATH_TIMEOUT", "300"))
+GOLDEN_PATH_TIMEOUT = float(os.environ.get("ODPM_GOLDEN_PATH_TIMEOUT", "900"))
+DEBUG_BUNDLE_DIR = os.environ.get("ODPM_COMPOSE_DEBUG_DIR", "").strip()
 
 
 def _docker_available() -> bool:
@@ -66,13 +68,7 @@ def _default_project_stack_running(project_dir: Path) -> bool:
 def _compose_service_logs(
     compose_argv: list[str], project_dir: Path, service: str, *, tail: int = 40
 ) -> str:
-    result = subprocess.run(
-        compose_argv + ["logs", "--no-color", "--tail", str(tail), service],
-        cwd=project_dir,
-        capture_output=True,
-        text=True,
-    )
-    return (result.stdout or result.stderr or "").strip()
+    return compose_service_logs(compose_argv, project_dir, service, tail=tail)
 
 
 @unittest.skipIf(
@@ -136,6 +132,13 @@ class GoldenPathIntegrationTests(unittest.TestCase):
         try:
             wait_for_http_ok(url, timeout=GOLDEN_PATH_TIMEOUT)
         except HttpWaitTimeoutError as error:
+            if DEBUG_BUNDLE_DIR:
+                write_compose_debug_bundle(
+                    Path(DEBUG_BUNDLE_DIR),
+                    compose_argv=self.compose_argv,
+                    project_dir=self.project_dir,
+                    services=("odoo", self.postgres_service),
+                )
             odoo_logs = _compose_service_logs(
                 self.compose_argv, self.project_dir, "odoo"
             )

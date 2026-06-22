@@ -17,6 +17,19 @@ class CiDockerWorkflowContractTests(unittest.TestCase):
         self.assertIn("needs: compose-smoke", workflow)
         self.assertIn("ODPM_RUN_HTTP_SMOKE", workflow)
         self.assertIn("tests.integration.test_http_smoke", workflow)
+        self.assertIn("upload-artifact@v4", workflow)
+
+    def test_ci_docker_compose_smoke_runs_plugin_and_hooks_e2e(self):
+        workflow = (
+            PROJECT_ROOT / ".github" / "workflows" / "ci-docker.yml"
+        ).read_text(encoding="utf-8")
+        compose_block = workflow.split("compose-smoke:", 1)[1].split(
+            "\n  http-smoke:", 1
+        )[0]
+        self.assertIn("ODPM_COMPOSE_SMOKE_PLUGIN", compose_block)
+        self.assertIn("ODPM_COMPOSE_SMOKE_HOOKS", compose_block)
+        self.assertIn("tests.integration.test_plugin_compose_e2e", compose_block)
+        self.assertIn("tests.integration.test_hooks_integration_e2e", compose_block)
 
     def test_ci_docker_compose_smoke_stays_fast_gate(self):
         workflow = (

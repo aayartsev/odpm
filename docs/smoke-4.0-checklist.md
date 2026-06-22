@@ -293,6 +293,34 @@ Do not commit private project paths, host home directories, or proprietary depen
 
 ---
 
+## 4.5 — Integration matrix (ADR-006)
+
+**Branch:** `4.5-dev`. Policy: [contributing/ci.md](contributing/ci.md), [ADR-006](contributing/adr-006-integration-gate-policy.md).
+
+### Required on every PR
+
+| Check | Script / CI job | Expected |
+|-------|-----------------|----------|
+| compose-smoke (T1) | `./scripts/run_compose_smoke_test.sh` | exit 0 |
+| compose-smoke-mailpit | `./scripts/run_compose_smoke_mailpit_test.sh` | exit 0 |
+| plugin + hooks E2E | `./scripts/run_compose_smoke_extended_test.sh` | exit 0 |
+| http-smoke (T2) | `./scripts/run_http_smoke_test.sh` | Mailpit HTTP 200 |
+| unit + contract | `python3 -m unittest discover -s tests -q` | **1283+** OK |
+
+### Weekly (`ci-integration-weekly.yml`)
+
+| Check | Script | Expected |
+|-------|--------|----------|
+| fixture golden-path `/web` | `./scripts/run_fixture_golden_path_test.sh` | HTTP 200/303 on `/web` |
+| CI image build | `ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_image_build` | docker build OK |
+| deb install smoke | `./scripts/build_deb.sh && ./scripts/smoke_deb_install.sh` | `deb smoke OK` |
+
+### Opt-in full golden-path (T3)
+
+`ODPM_GOLDEN_PATH_PROJECT=$ODPM_PROJECT ./scripts/run_golden_path_test.sh` — self-hosted / nightly / label `run-docker`.
+
+---
+
 ## Gate verdict
 
 | Step | Pass? | Sign-off |

@@ -90,6 +90,23 @@ jobs:
           ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
         run: python -m unittest tests.integration.test_compose_smoke.ComposeSmokeMailpitIntegrationTests -v
 
+      - name: Install sample plugin for extension E2E
+        run: pip install -e tests/fixtures/sample_plugin
+
+      - name: Run plugin compose E2E (sample_plugin + Mailpit manifest)
+        env:
+          ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
+          ODPM_COMPOSE_SMOKE_PLUGIN: "1"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+        run: python -m unittest tests.integration.test_plugin_compose_e2e -v
+
+      - name: Run hooks integration E2E (shell + local Python runner)
+        env:
+          ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
+          ODPM_COMPOSE_SMOKE_HOOKS: "1"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+        run: python -m unittest tests.integration.test_hooks_integration_e2e -v
+
       - name: Save odpm base image to cache
         if: steps.docker-image-cache.outputs.cache-hit != 'true'
         run: |
@@ -135,7 +152,16 @@ jobs:
           ODPM_RUN_HTTP_SMOKE: "1"
           ODPM_HTTP_SMOKE_TIMEOUT: "600"
           ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+          ODPM_COMPOSE_DEBUG_DIR: /tmp/odpm-compose-debug
         run: python -m unittest tests.integration.test_http_smoke -v
+
+      - name: Upload compose debug bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: http-smoke-compose-logs
+          path: /tmp/odpm-compose-debug/
+          if-no-files-found: ignore
 
   # Opt-in E2E (T3): skipped without ODPM_GOLDEN_PATH_ENABLED (not a false green).
   # secrets.* cannot be used in job if: — use a repo variable for the gate.
@@ -152,7 +178,7 @@ jobs:
         )
       )
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v6
 
@@ -191,5 +217,14 @@ jobs:
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          ODPM_GOLDEN_PATH_TIMEOUT: "900"
+          ODPM_GOLDEN_PATH_TIMEOUT: "2400"
+          ODPM_COMPOSE_DEBUG_DIR: /tmp/odpm-compose-debug
         run: .ci-golden-venv/bin/python -m unittest tests.integration.test_golden_path -v
+
+      - name: Upload compose debug bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-path-compose-logs
+          path: /tmp/odpm-compose-debug/
+          if-no-files-found: ignore

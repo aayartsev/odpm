@@ -28,7 +28,10 @@ T2 is the **ephemeral GHA** substitute for mandatory golden-path on PRs. T3 rema
 | `ODPM_RUN_DOCKER_COMPOSE_SMOKE=1` | compose-smoke | enable compose smoke tests |
 | `ODPM_COMPOSE_SMOKE_MAILPIT=1` | compose-smoke | manifest v2 Mailpit fragment |
 | `ODPM_RUN_HTTP_SMOKE=1` | http-smoke | enable HTTP smoke test |
-| `ODPM_RUN_DOCKER_INTEGRATION=1` | golden-path | enable full golden-path |
+| `ODPM_COMPOSE_SMOKE_PLUGIN=1` | compose-smoke | sample_plugin + Mailpit E2E |
+| `ODPM_COMPOSE_SMOKE_HOOKS=1` | compose-smoke | shell + Python hook E2E |
+| `ODPM_RUN_FIXTURE_GOLDEN_PATH=1` | weekly | in-repo fixture Odoo `/web` |
+| `ODPM_RUN_DOCKER_INTEGRATION=1` | golden-path / weekly | enable full golden-path / CI image build |
 | `ODPM_GOLDEN_PATH_ENABLED` | repo variable | gate self-hosted golden-path jobs |
 | `ODPM_GOLDEN_PATH_PROJECT` | secret | path to real project on self-hosted runner |
 
@@ -46,7 +49,26 @@ Not used in 4.5.0 — integration jobs run on every PR to `4.5-dev`. Future opti
 
 - T1 failure blocks merge; T2 provides runtime confidence beyond `compose config`.
 - T3 failures on pre-release tags block publish (unchanged).
-- Retry policy and compose log artifacts — Phase I3.
+- **Retry policy (I3):** re-run failed Docker jobs once in GitHub UI; `docker pull` / registry flakes — wait 5–10 minutes; local: `docker compose down` then re-run the matching `scripts/run_*` helper.
+- **Artifacts (I3):** on failure, `http-smoke` and `golden-path` upload `/tmp/odpm-compose-debug/` (compose logs + `docker-compose.yml`) when `ODPM_COMPOSE_DEBUG_DIR` is set in CI.
+- **Timeouts (I3):** job timeout must exceed env timeout + startup buffer:
+
+| Job | GHA `timeout-minutes` | Env timeout | Notes |
+|-----|----------------------|-------------|-------|
+| `compose-smoke` | 20 | `ODPM_COMPOSE_SMOKE_TIMEOUT=900` | T1 fast gate |
+| `http-smoke` | 25 | `ODPM_HTTP_SMOKE_TIMEOUT=600` | T2 Mailpit HTTP |
+| `golden-path` | 50 | `ODPM_GOLDEN_PATH_TIMEOUT=2400` | T3 self-hosted |
+| `fixture-golden-path` (weekly) | 45 | `ODPM_FIXTURE_GOLDEN_TIMEOUT=900` | I2 in-repo `/web` |
+
+### I2 — extended matrix (weekly + PR steps)
+
+| Check | Where | Trigger |
+|-------|-------|---------|
+| Plugin E2E (`sample_plugin` + Mailpit) | `compose-smoke` job | every PR |
+| Hooks E2E (shell + local Python) | `compose-smoke` job | every PR |
+| Fixture golden-path `/web` | `ci-integration-weekly.yml` | weekly + dispatch |
+| CI image `docker build` | `ci-integration-weekly.yml` | weekly + dispatch |
+| `.deb` install smoke | `ci-integration-weekly.yml` | weekly + dispatch |
 
 ## Consequences
 

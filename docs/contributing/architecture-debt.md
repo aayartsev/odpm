@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1278** OK, 9 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1283** OK, 12 skipped.
 
 **Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
@@ -21,7 +21,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I1 DONE; I2–I4 / L / S open
+## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I DONE; L / S open
 
 Старт после stable **v4.4.3** (2026-06-22). Не reopen G/C/E slices.
 
@@ -30,7 +30,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Architecture | **A** | **DONE** (4.5) | C-8/C-13/C-14 + A4 micro-debt (`user_env` split, `v1_contract` warn) |
 | Plugins | **P** | **DONE** (4.5) | API 1.0, ADR-004, `post_clone`, plan hooks/fragments, local plugins |
 | YAML | **Y** | **DONE** (4.5) | `dev_project/yaml/`, structured `ComposeGenerator`, ADR-005 |
-| Integration | **I** | **I1 DONE** (4.5) | ADR-006; mandatory `http-smoke` on PR; `compose-smoke` T1; golden-path T3 opt-in |
+| Integration | **I** | **DONE** (4.5 I1–I4) | ADR-006; T1+T2 PR gates; weekly I2 matrix; I3 flakes/artifacts |
 | i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
 | Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
 
