@@ -3,7 +3,9 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06):** `python3 -m unittest discover -s tests -q` → **1221+ OK**, 8 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1229** OK, 8 skipped.
+
+**Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
 ---
 
@@ -15,7 +17,26 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | **L2** locks dual-write | **DONE** | opt-in `--sync-manifest-locks` with `--update-lock` (developer, manifest v2) |
 | **H** hygiene | **DONE** | lock source log in `enter_apply_mode`; i18n divergence warnings; contract suite + smoke/ci docs |
 
-**Open horizon (4.5+):** full `Config` facade removal (C-11/C-12 incremental only); PyYAML compose engine; mandatory golden-path on every PR — see [goals_ru.md](../../goals_ru.md).
+**Open horizon (4.5):** см. секцию **4.5 track** ниже; план [roadmap_4.5.plan.md](../../.cursor/plans/roadmap_4.5.plan.md) (в git через maintainer checkout `.cursor/`).
+
+---
+
+## 4.5 track (A / P / Y / I / L / S) — OPEN
+
+Старт после stable **v4.4.3** (2026-06-22). Не reopen G/C/E slices.
+
+| Track | ID | Статус | Суть |
+|-------|-----|--------|------|
+| Architecture | **A** | open | C-8 `AddonLayoutState` callers; C-13 plan/runtime ports; C-14 Config facade thinning; `user_env` split |
+| Plugins | **P** | open | API semver (`EXTENSION_API_VERSION`), `post_clone`, plan steps, local plugins |
+| YAML | **Y** | open | Host `dev_project/yaml/`; structured `ComposeGenerator`; fragment merge (ADR-005) |
+| Integration | **I** | open | Mandatory golden-path or HTTP smoke on PR to `4.5-dev` (ADR-006) |
+| i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
+| Images | **S** | open | Scenario base Dockerfile profiles (ADR-007); [scenario plan](../../.cursor/plans/scenario_base_image_profiles_c9120223.plan.md) |
+
+**ADR backlog (4.5):** ADR-003 Host ports; ADR-004 Plugin API; ADR-005 YAML engine; ADR-006 Integration gate; ADR-007 Base image profiles.
+
+**R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, compose-smoke.
 
 ---
 
@@ -81,11 +102,11 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P2 (4.5+) | C-11/C-12/L2 slimmed prepare/plan evaluate; full removal deferred |
-| `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` "4.0" | P2 | Fallback for legacy `odpm.json` |
-| Plugin/hook API | backlog | `goals_ru.md` vision only |
-| Env variable refs in `odpm.json` | backlog | `todo.md` |
-| CI image secrets bake (TD-FEAT-09 Phase B) | P1 | Separate from developer `--secrets-file` MVP |
+| `Config` facade still central | P1 (4.5 A) | C-11/C-12/L2 slimmed prepare/plan evaluate; C-8/C-13/C-14 in 4.5 track |
+| `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` | P2 (4.5 A4) | Fallback for legacy `odpm.json`; deprecation path planned |
+| Plugin/hook API | P1 (4.5 P) | 4.4 baseline (prepare steps, fragments, `post_prepare`/`pre_up`); 2.0 in roadmap |
+| Env variable refs in `odpm.json` | **DONE** | `${VAR}` whitelist documented; `todo.md` closed |
+| CI image secrets bake (TD-FEAT-09 Phase B) | **DONE** (4.4) | [ADR-002](adr-002-ci-secrets-bake.md); `ODPM_BAKE_SECRETS=1`; `test_ci_secrets_smoke` |
 
 ---
 

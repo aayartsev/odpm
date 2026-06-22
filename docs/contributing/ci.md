@@ -2,6 +2,8 @@
 
 Badges в README указывают на [ci.yml](https://github.com/aayartsev/odpm/actions/workflows/ci.yml) и [ci-docker.yml](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml).
 
+**Активная ветка разработки 4.5:** `4.5-dev` (push/PR → lint, unit, contract, compose-smoke, deploy `/dev/` docs).
+
 ## Матрица jobs
 
 | Job | Workflow | Триггер | Gate |
@@ -44,4 +46,20 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
 ## Branch protection
 
-Рекомендуется: обязательные **lint**, **unit**, **contract**, **compose-smoke** на `4.0-beta` / `main`.
+Рекомендуется обязательные checks на PR:
+
+| Ветка | Required checks |
+|-------|-----------------|
+| `4.5-dev` | **lint**, **unit**, **contract**, **compose-smoke** |
+| `4.4-dev`, `4.0-beta`, `main` | то же (если ветка ещё принимает PR) |
+
+Настройка: GitHub → Settings → Branches → rule для `4.5-dev` → Require status checks.
+
+```bash
+# Пример (нужны права admin; имена checks — как в UI Actions после первого green run):
+gh api repos/{owner}/{repo}/branches/4.5-dev/protection -X PUT \
+  -f required_status_checks='{"strict":true,"contexts":["lint","unit","contract","compose-smoke"]}' \
+  -f enforce_admins=false \
+  -f required_pull_request_reviews='{"required_approving_review_count":0}' \
+  -f restrictions=null
+```

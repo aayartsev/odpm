@@ -59,6 +59,16 @@ class InstallDocsP2Tests(unittest.TestCase):
         archived = (notes_dir / "4.4.2-beta.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/4.4.2-beta/", archived)
 
+    def test_ci_workflows_target_45_dev_branch(self):
+        for rel in (
+            ".github/workflows/ci.yml",
+            ".github/workflows/ci-docker.yml",
+            ".github/workflows/docs.yml",
+        ):
+            text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
+            with self.subTest(workflow=rel):
+                self.assertIn("4.5-dev", text)
+
     def test_finalize_publishes_yum_repo_templates(self):
         script = (PROJECT_ROOT / "scripts" / "mike_pages_finalize.sh").read_text(
             encoding="utf-8"
