@@ -2186,7 +2186,7 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>migrate<span class="
 <p><strong>v2 nested (эквивалент + расширения):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.4.2&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.4.3&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;platform&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;git&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/odoo/odoo.git 19.0&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;build_date&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
@@ -2238,6 +2238,10 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>migrate<span class="
 <td>Пересчёт коммитов с диска → запись <strong>только</strong> в <code>.odpm/deps.lock.json</code></td>
 </tr>
 <tr>
+<td><code>odpm --update-lock --sync-manifest-locks</code></td>
+<td>То же + запись <code>locks.git</code> в <code>odpm.json</code> (opt-in, <strong>developer</strong>, v2)</td>
+</tr>
+<tr>
 <td>Ручное изменение SHA</td>
 <td>Редактируйте <strong><code>locks.git</code></strong>; затем <code>--update-lock</code>, чтобы синхронизировать deps.lock</td>
 </tr>
@@ -2247,12 +2251,12 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>migrate<span class="
 </tr>
 </tbody>
 </table>
-<p><strong>Dual-write policy:</strong> odpm <strong>не</strong> перезаписывает <code>locks.git</code> при <code>--update-lock</code>. Канон остаётся в manifest; deps.lock — операционный артефакт. После смены зависимостей: <code>--update-lock</code>, закоммитьте обновлённый <code>.odpm/deps.lock.json</code> и при необходимости перенесите SHA в <code>locks.git</code> (или повторите <code>odpm manifest migrate --write</code> из актуального deps.lock).</p>
+<p><strong>Dual-write policy:</strong> по умолчанию odpm <strong>не</strong> перезаписывает <code>locks.git</code> при <code>--update-lock</code>. Канон остаётся в manifest; deps.lock — операционный артефакт. Opt-in: <strong><code>--sync-manifest-locks</code></strong> вместе с <code>--update-lock</code> (сценарий <code>developer</code>, <code>manifest_schema: 2</code>) записывает <code>locks.git</code> из собранного deps.lock. После смены зависимостей: <code>--update-lock</code>, закоммитьте обновлённый <code>.odpm/deps.lock.json</code> и при необходимости перенесите SHA в <code>locks.git</code> (или используйте <code>--sync-manifest-locks</code>, либо <code>odpm manifest migrate --write</code> из актуального deps.lock).</p>
 <p>Подробнее: <a href="../deps-lock/#два-источника-lock-v1-flat-vs-v2-nested">deps-lock.md</a>.</p>
 <h2 id="_5">Совместимость<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><code>odpm_version: "4.0"</code></strong> в flat v1 — контрактная строка формата, <strong>не</strong> версия менеджера.</li>
-<li><strong><code>requires_odpm: "4.4.2"</code></strong> в v2 — минимальная версия установленного odpm (semver); новые проекты получают текущий <code>RELEASE_VERSION</code>.</li>
+<li><strong><code>requires_odpm: "4.4.3"</code></strong> в v2 — минимальная версия установленного odpm (semver); новые проекты получают текущий <code>RELEASE_VERSION</code>.</li>
 <li>Подробнее: <a href="../odpm-json/">odpm.json</a>, <a href="../plugins/">plugins.md</a>, <a href="../../contributing/adr-001-extensions-and-manifest-v2/">ADR-001</a>.</li>
 </ul>
 

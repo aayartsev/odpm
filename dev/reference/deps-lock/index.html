@@ -1572,6 +1572,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lock-v1-flat-vs-v2-nested" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Два источника lock (v1 flat vs v2 nested)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1982,6 +1993,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lock-v1-flat-vs-v2-nested" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Два источника lock (v1 flat vs v2 nested)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2055,6 +2077,10 @@
 <td><code>odpm --update-lock --skip-start</code></td>
 </tr>
 <tr>
+<td>Пересчитать deps.lock и записать <code>locks.git</code> (v2, developer)</td>
+<td><code>odpm --update-lock --sync-manifest-locks --skip-start</code></td>
+</tr>
+<tr>
 <td>Подготовка по существующему lock</td>
 <td><code>odpm --skip-start</code></td>
 </tr>
@@ -2067,6 +2093,37 @@
 <p>После изменения <code>dependencies</code>, <code>oca_dependencies.txt</code> или вложенных <code>odpm.json</code> в зависимостях — обновите lock и закоммитьте.</p>
 <h2 id="_2">Приоритет правил<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p><code>--no-git-update</code> → <code>--update-lock</code> → чтение lock → конец ветки / дата nightly.</p>
+<h2 id="lock-v1-flat-vs-v2-nested">Два источника lock (v1 flat vs v2 nested)<a class="headerlink" href="#lock-v1-flat-vs-v2-nested" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Формат <code>odpm.json</code></th>
+<th>Канонический источник SHA</th>
+<th>Роль <code>.odpm/deps.lock.json</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>v1 flat</strong> (без <code>manifest_schema: 2</code>)</td>
+<td><code>.odpm/deps.lock.json</code></td>
+<td>Единственный источник; коммитить в git</td>
+</tr>
+<tr>
+<td><strong>v2 nested</strong> с непустым <code>locks.git</code></td>
+<td><strong><code>locks.git</code> в <code>odpm.json</code></strong></td>
+<td>Операционная копия для tooling и legacy-путей</td>
+</tr>
+</tbody>
+</table>
+<p>На <strong>v2</strong> <code>DepsLockManager</code> читает пины из <code>locks.git</code>. Файл <code>.odpm/deps.lock.json</code> остаётся на диске после migrate и при <code>--update-lock</code>.</p>
+<p><strong>Где править SHA:</strong></p>
+<ul>
+<li>v1 — редактируйте <code>.odpm/deps.lock.json</code> или пересчитайте <code>odpm --update-lock --skip-start</code>.</li>
+<li>v2 — редактируйте <code>locks.git</code> в <code>odpm.json</code> (канон); затем <code>odpm --update-lock --skip-start</code>, чтобы синхронизировать <code>.odpm/deps.lock.json</code>.</li>
+</ul>
+<p><strong>Opt-in dual-write (v2, developer):</strong> по умолчанию <code>--update-lock</code> пишет <strong>только</strong> <code>.odpm/deps.lock.json</code>. Чтобы также обновить <code>locks.git</code> в <code>odpm.json</code>, добавьте <strong><code>--sync-manifest-locks</code></strong> (только с <code>--update-lock</code>, сценарий <code>developer</code>). Без флага <code>odpm plan</code> предупреждает, что manifest не изменится.</p>
+<p><strong>Расхождение источников:</strong> если <code>locks.git</code> и <code>.odpm/deps.lock.json</code> различаются, <code>odpm plan</code> показывает warning, а шаг <code>git.lock_verify</code> пишет warning в лог. Канон — <code>locks.git</code>; <code>--update-lock</code> выравнивает файл на диске.</p>
+<p>См. <a href="../manifest-migration/#locks-после-миграции-v2">manifest-migration.md</a>.</p>
 <h2 id="1">Содержимое (схема версии 1)<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>platform</code> — репозиторий платформы Odoo или форка;</li>

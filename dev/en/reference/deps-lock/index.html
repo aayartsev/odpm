@@ -2080,6 +2080,10 @@
 <td><code>odpm --update-lock --skip-start</code></td>
 </tr>
 <tr>
+<td>Recompute deps.lock and write <code>locks.git</code> (v2, developer)</td>
+<td><code>odpm --update-lock --sync-manifest-locks --skip-start</code></td>
+</tr>
+<tr>
 <td>Prepare using existing lock</td>
 <td><code>odpm --skip-start</code></td>
 </tr>
@@ -2120,6 +2124,7 @@
 <li>v1 — edit <code>.odpm/deps.lock.json</code> or recompute <code>odpm --update-lock --skip-start</code>.</li>
 <li>v2 — edit <code>locks.git</code> in <code>odpm.json</code> (canonical); then <code>odpm --update-lock --skip-start</code> to sync <code>.odpm/deps.lock.json</code>.</li>
 </ul>
+<p><strong>Opt-in dual-write (v2, developer):</strong> by default <code>--update-lock</code> writes <strong>only</strong> <code>.odpm/deps.lock.json</code>. To also update <code>locks.git</code> in <code>odpm.json</code>, add <strong><code>--sync-manifest-locks</code></strong> (requires <code>--update-lock</code>, <code>developer</code> scenario only). Without the flag, <code>odpm plan</code> warns that the manifest will not change.</p>
 <p><strong>Source mismatch:</strong> if <code>locks.git</code> and <code>.odpm/deps.lock.json</code> differ, <code>odpm plan</code> shows a warning and step <code>git.lock_verify</code> logs a warning. Canonical is <code>locks.git</code>; use <code>--update-lock</code> to align the on-disk file.</p>
 <p>See <a href="../manifest-migration/#locks-after-migration-v2">manifest-migration.md</a>.</p>
 <h2 id="contents-schema-version-1">Contents (schema version 1)<a class="headerlink" href="#contents-schema-version-1" title="Permanent link">&para;</a></h2>
