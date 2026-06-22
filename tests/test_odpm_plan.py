@@ -73,7 +73,7 @@ class PlanPredicateTests(unittest.TestCase):
 class OdpmPlannerTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose",
+            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -84,9 +84,16 @@ class OdpmPlannerTests(unittest.TestCase):
     def _config(self, *, project_dir: str, args: OdpmCliArgs | None = None) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
+        config.program_dir = "/opt/odpm"
+        config.config_home_dir = project_dir
         config.arguments = args or OdpmCliArgs()
         config.user_settings = MagicMock()
         config.user_settings.check_system = True
+        config.project_settings = MagicMock()
+        config.docker_layout = MagicMock()
+        config.addon_layout = MagicMock()
+        config.user_env = MagicMock()
+        config.user_env.postgres_service_name = "db"
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -415,7 +422,7 @@ class OdpmPipelinePlanTests(unittest.TestCase):
         mock_format_plan.assert_called_once_with(
             mock_planner.build.return_value,
             pipeline.cli_args,
-            pipeline.config,
+            pipeline.project_environment.host_ctx,
         )
 
 

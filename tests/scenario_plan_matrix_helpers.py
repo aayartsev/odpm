@@ -181,7 +181,9 @@ def run_matrix_plan_cli(project_dir: Path, home: Path, *argv: str) -> tuple[int,
             exit_code = 0
             if args.plan_strict and plan_has_required_changes(plan):
                 exit_code = 1
-            return exit_code, format_plan_json(plan, pipeline.config, args)
+            return exit_code, format_plan_json(
+                plan, pipeline.project_environment.host_ctx, args
+            )
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):
             exit_code = pipeline.print_plan()

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..host.cli.args import OdpmCliArgs
+from ..host.context import HostProjectContext
 from .core import OdpmPlan
 
 if TYPE_CHECKING:
@@ -27,7 +28,8 @@ class OdpmPlanner:
 
         clear_runtime_config_preview_cache(config)
         plan = build_plan(config, args, project_env)
-        diffs = build_plan_diffs(plan, config, args, project_env)
+        host_ctx = HostProjectContext.from_config(config, arguments=args)
+        diffs = build_plan_diffs(plan, host_ctx, args, project_env)
         if not diffs:
             return plan
         return OdpmPlan(
@@ -40,8 +42,8 @@ class OdpmPlanner:
 def format_plan(
     plan: OdpmPlan,
     args: OdpmCliArgs | None = None,
-    config: Config | None = None,
+    host_ctx: HostProjectContext | None = None,
 ) -> str:
     from .format import format_plan as format_plan_output
 
-    return format_plan_output(plan, args, config)
+    return format_plan_output(plan, args, host_ctx)

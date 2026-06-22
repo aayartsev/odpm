@@ -15,7 +15,8 @@ from dev_project.plan.debug_profile_preview import (
     preview_debug_profile_text,
 )
 from dev_project.plan import OdpmPlan, PlanStep
-from dev_project.plan.diff import PlanFileDiff, build_plan_diffs
+from dev_project.host.context import HostProjectContext
+from dev_project.plan.diff import PlanFileDiff, build_plan_diffs, diff_debug_profile
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.prepare.runtime import evaluate_runtime_debug_profile
 from dev_project.project_env.debug_profile import write_debug_profile
@@ -95,13 +96,24 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
             self.assertEqual(step.outcome, "run")
             self.assertTrue(step.should_execute())
 
-    def test_diff_debug_profile_returns_unified_diff_when_file_missing(self) -> None:
-        from dev_project.plan.diff import diff_debug_profile
+    def _host_ctx(self, project_dir: str) -> HostProjectContext:
+        return HostProjectContext(
+            project_dir=project_dir,
+            program_dir="/opt/odpm",
+            config_home_dir=project_dir,
+            policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO),
+            user_env=MagicMock(),
+            arguments=OdpmCliArgs(),
+            user_settings=MagicMock(),
+            project_settings=MagicMock(),
+            docker_layout=MagicMock(),
+            addon_layout=MagicMock(),
+        )
 
+    def test_diff_debug_profile_returns_unified_diff_when_file_missing(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
-            config = self._developer_config(project_dir)
             env = self._project_env(project_dir)
-            diff = diff_debug_profile(config, env)
+            diff = diff_debug_profile(self._host_ctx(project_dir), env)
             self.assertIsNotNone(diff)
             assert diff is not None
             self.assertEqual(diff.path, constants.ODPM_DEBUG_PROFILE_REL_PATH)
@@ -121,6 +133,18 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
         )
         config = MagicMock()
         config.project_dir = "/tmp/project"
+        host_ctx = HostProjectContext(
+            project_dir="/tmp/project",
+            program_dir="/opt/odpm",
+            config_home_dir="/tmp/project",
+            policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO),
+            user_env=MagicMock(),
+            arguments=OdpmCliArgs(plan_show_diff=True),
+            user_settings=MagicMock(),
+            project_settings=MagicMock(),
+            docker_layout=MagicMock(),
+            addon_layout=MagicMock(),
+        )
         project_env = MagicMock()
         with unittest.mock.patch(
             "dev_project.plan.diff.diff_debug_profile",
@@ -132,7 +156,7 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
         ):
             diffs = build_plan_diffs(
                 plan,
-                config,
+                host_ctx,
                 OdpmCliArgs(plan_show_diff=True),
                 project_env,
             )

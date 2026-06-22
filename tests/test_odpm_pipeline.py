@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.errors import ConfigError, PipelineError
 from dev_project.odpm_pipeline import OdpmPipeline
+from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.prepare_test_helpers import stub_prepare_service_executions
@@ -17,6 +18,16 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         args = OdpmCliArgs(**{"build_image": False, "skip_start": False, **args_overrides})
         config = MagicMock()
         config.user_env.odpm_ide = "vscode"
+        config.user_env.odoo_port = 8069
+        config.project_dir = "/tmp/project"
+        config.docker_compose_command = "docker compose"
+        config.program_dir = "/opt/odpm"
+        config.config_home_dir = "/tmp/project"
+        config.user_settings = MagicMock()
+        config.project_settings = MagicMock()
+        config.docker_layout = MagicMock()
+        config.addon_layout = MagicMock()
+        config.arguments = args
         project_env = MagicMock()
         return RuntimeCoordinator(args, config, project_env)
 
@@ -167,7 +178,9 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
 
 class RuntimeCoordinatorComposeTests(unittest.TestCase):
     def _coordinator(self, config: MagicMock) -> RuntimeCoordinator:
-        return RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
+        project_env = MagicMock()
+        project_env.host_ctx = HostProjectContext.from_config(config)
+        return RuntimeCoordinator(OdpmCliArgs(), config, project_env)
 
     def test_build_compose_up_argv_force_recreate_explicit(self):
         config = MagicMock()
@@ -214,7 +227,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         )
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=True,
     )
     def test_build_compose_up_argv_auto_detects_force_recreate(self, _mock_should):
@@ -225,7 +238,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         self.assertIn("--force-recreate", argv)
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
     def test_start_containers_uses_subprocess(self, _mock_should):
@@ -242,7 +255,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         )
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
     def test_start_containers_raises_pipeline_error_on_compose_failure(
@@ -265,7 +278,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         mock_log_failed.assert_called_once_with(17)
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
     def test_start_containers_skips_host_compose_summary_for_developer(

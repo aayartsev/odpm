@@ -30,6 +30,10 @@ class ComposeGenerator:
         return self.env.config
 
     @property
+    def host_ctx(self):
+        return self.env.host_ctx
+
+    @property
     def user_env(self):
         return self.env.user_env
 
@@ -48,26 +52,26 @@ class ComposeGenerator:
     def _build_odoo_volumes_block(self, compose_service) -> str:
         volume_lines: list[str] = []
         if compose_service.include_runtime_config:
-            local_runtime_config_path = runtime_config_path(self.config.project_dir)
+            local_runtime_config_path = runtime_config_path(self.host_ctx.project_dir)
             volume_lines.append(
                 " " * 6
                 + f"- {local_runtime_config_path}:{constants.ODPM_RUNTIME_CONFIG_CONTAINER_PATH}:ro,Z"
             )
-            ensure_database_dir_gitignore(self.config.project_dir)
-            local_database_dir = database_dir_path(self.config.project_dir)
+            ensure_database_dir_gitignore(self.host_ctx.project_dir)
+            local_database_dir = database_dir_path(self.host_ctx.project_dir)
             volume_lines.append(
                 " " * 6
                 + f"- {local_database_dir}:{constants.ODPM_DATABASE_CONTAINER_DIR}:Z"
             )
         if compose_service.include_runtime_secrets:
             local_runtime_secrets_path = os.path.join(
-                self.config.project_dir, constants.ODPM_SECRETS_RUNTIME_REL_PATH
+                self.host_ctx.project_dir, constants.ODPM_SECRETS_RUNTIME_REL_PATH
             )
             volume_lines.append(
                 " " * 6
                 + f"- {local_runtime_secrets_path}:{constants.ODPM_SECRETS_CONTAINER_PATH}:ro,Z"
             )
-        if self.config.policy.include_odoo_volumes:
+        if self.host_ctx.policy.include_odoo_volumes:
             for mapped_volume in self.env.mapped_folders:
                 volume_lines.append(
                     " " * 6 + f"- {mapped_volume.local}:{mapped_volume.docker}:Z"
@@ -82,12 +86,12 @@ class ComposeGenerator:
 
     def render_docker_compose_content(self) -> str:
         docker_compose_template_path = os.path.join(
-            self.config.project_dir,
+            self.host_ctx.project_dir,
             constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
         )
         lines = self._ensure_compose_template_current(docker_compose_template_path)
 
-        policy = self.config.policy
+        policy = self.host_ctx.policy
         odoo_image = getattr(self.config, policy.odoo_image_attr)
 
         postgres_port = self.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
@@ -179,6 +183,6 @@ class ComposeGenerator:
 
     def generate_docker_compose_file(self) -> None:
         content = self.render_docker_compose_content()
-        docker_compose_path = os.path.join(self.config.project_dir, "docker-compose.yml")
+        docker_compose_path = os.path.join(self.host_ctx.project_dir, "docker-compose.yml")
         with open(docker_compose_path, "w") as writer:
             writer.write(content)

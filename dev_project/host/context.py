@@ -33,6 +33,7 @@ class HostProjectContext:
     project_settings: ProjectSettingsState
     docker_layout: DockerLayoutState
     addon_layout: AddonLayoutState
+    docker_compose_command: str = ""
 
     @classmethod
     def from_config(
@@ -52,6 +53,7 @@ class HostProjectContext:
             project_settings=config.project_settings,
             docker_layout=config.docker_layout,
             addon_layout=config.addon_layout,
+            docker_compose_command=config.docker_compose_command,
         )
 
     @property

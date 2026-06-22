@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 
 from . import host_summaries
 from .translations import _
-from .compose.runtime import should_force_recreate_compose
+from .host.context import HostProjectContext
+from .compose.runtime import should_force_recreate_compose_for_host
 from .errors import PipelineError
 from .host.cli.args import OdpmCliArgs
 from .logging import get_module_logger
@@ -34,11 +35,15 @@ class RuntimeCoordinator:
         self.config = config
         self.project_env = project_env
 
+    @property
+    def host_ctx(self) -> HostProjectContext:
+        return HostProjectContext.from_config(self.config, arguments=self.cli_args)
+
     def handle_build_image(self) -> bool:
         """Run CI image build. Returns True when the pipeline should stop."""
         if not self.cli_args.build_image:
             return False
-        if not self.config.policy.allow_build_image:
+        if not self.host_ctx.policy.allow_build_image:
             message = _('--build-image is only allowed when ODPM_SCENARIO=ci in .env')
             _logger.error(message)
             raise PipelineError(message, exit_code=1)
@@ -48,16 +53,16 @@ class RuntimeCoordinator:
         return True
 
     def write_debug_profile(self) -> None:
-        if not self.config.policy.include_debugpy:
+        if not self.host_ctx.policy.include_debugpy:
             return
         from .project_env.debug_profile import write_debug_profile
 
         write_debug_profile(self.project_env)
 
     def configure_ide(self) -> None:
-        if self.config.policy.skip_ide_config:
+        if self.host_ctx.policy.skip_ide_config:
             return
-        ide = self.config.user_env.odpm_ide
+        ide = self.host_ctx.user_env.odpm_ide
         if ide_includes_vscode(ide):
             vscode = VscodeConfigurator(self.project_env)
             vscode.update_vscode_debugger_launcher()
@@ -72,8 +77,8 @@ class RuntimeCoordinator:
         self, *, force_recreate: bool | None = None
     ) -> list[str]:
         if force_recreate is None:
-            force_recreate = should_force_recreate_compose(self.config)
-        argv = shlex.split(self.config.docker_compose_command) + ["up"]
+            force_recreate = should_force_recreate_compose_for_host(self.host_ctx)
+        argv = shlex.split(self.host_ctx.docker_compose_command) + ["up"]
         if self.config.no_log_prefix:
             argv.append("--no-log-prefix")
         argv.append("--abort-on-container-exit")
@@ -85,14 +90,14 @@ class RuntimeCoordinator:
 
     def start_containers(self) -> None:
         host_summaries.log_starting_containers(
-            odoo_port=self.config.user_env.odoo_port,
+            odoo_port=self.host_ctx.user_env.odoo_port,
         )
         returncode = run_logged(
             self.build_compose_up_argv(),
-            cwd=self.config.project_dir,
+            cwd=self.host_ctx.project_dir,
         )
         if returncode != 0:
-            if self.config.policy.report_compose_failure_on_host():
+            if self.host_ctx.policy.report_compose_failure_on_host():
                 host_summaries.log_compose_failed(returncode)
             raise PipelineError("", exit_code=returncode)
 
@@ -118,7 +123,7 @@ class RuntimeCoordinator:
         run_lifecycle_hooks(
             ExtensionHostContext.from_config(self.config),
             "pre_up",
-            cwd=self.config.project_dir,
+            cwd=self.host_ctx.project_dir,
         )
         try:
             self.start_containers()

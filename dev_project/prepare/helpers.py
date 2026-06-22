@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..git.deps_lock import deps_lock_path, load_deps_lock
-from ..manifest.locks import LockSource, resolve_lock_source
+from ..manifest.locks import LockSource, resolve_lock_source_from_view
 from ..plan import PlanStep, PlanStepOutcome, deps_lock_file_exists
 from .types import PrepareContext
 
@@ -19,7 +19,7 @@ def update_lock(ctx: PrepareContext) -> bool:
 def lock_verify_available(ctx: PrepareContext) -> bool:
     if skip_git(ctx) or update_lock(ctx):
         return False
-    if resolve_lock_source(ctx.config) == LockSource.MANIFEST:
+    if resolve_lock_source_from_view(ctx.manifest_view) == LockSource.MANIFEST:
         return True
     if not deps_lock_file_exists(ctx.host_ctx.project_dir):
         return False
@@ -31,11 +31,11 @@ def lock_verify_available(ctx: PrepareContext) -> bool:
 
 
 def manifest_lock_apply_available(ctx: PrepareContext) -> bool:
-    return resolve_lock_source(ctx.config) == LockSource.MANIFEST
+    return resolve_lock_source_from_view(ctx.manifest_view) == LockSource.MANIFEST
 
 
 def lock_source_label(ctx: PrepareContext) -> str:
-    if resolve_lock_source(ctx.config) == LockSource.MANIFEST:
+    if resolve_lock_source_from_view(ctx.manifest_view) == LockSource.MANIFEST:
         return "manifest locks.git"
     return "deps.lock.json"
 

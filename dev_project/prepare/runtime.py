@@ -109,12 +109,12 @@ def evaluate_runtime_pycharm_settings(
 
 
 def evaluate_runtime_compose_up(
-    config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
+    host_ctx: HostProjectContext, args: OdpmCliArgs
 ) -> PlanStep | None:
     if not compose_up_would_run(args, host_ctx):
         return None
     description = "Run docker compose up"
-    reason, _extra_warnings = evaluate_compose_up_plan(config, args)
+    reason, _extra_warnings = evaluate_compose_up_plan(host_ctx, args)
     return make_plan_step(
         "compose.up",
         description,
@@ -136,7 +136,7 @@ def build_runtime_plan_steps(
         lambda: evaluate_runtime_debug_profile(config, project_env),
         lambda: evaluate_runtime_vscode_settings(config, project_env),
         lambda: evaluate_runtime_pycharm_settings(config, project_env),
-        lambda: evaluate_runtime_compose_up(config, args, host_ctx),
+        lambda: evaluate_runtime_compose_up(host_ctx, args),
     ):
         step = evaluator()
         if step is not None:
@@ -149,5 +149,5 @@ def build_runtime_plan_warnings(
 ) -> tuple[str, ...]:
     if not compose_up_would_run(args, host_ctx):
         return ()
-    _reason, extra_warnings = evaluate_compose_up_plan(config, args)
+    _reason, extra_warnings = evaluate_compose_up_plan(host_ctx, args)
     return extra_warnings

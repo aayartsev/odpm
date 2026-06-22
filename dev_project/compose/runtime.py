@@ -9,6 +9,7 @@ from .. import constants
 
 if TYPE_CHECKING:
     from ..config import Config
+    from ..host.context import HostProjectContext
 
 COMPOSE_ODOO_SERVICE = "odoo"
 
@@ -28,8 +29,14 @@ def _run_checked(*args, **kwargs):
     return run_checked(*args, **kwargs)
 
 
+def _compose_base_argv_for_host(host_ctx: HostProjectContext) -> list[str]:
+    return shlex.split(host_ctx.docker_compose_command)
+
+
 def _compose_base_argv(config: Config) -> list[str]:
-    return shlex.split(config.docker_compose_command)
+    from ..host.context import HostProjectContext
+
+    return _compose_base_argv_for_host(HostProjectContext.from_config(config))
 
 
 def compose_service_container_id(config: Config, service: str) -> str | None:
@@ -37,17 +44,25 @@ def compose_service_container_id(config: Config, service: str) -> str | None:
     return _running_container_id(config, service)
 
 
-def _running_container_id(
-    config: Config, service: str
+def _running_container_id_for_host(
+    host_ctx: HostProjectContext, service: str
 ) -> str | None:
     result = _run_checked(
-        _compose_base_argv(config) + ["ps", "-q", service],
-        cwd=config.project_dir,
+        _compose_base_argv_for_host(host_ctx) + ["ps", "-q", service],
+        cwd=host_ctx.project_dir,
     )
     if result.returncode != 0:
         return None
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     return lines[0] if lines else None
+
+
+def _running_container_id(
+    config: Config, service: str
+) -> str | None:
+    from ..host.context import HostProjectContext
+
+    return _running_container_id_for_host(HostProjectContext.from_config(config), service)
 
 
 def container_is_running_and_healthy(container_id: str) -> bool:
@@ -70,10 +85,13 @@ def container_is_running_and_healthy(container_id: str) -> bool:
     return True
 
 
-def compose_stack_is_healthy(config: Config) -> bool:
+def compose_stack_is_healthy_for_host(host_ctx: HostProjectContext) -> bool:
     """True when odoo and postgres compose services are up (and healthy if probed)."""
-    for service in compose_stack_services(config):
-        container_id = _running_container_id(config, service)
+    for service in (
+        COMPOSE_ODOO_SERVICE,
+        host_ctx.user_env.postgres_service_name,
+    ):
+        container_id = _running_container_id_for_host(host_ctx, service)
         if not container_id:
             return False
         if not container_is_running_and_healthy(container_id):
@@ -81,6 +99,20 @@ def compose_stack_is_healthy(config: Config) -> bool:
     return True
 
 
+def compose_stack_is_healthy(config: Config) -> bool:
+    """True when odoo and postgres compose services are up (and healthy if probed)."""
+    from ..host.context import HostProjectContext
+
+    return compose_stack_is_healthy_for_host(HostProjectContext.from_config(config))
+
+
+def should_force_recreate_compose_for_host(host_ctx: HostProjectContext) -> bool:
+    """Recreate only when the stack is missing or not healthy."""
+    return not compose_stack_is_healthy_for_host(host_ctx)
+
+
 def should_force_recreate_compose(config: Config) -> bool:
     """Recreate only when the stack is missing or not healthy."""
-    return not compose_stack_is_healthy(config)
+    from ..host.context import HostProjectContext
+
+    return should_force_recreate_compose_for_host(HostProjectContext.from_config(config))

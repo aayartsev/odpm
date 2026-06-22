@@ -91,7 +91,7 @@ class OdpmPipeline:
             self.cli_args,
             self._project_environment(),
         )
-        text = format_plan(plan, self.cli_args, config)
+        text = format_plan(plan, self.cli_args, self._project_environment().host_ctx)
         if resolve_plan_format(self.cli_args) == "json":
             print(text, flush=True)
         else:

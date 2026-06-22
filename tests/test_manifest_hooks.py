@@ -5,6 +5,8 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
+from dev_project import constants
+from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.errors import ConfigError, PipelineError
 from dev_project.extensions.context import ExtensionHostContext
 from dev_project.extensions.hooks import parse_hook_phase, run_lifecycle_hooks
@@ -150,7 +152,10 @@ class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
 
 
 class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
-    @patch("dev_project.runtime_coordinator.should_force_recreate_compose", return_value=False)
+    @patch(
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
+        return_value=False,
+    )
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
     @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
     @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
@@ -165,7 +170,16 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
     ):
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.policy.report_compose_failure_on_host.return_value = False
+        config.program_dir = "/opt/odpm"
+        config.config_home_dir = "/tmp/project"
+        config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        config.user_env = MagicMock()
+        config.user_env.odoo_port = 8069
+        config.user_settings = MagicMock()
+        config.project_settings = MagicMock()
+        config.docker_layout = MagicMock()
+        config.addon_layout = MagicMock()
+        config.arguments = OdpmCliArgs(skip_start=False)
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
         coordinator = RuntimeCoordinator(OdpmCliArgs(skip_start=False), config, MagicMock())

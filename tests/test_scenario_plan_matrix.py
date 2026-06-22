@@ -414,7 +414,7 @@ class PlanMatrixFlagsTests(_MatrixProjectTestCase):
             project_dir,
             OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
         )
-        text = format_plan(plan, OdpmCliArgs(plan=True), pipeline.config)
+        text = format_plan(plan, OdpmCliArgs(plan=True), pipeline.project_environment.host_ctx)
         self.assertIn("Action   Required  ID", text)
 
     def test_a7_plan_show_diff(self) -> None:

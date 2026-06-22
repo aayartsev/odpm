@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.context import HostProjectContext
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -15,10 +16,38 @@ from dev_project.plan.diff import (
     build_plan_diffs,
     diff_dockerignore,
     diff_line_summary,
-    diff_runtime_config,
+    diff_runtime_config_text,
 )
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
+
+
+def _host_ctx(
+    project_dir: str,
+    *,
+    dockerignore_template_path: str | None = None,
+) -> HostProjectContext:
+    docker_layout = MagicMock()
+    docker_layout.project_dockerignore_template_path = (
+        dockerignore_template_path
+        or os.path.join(
+            project_dir,
+            constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
+        )
+    )
+    return HostProjectContext(
+        project_dir=project_dir,
+        program_dir="/opt/odpm",
+        config_home_dir=project_dir,
+        policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO),
+        user_env=MagicMock(),
+        arguments=OdpmCliArgs(),
+        user_settings=MagicMock(),
+        project_settings=MagicMock(),
+        docker_layout=docker_layout,
+        addon_layout=MagicMock(),
+        docker_compose_command="docker compose",
+    )
 
 
 class PlanDiffHelperTests(unittest.TestCase):
@@ -34,53 +63,36 @@ class PlanDiffHelperTests(unittest.TestCase):
 
 
 class PlanRuntimeConfigDiffTests(unittest.TestCase):
-    @patch(
-        "dev_project.plan.diff.preview_runtime_config_text",
-        return_value='{\n  "preview": true\n}\n',
-    )
-    @patch(
-        "dev_project.plan.diff.normalized_runtime_config_text_from_disk",
-        return_value='{\n  "on_disk": true\n}\n',
-    )
-    def test_diff_runtime_config_when_payload_differs(self, _mock_disk, _mock_preview):
-        config = MagicMock()
-        config.project_dir = "/tmp/project"
-        diff = diff_runtime_config(config)
+    def test_diff_runtime_config_when_payload_differs(self):
+        diff = diff_runtime_config_text(
+            '{\n  "preview": true\n}\n',
+            '{\n  "on_disk": true\n}\n',
+        )
         self.assertIsNotNone(diff)
         assert diff is not None
         self.assertEqual(diff.path, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
         self.assertIn('"on_disk": true', diff.unified_diff or "")
         self.assertIn('"preview": true', diff.unified_diff or "")
 
-    @patch(
-        "dev_project.plan.diff.preview_runtime_config_text",
-        return_value='{\n  "same": true\n}\n',
-    )
-    @patch(
-        "dev_project.plan.diff.normalized_runtime_config_text_from_disk",
-        return_value='{\n  "same": true\n}\n',
-    )
-    def test_diff_runtime_config_none_when_unchanged(self, _mock_disk, _mock_preview):
-        config = MagicMock()
-        config.project_dir = "/tmp/project"
-        self.assertIsNone(diff_runtime_config(config))
+    def test_diff_runtime_config_none_when_unchanged(self):
+        self.assertIsNone(
+            diff_runtime_config_text(
+                '{\n  "same": true\n}\n',
+                '{\n  "same": true\n}\n',
+            )
+        )
 
 
 class PlanDockerignoreDiffTests(unittest.TestCase):
     def test_diff_dockerignore_when_root_differs_from_template(self):
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp), include_root_compose=False)
-            config = MagicMock()
-            config.project_dir = tmp
-            config.project_dockerignore_template_path = os.path.join(
-                tmp,
-                constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
-            )
+            host_ctx = _host_ctx(tmp)
             Path(tmp, constants.DOCKERIGNORE).write_text(
                 "stale-root-content\n",
                 encoding="utf-8",
             )
-            diff = diff_dockerignore(config)
+            diff = diff_dockerignore(host_ctx)
             self.assertIsNotNone(diff)
             assert diff is not None
             self.assertEqual(diff.path, constants.DOCKERIGNORE)
@@ -103,34 +115,35 @@ class BuildPlanDiffsTests(unittest.TestCase):
 
     def test_build_plan_diffs_empty_without_flag(self):
         plan = self._plan_with_step("compose.service", "update")
-        config = MagicMock()
-        self.assertEqual(build_plan_diffs(plan, config, OdpmCliArgs()), ())
+        host_ctx = _host_ctx("/tmp/project")
+        self.assertEqual(build_plan_diffs(plan, host_ctx, OdpmCliArgs()), ())
 
     @patch(
-        "dev_project.plan.diff.diff_runtime_config",
-        return_value=PlanFileDiff(
-            path=constants.ODPM_RUNTIME_CONFIG_REL_PATH,
-            unified_diff="---\n+++",
-            summary="+1 -1 lines",
-        ),
+        "dev_project.plan.diff._runtime_config_preview_text",
+        return_value='{\n  "preview": true\n}\n',
     )
-    def test_build_plan_diffs_includes_runtime_config(self, _mock_diff):
+    @patch(
+        "dev_project.plan.diff._runtime_config_on_disk_text",
+        return_value='{\n  "on_disk": true\n}\n',
+    )
+    def test_build_plan_diffs_includes_runtime_config(self, _mock_disk, _mock_preview):
         plan = self._plan_with_step("compose.service", "update")
-        config = MagicMock()
+        host_ctx = _host_ctx("/tmp/project")
         diffs = build_plan_diffs(
             plan,
-            config,
+            host_ctx,
             OdpmCliArgs(plan_show_diff=True),
+            MagicMock(),
         )
         self.assertEqual(len(diffs), 1)
         self.assertEqual(diffs[0].path, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
 
     def test_build_plan_diffs_deps_lock_summary_on_update_lock(self):
         plan = self._plan_with_step("git.lock_collect", "update")
-        config = MagicMock()
+        host_ctx = _host_ctx("/tmp/project")
         diffs = build_plan_diffs(
             plan,
-            config,
+            host_ctx,
             OdpmCliArgs(plan_show_diff=True),
         )
         self.assertEqual(len(diffs), 1)
@@ -140,26 +153,22 @@ class BuildPlanDiffsTests(unittest.TestCase):
 
     def test_build_plan_diffs_skips_noop_steps(self):
         plan = self._plan_with_step("compose.service", "noop")
-        config = MagicMock()
+        host_ctx = _host_ctx("/tmp/project")
         self.assertEqual(
-            build_plan_diffs(plan, config, OdpmCliArgs(plan_show_diff=True)),
+            build_plan_diffs(plan, host_ctx, OdpmCliArgs(plan_show_diff=True)),
             (),
         )
 
     @patch(
-        "dev_project.plan.diff.diff_docker_compose",
-        return_value=PlanFileDiff(
-            path="docker-compose.yml",
-            unified_diff="---\n+++",
-            summary="+2 -1 lines",
-        ),
+        "dev_project.plan.diff.preview_docker_compose_content",
+        return_value="services:\n  odoo:\n    image: test\n",
     )
-    def test_build_plan_diffs_includes_compose_generate(self, _mock_diff):
+    def test_build_plan_diffs_includes_compose_generate(self, _mock_preview):
         plan = self._plan_with_step("compose.generate", "update")
-        config = MagicMock()
+        host_ctx = _host_ctx("/tmp/project")
         diffs = build_plan_diffs(
             plan,
-            config,
+            host_ctx,
             OdpmCliArgs(plan_show_diff=True),
             MagicMock(),
         )
@@ -198,7 +207,7 @@ class PlanDiffFormatTests(unittest.TestCase):
 class PlanDiffIntegrationTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose",
+            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -220,17 +229,29 @@ class PlanDiffIntegrationTests(unittest.TestCase):
             project_dir,
             constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
         )
+        config.docker_layout = MagicMock()
+        config.docker_layout.project_dockerignore_template_path = (
+            config.project_dockerignore_template_path
+        )
+        config.addon_layout = MagicMock()
+        config.user_settings = MagicMock()
+        config.project_settings = MagicMock()
+        config.user_env = MagicMock()
+        config.program_dir = "/opt/odpm"
+        config.config_home_dir = project_dir
         return config
 
     @patch(
-        "dev_project.plan.diff.diff_runtime_config",
-        return_value=PlanFileDiff(
-            path=constants.ODPM_RUNTIME_CONFIG_REL_PATH,
-            unified_diff="---\n+++",
-            summary="+1 -1 lines",
-        ),
+        "dev_project.plan.diff._runtime_config_preview_text",
+        return_value='{\n  "preview": true\n}\n',
     )
-    def test_planner_attaches_diffs_when_show_diff_enabled(self, mock_diff):
+    @patch(
+        "dev_project.plan.diff._runtime_config_on_disk_text",
+        return_value='{\n  "on_disk": true\n}\n',
+    )
+    def test_planner_attaches_diffs_when_show_diff_enabled(
+        self, _mock_disk, _mock_preview
+    ):
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp), venv_lock_hash="stale")
             config = self._config(tmp)
@@ -240,7 +261,6 @@ class PlanDiffIntegrationTests(unittest.TestCase):
             )
             self.assertTrue(plan.diffs)
             self.assertEqual(plan.diffs[0].path, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
-            mock_diff.assert_called_once_with(config)
 
     def test_parse_args_accepts_plan_show_diff(self):
         args = parse_args_module.parse_args(["--plan", "--plan-show-diff"])

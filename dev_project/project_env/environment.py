@@ -55,3 +55,17 @@ class CreateProjectEnvironment:
     @property
     def links(self) -> ProjectLinks:
         return self._links
+
+    def plan_preview_compose_service(self):
+        from ..plan.compose_preview import preview_compose_service
+
+        return preview_compose_service(self.config)
+
+    def plan_runtime_config_preview_text(self) -> str | None:
+        from ..plan.compose_preview import preview_runtime_config_text
+
+        return preview_runtime_config_text(self.config)
+
+    def runtime_preview_cache_config(self):
+        """Config handle used only for plan runtime preview disk cache."""
+        return self.config
