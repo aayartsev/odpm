@@ -1578,6 +1578,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#extension-api-version-45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extension API version (4.5+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#three-ways-to-extend-a-project" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1607,6 +1618,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Lifecycle hooks in manifest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-step-order-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepare step order field
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1648,6 +1676,28 @@
     <span class="md-ellipsis">
       
         Example package pyproject.toml
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-local-plugins-45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project-local plugins (4.5+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cookbook-minimal-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cookbook (minimal plugin)
       
     </span>
   </a>
@@ -2004,6 +2054,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#extension-api-version-45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extension API version (4.5+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#three-ways-to-extend-a-project" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2033,6 +2094,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Lifecycle hooks in manifest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-step-order-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepare step order field
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2074,6 +2152,28 @@
     <span class="md-ellipsis">
       
         Example package pyproject.toml
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-local-plugins-45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project-local plugins (4.5+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cookbook-minimal-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cookbook (minimal plugin)
       
     </span>
   </a>
@@ -2131,7 +2231,9 @@
 <blockquote>
 <p><strong>AI-translated</strong> from Russian.</p>
 </blockquote>
-<p>odpm 4.4 adds a host <strong>extension API</strong>: prepare steps, compose fragments, and lifecycle hooks. Plugins do not get direct access to mutable <code>Config</code> — only frozen <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py"><code>ExtensionHostContext</code></a>.</p>
+<p>odpm 4.4+ adds a host <strong>extension API</strong>: prepare steps, compose fragments, and lifecycle hooks. Plugins do not get direct access to mutable <code>Config</code> — only frozen <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py"><code>ExtensionHostContext</code></a>.</p>
+<h2 id="extension-api-version-45">Extension API version (4.5+)<a class="headerlink" href="#extension-api-version-45" title="Permanent link">&para;</a></h2>
+<p>Stable API: <strong><code>EXTENSION_API_VERSION = "1.0"</code></strong> (<code>dev_project/extensions/api.py</code>). Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
 <h2 id="three-ways-to-extend-a-project">Three ways to extend a project<a class="headerlink" href="#three-ways-to-extend-a-project" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2145,21 +2247,26 @@
 <tr>
 <td><strong>Manifest <code>services</code></strong></td>
 <td><code>odpm.json</code> v2 → <code>services</code></td>
-<td>Prepare <code>compose.fragments</code> + render <code>docker-compose.yml</code></td>
+<td>Prepare <code>compose.fragments</code>; plan <code>compose.fragment.&lt;name&gt;</code></td>
 </tr>
 <tr>
 <td><strong>Manifest <code>hooks</code></strong></td>
 <td><code>odpm.json</code> v2 → <code>hooks</code></td>
-<td><code>post_prepare</code> after prepare; <code>pre_up</code> before <code>docker compose up</code></td>
+<td><code>post_clone</code> after git materialize; <code>post_prepare</code> after prepare; <code>pre_up</code> before compose up</td>
 </tr>
 <tr>
 <td><strong>Python entry points</strong></td>
 <td>package <code>pyproject.toml</code></td>
-<td>Pluggy: <code>odpm.prepare_steps</code>, <code>odpm.hooks</code>, <code>register_compose_fragment</code></td>
+<td>Pluggy: <code>odpm.prepare_steps</code>, <code>odpm.hooks</code></td>
+</tr>
+<tr>
+<td><strong>Project-local plugins</strong></td>
+<td><code>.odpm/plugins/*.py</code> or <code>extensions.local</code></td>
+<td>Loaded at bootstrap (sandboxed to project dir)</td>
 </tr>
 </tbody>
 </table>
-<p>v2 field details: <a href="../odpm-json/">odpm.json</a>. ADR: <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md">adr-001-extensions-and-manifest-v2.md</a>.</p>
+<p>v2 field details: <a href="../odpm-json/">odpm.json</a>. ADR: <a href="../../contributing/adr-001-extensions-and-manifest-v2/">adr-001-extensions-and-manifest-v2.md</a>.</p>
 <h2 id="declarative-service-mailpit">Declarative service (Mailpit)<a class="headerlink" href="#declarative-service-mailpit" title="Permanent link">&para;</a></h2>
 <p>Test SMTP with web UI on port <strong>8025</strong>. Add to nested manifest v2:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2178,6 +2285,9 @@
 <p>After <code>odpm up</code> the service appears in generated <code>docker-compose.yml</code> (<code>{COMPOSE_SERVICE_FRAGMENTS}</code> block). Materialize artifacts: <code>.odpm/compose/fragments/mailpit.yml</code> (gitignored).</p>
 <h2 id="lifecycle-hooks-in-manifest">Lifecycle hooks in manifest<a class="headerlink" href="#lifecycle-hooks-in-manifest" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;post_clone&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">[</span><span class="s2">&quot;./scripts/after-clone.sh&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">],</span>
 <span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">[</span><span class="s2">&quot;./scripts/notify.sh&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;prepare-done&quot;</span><span class="p">],</span>
 <span class="w">    </span><span class="s2">&quot;mycompany.odpm.hooks.warmup&quot;</span>
@@ -2188,14 +2298,19 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>Each element is either <strong>argv</strong> (string array, runs in <code>project_dir</code>) or a <strong>plugin id</strong> (string) for the pluggy hook runner.</p>
-<p>Order per ADR:</p>
+<p>Order per ADR-004:</p>
 <ol>
-<li>All prepare steps (built-in + <code>odpm.prepare_steps</code>)</li>
+<li>Git materialize</li>
+<li><code>hooks.post_clone</code> (when configured)</li>
+<li>All prepare steps (built-in + <code>odpm.prepare_steps</code> + local plugins), sorted by <code>order</code></li>
 <li><code>hooks.post_prepare</code></li>
 <li>Runtime: debug profile, IDE, database drift</li>
 <li><code>hooks.pre_up</code></li>
 <li><code>docker compose up</code></li>
 </ol>
+<p><code>odpm plan</code> shows <code>hooks.*</code> and <code>compose.fragment.&lt;service&gt;</code> steps when configured.</p>
+<h3 id="prepare-step-order-field">Prepare step <code>order</code> field<a class="headerlink" href="#prepare-step-order-field" title="Permanent link">&para;</a></h3>
+<p>Lower <code>order</code> runs earlier among <strong>extension</strong> steps (built-in order is fixed in the registry). Conflicting <code>id</code> with a built-in step → <code>ValueError</code> on registration.</p>
 <p>Shell hook failure → <code>PipelineError</code> with the command exit code.</p>
 <h2 id="python-plugin-compose-fragment">Python plugin: compose fragment<a class="headerlink" href="#python-plugin-compose-fragment" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># my_odpm_mailpit/__init__.py</span>
@@ -2243,6 +2358,9 @@
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">WarmupRunner</span><span class="p">:</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;mycompany.odpm.hooks.warmup&quot;</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_post_clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">run_post_prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 
@@ -2263,6 +2381,22 @@
 <span class="c1"># optional prepare steps</span>
 </code></pre></div>
 <p>Install the package in the host venv (<code>pip install -e .</code>) next to odpm.</p>
+<h2 id="project-local-plugins-45">Project-local plugins (4.5+)<a class="headerlink" href="#project-local-plugins-45" title="Permanent link">&para;</a></h2>
+<p>Without a separate pip package, place modules under <strong><code>.odpm/plugins/</code></strong> in the project (this directory only; no <code>..</code> in module names). Optional allow-list in manifest v2:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;extensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;local&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mailpit_local&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Loads <code>project_dir/.odpm/plugins/mailpit_local.py</code>. Example fixture: <code>tests/fixtures/sample_plugin/</code>.</p>
+<h2 id="cookbook-minimal-plugin">Cookbook (minimal plugin)<a class="headerlink" href="#cookbook-minimal-plugin" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Manifest v2 <code>services.mailpit</code> <strong>or</strong> <code>register_compose_fragment</code> in Python.</li>
+<li>Prepare step with side-effect-free <code>evaluate</code> + <code>execute</code> for file writes.</li>
+<li>Hook runner with <code>name</code> matching the id in <code>hooks.post_prepare</code>.</li>
+<li><code>pip install -e .</code> or <code>.odpm/plugins/my_plugin.py</code>.</li>
+<li>Run <code>odpm plan</code> — verify <code>compose.fragment.*</code>, <code>hooks.*</code>, and extension prepare steps.</li>
+</ol>
+<p>Template <code>pyproject.toml</code>: <code>tests/fixtures/sample_plugin/pyproject.toml</code>.</p>
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Container-side <code>ContainerConfig</code> stays <strong>stdlib-only</strong> (no new PyPI deps in the image).</li>
