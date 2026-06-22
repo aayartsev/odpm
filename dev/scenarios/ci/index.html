@@ -2077,6 +2077,10 @@
 <td><strong>Фиксация версий</strong></td>
 <td>Строгая проверка <code>.odpm/deps.lock.json</code>; несовместимости версий во вложенных описаниях — <strong>ошибка</strong>.</td>
 </tr>
+<tr>
+<td><strong>Base image</strong></td>
+<td>Профиль <strong>ci</strong> (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег <code>odoo-…-ci</code>; пересборка при смене шаблона или <code>Dockerfile</code> — см. <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a>.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="_3">Типичный конвейер<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
