@@ -37,11 +37,11 @@ The **product** has one version; the **manifest** uses separate format fields:
 |------------------|---------|---------|
 | `RELEASE_VERSION` / `ODPM_VERSION` | `"4.4.3"` | **Installed manager** version (`odpm --version`, pip, deb/rpm) |
 | `MANIFEST_V1_CONTRACT_LINE` | `"4.0"` | `odpm_version` string odpm **writes to new** flat projects |
-| `DEFAULT_ODPM_VERSION` | `"3.0"` | **Legacy fallback** when `odpm_version` is **missing** in flat v1 |
+| `DEFAULT_ODPM_VERSION` | `"3.0"` | **Legacy fallback** when `odpm_version` is **missing** in flat v1 (manager logs a deprecation warning; behaviour unchanged) |
 
 Compat behaviour (`dev_project/manifest/compat.py`):
 
-- Flat v1 **without** `manifest_schema` and **without** `odpm_version` → contract is treated as `"3.0"` (supported by manager 4.4.3).
+- Flat v1 **without** `manifest_schema` and **without** `odpm_version` → contract is treated as `"3.0"` (supported by manager 4.4.3); odpm logs a **warning** suggesting `odpm_version: "4.0"`.
 - New projects and migrations → `odpm_version: "4.0"`.
 - v2 nested → `requires_odpm` (minimum manager semver; new projects get current `RELEASE_VERSION`), not `odpm_version`.
 

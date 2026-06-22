@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 from .. import constants
 from ..git import HandleOdooProjectLink
+from ..manifest.v1_contract import resolve_v1_manifest_contract_line
 from .types import DbCreationData
 
 
@@ -86,7 +87,7 @@ def project_settings_from_raw(
         odoo_build_date=odoo_build_date,
         odoo_git_link=raw.get("odoo_git_link", constants.ODOO_GIT_LINK),
         platform_name=raw.get("platform_name", constants.PLATFORM_NAME),
-        project_odpm_version=raw.get("odpm_version", constants.DEFAULT_ODPM_VERSION),
+        project_odpm_version=resolve_v1_manifest_contract_line(raw),
         arch=raw.get("arch", constants.ARCH),
     )
 
