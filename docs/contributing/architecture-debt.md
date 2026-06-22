@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1273** OK, 8 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1278** OK, 9 skipped.
 
 **Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
@@ -21,7 +21,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.5 track (A / P / Y / I / L / S) — A + P + Y DONE; I / L / S open
+## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I1 DONE; I2–I4 / L / S open
 
 Старт после stable **v4.4.3** (2026-06-22). Не reopen G/C/E slices.
 
@@ -30,11 +30,11 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Architecture | **A** | **DONE** (4.5) | C-8/C-13/C-14 + A4 micro-debt (`user_env` split, `v1_contract` warn) |
 | Plugins | **P** | **DONE** (4.5) | API 1.0, ADR-004, `post_clone`, plan hooks/fragments, local plugins |
 | YAML | **Y** | **DONE** (4.5) | `dev_project/yaml/`, structured `ComposeGenerator`, ADR-005 |
-| Integration | **I** | open | Mandatory golden-path or HTTP smoke on PR to `4.5-dev` (ADR-006) |
+| Integration | **I** | **I1 DONE** (4.5) | ADR-006; mandatory `http-smoke` on PR; `compose-smoke` T1; golden-path T3 opt-in |
 | i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
 | Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
 
-**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate; ADR-007 Base image profiles.
+**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1); ADR-007 Base image profiles.
 
 **R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, compose-smoke.
 
