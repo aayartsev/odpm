@@ -62,6 +62,39 @@ class HostCliIsolationTests(unittest.TestCase):
         source = (_CONTAINER_ROOT / "run_odoo.py").read_text(encoding="utf-8")
         self.assertEqual(_imports_forbidden_host_modules(source), [])
 
+    def test_compose_start_command_import_does_not_load_ruamel(self):
+        purge_prefixes = ("dev_project.compose", "dev_project.host")
+        ruamel_modules = tuple(
+            name
+            for name in sys.modules
+            if name == "ruamel" or name.startswith("ruamel.")
+        )
+        yaml_modules = tuple(
+            name for name in sys.modules if name.startswith("dev_project.yaml")
+        )
+        preserved = {
+            name: sys.modules.pop(name)
+            for name in list(sys.modules)
+            if name.startswith(purge_prefixes)
+            or name in ruamel_modules
+            or name in yaml_modules
+        }
+        try:
+            importlib.import_module("dev_project.compose.start_command")
+            for name in ruamel_modules + yaml_modules:
+                self.assertNotIn(
+                    name,
+                    sys.modules,
+                    msg=(
+                        f"{name} must not load when importing compose.start_command "
+                        "(container run_odoo path; ADR-005)"
+                    ),
+                )
+            self.assertNotIn("ruamel", sys.modules)
+            self.assertNotIn("dev_project.yaml", sys.modules)
+        finally:
+            sys.modules.update(preserved)
+
     def test_database_record_import_does_not_load_host_plan_or_config(self):
         purge_prefixes = ("dev_project.database",)
         preserved = {
