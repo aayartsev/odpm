@@ -187,7 +187,7 @@ dependencies = ["odpm>=4.4"]
 ## Ограничения
 
 - Container-side `ContainerConfig` остаётся **stdlib-only** (без новых PyPI deps в образе).
-- Compose YAML генерируется без PyYAML (dict → YAML renderer); сложные anchor/merge не поддерживаются.
+- Compose YAML генерируется host-движком `dev_project/yaml/` (ruamel.yaml); YAML anchors/merge aliases не поддерживаются.
 - Конфликт имён: plugin compose fragment **перезаписывает** одноимённый service из manifest.
 
 ## См. также

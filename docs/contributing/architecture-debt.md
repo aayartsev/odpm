@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1269** OK, 8 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1273** OK, 8 skipped.
 
 **Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
@@ -21,20 +21,20 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.5 track (A / P / Y / I / L / S) — OPEN
+## 4.5 track (A / P / Y / I / L / S) — A + P + Y DONE; I / L / S open
 
 Старт после stable **v4.4.3** (2026-06-22). Не reopen G/C/E slices.
 
 | Track | ID | Статус | Суть |
 |-------|-----|--------|------|
-| Architecture | **A** | open | C-8/C-13/C-14 **DONE**; A4 micro-debt **DONE** (`user_env` split, `DEFAULT_ODPM_VERSION` warn) |
+| Architecture | **A** | **DONE** (4.5) | C-8/C-13/C-14 + A4 micro-debt (`user_env` split, `v1_contract` warn) |
 | Plugins | **P** | **DONE** (4.5) | API 1.0, ADR-004, `post_clone`, plan hooks/fragments, local plugins |
-| YAML | **Y** | open | Host `dev_project/yaml/`; structured `ComposeGenerator`; fragment merge (ADR-005) |
+| YAML | **Y** | **DONE** (4.5) | `dev_project/yaml/`, structured `ComposeGenerator`, ADR-005 |
 | Integration | **I** | open | Mandatory golden-path or HTTP smoke on PR to `4.5-dev` (ADR-006) |
 | i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
 | Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
 
-**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine; ADR-006 Integration gate; ADR-007 Base image profiles.
+**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate; ADR-007 Base image profiles.
 
 **R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, compose-smoke.
 
@@ -69,7 +69,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## A4-2 Config hub slimming (C-7…) — IN PROGRESS
+## A4-2 Config hub slimming (C-7…A4) — DONE (4.5)
 
 | Slice | Status | Outcome |
 |-------|--------|---------|
@@ -77,6 +77,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | C-8 | **DONE** (4.5) | addon catalogs via `host_ctx.addon_layout`; `tests/test_addon_layout_ports.py` |
 | C-13 | **DONE** (4.5) | plan diff/format + compose runtime via `host_ctx`; lock helpers via `manifest_view`; `tests/test_plan_config_coupling.py` |
 | C-14 | **DONE** (4.5) | ADR-003 `PipelinePorts`; `OdpmPipeline.setup()` wires ports; materializer/planner entrypoints; `CONFIG_PROPERTY_SHIMS`; `tests/test_pipeline_ports.py` |
+| A4 | **DONE** (4.5) | `user_env` split; `manifest/v1_contract.py` deprecation warn; baseline **1273** tests |
 | C-9 | **DONE** (C-11) | prepare steps → `host_ctx` |
 | C-10 | **DONE** (4.4) | `ConfigPaths` writes to `docker_layout` |
 | C-12 | **DONE** (4.4.3) | plan preview evaluate boundary; see debt remainder table above |

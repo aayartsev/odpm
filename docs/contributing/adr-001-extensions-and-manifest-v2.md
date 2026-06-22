@@ -67,6 +67,7 @@ Validation: **jsonschema** + packaged JSON Schema files under `dev_project/manif
 | `packaging` | Semver parsing (existing) |
 | `jsonschema` | Manifest v2 JSON Schema validation |
 | `pluggy` | Entry points `odpm.prepare_steps`, later `odpm.hooks` |
+| `ruamel.yaml` | Host compose YAML load/dump/merge (`dev_project/yaml/`) |
 
 Subprocess git/docker on the host remain default; no mandatory `docker`/`git` PyPI libs.
 
