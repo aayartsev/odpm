@@ -15,6 +15,8 @@
 | `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` при `ODPM_IDE=vscode` или `both` и `ODPM_DEBUGGER_BACKEND=debugpy_listen`; `settings.json` включает `python.analysis.extraPaths` для platform, developing и зависимостей |
 | `.run/Odoo Remote Attach.run.xml` | `odpm --skip-start` при `ODPM_IDE=pycharm` или `both` и **`debugpy_listen`** (PyCharm Attach to DAP) |
 | `.run/Odoo Debug Server.run.xml` | `odpm --skip-start` при `ODPM_IDE=pycharm` или `both` и **`pydevd_connect`** (PyCharm Debug Server, Pro) |
+| `Dockerfile` (корень проекта) | из шаблона `.odpm/{distro}_{ver}_dockerfile_{profile}`; профиль зависит от `ODPM_SCENARIO` |
+| `.odpm/base_image_identity.json` | после успешного `docker build` base image; в `.odpm/.gitignore`; поля `base_image_profile`, `dockerfile_sha256` — см. ADR-007 |
 
 При смене `ODPM_DEBUGGER_BACKEND` odpm удаляет неактуальный odpm-файл из пары выше (пользовательские `.run/*.run.xml` не трогает). См. [отладка в IDE](../operations/vscode-debug.md).
 

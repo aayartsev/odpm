@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Scenario base Dockerfile profiles (Phase S)** — `ScenarioPolicy.base_image_profile` (`full` / `medium` / `ci`) selects `debian_12/13_dockerfile_{profile}` templates; `odoo_image_name` includes profile suffix; `base_image_identity.json` records `base_image_profile` and `dockerfile_sha256` for automatic base image rebuild; program template sync by sha256. ADR-007; tests in `tests/test_dockerfile_profiles.py`.
+
 ## [4.4.3] - 2026-06-21
 
 **Stable release 4.4.3** on branch `4.4-dev`; supersedes **4.4.2** as `LATEST_STABLE_RELEASE`. Ships debt remainder from **4.4.3-beta** (C-12 plan boundary, L2 opt-in locks sync, H hygiene). No breaking changes for v1 `odpm.json`.

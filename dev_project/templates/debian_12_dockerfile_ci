@@ -1,0 +1,30 @@
+# #MESSAGE#
+FROM python:{PYTHON_VERSION}-{DISTRO_VERSION_CODENAME}
+
+# Project variables
+ARG USER_UID={CURRENT_USER_UID}
+ARG USER_GID={CURRENT_USER_GID}
+
+ARG USER_NAME={CURRENT_USER}
+ARG PASSWORD={CURRENT_PASSWORD}
+
+# Prepare internal user (ci profile: minimal user setup)
+RUN groupadd --gid $USER_GID $USER_NAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USER_NAME -p $(openssl passwd -6 $PASSWORD) \
+    && apt-get update \
+    && apt-get install -y sudo \
+    && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
+    && chmod 0440 /etc/sudoers.d/$USER_NAME
+
+# install dependecies (ci: runtime + bake_venv; no browser/xvfb/wkhtmltopdf/IDE)
+RUN apt-get update && apt-get -y install libxml2-dev libxslt1-dev libldap2-dev\
+        libsasl2-dev libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev\
+        zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev\
+        libharfbuzz-dev libfribidi-dev libxcb1-dev libpq-dev\
+        openssl build-essential libssl-dev libxrender-dev \
+        git-core libfontconfig1-dev fontconfig\
+        python3-virtualenv virtualenv libev-dev libuv1-dev\
+        git postgresql-client ssh \
+        && python3 -m pip install uv
+
+USER $USER_NAME

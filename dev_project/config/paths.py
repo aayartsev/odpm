@@ -33,9 +33,11 @@ class ConfigPaths:
 
     def apply_image_names(self) -> None:
         docker = self.config.docker_layout
+        profile = self.config.policy.base_image_profile
         docker.odoo_image_name = (
             f"odoo-{self.config.arch}-python-{self.config.python_version}-"
-            f"{self.config.distro_name}-{self.config.distro_version.replace('.', '')}"
+            f"{self.config.distro_name}-"
+            f"{self.config.distro_version.replace('.', '')}-{profile}"
         )
         docker.odoo_ci_image_name = self.get_odoo_ci_image_name()
         docker.ci_build_context_dir = os.path.join(

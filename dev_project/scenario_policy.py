@@ -18,6 +18,7 @@ from .debugger.constants import (
 from .ide_stubs import normalize_odoo_stubs_requirements
 
 VenvMode = Literal["fresh", "baked"]
+BaseImageProfile = Literal["full", "medium", "ci"]
 
 
 @dataclass(frozen=True)
@@ -35,6 +36,7 @@ class ScenarioPolicy:
     allow_build_image: bool
     venv_mode: VenvMode
     uses_host_identity: bool
+    base_image_profile: BaseImageProfile
 
     def __post_init__(self) -> None:
         if self.include_debugpy and not self.install_debugpy:
@@ -63,6 +65,7 @@ class ScenarioPolicy:
                 allow_build_image=True,
                 venv_mode=constants.VENV_MODE_BAKED,
                 uses_host_identity=False,
+                base_image_profile="ci",
             )
         if normalized == constants.SERVER_SCENARIO:
             return cls(
@@ -79,6 +82,7 @@ class ScenarioPolicy:
                 allow_build_image=False,
                 venv_mode=constants.VENV_MODE_FRESH,
                 uses_host_identity=True,
+                base_image_profile="medium",
             )
         return cls(
             scenario=constants.DEVELOPER_SCENARIO,
@@ -94,6 +98,7 @@ class ScenarioPolicy:
             allow_build_image=False,
             venv_mode=constants.VENV_MODE_FRESH,
             uses_host_identity=True,
+            base_image_profile="full",
         )
 
     @property

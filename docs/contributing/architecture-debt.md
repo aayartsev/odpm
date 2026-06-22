@@ -21,7 +21,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I + L DONE; S open
+## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I + L + S DONE
 
 Старт после stable **v4.4.3** (2026-06-22). Не reopen G/C/E slices.
 
@@ -32,9 +32,9 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | YAML | **Y** | **DONE** (4.5) | `dev_project/yaml/`, structured `ComposeGenerator`, ADR-005 |
 | Integration | **I** | **DONE** (4.5 I1–I4) | ADR-006; T1+T2 PR gates; weekly I2 matrix; I3 flakes/artifacts |
 | i18n | **L** | **DONE** (4.5 L1–L4) | ADR-008; `check_i18n_catalog` CI gate; ~290 host msgids incl. `plan_msg` |
-| Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
+| Images | **S** | **DONE** (4.5) | Scenario base Dockerfile profiles (ADR-007) |
 
-**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1–I4); ADR-008 i18n host/container **done** (L); ADR-007 Base image profiles.
+**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1–I4); ADR-008 i18n host/container **done** (L); ADR-007 Base image profiles **done** (S).
 
 **R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, **i18n**, compose-smoke, http-smoke.
 

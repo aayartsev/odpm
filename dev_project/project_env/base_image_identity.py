@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -17,12 +18,29 @@ def base_image_identity_path(project_dir: str) -> str:
     return os.path.join(project_dir, constants.BASE_IMAGE_IDENTITY_REL_PATH)
 
 
+def project_dockerfile_path(project_dir: str) -> str:
+    return os.path.join(project_dir, constants.DOCKERFILE)
+
+
+def dockerfile_content_sha256(project_dir: str) -> str:
+    path = project_dockerfile_path(project_dir)
+    if not os.path.isfile(path):
+        return ""
+    digest = hashlib.sha256()
+    with open(path, "rb") as reader:
+        for chunk in iter(lambda: reader.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def expected_base_image_identity(config: Config) -> dict[str, str]:
     policy = config.policy
     return {
         "user": policy.runtime_unix_user(),
         "uid": policy.runtime_unix_uid(),
         "gid": policy.runtime_unix_gid(),
+        "base_image_profile": policy.base_image_profile,
+        "dockerfile_sha256": dockerfile_content_sha256(config.project_dir),
     }
 
 
@@ -32,12 +50,10 @@ def read_base_image_identity(project_dir: str) -> dict[str, str] | None:
         return None
     with open(path, encoding="utf-8") as reader:
         payload: dict[str, Any] = json.load(reader)
-    user = payload.get("user")
-    uid = payload.get("uid")
-    gid = payload.get("gid")
-    if not isinstance(user, str) or not isinstance(uid, str) or not isinstance(gid, str):
+    required = ("user", "uid", "gid", "base_image_profile", "dockerfile_sha256")
+    if not all(isinstance(payload.get(key), str) for key in required):
         return None
-    return {"user": user, "uid": uid, "gid": gid}
+    return {key: payload[key] for key in required}
 
 
 def write_base_image_identity(project_dir: str, identity: dict[str, str]) -> None:
@@ -80,5 +96,7 @@ def base_image_identity_matches_host(host_ctx) -> bool:
         "user": policy.runtime_unix_user(),
         "uid": policy.runtime_unix_uid(),
         "gid": policy.runtime_unix_gid(),
+        "base_image_profile": policy.base_image_profile,
+        "dockerfile_sha256": dockerfile_content_sha256(host_ctx.project_dir),
     }
     return stamp == expected
