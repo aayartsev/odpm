@@ -31,6 +31,7 @@ def _load_contract_modules() -> unittest.TestSuite:
         "tests.test_manifest_hooks",
         "tests.test_plan_locks_preview",
         "tests.test_plan_config_coupling",
+        "tests.test_pipeline_ports",
         "tests.test_addon_layout_ports",
         "tests.test_manifest_database_merge",
         "tests.test_compose_fragments",

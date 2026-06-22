@@ -38,9 +38,8 @@ def build_matrix_plan(
     )
     pipeline.setup(for_plan=True)
     plan = OdpmPlanner.build(
-        pipeline.config,
-        cli_args,
-        pipeline.project_environment,
+        pipeline.ports,
+        project_env=pipeline.project_environment,
     )
     return plan, pipeline
 
@@ -59,10 +58,9 @@ def prepare_step_outcome(
     step_id: str,
 ) -> str:
     ctx = make_prepare_context(
-        pipeline.config,
+        pipeline.ports,
         pipeline.project_environment,
         pipeline.system_checker,
-        cli_args,
     )
     return next(
         step.outcome
@@ -138,10 +136,9 @@ def sync_idle_compose_state(project_dir: Path) -> None:
         OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
     )
     ctx = make_prepare_context(
-        pipeline.config,
+        pipeline.ports,
         pipeline.project_environment,
         pipeline.system_checker,
-        OdpmCliArgs(skip_start=True, no_git_update=True),
     )
     exec_compose_service(ctx)
     exec_compose_generate(ctx)
@@ -174,15 +171,14 @@ def run_matrix_plan_cli(project_dir: Path, home: Path, *argv: str) -> tuple[int,
         pipeline.setup(for_plan=True)
         if args.plan_format == "json":
             plan = OdpmPlanner.build(
-                pipeline.config,
-                args,
-                pipeline.project_environment,
+                pipeline.ports,
+                project_env=pipeline.project_environment,
             )
             exit_code = 0
             if args.plan_strict and plan_has_required_changes(plan):
                 exit_code = 1
             return exit_code, format_plan_json(
-                plan, pipeline.project_environment.host_ctx, args
+                plan, pipeline.ports.plan.host_ctx, args
             )
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):

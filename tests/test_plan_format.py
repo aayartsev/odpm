@@ -17,6 +17,7 @@ from dev_project.plan.format import (
     plan_has_required_changes,
     plan_to_dict,
 )
+from dev_project.host.ports import ports_from_config
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 
@@ -174,6 +175,11 @@ class PlanStrictPipelineTests(unittest.TestCase):
             )
             pipeline.config = self._config(tmp)
             pipeline.project_environment = MagicMock()
+            pipeline.ports = ports_from_config(
+                pipeline.config,
+                pipeline.project_environment,
+                pipeline.cli_args,
+            )
             with self.assertRaises(SystemExit) as ctx:
                 pipeline.run()
             self.assertEqual(ctx.exception.code, 1)
@@ -188,6 +194,11 @@ class PlanStrictPipelineTests(unittest.TestCase):
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True, plan_strict=True), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.project_environment = MagicMock()
+        pipeline.ports = ports_from_config(
+            pipeline.config,
+            pipeline.project_environment,
+            pipeline.cli_args,
+        )
         with patch("sys.exit") as mock_exit:
             pipeline.run()
         mock_exit.assert_not_called()

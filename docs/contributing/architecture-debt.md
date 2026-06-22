@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1241** OK, 8 skipped.
+**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1247** OK, 8 skipped.
 
 **Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
 
@@ -27,14 +27,14 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Track | ID | Статус | Суть |
 |-------|-----|--------|------|
-| Architecture | **A** | open | C-8/C-13 **DONE**; C-14 Config facade thinning; `user_env` split |
+| Architecture | **A** | open | C-8/C-13/C-14 **DONE**; `user_env` split (A4) |
 | Plugins | **P** | open | API semver (`EXTENSION_API_VERSION`), `post_clone`, plan steps, local plugins |
 | YAML | **Y** | open | Host `dev_project/yaml/`; structured `ComposeGenerator`; fragment merge (ADR-005) |
 | Integration | **I** | open | Mandatory golden-path or HTTP smoke on PR to `4.5-dev` (ADR-006) |
 | i18n | **L** | open | Full `_()` coverage + CI `check_i18n_catalog` job |
 | Images | **S** | open | Scenario base Dockerfile profiles (ADR-007) |
 
-**ADR backlog (4.5):** ADR-003 Host ports; ADR-004 Plugin API; ADR-005 YAML engine; ADR-006 Integration gate; ADR-007 Base image profiles.
+**ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API; ADR-005 YAML engine; ADR-006 Integration gate; ADR-007 Base image profiles.
 
 **R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, compose-smoke.
 
@@ -76,6 +76,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | C-7 | **DONE** | `BootstrapState` + property shims; `config.bootstrap`; `bootstrap_phases` internal |
 | C-8 | **DONE** (4.5) | addon catalogs via `host_ctx.addon_layout`; `tests/test_addon_layout_ports.py` |
 | C-13 | **DONE** (4.5) | plan diff/format + compose runtime via `host_ctx`; lock helpers via `manifest_view`; `tests/test_plan_config_coupling.py` |
+| C-14 | **DONE** (4.5) | ADR-003 `PipelinePorts`; `OdpmPipeline.setup()` wires ports; materializer/planner entrypoints; `CONFIG_PROPERTY_SHIMS`; `tests/test_pipeline_ports.py` |
 | C-9 | **DONE** (C-11) | prepare steps → `host_ctx` |
 | C-10 | **DONE** (4.4) | `ConfigPaths` writes to `docker_layout` |
 | C-12 | **DONE** (4.4.3) | plan preview evaluate boundary; see debt remainder table above |
@@ -103,7 +104,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| `Config` facade still central | P1 (4.5 A) | C-11/C-12/L2 slimmed prepare/plan evaluate; C-8/C-13 done; C-14 in 4.5 track |
+| `Config` facade still central | P1 (4.5 A4) | C-11…C-14 slimmed plan/prepare/runtime; bootstrap via `ports.bootstrap.config` |
 | `DEFAULT_ODPM_VERSION` "3.0" vs `ODPM_VERSION` | P2 (4.5 A4) | Fallback for legacy `odpm.json`; deprecation path planned |
 | Plugin/hook API | P1 (4.5 P) | 4.4 baseline (prepare steps, fragments, `post_prepare`/`pre_up`); 2.0 in roadmap |
 | Env variable refs in `odpm.json` | **DONE** | `${VAR}` whitelist documented; `todo.md` closed |

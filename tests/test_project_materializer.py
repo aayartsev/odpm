@@ -5,6 +5,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
 from dev_project.errors import PipelineError
+from dev_project.host.ports import ports_from_config
 from dev_project.project_materializer import ProjectMaterializer
 from tests.prepare_test_helpers import stub_prepare_service_executions
 
@@ -15,9 +16,10 @@ class ProjectMaterializerTests(unittest.TestCase):
         config = MagicMock()
         project_env = MagicMock()
         system_checker = MagicMock()
+        ports = ports_from_config(config, project_env, args)
         materializer = ProjectMaterializer()
         with stub_prepare_service_executions() as service_mocks:
-            materializer.run(config, project_env, system_checker, args)
+            materializer.run(ports, system_checker)
         return config, project_env, system_checker, service_mocks
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
@@ -54,13 +56,15 @@ class ProjectMaterializerTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_run_rejects_update_lock_with_no_git_update(self, _mock_builder):
         materializer = ProjectMaterializer()
+        config = MagicMock()
+        config.arguments = OdpmCliArgs(update_lock=True, no_git_update=True)
+        ports = ports_from_config(
+            config,
+            MagicMock(),
+            OdpmCliArgs(update_lock=True, no_git_update=True),
+        )
         with self.assertRaises(PipelineError):
-            materializer.run(
-                MagicMock(),
-                MagicMock(),
-                MagicMock(),
-                OdpmCliArgs(update_lock=True, no_git_update=True),
-            )
+            materializer.run(ports, MagicMock())
 
 
 if __name__ == "__main__":

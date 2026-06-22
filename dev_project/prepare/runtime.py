@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from ..host.cli.args import OdpmCliArgs
-from ..host.context import HostProjectContext
+from ..host.ports import RuntimePorts
 from ..plan import PlanStep
 from ..debugger.ide import ide_includes_pycharm, ide_includes_vscode
 from ..plan.compose_preview import vscode_settings_up_to_date
@@ -13,17 +12,14 @@ from ..plan.pycharm_preview import (
 )
 from ..plan.debug_profile_preview import debug_profile_needs_update
 from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
-from ..config import Config
 from ..project_env import CreateProjectEnvironment
 from .helpers import make_plan_step
 
 
-def evaluate_runtime_ci_build_image(
-    config: Config, args: OdpmCliArgs
-) -> PlanStep | None:
-    if not args.build_image:
+def evaluate_runtime_ci_build_image(runtime: RuntimePorts) -> PlanStep | None:
+    if not runtime.args.build_image:
         return None
-    if not config.policy.allow_build_image:
+    if not runtime.host_ctx.policy.allow_build_image:
         return None
     return make_plan_step(
         "ci.build_image",
@@ -35,11 +31,13 @@ def evaluate_runtime_ci_build_image(
 
 
 def evaluate_runtime_debug_profile(
-    config: Config, project_env: CreateProjectEnvironment | None = None
+    runtime: RuntimePorts,
+    project_env: CreateProjectEnvironment | None = None,
 ) -> PlanStep | None:
-    if not config.policy.include_debugpy:
+    if not runtime.host_ctx.policy.include_debugpy:
         return None
     description = "Write .odpm/runtime/debug-profile.json"
+    config = runtime.bootstrap.config
     needs_update, reason = debug_profile_needs_update(config, project_env)
     if needs_update:
         return make_plan_step(
@@ -59,13 +57,15 @@ def evaluate_runtime_debug_profile(
 
 
 def evaluate_runtime_vscode_settings(
-    config: Config, project_env: CreateProjectEnvironment | None = None
+    runtime: RuntimePorts,
+    project_env: CreateProjectEnvironment | None = None,
 ) -> PlanStep | None:
-    if config.policy.skip_ide_config:
+    if runtime.host_ctx.policy.skip_ide_config:
         return None
-    if not ide_includes_vscode(config.user_env.odpm_ide):
+    if not ide_includes_vscode(runtime.host_ctx.user_env.odpm_ide):
         return None
     description = "Update VS Code launch and workspace settings"
+    config = runtime.bootstrap.config
     if vscode_settings_up_to_date(config):
         return make_plan_step(
             "vscode.settings",
@@ -84,12 +84,14 @@ def evaluate_runtime_vscode_settings(
 
 
 def evaluate_runtime_pycharm_settings(
-    config: Config, project_env: CreateProjectEnvironment | None = None
+    runtime: RuntimePorts,
+    project_env: CreateProjectEnvironment | None = None,
 ) -> PlanStep | None:
-    if config.policy.skip_ide_config:
+    if runtime.host_ctx.policy.skip_ide_config:
         return None
-    if not ide_includes_pycharm(config.user_env.odpm_ide):
+    if not ide_includes_pycharm(runtime.host_ctx.user_env.odpm_ide):
         return None
+    config = runtime.bootstrap.config
     description = pycharm_run_config_description(config)
     if pycharm_run_config_up_to_date(config, project_env):
         return make_plan_step(
@@ -108,13 +110,11 @@ def evaluate_runtime_pycharm_settings(
     )
 
 
-def evaluate_runtime_compose_up(
-    host_ctx: HostProjectContext, args: OdpmCliArgs
-) -> PlanStep | None:
-    if not compose_up_would_run(args, host_ctx):
+def evaluate_runtime_compose_up(runtime: RuntimePorts) -> PlanStep | None:
+    if not compose_up_would_run(runtime.args, runtime.host_ctx):
         return None
     description = "Run docker compose up"
-    reason, _extra_warnings = evaluate_compose_up_plan(host_ctx, args)
+    reason, _extra_warnings = evaluate_compose_up_plan(runtime.host_ctx, runtime.args)
     return make_plan_step(
         "compose.up",
         description,
@@ -125,18 +125,16 @@ def evaluate_runtime_compose_up(
 
 
 def build_runtime_plan_steps(
-    config: Config,
-    args: OdpmCliArgs,
-    host_ctx: HostProjectContext,
+    runtime: RuntimePorts,
     project_env: CreateProjectEnvironment | None = None,
 ) -> tuple[PlanStep, ...]:
     steps: list[PlanStep] = []
     for evaluator in (
-        lambda: evaluate_runtime_ci_build_image(config, args),
-        lambda: evaluate_runtime_debug_profile(config, project_env),
-        lambda: evaluate_runtime_vscode_settings(config, project_env),
-        lambda: evaluate_runtime_pycharm_settings(config, project_env),
-        lambda: evaluate_runtime_compose_up(host_ctx, args),
+        lambda: evaluate_runtime_ci_build_image(runtime),
+        lambda: evaluate_runtime_debug_profile(runtime, project_env),
+        lambda: evaluate_runtime_vscode_settings(runtime, project_env),
+        lambda: evaluate_runtime_pycharm_settings(runtime, project_env),
+        lambda: evaluate_runtime_compose_up(runtime),
     ):
         step = evaluator()
         if step is not None:
@@ -144,10 +142,8 @@ def build_runtime_plan_steps(
     return tuple(steps)
 
 
-def build_runtime_plan_warnings(
-    config: Config, args: OdpmCliArgs, host_ctx: HostProjectContext
-) -> tuple[str, ...]:
-    if not compose_up_would_run(args, host_ctx):
+def build_runtime_plan_warnings(runtime: RuntimePorts) -> tuple[str, ...]:
+    if not compose_up_would_run(runtime.args, runtime.host_ctx):
         return ()
-    _reason, extra_warnings = evaluate_compose_up_plan(host_ctx, args)
+    _reason, extra_warnings = evaluate_compose_up_plan(runtime.host_ctx, runtime.args)
     return extra_warnings

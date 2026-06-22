@@ -15,7 +15,18 @@ from dev_project.host.cli import params
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.plan.cli import is_plan_mode
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.host.ports import ports_from_config
 from tests.plan_smoke_helpers import seed_migrated_project_layout
+
+
+def _attach_pipeline_ports(pipeline, config, project_environment) -> None:
+    pipeline.config = config
+    pipeline.project_environment = project_environment
+    pipeline.ports = ports_from_config(
+        config,
+        project_environment,
+        pipeline.cli_args,
+    )
 
 
 class PlanCliHelperTests(unittest.TestCase):
@@ -101,8 +112,7 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
                 parse_cli_args(["plan", "--plan-format", "json"]),
                 "/opt/odpm",
             )
-            pipeline.config = self._config(tmp)
-            pipeline.project_environment = MagicMock()
+            _attach_pipeline_ports(pipeline, self._config(tmp), MagicMock())
             with patch("builtins.print") as mock_print:
                 pipeline.run()
             mock_print.assert_called_once()
@@ -126,21 +136,19 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
                     parse_cli_args(["plan", "--skip-start"]),
                     "/opt/odpm",
                 )
-                pipeline_sub.config = config
-                pipeline_sub.project_environment = env
+                _attach_pipeline_ports(pipeline_sub, config, env)
                 pipeline_sub.run()
 
                 pipeline_flag = OdpmPipeline(
                     parse_cli_args(["--plan", "--skip-start"]),
                     "/opt/odpm",
                 )
-                pipeline_flag.config = config
-                pipeline_flag.project_environment = env
+                _attach_pipeline_ports(pipeline_flag, config, env)
                 pipeline_flag.run()
 
             self.assertEqual(mock_planner.build.call_count, 2)
             for call in mock_planner.build.call_args_list:
-                self.assertEqual(call[0][1].plan, True)
+                self.assertTrue(call[0][0].plan.args.plan)
 
 
 if __name__ == "__main__":

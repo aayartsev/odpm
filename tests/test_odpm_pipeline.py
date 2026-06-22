@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.errors import ConfigError, PipelineError
+from dev_project.host.ports import ports_from_config
 from dev_project.odpm_pipeline import OdpmPipeline
 from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
@@ -498,6 +499,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     def test_prepare_delegates_to_project_materializer(self, mock_materializer_cls):
         pipeline = OdpmPipeline(OdpmCliArgs(skip_start=True), "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.ports = MagicMock()
         pipeline.project_environment = MagicMock()
         pipeline.system_checker = MagicMock()
         materializer = MagicMock()
@@ -507,18 +509,22 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
 
         mock_materializer_cls.assert_called_once_with()
         materializer.run.assert_called_once_with(
-            pipeline.config,
-            pipeline.project_environment,
+            pipeline.ports,
             pipeline.system_checker,
-            pipeline.cli_args,
         )
 
     def _pipeline_with_mocks(self, **args_overrides) -> OdpmPipeline:
         args = OdpmCliArgs(build_image=False, skip_start=True, **args_overrides)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.config.arguments = args
         pipeline.project_environment = MagicMock()
         pipeline.system_checker = MagicMock()
+        pipeline.ports = ports_from_config(
+            pipeline.config,
+            pipeline.project_environment,
+            args,
+        )
         return pipeline
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
@@ -582,6 +588,11 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             )
             pipeline = self._pipeline_with_mocks()
             pipeline.config.project_dir = tmp
+            pipeline.ports = ports_from_config(
+                pipeline.config,
+                pipeline.project_environment,
+                pipeline.cli_args,
+            )
             with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
                 manager = MagicMock()
                 manager.apply_mode = True

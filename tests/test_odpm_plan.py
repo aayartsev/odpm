@@ -377,18 +377,17 @@ PREPARE_STEP_IDS = [
 
 class ProjectMaterializerDryRunTests(unittest.TestCase):
     def test_dry_run_delegates_to_build_plan(self):
-        config = MagicMock()
-        args = OdpmCliArgs()
+        from dev_project.host.ports import PipelinePorts
+
+        ports = MagicMock(spec=PipelinePorts)
         with patch("dev_project.project_materializer.build_plan") as mock_build_plan:
             mock_build_plan.return_value = MagicMock()
             result = ProjectMaterializer().run(
-                config,
+                ports,
                 MagicMock(),
-                MagicMock(),
-                args,
                 dry_run=True,
             )
-        mock_build_plan.assert_called_once_with(config, args)
+        mock_build_plan.assert_called_once_with(ports)
         self.assertIs(result, mock_build_plan.return_value)
 
 
@@ -408,6 +407,8 @@ class OdpmPipelinePlanTests(unittest.TestCase):
 
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True), "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.ports = MagicMock()
+        pipeline.ports.plan.host_ctx = MagicMock()
         pipeline.project_environment = MagicMock()
         mock_planner.build.return_value = MagicMock()
 
@@ -415,14 +416,13 @@ class OdpmPipelinePlanTests(unittest.TestCase):
 
         mock_prepare.assert_not_called()
         mock_planner.build.assert_called_once_with(
-            pipeline.config,
-            pipeline.cli_args,
-            pipeline.project_environment,
+            pipeline.ports,
+            project_env=pipeline.project_environment,
         )
         mock_format_plan.assert_called_once_with(
             mock_planner.build.return_value,
             pipeline.cli_args,
-            pipeline.project_environment.host_ctx,
+            pipeline.ports.plan.host_ctx,
         )
 
 

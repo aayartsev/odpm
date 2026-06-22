@@ -18,6 +18,7 @@ from dev_project.plan import OdpmPlan, PlanStep
 from dev_project.host.context import HostProjectContext
 from dev_project.plan.diff import PlanFileDiff, build_plan_diffs, diff_debug_profile
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.ports import BootstrapHandle, RuntimePorts
 from dev_project.prepare.runtime import evaluate_runtime_debug_profile
 from dev_project.project_env.debug_profile import write_debug_profile
 from dev_project.scenario_policy import ScenarioPolicy
@@ -80,16 +81,47 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
             on_disk = normalized_debug_profile_text_from_disk(project_dir)
             self.assertEqual(on_disk, preview_debug_profile_text(env))
 
-    def test_evaluate_runtime_debug_profile_skipped_for_ci(self) -> None:
+    def _runtime_ports(self, policy: ScenarioPolicy) -> RuntimePorts:
+        host_ctx = HostProjectContext(
+            project_dir="/tmp/project",
+            program_dir="/opt/odpm",
+            config_home_dir="/tmp/project",
+            policy=policy,
+            user_env=MagicMock(),
+            arguments=OdpmCliArgs(),
+            user_settings=MagicMock(),
+            project_settings=MagicMock(),
+            docker_layout=MagicMock(),
+            addon_layout=MagicMock(),
+        )
         config = MagicMock()
-        config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
-        self.assertIsNone(evaluate_runtime_debug_profile(config, MagicMock()))
+        config.policy = policy
+        return RuntimePorts(
+            host_ctx=host_ctx,
+            args=OdpmCliArgs(),
+            project_env=MagicMock(),
+            bootstrap=BootstrapHandle(config=config),
+        )
+
+    def test_evaluate_runtime_debug_profile_skipped_for_ci(self) -> None:
+        self.assertIsNone(
+            evaluate_runtime_debug_profile(
+                self._runtime_ports(
+                    ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+                ),
+                MagicMock(),
+            )
+        )
 
     def test_evaluate_runtime_debug_profile_run_for_developer(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
-            config = self._developer_config(project_dir)
             env = self._project_env(project_dir)
-            step = evaluate_runtime_debug_profile(config, env)
+            step = evaluate_runtime_debug_profile(
+                self._runtime_ports(
+                    ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+                ),
+                env,
+            )
             self.assertIsNotNone(step)
             assert step is not None
             self.assertEqual(step.id, "ide.debug_profile")

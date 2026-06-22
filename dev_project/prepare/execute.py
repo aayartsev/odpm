@@ -7,6 +7,7 @@ from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
 from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..host.context import HostProjectContext
+from ..host.ports import PipelinePorts, ports_from_config
 from ..logging import get_module_logger
 from ..plan import OdpmPlan, PlanStep, deps_lock_file_exists
 from .helpers import skip_git, update_lock
@@ -51,21 +52,27 @@ def _resolve_prepare_services(
 
 
 def make_prepare_context(
-    config: Config,
+    ports_or_config: PipelinePorts | Config,
     project_env: CreateProjectEnvironment,
     system_checker: SystemCheckerProtocol,
-    args: OdpmCliArgs,
+    args: OdpmCliArgs | None = None,
 ) -> PrepareContext:
+    if isinstance(ports_or_config, PipelinePorts):
+        ports = ports_or_config
+        resolved_args = ports.plan.args
+    else:
+        resolved_args = args if args is not None else ports_or_config.arguments
+        ports = ports_from_config(ports_or_config, project_env, resolved_args)
     templates, compose_generator, links = _resolve_prepare_services(project_env)
     return PrepareContext(
-        config=config,
+        ports=ports,
         project_env=project_env,
         templates=templates,
         compose_generator=compose_generator,
         links=links,
         system_checker=system_checker,
-        args=args,
-        host_ctx=HostProjectContext.from_config(config, arguments=args),
+        args=resolved_args,
+        host_ctx=ports.plan.host_ctx,
     )
 
 
@@ -146,21 +153,34 @@ def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
 
 
 def build_plan(
-    config: Config,
-    args: OdpmCliArgs,
+    ports_or_config: PipelinePorts | Config,
+    args: OdpmCliArgs | None = None,
     project_env: CreateProjectEnvironment | None = None,
 ) -> OdpmPlan:
+    if isinstance(ports_or_config, PipelinePorts):
+        ports = ports_or_config
+        prepare_env = (
+            ports.compose.project_env
+            if project_env is not None
+            else PlanOnlyProjectEnv()  # type: ignore[arg-type]
+        )
+    else:
+        config = ports_or_config
+        resolved_args = args if args is not None else config.arguments
+        ports = ports_from_config(
+            config,
+            project_env or CreateProjectEnvironment(config),
+            resolved_args,
+        )
+        prepare_env = PlanOnlyProjectEnv()  # type: ignore[arg-type]
     ctx = make_prepare_context(
-        config,
-        PlanOnlyProjectEnv(),  # type: ignore[arg-type]
+        ports,
+        prepare_env,
         PlanOnlySystemChecker(),  # type: ignore[arg-type]
-        args,
     )
     prepare_plan = build_prepare_plan(ctx)
-    runtime_steps = build_runtime_plan_steps(
-        config, args, ctx.host_ctx, project_env
-    )
-    runtime_warnings = build_runtime_plan_warnings(config, args, ctx.host_ctx)
+    runtime_steps = build_runtime_plan_steps(ports.runtime, project_env)
+    runtime_warnings = build_runtime_plan_warnings(ports.runtime)
     return OdpmPlan(
         steps=prepare_plan.steps + runtime_steps,
         warnings=prepare_plan.warnings + runtime_warnings,

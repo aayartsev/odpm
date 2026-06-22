@@ -48,6 +48,7 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
         self.assertIs(ctx.compose_generator.env, project_env)
         self.assertIs(ctx.links.env, project_env)
         self.assertIs(ctx.config, config)
+        self.assertIs(ctx.ports.bootstrap.config, config)
         self.assertIs(ctx.project_env, project_env)
         self.assertIs(ctx.system_checker, system_checker)
         self.assertIs(ctx.args, args)

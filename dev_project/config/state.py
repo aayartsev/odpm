@@ -261,3 +261,33 @@ DOCKER_SLICE_FIELDS = tuple(
     if name != "docker_compose_command"
 )
 ADDON_LAYOUT_SLICE_FIELDS = tuple(AddonLayoutState.__dataclass_fields__)
+
+# Deprecated Config top-level property shims (bind_slice_properties / runtime facade).
+# New plan/prepare/runtime code should use HostProjectContext slices or host ports
+# (see docs/contributing/adr-003-host-ports-vs-config.md).
+CONFIG_PROPERTY_SHIMS: tuple[tuple[str, str, str], ...] = (
+    *(
+        ("user_settings", field_name, "host_ctx.user_settings")
+        for field_name in USER_SLICE_FIELDS
+    ),
+    *(
+        ("project_settings", field_name, "host_ctx.project_settings")
+        for field_name in PROJECT_SLICE_FIELDS
+    ),
+    *(
+        ("docker_layout", field_name, "host_ctx.docker_layout")
+        for field_name in DOCKER_SLICE_FIELDS
+    ),
+    *(
+        ("addon_layout", field_name, "host_ctx.addon_layout")
+        for field_name in ADDON_LAYOUT_SLICE_FIELDS
+    ),
+    ("runtime_facade", "compose_service", "prepare execute / ComposeServiceBuilder only"),
+    ("runtime_facade", "docker_compose_command", "host_ctx.docker_compose_command"),
+    ("runtime_facade", "container_run_mode", "bootstrap compose service build"),
+    ("runtime_facade", "no_log_prefix", "RuntimeCoordinator.cli_args / runtime state"),
+    *(
+        ("bootstrap", field_name, "ports.bootstrap.config.bootstrap")
+        for field_name in BOOTSTRAP_FIELDS
+    ),
+)

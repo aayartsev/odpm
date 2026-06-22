@@ -15,6 +15,7 @@ from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
+from .host.ports import PipelinePorts
 from .project_materializer import ProjectMaterializer
 from .system_check_policy import SystemCheckPolicy
 
@@ -33,6 +34,7 @@ class OdpmPipeline:
         self.start_dir = start_dir or os.getcwd() or os.environ.get("PWD", "")
         self.pd_manager: ProjectDirManager | None = None
         self.config: Config | None = None
+        self.ports: PipelinePorts | None = None
         self.project_environment: CreateProjectEnvironment | None = None
         self.system_checker: SystemChecker | None = None
 
@@ -63,6 +65,16 @@ class OdpmPipeline:
         if policy.beginner_git:
             self.system_checker.check_git()
         self.project_environment.attach_system_checker(self.system_checker)
+        self.ports = PipelinePorts.from_setup(
+            self.config,
+            self.project_environment,
+            self.cli_args,
+        )
+
+    def _ports(self) -> PipelinePorts:
+        if self.ports is None:
+            raise RuntimeError("OdpmPipeline.setup() was not called")
+        return self.ports
 
     def _import_secrets_if_requested(self) -> None:
         if not self.cli_args.secrets_file:
@@ -74,10 +86,8 @@ class OdpmPipeline:
     def prepare_project_files(self) -> None:
         host_summaries.log_prepare_started()
         ProjectMaterializer().run(
-            self._config(),
-            self._project_environment(),
+            self._ports(),
             self._system_checker(),
-            self.cli_args,
         )
         host_summaries.log_prepare_completed()
 
@@ -85,13 +95,12 @@ class OdpmPipeline:
         from .plan import OdpmPlanner, format_plan
         from .plan.format import plan_has_required_changes, resolve_plan_format
 
-        config = self._config()
+        ports = self._ports()
         plan = OdpmPlanner.build(
-            config,
-            self.cli_args,
-            self._project_environment(),
+            ports,
+            project_env=self._project_environment(),
         )
-        text = format_plan(plan, self.cli_args, self._project_environment().host_ctx)
+        text = format_plan(plan, self.cli_args, ports.plan.host_ctx)
         if resolve_plan_format(self.cli_args) == "json":
             print(text, flush=True)
         else:

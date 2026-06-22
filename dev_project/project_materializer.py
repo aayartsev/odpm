@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from .config import Config
-from .host.cli.args import OdpmCliArgs
+from .host.ports import PipelinePorts
 from .plan import OdpmPlan
 from .prepare import build_plan, execute_prepare, make_prepare_context
 from .protocols import SystemCheckerProtocol
-from .project_env import CreateProjectEnvironment
 
 
 class ProjectMaterializer:
@@ -15,16 +13,18 @@ class ProjectMaterializer:
 
     def run(
         self,
-        config: Config,
-        project_env: CreateProjectEnvironment,
+        ports: PipelinePorts,
         system_checker: SystemCheckerProtocol,
-        args: OdpmCliArgs,
         *,
         dry_run: bool = False,
     ) -> OdpmPlan | None:
         if dry_run:
-            return build_plan(config, args)
+            return build_plan(ports)
 
-        ctx = make_prepare_context(config, project_env, system_checker, args)
+        ctx = make_prepare_context(
+            ports,
+            ports.compose.project_env,
+            system_checker,
+        )
         execute_prepare(ctx)
         return None

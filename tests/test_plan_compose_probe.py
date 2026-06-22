@@ -14,6 +14,7 @@ from dev_project.plan.compose_runtime import (
     evaluate_compose_up_plan,
     plan_probes_compose_stack,
 )
+from dev_project.host.ports import RuntimePorts
 from dev_project.prepare import build_runtime_plan_warnings
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -72,14 +73,21 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         self.assertIn("unknown", reason)
         self.assertEqual(warnings, (PLAN_NO_DOCKER_WARNING,))
 
+    def _runtime_ports(self, *, plan_no_docker: bool = False) -> RuntimePorts:
+        return RuntimePorts(
+            host_ctx=self._host_ctx(),
+            args=OdpmCliArgs(plan_no_docker=plan_no_docker),
+            project_env=MagicMock(),
+            bootstrap=MagicMock(),
+        )
+
     @patch("dev_project.prepare.runtime.compose_up_would_run", return_value=True)
     @patch(
         "dev_project.prepare.runtime.evaluate_compose_up_plan",
         return_value=("start compose stack with --force-recreate", ()),
     )
     def test_runtime_warnings_empty_when_probe_runs(self, _mock_eval, _mock_would_run):
-        host_ctx = MagicMock()
-        warnings = build_runtime_plan_warnings(MagicMock(), OdpmCliArgs(), host_ctx)
+        warnings = build_runtime_plan_warnings(self._runtime_ports())
         self.assertEqual(warnings, ())
 
     @patch("dev_project.prepare.runtime.compose_up_would_run", return_value=True)
@@ -90,11 +98,8 @@ class PlanComposeRuntimeTests(unittest.TestCase):
     def test_runtime_warnings_include_plan_no_docker_message(
         self, _mock_eval, _mock_would_run
     ):
-        host_ctx = MagicMock()
         warnings = build_runtime_plan_warnings(
-            MagicMock(),
-            OdpmCliArgs(plan_no_docker=True),
-            host_ctx,
+            self._runtime_ports(plan_no_docker=True),
         )
         self.assertIn(PLAN_NO_DOCKER_WARNING, warnings)
 

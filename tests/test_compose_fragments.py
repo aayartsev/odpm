@@ -26,9 +26,11 @@ from dev_project.extensions.registry import (
     register_compose_fragment,
     reset_extension_registry_state,
 )
+from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
 from dev_project.manifest.reader import ManifestView
 from dev_project.prepare.steps_compose import evaluate_compose_fragments, exec_compose_fragments
+from dev_project.host.ports import ports_from_config
 from dev_project.prepare.types import PrepareContext
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.compose.generator import ComposeGenerator
@@ -222,8 +224,9 @@ class ComposeFragmentsPrepareStepTests(unittest.TestCase):
         )
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         host_ctx = HostProjectContext.from_config(config)
+        ports = ports_from_config(config, MagicMock(), OdpmCliArgs())
         return PrepareContext(
-            config=config,
+            ports=ports,
             project_env=MagicMock(),
             templates=MagicMock(),
             compose_generator=MagicMock(),
