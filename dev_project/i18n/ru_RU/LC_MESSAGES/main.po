@@ -38,6 +38,9 @@ msgstr "Принимаем текущую конфигурацию БД как b
 msgid "Application role {ROLE} present: {VALUE}"
 msgstr "Роль приложения {ROLE} присутствует: {VALUE}"
 
+msgid "Apply manifest compose patch to service {NAME}"
+msgstr "Применить compose patch из manifest к сервису {NAME}"
+
 msgid "Apply pinned commits from {SOURCE} before checkout"
 msgstr "Применить закреплённые коммиты из {SOURCE} перед checkout"
 
@@ -794,6 +797,9 @@ msgstr "manifest locks.git"
 msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 msgstr "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
 
+msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
+msgstr "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
+
 msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\" или \"odpm manifest validate\"."
 
@@ -832,6 +838,9 @@ msgstr "в odoo.conf отсутствуют настройки БД"
 
 msgid "only used with --update-lock"
 msgstr "используется только с --update-lock"
+
+msgid "patch keys: {KEYS}"
+msgstr "ключи patch: {KEYS}"
 
 msgid "plugins: {PLUGIN_LIST}"
 msgstr "плагины: {PLUGIN_LIST}"
@@ -934,3 +943,6 @@ msgstr "записать deps.lock.json из разрешённых коммит
 
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell-команда(ы)"
+
+msgid "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"
+msgstr "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"

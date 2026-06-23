@@ -10,6 +10,7 @@ Manager **odpm 4.4** reads both formats without mandatory migration. Nested **ma
 |-----------|----------------|
 | Flat v1, team does not change manifest | **Do not migrate** — everything works as before |
 | Need declarative compose services (Mailpit, etc.) | v2 + `services` block |
+| Patch env/ports on `odoo` / `db` | v2 + `service_patches` (see [ADR-009](../contributing/adr-009-compose-service-patch.md)) |
 | Locks in git instead of only `.odpm/deps.lock.json` | v2 + `locks` |
 | Lifecycle hooks in manifest | v2 + `hooks` |
 | New project on 4.4 | v2 immediately or flat v1 (odpm writes v1 by default) |
@@ -91,7 +92,7 @@ Before `--write`, save a copy or commit the current `odpm.json`.
 
 ## After migration
 
-1. **`odpm plan`** — check prepare steps (including `compose.fragments`) and lock source warnings.
+1. **`odpm plan`** — check prepare steps (including `compose.fragments`, `compose.patch.*`) and lock source warnings.
 2. **`odpm up --skip-start`** — materialize without starting containers.
 3. **Locks** — see [Locks after migration (v2)](#locks-after-migration-v2).
 4. **Rollback** — restore v1 from git; dual-read does not require v2.

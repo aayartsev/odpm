@@ -41,6 +41,37 @@ Same spec in code: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPE
 
 After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE_SERVICE_FRAGMENTS}` block). Materialize artifacts: `.odpm/compose/fragments/mailpit.yml` (gitignored).
 
+### Patch built-in services (`service_patches`, 4.6+)
+
+Names **`odoo`**, **`db`**, **`postgres`** cannot appear in `services` — use patches only. Policy: [ADR-009](../contributing/adr-009-compose-service-patch.md).
+
+```json
+"service_patches": {
+  "odoo": {
+    "environment": {
+      "CUSTOM_METRIC": "1"
+    }
+  }
+}
+```
+
+`odpm plan` shows `compose.patch.odoo` (preview); patches apply at `compose.generate`.
+
+### `command` / `entrypoint` for sidecars (4.6+)
+
+**Exec form only** (JSON string array) in `services.<name>`:
+
+```json
+"services": {
+  "worker": {
+    "image": "busybox:latest",
+    "command": ["sh", "-c", "sleep infinity"]
+  }
+}
+```
+
+The `odoo` start command stays owned by the generator; override via `service_patches.odoo.command` only when explicitly needed.
+
 ## Lifecycle hooks in manifest
 
 ```json
@@ -70,7 +101,7 @@ Order per ADR-004:
 6. `hooks.pre_up`
 7. `docker compose up`
 
-`odpm plan` shows `hooks.*` and `compose.fragment.<service>` steps when configured.
+`odpm plan` shows `hooks.*`, `compose.fragment.<service>`, and `compose.patch.<service>` steps when configured.
 
 ### Prepare step `order` field
 

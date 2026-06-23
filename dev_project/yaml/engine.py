@@ -71,7 +71,67 @@ def merge_services(
     extra_names = sorted(set(overlay) - set(base))
     for name in list(base.keys()) + extra_names:
         if name in overlay:
-            result[name] = CommentedMap(overlay[name])
+            result[name] = CommentedMap(_to_plain_data(overlay[name]))
         else:
-            result[name] = CommentedMap(base[name])
+            result[name] = CommentedMap(_to_plain_data(base[name]))
+    return result
+
+
+def _merge_environment_patch(
+    base_env: Any, patch_env: dict[str, str]
+) -> list[str]:
+    if isinstance(base_env, list):
+        merged = [str(item) for item in base_env]
+        existing_keys = {
+            entry.split("=", 1)[0]
+            for entry in merged
+            if isinstance(entry, str) and "=" in entry
+        }
+        for key, value in patch_env.items():
+            if key not in existing_keys:
+                merged.append(f"{key}={value}")
+        return merged
+    if isinstance(base_env, dict):
+        combined = {str(k): str(v) for k, v in base_env.items()}
+        combined.update({str(k): str(v) for k, v in patch_env.items()})
+        return [f"{key}={value}" for key, value in combined.items()]
+    return [f"{key}={value}" for key, value in patch_env.items()]
+
+
+def _merge_service_patch(
+    base: dict[str, Any], patch: dict[str, Any]
+) -> dict[str, Any]:
+    result = CommentedMap(_to_plain_data(base))
+    for key, patch_value in patch.items():
+        base_value = result.get(key)
+        if (
+            key == "environment"
+            and isinstance(patch_value, dict)
+            and base_value is not None
+        ):
+            result[key] = _merge_environment_patch(base_value, patch_value)
+            continue
+        if isinstance(patch_value, dict) and isinstance(base_value, dict):
+            merged = dict(_to_plain_data(base_value))
+            merged.update(_to_plain_data(patch_value))
+            result[key] = CommentedMap(merged)
+            continue
+        result[key] = _to_plain_data(patch_value)
+    return result
+
+
+def merge_services_with_patches(
+    services: dict[str, dict[str, Any]],
+    patches: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Apply partial service patches (ADR-009); unknown service names raise ``ValueError``."""
+    result = CommentedMap()
+    for name, spec in services.items():
+        result[name] = CommentedMap(_to_plain_data(spec))
+    for name, patch in patches.items():
+        if name not in result:
+            raise ValueError(f"compose service patch targets unknown service: {name}")
+        result[name] = CommentedMap(
+            _merge_service_patch(dict(result[name]), patch)
+        )
     return result

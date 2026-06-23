@@ -20,6 +20,7 @@ class ExtensionHostContext:
     manifest_schema: int | None = None
     requires_odpm: str | None = None
     manifest_services: dict[str, Any] | None = None
+    manifest_service_patches: dict[str, Any] | None = None
     manifest_hooks: dict[str, Any] | None = None
     manifest_locks: dict[str, Any] | None = None
     manifest_extensions: dict[str, Any] | None = None
@@ -33,6 +34,9 @@ class ExtensionHostContext:
             manifest_schema=view.manifest_schema if view is not None else None,
             requires_odpm=view.requires_odpm if view is not None else None,
             manifest_services=view.services if view is not None else None,
+            manifest_service_patches=(
+                view.service_patches if view is not None else None
+            ),
             manifest_hooks=view.hooks if view is not None else None,
             manifest_locks=view.locks if view is not None else None,
             manifest_extensions=view.extensions if view is not None else None,

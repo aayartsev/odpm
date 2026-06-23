@@ -19,18 +19,61 @@ class YamlEngineTests(unittest.TestCase):
         self.assertIn('- "true"', text)
         self.assertIn("- python3", text)
 
-    def test_merge_services_preserves_base_order_and_appends_extras(self):
+    def test_merge_services_preserves_base_order_and_replaces_overlay_names(self):
         base = {
             "db": {"image": "postgres:16"},
-            "odoo": {"image": "odoo:dev"},
+            "odoo": {"image": "odoo:dev", "ports": ["8069:8069"]},
         }
         overlay = {
-            "mailpit": {"image": "axllent/mailpit"},
-            "odoo": {"ports": ["8025:8025"]},
+            "mailpit": {"image": "plugin/mailpit:latest"},
         }
         merged = merge_services(base, overlay)
         self.assertEqual(list(merged.keys()), ["db", "odoo", "mailpit"])
-        self.assertEqual(merged["odoo"], {"ports": ["8025:8025"]})
+        self.assertEqual(merged["odoo"]["image"], "odoo:dev")
+        self.assertEqual(merged["mailpit"], {"image": "plugin/mailpit:latest"})
+
+    def test_merge_services_with_patches_appends_environment(self):
+        from dev_project.yaml import merge_services_with_patches
+
+        services = {
+            "odoo": {
+                "image": "odoo:dev",
+                "environment": ["PYTHONUNBUFFERED=1"],
+            }
+        }
+        patched = merge_services_with_patches(
+            services,
+            {"odoo": {"environment": {"EXTRA_FLAG": "1"}}},
+        )
+        self.assertIn("PYTHONUNBUFFERED=1", patched["odoo"]["environment"])
+        self.assertIn("EXTRA_FLAG=1", patched["odoo"]["environment"])
+
+    def test_merge_services_with_patches_replaces_ports_list(self):
+        from dev_project.yaml import merge_services_with_patches
+
+        services = {"odoo": {"ports": ["8069:8069", "8072:8072"]}}
+        patched = merge_services_with_patches(
+            services, {"odoo": {"ports": ["9090:8069"]}}
+        )
+        self.assertEqual(patched["odoo"]["ports"], ["9090:8069"])
+
+    def test_merge_services_with_patches_unknown_service_raises(self):
+        from dev_project.yaml import merge_services_with_patches
+
+        with self.assertRaises(ValueError):
+            merge_services_with_patches({"odoo": {}}, {"redis": {"image": "redis"}})
+
+    def test_dump_renders_exec_form_command(self):
+        text = dump_document(
+            {
+                "sidecar": {
+                    "image": "busybox:latest",
+                    "command": ["sh", "-c", "sleep", "infinity"],
+                }
+            }
+        )
+        self.assertIn("command:", text)
+        self.assertIn("- sh", text)
 
     def test_render_compose_services_block_via_engine(self):
         from dev_project.compose.fragments import render_compose_services_block

@@ -116,6 +116,41 @@ class LoadManifestTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             load_manifest(_minimal_v2(services={"mailpit": {"ports": ["8025:8025"]}}))
 
+    def test_v2_reserved_service_in_services_raises(self):
+        with self.assertRaises(ConfigError):
+            load_manifest(
+                _minimal_v2(services={"odoo": {"image": "odoo:dev", "ports": []}})
+            )
+
+    def test_v2_service_patches_and_command_on_sidecar(self):
+        raw = _minimal_v2(
+            services={
+                "worker": {
+                    "image": "busybox:latest",
+                    "command": ["sh", "-c", "sleep infinity"],
+                    "entrypoint": ["sh"],
+                }
+            },
+            service_patches={
+                "odoo": {"environment": {"WORKER_ENABLED": "1"}},
+            },
+        )
+        view = load_manifest(raw)
+        self.assertEqual(
+            view.services,
+            {
+                "worker": {
+                    "image": "busybox:latest",
+                    "command": ["sh", "-c", "sleep infinity"],
+                    "entrypoint": ["sh"],
+                }
+            },
+        )
+        self.assertEqual(
+            view.service_patches,
+            {"odoo": {"environment": {"WORKER_ENABLED": "1"}}},
+        )
+
     def test_v1_validate_accepts_minimal_flat_manifest(self):
         validate_manifest_v1(
             {

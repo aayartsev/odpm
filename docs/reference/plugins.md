@@ -39,6 +39,37 @@ odpm 4.4+ добавляет **extension API** на host: prepare steps, compose
 
 После `odpm up` сервис появится в сгенерированном `docker-compose.yml` (блок `{COMPOSE_SERVICE_FRAGMENTS}`). Артефакты materialize: `.odpm/compose/fragments/mailpit.yml` (gitignored).
 
+### Patch built-in сервисов (`service_patches`, 4.6+)
+
+Имена **`odoo`**, **`db`**, **`postgres`** нельзя объявлять в `services` — только patch. Политика: [ADR-009](../contributing/adr-009-compose-service-patch.md).
+
+```json
+"service_patches": {
+  "odoo": {
+    "environment": {
+      "CUSTOM_METRIC": "1"
+    }
+  }
+}
+```
+
+`odpm plan` показывает `compose.patch.odoo` (preview); patch применяется при `compose.generate`.
+
+### `command` / `entrypoint` для sidecar (4.6+)
+
+Только **exec form** (JSON-массив строк) в `services.<name>`:
+
+```json
+"services": {
+  "worker": {
+    "image": "busybox:latest",
+    "command": ["sh", "-c", "sleep infinity"]
+  }
+}
+```
+
+Команда `odoo` по-прежнему задаётся generator; override — через `service_patches.odoo.command` при явной необходимости.
+
 ## Lifecycle hooks в manifest
 
 ```json
@@ -65,7 +96,7 @@ odpm 4.4+ добавляет **extension API** на host: prepare steps, compose
 6. `hooks.pre_up`
 7. `docker compose up`
 
-`odpm plan` показывает шаги `hooks.*` и `compose.fragment.<service>` когда они настроены.
+`odpm plan` показывает шаги `hooks.*`, `compose.fragment.<service>` и `compose.patch.<service>` когда они настроены.
 
 ### Поле `order` у prepare steps
 

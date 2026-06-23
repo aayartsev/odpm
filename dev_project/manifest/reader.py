@@ -9,6 +9,7 @@ from typing import Any
 from .. import constants
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .schema import validate_manifest_v2
+from ..compose.fragments import validate_manifest_compose_services
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class ManifestView:
     raw_normalized: dict[str, Any]
     hooks: dict[str, Any] | None = None
     services: dict[str, Any] | None = None
+    service_patches: dict[str, Any] | None = None
     locks: dict[str, Any] | None = None
     extensions: dict[str, Any] | None = None
     developing_git: str | None = None
@@ -79,6 +81,8 @@ def load_manifest(raw: dict[str, Any]) -> ManifestView:
         developing_git = str(developing_git).strip() if developing_git else None
         hooks = raw.get("hooks")
         services = raw.get("services")
+        service_patches = raw.get("service_patches")
+        validate_manifest_compose_services(services)
         locks = raw.get("locks")
         extensions = raw.get("extensions")
         return ManifestView(
@@ -87,6 +91,9 @@ def load_manifest(raw: dict[str, Any]) -> ManifestView:
             raw_normalized=raw_normalized,
             hooks=dict(hooks) if isinstance(hooks, dict) else None,
             services=dict(services) if isinstance(services, dict) else None,
+            service_patches=(
+                dict(service_patches) if isinstance(service_patches, dict) else None
+            ),
             locks=dict(locks) if isinstance(locks, dict) else None,
             extensions=dict(extensions) if isinstance(extensions, dict) else None,
             developing_git=developing_git,

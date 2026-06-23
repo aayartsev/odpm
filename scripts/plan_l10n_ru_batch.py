@@ -35,6 +35,9 @@ PLAN_L10N_RU: dict[str, str] = {
     "Load git lock from {SOURCE} and enter apply mode before checkout": (
         "Загрузить git lock из {SOURCE} и включить режим apply перед checkout"
     ),
+    "Apply manifest compose patch to service {NAME}": (
+        "Применить compose patch из manifest к сервису {NAME}"
+    ),
     "Materialize .odpm/runtime/secrets.json from .odpm/secrets.json": (
         "Материализовать .odpm/runtime/secrets.json из .odpm/secrets.json"
     ),
@@ -121,6 +124,7 @@ PLAN_L10N_RU: dict[str, str] = {
     "compose service fragments up to date": "compose service fragments актуальны",
     "compose template stale": "шаблон compose устарел",
     "compose template up to date": "шаблон compose актуален",
+    "patch keys: {KEYS}": "ключи patch: {KEYS}",
     "compose validation disabled by policy": (
         "валидация compose отключена политикой"
     ),

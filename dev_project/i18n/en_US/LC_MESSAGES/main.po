@@ -39,6 +39,9 @@ msgstr "Adopting current database configuration as baseline (no last_run snapsho
 msgid "Application role {ROLE} present: {VALUE}"
 msgstr "Application role {ROLE} present: {VALUE}"
 
+msgid "Apply manifest compose patch to service {NAME}"
+msgstr "Apply manifest compose patch to service {NAME}"
+
 msgid "Apply pinned commits from {SOURCE} before checkout"
 msgstr "Apply pinned commits from {SOURCE} before checkout"
 
@@ -795,6 +798,9 @@ msgstr "manifest locks.git"
 msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 msgstr "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 
+msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
+msgstr "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
+
 msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 msgstr "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 
@@ -833,6 +839,9 @@ msgstr "odoo.conf missing db settings"
 
 msgid "only used with --update-lock"
 msgstr "only used with --update-lock"
+
+msgid "patch keys: {KEYS}"
+msgstr "patch keys: {KEYS}"
 
 msgid "plugins: {PLUGIN_LIST}"
 msgstr "plugins: {PLUGIN_LIST}"
@@ -935,3 +944,6 @@ msgstr "write deps.lock.json from resolved commits"
 
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell command(s)"
+
+msgid "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"
+msgstr "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"

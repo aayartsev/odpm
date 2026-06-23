@@ -63,12 +63,20 @@ class PagesVerifyD1Tests(unittest.TestCase):
         )
         self.assertIn("## 4.6 debt track (D1–D5)", text)
         self.assertIn("| **D1** | **DONE** |", text)
-        self.assertIn("**1315**", text)
+        self.assertIn("**1336**", text)
 
     def test_i18n_doc_targets_46_dev_branch(self):
         text = (PROJECT_ROOT / "docs/contributing/i18n.md").read_text(encoding="utf-8")
         self.assertIn("`4.6.0-dev`", text)
         self.assertNotIn("`4.5-dev`", text)
+
+    def test_en_manifest_migration_documents_service_patches(self):
+        text = (
+            PROJECT_ROOT / "docs/en/reference/manifest-migration.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("service_patches", text)
+        self.assertIn("compose.patch", text)
+        self.assertIn("adr-009-compose-service-patch", text)
 
 
 if __name__ == "__main__":

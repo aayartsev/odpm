@@ -340,6 +340,12 @@ RU_MESSAGES: dict[str, str] = {
     "Invalid manifest hook {PHASE}: expected command argv or plugin id": (
         "Недопустимый manifest hook {PHASE}: ожидается argv команды или id плагина"
     ),
+    "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services": (
+        "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
+    ),
+    "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead": (
+        "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"
+    ),
     "Invalid %s=%r, falling back to system locale": (
         "Недопустимое значение %s=%r, используется системная локаль"
     ),

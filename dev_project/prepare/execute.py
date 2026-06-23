@@ -155,6 +155,7 @@ def collect_execute_step_ids(ctx: PrepareContext) -> tuple[str, ...]:
 def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
     from ..extensions.registry import ensure_project_extensions_loaded
     from ..plan.fragments_preview import expand_compose_fragment_plan_steps
+    from ..plan.patches_preview import expand_compose_patch_plan_steps
     from ..plan.hooks_preview import (
         build_manifest_hook_plan_steps,
         insert_prepare_hook_steps,
@@ -169,6 +170,7 @@ def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
     )
     steps = list(evaluate_prepare_plan(ctx))
     steps = expand_compose_fragment_plan_steps(steps, ctx)
+    steps = expand_compose_patch_plan_steps(steps, ctx)
     hook_steps = build_manifest_hook_plan_steps(ctx.extension_host())
     steps = insert_prepare_hook_steps(steps, hook_steps)
     return OdpmPlan(
