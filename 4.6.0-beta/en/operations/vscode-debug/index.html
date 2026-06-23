@@ -1,0 +1,2744 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Odoo Developer Project Manager documentation">
+      
+      
+      
+        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/4.6.0-beta/en/operations/vscode-debug/">
+      
+      
+        <link rel="prev" href="../../reference/locale/">
+      
+      
+        <link rel="next" href="../secrets/">
+      
+      
+        
+          <link rel="alternate" href="../../../operations/vscode-debug/" hreflang="ru">
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>IDE debugging - odpm</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#debugging-in-the-ide-vs-code-pycharm" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  
+    
+    
+  
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="odpm" class="md-header__button md-logo" aria-label="odpm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            odpm
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              IDE debugging
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../operations/vscode-debug/" hreflang="ru" class="md-select__link">
+              Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aayartsev/odpm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/documentation-versions/" class="md-tabs__link">
+          
+  
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../install/" class="md-tabs__link">
+          
+  
+  
+  Installing odpm
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../scenarios/developer/" class="md-tabs__link">
+          
+  
+  
+  Scenarios
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/tools-by-scenario/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Operations
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="odpm" class="md-nav__button md-logo" aria-label="odpm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    odpm
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aayartsev/odpm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/documentation-versions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Which docs to read
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/why-odpm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why odpm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/beginner-friendly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Beginner-friendly
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/local-dev-from-scratch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local dev from scratch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/legacy-project/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Legacy project
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installing odpm
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installing odpm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All platforms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/linux-deb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debian / Ubuntu (.deb)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/fedora-rpm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fedora / RHEL (.rpm)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/macos-pipx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    macOS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/windows-wsl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows (WSL)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/pip-legacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pip and source checkout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenarios
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Scenarios
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scenarios/developer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    developer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scenarios/server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scenarios/ci/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ci
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scenarios/team-coordinator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Team coordinator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scenarios/platform-fork/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Odoo platform repo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scenarios/scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/tools-by-scenario/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools by scenario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-hierarchy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config hierarchy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-split/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    odpm.json and user_settings.json
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env-dotenv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    .env variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/git-links/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git repository links
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/odpm-json/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    odpm.json
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/manifest-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manifest v1 to v2 migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/user-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    user_settings.json
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/odoo-conf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    odoo.conf
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/database-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Состояние PostgreSQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-line options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/deps-lock/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deps.lock.json
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins and extensions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/project-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project directory layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/generated-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generated files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/locale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    odpm message locale
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IDE debugging
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IDE debugging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-modes-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two modes (backends)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-odpm-configures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What odpm configures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugpy_listen-vs-code-pycharm-attach-to-dap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        debugpy_listen — VS Code / PyCharm Attach to DAP
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="debugpy_listen — VS Code / PyCharm Attach to DAP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#profile-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile (example)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow (VS Code)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pycharm-attach-to-dap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PyCharm Attach to DAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydevd_connect-pycharm-debug-server-pro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pydevd_connect — PyCharm Debug Server (Pro)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pydevd_connect — PyCharm Debug Server (Pro)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#env-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .env setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-step-order-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow (step order matters)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#profile-example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile (example)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-connection-other-ides-td-feat-08b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual connection (other IDEs / TD-FEAT-08b)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#switching-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching backend
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symbolic-links-create_module_links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symbolic links (create_module_links)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#imports-and-code-analysis-pylance-pyright" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imports and code analysis (Pylance / Pyright)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pydevd-pycharm-version-and-pycharm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pydevd-pycharm version and PyCharm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux-container-cannot-reach-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux: container cannot reach the host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odoo-starts-before-debug-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odoo starts before Debug Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification-without-a-full-run-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification without a full run (generation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-verification-checklist-pycharm-pro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual verification checklist (PyCharm Pro)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-server-and-in-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On server and in CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-ides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other IDEs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../non-interactive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Non-interactive mode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration-3-to-4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from 3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-modes-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two modes (backends)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-odpm-configures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What odpm configures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugpy_listen-vs-code-pycharm-attach-to-dap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        debugpy_listen — VS Code / PyCharm Attach to DAP
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="debugpy_listen — VS Code / PyCharm Attach to DAP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#profile-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile (example)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow (VS Code)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pycharm-attach-to-dap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PyCharm Attach to DAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydevd_connect-pycharm-debug-server-pro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pydevd_connect — PyCharm Debug Server (Pro)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pydevd_connect — PyCharm Debug Server (Pro)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#env-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .env setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-step-order-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow (step order matters)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#profile-example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile (example)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-connection-other-ides-td-feat-08b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual connection (other IDEs / TD-FEAT-08b)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#switching-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching backend
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symbolic-links-create_module_links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symbolic links (create_module_links)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#imports-and-code-analysis-pylance-pyright" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imports and code analysis (Pylance / Pyright)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pydevd-pycharm-version-and-pycharm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pydevd-pycharm version and PyCharm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux-container-cannot-reach-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux: container cannot reach the host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odoo-starts-before-debug-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odoo starts before Debug Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification-without-a-full-run-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification without a full run (generation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-verification-checklist-pycharm-pro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual verification checklist (PyCharm Pro)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-server-and-in-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On server and in CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-ides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other IDEs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/en/operations/vscode-debug.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="debugging-in-the-ide-vs-code-pycharm">Debugging in the IDE (VS Code, PyCharm)<a class="headerlink" href="#debugging-in-the-ide-vs-code-pycharm" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>AI-translated</strong> from Russian.</p>
+</blockquote>
+<p>Breakpoint debugging is available in the <strong><code>developer</code></strong> scenario. The mode is set by <strong><code>ODPM_DEBUGGER_BACKEND</code></strong> in <code>.env</code> (see <a href="../../reference/env-dotenv/">env-dotenv</a>).</p>
+<p>Hands-on attach on a demo wrapper (<code>$ODPM_DEMO_19</code>): <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md#s5--отладка-в-vs-code">demo-projects § S5</a>.</p>
+<p>When this doc mentions VS Code, it applies to all derivatives that support the same debugging mechanism.</p>
+<h2 id="two-modes-backends">Two modes (backends)<a class="headerlink" href="#two-modes-backends" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Who listens on the port</th>
+<th>IDE</th>
+<th>Compose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>debugpy_listen</code></strong> (default)</td>
+<td>container (<code>debugpy --listen</code>)</td>
+<td>VS Code, PyCharm <strong>Attach to DAP</strong></td>
+<td>publish <code>DEBUGGER_PORT:DEBUGGER_PORT</code></td>
+</tr>
+<tr>
+<td><strong><code>pydevd_connect</code></strong></td>
+<td><strong>IDE</strong> (PyCharm Debug Server on the host)</td>
+<td><strong>PyCharm Professional only</strong></td>
+<td><code>extra_hosts: host.docker.internal:host-gateway</code>, <strong>no</strong> debugger port publish</td>
+</tr>
+</tbody>
+</table>
+<p>The meaning of <strong><code>DEBUGGER_PORT</code></strong> depends on the backend:</p>
+<ul>
+<li><strong><code>debugpy_listen</code></strong> — port <strong>inside the container</strong>, forwarded to <code>localhost</code> on the host (attach from the IDE).</li>
+<li><strong><code>pydevd_connect</code></strong> — port of the <strong>Debug Server on the host</strong> (PyCharm listens on <code>localhost:DEBUGGER_PORT</code>; the container connects to <code>ODPM_DEBUGGER_CONNECT_HOST</code>).</li>
+</ul>
+<h2 id="what-odpm-configures">What odpm configures<a class="headerlink" href="#what-odpm-configures" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The debugger package is installed in the container venv: <strong><code>debugpy</code></strong> or <strong><code>pydevd-pycharm</code></strong> (pinned in <code>dev_project/constants/core.py</code>; when the backend changes, the unused package is removed from requirements).</li>
+<li>In <strong><code>.odpm/runtime/config.json</code></strong> — a <code>debugger</code> object (backend, port, connect_host, suspend_on_connect). Fields <code>connect_host</code> and <code>suspend_on_connect</code> are always written; for <code>debugpy_listen</code> the runtime <strong>does not use</strong> them.</li>
+<li>In <strong><code>.odpm/runtime/debug-profile.json</code></strong> — an IDE-neutral profile (<code>schema_version: 2</code>): <code>backend</code>, <code>direction</code>, <code>protocol</code>, host/port, <code>path_mappings</code>.</li>
+<li>By <strong><code>ODPM_IDE</code></strong>: <code>vscode</code> / <code>both</code> → <code>.vscode/</code>; <code>pycharm</code> / <code>both</code> → <code>.run/*.run.xml</code> (which file depends on the backend); <code>none</code> — only <code>debug-profile.json</code> is created.</li>
+</ul>
+<p>Regeneration: <code>odpm</code> or <code>odpm --skip-start</code>. Plan steps: <code>ide.debug_profile</code>, <code>pycharm.settings</code>; diff — <code>odpm plan --plan-show-diff</code>.</p>
+<hr />
+<h2 id="debugpy_listen-vs-code-pycharm-attach-to-dap"><code>debugpy_listen</code> — VS Code / PyCharm Attach to DAP<a class="headerlink" href="#debugpy_listen-vs-code-pycharm-attach-to-dap" title="Permanent link">&para;</a></h2>
+<h3 id="profile-example">Profile (example)<a class="headerlink" href="#profile-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;debugger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;backend&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debugpy_listen&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;direction&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;attach&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;protocol&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debugpy&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5678</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Odoo: Remote Attach&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;path_mappings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;local&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/abs/path/on/host/odoo&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;remote&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/odoo/odoo&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="workflow-vs-code">Workflow (VS Code)<a class="headerlink" href="#workflow-vs-code" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>.env</code>: <code>ODPM_DEBUGGER_BACKEND=debugpy_listen</code>, <code>ODPM_IDE=vscode</code> (or <code>both</code>).</li>
+<li><code>odpm</code> — Odoo in the container listens on the debugger port.</li>
+<li>In VS Code: Run and Debug → attach to the odpm configuration.</li>
+<li>Set breakpoints in modules.</li>
+</ol>
+<h3 id="pycharm-attach-to-dap">PyCharm Attach to DAP<a class="headerlink" href="#pycharm-attach-to-dap" title="Permanent link">&para;</a></h3>
+<p>With <code>ODPM_IDE=pycharm</code> or <code>both</code> and <strong><code>debugpy_listen</code></strong>, odpm creates <strong><code>.run/Odoo Remote Attach.run.xml</code></strong> (Attach to DAP, PyCharm 2024+).</p>
+<ol>
+<li>Start Odoo via odpm.</li>
+<li>In PyCharm, connect to <strong>Odoo: Remote Attach</strong>.</li>
+</ol>
+<p><strong>PyCharm Community Edition</strong> does not support remote debug in this mode — use VS Code or PyCharm Professional.</p>
+<hr />
+<h2 id="pydevd_connect-pycharm-debug-server-pro"><code>pydevd_connect</code> — PyCharm Debug Server (Pro)<a class="headerlink" href="#pydevd_connect-pycharm-debug-server-pro" title="Permanent link">&para;</a></h2>
+<p>The container <strong>connects to the IDE</strong>, not the other way around. Requires <strong>PyCharm Professional</strong> (Debug Server).</p>
+<h3 id="env-setup"><code>.env</code> setup<a class="headerlink" href="#env-setup" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_DEBUGGER_BACKEND</span><span class="o">=</span><span class="s">pydevd_connect</span>
+<span class="na">ODPM_IDE</span><span class="o">=</span><span class="s">pycharm</span>
+<span class="na">DEBUGGER_PORT</span><span class="o">=</span><span class="s">5678</span>
+<span class="na">ODPM_DEBUGGER_CONNECT_HOST</span><span class="o">=</span><span class="s">host.docker.internal</span>
+<span class="na">ODPM_DEBUGGER_SUSPEND</span><span class="o">=</span><span class="s">1</span>
+</code></pre></div>
+<ul>
+<li><strong><code>ODPM_IDE=vscode</code></strong> with <code>pydevd_connect</code> — incompatible (odpm emits a warning); use <code>pycharm</code> or <code>both</code>.</li>
+<li><strong><code>ODPM_IDE=none</code></strong> — no XML is generated (warning); for Debug Server you need <code>pycharm</code> / <code>both</code>.</li>
+</ul>
+<p>The interactive wizard in <code>developer</code> asks for <code>connect_host</code> and <code>suspend</code> only when <code>pydevd_connect</code> is selected.</p>
+<h3 id="workflow-step-order-matters">Workflow (step order matters)<a class="headerlink" href="#workflow-step-order-matters" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>odpm --skip-start</code> — the directive updates <code>docker-compose.yml</code>, <code>config.json</code>, <strong><code>.run/Odoo Debug Server.run.xml</code></strong>.</li>
+<li>In PyCharm: <strong>Run</strong> (not Attach) the <strong>Odoo Debug Server</strong> configuration — in the Debug window: <em>Waiting for process connection...</em></li>
+<li><code>odpm</code> or <code>docker compose up</code> — the container calls <code>pydevd_pycharm.settrace(connect_host, port, suspend=...)</code>.</li>
+<li>With <code>ODPM_DEBUGGER_SUSPEND=1</code> — in PyCharm press <strong>Resume</strong>, then set breakpoints in addons.</li>
+</ol>
+<h3 id="compose">Compose<a class="headerlink" href="#compose" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>No</strong> <code>5678:5678</code> line in <code>ports</code> for the <code>odoo</code> service.</li>
+<li><strong><code>extra_hosts: host.docker.internal:host-gateway</code></strong> is present (for Linux; on macOS Docker Desktop usually works without manual setup).</li>
+</ul>
+<h3 id="profile-example_1">Profile (example)<a class="headerlink" href="#profile-example_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;debugger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;backend&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pydevd_connect&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;direction&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;connect&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;protocol&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pydevd&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5678</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Odoo: Remote Attach&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;path_mappings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>host: localhost</code> in the profile is the address where the Debug Server <strong>listens on the host</strong> (for PyCharm XML). The container uses <code>connect_host</code> from <code>config.json</code> (usually <code>host.docker.internal</code>).</p>
+<h3 id="manual-connection-other-ides-td-feat-08b">Manual connection (other IDEs / TD-FEAT-08b)<a class="headerlink" href="#manual-connection-other-ides-td-feat-08b" title="Permanent link">&para;</a></h3>
+<p>For IDEs without an odpm generator, take host/port from <code>debug-profile.json</code> and add to the container-side process (after venv bootstrap):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pydevd_pycharm</span>
+<span class="n">pydevd_pycharm</span><span class="o">.</span><span class="n">settrace</span><span class="p">(</span>
+    <span class="s2">&quot;&lt;connect_host&gt;&quot;</span><span class="p">,</span>
+    <span class="n">port</span><span class="o">=&lt;</span><span class="n">port</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="n">suspend</span><span class="o">=&lt;</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="n">stdout_to_server</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">stderr_to_server</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Package: <code>pydevd-pycharm</code> (version pinned in odpm, see below).</p>
+<hr />
+<h2 id="switching-backend">Switching backend<a class="headerlink" href="#switching-backend" title="Permanent link">&para;</a></h2>
+<p>After changing <code>ODPM_DEBUGGER_BACKEND</code>, run <code>odpm --skip-start</code> and restart the containers.</p>
+<p>When <code>ODPM_DEBUGGER_BACKEND</code> changes, odpm on <code>odpm --skip-start</code> <strong>removes</strong> the outdated odpm file (<code>.run/Odoo Remote Attach.run.xml</code> or <code>.run/Odoo Debug Server.run.xml</code>). User configurations in <code>.run/</code> are not affected.</p>
+<p>When the backend changes, the venv is rebuilt with the required pip package (<code>debugpy</code> ↔ <code>pydevd-pycharm</code>).</p>
+<hr />
+<h2 id="symbolic-links-create_module_links">Symbolic links (<code>create_module_links</code>)<a class="headerlink" href="#symbolic-links-create_module_links" title="Permanent link">&para;</a></h2>
+<p>If <strong><code>"create_module_links": true</code></strong> is set in <code>user_settings.json</code>, odpm creates symlinks to the platform, developing project, and dependencies. This helps align debugger paths: <code>launch.json</code> and PyCharm path mappings account for both <code>~/odoo_projects/...</code> and paths through the odpm project tree.</p>
+<p>The option is <strong>off</strong> by default.</p>
+<h2 id="imports-and-code-analysis-pylance-pyright">Imports and code analysis (Pylance / Pyright)<a class="headerlink" href="#imports-and-code-analysis-pylance-pyright" title="Permanent link">&para;</a></h2>
+<p>On <code>odpm --skip-start</code> (<code>developer</code> scenario, <code>ODPM_IDE=vscode</code> or <code>both</code>), odpm generates <code>.vscode/settings.json</code> with <strong><code>python.analysis.extraPaths</code></strong> from the same repository graph that prepare uses:</p>
+<ul>
+<li><strong>platform</strong> root (<code>odoo_src_dir</code>);</li>
+<li><strong>developing</strong> project;</li>
+<li>each <strong>git dependency</strong> from <code>dependencies_projects</code>;</li>
+<li><strong>subproject</strong> roots (monorepo with multiple addon directories);</li>
+<li><strong>venv</strong> <code>site-packages</code>.</li>
+</ul>
+<p>If the project directory has symlinks (<code>odoo</code>, <code>dependencies/&lt;repo&gt;</code>), <strong>relative</strong> workspace paths end up in <code>extraPaths</code> — more convenient for VS Code.</p>
+<p>Limitations:</p>
+<ul>
+<li><strong><code>odoo-stubs</code></strong> (<code>developer</code> scenario, Odoo ≤ 18) is installed <strong>automatically</strong> in <code>requirements_txt</code> — like <code>debugpy</code>. Source: <a href="https://github.com/odoo-ide/odoo-stubs">odoo-ide/odoo-stubs</a> (git dependency; <strong>git</strong> is required on the host for <code>pip install</code>). After venv recreation, Pylance picks up stubs from <code>site-packages</code> (already in <code>extraPaths</code>). For <strong>Odoo ≥ 19</strong> stubs are not added — typing is built into the core.</li>
+<li>Stubs cover the <strong><code>odoo</code> core</strong>, not <code>odoo.addons.*</code> (the addons namespace is created at runtime).</li>
+<li>The <a href="https://marketplace.visualstudio.com/items?itemName=trinhanhngoc.vscode-odoo">vscode-odoo</a> extension already includes its own stubs — duplication is harmless.</li>
+<li>On <strong>server</strong> / <strong>ci</strong>, <code>odoo-stubs</code> is removed from <code>odpm.json</code> (like debugger packages).</li>
+<li>The file is <strong>overwritten</strong> on every <code>odpm --skip-start</code> — do not edit <code>extraPaths</code> manually in <code>.vscode/settings.json</code>.</li>
+</ul>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="pydevd-pycharm-version-and-pycharm"><code>pydevd-pycharm</code> version and PyCharm<a class="headerlink" href="#pydevd-pycharm-version-and-pycharm" title="Permanent link">&para;</a></h3>
+<p>odpm uses <strong><code>pydevd-pycharm==243.25659.43</code></strong> (aligned with PyCharm <strong>2024.3</strong>). With a different IDE version, connection may fail without an explicit error. Match your PyCharm version or pick a compatible package version in <code>"requirements_txt"</code> in <code>user_settings.json</code> (advanced scenario).</p>
+<h3 id="linux-container-cannot-reach-the-host">Linux: container cannot reach the host<a class="headerlink" href="#linux-container-cannot-reach-the-host" title="Permanent link">&para;</a></h3>
+<p>Check that <code>docker-compose.yml</code> has <code>extra_hosts: "host.docker.internal:host-gateway"</code>. With a custom <code>ODPM_DEBUGGER_CONNECT_HOST</code> (host IP), <code>extra_hosts</code> may not be added — then specify an IP reachable from the container.</p>
+<h3 id="odoo-starts-before-debug-server">Odoo starts before Debug Server<a class="headerlink" href="#odoo-starts-before-debug-server" title="Permanent link">&para;</a></h3>
+<p>Use <code>ODPM_DEBUGGER_SUSPEND=1</code> and <strong>first</strong> start Debug Server in PyCharm, <strong>then</strong> the container.</p>
+<h3 id="verification-without-a-full-run-generation">Verification without a full run (generation)<a class="headerlink" href="#verification-without-a-full-run-generation" title="Permanent link">&para;</a></h3>
+<p>After <code>odpm --skip-start</code> with <code>pydevd_connect</code>:</p>
+<ul>
+<li><code>config.json</code>: <code>"backend": "pydevd_connect"</code>;</li>
+<li>compose: <code>extra_hosts</code>, no <code>DEBUGGER_PORT:DEBUGGER_PORT</code>;</li>
+<li><code>.run/Odoo Debug Server.run.xml</code> with <code>PyRemoteDebugConfigurationType</code>.</li>
+</ul>
+<hr />
+<h2 id="manual-verification-checklist-pycharm-pro">Manual verification checklist (PyCharm Pro)<a class="headerlink" href="#manual-verification-checklist-pycharm-pro" title="Permanent link">&para;</a></h2>
+<p>End-to-end with PyCharm Pro is <strong>not automated</strong> in the repository. Before releasing phase 2, it is recommended to:</p>
+<ul>
+<li>[ ] Run <strong>Odoo Debug Server</strong> → <em>Waiting for process connection...</em></li>
+<li>[ ] <code>odpm</code> → container connects</li>
+<li>[ ] Breakpoint in an addon hits</li>
+<li>[ ] <code>ODPM_DEBUGGER_SUSPEND=1</code> — Odoo waits for Resume</li>
+</ul>
+<hr />
+<h2 id="on-server-and-in-ci">On server and in CI<a class="headerlink" href="#on-server-and-in-ci" title="Permanent link">&para;</a></h2>
+<p>In <strong><code>server</code></strong> and <strong><code>ci</code></strong> scenarios the debugger is <strong>not used</strong>. Do not enable <code>developer</code> on production for debugging.</p>
+<hr />
+<h2 id="other-ides">Other IDEs<a class="headerlink" href="#other-ides" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Task</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TD-FEAT-08a</td>
+<td>PyCharm Attach to DAP (<code>debugpy_listen</code>)</td>
+<td>implemented</td>
+</tr>
+<tr>
+<td>TD-FEAT-08b</td>
+<td>PyCharm Debug Server (<code>pydevd_connect</code>) + manual <code>settrace</code> for other IDEs</td>
+<td>implemented (documentation above)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
