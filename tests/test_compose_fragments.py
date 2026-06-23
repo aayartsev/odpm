@@ -59,6 +59,19 @@ class ComposeFragmentsRenderTests(unittest.TestCase):
         self.assertIn('    ports:', block)
         self.assertIn('    - 8025:8025', block)
 
+    def test_render_service_with_user_and_tty(self):
+        block = render_compose_services_block(
+            {
+                "sidecar": {
+                    "image": "busybox:latest",
+                    "user": "root",
+                    "tty": True,
+                }
+            }
+        )
+        self.assertIn("    user: root", block)
+        self.assertIn("    tty: true", block)
+
 
 class ComposeFragmentsCollectTests(unittest.TestCase):
     def setUp(self) -> None:

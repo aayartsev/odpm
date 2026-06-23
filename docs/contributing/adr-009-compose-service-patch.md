@@ -35,9 +35,15 @@ Reserved names in `services`: **`odoo`**, **`db`**, **`postgres`** → `ConfigEr
 
 ### Plugin `compose_services()`
 
-- Same `composeService` keys as manifest `services` (including `command` / `entrypoint`).
+- Same `composeService` keys as manifest `services` (including `command` / `entrypoint`, `user`, `tty`).
 - Must not declare reserved built-in names (`odoo`, `db`, `postgres`).
 - Plugin vs manifest same name → plugin spec **replaces** manifest (unchanged `merge_services`).
+
+### `${VAR}` in manifest compose and hooks (4.6+)
+
+- **`services` / `service_patches`**: string fields expanded at manifest load via `EnvResolver` (process env → project `.env` → `${VAR:-default}`).
+- **`hooks` shell argv**: expanded at execution; subprocess env is process environ plus missing keys from project `.env`.
+- Nested dependency fragments inherit the same expansion when resolved with `use_oca_dependencies`.
 
 ### Plan integration
 

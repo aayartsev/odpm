@@ -45,6 +45,19 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 }
 ```
 
+Sidecars may set **`user`** and **`tty`** (same as `service_patches`):
+
+```json
+"services": {
+  "armtek_test": {
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
+  }
+}
+```
+
 Same spec in code: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC`.
 
 After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE_SERVICE_FRAGMENTS}` block). Materialize artifacts: `.odpm/compose/fragments/mailpit.yml` (gitignored).
@@ -97,7 +110,22 @@ The `odoo` start command stays owned by the generator; override via `service_pat
 }
 ```
 
-Each element is either **argv** (string array, runs in `project_dir`) or a **plugin id** (string) for the pluggy hook runner.
+Each element is either **argv** (string array, runs in `project_dir` **without a shell**) or a **plugin id** (string) for the pluggy hook runner.
+
+Argv supports **`${VAR}`** / **`${VAR:-default}`** (Compose-style): expanded at hook execution from process env → project `.env` → inline default. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
+
+```json
+"hooks": {
+  "post_prepare": [[
+    "docker", "build",
+    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-t", "autoparts_env:emulator",
+    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+  ]]
+}
+```
+
+`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …) — expanded when the manifest is loaded with `EnvResolver`.
 
 Order per ADR-004:
 

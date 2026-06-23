@@ -96,3 +96,13 @@ def _validate_service(name: str, spec: object) -> None:
                         "Compose service {NAME}.environment list entries must be strings"
                     ).format(NAME=name)
                 )
+    user = spec.get("user")
+    if user is not None and (not isinstance(user, str) or not user.strip()):
+        raise ConfigError(
+            _("Compose service {NAME}.user must be a non-empty string").format(NAME=name)
+        )
+    tty = spec.get("tty")
+    if tty is not None and not isinstance(tty, bool):
+        raise ConfigError(
+            _("Compose service {NAME}.tty must be a boolean").format(NAME=name)
+        )

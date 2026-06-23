@@ -255,6 +255,7 @@ def execute_prepare(ctx: PrepareContext) -> None:
         ctx.extension_host(),
         "post_prepare",
         cwd=ctx.host_ctx.project_dir,
+        env_resolver=ctx.config.env_resolver,
     )
 
 

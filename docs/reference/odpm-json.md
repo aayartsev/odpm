@@ -24,6 +24,8 @@
 |------|-------------|
 | `odoo_git_link` | да |
 | `dependencies` | да (каждый элемент списка) |
+| `services.*` / `service_patches.*` (v2) | да — `image`, `user`, `restart`, списки (`ports`, `volumes`, `command`, …), значения `environment` |
+| `hooks.*` argv (v2) | да — при **выполнении** hook (не при `odpm manifest validate`) |
 
 Синтаксис: **`${ИМЯ}`** и **`${ИМЯ:-значение_по_умолчанию}`** (как в Docker Compose). Литеральный `$` — **`$$`**.
 
@@ -50,6 +52,19 @@ GIT_HOST=git.company.example
 ```
 
 Остальные поля (`odoo_version`, `python_version`, `requirements_txt`, …) **без** подстановки. Вложенный `odpm.json` в git-зависимостях поддерживает те же поля — см. [иерархию конфигурации](config-hierarchy.md). В `.odpm/deps.lock.json` попадают **уже раскрытые** URL и пути, не `${VAR}`.
+
+Для v2 sidecar с путями из `.env`:
+
+```json
+"services": {
+  "armtek_test": {
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
+  }
+}
+```
 
 См. [переменные `.env`](env-dotenv.md), [ссылки на репозитории](git-links.md).
 

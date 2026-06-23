@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Manifest v2 compose UX (4.6)** — `${VAR}` expansion in `services` / `service_patches` at manifest load (`expand_env_in_compose_service_map`); `${VAR}` in `hooks` shell argv at execution with merged subprocess env; `user` / `tty` on manifest `composeService` sidecars; docs (`plugins.md`, `odpm-json.md`), ADR-009 update. Tests: `test_env_substitution`, `test_manifest_hooks`, `test_manifest_v2_reader`, `test_compose_fragments`, `test_compose_validate`.
+
 ## [4.6.0-beta] - 2026-06-23
 
 **Pre-release 4.6.0-beta** on branch `4.6.0-dev`; stable line remains **4.5.0** (`LATEST_STABLE_RELEASE`). Debt closure D1–D5: compose `service_patches`, config hub phase 2, plugin API 1.1, structural compose validation and golden snapshots. No breaking changes for v1 flat `odpm.json`; manifest v2 `service_patches` and plugin 1.1 features are opt-in.

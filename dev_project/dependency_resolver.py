@@ -98,7 +98,7 @@ def read_nested_odpm_fragment(
     try:
         from .manifest.reader import load_manifest
 
-        view = load_manifest(raw)
+        view = load_manifest(raw, env_resolver=resolver)
         services = view.services
         service_patches = view.service_patches
     except (TypeError, ValueError, ConfigError):

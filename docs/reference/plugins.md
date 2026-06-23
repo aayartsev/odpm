@@ -43,6 +43,19 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 }
 ```
 
+Для sidecar допустимы **`user`** и **`tty`** (как в `service_patches`):
+
+```json
+"services": {
+  "armtek_test": {
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
+  }
+}
+```
+
 Тот же spec в коде: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC`.
 
 После `odpm up` сервис появится в сгенерированном `docker-compose.yml` (блок `{COMPOSE_SERVICE_FRAGMENTS}`). Артефакты materialize: `.odpm/compose/fragments/mailpit.yml` (gitignored).
@@ -92,7 +105,22 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 }
 ```
 
-Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir`), либо **plugin id** (строка) для pluggy hook runner.
+Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir` **без shell**), либо **plugin id** (строка) для pluggy hook runner.
+
+В argv поддерживается **`${VAR}`** / **`${VAR:-default}`** (как в Compose): раскрытие при выполнении hook из process env → project `.env` → default в строке. Subprocess получает **merged env** (process + недостающие ключи из `.env`). Пример сборки образа sidecar:
+
+```json
+"hooks": {
+  "post_prepare": [[
+    "docker", "build",
+    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-t", "autoparts_env:emulator",
+    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+  ]]
+}
+```
+
+В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — раскрытие при чтении manifest с `EnvResolver`.
 
 Порядок по ADR-004:
 

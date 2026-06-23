@@ -10,6 +10,7 @@
 
 ### Добавлено
 
+- **Manifest v2 compose UX (4.6)** — раскрытие `${VAR}` в `services` / `service_patches` при чтении manifest; `${VAR}` в argv `hooks` при выполнении с merged subprocess env; поля `user` / `tty` у sidecar в `composeService`; документация (`plugins.md`, `odpm-json.md`), обновление ADR-009. Тесты: `test_env_substitution`, `test_manifest_hooks`, `test_manifest_v2_reader`, `test_compose_fragments`, `test_compose_validate`.
 - **Unit gate plan/dry-run** — `tests/test_scenario_plan_matrix.py`: задокументированное поведение `odpm plan` и manifest CLI без Docker daemon (сценарии `developer` / `server` / `ci`); таблица трассировки `tests/PLAN_MATRIX.md`; раздел в `docs/contributing/ci.md`.
 
 ### Исправлено

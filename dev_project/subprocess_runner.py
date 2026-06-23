@@ -22,12 +22,15 @@ def run_checked(
     cwd: str | None = None,
     capture: bool = True,
     input_text: str | None = None,
+    env: dict[str, str] | None = None,
 ) -> CommandResult:
     """Run a subprocess and return the result without checking the exit code.
 
     Prefer :func:`run_or_raise` for commands that must succeed.
     """
     run_kwargs: dict = {"cwd": cwd, "capture_output": capture}
+    if env is not None:
+        run_kwargs["env"] = env
     if input_text is not None:
         run_kwargs["input"] = input_text
         run_kwargs["text"] = True
@@ -48,9 +51,10 @@ def run_or_raise(
     *,
     cwd: str | None = None,
     capture: bool = True,
+    env: dict[str, str] | None = None,
 ) -> CommandResult:
     """Run a subprocess and raise :class:`SubprocessError` when exit code is non-zero."""
-    result = run_checked(argv, cwd=cwd, capture=capture)
+    result = run_checked(argv, cwd=cwd, capture=capture, env=env)
     if result.returncode != 0:
         argv_list = list(argv)
         stderr = result.stderr.strip()
@@ -71,5 +75,9 @@ def run_logged(
     argv: Sequence[str],
     *,
     cwd: str | None = None,
+    env: dict[str, str] | None = None,
 ) -> int:
-    return subprocess.run(list(argv), cwd=cwd).returncode
+    run_kwargs: dict = {"cwd": cwd}
+    if env is not None:
+        run_kwargs["env"] = env
+    return subprocess.run(list(argv), **run_kwargs).returncode

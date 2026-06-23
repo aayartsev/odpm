@@ -66,7 +66,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | `locks.venv` | venv lock hash (optional) |
 | `hooks.post_prepare` | Shell argv or plugin id after prepare |
 | `hooks.pre_up` | Shell argv or plugin id before `docker compose up` |
-| `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart` |
+| `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
 
 Mailpit example: [plugins.md](plugins.md).
 
@@ -115,6 +115,8 @@ In **whitelist fields** odpm expands environment variable references right after
 |-------|--------------|
 | `odoo_git_link` | yes |
 | `dependencies` | yes (each list element) |
+| `services.*` / `service_patches.*` (v2) | yes — `image`, `user`, `restart`, lists (`ports`, `volumes`, `command`, …), `environment` values |
+| `hooks.*` argv (v2) | yes — at hook **execution** (not during `odpm manifest validate`) |
 
 Syntax: **`${NAME}`** and **`${NAME:-default}`** (as in Docker Compose). Literal `$` — **`$$`**.
 
@@ -141,6 +143,19 @@ GIT_HOST=git.company.example
 ```
 
 Other fields (`odoo_version`, `python_version`, `requirements_txt`, …) have **no** substitution. Nested `odpm.json` in git dependencies supports the same fields — see [configuration hierarchy](config-hierarchy.md). `.odpm/deps.lock.json` stores **expanded** URLs and paths, not `${VAR}`.
+
+v2 sidecar with paths from `.env`:
+
+```json
+"services": {
+  "armtek_test": {
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
+  }
+}
+```
 
 See [`.env` variables](env-dotenv.md), [repository links](git-links.md).
 

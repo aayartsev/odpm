@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .schema import validate_manifest_v2
 from .compose_policy import validate_manifest_compose_services
+
+if TYPE_CHECKING:
+    from ..config.transforms.env_substitution import EnvResolver
 
 
 @dataclass(frozen=True)
@@ -65,7 +68,11 @@ def normalize_v2_to_flat(raw: dict[str, Any]) -> dict[str, Any]:
     return flat
 
 
-def load_manifest(raw: dict[str, Any]) -> ManifestView:
+def load_manifest(
+    raw: dict[str, Any],
+    *,
+    env_resolver: EnvResolver | None = None,
+) -> ManifestView:
     """Validate, detect schema, and return a normalized :class:`ManifestView`."""
     if not isinstance(raw, dict):
         raise TypeError("manifest root must be a JSON object")
@@ -85,14 +92,29 @@ def load_manifest(raw: dict[str, Any]) -> ManifestView:
         validate_manifest_compose_services(services)
         locks = raw.get("locks")
         extensions = raw.get("extensions")
+        if env_resolver is not None:
+            from ..config.transforms.env_substitution import (
+                expand_env_in_compose_service_map,
+            )
+
+            services = expand_env_in_compose_service_map(
+                dict(services) if isinstance(services, dict) else None,
+                resolver=env_resolver,
+                field_prefix="services",
+            )
+            service_patches = expand_env_in_compose_service_map(
+                dict(service_patches) if isinstance(service_patches, dict) else None,
+                resolver=env_resolver,
+                field_prefix="service_patches",
+            )
         return ManifestView(
             manifest_schema=constants.MANIFEST_SCHEMA_V2,
             requires_odpm=info.requires_odpm,
             raw_normalized=raw_normalized,
             hooks=dict(hooks) if isinstance(hooks, dict) else None,
-            services=dict(services) if isinstance(services, dict) else None,
+            services=services if isinstance(services, dict) else None,
             service_patches=(
-                dict(service_patches) if isinstance(service_patches, dict) else None
+                service_patches if isinstance(service_patches, dict) else None
             ),
             locks=dict(locks) if isinstance(locks, dict) else None,
             extensions=dict(extensions) if isinstance(extensions, dict) else None,

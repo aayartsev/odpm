@@ -42,6 +42,29 @@ class ComposeValidateTests(unittest.TestCase):
                 {"services": {"odoo": {"image": "odoo:dev", "ports": "8069:8069"}}}
             )
 
+    def test_invalid_user_or_tty_raises(self):
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "user": ""}}}
+            )
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "tty": "yes"}}}
+            )
+
+    def test_user_and_tty_pass_when_valid(self):
+        validate_compose_document(
+            {
+                "services": {
+                    "sidecar": {
+                        "image": "busybox:latest",
+                        "user": "root",
+                        "tty": True,
+                    }
+                }
+            }
+        )
+
     def test_validate_text_skips_header_comment(self):
         body = dump_document({"services": {"db": {"image": "postgres:16"}}})
         validate_compose_text(f"# generated\n\n{body}")
