@@ -37,18 +37,20 @@ odpm --version
 # expected: odpm version: 4.5.0
 ```
 
-### Pre-release (4.5 / 4.4 beta / RC)
+### Pre-release (4.6 beta; archived 4.5 / 4.4)
 
-Suite **`testing`** — pre-release tags, e.g. **4.5.0-beta**:
+Suite **`testing`** — pre-release tags, currently **4.6.0-beta**:
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
 
 sudo apt update
 sudo apt install odpm
+odpm --version
+# expected: odpm version: 4.6.0-beta
 ```
 
-4.5 beta docs: [4.5.0-beta install guide](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/) · archived 4.4: [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/).
+4.6 beta docs: [4.6.0-beta install guide](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/linux-deb/) · archived 4.5: [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/) · archived 4.4: [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/).
 
 Updates on later releases:
 
@@ -58,7 +60,7 @@ sudo apt update && sudo apt upgrade odpm
 
 ## Manual install (.deb from GitHub Releases)
 
-Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.5.0` — stable, `v4.5.0-beta` — archived testing, `v4.4.3` — archived stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta), or build locally:
+Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.6.0-beta` — testing, `v4.5.0` — stable, `v4.5.0-beta` — archived testing, `v4.4.3` — archived stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta), or build locally:
 
 ```bash
 ./scripts/build_deb.sh

@@ -64,7 +64,8 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 |-----------------|-------|----------------|-----------|
 | `stable` | default | Stable tag → `mike deploy VERSION stable --set-default stable` | Production, install по умолчанию |
 | `4.3.0` | `4.3` | Bootstrap или ручной deploy | Линия 4.3.x |
-| `4.4.2-beta`, … | — | Pre-release tag (без alias stable) | Early adopters |
+| `4.6.0-beta` | — | Pre-release tag → mike deploy | Early adopters, debt closure D1–D5 |
+| `4.5.0-beta`, … | — | Pre-release tag (без alias stable) | Архив early adopters |
 | `dev` | — | Push `4.6.0-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
 
 `site_url` в `mkdocs.yml`: `/stable/`. Пользовательский hub: [documentation-versions](../getting-started/documentation-versions.md).

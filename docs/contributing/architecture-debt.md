@@ -40,9 +40,9 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.6 debt track (D1–D5) — IN PROGRESS
+## 4.6 debt track (D1–D5) — DONE (pre-release v4.6.0-beta)
 
-Старт после stable **v4.5.0** и R0 на `4.6.0-dev`. План: `.cursor/plans/debt_closure_4.5-4.6_a59fde99.plan.md`. Единый релиз **v4.6.0 stable** (без v4.5.1).
+Старт после stable **v4.5.0** и R0 на `4.6.0-dev`. План: `.cursor/plans/debt_closure_4.5-4.6_a59fde99.plan.md`. Код D1–D5 на `4.6.0-dev`; smoke — тег **`v4.6.0-beta`**, затем единый stable **v4.6.0** (без v4.5.1).
 
 | Track | ID | Статус | Суть |
 |-------|-----|--------|------|

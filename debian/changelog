@@ -1,7 +1,7 @@
 odpm (4.6.0~beta-1) unstable; urgency=medium
 
   * Pre-release 4.6.0-beta on branch 4.6.0-dev (debt closure D1–D5; see
-    CHANGELOG.md [Unreleased] and .cursor/plans/debt_closure_4.5-4.6_a59fde99.plan.md).
+    CHANGELOG.md [4.6.0-beta] and .github/release-notes/4.6.0-beta.md).
 
  -- odpm maintainers <odpm-maintainers@noreply.github.com>  Mon, 23 Jun 2026 12:00:00 +0000
 
