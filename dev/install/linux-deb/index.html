@@ -2087,7 +2087,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.4-dev/docs/install/linux-deb.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.5-dev/docs/install/linux-deb.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2111,13 +2111,13 @@
 <span class="c1"># ожидается: 03040028F53D7AB8  Alexander Yartsev</span>
 </code></pre></div>
 <h3 id="stable-production">Stable (рекомендуется для production)<a class="headerlink" href="#stable-production" title="Permanent link">&para;</a></h3>
-<p>Suite <strong><code>stable</code></strong> — сейчас odpm <strong>4.4.3</strong> (тег <code>v4.4.3</code>, без <code>-rc</code>/<code>-beta</code>):</p>
+<p>Suite <strong><code>stable</code></strong> — сейчас odpm <strong>4.5.0</strong> (тег <code>v4.5.0</code>, без <code>-rc</code>/<code>-beta</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/odpm.list
 
 sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>odpm
 odpm<span class="w"> </span>--version
-<span class="c1"># ожидается: odpm version: 4.4.3</span>
+<span class="c1"># ожидается: odpm version: 4.5.0</span>
 </code></pre></div>
 <h3 id="pre-release-45-44-beta-rc">Pre-release (4.5 / 4.4 beta / RC)<a class="headerlink" href="#pre-release-45-44-beta-rc" title="Permanent link">&para;</a></h3>
 <p>Suite <strong><code>testing</code></strong> — pre-release теги (<code>*-beta</code>, <code>*-rc*</code>), например <strong>4.5.0-beta</strong>:</p>
@@ -2131,7 +2131,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>odpm
 </code></pre></div>
 <h2 id="deb-github-releases">Установка вручную (.deb с GitHub Releases)<a class="headerlink" href="#deb-github-releases" title="Permanent link">&para;</a></h2>
-<p>Скачайте <code>odpm_*_all.deb</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для нужного тега (<code>v4.4.3</code> — stable, <code>v4.5.0-beta</code> — testing, <code>v4.4.3-beta</code> — archived testing, <code>v4.4.2-beta</code> — archived beta) или соберите локально:</p>
+<p>Скачайте <code>odpm_*_all.deb</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для нужного тега (<code>v4.5.0</code> — stable, <code>v4.5.0-beta</code> — archived testing, <code>v4.4.3</code> — archived stable, <code>v4.4.3-beta</code> — archived testing, <code>v4.4.2-beta</code> — archived beta) или соберите локально:</p>
 <div class="highlight"><pre><span></span><code>./scripts/build_deb.sh
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>./dist/odpm_*_all.deb
 odpm<span class="w"> </span>--version

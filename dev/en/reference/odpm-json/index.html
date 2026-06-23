@@ -2075,7 +2075,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.4-dev/docs/en/reference/odpm-json.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.5-dev/docs/en/reference/odpm-json.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2105,7 +2105,7 @@
 </tr>
 <tr>
 <td><strong>v2 nested</strong></td>
-<td><code>manifest_schema: 2</code>, <code>requires_odpm: "4.4.3"</code></td>
+<td><code>manifest_schema: 2</code>, <code>requires_odpm: "4.5.0"</code></td>
 <td><code>services</code>, <code>hooks</code>, <code>locks</code> in the manifest</td>
 </tr>
 </tbody>
@@ -2179,7 +2179,7 @@
 <tbody>
 <tr>
 <td><code>RELEASE_VERSION</code> / <code>ODPM_VERSION</code></td>
-<td><code>"4.4.3"</code></td>
+<td><code>"4.5.0"</code></td>
 <td><strong>Installed manager</strong> version (<code>odpm --version</code>, pip, deb/rpm)</td>
 </tr>
 <tr>
@@ -2196,7 +2196,7 @@
 </table>
 <p>Compat behaviour (<code>dev_project/manifest/compat.py</code>):</p>
 <ul>
-<li>Flat v1 <strong>without</strong> <code>manifest_schema</code> and <strong>without</strong> <code>odpm_version</code> → contract is treated as <code>"3.0"</code> (supported by manager 4.4.3); odpm logs a <strong>warning</strong> suggesting <code>odpm_version: "4.0"</code>.</li>
+<li>Flat v1 <strong>without</strong> <code>manifest_schema</code> and <strong>without</strong> <code>odpm_version</code> → contract is treated as <code>"3.0"</code> (supported by manager 4.5.0); odpm logs a <strong>warning</strong> suggesting <code>odpm_version: "4.0"</code>.</li>
 <li>New projects and migrations → <code>odpm_version: "4.0"</code>.</li>
 <li>v2 nested → <code>requires_odpm</code> (minimum manager semver; new projects get current <code>RELEASE_VERSION</code>), not <code>odpm_version</code>.</li>
 </ul>
@@ -2217,7 +2217,7 @@
 </tr>
 <tr>
 <td><code>requires_odpm</code></td>
-<td>Minimum odpm version, e.g. <code>"4.4.3"</code></td>
+<td>Minimum odpm version, e.g. <code>"4.5.0"</code></td>
 </tr>
 <tr>
 <td><code>platform.git</code></td>
