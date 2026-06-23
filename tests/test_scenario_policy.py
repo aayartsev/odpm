@@ -471,6 +471,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         config.requirements_txt = []
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
+        config.db_creation_data = {}
         return config
 
     @patch("dev_project.config.payload.write_runtime_config")

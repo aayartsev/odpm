@@ -168,6 +168,7 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
+        config.db_creation_data = {}
 
         from dev_project.compose.service_builder import ComposeServiceBuilder
 

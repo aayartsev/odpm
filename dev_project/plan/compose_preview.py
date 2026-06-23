@@ -83,6 +83,8 @@ def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
         ctx.compute_venv_lock_hash(),
     ):
         return True, "venv_lock_hash changed"
+    if ctx.compose_preview.compose_start_command_changed():
+        return True, "compose start command changed"
     runtime_path = runtime_config_path(host.project_dir)
     if os.path.isfile(runtime_path):
         try:
@@ -95,8 +97,6 @@ def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
                 return True, "runtime config payload changed"
         except (OSError, TypeError, ValueError, ConfigValidationError):
             pass
-    if ctx.compose_preview.compose_start_command_changed():
-        return True, "compose start command changed"
     return False, "runtime config and start command unchanged"
 
 
