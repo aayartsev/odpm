@@ -41,11 +41,21 @@ INSTALL_URL="${BASE}/${VERSION}/install/linux-deb/"
 VERSIONS_URL="${BASE}/versions.json"
 
 check_once() {
-    curl -fsSL "${VERSIONS_URL}" -o /tmp/odpm-versions.json
-    python3 -c "import json; json.load(open('/tmp/odpm-versions.json'))"
-    curl -fsSL -o /dev/null "${INSTALL_URL}"
-    echo "OK: ${VERSIONS_URL}"
+    curl -fsSL "${VERSIONS_URL}" -o /tmp/odpm-versions.json || return 1
+    python3 -c "
+import json, sys
+want = sys.argv[1]
+versions = json.load(open('/tmp/odpm-versions.json'))
+known = {e['version'] for e in versions}
+aliases = {a for e in versions for a in e.get('aliases', [])}
+if want not in known and want not in aliases:
+    print(f'versions.json missing {want!r}; have versions={sorted(known)} aliases={sorted(aliases)}', file=sys.stderr)
+    sys.exit(1)
+" "${VERSION}" || return 1
+    curl -fsSL -o /dev/null "${INSTALL_URL}" || return 1
+    echo "OK: ${VERSIONS_URL} (contains ${VERSION})"
     echo "OK: ${INSTALL_URL}"
+    return 0
 }
 
 attempt=1

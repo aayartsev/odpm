@@ -623,3 +623,19 @@ jobs:
             ./scripts/verify_pages_deploy.sh --version stable
             ./scripts/verify_pages_deploy.sh --version "${VERSION}"
           fi
+          if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
+            DEB_VER="${VERSION/-beta/~beta}-1"
+            DEB_VER="${DEB_VER/-rc/~rc}"
+            DEB_VER="${DEB_VER/-alpha/~alpha}"
+            for attempt in 1 2 3 4 5 6; do
+              if curl -fsSL "https://aayartsev.github.io/odpm/apt/dists/testing/main/binary-amd64/Packages" \
+                | grep -q "Version: ${DEB_VER}"; then
+                echo "OK: APT testing has odpm ${DEB_VER}"
+                exit 0
+              fi
+              echo "APT testing not ready (want ${DEB_VER}); sleep 10s (${attempt}/6)"
+              sleep 10
+            done
+            echo "APT testing suite missing ${DEB_VER}" >&2
+            exit 1
+          fi

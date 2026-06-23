@@ -50,7 +50,7 @@ odpm --version
 # ожидается: odpm version: 4.6.0-beta
 ```
 
-Архив инструкций для более старых beta: [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
+Архив инструкций для более старых beta: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/install/linux-deb/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
 
 Обновление при следующих релизах:
 

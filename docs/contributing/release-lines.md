@@ -79,7 +79,9 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 | Workflow | Проверка |
 |----------|----------|
 | [docs.yml](../../.github/workflows/docs.yml) | `--version dev` → `/versions.json`, `/dev/install/linux-deb/` |
-| [release-packages.yml](../../.github/workflows/release-packages.yml) `publish-pages` | pre-release: `/{VERSION}/install/`; stable: `stable` + `/{VERSION}/install/` |
+| [release-packages.yml](../../.github/workflows/release-packages.yml) `publish-pages` | pre-release: `/{VERSION}/install/`; stable: `stable` + `/{VERSION}/install/`; pre-release также APT `testing` |
+
+Если push в `4.6.0-dev` и тег `v*` на одном коммите, **docs.yml** больше не деплоит Pages (release выигрывает). Если CDN отстаёт от ветки `gh-pages` (docs/apt 404 при успешном CI), вручную: workflow **[Redeploy Pages](../../.github/workflows/redeploy-pages.yml)** (`workflow_dispatch`, `verify_version=4.6.0-beta`).
 
 Ручная проверка после релиза (если CDN отстаёт):
 

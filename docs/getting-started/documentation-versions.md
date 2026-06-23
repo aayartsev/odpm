@@ -13,7 +13,7 @@
 ## Быстрые ссылки
 
 - Стабильная установка: `/stable/install/` (alias **stable**, сейчас **4.5.0**)
-- Beta **4.6.0-beta**: `/4.6.0-beta/install/` (появится на сайте после публикации релиза; до этого — `/dev/install/`)
+- Beta **4.6.0-beta**: `/4.6.0-beta/install/` · [инструкция APT](https://aayartsev.github.io/odpm/4.6.0-beta/install/linux-deb/)
 - Архив 4.3: `/4.3.0/install/` (alias **4.3** в переключателе)
 - Архив beta 4.5: `/4.5.0-beta/install/`
 - Архив beta 4.4: `/4.4.3-beta/install/`, `/4.4.2-beta/install/`

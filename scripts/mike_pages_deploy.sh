@@ -72,7 +72,17 @@ if [[ -n "${SET_DEFAULT}" ]]; then
     mike set-default --push "${SET_DEFAULT}"
 fi
 
+# mike --push updates origin/gh-pages; refresh local ref before materializing the tree.
+git fetch origin gh-pages --force --depth=1
+
 SITE_DIR="$(mktemp -d)"
-git worktree add "${SITE_DIR}" gh-pages
+git worktree add --detach "${SITE_DIR}" origin/gh-pages
+
+INSTALL_INDEX="${SITE_DIR}/${VERSION}/install/linux-deb/index.html"
+if [[ ! -f "${INSTALL_INDEX}" ]]; then
+    echo "missing docs tree after mike deploy: ${INSTALL_INDEX}" >&2
+    ls -la "${SITE_DIR}/${VERSION}/install/" 2>/dev/null || ls -la "${SITE_DIR}/" >&2 || true
+    exit 1
+fi
 
 echo "SITE_DIR=${SITE_DIR}"

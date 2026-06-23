@@ -1,0 +1,66 @@
+# Re-publish GitHub Pages CDN from the gh-pages branch (mike git tree).
+# Use when live CDN lags behind gh-pages after a release/docs race.
+name: Redeploy Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      verify_version:
+        description: "Docs version to verify (e.g. 4.6.0-beta, dev, stable)"
+        required: true
+        default: "4.6.0-beta"
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+          path: site
+
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/verify_pages_deploy.sh
+          path: repo
+
+      - name: Sanity-check site tree
+        run: |
+          set -euo pipefail
+          test -f site/versions.json
+          test -f site/.nojekyll || touch site/.nojekyll
+          VERSION="${{ inputs.verify_version }}"
+          test -f "site/${VERSION}/install/linux-deb/index.html" || \
+            test -f "site/${VERSION}/en/install/linux-deb/index.html" || {
+              echo "missing install index for ${VERSION} on gh-pages" >&2
+              ls -la "site/${VERSION}/install/" 2>/dev/null || ls site >&2
+              exit 1
+            }
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+          include-hidden-files: true
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify live Pages
+        run: ./repo/scripts/verify_pages_deploy.sh --version "${{ inputs.verify_version }}"
