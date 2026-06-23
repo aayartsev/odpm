@@ -258,8 +258,19 @@ VENV_LOCK_KEYS = (
     "distro_name",
     "postgres_version",
     "odoo_version",
+    "odoo_requirements_hash",
     "arch",
     "venv_mode",
+)
+
+# importlib module names checked after venv activation (early Odoo bootstrap deps)
+VENV_IMPORT_SMOKE_MODULES = (
+    "babel",
+    "decorator",
+    "lxml",
+    "passlib",
+    "psutil",
+    "werkzeug",
 )
 
 VENV_EXTRAS_LOCK_BASENAME = ".extras.lock"

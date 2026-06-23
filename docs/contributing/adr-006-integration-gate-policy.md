@@ -51,13 +51,13 @@ Not used in 4.5.0 — integration jobs run on every PR to `4.5-dev`. Future opti
 - T3 failures on pre-release tags block publish (unchanged).
 - **Retry policy (I3):** re-run failed Docker jobs once in GitHub UI; `docker pull` / registry flakes — wait 5–10 minutes; local: `docker compose down` then re-run the matching `scripts/run_*` helper.
 - **Artifacts (I3):** on failure, `http-smoke` and `golden-path` upload `/tmp/odpm-compose-debug/` (compose logs + `docker-compose.yml`) when `ODPM_COMPOSE_DEBUG_DIR` is set in CI.
-- **Timeouts (I3):** job timeout must exceed env timeout + startup buffer:
+- **Timeouts (I3):** job timeout must exceed env timeout + startup buffer. `venv_lock_hash` includes a SHA-256 of Odoo `requirements.txt` (since 4.6) so venv rebuilds when platform deps change without bumping `odoo_version`.
 
 | Job | GHA `timeout-minutes` | Env timeout | Notes |
 |-----|----------------------|-------------|-------|
 | `compose-smoke` | 20 | `ODPM_COMPOSE_SMOKE_TIMEOUT=900` | T1 fast gate |
 | `http-smoke` | 25 | `ODPM_HTTP_SMOKE_TIMEOUT=600` | T2 Mailpit HTTP |
-| `golden-path` | 50 | `ODPM_GOLDEN_PATH_TIMEOUT=2400` | T3 self-hosted |
+| `golden-path` | 15 | `ODPM_GOLDEN_PATH_TIMEOUT=90` | T3 self-hosted |
 | `fixture-golden-path` (weekly) | 45 | `ODPM_FIXTURE_GOLDEN_TIMEOUT=900` | I2 in-repo `/web` |
 
 ### I2 — extended matrix (weekly + PR steps)

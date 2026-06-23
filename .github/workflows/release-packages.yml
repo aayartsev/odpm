@@ -135,7 +135,7 @@ jobs:
         || contains(github.ref, '-alpha')
       )
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -211,7 +211,7 @@ jobs:
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          ODPM_GOLDEN_PATH_TIMEOUT: "900"
+          ODPM_GOLDEN_PATH_TIMEOUT: "90"
         run: python3.12 -m unittest tests.integration.test_golden_path -v
 
   publish:

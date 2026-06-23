@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.config import Config, compute_venv_lock_hash, config_to_json
+from dev_project.config.payload import compute_odoo_requirements_hash
 from tests.container_config_helpers import apply_odpm_config_database_fields
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
 from dev_project.config.bootstrap import (
@@ -335,6 +336,42 @@ class ConfigPayloadTests(unittest.TestCase):
     def _apply_lock_hash_fields(self, config: MagicMock, base_dict: dict) -> None:
         for key, value in base_dict.items():
             setattr(config, key, value)
+        if not getattr(config, "docker_odoo_dir", None):
+            config.docker_odoo_dir = ""
+
+    def test_compute_venv_lock_hash_includes_odoo_requirements(self):
+        base_dict = self._base_config_dict()
+
+        with tempfile.TemporaryDirectory() as odoo_a, tempfile.TemporaryDirectory() as odoo_b:
+            Path(odoo_a, "requirements.txt").write_text(
+                "decorator==5.2.1\n", encoding="utf-8"
+            )
+            Path(odoo_b, "requirements.txt").write_text(
+                "decorator==5.2.1\npsutil\n", encoding="utf-8"
+            )
+
+            config_a = MagicMock()
+            config_a.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
+            config_a.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+            config_a.requirements_txt = []
+            self._apply_lock_hash_fields(config_a, base_dict)
+            config_a.docker_odoo_dir = odoo_a
+
+            config_b = MagicMock()
+            config_b.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
+            config_b.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+            config_b.requirements_txt = []
+            self._apply_lock_hash_fields(config_b, base_dict)
+            config_b.docker_odoo_dir = odoo_b
+
+            self.assertNotEqual(
+                compute_venv_lock_hash(config_a),
+                compute_venv_lock_hash(config_b),
+            )
+            self.assertEqual(
+                compute_odoo_requirements_hash(odoo_a),
+                compute_odoo_requirements_hash(odoo_a),
+            )
 
     def test_compute_venv_lock_hash_differs_by_venv_mode(self):
         base_dict = self._base_config_dict()

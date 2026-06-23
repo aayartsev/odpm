@@ -189,7 +189,7 @@ export ODPM_RUN_DOCKER_INTEGRATION=1
 |-------|----------|--------|------|
 | `test_compose_up_serves_web` | PASS; HTTP 200 on `/web` | | |
 
-Optional timeout: `ODPM_GOLDEN_PATH_TIMEOUT=600`.
+Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=90` (default); increase for slow cold starts.
 
 ---
 

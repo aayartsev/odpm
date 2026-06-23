@@ -3,7 +3,7 @@
 import importlib
 
 from .config import Config
-from .payload import compute_extras_stamp, compute_venv_lock_hash, config_to_json
+from .payload import compute_extras_stamp, compute_odoo_requirements_hash, compute_venv_lock_hash, config_to_json
 from .state import DockerLayoutState, ProjectSettingsState, UserSettingsState
 from .types import (
     DbCreationData,
@@ -22,6 +22,7 @@ __all__ = [
     "UserSettingsJson",
     "UserSettingsState",
     "compute_extras_stamp",
+    "compute_odoo_requirements_hash",
     "compute_venv_lock_hash",
     "config_to_json",
 ]

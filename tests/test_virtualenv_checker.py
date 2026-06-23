@@ -39,6 +39,16 @@ class ResolveVenvModeTests(unittest.TestCase):
 
 
 class VirtualenvCheckerContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._verify_import_patch = patch(
+            "dev_project.inside_docker_app.check_virtualenv.verify_venv_import_smoke",
+            return_value=True,
+        )
+        self._verify_import_patch.start()
+
+    def tearDown(self) -> None:
+        self._verify_import_patch.stop()
+
     @patch(
         "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.sync_extras_requirements"
     )
@@ -107,6 +117,33 @@ class VirtualenvCheckerContractTests(unittest.TestCase):
             mock_sync.assert_not_called()
             mock_set_venv.assert_called_once()
 
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.verify_venv_import_smoke",
+    )
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.sync_extras_requirements"
+    )
+    @patch(
+        "dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.recreate_uv_venv"
+    )
+    @patch("dev_project.inside_docker_app.check_virtualenv.VirtualenvChecker.set_venv")
+    def test_fresh_recreates_when_import_smoke_fails(
+        self, mock_set_venv, mock_recreate, mock_sync, mock_verify
+    ):
+        mock_verify.side_effect = [False, True]
+        with tempfile.TemporaryDirectory() as venv_dir:
+            lock_path = Path(venv_dir) / ".lock"
+            lock_path.write_text("expected-hash\n", encoding="utf-8")
+            config = minimal_container_config(
+                docker_venv_dir=venv_dir,
+                venv_mode=constants.VENV_MODE_FRESH,
+                venv_lock_hash="expected-hash",
+            )
+            VirtualenvChecker(config)
+            mock_sync.assert_called_once()
+            mock_recreate.assert_called_once()
+            self.assertEqual(mock_verify.call_count, 2)
+
 
 class BakedVenvFailureTests(unittest.TestCase):
     def _assert_baked_init_fails(self, config) -> None:
@@ -164,6 +201,8 @@ class VenvLockHashTests(unittest.TestCase):
     def _apply_lock_hash_fields(cls, config: MagicMock, base_dict: dict) -> None:
         for key, value in base_dict.items():
             setattr(config, key, value)
+        if not getattr(config, "docker_odoo_dir", None):
+            config.docker_odoo_dir = ""
 
     def test_lock_hash_same_when_only_requirements_differ(self):
         base_dict = self._base_config_dict()
@@ -216,6 +255,16 @@ class VenvLockHashTests(unittest.TestCase):
 
 
 class ExtrasSyncIntegrationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._verify_import_patch = patch(
+            "dev_project.inside_docker_app.check_virtualenv.verify_venv_import_smoke",
+            return_value=True,
+        )
+        self._verify_import_patch.start()
+
+    def tearDown(self) -> None:
+        self._verify_import_patch.stop()
+
     def test_adding_one_extra_package_does_not_recreate_venv(self):
         base_hash = "expected-base-hash"
         old_requirements = ["requests==2.31.0"]

@@ -20,7 +20,7 @@ from tests.integration.http_wait import HttpWaitTimeoutError, wait_for_http_ok
 
 RUN_DOCKER_INTEGRATION = os.environ.get("ODPM_RUN_DOCKER_INTEGRATION") == "1"
 GOLDEN_PATH_PROJECT = os.environ.get("ODPM_GOLDEN_PATH_PROJECT", "").strip()
-GOLDEN_PATH_TIMEOUT = float(os.environ.get("ODPM_GOLDEN_PATH_TIMEOUT", "900"))
+GOLDEN_PATH_TIMEOUT = float(os.environ.get("ODPM_GOLDEN_PATH_TIMEOUT", "90"))
 DEBUG_BUNDLE_DIR = os.environ.get("ODPM_COMPOSE_DEBUG_DIR", "").strip()
 
 
