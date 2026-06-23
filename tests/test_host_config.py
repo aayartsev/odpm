@@ -618,7 +618,7 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
         config = MagicMock()
         ctx = ConfigBootstrapContext(config)
         with patch(
-            "dev_project.config.manifests.odpm_json_writer.rewrite_odpm_json"
+            "dev_project.config.bootstrap_context._rewrite_odpm_json_impl"
         ) as mock_rewrite:
             ctx.rewrite_odpm_json()
         mock_rewrite.assert_called_once_with(

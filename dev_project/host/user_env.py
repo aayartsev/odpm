@@ -12,7 +12,6 @@ from ..debugger.constants import (
     DEFAULT_ODPM_IDE,
 )
 from ..errors import ConfigError
-from ..interactive import stdin_is_interactive
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..translations import _, apply_locale_from_sources
@@ -23,6 +22,12 @@ from .user_env_parse import EnvData, ParsedUserEnv
 _logger = get_module_logger(__name__)
 
 __all__ = ["CreateUserEnvironment", "EnvData", "ParsedUserEnv"]
+
+
+def _stdin_is_interactive() -> bool:
+    from ..interactive import stdin_is_interactive
+
+    return stdin_is_interactive()
 
 
 def _apply_parsed_user_env(target: CreateUserEnvironment, parsed: ParsedUserEnv) -> None:
@@ -64,7 +69,7 @@ class CreateUserEnvironment:
         parent_dir = os.path.dirname(env_path)
         if parent_dir:
             os.makedirs(parent_dir, exist_ok=True)
-        if stdin_is_interactive():
+        if _stdin_is_interactive():
             self.create_env_file(env_path)
         else:
             self.create_env_file_noninteractive(env_path)

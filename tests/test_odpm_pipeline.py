@@ -172,7 +172,7 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
 
         from dev_project.compose.service_builder import ComposeServiceBuilder
 
-        with patch("dev_project.config.payload.write_runtime_config"):
+        with patch("dev_project.compose.service_builder.persist_runtime_config"):
             builder = ComposeServiceBuilder(config)
             builder.build()
         self.assertIs(builder.policy, policy)

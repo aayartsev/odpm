@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
+from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.errors import GitError
 from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
 from dev_project.host.cli.args import OdpmCliArgs
@@ -79,7 +80,7 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
             self.assertTrue(os.path.islink(link_path))
             self.assertEqual(os.readlink(link_path), dep_path)
 
-    @patch("dev_project.config.git_repos.GitRepoCoordinator.apply_odoo_build_date_to_platform")
+    @patch.object(GitRepoCoordinator, "apply_odoo_build_date_to_platform")
     def test_materialize_git_repos_creates_platform_symlink_when_build_date_fails(
         self,
         mock_apply_build_date,
@@ -106,8 +107,6 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
 
             paths = MagicMock()
             paths.apply_developing_project_docker_path = MagicMock()
-
-            from dev_project.config.git_repos import GitRepoCoordinator
 
             coordinator = GitRepoCoordinator(config, paths=paths)
 

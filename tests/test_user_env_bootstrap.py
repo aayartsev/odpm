@@ -70,7 +70,7 @@ class UserEnvBootstrapTests(unittest.TestCase):
 
             self.assertEqual(user_env.resolve_env_file_path(), expected)
 
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.interactive.stdin_is_interactive", return_value=False)
     def test_ensure_default_env_file_skips_when_present(self, _mock_tty):
         with tempfile.TemporaryDirectory() as tmp:
             env_path = os.path.join(tmp, constants.ENV_FILE_NAME)
@@ -83,7 +83,7 @@ class UserEnvBootstrapTests(unittest.TestCase):
             user_env.create_env_file_noninteractive.assert_not_called()
             self.assertEqual(Path(env_path).read_text(encoding="utf-8"), "BACKUP_DIR=/keep\n")
 
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.interactive.stdin_is_interactive", return_value=False)
     def test_ensure_default_env_file_raises_without_configuration(self, _mock_tty):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
@@ -97,7 +97,7 @@ class UserEnvBootstrapTests(unittest.TestCase):
                 with self.assertRaises(ConfigError):
                     user_env.ensure_default_env_file(env_path)
 
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.interactive.stdin_is_interactive", return_value=False)
     def test_ensure_default_env_file_creates_from_environment(self, _mock_tty):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)

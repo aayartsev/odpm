@@ -171,7 +171,7 @@ class LocaleBootstrapTests(unittest.TestCase):
 
 
 class NonInteractiveLocaleEnvTests(unittest.TestCase):
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.interactive.stdin_is_interactive", return_value=False)
     def test_noninteractive_writes_odpm_locale_from_environment(self, _mock_tty) -> None:
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
@@ -191,7 +191,7 @@ class NonInteractiveLocaleEnvTests(unittest.TestCase):
             content = env_file.read_text(encoding="utf-8")
             self.assertIn("ODPM_LOCALE=ru_RU", content)
 
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.interactive.stdin_is_interactive", return_value=False)
     def test_noninteractive_omits_odpm_locale_without_environment(self, _mock_tty) -> None:
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
@@ -212,7 +212,7 @@ class NonInteractiveLocaleEnvTests(unittest.TestCase):
 
 
 class InteractiveLocaleWizardTests(unittest.TestCase):
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=True)
+    @patch("dev_project.interactive.stdin_is_interactive", return_value=True)
     @patch(
         "dev_project.host.user_env.CreateUserEnvironment.get_from_user_backup_dir",
         return_value="/tmp/backups",
