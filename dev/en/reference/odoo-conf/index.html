@@ -1499,6 +1499,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#source-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source priority
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-odpm-overwrites-on-prepare" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2004,6 +2015,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#source-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source priority
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-odpm-overwrites-on-prepare" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2072,6 +2094,7 @@
 <p>On every environment prepare, odpm:</p>
 <ol>
 <li><strong>Reads</strong> your file from disk.</li>
+<li><strong>Applies</strong> overrides from <code>odoo_conf</code> in <code>odpm.json</code> (if set) — manifest <strong>overrides</strong> disk.</li>
 <li><strong>Substitutes</strong> database connection parameters from the service configuration.</li>
 <li><strong>Recalculates</strong> addon paths (<code>addons_path</code>) and data directory (<code>data_dir</code>) as the process sees them <strong>inside the container</strong> (they differ from host paths).</li>
 <li>Writes the result to the service JSON (<code>.odpm/runtime/config.json</code>).</li>
@@ -2080,14 +2103,23 @@
 <p>So the file in the project directory is <strong>your configuration interface</strong>; the container receives a <strong>consistent</strong> version with correct paths.</p>
 <h2 id="what-you-may-edit-manually">What you may edit manually<a class="headerlink" href="#what-you-may-edit-manually" title="Permanent link">&para;</a></h2>
 <p>Parameters from Odoo documentation: <code>proxy_mode</code>, <code>dbfilter</code>, <code>log_level</code>, worker count, etc.</p>
-<p>On a server reachable from the internet, <strong><code>proxy_mode</code></strong> and <strong><code>dbfilter</code></strong> are usually set together with a reverse proxy (nginx).</p>
+<p>On a server reachable from the internet, <strong><code>proxy_mode</code></strong> and <strong><code>dbfilter</code></strong> are usually set together with a reverse proxy (nginx). For CI/preview you can set the same keys in <strong><code>odoo_conf</code></strong> in <code>odpm.json</code> — see <a href="../odpm-json/#odoo_conf-block-odoo-option-overrides">odpm.json fields</a>.</p>
+<h2 id="source-priority">Source priority<a class="headerlink" href="#source-priority" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>odpm-managed (addons_path, data_dir)  ← always wins
+    ↑
+manifest odoo_conf.options            ← overrides disk
+    ↑
+odoo.conf on disk                     ← local defaults
+</code></pre></div>
 <h2 id="what-odpm-overwrites-on-prepare">What odpm overwrites on prepare<a class="headerlink" href="#what-odpm-overwrites-on-prepare" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><code>addons_path</code></strong> — full list of addon paths inside the container;</li>
 <li><strong><code>data_dir</code></strong> — Odoo data directory inside the container;</li>
 <li><strong><code>db_host</code></strong> — synced with <strong><code>POSTGRES_SERVICE_NAME</code></strong> from <code>.env</code> (PostgreSQL service name in compose);</li>
-<li>database placeholders in the template — real values from runtime.</li>
+<li>database placeholders in the template — real values from runtime;</li>
+<li><strong><code>admin_passwd</code></strong> — in the container from <code>db_manager_password</code> (not from manifest).</li>
 </ul>
+<p>These and other reserved keys <strong>cannot</strong> appear in manifest <strong><code>odoo_conf</code></strong> — <code>odpm manifest validate</code> fails.</p>
 <p>If <code>db_host</code> on disk does not match <code>POSTGRES_SERVICE_NAME</code>, step <strong><code>template.odoo_conf</code></strong> recreates the config; <code>odpm plan</code> shows drift <strong><code>db_host_mismatch</code></strong>. See <a href="../database-state/">PostgreSQL state</a>.</p>
 <h2 id="when-the-file-is-recreated-entirely">When the file is recreated entirely<a class="headerlink" href="#when-the-file-is-recreated-entirely" title="Permanent link">&para;</a></h2>
 <p>If the file is missing, corrupted, or required database parameters are empty — odpm creates a template again.</p>
