@@ -5,7 +5,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 **Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1310** OK, 18 skipped.
 
-**Active dev branch:** `4.5-dev` (roadmap 4.5 **RELEASED** stable **v4.5.0**). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`).
+**Active dev branch:** `4.6.0-dev` (debt closure 4.6). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`); roadmap 4.5 **RELEASED**.
 
 ---
 
@@ -36,7 +36,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 **ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1–I4); ADR-008 i18n host/container **done** (L); ADR-007 Base image profiles **done** (S).
 
-**R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, **i18n**, compose-smoke, http-smoke.
+**R0 infra (4.6.0-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.6.0-dev`; branch protection — lint, unit, contract, **i18n**, compose-smoke, http-smoke.
 
 ---
 

@@ -8,7 +8,7 @@
 | **4.3** / **4.3.0** | остаётесь на линии 4.3.x | `.deb` / `.rpm` релиза 4.3.0 |
 | **4.5.0-beta** | архив pre-release 4.5 | APT/YUM **`testing`**, [релиз v4.5.0-beta](https://github.com/aayartsev/odpm/releases/tag/v4.5.0-beta) |
 | **4.4.3-beta**, **4.4.2-beta** и др. (архив) | архив pre-release 4.4 | [4.4.3-beta](https://github.com/aayartsev/odpm/releases/tag/v4.4.3-beta), [4.4.2-beta](https://github.com/aayartsev/odpm/releases/tag/v4.4.2-beta) |
-| **dev** | разработка odpm, HEAD `4.5-dev` | не для end-user production |
+| **dev** | разработка odpm, HEAD `4.6.0-dev` | не для end-user production |
 
 ## Быстрые ссылки
 

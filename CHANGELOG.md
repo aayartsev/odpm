@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Release gate (R0 / 4.6.0-dev)** — `RELEASE_VERSION` → `4.6.0-beta`; `LATEST_STABLE_RELEASE` remains `4.5.0`; CI/docs workflows target `4.6.0-dev`; deb/rpm pre-release packaging synced.
+
 ## [4.5.0] - 2026-06-22
 
 **Stable release 4.5.0** on branch `4.5-dev`; supersedes **4.4.3** as `LATEST_STABLE_RELEASE`. Ships roadmap 4.5 (Config hub slimming, Plugins 2.0, host YAML engine, mandatory integration CI gates, full host gettext coverage, scenario base Dockerfile profiles). Pre-release **4.5.0-beta** verified packaging and docs channels. No breaking changes for v1 flat `odpm.json`; first run after upgrade may rebuild base Docker images (profile suffix + identity fingerprint).

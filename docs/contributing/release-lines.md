@@ -9,17 +9,18 @@
 | Линия | Ветка / тег | Статус | Назначение |
 |-------|-------------|--------|------------|
 | **4.3.x** | `4.3.0`, тег `v4.3.0` | **заморожена** | Последний stable до 4.4; только критичные security-fix по решению maintainer (cherry-pick → patch tag). Новые фичи не добавляем. |
-| **4.4.x** | `4.4-dev` | **заморожена** (patch only) | Линия 4.4; stable **v4.4.3**; новые фичи — в `4.5-dev` |
-| **4.5.x** | `4.5-dev` | **активная** | Линия 4.5; stable **v4.5.0**; pre-release архив: `v4.5.0-beta`, … |
+| **4.4.x** | `4.4-dev` | **заморожена** (patch only) | Линия 4.4; stable **v4.4.3** |
+| **4.5.x** | `4.5-dev` | **заморожена** (patch only) | Линия 4.5; stable **v4.5.0**; архив: `v4.5.0-beta` |
+| **4.6.x** | `4.6.0-dev` | **активная** | Debt closure D1–D5; target stable **v4.6.0**; pre-release: `v4.6.0-beta`, … |
 | Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
 
-**Правило:** изменения 4.5 merge в `4.5-dev`. Линия 4.4 (`4.4-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
+**Правило:** изменения 4.6 merge в `4.6.0-dev`. Линии 4.4 (`4.4-dev`) и 4.5 (`4.5-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
 
 ### Константы в `scenarios.py`
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.5-dev` | `4.5.0` (stable) |
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.6.0-dev` | `4.6.0-beta` (pre-release) |
 | `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.5.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
@@ -64,7 +65,7 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 | `stable` | default | Stable tag → `mike deploy VERSION stable --set-default stable` | Production, install по умолчанию |
 | `4.3.0` | `4.3` | Bootstrap или ручной deploy | Линия 4.3.x |
 | `4.4.2-beta`, … | — | Pre-release tag (без alias stable) | Early adopters |
-| `dev` | — | Push `4.4-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
+| `dev` | — | Push `4.6.0-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
 
 `site_url` в `mkdocs.yml`: `/stable/`. Пользовательский hub: [documentation-versions](../getting-started/documentation-versions.md).
 
@@ -85,17 +86,31 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
    - [x] `docs/getting-started/documentation-versions.md` (+ EN)
    - [x] reference docs: `requires_odpm` / version tables → `4.5.0`
 4. **Commit + tag**
-   - [ ] Commit на `4.5-dev`, push
-   - [ ] `git tag v4.5.0` && `git push origin v4.5.0`
+   - [x] Commit на `4.5-dev`, push
+   - [x] `git tag v4.5.0` && `git push origin v4.5.0`
 5. **CI (автоматически на тег)**
-   - [ ] `release-packages`: GitHub Release, APT/YUM **stable** merge, `publish-pages` → mike `4.5.0` + alias **stable**
-   - [ ] `publish-pypi` → **production PyPI**
+   - [x] `release-packages`: GitHub Release, APT/YUM **stable** merge, `publish-pages` → mike `4.5.0` + alias **stable**
+   - [x] `publish-pypi` → **production PyPI**
 6. **Проверка live**
    - [ ] `https://aayartsev.github.io/odpm/stable/` — 200, переключатель версий
    - [ ] `https://aayartsev.github.io/odpm/apt/dists/stable/Release` — 200
    - [ ] `pip install odpm` → `4.5.0`
 7. **Следующий pre-release**
-   - [ ] Поднять `RELEASE_VERSION` на `4.5.1-beta` (или patch) **до** следующего тега
+   - [x] Поднять `RELEASE_VERSION` на `4.6.0-beta` на `4.6.0-dev` **до** тега beta/stable 4.6
+
+## Чеклист: линия **4.6.0-dev** (R0, после stable v4.5.0)
+
+1. **Ветка и CI**
+   - [x] Активная ветка `4.6.0-dev`
+   - [x] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.6.0-dev`
+2. **Версия в коде**
+   - [x] `RELEASE_VERSION = "4.6.0-beta"`; `LATEST_STABLE_RELEASE = "4.5.0"`
+   - [x] `debian/changelog`, `packaging/odpm.spec` synced
+3. **Docs maintainer**
+   - [x] `mkdocs.yml` `edit_uri` → `4.6.0-dev`
+   - [ ] GitHub branch protection → `4.6.0-dev` (вручную в UI)
+4. **Дальше**
+   - [ ] D1–D5 на `4.6.0-dev` → tag `v4.6.0` (единый debt release)
 
 ## Чеклист: stable **v4.4.2** (архив, после smoke beta)
 

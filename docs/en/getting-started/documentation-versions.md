@@ -8,7 +8,7 @@ The site hosts several **documentation versions**. Use the version selector in t
 | **4.3** / **4.3.0** | staying on 4.3.x | 4.3.0 `.deb` / `.rpm` from Releases |
 | **4.5.0-beta** | archived 4.5 pre-release | APT/YUM **`testing`**, [v4.5.0-beta release](https://github.com/aayartsev/odpm/releases/tag/v4.5.0-beta) |
 | **4.4.3-beta**, **4.4.2-beta** and other archived `*-beta` | pre-release archive | [v4.4.3-beta](https://github.com/aayartsev/odpm/releases/tag/v4.4.3-beta), [v4.4.2-beta](https://github.com/aayartsev/odpm/releases/tag/v4.4.2-beta) |
-| **dev** | odpm development, `4.5-dev` HEAD | not for production end users |
+| **dev** | odpm development, `4.6.0-dev` HEAD | not for production end users |
 
 ## Quick links
 
