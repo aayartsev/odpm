@@ -615,10 +615,17 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
         self.assertIsInstance(ctx.odpm_json, OdpmJsonReader)
 
     def test_bootstrap_context_rewrite_odpm_json_delegates_to_writer(self):
+        import importlib
+
+        bootstrap_context_module = importlib.import_module(
+            "dev_project.config.bootstrap_context"
+        )
+
         config = MagicMock()
-        ctx = ConfigBootstrapContext(config)
-        with patch(
-            "dev_project.config.bootstrap_context._rewrite_odpm_json_impl"
+        ctx = bootstrap_context_module.ConfigBootstrapContext(config)
+        with patch.object(
+            bootstrap_context_module,
+            "_rewrite_odpm_json_impl",
         ) as mock_rewrite:
             ctx.rewrite_odpm_json()
         mock_rewrite.assert_called_once_with(

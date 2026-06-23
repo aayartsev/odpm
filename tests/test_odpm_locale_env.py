@@ -171,7 +171,7 @@ class LocaleBootstrapTests(unittest.TestCase):
 
 
 class NonInteractiveLocaleEnvTests(unittest.TestCase):
-    @patch("dev_project.interactive.stdin_is_interactive", return_value=False)
+    @patch("dev_project.host.user_env._stdin_is_interactive", return_value=False)
     def test_noninteractive_writes_odpm_locale_from_environment(self, _mock_tty) -> None:
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
@@ -191,7 +191,7 @@ class NonInteractiveLocaleEnvTests(unittest.TestCase):
             content = env_file.read_text(encoding="utf-8")
             self.assertIn("ODPM_LOCALE=ru_RU", content)
 
-    @patch("dev_project.interactive.stdin_is_interactive", return_value=False)
+    @patch("dev_project.host.user_env._stdin_is_interactive", return_value=False)
     def test_noninteractive_omits_odpm_locale_without_environment(self, _mock_tty) -> None:
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
@@ -212,65 +212,62 @@ class NonInteractiveLocaleEnvTests(unittest.TestCase):
 
 
 class InteractiveLocaleWizardTests(unittest.TestCase):
-    @patch("dev_project.interactive.stdin_is_interactive", return_value=True)
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_backup_dir",
-        return_value="/tmp/backups",
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odoo_projects_src_dir",
-        return_value="/tmp/projects",
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odoo_port",
-        return_value=8069,
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_postgres_port",
-        return_value=5432,
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_debugger_port",
-        return_value=5678,
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_gevent_port",
-        return_value=8072,
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odpm_scenario",
-        return_value=constants.DEVELOPER_SCENARIO,
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odpm_ide",
-        return_value="vscode",
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_debugger_backend",
-        return_value="debugpy_listen",
-    )
-    @patch(
-        "dev_project.host.user_env.CreateUserEnvironment.get_from_user_odpm_locale",
-        return_value="ru_RU",
-    )
-    def test_interactive_env_file_includes_locale(
-        self,
-        _mock_locale,
-        _mock_debugger_backend,
-        _mock_odpm_ide,
-        _mock_scenario,
-        _mock_gevent,
-        _mock_debugger,
-        _mock_postgres,
-        _mock_odoo,
-        _mock_projects,
-        _mock_backup,
-        _mock_tty,
-    ) -> None:
+    def test_interactive_env_file_includes_locale(self) -> None:
+        import importlib
+        from contextlib import ExitStack
+
+        user_env_module = importlib.import_module("dev_project.host.user_env")
+        cls = user_env_module.CreateUserEnvironment
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
-            with patch.dict(os.environ, {"HOME": home_dir}, clear=True):
-                user_env = CreateUserEnvironment(pd_manager)
+            with ExitStack() as stack:
+                stack.enter_context(
+                    patch.object(user_env_module, "_stdin_is_interactive", return_value=True)
+                )
+                stack.enter_context(patch.dict(os.environ, {"HOME": home_dir}, clear=True))
+                stack.enter_context(
+                    patch.object(cls, "get_from_user_backup_dir", return_value="/tmp/backups")
+                )
+                stack.enter_context(
+                    patch.object(
+                        cls,
+                        "get_from_user_odoo_projects_src_dir",
+                        return_value="/tmp/projects",
+                    )
+                )
+                stack.enter_context(
+                    patch.object(cls, "get_from_user_odoo_port", return_value=8069)
+                )
+                stack.enter_context(
+                    patch.object(cls, "get_from_user_postgres_port", return_value=5432)
+                )
+                stack.enter_context(
+                    patch.object(cls, "get_from_user_debugger_port", return_value=5678)
+                )
+                stack.enter_context(
+                    patch.object(cls, "get_from_user_gevent_port", return_value=8072)
+                )
+                stack.enter_context(
+                    patch.object(
+                        cls,
+                        "get_from_user_odpm_scenario",
+                        return_value=constants.DEVELOPER_SCENARIO,
+                    )
+                )
+                stack.enter_context(
+                    patch.object(cls, "get_from_user_odpm_ide", return_value="vscode")
+                )
+                stack.enter_context(
+                    patch.object(
+                        cls,
+                        "get_from_user_debugger_backend",
+                        return_value="debugpy_listen",
+                    )
+                )
+                stack.enter_context(
+                    patch.object(cls, "get_from_user_odpm_locale", return_value="ru_RU")
+                )
+                user_env = cls(pd_manager)
             content = Path(user_env.env_file).read_text(encoding="utf-8")
             self.assertIn("ODPM_LOCALE=ru_RU", content)
             self.assertIn("PATH_TO_SSH_KEY=", content)

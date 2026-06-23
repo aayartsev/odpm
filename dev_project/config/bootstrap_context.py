@@ -55,7 +55,10 @@ class ConfigBootstrapContext:
         )
 
     def rewrite_odpm_json(self) -> None:
-        _rewrite_odpm_json_impl(
+        import sys
+
+        module = sys.modules[__name__]
+        module._rewrite_odpm_json_impl(
             self.config,
             create_default=self.defaults.create_default_odpm_json_write_payload,
         )

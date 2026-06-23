@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.debugger.constants import (
@@ -33,7 +33,8 @@ class UserEnvDebuggerTests(unittest.TestCase):
             os.path.join(project_dir, constants.PROJECT_SERVICE_DIRECTORY),
             exist_ok=True,
         )
-        return ProjectDirManager(project_dir, OdpmCliArgs(), _program_dir())
+        with patch.object(ProjectDirManager, "sync_project_templates"):
+            return ProjectDirManager(project_dir, OdpmCliArgs(), _program_dir())
 
     def _write_minimal_env(self, project_dir: str) -> None:
         env_path = os.path.join(project_dir, ".env")
@@ -60,13 +61,16 @@ class UserEnvDebuggerTests(unittest.TestCase):
             self.assertEqual(user_env.debugger_backend, DEFAULT_DEBUGGER_BACKEND)
             self.assertEqual(user_env.odpm_ide, DEFAULT_ODPM_IDE)
 
-    @patch("dev_project.interactive.prompt_input")
-    def test_interactive_env_includes_debugger_keys(self, mock_prompt) -> None:
-        mock_prompt.side_effect = ["", "", "", "", "", "", "1", "", "", ""]
+    def test_interactive_env_includes_debugger_keys(self) -> None:
+        import importlib
 
-        with tempfile.TemporaryDirectory() as project_dir:
-            self._write_minimal_env(project_dir)
-            user_env = CreateUserEnvironment(self._pd_manager(project_dir))
+        wizard_module = importlib.import_module("dev_project.host.user_env_wizard")
+        user_env_module = importlib.import_module("dev_project.host.user_env")
+        mock_prompt = MagicMock(side_effect=["", "", "", "", "", "", "1", "", "", ""])
+        with patch.object(wizard_module, "_prompt_input", mock_prompt):
+            user_env = user_env_module.CreateUserEnvironment.__new__(
+                user_env_module.CreateUserEnvironment
+            )
             env_data = user_env._build_env_data_interactive()
             self.assertEqual(
                 env_data[ODPM_DEBUGGER_BACKEND_ENV],
@@ -74,28 +78,31 @@ class UserEnvDebuggerTests(unittest.TestCase):
             )
             self.assertEqual(env_data[ODPM_IDE_ENV], DEFAULT_ODPM_IDE)
 
-    @patch("dev_project.interactive.prompt_input")
-    def test_interactive_pydevd_connect_prompts_connect_host_and_suspend(
-        self, mock_prompt
-    ) -> None:
-        mock_prompt.side_effect = [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "2",
-            "",
-            "",
-            "y",
-            "",
-        ]
+    def test_interactive_pydevd_connect_prompts_connect_host_and_suspend(self) -> None:
+        import importlib
 
-        with tempfile.TemporaryDirectory() as project_dir:
-            self._write_minimal_env(project_dir)
-            user_env = CreateUserEnvironment(self._pd_manager(project_dir))
+        wizard_module = importlib.import_module("dev_project.host.user_env_wizard")
+        user_env_module = importlib.import_module("dev_project.host.user_env")
+        mock_prompt = MagicMock(
+            side_effect=[
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "1",
+                "2",
+                "",
+                "",
+                "y",
+                "",
+            ]
+        )
+        with patch.object(wizard_module, "_prompt_input", mock_prompt):
+            user_env = user_env_module.CreateUserEnvironment.__new__(
+                user_env_module.CreateUserEnvironment
+            )
             env_data = user_env._build_env_data_interactive()
             self.assertEqual(
                 env_data[ODPM_DEBUGGER_BACKEND_ENV],

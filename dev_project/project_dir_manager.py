@@ -263,7 +263,7 @@ class ProjectDirManager:
     def generate_project_template_files(
         self, program_template_file, project_template_file
     ):
-        with open(program_template_file) as f:
+        with open(program_template_file, encoding="utf-8") as f:
             lines = f.readlines()
         content = "".join(lines)
         for replace_phrase in {
@@ -271,7 +271,7 @@ class ProjectDirManager:
         }.items():
             content = content.replace(replace_phrase[0], replace_phrase[1])
         if not os.path.exists(project_template_file):
-            with open(project_template_file, "w") as writer:
+            with open(project_template_file, "w", encoding="utf-8") as writer:
                 writer.write(content)
 
     def check_odoo_git_link(self):

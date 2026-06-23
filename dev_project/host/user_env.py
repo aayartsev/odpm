@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 
 from .. import constants
 from ..debugger.constants import (
@@ -25,6 +26,8 @@ __all__ = ["CreateUserEnvironment", "EnvData", "ParsedUserEnv"]
 
 
 def _stdin_is_interactive() -> bool:
+    import sys
+
     from ..interactive import stdin_is_interactive
 
     return stdin_is_interactive()
@@ -69,7 +72,7 @@ class CreateUserEnvironment:
         parent_dir = os.path.dirname(env_path)
         if parent_dir:
             os.makedirs(parent_dir, exist_ok=True)
-        if _stdin_is_interactive():
+        if sys.modules[__name__]._stdin_is_interactive():
             self.create_env_file(env_path)
         else:
             self.create_env_file_noninteractive(env_path)
