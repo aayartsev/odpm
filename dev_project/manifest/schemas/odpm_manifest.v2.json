@@ -142,6 +142,16 @@
         "language": { "type": "string", "minLength": 1 },
         "country": { "type": ["string", "null", "boolean"] }
       }
+    },
+    "odoo_conf": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "options": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
     }
   },
   "$defs": {

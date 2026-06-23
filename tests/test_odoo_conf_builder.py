@@ -9,8 +9,9 @@ from dev_project.config.odoo_conf import (
     odoo_conf_db_host_mismatch,
     odoo_conf_on_disk_needs_regeneration,
 )
-from dev_project.config.state import AddonLayoutState, DockerLayoutState
+from dev_project.config.state import AddonLayoutState, BootstrapState, DockerLayoutState
 from dev_project.config.types import SubProject
+from dev_project.manifest.reader import ManifestView
 
 
 def _config_with_layout_slices() -> MagicMock:
@@ -75,6 +76,42 @@ class OdooConfBuilderTests(unittest.TestCase):
                 config.docker_layout.odoo_config_data["options"]["data_dir"],
                 "/home/odoo/.local/share/Odoo",
             )
+
+    def test_generate_odoo_conf_docker_data_applies_manifest_overrides(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            conf_path = Path(project_dir) / constants.ODOO_CONF_NAME
+            conf_path.write_text(
+                "[options]\nproxy_mode = False\nlog_level = info\n",
+                encoding="utf-8",
+            )
+
+            config = _config_with_layout_slices()
+            config.path_odoo_conf = str(conf_path)
+            config.docker_layout.path_odoo_conf = str(conf_path)
+            config.docker_layout.docker_dirs_with_addons = ["/home/odoo/extra-addons"]
+            config.docker_layout.docker_project_dir = "/home/odoo"
+            config.bootstrap = BootstrapState(
+                manifest_view=ManifestView(
+                    manifest_schema=2,
+                    requires_odpm="4.5.0",
+                    raw_normalized={},
+                    odoo_conf={
+                        "options": {
+                            "proxy_mode": "True",
+                            "workers": "2",
+                        }
+                    },
+                )
+            )
+
+            OdooConfBuilder(config).generate_odoo_conf_docker_data()
+
+            options = config.docker_layout.odoo_config_data["options"]
+            self.assertEqual(options["proxy_mode"], "True")
+            self.assertEqual(options["log_level"], "info")
+            self.assertEqual(options["workers"], "2")
+            self.assertEqual(options["addons_path"], "/home/odoo/extra-addons")
+            self.assertEqual(options["data_dir"], "/home/odoo/.local/share/Odoo")
 
     def test_odoo_conf_on_disk_needs_regeneration_when_db_host_missing(self):
         with tempfile.TemporaryDirectory() as project_dir:

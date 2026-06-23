@@ -837,6 +837,9 @@ msgstr "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
 msgstr "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
 
+msgid "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically"
+msgstr "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically"
+
 msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 msgstr "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 

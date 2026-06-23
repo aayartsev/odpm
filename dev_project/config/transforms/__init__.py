@@ -5,6 +5,7 @@ from .env_substitution import (
     USER_SETTINGS_ENV_EXPAND_FIELDS,
     expand_env_in_compose_service_map,
     expand_env_in_json,
+    expand_env_in_odoo_conf,
     expand_env_string,
     merged_subprocess_environ,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "beautify_module_list",
     "expand_env_in_compose_service_map",
     "expand_env_in_json",
+    "expand_env_in_odoo_conf",
     "expand_env_string",
     "merged_subprocess_environ",
 ]

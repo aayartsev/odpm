@@ -7,6 +7,7 @@ import pathlib
 from typing import TYPE_CHECKING
 
 from .. import constants
+from ..manifest.odoo_conf import merge_odoo_conf_sections, odoo_conf_from_manifest
 from .types import SubProject
 
 if TYPE_CHECKING:
@@ -159,6 +160,24 @@ class OdooConfBuilder:
         odoo_config.read(self.config.path_odoo_conf)
         if "options" not in odoo_config:
             odoo_config["options"] = {}
+
+        disk_data = {
+            section: dict(odoo_config.items(section))
+            for section in odoo_config.sections()
+        }
+        manifest_overrides = odoo_conf_from_manifest(
+            self.config.bootstrap.manifest_view
+        )
+        merged = merge_odoo_conf_sections(disk_data, manifest_overrides)
+
+        odoo_config.clear()
+        for section_name, section_values in merged.items():
+            odoo_config[section_name] = {}
+            for key, value in section_values.items():
+                odoo_config[section_name][key] = value
+        if "options" not in odoo_config:
+            odoo_config["options"] = {}
+
         odoo_config["options"]["addons_path"] = ",".join(
             self.config.docker_layout.docker_dirs_with_addons
         )

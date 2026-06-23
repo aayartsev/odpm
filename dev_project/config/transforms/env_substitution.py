@@ -218,3 +218,29 @@ def expand_env_in_compose_service_map(
             field_prefix=f"{field_prefix}.{name}",
         )
     return expanded
+
+
+def expand_env_in_odoo_conf(
+    odoo_conf: dict[str, Any] | None,
+    *,
+    resolver: EnvResolver,
+) -> dict[str, Any] | None:
+    """Expand ``${VAR}`` in manifest ``odoo_conf`` string option values."""
+    if not isinstance(odoo_conf, dict):
+        return odoo_conf
+    expanded: dict[str, Any] = {}
+    for section_name, section_data in odoo_conf.items():
+        if not isinstance(section_data, dict):
+            expanded[str(section_name)] = section_data
+            continue
+        expanded[str(section_name)] = {
+            str(key): expand_env_string(
+                value,
+                resolver,
+                field_path=f"odoo_conf.{section_name}.{key}",
+            )
+            if isinstance(value, str)
+            else value
+            for key, value in section_data.items()
+        }
+    return expanded

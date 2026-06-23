@@ -92,6 +92,23 @@ Example (v1 flat or v2):
 }
 ```
 
+## `odoo_conf` block (Odoo option overrides)
+
+Optional object for **team-wide** Odoo settings in git (preview, staging, production). Manifest values **override** same-named keys in the on-disk `odoo.conf` when building `odoo_config_data` for the container; manifest is **not** written back to `odoo.conf`.
+
+```json
+"odoo_conf": {
+  "options": {
+    "proxy_mode": "True",
+    "dbfilter": "^${PREVIEW_HOSTNAME}$",
+    "workers": "2",
+    "log_level": "debug"
+  }
+}
+```
+
+`odpm manifest validate` rejects keys managed by odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. See [odoo.conf](odoo-conf.md).
+
 ## Migration v1 → v2
 
 Command **`odpm manifest migrate`** shows a unified diff of flat manifest → nested v2. With **`--write`** it writes the result to the developing project’s `odpm.json`. Details: [manifest-migration.md](manifest-migration.md).
@@ -116,6 +133,7 @@ In **whitelist fields** odpm expands environment variable references right after
 | `odoo_git_link` | yes |
 | `dependencies` | yes (each list element) |
 | `services.*` / `service_patches.*` (v2) | yes — `image`, `user`, `restart`, lists (`ports`, `volumes`, `command`, …), `environment` values |
+| `odoo_conf.*` (v1/v2) | yes — all string values in `odoo_conf.options` |
 | `hooks.*` argv (v2) | yes — at hook **execution** (not during `odpm manifest validate`) |
 
 Syntax: **`${NAME}`** and **`${NAME:-default}`** (as in Docker Compose). Literal `$` — **`$$`**.
