@@ -6,6 +6,13 @@ from unittest.mock import MagicMock, patch
 from dev_project.symlinks import SymlinkManager
 
 
+def _symlink_manager(config: MagicMock) -> SymlinkManager:
+    host_ctx = MagicMock()
+    host_ctx.addon_layout = MagicMock()
+    host_ctx.addon_layout.catalogs_of_modules_data = []
+    return SymlinkManager(config, host_ctx=host_ctx)
+
+
 class SymlinkManagerTests(unittest.TestCase):
     def test_update_links_does_not_chdir(self):
         with tempfile.TemporaryDirectory() as project_dir:
@@ -14,14 +21,13 @@ class SymlinkManagerTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.dependencies_dirs = []
             config.list_for_symlinks = []
-            config.catalogs_of_modules_data = []
             config.create_module_links = False
             config.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.platform_name = "odoo"
 
             with patch("dev_project.symlinks.manager.os.chdir") as mock_chdir:
-                SymlinkManager(config).update_links()
+                _symlink_manager(config).update_links()
 
             mock_chdir.assert_not_called()
 
@@ -35,13 +41,12 @@ class SymlinkManagerTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.dependencies_dirs = []
             config.list_for_symlinks = [target_dir]
-            config.catalogs_of_modules_data = []
             config.create_module_links = False
             config.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.platform_name = "odoo"
 
-            SymlinkManager(config).update_links()
+            _symlink_manager(config).update_links()
 
             link_path = os.path.join(project_dir, os.path.basename(target_dir))
             self.assertTrue(os.path.islink(link_path))
@@ -57,13 +62,12 @@ class SymlinkManagerTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.dependencies_dirs = []
             config.list_for_symlinks = [target_dir]
-            config.catalogs_of_modules_data = []
             config.create_module_links = False
             config.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.platform_name = "odoo"
 
-            SymlinkManager(config).update_links()
+            _symlink_manager(config).update_links()
 
             expected_link = os.path.join(project_dir, os.path.basename(target_dir))
             self.assertEqual(len(config.symlinks_sources), 1)
@@ -81,7 +85,7 @@ class SymlinkManagerTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.symlinks_sources = []
 
-            SymlinkManager(config).ensure_project_repo_link(target_dir)
+            _symlink_manager(config).ensure_project_repo_link(target_dir)
 
             link_path = os.path.join(project_dir, os.path.basename(target_dir))
             self.assertTrue(os.path.islink(link_path))
@@ -98,7 +102,7 @@ class SymlinkManagerTests(unittest.TestCase):
             config.dependencies_dir = ""
             config.symlinks_sources = []
 
-            SymlinkManager(config).ensure_dependency_repo_link(target_dir)
+            _symlink_manager(config).ensure_dependency_repo_link(target_dir)
 
             link_path = os.path.join(project_dir, "dependencies", os.path.basename(target_dir))
             self.assertTrue(os.path.islink(link_path))
@@ -114,7 +118,7 @@ class SymlinkManagerTests(unittest.TestCase):
             config.dependencies_dir = os.path.join(project_dir, "dependencies")
             config.symlinks_sources = []
 
-            manager = SymlinkManager(config)
+            manager = _symlink_manager(config)
             manager.ensure_project_repo_link(target_dir)
             manager.ensure_project_repo_link(target_dir)
 
@@ -129,7 +133,7 @@ class SymlinkManagerTests(unittest.TestCase):
             stale_link = os.path.join(project_dir, "stale")
             os.symlink("/tmp/old-target", stale_link)
 
-            manager = SymlinkManager(MagicMock())
+            manager = _symlink_manager(MagicMock())
             manager._delete_old_links(project_dir, [target_dir])
 
             self.assertTrue(os.path.islink(kept_link))

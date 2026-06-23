@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEV_PROJECT = ROOT / "dev_project"
+EN_US_PO = ROOT / "dev_project" / "i18n" / "en_US" / "LC_MESSAGES" / "main.po"
 
 
 def _load_ru_messages() -> set[str]:
@@ -28,7 +29,9 @@ def _collect_msgids(path: Path) -> set[str]:
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
-        if not (isinstance(node.func, ast.Name) and node.func.id == "_"):
+        is_gettext = isinstance(node.func, ast.Name) and node.func.id == "_"
+        is_plan_msg = isinstance(node.func, ast.Name) and node.func.id == "plan_msg"
+        if not (is_gettext or is_plan_msg):
             continue
         if len(node.args) != 1:
             continue
@@ -50,6 +53,14 @@ def _collect_host_summary_msgids() -> set[str]:
     }
 
 
+def _count_po_msgids(path: Path) -> int:
+    return sum(
+        1
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.startswith('msgid "') and line != 'msgid ""'
+    )
+
+
 def main() -> int:
     catalog = _load_ru_messages()
     used: set[str] = set()
@@ -61,20 +72,27 @@ def main() -> int:
 
     missing = sorted(used - catalog)
     unused = sorted(catalog - used)
+    en_us_ok = EN_US_PO.is_file() and _count_po_msgids(EN_US_PO) == len(catalog)
 
     if missing:
         print("Missing ru_RU translations for msgids used in code:", file=sys.stderr)
         for msgid in missing:
             print(f"  - {msgid!r}", file=sys.stderr)
 
+    if not en_us_ok:
+        print(
+            f"en_US catalog incomplete: expected {len(catalog)} msgids in {EN_US_PO}",
+            file=sys.stderr,
+        )
+
     if unused:
-        print("Catalog entries not referenced by _('...') in dev_project/:")
+        print("Catalog entries not referenced by _('...') or plan_msg('...') in dev_project/:")
         for msgid in unused:
             print(f"  - {msgid!r}")
 
-    if missing:
+    if missing or not en_us_ok:
         return 1
-    print(f"OK: {len(used)} msgid(s) in code, ru_RU catalog covers all.")
+    print(f"OK: {len(used)} msgid(s) in code, ru_RU and en_US catalogs cover all.")
     return 0
 
 

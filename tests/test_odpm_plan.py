@@ -25,6 +25,7 @@ from dev_project.project_materializer import ProjectMaterializer
 from dev_project.scenario_policy import ScenarioPolicy
 
 from tests.debug_profile_test_helpers import make_debugger_env_mock
+from tests.i18n_test_helpers import host_locale
 
 
 class PlanPredicateTests(unittest.TestCase):
@@ -72,21 +73,31 @@ class PlanPredicateTests(unittest.TestCase):
 
 class OdpmPlannerTests(unittest.TestCase):
     def setUp(self):
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose",
+            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
             return_value=False,
         )
         self._recreate_patcher.start()
 
     def tearDown(self):
         self._recreate_patcher.stop()
+        self._locale_cm.__exit__(None, None, None)
 
     def _config(self, *, project_dir: str, args: OdpmCliArgs | None = None) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
+        config.program_dir = "/opt/odpm"
+        config.config_home_dir = project_dir
         config.arguments = args or OdpmCliArgs()
         config.user_settings = MagicMock()
         config.user_settings.check_system = True
+        config.project_settings = MagicMock()
+        config.docker_layout = MagicMock()
+        config.addon_layout = MagicMock()
+        config.user_env = MagicMock()
+        config.user_env.postgres_service_name = "db"
         config.create_module_links = True
         config.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -347,6 +358,7 @@ PREPARE_STEP_IDS = [
     "git.lock_load",
     "git.ensure_present",
     "git.materialize",
+    "hooks.post_clone",
     "project.map_folders",
     "git.lock_apply",
     "template.dockerfile",
@@ -370,18 +382,17 @@ PREPARE_STEP_IDS = [
 
 class ProjectMaterializerDryRunTests(unittest.TestCase):
     def test_dry_run_delegates_to_build_plan(self):
-        config = MagicMock()
-        args = OdpmCliArgs()
+        from dev_project.host.ports import PipelinePorts
+
+        ports = MagicMock(spec=PipelinePorts)
         with patch("dev_project.project_materializer.build_plan") as mock_build_plan:
             mock_build_plan.return_value = MagicMock()
             result = ProjectMaterializer().run(
-                config,
+                ports,
                 MagicMock(),
-                MagicMock(),
-                args,
                 dry_run=True,
             )
-        mock_build_plan.assert_called_once_with(config, args)
+        mock_build_plan.assert_called_once_with(ports)
         self.assertIs(result, mock_build_plan.return_value)
 
 
@@ -401,6 +412,8 @@ class OdpmPipelinePlanTests(unittest.TestCase):
 
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True), "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.ports = MagicMock()
+        pipeline.ports.plan.host_ctx = MagicMock()
         pipeline.project_environment = MagicMock()
         mock_planner.build.return_value = MagicMock()
 
@@ -408,14 +421,13 @@ class OdpmPipelinePlanTests(unittest.TestCase):
 
         mock_prepare.assert_not_called()
         mock_planner.build.assert_called_once_with(
-            pipeline.config,
-            pipeline.cli_args,
-            pipeline.project_environment,
+            pipeline.ports,
+            project_env=pipeline.project_environment,
         )
         mock_format_plan.assert_called_once_with(
             mock_planner.build.return_value,
             pipeline.cli_args,
-            pipeline.config,
+            pipeline.ports.plan.host_ctx,
         )
 
 

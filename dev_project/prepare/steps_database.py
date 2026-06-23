@@ -9,35 +9,38 @@ from ..database.drift import (
 )
 from ..database.resolve import resolve_database_drifts
 from ..plan import PlanStep
-from ..translations import _
+from ..plan.l10n import plan_msg
 from .helpers import make_plan_step
 from .types import PrepareContext
 
-_STEP_DESCRIPTION = _("Check database configuration drift against last_run snapshot")
-_MSG_NO_DRIFT = _("database configuration matches last_run snapshot")
-_MSG_FIRST_RUN = _("first database run (no last_run snapshot yet)")
+_STEP_DESCRIPTION = "Check database configuration drift against last_run snapshot"
+_MSG_NO_DRIFT = "database configuration matches last_run snapshot"
+_MSG_FIRST_RUN = "first database run (no last_run snapshot yet)"
 
 
 def evaluate_database_drift(ctx: PrepareContext) -> PlanStep:
     _current, drifts = ctx.detect_database_drift()
     meaningful = meaningful_database_drifts(drifts)
     pending = drifts_requiring_resolution(drifts)
+    description = plan_msg(_STEP_DESCRIPTION)
     if not meaningful:
-        reason = _MSG_FIRST_RUN if drifts else _MSG_NO_DRIFT
+        reason = plan_msg(_MSG_FIRST_RUN if drifts else _MSG_NO_DRIFT)
         return make_plan_step(
             "database.drift",
-            _STEP_DESCRIPTION,
+            description,
             "noop",
             False,
             reason,
         )
     kinds = ", ".join(drift.kind for drift in meaningful)
     required = has_blocking_database_drift(pending or meaningful)
-    reason = _("database configuration drift detected: {KINDS}").format(KINDS=kinds)
+    reason = plan_msg(
+        "database configuration drift detected: {KINDS}", KINDS=kinds
+    )
     outcome = "run" if pending else "noop"
     return make_plan_step(
         "database.drift",
-        _STEP_DESCRIPTION,
+        description,
         outcome,
         required,
         reason,

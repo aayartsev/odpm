@@ -13,6 +13,7 @@ except ImportError:
 from .. import constants
 from ..errors import ConfigError
 from ..translations import _
+from .v1_contract import resolve_v1_manifest_contract_line
 
 
 @dataclass(frozen=True)
@@ -49,9 +50,7 @@ def parse_manifest_version_info(raw: dict[str, Any]) -> ManifestVersionInfo:
         if requires is not None:
             requires_odpm = str(requires).strip() or None
         if schema == constants.MANIFEST_SCHEMA_V1:
-            contract = str(
-                raw.get("odpm_version", constants.DEFAULT_ODPM_VERSION)
-            ).strip()
+            contract = resolve_v1_manifest_contract_line(raw)
             return ManifestVersionInfo(
                 manifest_schema=schema,
                 v1_contract_line=contract,
@@ -62,9 +61,7 @@ def parse_manifest_version_info(raw: dict[str, Any]) -> ManifestVersionInfo:
             requires_odpm=requires_odpm,
         )
 
-    contract = str(
-        raw.get("odpm_version", constants.DEFAULT_ODPM_VERSION)
-    ).strip()
+    contract = resolve_v1_manifest_contract_line(raw)
     return ManifestVersionInfo(
         manifest_schema=constants.MANIFEST_SCHEMA_V1,
         v1_contract_line=contract,

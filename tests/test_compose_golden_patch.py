@@ -10,18 +10,18 @@ services:
   db:
     image: postgres:17
     ports:
-      - 5432:5432
+    - 5432:5432
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+    - postgres-data:/var/lib/postgresql/data
 
   odoo:
     image: odoo:test
     ports:
-      - 8069:8069
-      - 8072:8072
-      - 5678:5678
+    - 8069:8069
+    - 8072:8072
+    - 5678:5678
     volumes:
-      - ./data:/data
+    - ./data:/data
 
 volumes:
   postgres-data:
@@ -32,17 +32,17 @@ services:
   db-dev:
     image: postgres:17
     ports:
-      - 5432:5432
+    - 5432:5432
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+    - postgres-data:/var/lib/postgresql/data
 
   odoo:
     image: odoo:test
     ports:
-      - 8069:8069
-      - 8072:8072
+    - 8069:8069
+    - 8072:8072
     depends_on:
-      - db-dev
+    - db-dev
 
 volumes:
   postgres-data:

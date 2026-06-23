@@ -1,0 +1,5 @@
+"""Host-only YAML load/dump/merge (container code must not import this package)."""
+
+from .engine import dump_document, load_document, merge_services
+
+__all__ = ["dump_document", "load_document", "merge_services"]

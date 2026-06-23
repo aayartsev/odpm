@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from dev_project.compose.runtime import (
     compose_stack_is_healthy,
@@ -39,17 +39,17 @@ class ComposeStackHealthTests(unittest.TestCase):
         return config
 
     @patch("dev_project.compose.runtime.container_is_running_and_healthy", return_value=True)
-    @patch("dev_project.compose.runtime._running_container_id")
+    @patch("dev_project.compose.runtime._running_container_id_for_host")
     def test_compose_stack_is_healthy_uses_postgres_service_from_env(
         self, mock_running_id, _mock_health
     ):
         config = self._config(postgres_service_name="postgres")
         mock_running_id.side_effect = ["odoo-id", "postgres-id"]
         self.assertTrue(compose_stack_is_healthy(config))
-        mock_running_id.assert_any_call(config, "postgres")
+        mock_running_id.assert_any_call(ANY, "postgres")
 
     @patch("dev_project.compose.runtime.container_is_running_and_healthy", return_value=True)
-    @patch("dev_project.compose.runtime._running_container_id")
+    @patch("dev_project.compose.runtime._running_container_id_for_host")
     def test_compose_stack_is_healthy_when_both_services_up(
         self, mock_running_id, _mock_health
     ):
@@ -57,7 +57,7 @@ class ComposeStackHealthTests(unittest.TestCase):
         self.assertTrue(compose_stack_is_healthy(self._config()))
 
     @patch("dev_project.compose.runtime.container_is_running_and_healthy")
-    @patch("dev_project.compose.runtime._running_container_id")
+    @patch("dev_project.compose.runtime._running_container_id_for_host")
     def test_compose_stack_unhealthy_when_odoo_unhealthy(
         self, mock_running_id, mock_health
     ):
@@ -65,15 +65,21 @@ class ComposeStackHealthTests(unittest.TestCase):
         mock_health.side_effect = [False, True]
         self.assertFalse(compose_stack_is_healthy(self._config()))
 
-    @patch("dev_project.compose.runtime._running_container_id", return_value=None)
+    @patch("dev_project.compose.runtime._running_container_id_for_host", return_value=None)
     def test_compose_stack_unhealthy_when_service_missing(self, _mock_running_id):
         self.assertFalse(compose_stack_is_healthy(self._config()))
 
-    @patch("dev_project.compose.runtime.compose_stack_is_healthy", return_value=True)
+    @patch(
+        "dev_project.compose.runtime.compose_stack_is_healthy_for_host",
+        return_value=True,
+    )
     def test_should_not_force_recreate_when_healthy(self, _mock_stack):
         self.assertFalse(should_force_recreate_compose(self._config()))
 
-    @patch("dev_project.compose.runtime.compose_stack_is_healthy", return_value=False)
+    @patch(
+        "dev_project.compose.runtime.compose_stack_is_healthy_for_host",
+        return_value=False,
+    )
     def test_should_force_recreate_when_unhealthy(self, _mock_stack):
         self.assertTrue(should_force_recreate_compose(self._config()))
 

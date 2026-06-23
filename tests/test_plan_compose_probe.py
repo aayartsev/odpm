@@ -8,53 +8,87 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 import dev_project.host.cli.parse_args as parse_args_module
 from dev_project.plan import OdpmPlanner, format_plan
+from dev_project.host.context import HostProjectContext
 from dev_project.plan.compose_runtime import (
     PLAN_NO_DOCKER_WARNING,
     evaluate_compose_up_plan,
     plan_probes_compose_stack,
 )
+from dev_project.plan.l10n import plan_msg
+from dev_project.host.ports import RuntimePorts
 from dev_project.prepare import build_runtime_plan_warnings
 from dev_project.scenario_policy import ScenarioPolicy
+from tests.i18n_test_helpers import host_locale
 
 
 class PlanComposeRuntimeTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
+
+    def tearDown(self) -> None:
+        self._locale_cm.__exit__(None, None, None)
+
     def _config(self, project_dir: str = "/tmp/project") -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
         config.docker_compose_command = "docker compose"
         return config
 
+    def _host_ctx(self, project_dir: str = "/tmp/project") -> HostProjectContext:
+        return HostProjectContext(
+            project_dir=project_dir,
+            program_dir="/opt/odpm",
+            config_home_dir=project_dir,
+            policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO),
+            user_env=MagicMock(postgres_service_name="db"),
+            arguments=OdpmCliArgs(),
+            user_settings=MagicMock(),
+            project_settings=MagicMock(),
+            docker_layout=MagicMock(),
+            addon_layout=MagicMock(),
+            docker_compose_command="docker compose",
+        )
+
     def test_plan_probes_compose_stack_by_default(self):
         self.assertTrue(plan_probes_compose_stack(OdpmCliArgs()))
         self.assertFalse(plan_probes_compose_stack(OdpmCliArgs(plan_no_docker=True)))
 
     @patch(
-        "dev_project.compose.runtime.should_force_recreate_compose",
+        "dev_project.compose.runtime.should_force_recreate_compose_for_host",
         return_value=False,
     )
     def test_compose_up_reason_without_force_recreate_when_healthy(self, _mock):
-        reason, warnings = evaluate_compose_up_plan(self._config(), OdpmCliArgs())
+        reason, warnings = evaluate_compose_up_plan(self._host_ctx(), OdpmCliArgs())
         self.assertIn("without --force-recreate", reason)
         self.assertIn("healthy", reason)
         self.assertEqual(warnings, ())
 
     @patch(
-        "dev_project.compose.runtime.should_force_recreate_compose",
+        "dev_project.compose.runtime.should_force_recreate_compose_for_host",
         return_value=True,
     )
     def test_compose_up_reason_with_force_recreate_when_unhealthy(self, _mock):
-        reason, warnings = evaluate_compose_up_plan(self._config(), OdpmCliArgs())
+        reason, warnings = evaluate_compose_up_plan(self._host_ctx(), OdpmCliArgs())
         self.assertIn("with --force-recreate", reason)
         self.assertIn("unhealthy", reason)
         self.assertEqual(warnings, ())
 
     def test_plan_no_docker_skips_probe_and_warns(self):
         reason, warnings = evaluate_compose_up_plan(
-            self._config(),
+            self._host_ctx(),
             OdpmCliArgs(plan_no_docker=True),
         )
         self.assertIn("unknown", reason)
-        self.assertEqual(warnings, (PLAN_NO_DOCKER_WARNING,))
+        self.assertEqual(warnings, (plan_msg(PLAN_NO_DOCKER_WARNING),))
+
+    def _runtime_ports(self, *, plan_no_docker: bool = False) -> RuntimePorts:
+        return RuntimePorts(
+            host_ctx=self._host_ctx(),
+            args=OdpmCliArgs(plan_no_docker=plan_no_docker),
+            project_env=MagicMock(),
+            bootstrap=MagicMock(),
+        )
 
     @patch("dev_project.prepare.runtime.compose_up_would_run", return_value=True)
     @patch(
@@ -62,9 +96,7 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         return_value=("start compose stack with --force-recreate", ()),
     )
     def test_runtime_warnings_empty_when_probe_runs(self, _mock_eval, _mock_would_run):
-        config = MagicMock()
-        host_ctx = MagicMock()
-        warnings = build_runtime_plan_warnings(config, OdpmCliArgs(), host_ctx)
+        warnings = build_runtime_plan_warnings(self._runtime_ports())
         self.assertEqual(warnings, ())
 
     @patch("dev_project.prepare.runtime.compose_up_would_run", return_value=True)
@@ -75,17 +107,20 @@ class PlanComposeRuntimeTests(unittest.TestCase):
     def test_runtime_warnings_include_plan_no_docker_message(
         self, _mock_eval, _mock_would_run
     ):
-        config = MagicMock()
-        host_ctx = MagicMock()
         warnings = build_runtime_plan_warnings(
-            config,
-            OdpmCliArgs(plan_no_docker=True),
-            host_ctx,
+            self._runtime_ports(plan_no_docker=True),
         )
         self.assertIn(PLAN_NO_DOCKER_WARNING, warnings)
 
 
 class PlanComposeProbeIntegrationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
+
+    def tearDown(self) -> None:
+        self._locale_cm.__exit__(None, None, None)
+
     def _config(self, project_dir: str) -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
@@ -99,7 +134,7 @@ class PlanComposeProbeIntegrationTests(unittest.TestCase):
         return config
 
     @patch(
-        "dev_project.compose.runtime.should_force_recreate_compose",
+        "dev_project.compose.runtime.should_force_recreate_compose_for_host",
         return_value=True,
     )
     def test_plan_table_shows_force_recreate_reason(self, _mock):

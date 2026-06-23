@@ -60,7 +60,7 @@ class UserEnvDebuggerTests(unittest.TestCase):
             self.assertEqual(user_env.debugger_backend, DEFAULT_DEBUGGER_BACKEND)
             self.assertEqual(user_env.odpm_ide, DEFAULT_ODPM_IDE)
 
-    @patch("dev_project.host.user_env.prompt_input")
+    @patch("dev_project.host.user_env_wizard.prompt_input")
     def test_interactive_env_includes_debugger_keys(self, mock_prompt) -> None:
         mock_prompt.side_effect = ["", "", "", "", "", "", "1", "", "", ""]
 
@@ -74,7 +74,7 @@ class UserEnvDebuggerTests(unittest.TestCase):
             )
             self.assertEqual(env_data[ODPM_IDE_ENV], DEFAULT_ODPM_IDE)
 
-    @patch("dev_project.host.user_env.prompt_input")
+    @patch("dev_project.host.user_env_wizard.prompt_input")
     def test_interactive_pydevd_connect_prompts_connect_host_and_suspend(
         self, mock_prompt
     ) -> None:

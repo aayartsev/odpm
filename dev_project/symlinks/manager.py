@@ -8,11 +8,29 @@ from .types import SymlinksSources
 
 if TYPE_CHECKING:
     from ..config.config import Config
+    from ..host.context import HostProjectContext
 
 
 class SymlinkManager:
-    def __init__(self, config: Config) -> None:
+    def __init__(
+        self,
+        config: Config,
+        *,
+        host_ctx: HostProjectContext | None = None,
+    ) -> None:
         self.config = config
+        self._host_ctx_override = host_ctx
+        self._host_ctx_cached: HostProjectContext | None = None
+
+    @property
+    def _host_ctx(self) -> HostProjectContext:
+        if self._host_ctx_override is not None:
+            return self._host_ctx_override
+        if self._host_ctx_cached is None:
+            from ..host.context import HostProjectContext
+
+            self._host_ctx_cached = HostProjectContext.from_config(self.config)
+        return self._host_ctx_cached
 
     def _dependencies_link_dir(self) -> str:
         if self.config.dependencies_dir:
@@ -62,7 +80,7 @@ class SymlinkManager:
                 self.config.dependencies_dir, self.config.dependencies_dirs
             )
         list_of_all_modules = []
-        for catalog_of_modules in self.config.catalogs_of_modules_data:
+        for catalog_of_modules in self._host_ctx.addon_layout.catalogs_of_modules_data:
             list_of_all_modules.extend(catalog_of_modules.list_of_modules)
 
         if list_of_all_modules:

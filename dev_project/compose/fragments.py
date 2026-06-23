@@ -7,10 +7,10 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from ..yaml import dump_document
+
 if TYPE_CHECKING:
     from ..extensions.context import ExtensionHostContext
-
-from .command_render import yaml_scalar
 
 _COMPOSE_FRAGMENTS_GITIGNORE = "*\n!.gitignore\n"
 
@@ -93,8 +93,7 @@ def materialize_compose_fragments(
         if existing.name != ".gitignore":
             existing.unlink()
     for name, spec in sorted(services.items()):
-        block = render_compose_services_block({name: spec})
-        service_yaml = block.strip() + "\n"
+        service_yaml = dump_document({name: spec}).rstrip() + "\n"
         Path(fragments_dir, f"{name}.yml").write_text(service_yaml, encoding="utf-8")
     Path(compose_fragments_snapshot_path(project_dir)).write_text(
         services_snapshot_text(services),
@@ -108,43 +107,6 @@ def render_compose_services_block(services: dict[str, dict[str, Any]]) -> str:
         return ""
     lines: list[str] = []
     for name, spec in sorted(services.items()):
-        lines.append(f"  {name}:")
-        lines.extend(_render_mapping(spec, indent=4))
+        for line in dump_document({name: spec}).splitlines():
+            lines.append(f"  {line}")
     return "\n".join(lines) + "\n"
-
-
-def _render_mapping(value: dict[str, Any], *, indent: int) -> list[str]:
-    lines: list[str] = []
-    for key, item in value.items():
-        lines.extend(_render_key_value(str(key), item, indent=indent))
-    return lines
-
-
-def _render_key_value(key: str, value: Any, *, indent: int) -> list[str]:
-    prefix = " " * indent
-    if isinstance(value, dict):
-        lines = [f"{prefix}{key}:"]
-        for child_key, child_value in value.items():
-            lines.extend(_render_key_value(str(child_key), child_value, indent=indent + 2))
-        return lines
-    if isinstance(value, list):
-        lines = [f"{prefix}{key}:"]
-        for item in value:
-            if isinstance(item, dict):
-                lines.append(f"{prefix}  -")
-                for child_key, child_value in item.items():
-                    lines.extend(
-                        _render_key_value(str(child_key), child_value, indent=indent + 4)
-                    )
-            else:
-                lines.append(f"{prefix}  - {_render_scalar(item)}")
-        return lines
-    return [f"{prefix}{key}: {_render_scalar(value)}"]
-
-
-def _render_scalar(value: Any) -> str:
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    if value is None:
-        return "null"
-    return yaml_scalar(str(value))

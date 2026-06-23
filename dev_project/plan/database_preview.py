@@ -10,13 +10,13 @@ from ..database.drift import (
     meaningful_database_drifts,
 )
 from ..database.drift_format import format_database_drift_warning
-from ..translations import _
+from .l10n import plan_msg
 
 if TYPE_CHECKING:
     from ..config import Config
     from ..host.context import HostProjectContext
 
-MSG_DATABASE_DRIFT_BLOCKING = _(
+MSG_DATABASE_DRIFT_BLOCKING = (
     "Blocking database configuration drift detected; resolve before starting containers."
 )
 
@@ -28,7 +28,7 @@ def collect_database_drift_warnings(config: Config) -> tuple[str, ...]:
     warnings = [format_database_drift_warning(drift) for drift in drifts]
     meaningful = meaningful_database_drifts(drifts)
     if meaningful and has_blocking_database_drift(meaningful):
-        warnings.append(MSG_DATABASE_DRIFT_BLOCKING)
+        warnings.append(plan_msg(MSG_DATABASE_DRIFT_BLOCKING))
     return tuple(warnings)
 
 

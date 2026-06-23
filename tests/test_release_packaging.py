@@ -23,8 +23,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 class ReleasePackagingVersionTests(unittest.TestCase):
     def test_odpm_version_aliases_release_version(self):
         self.assertEqual(constants.ODPM_VERSION, constants.RELEASE_VERSION)
-        self.assertEqual(constants.RELEASE_VERSION, "4.4.3")
-        self.assertEqual(constants.LATEST_STABLE_RELEASE, "4.4.3")
+        self.assertEqual(constants.RELEASE_VERSION, "4.5.0")
+        self.assertEqual(constants.LATEST_STABLE_RELEASE, "4.5.0")
 
     def test_manifest_contract_line_stays_separate_from_product_version(self):
         self.assertEqual(constants.MANIFEST_V1_CONTRACT_LINE, "4.0")
@@ -54,19 +54,19 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertIn("Version:        %{version}", spec)
         self.assertIn(f"%global version {rpm_version}", spec)
         self.assertIn(f"%global release {rpm_release}", spec)
+        self.assertIn("python3-ruamel-yaml", spec)
 
     def test_release_version_parses_for_rpm(self):
         rpm_version, rpm_release = rpm_version_and_release(constants.RELEASE_VERSION)
-        self.assertEqual(rpm_version, "4.4.3")
+        self.assertEqual(rpm_version, "4.5.0")
         self.assertEqual(rpm_release, "1")
         base, suffix = parse_release_version(constants.RELEASE_VERSION)
-        self.assertEqual(base, "4.4.3")
+        self.assertEqual(base, "4.5.0")
         self.assertIsNone(suffix)
 
     def test_release_version_parses_for_debian(self):
+        self.assertEqual(debian_upstream_version("4.5.0-beta"), "4.5.0~beta")
         self.assertEqual(debian_upstream_version("4.4.3-beta"), "4.4.3~beta")
-        self.assertEqual(debian_upstream_version("4.4.2-beta"), "4.4.2~beta")
-        self.assertEqual(debian_upstream_version("4.4.2"), "4.4.2")
         self.assertEqual(debian_upstream_version("4.4.3"), "4.4.3")
 
     def test_release_tag_matches_release_version(self):
@@ -78,7 +78,7 @@ class ReleasePackagingVersionTests(unittest.TestCase):
 
     def test_wheel_version_uses_pep440_normalization(self):
         self.assertEqual(str(Version("4.4.2-beta")), "4.4.2b0")
-        self.assertEqual(str(Version(constants.RELEASE_VERSION)), "4.4.3")
+        self.assertEqual(str(Version(constants.RELEASE_VERSION)), "4.5.0")
 
     def test_release_packages_prerelease_golden_path_gate(self):
         workflow = (

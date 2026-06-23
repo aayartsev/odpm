@@ -61,7 +61,7 @@ Before `--write`, save a copy or commit the current `odpm.json`.
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.4.3",
+  "requires_odpm": "4.5.0",
   "platform": {
     "git": "https://github.com/odoo/odoo.git 19.0",
     "build_date": "latest"
@@ -113,5 +113,5 @@ Details: [deps-lock.md](deps-lock.md#two-lock-sources-v1-flat-vs-v2-nested).
 ## Compatibility
 
 - **`odpm_version: "4.0"`** in flat v1 — format contract string, **not** the manager version.
-- **`requires_odpm: "4.4.3"`** in v2 — minimum installed odpm version (semver); new projects get current `RELEASE_VERSION`.
+- **`requires_odpm: "4.5.0"`** in v2 — minimum installed odpm version (semver); new projects get current `RELEASE_VERSION`.
 - Details: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).

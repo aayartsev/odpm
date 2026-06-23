@@ -1,5 +1,10 @@
 """Extension registry API for odpm plugins (4.4+)."""
 
+from .api import (
+    EXTENSION_API_VERSION,
+    SUPPORTED_EXTENSION_API_VERSIONS,
+    assert_extension_api_compatible,
+)
 from .context import ExtensionHostContext
 from .protocols import (
     ComposeFragmentPlugin,
@@ -27,6 +32,8 @@ from .registry import (
 from .specs import OdpmExtensionSpecs, PROJECT_NAME
 
 __all__ = [
+    "EXTENSION_API_VERSION",
+    "SUPPORTED_EXTENSION_API_VERSIONS",
     "ComposeFragmentPlugin",
     "ExtensionHostContext",
     "HookRunner",
@@ -35,6 +42,7 @@ __all__ = [
     "PrepareStepPlugin",
     "PrepareStepRegistration",
     "PROJECT_NAME",
+    "assert_extension_api_compatible",
     "clear_registered_prepare_steps",
     "get_compose_fragment",
     "get_hook_runner",

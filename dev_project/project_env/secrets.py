@@ -10,6 +10,7 @@ from typing import Any
 from .. import constants
 from ..errors import ConfigError
 from ..logging import get_module_logger
+from ..translations import _
 
 _logger = get_module_logger(__name__)
 
@@ -31,21 +32,28 @@ def secrets_example_path(project_dir: str) -> str:
 
 def parse_secrets_payload(data: Any) -> dict[str, str]:
     if not isinstance(data, dict):
-        raise ConfigError("secrets file must be a JSON object")
+        raise ConfigError(_("secrets file must be a JSON object"))
     version = data.get("schema_version")
     if version != SECRETS_SCHEMA_VERSION:
         raise ConfigError(
-            f"unsupported secrets schema_version: {version!r} (expected {SECRETS_SCHEMA_VERSION})"
+            _(
+                "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
+            ).format(
+                VERSION=repr(version),
+                EXPECTED=SECRETS_SCHEMA_VERSION,
+            )
         )
     secrets_raw = data.get("secrets")
     if not isinstance(secrets_raw, dict):
-        raise ConfigError("secrets file must contain a 'secrets' object")
+        raise ConfigError(_("secrets file must contain a 'secrets' object"))
     secrets: dict[str, str] = {}
     for key, value in secrets_raw.items():
         if not isinstance(key, str) or not key.strip():
-            raise ConfigError("secrets keys must be non-empty strings")
+            raise ConfigError(_("secrets keys must be non-empty strings"))
         if not isinstance(value, str):
-            raise ConfigError(f"secret value for {key!r} must be a string")
+            raise ConfigError(
+                _("secret value for {KEY} must be a string").format(KEY=repr(key))
+            )
         secrets[key] = value
     return secrets
 
@@ -54,9 +62,17 @@ def validate_secrets_file(path: str) -> dict[str, str]:
     try:
         raw = json.loads(Path(path).read_text(encoding="utf-8"))
     except OSError as exc:
-        raise ConfigError(f"cannot read secrets file {path}: {exc}") from exc
+        raise ConfigError(
+            _("cannot read secrets file {PATH}: {DETAIL}").format(
+                PATH=path, DETAIL=exc
+            )
+        ) from exc
     except json.JSONDecodeError as exc:
-        raise ConfigError(f"invalid JSON in secrets file {path}: {exc}") from exc
+        raise ConfigError(
+            _("invalid JSON in secrets file {PATH}: {DETAIL}").format(
+                PATH=path, DETAIL=exc
+            )
+        ) from exc
     return parse_secrets_payload(raw)
 
 
@@ -181,7 +197,9 @@ def prepare_secrets_for_ci_bake(project_dir: str) -> bool:
 def import_secrets_from_path(project_dir: str, external_path: str) -> str:
     external = os.path.abspath(os.path.expanduser(external_path))
     if not os.path.isfile(external):
-        raise ConfigError(f"secrets file not found: {external}")
+        raise ConfigError(
+            _("secrets file not found: {PATH}").format(PATH=external)
+        )
 
     permission_warning = check_secrets_file_permissions(external)
     if permission_warning:

@@ -22,6 +22,7 @@ class ExtensionHostContext:
     manifest_services: dict[str, Any] | None = None
     manifest_hooks: dict[str, Any] | None = None
     manifest_locks: dict[str, Any] | None = None
+    manifest_extensions: dict[str, Any] | None = None
 
     @classmethod
     def from_config(cls, config: Config) -> ExtensionHostContext:
@@ -34,6 +35,7 @@ class ExtensionHostContext:
             manifest_services=view.services if view is not None else None,
             manifest_hooks=view.hooks if view is not None else None,
             manifest_locks=view.locks if view is not None else None,
+            manifest_extensions=view.extensions if view is not None else None,
         )
 
     @property

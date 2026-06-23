@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..logging import get_module_logger
+from ..translations import _
 from .constants import (
     DEBUGGER_BACKEND_VALUES,
     DEFAULT_DEBUGGER_BACKEND,
@@ -18,7 +19,7 @@ def parse_debugger_backend(raw: str | None) -> str:
     value = (raw or "").strip() or DEFAULT_DEBUGGER_BACKEND
     if value not in DEBUGGER_BACKEND_VALUES:
         _logger.warning(
-            "Unknown ODPM_DEBUGGER_BACKEND=%r, using %s",
+            _("Unknown ODPM_DEBUGGER_BACKEND=%r, using %s"),
             raw,
             DEFAULT_DEBUGGER_BACKEND,
         )
@@ -30,7 +31,7 @@ def parse_odpm_ide(raw: str | None) -> str:
     value = (raw or "").strip() or DEFAULT_ODPM_IDE
     if value not in ODPM_IDE_VALUES:
         _logger.warning(
-            "Unknown ODPM_IDE=%r, using %s",
+            _("Unknown ODPM_IDE=%r, using %s"),
             raw,
             DEFAULT_ODPM_IDE,
         )
@@ -49,5 +50,5 @@ def parse_debugger_suspend(raw: str | None) -> bool:
         return False
     if value in {"1", "true", "yes", "on", "y"}:
         return True
-    _logger.warning("Unknown ODPM_DEBUGGER_SUSPEND=%r, using false", raw)
+    _logger.warning(_("Unknown ODPM_DEBUGGER_SUSPEND=%r, using false"), raw)
     return False

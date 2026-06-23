@@ -36,8 +36,9 @@ class InstallDocsP2Tests(unittest.TestCase):
     def test_install_readme_links_stable_and_beta(self):
         for rel in ("docs/install/README.md", "docs/en/install/README.md"):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
-            self.assertIn("4.4.3", text)
+            self.assertIn("4.5.0", text)
             self.assertIn("/odpm/stable/", text)
+            self.assertIn("/4.5.0-beta/", text)
             self.assertIn("/4.4.3-beta/", text)
             self.assertIn("/4.4.2-beta/", text)
             self.assertIn("documentation-versions", text)
@@ -53,11 +54,34 @@ class InstallDocsP2Tests(unittest.TestCase):
                 )
         stable = (notes_dir / "4.4.3.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/stable/", stable)
+        stable45 = (notes_dir / "4.5.0.md").read_text(encoding="utf-8")
+        self.assertIn("/odpm/stable/", stable45)
+        self.assertIn("odpm_4.5.0-1_all.deb", stable45)
         beta = (notes_dir / "4.4.3-beta.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/stable/", beta)
         self.assertIn("/odpm/4.4.3-beta/", beta)
+        beta45 = (notes_dir / "4.5.0-beta.md").read_text(encoding="utf-8")
+        self.assertIn("/odpm/stable/", beta45)
+        self.assertIn("/odpm/4.5.0-beta/", beta45)
         archived = (notes_dir / "4.4.2-beta.md").read_text(encoding="utf-8")
         self.assertIn("/odpm/4.4.2-beta/", archived)
+
+    def test_ci_workflows_target_45_dev_branch(self):
+        for rel in (
+            ".github/workflows/ci.yml",
+            ".github/workflows/ci-docker.yml",
+            ".github/workflows/docs.yml",
+        ):
+            text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
+            with self.subTest(workflow=rel):
+                self.assertIn("4.5-dev", text)
+
+    def test_ci_yml_defines_i18n_job(self):
+        workflow = (PROJECT_ROOT / ".github/workflows/ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("i18n:", workflow)
+        self.assertIn("check_i18n_catalog.py", workflow)
 
     def test_finalize_publishes_yum_repo_templates(self):
         script = (PROJECT_ROOT / "scripts" / "mike_pages_finalize.sh").read_text(

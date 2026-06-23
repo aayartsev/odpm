@@ -91,6 +91,7 @@ jobs:
               set -euo pipefail
               dnf install -y -q rpm-build python3-devel python3-setuptools \
                 python3-wheel python3-packaging python3-jsonschema python3-pluggy \
+                python3-ruamel-yaml \
                 git >/dev/null
               ./scripts/build_rpm.sh
             '

@@ -18,6 +18,14 @@ class ParseManifestVersionInfoTests(unittest.TestCase):
         self.assertEqual(info.manifest_schema, constants.MANIFEST_SCHEMA_V1)
         self.assertEqual(info.v1_contract_line, constants.DEFAULT_ODPM_VERSION)
 
+    def test_missing_odpm_version_logs_legacy_warning(self):
+        with self.assertLogs("dev_project.manifest.v1_contract", level="WARNING") as logs:
+            contract = parse_manifest_version_info({"odoo_version": "17.0"}).v1_contract_line
+        self.assertEqual(contract, constants.DEFAULT_ODPM_VERSION)
+        self.assertTrue(
+            any("missing odpm_version" in message for message in logs.output)
+        )
+
     def test_flat_manifest_reads_odpm_version_contract_line(self):
         info = parse_manifest_version_info({"odpm_version": "4.0"})
         self.assertEqual(info.manifest_schema, constants.MANIFEST_SCHEMA_V1)

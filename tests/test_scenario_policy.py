@@ -63,6 +63,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.allows_venv_recreate())
         self.assertTrue(policy.is_ci())
         self.assertFalse(policy.is_developer())
+        self.assertEqual(policy.base_image_profile, "ci")
 
     def test_ci_does_not_mount_runtime_config_from_host(self):
         policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)

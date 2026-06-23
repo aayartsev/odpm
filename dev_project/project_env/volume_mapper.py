@@ -112,7 +112,9 @@ class VolumeMapper:
                     pathlib.PurePosixPath(docker_dir_with_addons, os.pardir)
                 )
             if list_of_subprojects:
-                self.config.catalogs_of_modules_data.extend(list_of_subprojects)
+                self.env.host_ctx.addon_layout.catalogs_of_modules_data.extend(
+                    list_of_subprojects
+                )
                 for subproject in list_of_subprojects:
                     self.config.docker_dirs_with_addons.append(
                         str(

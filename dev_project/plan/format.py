@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from ..host.cli.args import OdpmCliArgs
+from ..host.context import HostProjectContext
+from ..translations import _
 from .core import OdpmPlan, PlanStep
-
-if TYPE_CHECKING:
-    from ..config import Config
 
 PLAN_JSON_VERSION = 1
 
@@ -25,13 +24,13 @@ def _format_required(step: PlanStep) -> str:
 
 
 def compose_up_info_from_plan(
-    plan: OdpmPlan, config: Config, args: OdpmCliArgs
+    plan: OdpmPlan, host_ctx: HostProjectContext, args: OdpmCliArgs
 ) -> dict[str, Any] | None:
     if not any(step.id == "compose.up" for step in plan.steps):
         return None
     from .compose_runtime import compose_up_force_recreate_value
 
-    return {"force_recreate": compose_up_force_recreate_value(config, args)}
+    return {"force_recreate": compose_up_force_recreate_value(host_ctx, args)}
 
 
 def plan_step_to_dict(step: PlanStep) -> dict[str, Any]:
@@ -53,13 +52,15 @@ def plan_diff_to_dict(file_diff) -> dict[str, Any]:
     return payload
 
 
-def plan_to_dict(plan: OdpmPlan, config: Config, args: OdpmCliArgs) -> dict[str, Any]:
+def plan_to_dict(
+    plan: OdpmPlan, host_ctx: HostProjectContext, args: OdpmCliArgs
+) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "plan_version": PLAN_JSON_VERSION,
         "steps": [plan_step_to_dict(step) for step in plan.steps],
         "warnings": list(plan.warnings),
     }
-    compose_up = compose_up_info_from_plan(plan, config, args)
+    compose_up = compose_up_info_from_plan(plan, host_ctx, args)
     if compose_up is not None:
         payload["compose_up"] = compose_up
     if plan.diffs:
@@ -68,7 +69,10 @@ def plan_to_dict(plan: OdpmPlan, config: Config, args: OdpmCliArgs) -> dict[str,
 
 
 def format_plan_table(plan: OdpmPlan) -> str:
-    lines = ["Action   Required  ID                    Reason", "-" * 72]
+    lines = [
+        _("Action   Required  ID                    Reason"),
+        "-" * 72,
+    ]
     for step in plan.steps:
         lines.append(
             f"{step.outcome.upper():<8} {_format_required(step):<8}  "
@@ -76,12 +80,12 @@ def format_plan_table(plan: OdpmPlan) -> str:
         )
     if plan.warnings:
         lines.append("")
-        lines.append("Warnings:")
+        lines.append(_("Warnings:"))
         for warning in plan.warnings:
             lines.append(f"- {warning}")
     if plan.diffs:
         lines.append("")
-        lines.append("Planned changes:")
+        lines.append(_("Planned changes:"))
         for file_diff in plan.diffs:
             if file_diff.unified_diff:
                 header = file_diff.path
@@ -96,9 +100,11 @@ def format_plan_table(plan: OdpmPlan) -> str:
     return "\n".join(lines)
 
 
-def format_plan_json(plan: OdpmPlan, config: Config, args: OdpmCliArgs) -> str:
+def format_plan_json(
+    plan: OdpmPlan, host_ctx: HostProjectContext, args: OdpmCliArgs
+) -> str:
     return json.dumps(
-        plan_to_dict(plan, config, args),
+        plan_to_dict(plan, host_ctx, args),
         ensure_ascii=False,
         indent=2,
     )
@@ -114,10 +120,10 @@ def resolve_plan_format(args: OdpmCliArgs | None) -> str:
 def format_plan(
     plan: OdpmPlan,
     args: OdpmCliArgs | None = None,
-    config: Config | None = None,
+    host_ctx: HostProjectContext | None = None,
 ) -> str:
     if resolve_plan_format(args) == "json":
-        if config is None:
-            raise ValueError("config is required for JSON plan output")
-        return format_plan_json(plan, config, args or OdpmCliArgs())
+        if host_ctx is None:
+            raise ValueError("host_ctx is required for JSON plan output")
+        return format_plan_json(plan, host_ctx, args or OdpmCliArgs())
     return format_plan_table(plan)

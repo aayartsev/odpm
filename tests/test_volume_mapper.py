@@ -28,7 +28,6 @@ class VolumeMapperTests(unittest.TestCase):
         config.docker_extra_addons = "/docker/addons"
         config.dependencies_projects = []
         config.dependencies_dirs = []
-        config.catalogs_of_modules_data = []
         config.docker_dirs_with_addons = []
         config.pre_commit_map_files = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
@@ -39,6 +38,10 @@ class VolumeMapperTests(unittest.TestCase):
         env.config = config
         env.user_env = user_env
         env.mapped_folders = []
+        layout = MagicMock()
+        layout.catalogs_of_modules_data = []
+        env.host_ctx = MagicMock()
+        env.host_ctx.addon_layout = layout
         return env
 
     def test_build_base_folders_includes_developing_project(self):

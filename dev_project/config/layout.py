@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from .. import constants
 from ..dev_mode import dev_mode_disabled
+from ..dockerfile_profiles import resolve_dockerfile_template_name
 from ..logging import get_module_logger
 from ..debugger.constants import (
     DEBUGGER_BACKEND_PYDEVD_CONNECT,
@@ -34,8 +35,11 @@ def apply_policy_and_layout(config: Config) -> None:
     if arch == "auto":
         arch = constants.ARCH
 
-    dockerfile_template_name = (
-        f"{config.distro_name}_{config.distro_version.replace('.', '')}_dockerfile"
+    dockerfile_template_name = resolve_dockerfile_template_name(
+        config.program_dir,
+        config.distro_name,
+        config.distro_version,
+        config.policy.base_image_profile,
     )
     project_dockerfile_template_path = os.path.join(
         config.pd_manager.project_path,

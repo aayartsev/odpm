@@ -1,0 +1,100 @@
+# Weekly integration matrix (I2): fixture golden-path, CI image build, deb install smoke.
+name: CI Integration Weekly
+
+on:
+  schedule:
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-integration-weekly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ODPM_COMPOSE_SMOKE_IMAGE: odoo-amd64-python-3.12-debian-12-full:latest
+
+jobs:
+  fixture-golden-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install odpm (editable)
+        run: pip install -e .
+
+      - name: Restore odpm base image cache
+        uses: actions/cache@v5
+        with:
+          path: /tmp/odpm-ci-docker-cache
+          key: odpm-compose-smoke-v1-${{ hashFiles('dev_project/templates/**', 'tests/fixtures/minimal_odpm_project/**') }}
+          restore-keys: |
+            odpm-compose-smoke-v1-
+
+      - name: Load cached odpm base image
+        run: |
+          if [[ -f /tmp/odpm-ci-docker-cache/odoo-base.tar ]]; then
+            docker load -i /tmp/odpm-ci-docker-cache/odoo-base.tar
+          fi
+
+      - name: Run fixture golden-path integration test
+        env:
+          ODPM_RUN_FIXTURE_GOLDEN_PATH: "1"
+          ODPM_FIXTURE_GOLDEN_TIMEOUT: "900"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+          ODPM_COMPOSE_DEBUG_DIR: /tmp/odpm-compose-debug
+        run: python -m unittest tests.integration.test_fixture_golden_path -v
+
+      - name: Upload compose debug bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-golden-compose-logs
+          path: /tmp/odpm-compose-debug/
+          if-no-files-found: ignore
+
+  ci-image-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install odpm (editable)
+        run: pip install -e .
+
+      - name: Run CI image build integration test
+        env:
+          ODPM_RUN_DOCKER_INTEGRATION: "1"
+        run: python -m unittest tests.integration.test_ci_image_build -v
+
+  deb-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq debhelper dh-python devscripts lintian
+
+      - name: Build and install-smoke .deb
+        run: ./scripts/build_deb.sh && ./scripts/smoke_deb_install.sh

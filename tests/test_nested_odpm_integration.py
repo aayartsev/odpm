@@ -89,7 +89,6 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
     config.developing_project = MagicMock(project_path="")
     config.pre_commit_map_files = []
     config.check_project_for_subprojects = MagicMock(return_value=[])
-    config.catalogs_of_modules_data = []
     config.platform_name = "odoo"
     config.arch = "amd64"
     config.sql_queries = []

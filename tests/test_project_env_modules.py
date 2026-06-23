@@ -200,7 +200,7 @@ class BaseImageBuilderTests(unittest.TestCase):
         with self.assertLogs("dev_project.project_env.base_image", level="INFO") as logs:
             self._builder().ensure_base_image()
         self.assertTrue(
-            any("no identity stamp" in message for message in logs.output)
+            any("missing identity stamp" in message for message in logs.output)
         )
         mock_build.assert_called_once()
 
@@ -212,12 +212,29 @@ class BaseImageBuilderTests(unittest.TestCase):
         return_value=False,
     )
     @patch(
+        "dev_project.project_env.base_image.expected_base_image_identity",
+        return_value={
+            "user": "odoo",
+            "uid": "1000",
+            "gid": "1000",
+            "base_image_profile": "full",
+            "dockerfile_sha256": "abc",
+        },
+    )
+    @patch(
         "dev_project.project_env.base_image.read_base_image_identity",
-        return_value={"user": "odoo", "uid": "9999", "gid": "9999"},
+        return_value={
+            "user": "odoo",
+            "uid": "9999",
+            "gid": "9999",
+            "base_image_profile": "full",
+            "dockerfile_sha256": "abc",
+        },
     )
     def test_ensure_base_image_logs_identity_mismatch(
         self,
         _mock_read,
+        _mock_expected,
         _mock_matches,
         _mock_exists,
         mock_build,
@@ -226,7 +243,7 @@ class BaseImageBuilderTests(unittest.TestCase):
         with self.assertLogs("dev_project.project_env.base_image", level="INFO") as logs:
             self._builder().ensure_base_image()
         self.assertTrue(
-            any("different runtime identity" in message for message in logs.output)
+            any("runtime Unix identity changed" in message for message in logs.output)
         )
         mock_build.assert_called_once()
 
@@ -239,7 +256,13 @@ class BaseImageBuilderTests(unittest.TestCase):
     )
     @patch(
         "dev_project.project_env.base_image.read_base_image_identity",
-        return_value={"user": "odoo", "uid": "9999", "gid": "9999"},
+        return_value={
+            "user": "odoo",
+            "uid": "9999",
+            "gid": "9999",
+            "base_image_profile": "full",
+            "dockerfile_sha256": "abc",
+        },
     )
     def test_ensure_base_image_rebuilds_when_identity_mismatch(
         self, _mock_read, _mock_matches, _mock_exists, mock_build, mock_write_identity

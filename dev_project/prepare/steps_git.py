@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..plan import PlanStep, deps_lock_file_exists
+from ..plan.l10n import plan_msg
 from .helpers import (
     lock_source_label,
     lock_verify_available,
@@ -16,14 +17,17 @@ from .types import PrepareContext
 
 def evaluate_git_lock_load(ctx: PrepareContext) -> PlanStep:
     source = lock_source_label(ctx)
-    description = f"Load git lock from {source} and enter apply mode before checkout"
+    description = plan_msg(
+        "Load git lock from {SOURCE} and enter apply mode before checkout",
+        SOURCE=source,
+    )
     if skip_git(ctx):
         return make_plan_step(
             "git.lock_load",
             description,
             "skip",
             False,
-            "skipped with --no-git-update",
+            plan_msg("skipped with --no-git-update"),
         )
     if update_lock(ctx):
         return make_plan_step(
@@ -31,45 +35,47 @@ def evaluate_git_lock_load(ctx: PrepareContext) -> PlanStep:
             description,
             "skip",
             False,
-            "skipped with --update-lock",
+            plan_msg("skipped with --update-lock"),
         )
     return make_plan_step(
         "git.lock_load",
         description,
         "run",
         True,
-        f"load git lock from {source} before checkout",
+        plan_msg("load git lock from {SOURCE} before checkout", SOURCE=source),
     )
 
 
 def evaluate_git_ensure_present(ctx: PrepareContext) -> PlanStep:
-    description = "Verify local platform and developing git directories exist"
+    description = plan_msg("Verify local platform and developing git directories exist")
     if not skip_git(ctx):
         return make_plan_step(
             "git.ensure_present",
             description,
             "skip",
             False,
-            "git repos will be materialized",
+            plan_msg("git repos will be materialized"),
         )
     return make_plan_step(
         "git.ensure_present",
         description,
         "run",
         True,
-        "verify local git directories exist",
+        plan_msg("verify local git directories exist"),
     )
 
 
 def evaluate_git_materialize(ctx: PrepareContext) -> PlanStep:
-    description = "Clone or update platform, developing, and dependency git repos"
+    description = plan_msg(
+        "Clone or update platform, developing, and dependency git repos"
+    )
     if skip_git(ctx):
         return make_plan_step(
             "git.materialize",
             description,
             "skip",
             False,
-            "skipped with --no-git-update",
+            plan_msg("skipped with --no-git-update"),
         )
     if update_lock(ctx):
         return make_plan_step(
@@ -77,27 +83,27 @@ def evaluate_git_materialize(ctx: PrepareContext) -> PlanStep:
             description,
             "run",
             True,
-            "materialize repos before writing deps.lock",
+            plan_msg("materialize repos before writing deps.lock"),
         )
     return make_plan_step(
         "git.materialize",
         description,
         "run",
         True,
-        "clone or update git repos",
+        plan_msg("clone or update git repos"),
     )
 
 
 def evaluate_git_lock_apply(ctx: PrepareContext) -> PlanStep:
     source = lock_source_label(ctx)
-    description = f"Apply pinned commits from {source} before checkout"
+    description = plan_msg("Apply pinned commits from {SOURCE} before checkout", SOURCE=source)
     if skip_git(ctx) or update_lock(ctx):
         return make_plan_step(
             "git.lock_apply",
             description,
             "skip",
             False,
-            "lock apply not used in this mode",
+            plan_msg("lock apply not used in this mode"),
         )
     if (
         not deps_lock_file_exists(ctx.host_ctx.project_dir)
@@ -108,72 +114,72 @@ def evaluate_git_lock_apply(ctx: PrepareContext) -> PlanStep:
             description,
             "skip",
             False,
-            "no git lock source available",
+            plan_msg("no git lock source available"),
         )
     return make_plan_step(
         "git.lock_apply",
         description,
         "run",
         True,
-        f"apply pinned commits from {source}",
+        plan_msg("apply pinned commits from {SOURCE}", SOURCE=source),
     )
 
 
 def evaluate_git_checkout(ctx: PrepareContext) -> PlanStep:
-    description = "Checkout dependency repos to odoo version branch"
+    description = plan_msg("Checkout dependency repos to odoo version branch")
     if skip_git(ctx):
         return make_plan_step(
             "git.checkout",
             description,
             "skip",
             False,
-            "skipped with --no-git-update",
+            plan_msg("skipped with --no-git-update"),
         )
     return make_plan_step(
         "git.checkout",
         description,
         "run",
         True,
-        "checkout dependency repos",
+        plan_msg("checkout dependency repos"),
     )
 
 
 def evaluate_git_lock_collect(ctx: PrepareContext) -> PlanStep:
-    description = "Collect resolved git commits and write .odpm/deps.lock.json"
+    description = plan_msg("Collect resolved git commits and write .odpm/deps.lock.json")
     if not update_lock(ctx):
         return make_plan_step(
             "git.lock_collect",
             description,
             "skip",
             False,
-            "only used with --update-lock",
+            plan_msg("only used with --update-lock"),
         )
     return make_plan_step(
         "git.lock_collect",
         description,
         "update",
         True,
-        "write deps.lock.json from resolved commits",
+        plan_msg("write deps.lock.json from resolved commits"),
     )
 
 
 def evaluate_git_lock_verify(ctx: PrepareContext) -> PlanStep:
     source = lock_source_label(ctx)
-    description = f"Verify checked-out commits match {source}"
+    description = plan_msg("Verify checked-out commits match {SOURCE}", SOURCE=source)
     if not lock_verify_available(ctx):
         return make_plan_step(
             "git.lock_verify",
             description,
             "skip",
             False,
-            "lock verify not applicable",
+            plan_msg("lock verify not applicable"),
         )
     return make_plan_step(
         "git.lock_verify",
         description,
         "run",
         ctx.host_ctx.policy.is_ci(),
-        f"verify checked-out commits match {source}",
+        plan_msg("verify checked-out commits match {SOURCE}", SOURCE=source),
     )
 
 

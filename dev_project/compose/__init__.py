@@ -1,10 +1,5 @@
 """Docker Compose service spec, file generation, and runtime helpers."""
 
-from .command_render import (
-    render_compose_command_block,
-    render_odpm_config_path_env_line,
-    yaml_scalar,
-)
 from .start_command import ComposeOdooService, StartCommand
 
 __all__ = [
@@ -24,6 +19,14 @@ __all__ = [
 
 
 def __getattr__(name: str):
+    if name in (
+        "render_compose_command_block",
+        "render_odpm_config_path_env_line",
+        "yaml_scalar",
+    ):
+        from . import command_render as command_render_module
+
+        return getattr(command_render_module, name)
     if name == "ComposeGenerator":
         from .generator import ComposeGenerator
 

@@ -6,9 +6,11 @@ from ..git.deps_lock_manager import DepsLockManager
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
 from ..git.deps_lock import deps_lock_path, load_deps_lock
-from ..host.context import HostProjectContext
+from ..host.ports import PipelinePorts, ports_from_config
 from ..logging import get_module_logger
+from ..translations import _
 from ..plan import OdpmPlan, PlanStep, deps_lock_file_exists
+from ..plan.l10n import plan_msg
 from .helpers import skip_git, update_lock
 from .registry import get_prepare_steps
 from .runtime import build_runtime_plan_steps, build_runtime_plan_warnings
@@ -51,21 +53,27 @@ def _resolve_prepare_services(
 
 
 def make_prepare_context(
-    config: Config,
+    ports_or_config: PipelinePorts | Config,
     project_env: CreateProjectEnvironment,
     system_checker: SystemCheckerProtocol,
-    args: OdpmCliArgs,
+    args: OdpmCliArgs | None = None,
 ) -> PrepareContext:
+    if isinstance(ports_or_config, PipelinePorts):
+        ports = ports_or_config
+        resolved_args = ports.plan.args
+    else:
+        resolved_args = args if args is not None else ports_or_config.arguments
+        ports = ports_from_config(ports_or_config, project_env, resolved_args)
     templates, compose_generator, links = _resolve_prepare_services(project_env)
     return PrepareContext(
-        config=config,
+        ports=ports,
         project_env=project_env,
         templates=templates,
         compose_generator=compose_generator,
         links=links,
         system_checker=system_checker,
-        args=args,
-        host_ctx=HostProjectContext.from_config(config, arguments=args),
+        args=resolved_args,
+        host_ctx=ports.plan.host_ctx,
     )
 
 
@@ -81,16 +89,18 @@ def _manifest_schema_v2(manifest_view) -> bool:
 def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     warnings: list[str] = []
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
-        warnings.append("--update-lock cannot be used together with --no-git-update")
+        warnings.append(
+            plan_msg("--update-lock cannot be used together with --no-git-update")
+        )
     if ctx.host_ctx.sync_manifest_locks and not ctx.host_ctx.update_lock:
-        warnings.append("--sync-manifest-locks requires --update-lock")
+        warnings.append(plan_msg("--sync-manifest-locks requires --update-lock"))
     elif (
         ctx.host_ctx.sync_manifest_locks
         and ctx.host_ctx.update_lock
         and not ctx.host_ctx.policy.is_developer()
     ):
         warnings.append(
-            "--sync-manifest-locks is only supported in developer scenario"
+            plan_msg("--sync-manifest-locks is only supported in developer scenario")
         )
     elif (
         ctx.host_ctx.update_lock
@@ -99,8 +109,10 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
         and _manifest_schema_v2(ctx.manifest_view)
     ):
         warnings.append(
-            "deps.lock will be updated; manifest locks.git unchanged "
-            "(use --sync-manifest-locks with --update-lock)"
+            plan_msg(
+                "deps.lock will be updated; manifest locks.git unchanged "
+                "(use --sync-manifest-locks with --update-lock)"
+            )
         )
     if (
         deps_lock_file_exists(ctx.host_ctx.project_dir)
@@ -111,13 +123,15 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
             load_deps_lock(deps_lock_path(ctx.host_ctx.project_dir))
         except ValueError:
             warnings.append(
-                "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+                plan_msg(
+                    "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+                )
             )
     from ..plan.secrets_preview import secrets_gitignore_warning
 
     gitignore_warning = secrets_gitignore_warning(ctx.host_ctx.project_dir)
     if gitignore_warning:
-        warnings.append(gitignore_warning)
+        warnings.append(plan_msg(gitignore_warning))
     from ..plan.database_preview import collect_database_drift_warnings_for_host
     from ..plan.locks_preview import collect_git_lock_warnings
 
@@ -139,47 +153,94 @@ def collect_execute_step_ids(ctx: PrepareContext) -> tuple[str, ...]:
 
 
 def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
+    from ..extensions.registry import ensure_project_extensions_loaded
+    from ..plan.fragments_preview import expand_compose_fragment_plan_steps
+    from ..plan.hooks_preview import (
+        build_manifest_hook_plan_steps,
+        insert_prepare_hook_steps,
+    )
+
+    manifest_view = ctx.manifest_view
+    ensure_project_extensions_loaded(
+        ctx.host_ctx.project_dir,
+        manifest_extensions=(
+            manifest_view.extensions if manifest_view is not None else None
+        ),
+    )
+    steps = list(evaluate_prepare_plan(ctx))
+    steps = expand_compose_fragment_plan_steps(steps, ctx)
+    hook_steps = build_manifest_hook_plan_steps(ctx.extension_host())
+    steps = insert_prepare_hook_steps(steps, hook_steps)
     return OdpmPlan(
-        steps=evaluate_prepare_plan(ctx),
+        steps=tuple(steps),
         warnings=collect_prepare_warnings(ctx),
     )
 
 
 def build_plan(
-    config: Config,
-    args: OdpmCliArgs,
+    ports_or_config: PipelinePorts | Config,
+    args: OdpmCliArgs | None = None,
     project_env: CreateProjectEnvironment | None = None,
 ) -> OdpmPlan:
+    if isinstance(ports_or_config, PipelinePorts):
+        ports = ports_or_config
+        prepare_env = (
+            ports.compose.project_env
+            if project_env is not None
+            else PlanOnlyProjectEnv()  # type: ignore[arg-type]
+        )
+    else:
+        config = ports_or_config
+        resolved_args = args if args is not None else config.arguments
+        ports = ports_from_config(
+            config,
+            project_env or CreateProjectEnvironment(config),
+            resolved_args,
+        )
+        prepare_env = PlanOnlyProjectEnv()  # type: ignore[arg-type]
     ctx = make_prepare_context(
-        config,
-        PlanOnlyProjectEnv(),  # type: ignore[arg-type]
+        ports,
+        prepare_env,
         PlanOnlySystemChecker(),  # type: ignore[arg-type]
-        args,
     )
     prepare_plan = build_prepare_plan(ctx)
-    runtime_steps = build_runtime_plan_steps(
-        config, args, ctx.host_ctx, project_env
+    from ..plan.hooks_preview import (
+        build_manifest_hook_plan_steps,
+        insert_runtime_hook_steps,
     )
-    runtime_warnings = build_runtime_plan_warnings(config, args, ctx.host_ctx)
+
+    hook_steps = build_manifest_hook_plan_steps(ctx.extension_host())
+    runtime_steps = list(build_runtime_plan_steps(ports.runtime, project_env))
+    runtime_steps = insert_runtime_hook_steps(runtime_steps, hook_steps)
+    runtime_warnings = build_runtime_plan_warnings(ports.runtime)
     return OdpmPlan(
-        steps=prepare_plan.steps + runtime_steps,
+        steps=prepare_plan.steps + tuple(runtime_steps),
         warnings=prepare_plan.warnings + runtime_warnings,
     )
 
 
 def validate_prepare_context(ctx: PrepareContext) -> None:
     if ctx.host_ctx.update_lock and ctx.host_ctx.skip_git_update:
-        message = "--update-lock cannot be used together with --no-git-update"
+        message = _("--update-lock cannot be used together with --no-git-update")
         _logger.error(message)
         raise PipelineError(message, exit_code=1)
     if ctx.host_ctx.sync_manifest_locks and not ctx.host_ctx.update_lock:
-        message = "--sync-manifest-locks requires --update-lock"
+        message = _("--sync-manifest-locks requires --update-lock")
         _logger.error(message)
         raise PipelineError(message, exit_code=1)
 
 
 def execute_prepare(ctx: PrepareContext) -> None:
+    from ..extensions.registry import ensure_project_extensions_loaded
+
     validate_prepare_context(ctx)
+    manifest_view = ctx.manifest_view
+    ensure_project_extensions_loaded(
+        ctx.host_ctx.project_dir,
+        manifest_extensions=(
+            manifest_view.extensions if manifest_view is not None else None
+        ),
+    )
     ctx.lock_manager = DepsLockManager(ctx.config)
     for step_def in get_prepare_steps():
         outcome = step_def.evaluate(ctx)

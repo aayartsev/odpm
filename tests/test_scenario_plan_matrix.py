@@ -16,7 +16,9 @@ from dev_project.plan import OdpmPlan, OdpmPlanner, PlanStep, format_plan
 from dev_project.plan.compose_runtime import PLAN_NO_DOCKER_WARNING
 from dev_project.prepare import make_prepare_context
 from dev_project.project_env.secrets import import_secrets_from_path
+from dev_project.translations import update_locale
 from tests.fixtures.minimal_odpm_fixture import provision_minimal_odpm_project
+from tests.i18n_test_helpers import host_locale
 from tests.scenario_plan_matrix_helpers import (
     build_matrix_plan,
     invalid_v2_manifest_payload,
@@ -41,8 +43,17 @@ class _MatrixProjectTestCase(unittest.TestCase):
         self._previous_home = os.environ.get("HOME")
         os.environ["HOME"] = str(self._home)
         self._provision_seq = 0
+        self._previous_odpm_locale = os.environ.get(constants.ODPM_LOCALE_ENV_KEY)
+        os.environ[constants.ODPM_LOCALE_ENV_KEY] = "en_US"
+        self._locale_cm = host_locale("en_US")
+        self._locale_cm.__enter__()
 
     def tearDown(self) -> None:
+        self._locale_cm.__exit__(None, None, None)
+        if self._previous_odpm_locale is None:
+            os.environ.pop(constants.ODPM_LOCALE_ENV_KEY, None)
+        else:
+            os.environ[constants.ODPM_LOCALE_ENV_KEY] = self._previous_odpm_locale
         if self._previous_home is None:
             os.environ.pop("HOME", None)
         else:
@@ -201,6 +212,52 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
             plan_step(plan, "compose.fragments").outcome,
             ("run", "update"),
         )
+        self.assertTrue(plan_has_step(plan, "compose.fragment.mailpit"))
+        self.assertIn(
+            plan_step(plan, "compose.fragment.mailpit").outcome,
+            ("run", "update"),
+        )
+
+    def test_a18_plan_includes_manifest_hook_steps_on_v2(self) -> None:
+        project_dir = self._provision(
+            scenario=constants.DEVELOPER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        odpm_path = project_dir / "developing" / "odpm.json"
+        payload = json.loads(odpm_path.read_text(encoding="utf-8"))
+        payload["hooks"] = {
+            "post_clone": [["echo", "cloned"]],
+            "post_prepare": [["echo", "prepare-done"]],
+            "pre_up": [["echo", "pre-up"]],
+        }
+        odpm_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        plan, _pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertEqual(plan_step(plan, "hooks.post_clone").outcome, "run")
+        self.assertEqual(plan_step(plan, "hooks.post_prepare").outcome, "run")
+        self.assertEqual(plan_step(plan, "hooks.pre_up").outcome, "run")
+
+    def test_a19_extension_prepare_step_in_plan_matrix(self) -> None:
+        from dev_project.extensions.registry import reset_extension_registry_state
+        from tests.fixtures.sample_plugin import sample_odpm_plugin
+
+        reset_extension_registry_state()
+        sample_odpm_plugin.register_sample_plugin()
+        try:
+            project_dir = self._provision(scenario=constants.DEVELOPER_SCENARIO)
+            plan, _pipeline = build_matrix_plan(
+                project_dir,
+                OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+            )
+            self.assertTrue(plan_has_step(plan, sample_odpm_plugin.SAMPLE_PREPARE_STEP_ID))
+            self.assertEqual(
+                plan_step(plan, sample_odpm_plugin.SAMPLE_PREPARE_STEP_ID).outcome,
+                "noop",
+            )
+        finally:
+            reset_extension_registry_state()
 
     @patch("dev_project.config.payload.write_runtime_config")
     def test_a17_plan_evaluate_does_not_write_runtime(self, mock_write) -> None:
@@ -414,8 +471,29 @@ class PlanMatrixFlagsTests(_MatrixProjectTestCase):
             project_dir,
             OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
         )
-        text = format_plan(plan, OdpmCliArgs(plan=True), pipeline.config)
+        update_locale("en_US")
+        text = format_plan(plan, OdpmCliArgs(plan=True), pipeline.project_environment.host_ctx)
         self.assertIn("Action   Required  ID", text)
+
+    def test_a6_plan_format_table_ru_reasons(self) -> None:
+        project_dir = self._provision(scenario=constants.DEVELOPER_SCENARIO)
+        previous = os.environ.get(constants.ODPM_LOCALE_ENV_KEY)
+        os.environ[constants.ODPM_LOCALE_ENV_KEY] = "ru_RU"
+        try:
+            with host_locale("ru_RU"):
+                plan, pipeline = build_matrix_plan(
+                    project_dir,
+                    OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+                )
+                text = format_plan(
+                    plan, OdpmCliArgs(plan=True), pipeline.project_environment.host_ctx
+                )
+        finally:
+            if previous is None:
+                os.environ.pop(constants.ODPM_LOCALE_ENV_KEY, None)
+            else:
+                os.environ[constants.ODPM_LOCALE_ENV_KEY] = previous
+        self.assertIn("пропущено с --no-git-update", text)
 
     def test_a7_plan_show_diff(self) -> None:
         project_dir = self._provision(scenario=constants.CI_SCENARIO)

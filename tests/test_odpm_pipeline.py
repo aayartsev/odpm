@@ -6,7 +6,9 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.errors import ConfigError, PipelineError
+from dev_project.host.ports import ports_from_config
 from dev_project.odpm_pipeline import OdpmPipeline
+from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.prepare_test_helpers import stub_prepare_service_executions
@@ -17,6 +19,16 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         args = OdpmCliArgs(**{"build_image": False, "skip_start": False, **args_overrides})
         config = MagicMock()
         config.user_env.odpm_ide = "vscode"
+        config.user_env.odoo_port = 8069
+        config.project_dir = "/tmp/project"
+        config.docker_compose_command = "docker compose"
+        config.program_dir = "/opt/odpm"
+        config.config_home_dir = "/tmp/project"
+        config.user_settings = MagicMock()
+        config.project_settings = MagicMock()
+        config.docker_layout = MagicMock()
+        config.addon_layout = MagicMock()
+        config.arguments = args
         project_env = MagicMock()
         return RuntimeCoordinator(args, config, project_env)
 
@@ -167,7 +179,9 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
 
 class RuntimeCoordinatorComposeTests(unittest.TestCase):
     def _coordinator(self, config: MagicMock) -> RuntimeCoordinator:
-        return RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
+        project_env = MagicMock()
+        project_env.host_ctx = HostProjectContext.from_config(config)
+        return RuntimeCoordinator(OdpmCliArgs(), config, project_env)
 
     def test_build_compose_up_argv_force_recreate_explicit(self):
         config = MagicMock()
@@ -214,7 +228,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         )
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=True,
     )
     def test_build_compose_up_argv_auto_detects_force_recreate(self, _mock_should):
@@ -225,7 +239,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         self.assertIn("--force-recreate", argv)
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
     def test_start_containers_uses_subprocess(self, _mock_should):
@@ -242,7 +256,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         )
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
     def test_start_containers_raises_pipeline_error_on_compose_failure(
@@ -265,7 +279,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         mock_log_failed.assert_called_once_with(17)
 
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose",
+        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
     def test_start_containers_skips_host_compose_summary_for_developer(
@@ -485,6 +499,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     def test_prepare_delegates_to_project_materializer(self, mock_materializer_cls):
         pipeline = OdpmPipeline(OdpmCliArgs(skip_start=True), "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.ports = MagicMock()
         pipeline.project_environment = MagicMock()
         pipeline.system_checker = MagicMock()
         materializer = MagicMock()
@@ -494,18 +509,22 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
 
         mock_materializer_cls.assert_called_once_with()
         materializer.run.assert_called_once_with(
-            pipeline.config,
-            pipeline.project_environment,
+            pipeline.ports,
             pipeline.system_checker,
-            pipeline.cli_args,
         )
 
     def _pipeline_with_mocks(self, **args_overrides) -> OdpmPipeline:
         args = OdpmCliArgs(build_image=False, skip_start=True, **args_overrides)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.config.arguments = args
         pipeline.project_environment = MagicMock()
         pipeline.system_checker = MagicMock()
+        pipeline.ports = ports_from_config(
+            pipeline.config,
+            pipeline.project_environment,
+            args,
+        )
         return pipeline
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
@@ -569,6 +588,11 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             )
             pipeline = self._pipeline_with_mocks()
             pipeline.config.project_dir = tmp
+            pipeline.ports = ports_from_config(
+                pipeline.config,
+                pipeline.project_environment,
+                pipeline.cli_args,
+            )
             with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
                 manager = MagicMock()
                 manager.apply_mode = True

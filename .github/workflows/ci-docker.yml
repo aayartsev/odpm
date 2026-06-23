@@ -1,8 +1,9 @@
-# Docker integration CI (4.2 policy):
-# - compose-smoke: required PR gate — minimal in-repo fixture (v1 flat); secrets
+# Docker integration CI (4.5 policy — ADR-006):
+# - compose-smoke: required PR gate (T1) — minimal in-repo fixture (v1 flat); secrets
 #   pipeline validated via tests.test_ci_secrets_smoke (developer mount + ci bake).
 # - compose-smoke-mailpit: manifest v2 + services.mailpit (ODPM_COMPOSE_SMOKE_MAILPIT=1).
-# - golden-path: opt-in on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED +
+# - http-smoke: required PR gate (T2) — ephemeral GHA; Mailpit compose up + HTTP 200.
+# - golden-path: opt-in T3 on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED +
 #   secret ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
 
@@ -12,12 +13,14 @@ on:
       - 4.0-beta
       - 4.0-rc1
       - 4.4-dev
+      - 4.5-dev
       - main
   pull_request:
     branches:
       - 4.0-beta
       - 4.0-rc1
       - 4.4-dev
+      - 4.5-dev
       - main
   schedule:
     # Nightly full golden-path (requires ODPM_GOLDEN_PATH_ENABLED + secret).
@@ -37,7 +40,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ODPM_COMPOSE_SMOKE_IMAGE: odoo-amd64-python-3.12-debian-12:latest
+  ODPM_COMPOSE_SMOKE_IMAGE: odoo-amd64-python-3.12-debian-12-full:latest
 
 jobs:
   # PR merge gate: tests/fixtures/minimal_odpm_project (see README CI matrix).
@@ -87,6 +90,23 @@ jobs:
           ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
         run: python -m unittest tests.integration.test_compose_smoke.ComposeSmokeMailpitIntegrationTests -v
 
+      - name: Install sample plugin for extension E2E
+        run: pip install -e tests/fixtures/sample_plugin
+
+      - name: Run plugin compose E2E (sample_plugin + Mailpit manifest)
+        env:
+          ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
+          ODPM_COMPOSE_SMOKE_PLUGIN: "1"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+        run: python -m unittest tests.integration.test_plugin_compose_e2e -v
+
+      - name: Run hooks integration E2E (shell + local Python runner)
+        env:
+          ODPM_RUN_DOCKER_COMPOSE_SMOKE: "1"
+          ODPM_COMPOSE_SMOKE_HOOKS: "1"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+        run: python -m unittest tests.integration.test_hooks_integration_e2e -v
+
       - name: Save odpm base image to cache
         if: steps.docker-image-cache.outputs.cache-hit != 'true'
         run: |
@@ -95,7 +115,55 @@ jobs:
             docker save "${ODPM_COMPOSE_SMOKE_IMAGE}" -o /tmp/odpm-ci-docker-cache/odoo-base.tar
           fi
 
-  # Opt-in E2E: skipped without ODPM_GOLDEN_PATH_ENABLED (not a false green).
+  # Mandatory PR gate (ADR-006 T2): ephemeral ubuntu-latest, in-repo Mailpit fixture.
+  http-smoke:
+    needs: compose-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install odpm (editable)
+        run: pip install -e .
+
+      - name: Restore odpm base image cache
+        id: docker-image-cache
+        uses: actions/cache@v5
+        with:
+          path: /tmp/odpm-ci-docker-cache
+          key: odpm-compose-smoke-v1-${{ hashFiles('dev_project/templates/**', 'tests/fixtures/minimal_odpm_project/**') }}
+          restore-keys: |
+            odpm-compose-smoke-v1-
+
+      - name: Load cached odpm base image
+        if: steps.docker-image-cache.outputs.cache-hit == 'true'
+        run: |
+          if [[ -f /tmp/odpm-ci-docker-cache/odoo-base.tar ]]; then
+            docker load -i /tmp/odpm-ci-docker-cache/odoo-base.tar
+          fi
+
+      - name: Run HTTP smoke integration test
+        env:
+          ODPM_RUN_HTTP_SMOKE: "1"
+          ODPM_HTTP_SMOKE_TIMEOUT: "600"
+          ODPM_COMPOSE_SMOKE_TIMEOUT: "900"
+          ODPM_COMPOSE_DEBUG_DIR: /tmp/odpm-compose-debug
+        run: python -m unittest tests.integration.test_http_smoke -v
+
+      - name: Upload compose debug bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: http-smoke-compose-logs
+          path: /tmp/odpm-compose-debug/
+          if-no-files-found: ignore
+
+  # Opt-in E2E (T3): skipped without ODPM_GOLDEN_PATH_ENABLED (not a false green).
   # secrets.* cannot be used in job if: — use a repo variable for the gate.
   golden-path:
     needs: compose-smoke
@@ -110,7 +178,7 @@ jobs:
         )
       )
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v6
 
@@ -149,5 +217,14 @@ jobs:
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          ODPM_GOLDEN_PATH_TIMEOUT: "900"
+          ODPM_GOLDEN_PATH_TIMEOUT: "2400"
+          ODPM_COMPOSE_DEBUG_DIR: /tmp/odpm-compose-debug
         run: .ci-golden-venv/bin/python -m unittest tests.integration.test_golden_path -v
+
+      - name: Upload compose debug bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-path-compose-logs
+          path: /tmp/odpm-compose-debug/
+          if-no-files-found: ignore

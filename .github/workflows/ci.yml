@@ -6,12 +6,14 @@ on:
       - 4.0-beta
       - 4.0-rc1
       - 4.4-dev
+      - 4.5-dev
       - main
   pull_request:
     branches:
       - 4.0-beta
       - 4.0-rc1
       - 4.4-dev
+      - 4.5-dev
       - main
   workflow_dispatch:
 
@@ -31,6 +33,25 @@ jobs:
       - uses: astral-sh/ruff-action@v4.0.0
         with:
           args: check dev_project tests odpm.py
+
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install gettext tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq gettext
+
+      - name: Verify host i18n catalogs
+        run: python3 scripts/check_i18n_catalog.py
+
+      - name: i18n coverage inventory (non-blocking)
+        run: python3 scripts/audit_user_strings.py --summary
 
   unit:
     runs-on: ubuntu-latest

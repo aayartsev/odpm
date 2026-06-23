@@ -11,14 +11,35 @@ msgstr " Файл с параметрами \"config.json\" является у�
 msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .env"
 
+msgid "--sync-manifest-locks is only supported in developer scenario"
+msgstr "--sync-manifest-locks поддерживается только в developer-сценарии"
+
+msgid "--sync-manifest-locks is only supported in developer scenario; manifest locks.git unchanged"
+msgstr "--sync-manifest-locks поддерживается только в developer-сценарии; manifest locks.git не изменён"
+
+msgid "--sync-manifest-locks requires --update-lock"
+msgstr "--sync-manifest-locks требует --update-lock"
+
+msgid "--update-lock cannot be used together with --no-git-update"
+msgstr "Нельзя использовать --update-lock вместе с --no-git-update"
+
+msgid ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
+msgstr "файл .odpm/secrets.json существует, но не указан в .odpm/.gitignore; риск случайного коммита"
+
 msgid "Accepted database drift: {KIND}"
 msgstr "Принят дрейф конфигурации БД: {KIND}"
+
+msgid "Action   Required  ID                    Reason"
+msgstr "Действие  Обязат.   ID                    Причина"
 
 msgid "Adopting current database configuration as baseline (no last_run snapshot yet)."
 msgstr "Принимаем текущую конфигурацию БД как baseline (снимок last_run ещё не создан)."
 
 msgid "Application role {ROLE} present: {VALUE}"
 msgstr "Роль приложения {ROLE} присутствует: {VALUE}"
+
+msgid "Apply pinned commits from {SOURCE} before checkout"
+msgstr "Применить закреплённые коммиты из {SOURCE} перед checkout"
 
 msgid "Applying git dependency lock from manifest locks.git in odpm.json"
 msgstr "Применение git lock из manifest locks.git в odpm.json"
@@ -38,6 +59,15 @@ msgstr "После разрешения дрейфа остаётся блоки
 msgid "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
 msgstr "Создание роли приложения PostgreSQL {ROLE} в single-user режиме."
 
+msgid "Build CI Docker image from prepared context"
+msgstr "Собрать CI Docker-образ из подготовленного контекста"
+
+msgid "Build compose start command and write .odpm/runtime/config.json when stale"
+msgstr "Собрать команду запуска compose и записать .odpm/runtime/config.json при устаревании"
+
+msgid "Build docker volume mapping for Odoo, venv, and addons"
+msgstr "Построить маппинг docker-томов для Odoo, venv и аддонов"
+
 msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgstr "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
 
@@ -50,8 +80,14 @@ msgstr "Не удалось получить информацию о Docker Comp
 msgid "Cannot list Docker containers: {DETAILS}"
 msgstr "Не удалось получить список контейнеров Docker: {DETAILS}"
 
+msgid "Cannot load local plugin module: {PATH}"
+msgstr "Не удалось загрузить локальный модуль плагина: {PATH}"
+
 msgid "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
 msgstr "Канонические git-пины: locks.git в odpm.json; выполните --update-lock, чтобы обновить .odpm/deps.lock.json."
+
+msgid "Check Docker engine"
+msgstr "Проверить Docker engine"
 
 msgid "Check `docker compose ps` and the English log output above for details."
 msgstr "Проверьте `docker compose ps` и английский лог выше для подробностей."
@@ -62,8 +98,20 @@ msgstr "Проверить дрейф конфигурации БД относи
 msgid "Checking out {REF} for {PROJECT}"
 msgstr "Переключение на {REF} для {PROJECT}"
 
+msgid "Checkout dependency repos to odoo version branch"
+msgstr "Переключить репозитории зависимостей на ветку версии Odoo"
+
+msgid "Clone or update platform, developing, and dependency git repos"
+msgstr "Клонировать или обновить platform, developing и git-зависимости"
+
+msgid "Collect resolved git commits and write .odpm/deps.lock.json"
+msgstr "Собрать разрешённые git-коммиты и записать .odpm/deps.lock.json"
+
 msgid "Compose service: {SERVICE}"
 msgstr "Сервис compose: {SERVICE}"
+
+msgid "Compose stack health was not probed; --force-recreate is unknown"
+msgstr "Состояние compose-стека не проверялось; --force-recreate неизвестен"
 
 msgid "Compose stack is healthy; reusing existing containers without --force-recreate"
 msgstr "Стек compose в порядке; перезапуск без --force-recreate"
@@ -113,6 +161,9 @@ msgstr "Не изменяйте данный параметр, его значе
 msgid "Do you want to clone odoo? y/n\n"
 msgstr "Вы хотите клонировать odoo? y/n\n"
 
+msgid "Docker compose command is not configured; stack health was not probed"
+msgstr "Команда docker compose не настроена; состояние стека не проверялось"
+
 msgid "Ensured PostgreSQL application role {ROLE} during baseline adoption."
 msgstr "Роль приложения PostgreSQL {ROLE} создана при принятии baseline."
 
@@ -149,14 +200,38 @@ msgstr "Источник git lock: .odpm/deps.lock.json; после смены �
 msgid "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA in locks.git and run --update-lock to sync .odpm/deps.lock.json."
 msgstr "Источник git lock: locks.git в odpm.json (канон); правьте SHA в locks.git и выполните --update-lock для синхронизации .odpm/deps.lock.json."
 
+msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
+msgstr "Плагин хука {PLUGIN_ID} не реализует {METHOD}"
+
 msgid "Host port: {PORT}"
 msgstr "Порт на host: {PORT}"
 
 msgid "If you want drop this file to default values, just delete it"
 msgstr "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
 
+msgid "Interactive input is not available in non-interactive mode."
+msgstr "Интерактивный ввод недоступен в неинтерактивном режиме."
+
+msgid "Invalid %s=%r, falling back to system locale"
+msgstr "Недопустимое значение %s=%r, используется системная локаль"
+
+msgid "Invalid %s=%r, using system locale %s"
+msgstr "Недопустимое значение %s=%r, используется системная локаль %s"
+
+msgid "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+msgstr "Некорректный .odpm/deps.lock.json; шаг проверки lock исключён из плана"
+
+msgid "Invalid ODPM_IDE choice %r, using %s"
+msgstr "Недопустимое значение ODPM_IDE %r, используется %s"
+
 msgid "Invalid choice. Please enter one of: {CHOICES}"
 msgstr "Неверный выбор. Введите один из вариантов: {CHOICES}"
+
+msgid "Invalid debugger backend choice %r, using %s"
+msgstr "Недопустимое значение backend отладчика %r, используется %s"
+
+msgid "Invalid local plugin module name: {NAME!r}"
+msgstr "Недопустимое имя локального модуля плагина: {NAME!r}"
 
 msgid "Invalid manifest hook {PHASE}: empty command"
 msgstr "Недопустимый manifest hook {PHASE}: пустая команда"
@@ -176,6 +251,21 @@ msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожида�
 msgid "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
 msgstr "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
 
+msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
+msgstr "Загрузить git lock из {SOURCE} и включить режим apply перед checkout"
+
+msgid "Loaded git dependency lock from manifest locks.git"
+msgstr "Загружен git lock зависимостей из manifest locks.git"
+
+msgid "Local plugin module not found: {PATH}"
+msgstr "Локальный модуль плагина не найден: {PATH}"
+
+msgid "Local plugin path escapes .odpm/plugins: {NAME!r}"
+msgstr "Путь локального плагина выходит за пределы .odpm/plugins: {NAME!r}"
+
+msgid "Manifest at {PATH} is not valid JSON."
+msgstr "Файл manifest {PATH} не является корректным JSON."
+
 msgid "Manifest at {PATH} is valid ({SCHEMA} JSON Schema)."
 msgstr "Манифест {PATH} корректен (JSON Schema {SCHEMA})."
 
@@ -193,6 +283,15 @@ msgstr "Manifest требует odpm менеджер {REQUIRES} или нове
 
 msgid "Manifest root must be a JSON object."
 msgstr "Корень манифеста должен быть JSON-объектом."
+
+msgid "Materialize .odpm/runtime/secrets.json from .odpm/secrets.json"
+msgstr "Материализовать .odpm/runtime/secrets.json из .odpm/secrets.json"
+
+msgid "Materialize compose fragment for service {NAME}"
+msgstr "Материализовать compose-фрагмент для сервиса {NAME}"
+
+msgid "Materialize manifest and plugin compose service fragments"
+msgstr "Материализовать compose-фрагменты из manifest и плагинов"
 
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
@@ -226,6 +325,9 @@ msgstr "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}."
 
 msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
 msgstr "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}.\nВыберите: (a) отмена  (c) продолжить\n"
+
+msgid "Planned changes:"
+msgstr "Планируемые изменения:"
 
 msgid "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
 msgstr "Git-репозиторий platform в {odoo_src_dir} ещё не готов; клонирование выполнится на этапе prepare (шаг git.materialize)."
@@ -320,8 +422,32 @@ msgstr "Подготовка окружения Odoo (зависимости, ш
 msgid "Project files are ready."
 msgstr "Файлы проекта готовы."
 
+msgid "PyCharm run configuration already present"
+msgstr "Конфигурация запуска PyCharm уже присутствует"
+
 msgid "Recorded database baseline snapshot at {PATH}."
 msgstr "Записан снимок baseline БД: {PATH}."
+
+msgid "Refresh project symlinks for local codebase access"
+msgstr "Обновить симлинки проекта для локального доступа к коду"
+
+msgid "Regenerate project Dockerfile from odpm template"
+msgstr "Перегенерировать Dockerfile проекта из шаблона odpm"
+
+msgid "Regenerate project odoo.conf from .odpm template"
+msgstr "Перегенерировать odoo.conf проекта из шаблона .odpm"
+
+msgid "Regenerate root .dockerignore from .odpm/dockerignore"
+msgstr "Перегенерировать корневой .dockerignore из .odpm/dockerignore"
+
+msgid "Render docker-compose.yml from project template"
+msgstr "Сгенерировать docker-compose.yml из шаблона проекта"
+
+msgid "Run docker compose up"
+msgstr "Запустить docker compose up"
+
+msgid "Run manifest {PHASE} lifecycle hooks"
+msgstr "Выполнить lifecycle hooks manifest ({PHASE})"
 
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Запуск скрипта от root/sudo запрещен"
@@ -356,17 +482,26 @@ msgstr "Укажите язык сообщений odpm на host. Локаль 
 msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
 msgstr "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
 
+msgid "Skipping developing lock apply in developer scenario; git state is managed by the developer"
+msgstr "Пропуск применения lock developing в developer-сценарии; состояние git управляется разработчиком"
+
 msgid "Starting PostgreSQL service {SERVICE} for baseline adoption."
 msgstr "Запуск сервиса PostgreSQL {SERVICE} для принятия baseline."
 
 msgid "Starting containers with Docker Compose..."
 msgstr "Запуск контейнеров через Docker Compose..."
 
+msgid "Stop containers occupying odpm ports"
+msgstr "Остановить контейнеры, занимающие порты odpm"
+
 msgid "Suspend Odoo until PyCharm Debug Server connects? Answer y/yes or n/no (Enter for no):\n"
 msgstr "Приостанавливать Odoo до подключения PyCharm Debug Server? Ответьте y/yes или n/no (Enter — нет):\n"
 
 msgid "Switching project {PROJECT_NAME} to branch {BRANCH_NAME}"
 msgstr "Переключение проекта {PROJECT_NAME} на ветку {BRANCH_NAME}"
+
+msgid "System checker is not attached to CreateProjectEnvironment"
+msgstr "Системная проверка окружения не подключена к проекту."
 
 msgid "The {ODOO_GIT_LINK_PARAM} parameter can only be used together with the {INIT_PARAM} parameter"
 msgstr "Параметр {ODOO_GIT_LINK_PARAM} может использоваться только совместно с параметром {INIT_PARAM}"
@@ -377,20 +512,26 @@ msgstr "Данный каталог уже является {PROJECT_NAME} пр�
 msgid "This is not {PROJECT_NAME} directory. If you want to init new project use \"{PROJECT_NAME} {INIT_PARAM}\" command"
 msgstr "Данный каталог не является odpm проектом. Если вы хотите создать новый проект, используйте команду '{PROJECT_NAME} {INIT_PARAM}'. "
 
-msgid "To change PostgreSQL major version, stop containers, back up if needed, remove the data directory at {CURRENT}, then run odpm again so the cluster re-initializes."
-msgstr "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm для переинициализации кластера."
-
 msgid "To change PostgreSQL major version:\n1. Stop containers (docker compose down).\n2. Back up Odoo databases if needed.\n3. Remove the PostgreSQL data directory: {DATA_PATH}\n4. Run: odpm --accept-database-drift=postgres_major\nAlternatively delete {LAST_RUN_REL} and run odpm again."
 msgstr "Чтобы сменить major-версию PostgreSQL:\n1. Остановите контейнеры (docker compose down).\n2. При необходимости сделайте резервную копию баз Odoo.\n3. Удалите каталог данных PostgreSQL: {DATA_PATH}\n4. Запустите: odpm --accept-database-drift=postgres_major\nЛибо удалите {LAST_RUN_REL} и снова запустите odpm."
-
-msgid "To use a different PostgreSQL data directory, stop containers, move or remove the old data under {PREVIOUS}, then run odpm again. Current configured path: {CURRENT}."
-msgstr "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. Текущий настроенный путь: {CURRENT}."
 
 msgid "To use a different PostgreSQL data directory:\n1. Stop containers (docker compose down).\n2. Move or remove the old data under {PREVIOUS}.\n3. Run: odpm --accept-database-drift=data_path\nCurrent configured path: {CURRENT}."
 msgstr "Чтобы использовать другой каталог данных PostgreSQL:\n1. Остановите контейнеры (docker compose down).\n2. Переместите или удалите старые данные в {PREVIOUS}.\n3. Запустите: odpm --accept-database-drift=data_path\nТекущий настроенный путь: {CURRENT}."
 
 msgid "Unexpected PostgreSQL connection error: {DETAIL}"
 msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
+
+msgid "Unknown ODPM_DEBUGGER_BACKEND=%r, using %s"
+msgstr "Неизвестный ODPM_DEBUGGER_BACKEND=%r, используется %s"
+
+msgid "Unknown ODPM_DEBUGGER_SUSPEND=%r, using false"
+msgstr "Неизвестный ODPM_DEBUGGER_SUSPEND=%r, используется false"
+
+msgid "Unknown ODPM_IDE=%r, using %s"
+msgstr "Неизвестный ODPM_IDE=%r, используется %s"
+
+msgid "Unknown ODPM_SCENARIO=%r, using %s"
+msgstr "Неизвестный ODPM_SCENARIO=%r, используется %s"
 
 msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
 msgstr "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
@@ -401,8 +542,20 @@ msgstr "Неподдерживаемый manifest_schema {SCHEMA}."
 msgid "Unsupported manifest_schema {SCHEMA}; this manager supports manifest_schema up to {MAX_SCHEMA}."
 msgstr "Неподдерживаемый manifest_schema {SCHEMA}; этот менеджер поддерживает manifest_schema до {MAX_SCHEMA}."
 
+msgid "Unsupported odpm extension API version {VERSION}{LABEL}; supported versions: {SUPPORTED}."
+msgstr "Неподдерживаемая версия API расширений odpm {VERSION}{LABEL}; поддерживаемые версии: {SUPPORTED}."
+
 msgid "Unsupported odpm.json contract line {CONTRACT}; supported values are {SUPPORTED}."
 msgstr "Неподдерживаемая строка контракта odpm.json {CONTRACT}; допустимые значения: {SUPPORTED}."
+
+msgid "Update PyCharm Attach to DAP run configuration"
+msgstr "Обновить run configuration PyCharm Attach to DAP"
+
+msgid "Update PyCharm Debug Server run configuration"
+msgstr "Обновить run configuration PyCharm Debug Server"
+
+msgid "Update VS Code launch and workspace settings"
+msgstr "Обновить launch и workspace settings VS Code"
 
 msgid "Updated PostgreSQL application role {ROLE}."
 msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
@@ -410,8 +563,38 @@ msgstr "Обновлена роль приложения PostgreSQL {ROLE}."
 msgid "Updated database baseline snapshot at {PATH}."
 msgstr "Обновлён снимок baseline базы данных: {PATH}."
 
+msgid "Upgrade .odpm/docker-compose.yml project template"
+msgstr "Обновить шаблон .odpm/docker-compose.yml проекта"
+
+msgid "VS Code settings already present"
+msgstr "Настройки VS Code уже присутствуют"
+
+msgid "Validate generated docker-compose.yml"
+msgstr "Проверить сгенерированный docker-compose.yml"
+
+msgid "Verify checked-out commits match {SOURCE}"
+msgstr "Проверить, что checkout соответствует {SOURCE}"
+
+msgid "Verify local platform and developing git directories exist"
+msgstr "Проверить наличие локальных каталогов platform и developing"
+
+msgid "Warnings:"
+msgstr "Предупреждения:"
+
 msgid "When Odoo is ready, open http://localhost:{ODOO_PORT}"
 msgstr "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
+
+msgid "Write .odpm/runtime/debug-profile.json"
+msgstr "Записать .odpm/runtime/debug-profile.json"
+
+msgid "Wrote .odpm/deps.lock.json; manifest locks.git unchanged (use --sync-manifest-locks with --update-lock)"
+msgstr "Записан .odpm/deps.lock.json; manifest locks.git не изменён (используйте --sync-manifest-locks с --update-lock)"
+
+msgid "Wrote git dependency lock to {PATH}"
+msgstr "Записан git lock зависимостей в {PATH}"
+
+msgid "Wrote locks.git to {PATH}"
+msgstr "Записан locks.git в {PATH}"
 
 msgid "Wrote manifest v2 to {PATH}."
 msgstr "Записан manifest v2 в {PATH}."
@@ -470,14 +653,86 @@ msgstr "Вы выбрали следующую локаль для сообще�
 msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
 msgstr "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
 
+msgid "apply pinned commits from {SOURCE}"
+msgstr "применить закреплённые коммиты из {SOURCE}"
+
+msgid "base image identity mismatch"
+msgstr "несовпадение идентичности базового образа"
+
+msgid "bind_platform_link is not configured"
+msgstr "bind_platform_link не настроен"
+
+msgid "build CI image from prepared context"
+msgstr "собрать CI-образ из подготовленного контекста"
+
+msgid "build compose service for compose.generate ({REASON})"
+msgstr "собрать compose service для compose.generate ({REASON})"
+
+msgid "cannot read secrets file {PATH}: {DETAIL}"
+msgstr "не удалось прочитать файл secrets {PATH}: {DETAIL}"
+
+msgid "check_system disabled; Docker check skipped"
+msgstr "check_system отключён; проверка Docker пропущена"
+
+msgid "checkout dependency repos"
+msgstr "переключить репозитории зависимостей"
+
+msgid "clone or update git repos"
+msgstr "клонировать или обновить git-репозитории"
+
+msgid "compose fragment {NAME} stale"
+msgstr "compose-фрагмент {NAME} устарел"
+
+msgid "compose fragment {NAME} up to date"
+msgstr "compose-фрагмент {NAME} актуален"
+
+msgid "compose service fragments cleanup"
+msgstr "очистка compose service fragments"
+
+msgid "compose service fragments stale"
+msgstr "compose service fragments устарели"
+
+msgid "compose service fragments up to date"
+msgstr "compose service fragments актуальны"
+
+msgid "compose start command changed"
+msgstr "изменилась команда запуска compose"
+
+msgid "compose template stale"
+msgstr "шаблон compose устарел"
+
+msgid "compose template up to date"
+msgstr "шаблон compose актуален"
+
+msgid "compose validation disabled by policy"
+msgstr "валидация compose отключена политикой"
+
 msgid "database configuration drift detected: {KINDS}"
-msgstr "Обнаружен дрейф конфигурации БД: {KINDS}"
+msgstr "обнаружен дрейф конфигурации БД: {KINDS}"
 
 msgid "database configuration matches last_run snapshot"
-msgstr "Конфигурация БД совпадает со снимком last_run"
+msgstr "конфигурация БД соответствует снимку last_run"
 
 msgid "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
 msgstr "Укажите подкоманду database: \"odpm database status\" или \"odpm database ensure-role\"."
+
+msgid "debug profile missing"
+msgstr "отсутствует debug profile"
+
+msgid "debug profile on disk"
+msgstr "debug profile на диске"
+
+msgid "debug profile payload changed"
+msgstr "изменился payload debug profile"
+
+msgid "debug profile unchanged"
+msgstr "debug profile без изменений"
+
+msgid "deps.lock will be updated; manifest locks.git unchanged (use --sync-manifest-locks with --update-lock)"
+msgstr "deps.lock будет обновлён; manifest locks.git без изменений (используйте --sync-manifest-locks с --update-lock)"
+
+msgid "deps.lock.json"
+msgstr "deps.lock.json"
 
 msgid "docker build failed with exit code {EXIT_CODE}"
 msgstr "docker build завершился с кодом {EXIT_CODE}"
@@ -485,8 +740,56 @@ msgstr "docker build завершился с кодом {EXIT_CODE}"
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
+msgid "docker-compose.yml differs from preview"
+msgstr "docker-compose.yml отличается от preview"
+
+msgid "docker-compose.yml matches preview"
+msgstr "docker-compose.yml соответствует preview"
+
+msgid "docker-compose.yml missing"
+msgstr "отсутствует docker-compose.yml"
+
+msgid "docker-compose.yml present; full preview needs volume map"
+msgstr "docker-compose.yml присутствует; полный preview требует volume map"
+
+msgid "dockerfile template stale"
+msgstr "шаблон Dockerfile устарел"
+
+msgid "dockerfile template up to date"
+msgstr "шаблон Dockerfile актуален"
+
+msgid "dockerignore template stale"
+msgstr "шаблон dockerignore устарел"
+
+msgid "dockerignore template up to date"
+msgstr "шаблон dockerignore актуален"
+
+msgid "extensions.local must be a list of module names"
+msgstr "extensions.local должен быть списком имён модулей"
+
 msgid "first database run (no last_run snapshot yet)"
-msgstr "Первый запуск БД (снимок last_run ещё не создан)"
+msgstr "первый запуск БД (снимок last_run ещё не создан)"
+
+msgid "free odoo, debugger, postgres, and gevent ports before compose up"
+msgstr "освободить порты odoo, debugger, postgres и gevent перед compose up"
+
+msgid "git repos will be materialized"
+msgstr "git-репозитории будут материализованы"
+
+msgid "invalid JSON in secrets file {PATH}: {DETAIL}"
+msgstr "некорректный JSON в файле secrets {PATH}: {DETAIL}"
+
+msgid "load git lock from {SOURCE} before checkout"
+msgstr "загрузить git lock из {SOURCE} перед checkout"
+
+msgid "lock apply not used in this mode"
+msgstr "применение lock не используется в этом режиме"
+
+msgid "lock verify not applicable"
+msgstr "проверка lock не применима"
+
+msgid "manifest locks.git"
+msgstr "manifest locks.git"
 
 msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 msgstr "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
@@ -497,6 +800,24 @@ msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\" 
 msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
 msgstr "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
 
+msgid "materialize repos before writing deps.lock"
+msgstr "материализовать репозитории перед записью deps.lock"
+
+msgid "no git lock source available"
+msgstr "источник git lock недоступен"
+
+msgid "no secrets source"
+msgstr "нет источника secrets"
+
+msgid "no {PHASE} hooks configured"
+msgstr "hooks {PHASE} не настроены"
+
+msgid "odoo config template stale"
+msgstr "шаблон конфигурации Odoo устарел"
+
+msgid "odoo.conf and template up to date"
+msgstr "odoo.conf и шаблон актуальны"
+
 msgid "odoo.conf db_host ({CURRENT}) does not match postgres service name ({PREVIOUS})."
 msgstr "В odoo.conf db_host ({CURRENT}) не совпадает с именем сервиса postgres ({PREVIOUS})."
 
@@ -506,8 +827,110 @@ msgstr "В odoo.conf db_host не синхронизирован с сервис
 msgid "odoo.conf db_host: {HOST}"
 msgstr "odoo.conf db_host: {HOST}"
 
+msgid "odoo.conf missing db settings"
+msgstr "в odoo.conf отсутствуют настройки БД"
+
+msgid "only used with --update-lock"
+msgstr "используется только с --update-lock"
+
+msgid "plugins: {PLUGIN_LIST}"
+msgstr "плагины: {PLUGIN_LIST}"
+
+msgid "port release runs only in developer scenario"
+msgstr "освобождение портов только в developer-сценарии"
+
 msgid "psycopg2 is required."
 msgstr "Требуется psycopg2."
 
+msgid "refresh VS Code launch and settings"
+msgstr "обновить launch и settings VS Code"
+
+msgid "refresh docker volume mapping"
+msgstr "обновить маппинг docker-томов"
+
+msgid "refresh project symlinks"
+msgstr "обновить симлинки проекта"
+
+msgid "remove stale runtime secrets"
+msgstr "удалить устаревшие runtime secrets"
+
 msgid "running command: → git {GIT_ARGS} for {PROJECT}"
 msgstr "Выполняется команда: → git {GIT_ARGS} для {PROJECT}"
+
+msgid "runtime config and start command unchanged"
+msgstr "runtime config и команда запуска без изменений"
+
+msgid "runtime config payload changed"
+msgstr "изменился payload runtime config"
+
+msgid "runtime secrets missing"
+msgstr "отсутствуют runtime secrets"
+
+msgid "secret value for {KEY} must be a string"
+msgstr "значение secret для {KEY} должно быть строкой"
+
+msgid "secrets file must be a JSON object"
+msgstr "файл secrets должен быть JSON-объектом"
+
+msgid "secrets file must contain a 'secrets' object"
+msgstr "файл secrets должен содержать объект 'secrets'"
+
+msgid "secrets file not found: {PATH}"
+msgstr "файл secrets не найден: {PATH}"
+
+msgid "secrets keys must be non-empty strings"
+msgstr "ключи secrets должны быть непустыми строками"
+
+msgid "secrets mount disabled for CI scenario"
+msgstr "монтирование secrets отключено для CI-сценария"
+
+msgid "secrets runtime up to date"
+msgstr "runtime secrets актуальны"
+
+msgid "secrets source changed"
+msgstr "источник secrets изменился"
+
+msgid "skipped with --no-git-update"
+msgstr "пропущено с --no-git-update"
+
+msgid "skipped with --update-lock"
+msgstr "пропущено с --update-lock"
+
+msgid "start compose stack (--force-recreate unknown without docker probe)"
+msgstr "запуск compose-стека (--force-recreate неизвестен без docker probe)"
+
+msgid "start compose stack (--force-recreate unknown; docker compose command unset)"
+msgstr "запуск compose-стека (--force-recreate неизвестен; команда docker compose не задана)"
+
+msgid "start compose stack with --force-recreate (stack missing or unhealthy)"
+msgstr "запуск compose-стека с --force-recreate (стек отсутствует или нездоров)"
+
+msgid "start compose stack without --force-recreate (stack healthy)"
+msgstr "запуск compose-стека без --force-recreate (стек здоров)"
+
+msgid "unable to preview debug profile"
+msgstr "не удалось построить preview debug profile"
+
+msgid "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
+msgstr "неподдерживаемый secrets schema_version: {VERSION} (ожидается {EXPECTED})"
+
+msgid "validate docker-compose.yml"
+msgstr "проверить docker-compose.yml"
+
+msgid "venv_lock_hash changed"
+msgstr "изменился venv_lock_hash"
+
+msgid "verify Docker engine"
+msgstr "проверить Docker engine"
+
+msgid "verify checked-out commits match {SOURCE}"
+msgstr "проверить соответствие checkout {SOURCE}"
+
+msgid "verify local git directories exist"
+msgstr "проверить наличие локальных git-каталогов"
+
+msgid "write deps.lock.json from resolved commits"
+msgstr "записать deps.lock.json из разрешённых коммитов"
+
+msgid "{COUNT} shell command(s)"
+msgstr "{COUNT} shell-команда(ы)"

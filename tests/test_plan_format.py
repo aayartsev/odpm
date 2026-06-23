@@ -10,12 +10,14 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 import dev_project.host.cli.parse_args as parse_args_module
 from dev_project.plan import OdpmPlan, PlanStep, format_plan
+from dev_project.host.context import HostProjectContext
 from dev_project.plan.format import (
     PLAN_JSON_VERSION,
     format_plan_json,
     plan_has_required_changes,
     plan_to_dict,
 )
+from dev_project.host.ports import ports_from_config
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 
@@ -67,10 +69,20 @@ class PlanJsonFormatTests(unittest.TestCase):
             ),
         )
 
-    def _config(self) -> MagicMock:
-        config = MagicMock()
-        config.docker_compose_command = "docker compose"
-        return config
+    def _host_ctx(self) -> HostProjectContext:
+        return HostProjectContext(
+            project_dir="/tmp/project",
+            program_dir="/opt/odpm",
+            config_home_dir="/tmp/project",
+            policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO),
+            user_env=MagicMock(),
+            arguments=OdpmCliArgs(),
+            user_settings=MagicMock(),
+            project_settings=MagicMock(),
+            docker_layout=MagicMock(),
+            addon_layout=MagicMock(),
+            docker_compose_command="docker compose",
+        )
 
     @patch(
         "dev_project.plan.compose_runtime.compose_up_force_recreate_value",
@@ -79,7 +91,7 @@ class PlanJsonFormatTests(unittest.TestCase):
     def test_plan_to_dict_includes_version_steps_warnings_compose_up_and_diffs(
         self, _mock_force
     ):
-        payload = plan_to_dict(self._plan(), self._config(), OdpmCliArgs())
+        payload = plan_to_dict(self._plan(), self._host_ctx(), OdpmCliArgs())
         self.assertEqual(payload["plan_version"], PLAN_JSON_VERSION)
         self.assertEqual(payload["steps"][0]["outcome"], "run")
         self.assertEqual(payload["steps"][0]["id"], "compose.up")
@@ -94,7 +106,7 @@ class PlanJsonFormatTests(unittest.TestCase):
     )
     def test_plan_to_dict_omits_compose_up_when_step_missing(self, _mock_force):
         plan = OdpmPlan(steps=())
-        payload = plan_to_dict(plan, self._config(), OdpmCliArgs(plan_no_docker=True))
+        payload = plan_to_dict(plan, self._host_ctx(), OdpmCliArgs(plan_no_docker=True))
         self.assertNotIn("compose_up", payload)
 
     @patch(
@@ -102,7 +114,7 @@ class PlanJsonFormatTests(unittest.TestCase):
         return_value=False,
     )
     def test_format_plan_json_is_valid_json(self, _mock_force):
-        text = format_plan_json(self._plan(), self._config(), OdpmCliArgs())
+        text = format_plan_json(self._plan(), self._host_ctx(), OdpmCliArgs())
         payload = json.loads(text)
         self.assertEqual(payload["plan_version"], PLAN_JSON_VERSION)
 
@@ -122,8 +134,8 @@ class PlanJsonFormatTests(unittest.TestCase):
     )
     def test_format_plan_json_mode(self, _mock_force):
         plan = self._plan()
-        config = self._config()
-        text = format_plan(plan, OdpmCliArgs(plan_format="json"), config)
+        host_ctx = self._host_ctx()
+        text = format_plan(plan, OdpmCliArgs(plan_format="json"), host_ctx)
         payload = json.loads(text)
         self.assertEqual(payload["compose_up"]["force_recreate"], True)
 
@@ -131,7 +143,7 @@ class PlanJsonFormatTests(unittest.TestCase):
 class PlanStrictPipelineTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose",
+            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -163,6 +175,11 @@ class PlanStrictPipelineTests(unittest.TestCase):
             )
             pipeline.config = self._config(tmp)
             pipeline.project_environment = MagicMock()
+            pipeline.ports = ports_from_config(
+                pipeline.config,
+                pipeline.project_environment,
+                pipeline.cli_args,
+            )
             with self.assertRaises(SystemExit) as ctx:
                 pipeline.run()
             self.assertEqual(ctx.exception.code, 1)
@@ -177,6 +194,11 @@ class PlanStrictPipelineTests(unittest.TestCase):
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True, plan_strict=True), "/opt/odpm")
         pipeline.config = MagicMock()
         pipeline.project_environment = MagicMock()
+        pipeline.ports = ports_from_config(
+            pipeline.config,
+            pipeline.project_environment,
+            pipeline.cli_args,
+        )
         with patch("sys.exit") as mock_exit:
             pipeline.run()
         mock_exit.assert_not_called()

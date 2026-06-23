@@ -6,7 +6,7 @@
 |--------|--------|
 | [Непрерывная интеграция репозитория](ci.md) | GitHub Actions, compose-smoke, golden-path |
 | [Тесты и статический анализ](tests.md) | Unit-тесты, ruff |
-| [Переводы интерфейса](i18n.md) | gettext, каталоги ru_RU |
+| [Переводы интерфейса](i18n.md) | gettext, ru_RU/en_US, CI job **i18n**, [ADR-008](adr-008-i18n-host-container-policy.md) |
 | [Линии релизов и каналы](release-lines.md) | Git 4.3/4.4, stable/testing, mike, чеклист v4.4.2 |
 | [Сборка пакетов](packaging.md) | deb, rpm, wheel, CI merge/mike |
 | [Architecture debt (status)](architecture-debt.md) | Ретроспектива G/C/E (A10, A4, A11) |

@@ -76,13 +76,30 @@ def clear_registered_prepare_steps() -> None:
 def reset_extension_registry_state() -> None:
     """Reset manual steps and pluggy plugins (tests only)."""
     global _ENTRY_POINTS_LOADED, _HOOK_ENTRY_POINTS_LOADED
+    from .local import reset_local_plugins_state
+
     clear_registered_prepare_steps()
     _COMPOSE_FRAGMENTS.clear()
     _HOOK_RUNNERS.clear()
+    reset_local_plugins_state()
     for _name, plugin in list(plugin_manager.list_name_plugin()):
         plugin_manager.unregister(plugin=plugin)
     _ENTRY_POINTS_LOADED = False
     _HOOK_ENTRY_POINTS_LOADED = False
+
+
+def ensure_project_extensions_loaded(
+    project_dir: str,
+    *,
+    manifest_extensions: object | None = None,
+) -> None:
+    """Load setuptools entry points and project-local plugins once per project."""
+    from .local import load_project_local_plugins, local_allow_list_from_manifest
+
+    load_hook_runners()
+    _ensure_entry_points_loaded()
+    allow_list = local_allow_list_from_manifest(manifest_extensions)
+    load_project_local_plugins(project_dir, allow_list=allow_list)
 
 
 def register_compose_fragment(name: str, plugin: ComposeFragmentPlugin) -> None:
@@ -115,7 +132,9 @@ def _coerce_hook_runner(item: Any) -> HookRunner | None:
     if item is None:
         return None
     if hasattr(item, "name") and (
-        hasattr(item, "run_post_prepare") or hasattr(item, "run_pre_up")
+        hasattr(item, "run_post_clone")
+        or hasattr(item, "run_post_prepare")
+        or hasattr(item, "run_pre_up")
     ):
         return item  # type: ignore[return-value]
     if callable(item):

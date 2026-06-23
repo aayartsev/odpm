@@ -36,7 +36,11 @@ class HumanSummaryLocaleTests(unittest.TestCase):
         )
 
     def test_summary_msgid_count(self):
-        self.assertGreaterEqual(len(host_summaries.SUMMARY_MSGIDS), 8)
+        self.assertEqual(len(host_summaries.SUMMARY_MSGIDS), 11)
+        self.assertEqual(
+            set(host_summaries.SUMMARY_MSGIDS),
+            {getattr(host_summaries, name) for name in dir(host_summaries) if name.startswith("MSG_")},
+        )
 
 
 if __name__ == "__main__":

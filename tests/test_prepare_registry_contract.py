@@ -8,6 +8,7 @@ PREPARE_STEP_IDS = [
     "git.lock_load",
     "git.ensure_present",
     "git.materialize",
+    "hooks.post_clone",
     "project.map_folders",
     "git.lock_apply",
     "template.dockerfile",

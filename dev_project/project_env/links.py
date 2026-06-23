@@ -96,4 +96,4 @@ class ProjectLinks:
                     self.config.ensure_developing_repo_symlinks()
 
     def update_links(self) -> None:
-        SymlinkManager(self.config).update_links()
+        SymlinkManager(self.config, host_ctx=self.env.host_ctx).update_links()

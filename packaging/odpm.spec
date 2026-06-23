@@ -3,7 +3,7 @@
 # ODPM_VERSION aliases RELEASE_VERSION; flat odpm.json contract line stays 4.0 until v2 migrate.
 
 %global srcname odpm
-%global version 4.4.3
+%global version 4.5.0
 %global release 1
 
 Name:           %{srcname}
@@ -21,10 +21,12 @@ BuildRequires:  python3-wheel
 BuildRequires:  python3-packaging
 BuildRequires:  python3-jsonschema
 BuildRequires:  python3-pluggy
+BuildRequires:  python3-ruamel-yaml
 
 Requires:       python3-packaging
 Requires:       python3-jsonschema
 Requires:       python3-pluggy
+Requires:       python3-ruamel-yaml
 Requires:       git
 Recommends:     moby-engine
 Recommends:     docker
@@ -58,13 +60,17 @@ Host CLI uses PyPI or distribution Python packages for validation and plugins.
 %{python3_sitelib}/odpm-*.dist-info/
 
 %changelog
+* Sun Jun 22 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.5.0-1
+- Stable release 4.5.0 (roadmap 4.5; see CHANGELOG.md and .github/release-notes/4.5.0.md).
+* Mon Jun 22 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.5.0-beta
+- Pre-release 4.5.0-beta (roadmap 4.5; see CHANGELOG.md and .github/release-notes/4.5.0-beta.md).
 * Sun Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.3-1
 - Stable release 4.4.3 (see CHANGELOG.md and .github/release-notes/4.4.3.md).
 * Sun Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.3-beta
 - Pre-release 4.4.3-beta (see CHANGELOG.md and .github/release-notes/4.4.3-beta.md).
-* Sat Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.2-1
+* Sun Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.2-1
 - Stable release 4.4.2 (see CHANGELOG.md and .github/release-notes/4.4.2.md).
-* Sat Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.2-beta
+* Sun Jun 21 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.4.2-beta
 - Pre-release 4.4.2-beta before stable 4.4.2 (see CHANGELOG.md).
 * Mon Jun 08 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.3-rc1
 - Pre-release 4.3-rc1. Manifest format odpm_version remains 4.0.

@@ -10,6 +10,7 @@ from ..compose.generator import ComposeGenerator
 from ..git.deps_lock_manager import DepsLockManager
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
+from ..host.ports import PipelinePorts
 from ..plan import PlanStep
 from ..project_env.links import ProjectLinks
 from ..project_env.templates import ProjectTemplates
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class PrepareContext:
-    config: Config
+    ports: PipelinePorts
     project_env: CreateProjectEnvironment
     templates: ProjectTemplates
     compose_generator: ComposeGenerator
@@ -33,6 +34,10 @@ class PrepareContext:
     args: OdpmCliArgs
     host_ctx: HostProjectContext
     lock_manager: DepsLockManager | None = None
+
+    @property
+    def config(self) -> Config:
+        return self.ports.bootstrap.config
 
     def extension_host(self) -> ExtensionHostContext:
         from ..extensions.context import ExtensionHostContext

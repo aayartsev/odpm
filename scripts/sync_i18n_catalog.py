@@ -8,24 +8,53 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.plan_l10n_ru_batch import PLAN_L10N_RU  # noqa: E402
+
 I18N_DIR = ROOT / "dev_project" / "i18n"
 RU_PO = I18N_DIR / "ru_RU" / "LC_MESSAGES" / "main.po"
 RU_MO = I18N_DIR / "ru_RU" / "LC_MESSAGES" / "main.mo"
+EN_US_PO = I18N_DIR / "en_US" / "LC_MESSAGES" / "main.po"
 
 # msgid (English) -> msgstr (Russian). Keep sorted by msgid for review.
 RU_MESSAGES: dict[str, str] = {
     "--build-image is only allowed when ODPM_SCENARIO=ci in .env": (
         "--build-image доступен только при ODPM_SCENARIO=ci в .env"
     ),
+    "--sync-manifest-locks is only supported in developer scenario; "
+    "manifest locks.git unchanged": (
+        "--sync-manifest-locks поддерживается только в developer-сценарии; "
+        "manifest locks.git не изменён"
+    ),
+    "--sync-manifest-locks requires --update-lock": (
+        "--sync-manifest-locks требует --update-lock"
+    ),
+    "--update-lock cannot be used together with --no-git-update": (
+        "Нельзя использовать --update-lock вместе с --no-git-update"
+    ),
     ' "config.json" is deprecated. Please read documentation': (
         ' Файл с параметрами "config.json" является устаревшим. '
         "Пожалуйста обратитесь к документации "
+    ),
+    "Action   Required  ID                    Reason": (
+        "Действие  Обязат.   ID                    Причина"
     ),
     "Applying git dependency lock from manifest locks.git in odpm.json": (
         "Применение git lock из manifest locks.git в odpm.json"
     ),
     "Applying git dependency lock from {PATH}": (
         "Применение git lock из {PATH}"
+    ),
+    "Loaded git dependency lock from manifest locks.git": (
+        "Загружен git lock зависимостей из manifest locks.git"
+    ),
+    "Local plugin module not found: {PATH}": (
+        "Локальный модуль плагина не найден: {PATH}"
+    ),
+    "Local plugin path escapes .odpm/plugins: {NAME!r}": (
+        "Путь локального плагина выходит за пределы .odpm/plugins: {NAME!r}"
     ),
     "Cannot connect to the Docker daemon. Is the docker daemon running?": (
         "Не удалось выполнить подключение к службе Docker. "
@@ -40,6 +69,9 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Cannot list Docker containers: {DETAILS}": (
         "Не удалось получить список контейнеров Docker: {DETAILS}"
+    ),
+    "Cannot load local plugin module: {PATH}": (
+        "Не удалось загрузить локальный модуль плагина: {PATH}"
     ),
     "Blocking database configuration drift detected; resolve before starting containers.": (
         "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
@@ -95,6 +127,9 @@ RU_MESSAGES: dict[str, str] = {
         "Разрешение дрейфа конфигурации БД отменено."
     ),
     "Did you install git?": "Вы установили git?",
+    "extensions.local must be a list of module names": (
+        "extensions.local должен быть списком имён модулей"
+    ),
     "Error checking PostgreSQL port: {DETAIL}": (
         "Ошибка при проверке порта PostgreSQL: {DETAIL}"
     ),
@@ -305,6 +340,21 @@ RU_MESSAGES: dict[str, str] = {
     "Invalid manifest hook {PHASE}: expected command argv or plugin id": (
         "Недопустимый manifest hook {PHASE}: ожидается argv команды или id плагина"
     ),
+    "Invalid %s=%r, falling back to system locale": (
+        "Недопустимое значение %s=%r, используется системная локаль"
+    ),
+    "Invalid %s=%r, using system locale %s": (
+        "Недопустимое значение %s=%r, используется системная локаль %s"
+    ),
+    "Invalid debugger backend choice %r, using %s": (
+        "Недопустимое значение backend отладчика %r, используется %s"
+    ),
+    "Invalid local plugin module name: {NAME!r}": (
+        "Недопустимое имя локального модуля плагина: {NAME!r}"
+    ),
+    "Invalid ODPM_IDE choice %r, using %s": (
+        "Недопустимое значение ODPM_IDE %r, используется %s"
+    ),
     "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}": (
         "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
     ),
@@ -320,6 +370,9 @@ RU_MESSAGES: dict[str, str] = {
         "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, "
         "просто удалите его."
     ),
+    "Hook plugin {PLUGIN_ID} does not implement {METHOD}": (
+        "Плагин хука {PLUGIN_ID} не реализует {METHOD}"
+    ),
     "Nested {CONFIG_FILE_NAME} at {MANIFEST_PATH} must be a JSON object": (
         "Вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}) должен быть JSON-объектом"
     ),
@@ -332,6 +385,9 @@ RU_MESSAGES: dict[str, str] = {
     "host project uses {HOST_VERSION}": (
         "Вложенный odpm.json ({MANIFEST_PATH}) задаёт python_version {NESTED_VERSION}, "
         "в host-проекте используется {HOST_VERSION}"
+    ),
+    "Manifest at {PATH} is not valid JSON.": (
+        "Файл manifest {PATH} не является корректным JSON."
     ),
     "Manifest at {PATH} is valid ({SCHEMA} JSON Schema).": (
         "Манифест {PATH} корректен (JSON Schema {SCHEMA})."
@@ -411,11 +467,19 @@ RU_MESSAGES: dict[str, str] = {
         "Pre-commit файл {PRE_COMMIT_FILE} не был найден в каталоге "
         "{ODOO_PROJECT_DIR_PATH}"
     ),
+    "Planned changes:": (
+        "Планируемые изменения:"
+    ),
     "Running with sudo/root privileges is not permitted.": (
         "Запуск скрипта от root/sudo запрещен"
     ),
     "running command: → git {GIT_ARGS} for {PROJECT}": (
         "Выполняется команда: → git {GIT_ARGS} для {PROJECT}"
+    ),
+    "Skipping developing lock apply in developer scenario; "
+    "git state is managed by the developer": (
+        "Пропуск применения lock developing в developer-сценарии; "
+        "состояние git управляется разработчиком"
     ),
     "Set debugger port which it will listen. You can leave default "
     "{DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n": (
@@ -519,19 +583,6 @@ RU_MESSAGES: dict[str, str] = {
     "Updated database baseline snapshot at {PATH}.": (
         "Обновлён снимок baseline базы данных: {PATH}."
     ),
-    "To use a different PostgreSQL data directory, stop containers, move or remove "
-    "the old data under {PREVIOUS}, then run odpm again. Current configured path: "
-    "{CURRENT}.": (
-        "Чтобы использовать другой каталог данных PostgreSQL, остановите контейнеры, "
-        "переместите или удалите старые данные в {PREVIOUS}, затем снова запустите odpm. "
-        "Текущий настроенный путь: {CURRENT}."
-    ),
-    "To change PostgreSQL major version, stop containers, back up if needed, remove "
-    "the data directory at {CURRENT}, then run odpm again so the cluster re-initializes.": (
-        "Чтобы сменить major-версию PostgreSQL, остановите контейнеры, при необходимости "
-        "сделайте резервную копию, удалите каталог данных {CURRENT} и снова запустите odpm "
-        "для переинициализации кластера."
-    ),
     'This is not {PROJECT_NAME} directory. If you want to init new project use '
     '"{PROJECT_NAME} {INIT_PARAM}" command': (
         "Данный каталог не является odpm проектом. Если вы хотите создать новый "
@@ -540,6 +591,11 @@ RU_MESSAGES: dict[str, str] = {
     "Unexpected PostgreSQL connection error: {DETAIL}": (
         "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
     ),
+    "Unsupported odpm extension API version {VERSION}{LABEL}; "
+    "supported versions: {SUPPORTED}.": (
+        "Неподдерживаемая версия API расширений odpm {VERSION}{LABEL}; "
+        "поддерживаемые версии: {SUPPORTED}."
+    ),
     "Unsupported manifest_schema {SCHEMA}.": (
         "Неподдерживаемый manifest_schema {SCHEMA}."
     ),
@@ -547,6 +603,9 @@ RU_MESSAGES: dict[str, str] = {
     "manifest_schema up to {MAX_SCHEMA}.": (
         "Неподдерживаемый manifest_schema {SCHEMA}; этот менеджер поддерживает "
         "manifest_schema до {MAX_SCHEMA}."
+    ),
+    "Unknown ODPM_SCENARIO=%r, using %s": (
+        "Неизвестный ODPM_SCENARIO=%r, используется %s"
     ),
     "Unknown manifest hook plugin id: {PLUGIN_ID}": (
         "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
@@ -675,6 +734,20 @@ RU_MESSAGES: dict[str, str] = {
     "Starting containers with Docker Compose...": (
         "Запуск контейнеров через Docker Compose..."
     ),
+    "Warnings:": (
+        "Предупреждения:"
+    ),
+    "Wrote .odpm/deps.lock.json; manifest locks.git unchanged "
+    "(use --sync-manifest-locks with --update-lock)": (
+        "Записан .odpm/deps.lock.json; manifest locks.git не изменён "
+        "(используйте --sync-manifest-locks с --update-lock)"
+    ),
+    "Wrote git dependency lock to {PATH}": (
+        "Записан git lock зависимостей в {PATH}"
+    ),
+    "Wrote locks.git to {PATH}": (
+        "Записан locks.git в {PATH}"
+    ),
     "Wrote manifest v2 to {PATH}.": (
         "Записан manifest v2 в {PATH}."
     ),
@@ -683,9 +756,31 @@ RU_MESSAGES: dict[str, str] = {
     ),
 }
 
+RU_MESSAGES.update(PLAN_L10N_RU)
+
 
 def _po_escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+def write_en_po() -> None:
+    """Write en_US catalog (msgstr equals msgid; gettext fallback at runtime)."""
+    EN_US_PO.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "# English host CLI catalog (msgstr mirrors msgid).",
+        'msgid ""',
+        'msgstr ""',
+        '"Project-Id-Version: odpm\\n"',
+        '"Content-Type: text/plain; charset=UTF-8\\n"',
+        '"Content-Transfer-Encoding: 8bit\\n"',
+        '"Language: en_US\\n"',
+        "",
+    ]
+    for msgid in sorted(RU_MESSAGES):
+        lines.append(f'msgid "{_po_escape(msgid)}"')
+        lines.append(f'msgstr "{_po_escape(msgid)}"')
+        lines.append("")
+    EN_US_PO.write_text("\n".join(lines), encoding="utf-8")
 
 
 def write_po() -> None:
@@ -716,8 +811,9 @@ def compile_mo() -> None:
 
 def main() -> int:
     write_po()
+    write_en_po()
     compile_mo()
-    print(f"Wrote {RU_PO} and {RU_MO}")
+    print(f"Wrote {RU_PO}, {EN_US_PO}, and {RU_MO}")
     return 0
 
 

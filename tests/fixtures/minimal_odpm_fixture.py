@@ -31,8 +31,14 @@ def build_v2_manifest_with_mailpit(
     developing_uri: str,
     flat: dict[str, Any],
     include_locks_git: bool = False,
+    hooks: dict[str, Any] | None = None,
+    extensions: dict[str, Any] | None = None,
+    services: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Nested manifest v2 with reference Mailpit service for compose smoke."""
+    mailpit_services = services
+    if mailpit_services is None:
+        mailpit_services = {MAILPIT_SERVICE_NAME: dict(MAILPIT_SERVICE_SPEC)}
     payload: dict[str, Any] = {
         "manifest_schema": constants.MANIFEST_SCHEMA_V2,
         "requires_odpm": constants.ODPM_VERSION,
@@ -47,8 +53,12 @@ def build_v2_manifest_with_mailpit(
         "dependencies": list(flat.get("dependencies") or []),
         "requirements": list(flat.get("requirements_txt") or []),
         "developing": {"git": developing_uri},
-        "services": {MAILPIT_SERVICE_NAME: dict(MAILPIT_SERVICE_SPEC)},
+        "services": mailpit_services,
     }
+    if hooks is not None:
+        payload["hooks"] = hooks
+    if extensions is not None:
+        payload["extensions"] = extensions
     if include_locks_git:
         payload["locks"] = {"git": {platform_uri: "0" * 40}}
     return payload
@@ -59,6 +69,9 @@ def provision_minimal_odpm_project(
     *,
     scenario: str = constants.DEVELOPER_SCENARIO,
     manifest_v2_mailpit: bool = False,
+    manifest_hooks: dict[str, Any] | None = None,
+    manifest_extensions: dict[str, Any] | None = None,
+    local_plugins: tuple[str, ...] = (),
     locks_drift: bool = False,
     check_system: bool = False,
     odpm_ide: str = "vscode",
@@ -101,6 +114,8 @@ def provision_minimal_odpm_project(
             developing_uri=developing_uri,
             flat=odpm_json,
             include_locks_git=locks_drift,
+            hooks=manifest_hooks,
+            extensions=manifest_extensions,
         )
     else:
         odpm_payload = dict(odpm_json)
@@ -144,6 +159,16 @@ def provision_minimal_odpm_project(
             for line in env_lines
         ]
     env_path.write_text("\n".join(env_lines) + "\n", encoding="utf-8")
+
+    if local_plugins:
+        plugins_root = project_dir / ".odpm" / "plugins"
+        plugins_root.mkdir(parents=True, exist_ok=True)
+        fixture_plugins = Path(__file__).resolve().parent / "local_plugins"
+        for plugin_name in local_plugins:
+            source = fixture_plugins / f"{plugin_name}.py"
+            if not source.is_file():
+                raise ValueError(f"unknown local plugin fixture: {plugin_name}")
+            shutil.copy(source, plugins_root / f"{plugin_name}.py")
 
     if locks_drift:
         from tests.scenario_plan_matrix_helpers import seed_locks_drift

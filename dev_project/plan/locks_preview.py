@@ -12,8 +12,8 @@ from ..manifest.locks import (
     manifest_git_locks_from_view,
     resolve_lock_source_from_view,
 )
-from ..translations import _
 from .core import deps_lock_file_exists
+from .l10n import plan_msg
 
 if TYPE_CHECKING:
     from ..manifest.reader import ManifestView
@@ -30,7 +30,7 @@ def collect_git_lock_warnings(
 
     if source == LockSource.MANIFEST:
         warnings.append(
-            _(
+            plan_msg(
                 "Git lock source: manifest locks.git in odpm.json (canonical); "
                 "edit SHA in locks.git and run --update-lock to sync "
                 ".odpm/deps.lock.json."
@@ -38,7 +38,7 @@ def collect_git_lock_warnings(
         )
     elif deps_lock_file_exists(project_dir):
         warnings.append(
-            _(
+            plan_msg(
                 "Git lock source: .odpm/deps.lock.json; run --update-lock after "
                 "changing dependencies."
             )
@@ -58,13 +58,11 @@ def collect_git_lock_warnings(
     )
     for detail in divergences:
         warnings.append(
-            _("manifest locks.git vs deps.lock.json differ: {DETAIL}").format(
-                DETAIL=detail
-            )
+            plan_msg("manifest locks.git vs deps.lock.json differ: {DETAIL}", DETAIL=detail)
         )
     if divergences:
         warnings.append(
-            _(
+            plan_msg(
                 "Canonical git pins: odpm.json locks.git; run --update-lock to "
                 "refresh .odpm/deps.lock.json."
             )

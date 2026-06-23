@@ -2,23 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
-
-if TYPE_CHECKING:
-    from ..config import Config
+from .l10n import plan_msg
 
 PLAN_NO_DOCKER_WARNING = (
     "Compose stack health was not probed; --force-recreate is unknown"
 )
-
-
-def _should_force_recreate_compose(config: Config) -> bool:
-    from ..compose.runtime import should_force_recreate_compose
-
-    return should_force_recreate_compose(config)
 
 
 def plan_probes_compose_stack(args: OdpmCliArgs) -> bool:
@@ -36,37 +26,53 @@ def compose_up_would_run(args: OdpmCliArgs, host_ctx: HostProjectContext) -> boo
 
 
 def compose_up_force_recreate_value(
-    config: Config, args: OdpmCliArgs
+    host_ctx: HostProjectContext, args: OdpmCliArgs
 ) -> bool | None:
     """Return probe result, or None when recreate cannot be determined."""
     if not plan_probes_compose_stack(args):
         return None
-    compose_cmd = getattr(config, "docker_compose_command", "")
+    compose_cmd = host_ctx.docker_compose_command
     if not isinstance(compose_cmd, str) or not compose_cmd.strip():
         return None
-    return _should_force_recreate_compose(config)
+    from ..compose.runtime import should_force_recreate_compose_for_host
+
+    return should_force_recreate_compose_for_host(host_ctx)
 
 
 def evaluate_compose_up_plan(
-    config: Config, args: OdpmCliArgs
+    host_ctx: HostProjectContext, args: OdpmCliArgs
 ) -> tuple[str, tuple[str, ...]]:
     if not plan_probes_compose_stack(args):
         return (
-            "start compose stack (--force-recreate unknown without docker probe)",
-            (PLAN_NO_DOCKER_WARNING,),
+            plan_msg(
+                "start compose stack (--force-recreate unknown without docker probe)"
+            ),
+            (plan_msg(PLAN_NO_DOCKER_WARNING),),
         )
-    compose_cmd = getattr(config, "docker_compose_command", "")
+    compose_cmd = host_ctx.docker_compose_command
     if not isinstance(compose_cmd, str) or not compose_cmd.strip():
         return (
-            "start compose stack (--force-recreate unknown; docker compose command unset)",
-            ("Docker compose command is not configured; stack health was not probed",),
+            plan_msg(
+                "start compose stack (--force-recreate unknown; docker compose command unset)"
+            ),
+            (
+                plan_msg(
+                    "Docker compose command is not configured; stack health was not probed"
+                ),
+            ),
         )
-    if _should_force_recreate_compose(config):
+    from ..compose.runtime import should_force_recreate_compose_for_host
+
+    if should_force_recreate_compose_for_host(host_ctx):
         return (
-            "start compose stack with --force-recreate (stack missing or unhealthy)",
+            plan_msg(
+                "start compose stack with --force-recreate (stack missing or unhealthy)"
+            ),
             (),
         )
     return (
-        "start compose stack without --force-recreate (stack healthy)",
+        plan_msg(
+            "start compose stack without --force-recreate (stack healthy)"
+        ),
         (),
     )

@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shlex
 from dataclasses import replace
@@ -21,6 +22,14 @@ def template_needs_upgrade(
     with open(project_template_path) as reader:
         content = reader.read()
     return any(marker not in content for marker in required_markers)
+
+
+def _file_sha256(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as reader:
+        for chunk in iter(lambda: reader.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 class ProjectDirManager:
@@ -233,9 +242,15 @@ class ProjectDirManager:
     ) -> None:
         if not self.sync_templates:
             return
+        needs_refresh = False
+        if os.path.isfile(program_template_file) and os.path.isfile(project_template_file):
+            if _file_sha256(program_template_file) != _file_sha256(project_template_file):
+                needs_refresh = True
         if required_markers and template_needs_upgrade(
             project_template_file, required_markers
         ):
+            needs_refresh = True
+        if needs_refresh and os.path.isfile(project_template_file):
             _logger.info(
                 "Upgrading %s to current odpm template",
                 project_template_file,
