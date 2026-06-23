@@ -4,36 +4,36 @@ services:
     user: root
     tty: true
     ports:
-    - 127.0.0.1:15432:5432
+      - 127.0.0.1:15432:5432
     environment:
-    - POSTGRES_PASSWORD=odoo
-    - POSTGRES_USER=odoo
-    - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - POSTGRES_DB=postgres
     volumes:
-    - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
   odoo:
     image: odoo-base:dev
     user: 1000:1000
     tty: true
     depends_on:
-    - db
+      - db
     working_dir: /home/odoo
     environment:
-    - PYTHONUNBUFFERED=1
-    - ODPM_CONFIG_PATH=/run/odpm/config.json
+      - PYTHONUNBUFFERED=1
+      - ODPM_CONFIG_PATH=/run/odpm/config.json
     command:
-    - python3
-    - -m
-    - dev_project.inside_docker_app.run_odoo
-    - --
-    - /home/odoo/odoo/odoo-bin
+      - python3
+      - -m
+      - dev_project.inside_docker_app.run_odoo
+      - --
+      - /home/odoo/odoo/odoo-bin
     ports:
-    - 8069:8069
-    - 8072:8072
+      - 8069:8069
+      - 8072:8072
     volumes:
-    - /tmp/odpm-golden-fixture-project/.odpm/runtime/config.json:/run/odpm/config.json:ro,Z
-    - /tmp/odpm-golden-fixture-project/.odpm/database:/run/odpm/database:Z
-    - /tmp/odpm-golden-local-addons:/home/odoo/extra-addons:Z
+      - /tmp/odpm-golden-fixture-project/.odpm/runtime/config.json:/run/odpm/config.json:ro,Z
+      - /tmp/odpm-golden-fixture-project/.odpm/database:/run/odpm/database:Z
+      - /tmp/odpm-golden-local-addons:/home/odoo/extra-addons:Z
 volumes:
   postgres-data:
     driver: local

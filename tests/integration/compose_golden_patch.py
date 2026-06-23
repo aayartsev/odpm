@@ -7,7 +7,7 @@ import socket
 
 _SERVICE_HEADER = re.compile(r"^  ([a-z0-9_-]+):\s*$")
 _POSTGRES_IMAGE = re.compile(r"^\s+image:\s+postgres(?::|\s|$)")
-_PORT_LIST_ITEM = re.compile(r"^    - ")
+_PORT_LIST_ITEM = re.compile(r"^\s+-\s")
 
 
 def find_free_port() -> int:

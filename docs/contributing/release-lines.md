@@ -129,7 +129,8 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
    - [x] `mkdocs.yml` `edit_uri` → `4.6.0-dev`
    - [ ] GitHub branch protection → `4.6.0-dev` (вручную в UI)
 4. **Дальше**
-   - [ ] D1–D5 на `4.6.0-dev` → tag `v4.6.0` (единый debt release)
+   - [x] D1–D5 на `4.6.0-dev` (код) → tag `v4.6.0-beta` (pre-release smoke)
+   - [ ] tag `v4.6.0` stable (единый debt release после beta smoke)
 
 ## Чеклист: stable **v4.4.2** (архив, после smoke beta)
 

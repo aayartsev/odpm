@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.6.0-beta] - 2026-06-23
+
+**Pre-release 4.6.0-beta** on branch `4.6.0-dev`; stable line remains **4.5.0** (`LATEST_STABLE_RELEASE`). Debt closure D1–D5: compose `service_patches`, config hub phase 2, plugin API 1.1, structural compose validation and golden snapshots. No breaking changes for v1 flat `odpm.json`; manifest v2 `service_patches` and plugin 1.1 features are opt-in.
+
 ### Changed
 
 - **Release gate (R0 / 4.6.0-dev)** — `RELEASE_VERSION` → `4.6.0-beta`; `LATEST_STABLE_RELEASE` remains `4.5.0`; CI/docs workflows target `4.6.0-dev`; deb/rpm pre-release packaging synced.

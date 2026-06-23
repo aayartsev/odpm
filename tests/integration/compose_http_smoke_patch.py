@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 _SERVICE_HEADER = re.compile(r"^  ([a-z0-9_-]+):\s*$")
-_PORT_LIST_ITEM = re.compile(r"^    - ")
+_PORT_LIST_ITEM = re.compile(r"^\s+-\s")
 
 
 def patch_mailpit_service_ports(
