@@ -38,10 +38,9 @@ class InstallDocsP2Tests(unittest.TestCase):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             self.assertIn("4.5.0", text)
             self.assertIn("/odpm/stable/", text)
+            self.assertIn("/4.6.0-beta/", text)
             if rel.startswith("docs/install/"):
                 self.assertIn("/odpm/dev/install/", text)
-            else:
-                self.assertIn("/4.6.0-beta/", text)
             self.assertIn("/4.5.0-beta/", text)
             self.assertIn("/4.4.3-beta/", text)
             self.assertIn("/4.4.2-beta/", text)
@@ -57,7 +56,7 @@ class InstallDocsP2Tests(unittest.TestCase):
             with self.subTest(doc=rel):
                 self.assertIn("4.6.0-beta", text)
                 self.assertIn("odpm version: 4.6.0-beta", text)
-                self.assertNotIn("/4.6.0-beta/", text)
+                self.assertIn("/4.6.0-beta/", text)
 
     def test_release_notes_use_versioned_doc_urls(self):
         notes_dir = PROJECT_ROOT / ".github" / "release-notes"
@@ -130,6 +129,7 @@ class InstallDocsP2Tests(unittest.TestCase):
             ".github/workflows/release-packages.yml",
             ".github/workflows/bootstrap-docs-versions.yml",
             ".github/workflows/bootstrap-pages-repos.yml",
+            ".github/workflows/redeploy-pages.yml",
         ):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             with self.subTest(workflow=rel):

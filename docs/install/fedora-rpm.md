@@ -46,7 +46,7 @@ odpm --version
 # ожидается: odpm version: 4.6.0-beta
 ```
 
-Архив инструкций для более старых beta: [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/).
+Архив инструкций для более старых beta: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/).
 
 > Если `odpm-archive-keyring.asc` ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:
 >
