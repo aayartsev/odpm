@@ -5,7 +5,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 **Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1303** OK, 12 skipped.
 
-**Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.4.3** (`LATEST_STABLE_RELEASE`).
+**Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`).
 
 ---
 

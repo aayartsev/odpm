@@ -20,7 +20,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 
 ### Stable (recommended for production)
 
-Suite **`stable`** — currently odpm **4.4.3**:
+Suite **`stable`** — currently odpm **4.5.0**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
@@ -29,7 +29,7 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
 sudo dnf makecache
 sudo dnf install odpm
 odpm --version
-# expected: odpm version: 4.4.3
+# expected: odpm version: 4.5.0
 ```
 
 ### Pre-release (4.5 / 4.4 beta / RC)
@@ -53,7 +53,7 @@ sudo dnf install odpm
 > gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
 > ```
 
-> The URL branch (`4.4.3`) is the current stable release line; there is no `main` branch in the repo.
+> The URL branch (`4.5.0`) is the current stable release line; there is no `main` branch in the repo.
 > If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
 >
 > ```bash
@@ -71,7 +71,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.4.3` (stable), `v4.5.0-beta` (testing), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.5.0` (stable), `v4.5.0-beta` (archived testing), `v4.4.3` (archived stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
 
 ```bash
 ./scripts/build_rpm.sh

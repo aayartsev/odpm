@@ -10,7 +10,7 @@
 |-------|-------------|--------|------------|
 | **4.3.x** | `4.3.0`, тег `v4.3.0` | **заморожена** | Последний stable до 4.4; только критичные security-fix по решению maintainer (cherry-pick → patch tag). Новые фичи не добавляем. |
 | **4.4.x** | `4.4-dev` | **заморожена** (patch only) | Линия 4.4; stable **v4.4.3**; новые фичи — в `4.5-dev` |
-| **4.5.x** | `4.5-dev` | **активная** | Roadmap 4.5 (Config debt, plugins 2.0, YAML, integration, i18n). Pre-release: `v4.5.0-beta`, … |
+| **4.5.x** | `4.5-dev` | **активная** | Линия 4.5; stable **v4.5.0**; pre-release архив: `v4.5.0-beta`, … |
 | Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
 
 **Правило:** изменения 4.5 merge в `4.5-dev`. Линия 4.4 (`4.4-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
@@ -19,8 +19,8 @@
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.5-dev` | `4.5.0-beta` (pre-release); stable — `4.4.3` |
-| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.4.3` |
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.5-dev` | `4.5.0` (stable) |
+| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.5.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
 
