@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 from .. import constants
-from ..compose.service_builder import ComposeServiceBuilder, persist_runtime_config
+from ..compose.service_builder import ComposeServiceBuilder
 from ..compose.start_command import ComposeOdooService
 from ..config.payload import runtime_config_path
 from ..inside_docker_app.exceptions import ConfigValidationError

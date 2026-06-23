@@ -26,8 +26,6 @@ __all__ = ["CreateUserEnvironment", "EnvData", "ParsedUserEnv"]
 
 
 def _stdin_is_interactive() -> bool:
-    import sys
-
     from ..interactive import stdin_is_interactive
 
     return stdin_is_interactive()
