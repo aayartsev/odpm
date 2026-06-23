@@ -1,0 +1,17 @@
+Origin: odpm
+Label: odpm
+Suite: stable
+Codename: stable
+Architectures: amd64 arm64 armhf i386
+Components: main
+UDebComponents: main
+SignWith: 03040028F53D7AB8
+
+Origin: odpm
+Label: odpm testing
+Suite: testing
+Codename: testing
+Architectures: amd64 arm64 armhf i386
+Components: main
+UDebComponents: main
+SignWith: 03040028F53D7AB8
