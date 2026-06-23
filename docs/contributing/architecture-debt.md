@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1310** OK, 18 skipped.
+**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1315** OK, 24 skipped.
 
 **Active dev branch:** `4.6.0-dev` (debt closure 4.6). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`); roadmap 4.5 **RELEASED**.
 
@@ -37,6 +37,23 @@ This document is a **retrospective** for audits and onboarding; new architecture
 **ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1–I4); ADR-008 i18n host/container **done** (L); ADR-007 Base image profiles **done** (S).
 
 **R0 infra (4.6.0-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.6.0-dev`; branch protection — lint, unit, contract, **i18n**, compose-smoke, http-smoke.
+
+---
+
+## 4.6 debt track (D1–D5) — IN PROGRESS
+
+Старт после stable **v4.5.0** и R0 на `4.6.0-dev`. План: `.cursor/plans/debt_closure_4.5-4.6_a59fde99.plan.md`. Единый релиз **v4.6.0 stable** (без v4.5.1).
+
+| Track | ID | Статус | Суть |
+|-------|-----|--------|------|
+| Ops / docs | **D1** | **DONE** | Pages post-deploy verify (`verify_pages_deploy.sh`); `services_ru` redirect; roadmap/plan hygiene; секция 4.6 track |
+| Compose | **D2** | pending | ADR-009, `service_patches`, manifest `command` (D2-7) |
+| Config | **D3** | pending | C-15…C-18, coupling guards |
+| Plugins | **D4** | pending | API 1.1, `assert_extension_api_compatible` |
+| YAML | **D5** | pending | Y3 compose validation + golden snapshots |
+| CI-INF | — | pending | runner runbook, deploy-pages bump, timeout docs |
+
+**ADR backlog (4.6):** ADR-009 compose service patch (D2); ADR-003 amendment (D3); ADR-004 plugin 1.1 (D4).
 
 ---
 

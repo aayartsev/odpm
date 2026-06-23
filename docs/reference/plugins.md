@@ -193,5 +193,5 @@ dependencies = ["odpm>=4.4"]
 ## См. также
 
 - [Сгенерированные файлы](generated-files.md) — `.odpm/compose/fragments/`
-- [Примеры сервисов](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/services_ru.md) (legacy markdown)
-- Устаревший черновик плагинов: [plugins/todo_ru.md](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/todo_ru.md) → redirect сюда
+- Declarative sidecar-сервисы — секция **Mailpit** выше и таблица механизмов расширения
+- Устаревшие черновики в `dev_project/plugins/` (`services_ru.md`, `todo_ru.md`) — redirect сюда

@@ -610,3 +610,16 @@ jobs:
 
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify live Pages (release docs)
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
+            ./scripts/verify_pages_deploy.sh --version "${VERSION}"
+          else
+            ./scripts/verify_pages_deploy.sh --version stable
+            ./scripts/verify_pages_deploy.sh --version "${VERSION}"
+          fi

@@ -198,5 +198,5 @@ Template `pyproject.toml`: `tests/fixtures/sample_plugin/pyproject.toml`.
 ## See also
 
 - [Generated files](generated-files.md) — `.odpm/compose/fragments/`
-- [Service examples](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/services_ru.md) (legacy markdown)
-- Deprecated plugin draft: [plugins/todo_ru.md](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/todo_ru.md) → redirect here
+- Declarative sidecar services — **Mailpit** section above and the extension mechanisms table
+- Deprecated drafts in `dev_project/plugins/` (`services_ru.md`, `todo_ru.md`) — redirect here

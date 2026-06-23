@@ -82,3 +82,6 @@ jobs:
 
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify live Pages (dev docs)
+        run: ./scripts/verify_pages_deploy.sh --version dev

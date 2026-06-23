@@ -71,6 +71,25 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 
 Раздел `docs/contributing/**` **не** попадает в публичный MkDocs (`exclude_docs` в `mkdocs.yml`) — только для maintainers в git.
 
+### Verify Pages после deploy (OPS-01 / OPS-02)
+
+После `deploy-pages` CI вызывает `scripts/verify_pages_deploy.sh` (с retry на CDN lag):
+
+| Workflow | Проверка |
+|----------|----------|
+| [docs.yml](../../.github/workflows/docs.yml) | `--version dev` → `/versions.json`, `/dev/install/linux-deb/` |
+| [release-packages.yml](../../.github/workflows/release-packages.yml) `publish-pages` | pre-release: `/{VERSION}/install/`; stable: `stable` + `/{VERSION}/install/` |
+
+Ручная проверка после релиза (если CDN отстаёт):
+
+```bash
+./scripts/verify_pages_deploy.sh --version stable
+./scripts/verify_pages_deploy.sh --version dev
+curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
+```
+
+Переменные: `PAGES_REPO_BASE`, `ODPM_PAGES_VERIFY_RETRIES` (default 6), `ODPM_PAGES_VERIFY_SLEEP` (default 10s).
+
 ## Чеклист: stable **v4.5.0** (после smoke beta)
 
 Выполнять на `4.5-dev` после успешного smoke `v4.5.0-beta` (APT testing, TestPyPI, docs `/4.5.0-beta/`).
