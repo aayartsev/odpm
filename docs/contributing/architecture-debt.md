@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1371** OK, 24 skipped.
+**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1381** OK, 24 skipped.
 
 **Active dev branch:** `4.6.0-dev` (debt closure 4.6). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`); roadmap 4.5 **RELEASED**.
 
@@ -50,10 +50,10 @@ This document is a **retrospective** for audits and onboarding; new architecture
 | Compose | **D2** | **DONE** | ADR-009, `service_patches`, `merge_services_with_patches`, manifest `command` |
 | Config | **D3** | **DONE** | C-15…C-18: narrowed `BootstrapHandle`, `manifest_view` on `host_ctx`, coupling guards, ADR-003 amendment |
 | Plugins | **D4** | **DONE** | API 1.1, load-time version check, `compose_service_patches`, nested dep compose inherit, sample_plugin patch |
-| YAML | **D5** | pending | Y3 compose validation + golden snapshots |
+| YAML | **D5** | **DONE** | Y3 compose validation + golden snapshots per scenario |
 | CI-INF | — | pending | runner runbook, deploy-pages bump, timeout docs |
 
-**ADR backlog (4.6):** ADR-009 compose service patch **done** (D2); ADR-003 amendment **done** (D3); ADR-004 plugin 1.1 **done** (D4).
+**ADR backlog (4.6):** ADR-009 compose service patch **done** (D2); ADR-003 amendment **done** (D3); ADR-004 plugin 1.1 **done** (D4); ADR-005 Y3 compose validation **done** (D5).
 
 ---
 

@@ -86,6 +86,9 @@ msgstr "Не удалось получить список контейнеров
 msgid "Cannot load local plugin module: {PATH}"
 msgstr "Не удалось загрузить локальный модуль плагина: {PATH}"
 
+msgid "Cannot read docker-compose.yml at {PATH}: {ERROR}"
+msgstr "Не удалось прочитать docker-compose.yml ({PATH}): {ERROR}"
+
 msgid "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
 msgstr "Канонические git-пины: locks.git в odpm.json; выполните --update-lock, чтобы обновить .odpm/deps.lock.json."
 
@@ -109,6 +112,21 @@ msgstr "Клонировать или обновить platform, developing и g
 
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Собрать разрешённые git-коммиты и записать .odpm/deps.lock.json"
+
+msgid "Compose service {NAME} must be a mapping"
+msgstr "Сервис compose {NAME} должен быть mapping"
+
+msgid "Compose service {NAME} must define a non-empty image"
+msgstr "Сервис compose {NAME} должен содержать непустой image"
+
+msgid "Compose service {NAME}.environment list entries must be strings"
+msgstr "Элементы списка environment сервиса compose {NAME} должны быть строками"
+
+msgid "Compose service {NAME}.environment must be a list or mapping"
+msgstr "environment сервиса compose {NAME} должен быть списком или mapping"
+
+msgid "Compose service {NAME}.{FIELD} must be a list"
+msgstr "Поле {FIELD} сервиса compose {NAME} должно быть списком"
 
 msgid "Compose service: {SERVICE}"
 msgstr "Сервис compose: {SERVICE}"
@@ -190,6 +208,15 @@ msgstr "Не удалось запустить сервис PostgreSQL {SERVICE}
 
 msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 msgstr "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"
+
+msgid "Generated compose document must include services"
+msgstr "Сгенерированный compose-документ должен содержать services"
+
+msgid "Generated compose document root must be a mapping"
+msgstr "Корень сгенерированного compose-документа должен быть mapping"
+
+msgid "Generated compose volumes must be a mapping when present"
+msgstr "Секция volumes сгенерированного compose должна быть mapping, если присутствует"
 
 msgid "Git dependency lock updated; container start skipped."
 msgstr "Git dependency lock обновлён; запуск контейнеров пропущен."
@@ -745,6 +772,9 @@ msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
 msgid "docker-compose.yml differs from preview"
 msgstr "docker-compose.yml отличается от preview"
+
+msgid "docker-compose.yml is missing at {PATH}"
+msgstr "docker-compose.yml отсутствует по пути {PATH}"
 
 msgid "docker-compose.yml matches preview"
 msgstr "docker-compose.yml соответствует preview"

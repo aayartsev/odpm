@@ -31,6 +31,7 @@ class ProjectMaterializerTests(unittest.TestCase):
             _dockerignore,
             _config_file,
             _compose,
+            _validate_compose,
             update_links,
             checkout_dependencies,
         ) = service_mocks

@@ -12,6 +12,7 @@ _PREPARE_SERVICE_PATCH_TARGETS = (
     "dev_project.project_env.templates.ProjectTemplates.generate_dockerignore",
     "dev_project.project_env.templates.ProjectTemplates.generate_config_file",
     "dev_project.compose.generator.ComposeGenerator.generate_docker_compose_file",
+    "dev_project.compose.validate.validate_compose_file",
     "dev_project.project_env.links.ProjectLinks.update_links",
     "dev_project.project_env.links.ProjectLinks.checkout_dependencies",
 )

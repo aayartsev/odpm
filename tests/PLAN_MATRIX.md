@@ -72,7 +72,7 @@ C1–C6 are covered by A1–A4, A14, B1–B5.
 - `docker compose up`, golden-path, `-d -i -u -t`, backup, pre-commit, scaffold exec
 - `database ensure-role`, live `database status` with postgres
 - `--build-image` exec, full `odpm --skip-start` materialize with network git clone
-- `compose.validate` exec (`docker compose config`)
+- `compose.validate` exec (`check_docker_compose` + structural `validate_compose_file`)
 
 ## Running
 

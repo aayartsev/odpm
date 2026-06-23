@@ -35,6 +35,8 @@ def _load_contract_modules() -> unittest.TestSuite:
         "tests.test_addon_layout_ports",
         "tests.test_manifest_database_merge",
         "tests.test_compose_fragments",
+        "tests.test_compose_validate",
+        "tests.test_compose_golden_scenarios",
         "tests.test_extension_entry_points",
         "tests.test_sample_plugin",
         "tests.test_extension_api_d4",

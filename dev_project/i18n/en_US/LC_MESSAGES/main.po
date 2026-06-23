@@ -87,6 +87,9 @@ msgstr "Cannot list Docker containers: {DETAILS}"
 msgid "Cannot load local plugin module: {PATH}"
 msgstr "Cannot load local plugin module: {PATH}"
 
+msgid "Cannot read docker-compose.yml at {PATH}: {ERROR}"
+msgstr "Cannot read docker-compose.yml at {PATH}: {ERROR}"
+
 msgid "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
 msgstr "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
 
@@ -110,6 +113,21 @@ msgstr "Clone or update platform, developing, and dependency git repos"
 
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Collect resolved git commits and write .odpm/deps.lock.json"
+
+msgid "Compose service {NAME} must be a mapping"
+msgstr "Compose service {NAME} must be a mapping"
+
+msgid "Compose service {NAME} must define a non-empty image"
+msgstr "Compose service {NAME} must define a non-empty image"
+
+msgid "Compose service {NAME}.environment list entries must be strings"
+msgstr "Compose service {NAME}.environment list entries must be strings"
+
+msgid "Compose service {NAME}.environment must be a list or mapping"
+msgstr "Compose service {NAME}.environment must be a list or mapping"
+
+msgid "Compose service {NAME}.{FIELD} must be a list"
+msgstr "Compose service {NAME}.{FIELD} must be a list"
 
 msgid "Compose service: {SERVICE}"
 msgstr "Compose service: {SERVICE}"
@@ -191,6 +209,15 @@ msgstr "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
 
 msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 msgstr "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
+
+msgid "Generated compose document must include services"
+msgstr "Generated compose document must include services"
+
+msgid "Generated compose document root must be a mapping"
+msgstr "Generated compose document root must be a mapping"
+
+msgid "Generated compose volumes must be a mapping when present"
+msgstr "Generated compose volumes must be a mapping when present"
 
 msgid "Git dependency lock updated; container start skipped."
 msgstr "Git dependency lock updated; container start skipped."
@@ -746,6 +773,9 @@ msgstr "docker compose up failed with exit code {EXIT_CODE}"
 
 msgid "docker-compose.yml differs from preview"
 msgstr "docker-compose.yml differs from preview"
+
+msgid "docker-compose.yml is missing at {PATH}"
+msgstr "docker-compose.yml is missing at {PATH}"
 
 msgid "docker-compose.yml matches preview"
 msgstr "docker-compose.yml matches preview"

@@ -73,6 +73,9 @@ RU_MESSAGES: dict[str, str] = {
     "Cannot load local plugin module: {PATH}": (
         "Не удалось загрузить локальный модуль плагина: {PATH}"
     ),
+    "Cannot read docker-compose.yml at {PATH}: {ERROR}": (
+        "Не удалось прочитать docker-compose.yml ({PATH}): {ERROR}"
+    ),
     "Blocking database configuration drift detected; resolve before starting containers.": (
         "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
     ),
@@ -101,6 +104,21 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Compose service: {SERVICE}": (
         "Сервис compose: {SERVICE}"
+    ),
+    "Compose service {NAME} must be a mapping": (
+        "Сервис compose {NAME} должен быть mapping"
+    ),
+    "Compose service {NAME} must define a non-empty image": (
+        "Сервис compose {NAME} должен содержать непустой image"
+    ),
+    "Compose service {NAME}.environment list entries must be strings": (
+        "Элементы списка environment сервиса compose {NAME} должны быть строками"
+    ),
+    "Compose service {NAME}.environment must be a list or mapping": (
+        "environment сервиса compose {NAME} должен быть списком или mapping"
+    ),
+    "Compose service {NAME}.{FIELD} must be a list": (
+        "Поле {FIELD} сервиса compose {NAME} должно быть списком"
     ),
     "Configuration drift:": (
         "Дрейф конфигурации:"
@@ -289,6 +307,9 @@ RU_MESSAGES: dict[str, str] = {
     "docker compose up failed with exit code {EXIT_CODE}": (
         "docker compose up завершился с кодом {EXIT_CODE}"
     ),
+    "docker-compose.yml is missing at {PATH}": (
+        "docker-compose.yml отсутствует по пути {PATH}"
+    ),
     "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}": (
         "Не удалось прочитать вложенный {CONFIG_FILE_NAME} ({MANIFEST_PATH}): {ERROR}"
     ),
@@ -324,6 +345,15 @@ RU_MESSAGES: dict[str, str] = {
     ".odpm/deps.lock.json.": (
         "Источник git lock: locks.git в odpm.json (канон); правьте SHA в locks.git "
         "и выполните --update-lock для синхронизации .odpm/deps.lock.json."
+    ),
+    "Generated compose document must include services": (
+        "Сгенерированный compose-документ должен содержать services"
+    ),
+    "Generated compose document root must be a mapping": (
+        "Корень сгенерированного compose-документа должен быть mapping"
+    ),
+    "Generated compose volumes must be a mapping when present": (
+        "Секция volumes сгенерированного compose должна быть mapping, если присутствует"
     ),
     "Host port: {PORT}": (
         "Порт на host: {PORT}"
