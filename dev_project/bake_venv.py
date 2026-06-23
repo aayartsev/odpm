@@ -289,6 +289,8 @@ def install_odoo_requirement_packages(
         if "gevent" in package:
             pip.install_gevent(package)
     pip.install_requirements(requirements_path)
+    for package in constants.ODOO_VENV_IMPLICIT_PACKAGES:
+        pip.install(package)
 
 
 def install_extra_packages(extra_packages: list[str], pip: PipRunner) -> None:

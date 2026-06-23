@@ -15,6 +15,7 @@ _INSIDE_DOCKER_APP_SUBMODULES = frozenset(
         "run_pre_commit",
         "run_with_pydevd",
         "utils",
+        "venv_import_smoke",
     }
 )
 

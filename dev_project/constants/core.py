@@ -275,3 +275,8 @@ VENV_IMPORT_SMOKE_MODULES = (
 
 VENV_EXTRAS_LOCK_BASENAME = ".extras.lock"
 VENV_EXTRAS_REQUIREMENTS_BASENAME = ".extras-requirements.txt"
+
+# Installed with Odoo requirements even when absent from odoo/requirements.txt.
+ODOO_VENV_IMPLICIT_PACKAGES = (
+    "decorator",
+)
