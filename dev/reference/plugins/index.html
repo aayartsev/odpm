@@ -1608,6 +1608,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Декларативный сервис (Mailpit)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#patch-built-in-service_patches-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch built-in сервисов (service_patches, 4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-entrypoint-sidecar-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        command / entrypoint для sidecar (4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2084,6 +2112,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Декларативный сервис (Mailpit)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#patch-built-in-service_patches-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch built-in сервисов (service_patches, 4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-entrypoint-sidecar-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        command / entrypoint для sidecar (4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2280,6 +2336,27 @@
 </code></pre></div>
 <p>Тот же spec в коде: <code>dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC</code>.</p>
 <p>После <code>odpm up</code> сервис появится в сгенерированном <code>docker-compose.yml</code> (блок <code>{COMPOSE_SERVICE_FRAGMENTS}</code>). Артефакты materialize: <code>.odpm/compose/fragments/mailpit.yml</code> (gitignored).</p>
+<h3 id="patch-built-in-service_patches-46">Patch built-in сервисов (<code>service_patches</code>, 4.6+)<a class="headerlink" href="#patch-built-in-service_patches-46" title="Permanent link">&para;</a></h3>
+<p>Имена <strong><code>odoo</code></strong>, <strong><code>db</code></strong>, <strong><code>postgres</code></strong> нельзя объявлять в <code>services</code> — только patch. Политика: <a href="../../contributing/adr-009-compose-service-patch/">ADR-009</a>.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_patches&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;odoo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;CUSTOM_METRIC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>odpm plan</code> показывает <code>compose.patch.odoo</code> (preview); patch применяется при <code>compose.generate</code>.</p>
+<h3 id="command-entrypoint-sidecar-46"><code>command</code> / <code>entrypoint</code> для sidecar (4.6+)<a class="headerlink" href="#command-entrypoint-sidecar-46" title="Permanent link">&para;</a></h3>
+<p>Только <strong>exec form</strong> (JSON-массив строк) в <code>services.&lt;name&gt;</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;worker&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;busybox:latest&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;sh&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-c&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;sleep infinity&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Команда <code>odoo</code> по-прежнему задаётся generator; override — через <code>service_patches.odoo.command</code> при явной необходимости.</p>
 <h2 id="lifecycle-hooks-manifest">Lifecycle hooks в manifest<a class="headerlink" href="#lifecycle-hooks-manifest" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -2302,7 +2379,7 @@
 <li><code>hooks.pre_up</code></li>
 <li><code>docker compose up</code></li>
 </ol>
-<p><code>odpm plan</code> показывает шаги <code>hooks.*</code> и <code>compose.fragment.&lt;service&gt;</code> когда они настроены.</p>
+<p><code>odpm plan</code> показывает шаги <code>hooks.*</code>, <code>compose.fragment.&lt;service&gt;</code> и <code>compose.patch.&lt;service&gt;</code> когда они настроены.</p>
 <h3 id="order-prepare-steps">Поле <code>order</code> у prepare steps<a class="headerlink" href="#order-prepare-steps" title="Permanent link">&para;</a></h3>
 <p>Меньшее значение <code>order</code> выполняется раньше среди <strong>extension</strong> steps (built-in порядок фиксирован в registry). Конфликт <code>id</code> с built-in step → <code>ValueError</code> при регистрации.</p>
 <p>Ошибка shell-hook → <code>PipelineError</code> с кодом выхода команды.</p>

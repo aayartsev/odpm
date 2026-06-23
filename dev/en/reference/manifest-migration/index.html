@@ -2106,6 +2106,10 @@
 <td>v2 + <code>services</code> block</td>
 </tr>
 <tr>
+<td>Patch env/ports on <code>odoo</code> / <code>db</code></td>
+<td>v2 + <code>service_patches</code> (see <a href="../../contributing/adr-009-compose-service-patch/">ADR-009</a>)</td>
+</tr>
+<tr>
 <td>Locks in git instead of only <code>.odpm/deps.lock.json</code></td>
 <td>v2 + <code>locks</code></td>
 </tr>
@@ -2218,7 +2222,7 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>migrate<span class="
 </code></pre></div>
 <h2 id="after-migration">After migration<a class="headerlink" href="#after-migration" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong><code>odpm plan</code></strong> — check prepare steps (including <code>compose.fragments</code>) and lock source warnings.</li>
+<li><strong><code>odpm plan</code></strong> — check prepare steps (including <code>compose.fragments</code>, <code>compose.patch.*</code>) and lock source warnings.</li>
 <li><strong><code>odpm up --skip-start</code></strong> — materialize without starting containers.</li>
 <li><strong>Locks</strong> — see <a href="#locks-after-migration-v2">Locks after migration (v2)</a>.</li>
 <li><strong>Rollback</strong> — restore v1 from git; dual-read does not require v2.</li>

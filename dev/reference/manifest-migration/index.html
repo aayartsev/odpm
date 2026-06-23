@@ -2103,6 +2103,10 @@
 <td>v2 + блок <code>services</code></td>
 </tr>
 <tr>
+<td>Patch env/ports у <code>odoo</code> / <code>db</code></td>
+<td>v2 + <code>service_patches</code> (см. <a href="../../contributing/adr-009-compose-service-patch/">ADR-009</a>)</td>
+</tr>
+<tr>
 <td>Locks в git вместо только <code>.odpm/deps.lock.json</code></td>
 <td>v2 + <code>locks</code></td>
 </tr>
@@ -2215,7 +2219,7 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>migrate<span class="
 </code></pre></div>
 <h2 id="_4">После миграции<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong><code>odpm plan</code></strong> — проверьте шаги prepare (в т.ч. <code>compose.fragments</code>) и предупреждения об источнике lock.</li>
+<li><strong><code>odpm plan</code></strong> — проверьте шаги prepare (в т.ч. <code>compose.fragments</code>, <code>compose.patch.*</code>) и предупреждения об источнике lock.</li>
 <li><strong><code>odpm up --skip-start</code></strong> — materialize без поднятия контейнеров.</li>
 <li><strong>Locks</strong> — см. <a href="#locks-после-миграции-v2">Locks после миграции (v2)</a>.</li>
 <li><strong>Откат</strong> — восстановите v1 из git; dual-read не требует v2.</li>
