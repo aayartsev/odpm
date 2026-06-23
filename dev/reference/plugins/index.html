@@ -1578,10 +1578,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#api-45" class="md-nav__link">
+  <a href="#api-46" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Версия API (4.5+)
+        Версия API (4.6+)
       
     </span>
   </a>
@@ -1674,6 +1674,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Python-плагин: compose fragment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#patch-built-in-python-api-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch built-in из Python (API 1.1+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nested-dependency-services-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested dependency services (4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2082,10 +2110,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#api-45" class="md-nav__link">
+  <a href="#api-46" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Версия API (4.5+)
+        Версия API (4.6+)
       
     </span>
   </a>
@@ -2178,6 +2206,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Python-плагин: compose fragment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#patch-built-in-python-api-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch built-in из Python (API 1.1+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nested-dependency-services-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested dependency services (4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2285,8 +2341,13 @@
 
 <h1 id="odpm-44">Плагины и расширения odpm (4.4+)<a class="headerlink" href="#odpm-44" title="Permanent link">&para;</a></h1>
 <p>odpm 4.4+ добавляет <strong>extension API</strong> на host: prepare steps, compose fragments и lifecycle hooks. Плагины не получают прямой доступ к mutable <code>Config</code> — только frozen <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py"><code>ExtensionHostContext</code></a>.</p>
-<h2 id="api-45">Версия API (4.5+)<a class="headerlink" href="#api-45" title="Permanent link">&para;</a></h2>
-<p>Стабильная версия extension API: <strong><code>EXTENSION_API_VERSION = "1.0"</code></strong> (<code>dev_project/extensions/api.py</code>). Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
+<h2 id="api-46">Версия API (4.6+)<a class="headerlink" href="#api-46" title="Permanent link">&para;</a></h2>
+<p>Текущая версия extension API: <strong><code>EXTENSION_API_VERSION = "1.1"</code></strong> (<code>dev_project/extensions/api.py</code>). Поддерживаются <strong>1.0</strong> и <strong>1.1</strong>; модули без <code>EXTENSION_API_VERSION</code> считаются <strong>1.0</strong>. Host проверяет версию при загрузке entry points и <code>.odpm/plugins/*.py</code>. В плагине:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dev_project.extensions.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">EXTENSION_API_VERSION</span><span class="p">,</span> <span class="n">assert_extension_api_compatible</span>
+
+<span class="n">assert_extension_api_compatible</span><span class="p">(</span><span class="n">EXTENSION_API_VERSION</span><span class="p">)</span>
+</code></pre></div>
+<p>Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
 <h2 id="_1">Три способа расширить проект<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2398,6 +2459,13 @@
     <span class="n">register_compose_fragment</span><span class="p">(</span><span class="s2">&quot;mailpit&quot;</span><span class="p">,</span> <span class="n">MailpitFragment</span><span class="p">())</span>
 </code></pre></div>
 <p>Регистрация при импорте пакета или через entry point (см. ниже).</p>
+<h3 id="patch-built-in-python-api-11">Patch built-in из Python (API 1.1+)<a class="headerlink" href="#patch-built-in-python-api-11" title="Permanent link">&para;</a></h3>
+<p>Опциональный метод <code>compose_service_patches</code> на compose fragment (те же правила, что manifest <code>service_patches</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compose_service_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ExtensionHostContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;odoo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;environment&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MY_FLAG&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}}</span>
+</code></pre></div>
+<h3 id="nested-dependency-services-46">Nested dependency <code>services</code> (4.6+)<a class="headerlink" href="#nested-dependency-services-46" title="Permanent link">&para;</a></h3>
+<p>При <code>use_oca_dependencies</code> v2 <code>services</code> / <code>service_patches</code> из <code>odpm.json</code> зависимостей наследуются в host compose после <code>project.map_folders</code>. При конфликте имён <strong>побеждает host manifest</strong>. См. <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
 <h2 id="python-prepare-step">Python-плагин: prepare step<a class="headerlink" href="#python-prepare-step" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.prepare_steps&quot;</span><span class="k">]</span>
 <span class="n">my_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_odpm_plugin.steps:plugin_factory&quot;</span>

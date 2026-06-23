@@ -1578,10 +1578,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#extension-api-version-45" class="md-nav__link">
+  <a href="#extension-api-version-46" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extension API version (4.5+)
+        Extension API version (4.6+)
       
     </span>
   </a>
@@ -1674,6 +1674,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Python plugin: compose fragment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#patch-built-in-services-from-python-api-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch built-in services from Python (API 1.1+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nested-dependency-services-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested dependency services (4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2082,10 +2110,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#extension-api-version-45" class="md-nav__link">
+  <a href="#extension-api-version-46" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extension API version (4.5+)
+        Extension API version (4.6+)
       
     </span>
   </a>
@@ -2178,6 +2206,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Python plugin: compose fragment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#patch-built-in-services-from-python-api-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patch built-in services from Python (API 1.1+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nested-dependency-services-46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested dependency services (4.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2288,8 +2344,13 @@
 <p><strong>AI-translated</strong> from Russian.</p>
 </blockquote>
 <p>odpm 4.4+ adds a host <strong>extension API</strong>: prepare steps, compose fragments, and lifecycle hooks. Plugins do not get direct access to mutable <code>Config</code> — only frozen <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py"><code>ExtensionHostContext</code></a>.</p>
-<h2 id="extension-api-version-45">Extension API version (4.5+)<a class="headerlink" href="#extension-api-version-45" title="Permanent link">&para;</a></h2>
-<p>Stable API: <strong><code>EXTENSION_API_VERSION = "1.0"</code></strong> (<code>dev_project/extensions/api.py</code>). Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
+<h2 id="extension-api-version-46">Extension API version (4.6+)<a class="headerlink" href="#extension-api-version-46" title="Permanent link">&para;</a></h2>
+<p>Current API: <strong><code>EXTENSION_API_VERSION = "1.1"</code></strong> (<code>dev_project/extensions/api.py</code>). Supported: <strong>1.0</strong>, <strong>1.1</strong>; modules without <code>EXTENSION_API_VERSION</code> are treated as <strong>1.0</strong>. The host validates version when loading entry points and <code>.odpm/plugins/*.py</code>. In your plugin:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dev_project.extensions.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">EXTENSION_API_VERSION</span><span class="p">,</span> <span class="n">assert_extension_api_compatible</span>
+
+<span class="n">assert_extension_api_compatible</span><span class="p">(</span><span class="n">EXTENSION_API_VERSION</span><span class="p">)</span>
+</code></pre></div>
+<p>Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
 <h2 id="three-ways-to-extend-a-project">Three ways to extend a project<a class="headerlink" href="#three-ways-to-extend-a-project" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2404,6 +2465,13 @@
     <span class="n">register_compose_fragment</span><span class="p">(</span><span class="s2">&quot;mailpit&quot;</span><span class="p">,</span> <span class="n">MailpitFragment</span><span class="p">())</span>
 </code></pre></div>
 <p>Register on package import or via entry point (see below).</p>
+<h3 id="patch-built-in-services-from-python-api-11">Patch built-in services from Python (API 1.1+)<a class="headerlink" href="#patch-built-in-services-from-python-api-11" title="Permanent link">&para;</a></h3>
+<p>Optional <code>compose_service_patches</code> on a compose fragment (same rules as manifest <code>service_patches</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compose_service_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ExtensionHostContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;odoo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;environment&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MY_FLAG&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}}</span>
+</code></pre></div>
+<h3 id="nested-dependency-services-46">Nested dependency <code>services</code> (4.6+)<a class="headerlink" href="#nested-dependency-services-46" title="Permanent link">&para;</a></h3>
+<p>With <code>use_oca_dependencies</code>, v2 <code>services</code> / <code>service_patches</code> from dependency <code>odpm.json</code> files are inherited into host compose after <code>project.map_folders</code>. On name conflict the <strong>host manifest wins</strong>. See <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
 <h2 id="python-plugin-prepare-step">Python plugin: prepare step<a class="headerlink" href="#python-plugin-prepare-step" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.prepare_steps&quot;</span><span class="k">]</span>
 <span class="n">my_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_odpm_plugin.steps:plugin_factory&quot;</span>
