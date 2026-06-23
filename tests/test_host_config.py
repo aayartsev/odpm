@@ -618,7 +618,7 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
         config = MagicMock()
         ctx = ConfigBootstrapContext(config)
         with patch(
-            "dev_project.config.bootstrap_context.write_odpm_json"
+            "dev_project.config.manifests.odpm_json_writer.rewrite_odpm_json"
         ) as mock_rewrite:
             ctx.rewrite_odpm_json()
         mock_rewrite.assert_called_once_with(
@@ -929,10 +929,11 @@ class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
             python_version=None,
             source_path="/tmp/framework/odpm.json",
         )
-        with patch("dev_project.config.config._logger") as mock_logger:
+        with self.assertLogs("dev_project.config.config", level="WARNING") as captured:
             config.apply_transitive_requirements([], nested_fragments=[fragment])
-        mock_logger.warning.assert_called_once()
-        mock_logger.error.assert_not_called()
+        self.assertEqual(len(captured.output), 1)
+        self.assertIn("19.0", captured.output[0])
+        self.assertIn("17.0", captured.output[0])
 
     def test_version_mismatch_fails_in_ci_scenario(self):
         config = self._config(scenario=constants.CI_SCENARIO)
