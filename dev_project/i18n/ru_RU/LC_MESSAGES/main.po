@@ -125,6 +125,12 @@ msgstr "Элементы списка environment сервиса compose {NAME} 
 msgid "Compose service {NAME}.environment must be a list or mapping"
 msgstr "environment сервиса compose {NAME} должен быть списком или mapping"
 
+msgid "Compose service {NAME}.tty must be a boolean"
+msgstr "Поле tty сервиса compose {NAME} должно быть boolean"
+
+msgid "Compose service {NAME}.user must be a non-empty string"
+msgstr "Поле user сервиса compose {NAME} должно быть непустой строкой"
+
 msgid "Compose service {NAME}.{FIELD} must be a list"
 msgstr "Поле {FIELD} сервиса compose {NAME} должно быть списком"
 

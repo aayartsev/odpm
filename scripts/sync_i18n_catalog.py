@@ -120,6 +120,12 @@ RU_MESSAGES: dict[str, str] = {
     "Compose service {NAME}.{FIELD} must be a list": (
         "Поле {FIELD} сервиса compose {NAME} должно быть списком"
     ),
+    "Compose service {NAME}.tty must be a boolean": (
+        "Поле tty сервиса compose {NAME} должно быть boolean"
+    ),
+    "Compose service {NAME}.user must be a non-empty string": (
+        "Поле user сервиса compose {NAME} должно быть непустой строкой"
+    ),
     "Configuration drift:": (
         "Дрейф конфигурации:"
     ),
