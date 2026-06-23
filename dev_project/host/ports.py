@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from ..config import Config
     from ..config.git_repos import GitRepoCoordinator
     from ..git.deps_lock_manager import DepsLockManager
+    from ..manifest.reader import ManifestView
     from ..project_env import CreateProjectEnvironment
 
 
@@ -37,6 +38,14 @@ class BootstrapHandle:
 
     def compute_venv_lock_hash(self) -> str:
         return self.config.compute_venv_lock_hash()
+
+    @property
+    def manifest_view(self) -> ManifestView | None:
+        return self.config.bootstrap.manifest_view
+
+    @property
+    def repo_odpm_json(self) -> str:
+        return self.config.bootstrap.repo_odpm_json
 
 
 @dataclass(frozen=True)

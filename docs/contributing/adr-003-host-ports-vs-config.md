@@ -53,6 +53,7 @@ Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
 - `OdpmPipeline.ports` is set in `setup()`; plan and prepare orchestration no longer thread raw `Config` through public APIs.
 - `PrepareContext` holds `PipelinePorts`; `ctx.config` remains a property alias to `ctx.ports.bootstrap.config` for execute-only paths until D4+ thinning.
 - `ExtensionHostContext.from_host()` builds plugin views from `HostProjectContext` without touching `Config`.
+- `ComposePreviewPort` on `PrepareContext.compose_preview` is the evaluate-time compose preview surface (bootstrap config for disk cache only).
 - Removing the `Config` class is **out of scope** for 4.5.0; target is ~50% fewer direct `config.` reads in plan/prepare/runtime vs 4.4.3 (D3 narrows bootstrap access further).
 - Contract guards: `tests/test_plan_config_coupling.py`, `tests/test_prepare_config_coupling.py`, `tests/test_addon_layout_ports.py`, `tests/test_pipeline_ports.py`, `tests/test_host_context.py`.
 

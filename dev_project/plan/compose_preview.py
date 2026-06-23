@@ -86,16 +86,16 @@ def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
     runtime_path = runtime_config_path(host.project_dir)
     if os.path.isfile(runtime_path):
         try:
-            preview = ctx.plan_runtime_config_preview_text()
+            preview = ctx.compose_preview.runtime_config_text()
             on_disk = normalized_runtime_config_text_from_disk(
                 host.project_dir,
-                config=ctx.runtime_preview_cache_config(),
+                config=ctx.compose_preview.runtime_cache_config(),
             )
             if preview is not None and preview != on_disk:
                 return True, "runtime config payload changed"
         except (OSError, TypeError, ValueError, ConfigValidationError):
             pass
-    if ctx.plan_compose_start_command_changed():
+    if ctx.compose_preview.compose_start_command_changed():
         return True, "compose start command changed"
     return False, "runtime config and start command unchanged"
 
@@ -134,7 +134,7 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
     if not _project_env_has_volume_map(ctx):
         return False
     try:
-        ctx.plan_preview_compose_service()
+        ctx.compose_preview.preview_compose_service()
         preview = ctx.compose_generator.render_docker_compose_content()
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         return False

@@ -3,7 +3,7 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1348** OK, 24 skipped.
+**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1353** OK, 24 skipped.
 
 **Active dev branch:** `4.6.0-dev` (debt closure 4.6). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`); roadmap 4.5 **RELEASED**.
 

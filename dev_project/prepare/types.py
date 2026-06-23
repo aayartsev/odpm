@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from .compose_preview_port import ComposePreviewPort
 from ..compose.generator import ComposeGenerator
 from ..git.deps_lock_manager import DepsLockManager
 from ..host.cli.args import OdpmCliArgs
@@ -38,7 +39,12 @@ class PrepareContext:
 
     @property
     def config(self) -> Config:
+        """Execute-only bootstrap config; evaluate should use host_ctx / ports."""
         return self.ports.bootstrap.config
+
+    @property
+    def compose_preview(self) -> ComposePreviewPort:
+        return ComposePreviewPort(self.ports.bootstrap)
 
     def extension_host(self) -> ExtensionHostContext:
         from ..extensions.context import ExtensionHostContext
@@ -60,37 +66,18 @@ class PrepareContext:
     def compute_venv_lock_hash(self) -> str:
         return self.ports.bootstrap.compute_venv_lock_hash()
 
-    def runtime_preview_cache_config(self) -> Config:
-        """Config handle used only for plan runtime preview disk cache."""
-        return self.config
-
-    def plan_runtime_config_preview_text(self) -> str | None:
-        from ..plan.compose_preview import preview_runtime_config_text
-
-        return preview_runtime_config_text(self.config)
-
-    def plan_compose_start_command_changed(self) -> bool:
-        from ..plan.compose_preview import compose_start_command_changed
-
-        return compose_start_command_changed(self.config)
-
-    def plan_preview_compose_service(self):
-        from ..plan.compose_preview import preview_compose_service
-
-        return preview_compose_service(self.config)
-
     def rebuild_compose_template(self) -> None:
-        self.config.pd_manager.rebuild_docker_compose_template()
+        self.ports.bootstrap.config.pd_manager.rebuild_docker_compose_template()
 
     def build_compose_service(self):
         from ..compose.service_builder import ComposeServiceBuilder
 
-        return ComposeServiceBuilder(self.config).build()
+        return ComposeServiceBuilder(self.ports.bootstrap.config).build()
 
     def detect_database_drift(self):
         from ..database.drift import detect_database_drift_for_config
 
-        return detect_database_drift_for_config(self.config)
+        return detect_database_drift_for_config(self.ports.bootstrap.config)
 
 
 @dataclass(frozen=True)

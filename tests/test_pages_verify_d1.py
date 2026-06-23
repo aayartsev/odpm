@@ -63,7 +63,7 @@ class PagesVerifyD1Tests(unittest.TestCase):
         )
         self.assertIn("## 4.6 debt track (D1–D5)", text)
         self.assertIn("| **D1** | **DONE** |", text)
-        self.assertIn("**1336**", text)
+        self.assertIn("**1353**", text)
 
     def test_i18n_doc_targets_46_dev_branch(self):
         text = (PROJECT_ROOT / "docs/contributing/i18n.md").read_text(encoding="utf-8")

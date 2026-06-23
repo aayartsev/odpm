@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Release gate (R0 / 4.6.0-dev)** — `RELEASE_VERSION` → `4.6.0-beta`; `LATEST_STABLE_RELEASE` remains `4.5.0`; CI/docs workflows target `4.6.0-dev`; deb/rpm pre-release packaging synced.
 - **Debt closure (D1)** — post-deploy Pages verify (`verify_pages_deploy.sh` in `docs.yml` and `release-packages`); legacy `services_ru.md` redirect; `architecture-debt` 4.6 track section; roadmap 4.5 plan archived; `i18n.md` branch `4.6.0-dev`.
 - **Debt closure (D2)** — ADR-009 compose patch policy; manifest v2 `service_patches` and sidecar `command`/`entrypoint`; `merge_services_with_patches`; plan `compose.patch.*`; reserved `services.odoo` guard; ADR-005 amendment; EN manifest-migration parity.
-- **Debt closure (D3)** — Config hub phase 2: narrowed `BootstrapHandle` (`git_repos`, lock manager factory, venv lock hash); `manifest_view` / `repo_odpm_json` on `HostProjectContext`; `ExtensionHostContext.from_host`; coupling guards; ADR-003 amendment.
+- **Debt closure (D3)** — Config hub phase 2: narrowed `BootstrapHandle` (`git_repos`, lock manager factory, venv lock hash); `manifest_view` / `repo_odpm_json` on `HostProjectContext`; `ExtensionHostContext.from_host`; `ComposePreviewPort` on `PrepareContext`; coupling guards; ADR-003 amendment.
 
 ## [4.5.0] - 2026-06-22
 

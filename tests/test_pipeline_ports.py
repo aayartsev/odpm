@@ -48,6 +48,27 @@ class PipelinePortsTests(unittest.TestCase):
         self.assertIsInstance(ports, PipelinePorts)
         self.assertIsInstance(ports.compose.project_env, CreateProjectEnvironment)
 
+    def test_bootstrap_handle_exposes_manifest_read_model(self):
+        from dev_project.manifest.reader import ManifestView
+
+        config = MagicMock()
+        view = ManifestView(
+            manifest_schema=2,
+            requires_odpm=">=4.5.0",
+            services=None,
+            hooks=None,
+            locks=None,
+            raw_normalized={},
+            source_raw={},
+        )
+        config.bootstrap.manifest_view = view
+        config.bootstrap.repo_odpm_json = "/tmp/project/odpm.json"
+
+        bootstrap = BootstrapHandle(config=config)
+
+        self.assertIs(bootstrap.manifest_view, view)
+        self.assertEqual(bootstrap.repo_odpm_json, "/tmp/project/odpm.json")
+
     def test_bootstrap_handle_exposes_narrow_git_and_lock_surfaces(self):
         config = MagicMock()
         config._git_repos = MagicMock(name="git_repos")
@@ -67,6 +88,14 @@ class PipelinePortsTests(unittest.TestCase):
             BOOTSTRAP_HANDLE_SURFACES,
             ("config", "git_repos", "new_lock_manager", "compute_venv_lock_hash"),
         )
+
+    def test_repo_odpm_json_shim_is_not_duplicated(self):
+        repo_shims = [
+            replacement
+            for _slice, field, replacement in CONFIG_PROPERTY_SHIMS
+            if field == "repo_odpm_json"
+        ]
+        self.assertEqual(repo_shims, ["host_ctx.repo_odpm_json"])
 
     def test_manifest_view_shim_points_at_host_ctx(self):
         shims = dict(
