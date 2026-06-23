@@ -9,7 +9,7 @@ from typing import Any
 from .. import constants
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .schema import validate_manifest_v2
-from ..compose.fragments import validate_manifest_compose_services
+from .compose_policy import validate_manifest_compose_services
 
 
 @dataclass(frozen=True)

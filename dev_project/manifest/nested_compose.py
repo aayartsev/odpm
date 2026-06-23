@@ -6,9 +6,8 @@ from copy import deepcopy
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
-from ..compose.fragments import validate_manifest_compose_services
+from ..manifest.compose_policy import validate_manifest_compose_services
 from ..dependency_resolver import NestedOdpmFragment
-from ..yaml import merge_services, merge_service_patch_maps
 
 if TYPE_CHECKING:
     from ..config.config import Config
@@ -28,6 +27,8 @@ def merge_nested_compose_fragments(
     fragments: list[NestedOdpmFragment],
 ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
     """Merge nested dependency compose fields (later fragments override earlier)."""
+    from ..yaml import merge_service_patch_maps, merge_services
+
     nested_services: dict[str, dict[str, Any]] = {}
     nested_patches: dict[str, dict[str, Any]] = {}
     for fragment in fragments:
@@ -56,6 +57,7 @@ def inherit_nested_compose_into_manifest(
     nested_services, nested_patches = merge_nested_compose_fragments(fragments)
     if not nested_services and not nested_patches:
         return
+    from ..yaml import merge_service_patch_maps, merge_services
 
     view = config.bootstrap.manifest_view
     host_services = _dict_services(view.services if view is not None else None)
