@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .loader import validate_plugin_api
 from ..errors import ConfigError
 from ..logging import get_module_logger
 from ..translations import _
@@ -56,6 +57,7 @@ def _import_plugin_module(module_path: Path, *, module_name: str) -> None:
     module = importlib.util.module_from_spec(spec)
     sys.modules[qualified] = module
     spec.loader.exec_module(module)
+    validate_plugin_api(module, plugin_id=module_name)
 
 
 def _discover_local_module_names(plugins_root: Path) -> tuple[str, ...]:

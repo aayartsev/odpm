@@ -2,9 +2,17 @@
 
 odpm 4.4+ добавляет **extension API** на host: prepare steps, compose fragments и lifecycle hooks. Плагины не получают прямой доступ к mutable `Config` — только frozen [`ExtensionHostContext`](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py).
 
-## Версия API (4.5+)
+## Версия API (4.6+)
 
-Стабильная версия extension API: **`EXTENSION_API_VERSION = "1.0"`** (`dev_project/extensions/api.py`). Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+Текущая версия extension API: **`EXTENSION_API_VERSION = "1.1"`** (`dev_project/extensions/api.py`). Поддерживаются **1.0** и **1.1**; модули без `EXTENSION_API_VERSION` считаются **1.0**. Host проверяет версию при загрузке entry points и `.odpm/plugins/*.py`. В плагине:
+
+```python
+from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_api_compatible
+
+assert_extension_api_compatible(EXTENSION_API_VERSION)
+```
+
+Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Три способа расширить проект
 
@@ -122,6 +130,19 @@ def _register():
 ```
 
 Регистрация при импорте пакета или через entry point (см. ниже).
+
+### Patch built-in из Python (API 1.1+)
+
+Опциональный метод `compose_service_patches` на compose fragment (те же правила, что manifest `service_patches`):
+
+```python
+def compose_service_patches(self, ctx: ExtensionHostContext) -> dict:
+    return {"odoo": {"environment": {"MY_FLAG": "1"}}}
+```
+
+### Nested dependency `services` (4.6+)
+
+При `use_oca_dependencies` v2 `services` / `service_patches` из `odpm.json` зависимостей наследуются в host compose после `project.map_folders`. При конфликте имён **побеждает host manifest**. См. [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Python-плагин: prepare step
 

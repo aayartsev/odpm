@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Debt closure (D1)** — post-deploy Pages verify (`verify_pages_deploy.sh` in `docs.yml` and `release-packages`); legacy `services_ru.md` redirect; `architecture-debt` 4.6 track section; roadmap 4.5 plan archived; `i18n.md` branch `4.6.0-dev`.
 - **Debt closure (D2)** — ADR-009 compose patch policy; manifest v2 `service_patches` and sidecar `command`/`entrypoint`; `merge_services_with_patches`; plan `compose.patch.*`; reserved `services.odoo` guard; ADR-005 amendment; EN manifest-migration parity.
 - **Debt closure (D3)** — Config hub phase 2: narrowed `BootstrapHandle` (`git_repos`, lock manager factory, venv lock hash); `manifest_view` / `repo_odpm_json` on `HostProjectContext`; `ExtensionHostContext.from_host`; `ComposePreviewPort` on `PrepareContext`; coupling guards; ADR-003 amendment.
+- **Debt closure (D4)** — Plugin API 1.1 (`EXTENSION_API_VERSION` 1.1, load-time `assert_extension_api_compatible`); optional `compose_service_patches` on compose plugins; nested dependency `services` / `service_patches` inherit (host wins); sample_plugin patch fixture; ADR-004 update.
 
 ## [4.5.0] - 2026-06-22
 

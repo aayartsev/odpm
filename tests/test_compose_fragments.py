@@ -354,6 +354,7 @@ class ComposeServicePatchTests(unittest.TestCase):
                 ctx,
                 host_ctx=replace(ctx.host_ctx, manifest_view=manifest_view),
             )
+            ctx.config.bootstrap.manifest_view = manifest_view
             plan = build_prepare_plan(ctx)
             step_ids = [step.id for step in plan.steps]
             self.assertIn("compose.patch.odoo", step_ids)

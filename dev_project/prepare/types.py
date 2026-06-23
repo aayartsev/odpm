@@ -52,7 +52,7 @@ class PrepareContext:
         return ExtensionHostContext.from_host(
             self.host_ctx,
             repo_odpm_json=self.host_ctx.repo_odpm_json,
-            manifest_view=self.host_ctx.manifest_view,
+            manifest_view=self.manifest_view,
         )
 
     @property
@@ -61,7 +61,7 @@ class PrepareContext:
 
     @property
     def manifest_view(self) -> ManifestView | None:
-        return self.host_ctx.manifest_view
+        return self.ports.bootstrap.manifest_view
 
     def compute_venv_lock_hash(self) -> str:
         return self.ports.bootstrap.compute_venv_lock_hash()

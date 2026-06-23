@@ -120,6 +120,22 @@ def _merge_service_patch(
     return result
 
 
+def merge_service_patch_maps(
+    base: dict[str, dict[str, Any]],
+    overlay: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Merge patch maps by service name; ``overlay`` keys win per ADR-009 field rules."""
+    result: dict[str, dict[str, Any]] = {
+        name: dict(_to_plain_data(spec)) for name, spec in base.items()
+    }
+    for name, patch in overlay.items():
+        if name in result:
+            result[name] = dict(_merge_service_patch(result[name], patch))
+        else:
+            result[name] = dict(_to_plain_data(patch))
+    return result
+
+
 def merge_services_with_patches(
     services: dict[str, dict[str, Any]],
     patches: dict[str, dict[str, Any]],

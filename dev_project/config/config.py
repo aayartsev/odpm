@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 from ..host.cli.args import OdpmCliArgs
 
 from ..dependency_resolver import NestedOdpmFragment
+from ..manifest.nested_compose import inherit_nested_compose_into_manifest
 from ..errors import PipelineError
 from ..git import HandleOdooProjectLink
 from ..host.user_env import CreateUserEnvironment
@@ -122,6 +123,8 @@ class Config(ConfigRuntimeFacadeMixin):
                 _logger.error(message)
                 raise PipelineError(message, exit_code=1)
             _logger.warning(message)
+
+        inherit_nested_compose_into_manifest(self, fragments)
 
         if not transitive_requirements:
             return

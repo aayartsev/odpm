@@ -54,4 +54,4 @@ Reserved names in `services`: **`odoo`**, **`db`**, **`postgres`** → `ConfigEr
 
 - `docker-compose.override.yml` merge (D5-3).
 - JSON Schema validation of final compose output (D5-1).
-- **Nested dependency `services` merge** — transitive `odpm.json` in `dependencies` does not inherit parent `services` / `service_patches`; scheduled for **D4-2** (plugin API 1.1 policy).
+- **Nested dependency `services` merge** — implemented in 4.6 D4: transitive v2 `odpm.json` `services` / `service_patches` inherit when `use_oca_dependencies` resolves nested fragments; host manifest wins on conflict ([ADR-004](adr-004-plugin-api-stability.md)).

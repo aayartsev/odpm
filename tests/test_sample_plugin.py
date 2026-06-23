@@ -1,4 +1,4 @@
-"""Contract tests for sample_plugin fixture and extension API 1.0."""
+"""Contract tests for sample_plugin fixture and extension API 1.1."""
 
 from __future__ import annotations
 

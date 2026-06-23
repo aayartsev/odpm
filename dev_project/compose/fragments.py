@@ -42,14 +42,31 @@ def _reject_reserved_service_name(name: str, *, source: str) -> None:
 
 
 def collect_service_patches(ext: ExtensionHostContext) -> dict[str, dict[str, Any]]:
-    """Return manifest ``service_patches`` for built-in compose services."""
+    """Return manifest and plugin ``service_patches`` for built-in compose services."""
+    from ..extensions.registry import iter_compose_fragments
+    from ..yaml import merge_service_patch_maps
+
     patches = ext.manifest_service_patches
-    if not isinstance(patches, dict):
-        return {}
     result: dict[str, dict[str, Any]] = {}
-    for name, spec in patches.items():
-        if isinstance(spec, dict):
-            result[str(name)] = dict(spec)
+    if isinstance(patches, dict):
+        for name, spec in patches.items():
+            if isinstance(spec, dict):
+                result[str(name)] = dict(spec)
+    for _name, plugin in iter_compose_fragments():
+        plugin_patches = getattr(plugin, "compose_service_patches", None)
+        if plugin_patches is None:
+            continue
+        if callable(plugin_patches):
+            plugin_patches = plugin_patches(ext)
+        if not isinstance(plugin_patches, dict):
+            continue
+        normalized = {
+            str(name): dict(spec)
+            for name, spec in plugin_patches.items()
+            if isinstance(spec, dict)
+        }
+        if normalized:
+            result = merge_service_patch_maps(result, normalized)
     return result
 
 

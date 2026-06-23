@@ -1,6 +1,6 @@
 # ADR-004: Plugin API stability (4.5)
 
-**Status:** accepted (4.5-dev)  
+**Status:** accepted (4.5-dev). **Amended** for 4.6 debt closure slice D4 (API 1.1).  
 **Date:** 2026-06-22
 
 ## Context
@@ -13,9 +13,20 @@ Phase P (Plugins 2.0) adds project-local plugins, plan integration, and addition
 
 ### API version constant
 
-- `dev_project/extensions/api.py` exports **`EXTENSION_API_VERSION = "1.0"`**.
-- Plugin packages should declare compatibility in documentation and optionally call `assert_extension_api_compatible()` at import time.
-- odpm host code does **not** read version from `pyproject.toml` automatically in 4.5.0; enforcement is contract tests + maintainer review.
+- `dev_project/extensions/api.py` exports **`EXTENSION_API_VERSION = "1.1"`** (4.6+).
+- **`SUPPORTED_EXTENSION_API_VERSIONS`**: `1.0`, `1.1` — plugins without `EXTENSION_API_VERSION` are treated as **1.0**.
+- Host validates plugins at load time via `validate_plugin_api()` (`extensions/loader.py`) for setuptools entry points and `.odpm/plugins/*.py`.
+- Plugin packages should declare `EXTENSION_API_VERSION` and may call `assert_extension_api_compatible()` at import time.
+- odpm host does **not** read version from `pyproject.toml` automatically; enforcement is load-time check + contract tests.
+
+### 4.6 amendment (D4 / API 1.1)
+
+| Addition | Notes |
+|----------|-------|
+| Load-time API check | `validate_pluggy_manager_plugins()` after entry-point load; local plugins after `exec_module` |
+| `compose_service_patches(ctx)` | Optional on `ComposeFragmentPlugin`; merged after manifest `service_patches` |
+| Nested dep compose inherit | v2 `services` / `service_patches` from dependency `odpm.json` merged in `apply_transitive_requirements`; **host manifest wins** on name conflict |
+| `sample_plugin` | Contract fixture for sidecar + `service_patches` |
 
 ### Semver policy
 
@@ -28,12 +39,13 @@ Phase P (Plugins 2.0) adds project-local plugins, plan integration, and addition
 
 Breaking changes ship only with a major `EXTENSION_API_VERSION` bump and release notes; manager keeps reading older plugins when possible via optional protocol methods.
 
-### Stable surfaces (1.0)
+### Stable surfaces (1.0 / 1.1)
 
 - Entry-point groups: `odpm.prepare_steps`, `odpm.hooks`
 - Registry helpers: `register_prepare_step`, `register_compose_fragment`, `register_hook_runner`
 - Types: `ExtensionHostContext`, `PrepareStepPlugin`, `ComposeFragmentPlugin`, `HookRunner`
-- Manifest v2: `services`, `hooks.post_prepare`, `hooks.pre_up`, `hooks.post_clone`, `extensions.local`
+- Manifest v2: `services`, `service_patches`, `hooks.post_prepare`, `hooks.pre_up`, `hooks.post_clone`, `extensions.local`
+- Compose plugins (1.1): optional `compose_service_patches()` alongside `compose_services()`
 - Lifecycle order: prepare steps → `post_clone` (after git materialize) → … → `post_prepare` → runtime → `pre_up` → compose up
 
 ### Project-local plugins

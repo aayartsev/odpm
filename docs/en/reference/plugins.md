@@ -4,9 +4,17 @@
 
 odpm 4.4+ adds a host **extension API**: prepare steps, compose fragments, and lifecycle hooks. Plugins do not get direct access to mutable `Config` — only frozen [`ExtensionHostContext`](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py).
 
-## Extension API version (4.5+)
+## Extension API version (4.6+)
 
-Stable API: **`EXTENSION_API_VERSION = "1.0"`** (`dev_project/extensions/api.py`). Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+Current API: **`EXTENSION_API_VERSION = "1.1"`** (`dev_project/extensions/api.py`). Supported: **1.0**, **1.1**; modules without `EXTENSION_API_VERSION` are treated as **1.0**. The host validates version when loading entry points and `.odpm/plugins/*.py`. In your plugin:
+
+```python
+from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_api_compatible
+
+assert_extension_api_compatible(EXTENSION_API_VERSION)
+```
+
+Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Three ways to extend a project
 
@@ -127,6 +135,19 @@ def _register():
 ```
 
 Register on package import or via entry point (see below).
+
+### Patch built-in services from Python (API 1.1+)
+
+Optional `compose_service_patches` on a compose fragment (same rules as manifest `service_patches`):
+
+```python
+def compose_service_patches(self, ctx: ExtensionHostContext) -> dict:
+    return {"odoo": {"environment": {"MY_FLAG": "1"}}}
+```
+
+### Nested dependency `services` (4.6+)
+
+With `use_oca_dependencies`, v2 `services` / `service_patches` from dependency `odpm.json` files are inherited into host compose after `project.map_folders`. On name conflict the **host manifest wins**. See [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Python plugin: prepare step
 
