@@ -197,7 +197,7 @@ class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
             ctx.extension_host.return_value,
             "post_prepare",
             cwd="/tmp/project",
-            env_resolver=ctx.config.env_resolver,
+            env_resolver=ctx.env_resolver,
         )
 
 

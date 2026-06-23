@@ -63,6 +63,10 @@ class PrepareContext:
     def manifest_view(self) -> ManifestView | None:
         return self.ports.bootstrap.manifest_view
 
+    @property
+    def env_resolver(self):
+        return self.ports.bootstrap.config.env_resolver
+
     def compute_venv_lock_hash(self) -> str:
         return self.ports.bootstrap.compute_venv_lock_hash()
 
