@@ -2265,7 +2265,7 @@
 </tr>
 <tr>
 <td><code>services.&lt;name&gt;</code></td>
-<td>Extra compose services: <code>image</code> required; optional <code>ports[]</code>, <code>environment</code>, <code>volumes[]</code>, <code>depends_on[]</code>, <code>restart</code></td>
+<td>Extra compose services: <code>image</code> required; optional <code>ports[]</code>, <code>environment</code>, <code>volumes[]</code>, <code>depends_on[]</code>, <code>restart</code>, <code>user</code>, <code>tty</code>, <code>command[]</code>, <code>entrypoint[]</code></td>
 </tr>
 </tbody>
 </table>
@@ -2346,6 +2346,14 @@
 <td><code>dependencies</code></td>
 <td>yes (each list element)</td>
 </tr>
+<tr>
+<td><code>services.*</code> / <code>service_patches.*</code> (v2)</td>
+<td>yes — <code>image</code>, <code>user</code>, <code>restart</code>, lists (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), <code>environment</code> values</td>
+</tr>
+<tr>
+<td><code>hooks.*</code> argv (v2)</td>
+<td>yes — at hook <strong>execution</strong> (not during <code>odpm manifest validate</code>)</td>
+</tr>
 </tbody>
 </table>
 <p>Syntax: <strong><code>${NAME}</code></strong> and <strong><code>${NAME:-default}</code></strong> (as in Docker Compose). Literal <code>$</code> — <strong><code>$$</code></strong>.</p>
@@ -2365,6 +2373,16 @@
 <span class="na">GIT_HOST</span><span class="o">=</span><span class="s">git.company.example</span>
 </code></pre></div>
 <p>Other fields (<code>odoo_version</code>, <code>python_version</code>, <code>requirements_txt</code>, …) have <strong>no</strong> substitution. Nested <code>odpm.json</code> in git dependencies supports the same fields — see <a href="../config-hierarchy/">configuration hierarchy</a>. <code>.odpm/deps.lock.json</code> stores <strong>expanded</strong> URLs and paths, not <code>${VAR}</code>.</p>
+<p>v2 sidecar with paths from <code>.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <p>See <a href="../env-dotenv/"><code>.env</code> variables</a>, <a href="../git-links/">repository links</a>.</p>
 <h2 id="verified-combinations">Verified combinations<a class="headerlink" href="#verified-combinations" title="Permanent link">&para;</a></h2>
 <ul>

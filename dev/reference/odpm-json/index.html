@@ -2047,6 +2047,14 @@
 <td><code>dependencies</code></td>
 <td>да (каждый элемент списка)</td>
 </tr>
+<tr>
+<td><code>services.*</code> / <code>service_patches.*</code> (v2)</td>
+<td>да — <code>image</code>, <code>user</code>, <code>restart</code>, списки (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), значения <code>environment</code></td>
+</tr>
+<tr>
+<td><code>hooks.*</code> argv (v2)</td>
+<td>да — при <strong>выполнении</strong> hook (не при <code>odpm manifest validate</code>)</td>
+</tr>
 </tbody>
 </table>
 <p>Синтаксис: <strong><code>${ИМЯ}</code></strong> и <strong><code>${ИМЯ:-значение_по_умолчанию}</code></strong> (как в Docker Compose). Литеральный <code>$</code> — <strong><code>$$</code></strong>.</p>
@@ -2066,6 +2074,16 @@
 <span class="na">GIT_HOST</span><span class="o">=</span><span class="s">git.company.example</span>
 </code></pre></div>
 <p>Остальные поля (<code>odoo_version</code>, <code>python_version</code>, <code>requirements_txt</code>, …) <strong>без</strong> подстановки. Вложенный <code>odpm.json</code> в git-зависимостях поддерживает те же поля — см. <a href="../config-hierarchy/">иерархию конфигурации</a>. В <code>.odpm/deps.lock.json</code> попадают <strong>уже раскрытые</strong> URL и пути, не <code>${VAR}</code>.</p>
+<p>Для v2 sidecar с путями из <code>.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <p>См. <a href="../env-dotenv/">переменные <code>.env</code></a>, <a href="../git-links/">ссылки на репозитории</a>.</p>
 <h2 id="_1">Проверенные сочетания<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <ul>

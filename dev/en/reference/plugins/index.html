@@ -2398,6 +2398,16 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>Sidecars may set <strong><code>user</code></strong> and <strong><code>tty</code></strong> (same as <code>service_patches</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <p>Same spec in code: <code>dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC</code>.</p>
 <p>After <code>odpm up</code> the service appears in generated <code>docker-compose.yml</code> (<code>{COMPOSE_SERVICE_FRAGMENTS}</code> block). Materialize artifacts: <code>.odpm/compose/fragments/mailpit.yml</code> (gitignored).</p>
 <h3 id="patch-built-in-services-service_patches-46">Patch built-in services (<code>service_patches</code>, 4.6+)<a class="headerlink" href="#patch-built-in-services-service_patches-46" title="Permanent link">&para;</a></h3>
@@ -2435,7 +2445,18 @@
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Each element is either <strong>argv</strong> (string array, runs in <code>project_dir</code>) or a <strong>plugin id</strong> (string) for the pluggy hook runner.</p>
+<p>Each element is either <strong>argv</strong> (string array, runs in <code>project_dir</code> <strong>without a shell</strong>) or a <strong>plugin id</strong> (string) for the pluggy hook runner.</p>
+<p>Argv supports <strong><code>${VAR}</code></strong> / <strong><code>${VAR:-default}</code></strong> (Compose-style): expanded at hook execution from process env → project <code>.env</code> → inline default. The subprocess receives <strong>merged env</strong> (process + missing keys from <code>.env</code>). Example sidecar image build:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span>
+<span class="w">    </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}&quot;</span>
+<span class="w">  </span><span class="p">]]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>services</code> / <code>service_patches</code> use the same substitution rules for string fields (<code>image</code>, <code>volumes[]</code>, <code>command[]</code>, <code>environment</code>, …) — expanded when the manifest is loaded with <code>EnvResolver</code>.</p>
 <p>Order per ADR-004:</p>
 <ol>
 <li>Git materialize</li>
