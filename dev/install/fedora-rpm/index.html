@@ -874,10 +874,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pre-release-46-beta-45-44" class="md-nav__link">
+  <a href="#beta-46-45-44" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pre-release (4.6 beta; 4.5 / 4.4 архив)
+        Предварительная версия (beta 4.6; архив 4.5 / 4.4)
       
     </span>
   </a>
@@ -2022,10 +2022,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pre-release-46-beta-45-44" class="md-nav__link">
+  <a href="#beta-46-45-44" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pre-release (4.6 beta; 4.5 / 4.4 архив)
+        Предварительная версия (beta 4.6; архив 4.5 / 4.4)
       
     </span>
   </a>
@@ -2097,7 +2097,7 @@
 
 <h1 id="fedora-rhel-rpm">Fedora / RHEL (.rpm)<a class="headerlink" href="#fedora-rhel-rpm" title="Permanent link">&para;</a></h1>
 <p>Рекомендуемый способ на <strong>Fedora 40+</strong> (системный Python ≥ 3.10). В YUM-репозитории публикуются сборки для Fedora 40, 41 и 44 (<code>fc40</code> / <code>fc41</code> / <code>fc44</code> в имени RPM). На EL9 / RHEL 9 штатный <code>python3</code> 3.9 не поддерживается — используйте pip/pipx или соберите RPM на Fedora.</p>
-<p>Полная таблица платформ: <a href="../">Установка odpm (все платформы)</a> · docs: <a href="https://aayartsev.github.io/odpm/stable/install/fedora-rpm/">stable</a>.</p>
+<p>Полная таблица платформ: <a href="../">Установка odpm (все платформы)</a> · документация stable: <a href="https://aayartsev.github.io/odpm/stable/install/fedora-rpm/">4.5.0</a>.</p>
 <h2 id="dnf-dnf-upgrade">Установка через DNF (обновления <code>dnf upgrade</code>)<a class="headerlink" href="#dnf-dnf-upgrade" title="Permanent link">&para;</a></h2>
 <p>После <a href="https://github.com/aayartsev/odpm/releases">релизного тега</a> odpm публикует подписанный репозиторий на GitHub Pages (<code>https://aayartsev.github.io/odpm/yum/</code>).</p>
 <h3 id="_1">Ключ репозитория<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
@@ -2107,7 +2107,7 @@ sudo<span class="w"> </span>rpm<span class="w"> </span>-q<span class="w"> </span
 <span class="c1"># ожидается fingerprint: 03040028F53D7AB8  Alexander Yartsev</span>
 </code></pre></div>
 <h3 id="stable-production">Stable (рекомендуется для production)<a class="headerlink" href="#stable-production" title="Permanent link">&para;</a></h3>
-<p>Suite <strong><code>stable</code></strong> — сейчас odpm <strong>4.5.0</strong>:</p>
+<p>Ветка <strong><code>stable</code></strong> — сейчас odpm <strong>4.5.0</strong>:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/yum/odpm-stable.repo<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-o<span class="w"> </span>/etc/yum.repos.d/odpm.repo
 
@@ -2116,8 +2116,8 @@ sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> <
 odpm<span class="w"> </span>--version
 <span class="c1"># ожидается: odpm version: 4.5.0</span>
 </code></pre></div>
-<h3 id="pre-release-46-beta-45-44">Pre-release (4.6 beta; 4.5 / 4.4 архив)<a class="headerlink" href="#pre-release-46-beta-45-44" title="Permanent link">&para;</a></h3>
-<p>Suite <strong><code>testing</code></strong> — pre-release теги, сейчас <strong>4.6.0-beta</strong>:</p>
+<h3 id="beta-46-45-44">Предварительная версия (beta 4.6; архив 4.5 / 4.4)<a class="headerlink" href="#beta-46-45-44" title="Permanent link">&para;</a></h3>
+<p>Ветка <strong><code>testing</code></strong> — предварительные теги, сейчас <strong>4.6.0-beta</strong>:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/yum/odpm-testing.repo<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-o<span class="w"> </span>/etc/yum.repos.d/odpm.repo
 
@@ -2126,14 +2126,9 @@ sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> <
 odpm<span class="w"> </span>--version
 <span class="c1"># ожидается: odpm version: 4.6.0-beta</span>
 </code></pre></div>
-<p>Beta 4.6: <a href="https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/">docs 4.6.0-beta</a> · архив 4.5: <a href="https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/">4.5.0-beta</a> · архив 4.4: <a href="https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/">4.4.2-beta</a>.</p>
+<p>Архив инструкций для более старых beta: <a href="https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/">4.5.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/">4.4.2-beta</a>.</p>
 <blockquote>
 <p>Если <code>odpm-archive-keyring.asc</code> ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg<span class="w"> </span>-o<span class="w"> </span>/tmp/odpm-key.gpg
-gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring<span class="w"> </span>/tmp/odpm-key.gpg<span class="w"> </span>--export<span class="w"> </span>--armor<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>rpm<span class="w"> </span>--import<span class="w"> </span>-
-</code></pre></div>
-<p>Ветка в URL (<code>4.5.0</code>) — текущая стабильная линия релиза; в репозитории нет ветки <code>main</code>.
-Если <code>odpm-archive-keyring.asc</code> ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg<span class="w"> </span>-o<span class="w"> </span>/tmp/odpm-key.gpg
 gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring<span class="w"> </span>/tmp/odpm-key.gpg<span class="w"> </span>--export<span class="w"> </span>--armor<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>rpm<span class="w"> </span>--import<span class="w"> </span>-
 </code></pre></div>
@@ -2143,12 +2138,12 @@ gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>makecache<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>dnf<span class="w"> </span>upgrade<span class="w"> </span>odpm
 </code></pre></div>
 <h2 id="rpm-github-releases">Установка вручную (.rpm с GitHub Releases)<a class="headerlink" href="#rpm-github-releases" title="Permanent link">&para;</a></h2>
-<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.6.0-beta</code> (testing), <code>v4.5.0</code> (stable), <code>v4.5.0-beta</code> (archived testing), <code>v4.4.3</code> (archived stable), <code>v4.4.3-beta</code> (archived testing) или <code>v4.4.2-beta</code> (archived beta), или соберите локально:</p>
+<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.6.0-beta</code> (testing), <code>v4.5.0</code> (stable), <code>v4.5.0-beta</code> (архив testing), <code>v4.4.3</code> (архив stable), <code>v4.4.3-beta</code> (архив testing) или <code>v4.4.2-beta</code> (архив beta), или соберите локально:</p>
 <div class="highlight"><pre><span></span><code>./scripts/build_rpm.sh
 sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>./dist/odpm-*.rpm
 odpm<span class="w"> </span>--version
 </code></pre></div>
-<p>Сверяйте checksum из <code>SHA256SUMS</code> релиза.</p>
+<p>Сверяйте контрольную сумму из <code>SHA256SUMS</code> релиза.</p>
 <h2 id="_2">Зависимости пакета<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Requires:</strong> <code>python3-packaging</code>, <code>git</code></li>
