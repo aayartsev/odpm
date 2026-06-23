@@ -68,8 +68,6 @@ def make_golden_compose_env(scenario: str) -> CreateProjectEnvironment:
 
 def render_golden_compose_yaml(scenario: str) -> str:
     """Render compose body YAML for *scenario* with fixed paths and runtime user."""
-    import os
-
     os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
     env = make_golden_compose_env(scenario)
     with patch.object(

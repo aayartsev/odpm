@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import ModuleType
 from typing import Any
 
-from .api import EXTENSION_API_VERSION, assert_extension_api_compatible
+from .api import assert_extension_api_compatible
 
 _DEFAULT_PLUGIN_API_VERSION = "1.0"
 

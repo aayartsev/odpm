@@ -11,16 +11,12 @@ from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.compose.fragments import collect_compose_services, collect_service_patches
-from dev_project.config.config import Config
 from dev_project.dependency_resolver import NestedOdpmFragment, read_nested_odpm_fragment
 from dev_project.errors import ConfigError
 from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_api_compatible
 from dev_project.extensions.context import ExtensionHostContext
 from dev_project.extensions.loader import resolve_plugin_api_version, validate_plugin_api
-from dev_project.extensions.registry import (
-    register_compose_fragment,
-    reset_extension_registry_state,
-)
+from dev_project.extensions.registry import reset_extension_registry_state
 from dev_project.manifest.nested_compose import inherit_nested_compose_into_manifest
 from dev_project.manifest.reader import load_manifest
 from tests.fixtures.sample_plugin import sample_odpm_plugin

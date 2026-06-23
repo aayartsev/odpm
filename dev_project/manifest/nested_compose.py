@@ -12,7 +12,6 @@ from ..yaml import merge_services, merge_service_patch_maps
 
 if TYPE_CHECKING:
     from ..config.config import Config
-    from .reader import ManifestView
 
 
 def _dict_services(value: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
