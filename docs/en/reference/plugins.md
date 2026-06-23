@@ -26,7 +26,7 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.4.3",
+  "requires_odpm": "4.5.0",
   "services": {
     "mailpit": {
       "image": "axllent/mailpit",

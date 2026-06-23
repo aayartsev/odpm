@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 _SERVICE_HEADER = re.compile(r"^  ([a-z0-9_-]+):\s*$")
+_PORT_LIST_ITEM = re.compile(r"^    - ")
 
 
 def patch_mailpit_service_ports(
@@ -26,10 +27,10 @@ def patch_mailpit_service_ports(
             current_service = service_match.group(1)
         if line.strip() == "ports:" and current_service == service_name:
             result.append("    ports:\n")
-            result.append(f"      - {ui_port}:8025\n")
-            result.append(f"      - {smtp_port}:1025\n")
+            result.append(f"    - {ui_port}:8025\n")
+            result.append(f"    - {smtp_port}:1025\n")
             index += 1
-            while index < len(lines) and lines[index].startswith("      -"):
+            while index < len(lines) and _PORT_LIST_ITEM.match(lines[index]):
                 index += 1
             continue
         result.append(line)

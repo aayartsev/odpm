@@ -24,7 +24,7 @@ odpm 4.4+ добавляет **extension API** на host: prepare steps, compose
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.4.3",
+  "requires_odpm": "4.5.0",
   "services": {
     "mailpit": {
       "image": "axllent/mailpit",

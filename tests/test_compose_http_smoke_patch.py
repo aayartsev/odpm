@@ -13,15 +13,15 @@ class ComposeHttpSmokePatchTests(unittest.TestCase):
   mailpit:
     image: axllent/mailpit
     ports:
-      - 8025:8025
-      - 1025:1025
+    - 8025:8025
+    - 1025:1025
 """
         patched = patch_mailpit_service_ports(
             source, ui_port=18025, smtp_port=11025, service_name="mailpit"
         )
-        self.assertIn("      - 18025:8025", patched)
-        self.assertIn("      - 11025:1025", patched)
-        self.assertNotIn("      - 8025:8025", patched)
+        self.assertIn("    - 18025:8025", patched)
+        self.assertIn("    - 11025:1025", patched)
+        self.assertNotIn("    - 8025:8025", patched)
 
 
 if __name__ == "__main__":

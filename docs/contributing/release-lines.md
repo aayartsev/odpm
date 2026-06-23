@@ -70,7 +70,34 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 
 Раздел `docs/contributing/**` **не** попадает в публичный MkDocs (`exclude_docs` в `mkdocs.yml`) — только для maintainers в git.
 
-## Чеклист: stable **v4.4.2** (после smoke beta)
+## Чеклист: stable **v4.5.0** (после smoke beta)
+
+Выполнять на `4.5-dev` после успешного smoke `v4.5.0-beta` (APT testing, TestPyPI, docs `/4.5.0-beta/`).
+
+1. **Версия в коде**
+   - [x] `RELEASE_VERSION = "4.5.0"` в `dev_project/constants/scenarios.py`
+   - [x] `LATEST_STABLE_RELEASE = "4.5.0"`
+   - [x] `debian/changelog`, `packaging/odpm.spec` — та же версия
+2. **Release notes**
+   - [x] `.github/release-notes/4.5.0.md` (ссылки на `/stable/`, не flat `/install/`)
+3. **Install / hub docs**
+   - [x] `docs/install/*`, `docs/en/install/*` — stable first; beta как archived
+   - [x] `docs/getting-started/documentation-versions.md` (+ EN)
+   - [x] reference docs: `requires_odpm` / version tables → `4.5.0`
+4. **Commit + tag**
+   - [ ] Commit на `4.5-dev`, push
+   - [ ] `git tag v4.5.0` && `git push origin v4.5.0`
+5. **CI (автоматически на тег)**
+   - [ ] `release-packages`: GitHub Release, APT/YUM **stable** merge, `publish-pages` → mike `4.5.0` + alias **stable**
+   - [ ] `publish-pypi` → **production PyPI**
+6. **Проверка live**
+   - [ ] `https://aayartsev.github.io/odpm/stable/` — 200, переключатель версий
+   - [ ] `https://aayartsev.github.io/odpm/apt/dists/stable/Release` — 200
+   - [ ] `pip install odpm` → `4.5.0`
+7. **Следующий pre-release**
+   - [ ] Поднять `RELEASE_VERSION` на `4.5.1-beta` (или patch) **до** следующего тега
+
+## Чеклист: stable **v4.4.2** (архив, после smoke beta)
 
 Выполнять на `4.4-dev` после успешного smoke `v4.4.2-beta` (APT testing, TestPyPI, docs `/4.4.2-beta/`).
 

@@ -57,7 +57,7 @@ class ComposeFragmentsRenderTests(unittest.TestCase):
         self.assertIn("  mailpit:", block)
         self.assertIn("    image: axllent/mailpit", block)
         self.assertIn('    ports:', block)
-        self.assertIn('      - 8025:8025', block)
+        self.assertIn('    - 8025:8025', block)
 
 
 class ComposeFragmentsCollectTests(unittest.TestCase):

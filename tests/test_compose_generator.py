@@ -134,7 +134,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 encoding="utf-8"
             )
             self.assertIn("  postgres:\n", content)
-            self.assertIn("      - postgres\n", content)
+            self.assertIn("    - postgres\n", content)
             self.assertNotIn("  db:\n", content)
 
     def test_developer_compose_includes_debugger_port_and_volumes(self):

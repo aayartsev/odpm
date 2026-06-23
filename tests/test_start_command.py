@@ -29,15 +29,15 @@ class ComposeCommandRenderTests(unittest.TestCase):
                 "99999",
             ]
         )
-        self.assertIn('      - "99999"\n', block)
+        self.assertIn('    - "99999"\n', block)
 
     def test_render_compose_command_block(self):
         block = render_compose_command_block(
             ["python3", "-m", constants.RUN_ODOO_ENTRYPOINT, "--"]
         )
         self.assertIn("    command:\n", block)
-        self.assertIn("      - python3\n", block)
-        self.assertIn(f"      - {constants.RUN_ODOO_ENTRYPOINT}\n", block)
+        self.assertIn("    - python3\n", block)
+        self.assertIn(f"    - {constants.RUN_ODOO_ENTRYPOINT}\n", block)
 
     def test_render_odpm_config_path_env_line(self):
         line = render_odpm_config_path_env_line(

@@ -3,9 +3,9 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-22):** `python3 -m unittest discover -s tests -q` → **1303** OK, 12 skipped.
+**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1310** OK, 18 skipped.
 
-**Active dev branch:** `4.5-dev` (roadmap 4.5). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`).
+**Active dev branch:** `4.5-dev` (roadmap 4.5 **RELEASED** stable **v4.5.0**). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`).
 
 ---
 
@@ -21,7 +21,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.5 track (A / P / Y / I / L / S) — A + P + Y + I + L + S DONE
+## 4.5 track (A / P / Y / I / L / S) — RELEASED stable v4.5.0
 
 Старт после stable **v4.4.3** (2026-06-22). Не reopen G/C/E slices.
 
