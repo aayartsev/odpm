@@ -2395,6 +2395,16 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>Для sidecar допустимы <strong><code>user</code></strong> и <strong><code>tty</code></strong> (как в <code>service_patches</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <p>Тот же spec в коде: <code>dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC</code>.</p>
 <p>После <code>odpm up</code> сервис появится в сгенерированном <code>docker-compose.yml</code> (блок <code>{COMPOSE_SERVICE_FRAGMENTS}</code>). Артефакты materialize: <code>.odpm/compose/fragments/mailpit.yml</code> (gitignored).</p>
 <h3 id="patch-built-in-service_patches-46">Patch built-in сервисов (<code>service_patches</code>, 4.6+)<a class="headerlink" href="#patch-built-in-service_patches-46" title="Permanent link">&para;</a></h3>
@@ -2429,7 +2439,18 @@
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Каждый элемент — либо <strong>argv</strong> (массив строк, выполняется в <code>project_dir</code>), либо <strong>plugin id</strong> (строка) для pluggy hook runner.</p>
+<p>Каждый элемент — либо <strong>argv</strong> (массив строк, выполняется в <code>project_dir</code> <strong>без shell</strong>), либо <strong>plugin id</strong> (строка) для pluggy hook runner.</p>
+<p>В argv поддерживается <strong><code>${VAR}</code></strong> / <strong><code>${VAR:-default}</code></strong> (как в Compose): раскрытие при выполнении hook из process env → project <code>.env</code> → default в строке. Subprocess получает <strong>merged env</strong> (process + недостающие ключи из <code>.env</code>). Пример сборки образа sidecar:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span>
+<span class="w">    </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}&quot;</span>
+<span class="w">  </span><span class="p">]]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>В <code>services</code> / <code>service_patches</code> те же правила подстановки для строковых полей (<code>image</code>, <code>volumes[]</code>, <code>command[]</code>, <code>environment</code>, …) — раскрытие при чтении manifest с <code>EnvResolver</code>.</p>
 <p>Порядок по ADR-004:</p>
 <ol>
 <li>Git materialize</li>
