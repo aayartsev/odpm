@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from ..git.deps_lock_manager import DepsLockManager
+from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
-from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..host.ports import PipelinePorts, ports_from_config
 from ..logging import get_module_logger
 from ..translations import _
@@ -136,7 +135,9 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     from ..plan.locks_preview import collect_git_lock_warnings
 
     warnings.extend(
-        collect_database_drift_warnings_for_host(ctx.host_ctx, ctx.config)
+        collect_database_drift_warnings_for_host(
+            ctx.host_ctx, ctx.ports.bootstrap
+        )
     )
     warnings.extend(collect_git_lock_warnings(ctx.host_ctx, ctx.manifest_view))
     return tuple(warnings)
@@ -243,7 +244,7 @@ def execute_prepare(ctx: PrepareContext) -> None:
             manifest_view.extensions if manifest_view is not None else None
         ),
     )
-    ctx.lock_manager = DepsLockManager(ctx.config)
+    ctx.lock_manager = ctx.ports.bootstrap.new_lock_manager()
     for step_def in get_prepare_steps():
         outcome = step_def.evaluate(ctx)
         if outcome.should_execute():

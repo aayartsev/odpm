@@ -5,7 +5,8 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock
 
-from dev_project.config.state import CONFIG_PROPERTY_SHIMS
+from dev_project.config.state import BOOTSTRAP_HANDLE_SURFACES, CONFIG_PROPERTY_SHIMS
+from dev_project.host.ports import BootstrapHandle
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
 from dev_project.host.ports import (
@@ -46,6 +47,34 @@ class PipelinePortsTests(unittest.TestCase):
 
         self.assertIsInstance(ports, PipelinePorts)
         self.assertIsInstance(ports.compose.project_env, CreateProjectEnvironment)
+
+    def test_bootstrap_handle_exposes_narrow_git_and_lock_surfaces(self):
+        config = MagicMock()
+        config._git_repos = MagicMock(name="git_repos")
+        config.compute_venv_lock_hash.return_value = "abc123"
+
+        bootstrap = BootstrapHandle(config=config)
+
+        self.assertIs(bootstrap.git_repos, config._git_repos)
+        self.assertEqual(bootstrap.compute_venv_lock_hash(), "abc123")
+        lock_manager = bootstrap.new_lock_manager()
+        from dev_project.git.deps_lock_manager import DepsLockManager
+
+        self.assertIsInstance(lock_manager, DepsLockManager)
+
+    def test_bootstrap_handle_surfaces_inventory(self):
+        self.assertEqual(
+            BOOTSTRAP_HANDLE_SURFACES,
+            ("config", "git_repos", "new_lock_manager", "compute_venv_lock_hash"),
+        )
+
+    def test_manifest_view_shim_points_at_host_ctx(self):
+        shims = dict(
+            (field, replacement)
+            for _slice, field, replacement in CONFIG_PROPERTY_SHIMS
+            if field == "manifest_view"
+        )
+        self.assertEqual(shims["manifest_view"], "host_ctx.manifest_view")
 
     def test_config_property_shims_inventory_non_empty(self):
         self.assertGreater(len(CONFIG_PROPERTY_SHIMS), 0)

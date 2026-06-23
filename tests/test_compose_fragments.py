@@ -331,6 +331,8 @@ class ComposeServicePatchTests(unittest.TestCase):
             self.assertIn("    command:", content)
 
     def test_build_plan_includes_compose_patch_step(self):
+        from dataclasses import replace
+
         from dev_project.prepare.execute import build_prepare_plan
 
         with tempfile.TemporaryDirectory() as project_dir:
@@ -338,7 +340,7 @@ class ComposeServicePatchTests(unittest.TestCase):
                 project_dir,
                 services={"mailpit": {"image": "axllent/mailpit"}},
             )
-            ctx.config.bootstrap.manifest_view = ManifestView(
+            manifest_view = ManifestView(
                 manifest_schema=constants.MANIFEST_SCHEMA_V2,
                 requires_odpm="4.4",
                 services={"mailpit": {"image": "axllent/mailpit"}},
@@ -347,6 +349,10 @@ class ComposeServicePatchTests(unittest.TestCase):
                 locks=None,
                 raw_normalized={},
                 source_raw={},
+            )
+            ctx = replace(
+                ctx,
+                host_ctx=replace(ctx.host_ctx, manifest_view=manifest_view),
             )
             plan = build_prepare_plan(ctx)
             step_ids = [step.id for step in plan.steps]

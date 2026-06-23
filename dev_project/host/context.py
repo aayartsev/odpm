@@ -17,6 +17,7 @@ from .user_env import CreateUserEnvironment
 
 if TYPE_CHECKING:
     from ..config.config import Config
+    from ..manifest.reader import ManifestView
 
 
 @dataclass(frozen=True)
@@ -34,6 +35,8 @@ class HostProjectContext:
     docker_layout: DockerLayoutState
     addon_layout: AddonLayoutState
     docker_compose_command: str = ""
+    manifest_view: ManifestView | None = None
+    repo_odpm_json: str = ""
 
     @classmethod
     def from_config(
@@ -42,6 +45,13 @@ class HostProjectContext:
         *,
         arguments: OdpmCliArgs | None = None,
     ) -> HostProjectContext:
+        bootstrap = getattr(config, "bootstrap", None)
+        manifest_view = (
+            bootstrap.manifest_view if bootstrap is not None else None
+        )
+        repo_odpm_json = (
+            bootstrap.repo_odpm_json if bootstrap is not None else ""
+        )
         return cls(
             project_dir=config.project_dir,
             program_dir=config.program_dir,
@@ -54,6 +64,8 @@ class HostProjectContext:
             docker_layout=config.docker_layout,
             addon_layout=config.addon_layout,
             docker_compose_command=config.docker_compose_command,
+            manifest_view=manifest_view,
+            repo_odpm_json=repo_odpm_json,
         )
 
     @property

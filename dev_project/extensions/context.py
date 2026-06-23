@@ -9,6 +9,7 @@ from ..host.context import HostProjectContext
 
 if TYPE_CHECKING:
     from ..config import Config
+    from ..manifest.reader import ManifestView
 
 
 @dataclass(frozen=True)
@@ -27,10 +28,25 @@ class ExtensionHostContext:
 
     @classmethod
     def from_config(cls, config: Config) -> ExtensionHostContext:
-        view = config.bootstrap.manifest_view
+        host = HostProjectContext.from_config(config)
+        return cls.from_host(
+            host,
+            repo_odpm_json=host.repo_odpm_json,
+            manifest_view=host.manifest_view,
+        )
+
+    @classmethod
+    def from_host(
+        cls,
+        host: HostProjectContext,
+        *,
+        repo_odpm_json: str,
+        manifest_view: ManifestView | None,
+    ) -> ExtensionHostContext:
+        view = manifest_view
         return cls(
-            host=HostProjectContext.from_config(config),
-            repo_odpm_json=config.repo_odpm_json,
+            host=host,
+            repo_odpm_json=repo_odpm_json,
             manifest_schema=view.manifest_schema if view is not None else None,
             requires_odpm=view.requires_odpm if view is not None else None,
             manifest_services=view.services if view is not None else None,

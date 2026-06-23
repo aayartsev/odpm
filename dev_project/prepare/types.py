@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from ..config import Config
     from ..config.git_repos import GitRepoCoordinator
     from ..extensions.context import ExtensionHostContext
+    from ..manifest.reader import ManifestView
     from ..project_env import CreateProjectEnvironment
     from ..protocols import SystemCheckerProtocol
 
@@ -42,18 +43,22 @@ class PrepareContext:
     def extension_host(self) -> ExtensionHostContext:
         from ..extensions.context import ExtensionHostContext
 
-        return ExtensionHostContext.from_config(self.config)
+        return ExtensionHostContext.from_host(
+            self.host_ctx,
+            repo_odpm_json=self.host_ctx.repo_odpm_json,
+            manifest_view=self.host_ctx.manifest_view,
+        )
 
     @property
     def git_repos(self) -> GitRepoCoordinator:
-        return self.config._git_repos
+        return self.ports.bootstrap.git_repos
 
     @property
-    def manifest_view(self):
-        return self.config.bootstrap.manifest_view
+    def manifest_view(self) -> ManifestView | None:
+        return self.host_ctx.manifest_view
 
     def compute_venv_lock_hash(self) -> str:
-        return self.config.compute_venv_lock_hash()
+        return self.ports.bootstrap.compute_venv_lock_hash()
 
     def runtime_preview_cache_config(self) -> Config:
         """Config handle used only for plan runtime preview disk cache."""

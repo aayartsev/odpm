@@ -10,14 +10,33 @@ from .context import HostProjectContext
 
 if TYPE_CHECKING:
     from ..config import Config
+    from ..config.git_repos import GitRepoCoordinator
+    from ..git.deps_lock_manager import DepsLockManager
     from ..project_env import CreateProjectEnvironment
 
 
 @dataclass(frozen=True)
 class BootstrapHandle:
-    """Mutable bootstrap hub for materialize steps (git, odoo.conf, compose service)."""
+    """Mutable bootstrap hub for materialize / execute steps only.
+
+    Plan and prepare *evaluate* must read :class:`HostProjectContext` and port
+    slices. Execute may use ``config``, :meth:`git_repos`, and
+    :meth:`new_lock_manager`.
+    """
 
     config: Config
+
+    @property
+    def git_repos(self) -> GitRepoCoordinator:
+        return self.config._git_repos
+
+    def new_lock_manager(self) -> DepsLockManager:
+        from ..git.deps_lock_manager import DepsLockManager
+
+        return DepsLockManager(self.config)
+
+    def compute_venv_lock_hash(self) -> str:
+        return self.config.compute_venv_lock_hash()
 
 
 @dataclass(frozen=True)
