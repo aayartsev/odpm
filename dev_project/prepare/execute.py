@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from ..git.deps_lock_manager import DepsLockManager
+from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
-from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..host.ports import PipelinePorts, ports_from_config
 from ..logging import get_module_logger
 from ..translations import _
@@ -136,7 +135,9 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     from ..plan.locks_preview import collect_git_lock_warnings
 
     warnings.extend(
-        collect_database_drift_warnings_for_host(ctx.host_ctx, ctx.config)
+        collect_database_drift_warnings_for_host(
+            ctx.host_ctx, ctx.ports.bootstrap
+        )
     )
     warnings.extend(collect_git_lock_warnings(ctx.host_ctx, ctx.manifest_view))
     return tuple(warnings)
@@ -155,6 +156,7 @@ def collect_execute_step_ids(ctx: PrepareContext) -> tuple[str, ...]:
 def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
     from ..extensions.registry import ensure_project_extensions_loaded
     from ..plan.fragments_preview import expand_compose_fragment_plan_steps
+    from ..plan.patches_preview import expand_compose_patch_plan_steps
     from ..plan.hooks_preview import (
         build_manifest_hook_plan_steps,
         insert_prepare_hook_steps,
@@ -169,6 +171,7 @@ def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
     )
     steps = list(evaluate_prepare_plan(ctx))
     steps = expand_compose_fragment_plan_steps(steps, ctx)
+    steps = expand_compose_patch_plan_steps(steps, ctx)
     hook_steps = build_manifest_hook_plan_steps(ctx.extension_host())
     steps = insert_prepare_hook_steps(steps, hook_steps)
     return OdpmPlan(
@@ -241,7 +244,7 @@ def execute_prepare(ctx: PrepareContext) -> None:
             manifest_view.extensions if manifest_view is not None else None
         ),
     )
-    ctx.lock_manager = DepsLockManager(ctx.config)
+    ctx.lock_manager = ctx.ports.bootstrap.new_lock_manager()
     for step_def in get_prepare_steps():
         outcome = step_def.evaluate(ctx)
         if outcome.should_execute():
@@ -252,6 +255,7 @@ def execute_prepare(ctx: PrepareContext) -> None:
         ctx.extension_host(),
         "post_prepare",
         cwd=ctx.host_ctx.project_dir,
+        env_resolver=ctx.env_resolver,
     )
 
 

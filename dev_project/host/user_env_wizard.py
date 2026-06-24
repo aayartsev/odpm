@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 from .. import constants
@@ -15,16 +16,21 @@ from ..debugger.constants import (
     ODPM_IDE_LABELS,
     ODPM_IDE_VALUES,
 )
-from ..interactive import prompt_input
 from ..logging import get_module_logger
 from ..translations import _, parse_odpm_locale_setting
 
 _logger = get_module_logger(__name__)
 
 
+def _prompt_input(prompt: str) -> str:
+    from ..interactive import prompt_input
+
+    return prompt_input(prompt)
+
+
 def get_from_user_odoo_projects_src_dir() -> str:
     default_odoo_projects_src_dir = os.path.join(Path.home(), "odoo_projects")
-    user_dir = prompt_input(
+    user_dir = sys.modules[__name__]._prompt_input(
         _(
             "Set other odoo projects sources directory, You can leave default "
             "{DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' "
@@ -48,7 +54,7 @@ def get_from_user_odoo_projects_src_dir() -> str:
 
 def get_from_user_backup_dir() -> str:
     default_backup_dir = os.path.join(Path.home(), "odoo_backups")
-    user_dir = prompt_input(
+    user_dir = sys.modules[__name__]._prompt_input(
         _(
             "Set directory for odoo creating/restoring backups, You can leave "
             "default {DEFAULT_ODOO_BACKUP_DIR} or write your own. Press "
@@ -71,7 +77,7 @@ def get_from_user_backup_dir() -> str:
 
 def get_from_user_odoo_port() -> int:
     default_port = constants.ODOO_DEFAULT_PORT
-    port = prompt_input(
+    port = sys.modules[__name__]._prompt_input(
         _(
             "Set odoo port which it will listen. You can leave default "
             "{DEFAULT_ODOO_PORT} or write your own. Press 'Enter' to leave "
@@ -95,7 +101,7 @@ def get_from_user_odoo_port() -> int:
 
 def get_from_user_postgres_port() -> int:
     default_port = constants.POSTGRES_DEFAULT_PORT
-    port = prompt_input(
+    port = sys.modules[__name__]._prompt_input(
         _(
             "Set PostgreSQL database server port which it will listen. You can "
             "leave default {DEFAULT_POSTGRES_PORT} or write your own. Press "
@@ -119,7 +125,7 @@ def get_from_user_postgres_port() -> int:
 
 def get_from_user_debugger_port() -> int:
     default_port = constants.DEBUGGER_DEFAULT_PORT
-    port = prompt_input(
+    port = sys.modules[__name__]._prompt_input(
         _(
             "Set debugger port which it will listen. You can leave default "
             "{DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave "
@@ -143,7 +149,7 @@ def get_from_user_debugger_port() -> int:
 
 def get_from_user_gevent_port() -> int:
     default_port = constants.GEVENT_DEFAULT_PORT
-    port = prompt_input(
+    port = sys.modules[__name__]._prompt_input(
         _(
             "Set gevent port which it will listen. You can leave default "
             "{DEFAULT_GEVENT_PORT} or write your own. Press 'Enter' to leave "
@@ -170,7 +176,7 @@ def get_from_user_odpm_scenario() -> str:
     list_of_scenarios = "\n"
     for scenario in constants.ODPM_SCENARIOS.items():
         list_of_scenarios += f"{scenario[0]} - {scenario[1]}\n"
-    odpm_scenario_key = prompt_input(
+    odpm_scenario_key = sys.modules[__name__]._prompt_input(
         _(
             "Please select scenario by number of odpm usage from this list "
             "{LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
@@ -198,7 +204,7 @@ def get_from_user_odpm_locale() -> str:
     from ..translations import _locale_from_environment
 
     system_locale = _locale_from_environment()
-    user_locale = prompt_input(
+    user_locale = sys.modules[__name__]._prompt_input(
         _(
             "Set odpm host message language. System locale is {SYSTEM_LOCALE}. "
             "Press 'Enter' to keep the system default or type a locale "
@@ -232,7 +238,7 @@ def get_from_user_odpm_locale() -> str:
 
 def get_from_user_debugger_connect_host() -> str:
     default_host = DEFAULT_DEBUGGER_CONNECT_HOST
-    user_host = prompt_input(
+    user_host = sys.modules[__name__]._prompt_input(
         _(
             "Set IDE host name for pydevd_connect (container connects to Debug "
             "Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
@@ -255,7 +261,7 @@ def get_from_user_debugger_connect_host() -> str:
 def get_from_user_debugger_suspend() -> bool:
     from ..debugger.env_parsing import parse_debugger_suspend
 
-    choice = prompt_input(
+    choice = sys.modules[__name__]._prompt_input(
         _(
             "Suspend Odoo until PyCharm Debug Server connects? "
             "Answer y/yes or n/no (Enter for no):\n"
@@ -277,7 +283,7 @@ def get_from_user_debugger_backend() -> str:
         f"{index} - {DEBUGGER_BACKEND_LABELS.get(backend_id, backend_id)}"
         for index, backend_id in enumerate(available_backends, start=1)
     )
-    choice = prompt_input(
+    choice = sys.modules[__name__]._prompt_input(
         _(
             "Select debugger backend for developer scenario "
             "(Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
@@ -309,7 +315,7 @@ def get_from_user_odpm_ide() -> str:
         f"{index} - {ODPM_IDE_LABELS[ide_id]}"
         for index, ide_id in enumerate(sorted(ODPM_IDE_VALUES), start=1)
     )
-    choice = prompt_input(
+    choice = sys.modules[__name__]._prompt_input(
         _(
             "Select IDE configuration to generate "
             "(Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"

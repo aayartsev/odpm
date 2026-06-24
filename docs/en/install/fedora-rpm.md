@@ -20,7 +20,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 
 ### Stable (recommended for production)
 
-Suite **`stable`** — currently odpm **4.5.0**:
+Suite **`stable`** — currently odpm **4.6.0**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
@@ -29,22 +29,14 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
 sudo dnf makecache
 sudo dnf install odpm
 odpm --version
-# expected: odpm version: 4.5.0
+# expected: odpm version: 4.6.0
 ```
 
-### Pre-release (4.5 / 4.4 beta / RC)
+### Pre-release (archived)
 
-Suite **`testing`** — pre-release tags, e.g. **4.5.0-beta**:
+There is no active pre-release right now. Archived beta guides: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
 
-```bash
-sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-testing.repo \
-  -o /etc/yum.repos.d/odpm.repo
-
-sudo dnf makecache
-sudo dnf install odpm
-```
-
-4.5 beta docs: [4.5.0-beta install guide](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/fedora-rpm/) · archived 4.4: [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
+The YUM **`testing`** suite is still used for future pre-releases; it may still contain packages from archived betas (`https://aayartsev.github.io/odpm/yum/odpm-testing.repo`).
 
 > If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
 >
@@ -53,13 +45,7 @@ sudo dnf install odpm
 > gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
 > ```
 
-> The URL branch (`4.5.0`) is the current stable release line; there is no `main` branch in the repo.
-> If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
->
-> ```bash
-> curl -fsSL https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg -o /tmp/odpm-key.gpg
-> gpg --no-default-keyring --keyring /tmp/odpm-key.gpg --export --armor | sudo rpm --import -
-> ```
+> The URL branch (`4.6.0-dev`) is the active development line; there is no `main` branch in the repo.
 
 On RHEL / AlmaLinux / Rocky Linux use `yum` instead of `dnf` (same `.repo` format).
 
@@ -71,7 +57,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.5.0` (stable), `v4.5.0-beta` (archived testing), `v4.4.3` (archived stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.6.0` (stable), `v4.6.0-beta` (archived testing), `v4.5.0` (archived stable), `v4.5.0-beta` (archived testing), `v4.4.3` (archived stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
 
 ```bash
 ./scripts/build_rpm.sh

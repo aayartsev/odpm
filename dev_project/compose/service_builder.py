@@ -9,6 +9,13 @@ from ..host.cli import params as cli_params
 from .start_command import ComposeOdooService, StartCommand
 
 
+def persist_runtime_config(config: Config) -> None:
+    """Write ``.odpm/runtime/config.json`` (patchable seam for unit tests)."""
+    from ..config.payload import write_runtime_config
+
+    write_runtime_config(config)
+
+
 class ComposeServiceBuilder:
     def __init__(self, config: Config) -> None:
         self.config = config
@@ -23,9 +30,7 @@ class ComposeServiceBuilder:
         self.config.compose_service = compose_service
         self.config.container_run_mode = start_command.run_mode
         if compose_service.include_runtime_config:
-            from ..config.payload import write_runtime_config
-
-            write_runtime_config(self.config)
+            persist_runtime_config(self.config)
         if self.policy.mount_runtime_secrets_from_host():
             from ..project_env.secrets import materialize_secrets
 

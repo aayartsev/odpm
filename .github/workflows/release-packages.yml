@@ -135,7 +135,7 @@ jobs:
         || contains(github.ref, '-alpha')
       )
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -211,7 +211,7 @@ jobs:
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          ODPM_GOLDEN_PATH_TIMEOUT: "900"
+          ODPM_GOLDEN_PATH_TIMEOUT: "90"
         run: python3.12 -m unittest tests.integration.test_golden_path -v
 
   publish:
@@ -610,3 +610,32 @@ jobs:
 
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify live Pages (release docs)
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
+            ./scripts/verify_pages_deploy.sh --version "${VERSION}"
+          else
+            ./scripts/verify_pages_deploy.sh --version stable
+            ./scripts/verify_pages_deploy.sh --version "${VERSION}"
+          fi
+          if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
+            DEB_VER="${VERSION/-beta/~beta}-1"
+            DEB_VER="${DEB_VER/-rc/~rc}"
+            DEB_VER="${DEB_VER/-alpha/~alpha}"
+            for attempt in 1 2 3 4 5 6; do
+              if curl -fsSL "https://aayartsev.github.io/odpm/apt/dists/testing/main/binary-amd64/Packages" \
+                | grep -q "Version: ${DEB_VER}"; then
+                echo "OK: APT testing has odpm ${DEB_VER}"
+                exit 0
+              fi
+              echo "APT testing not ready (want ${DEB_VER}); sleep 10s (${attempt}/6)"
+              sleep 10
+            done
+            echo "APT testing suite missing ${DEB_VER}" >&2
+            exit 1
+          fi

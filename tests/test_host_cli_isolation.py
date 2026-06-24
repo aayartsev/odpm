@@ -95,6 +95,77 @@ class HostCliIsolationTests(unittest.TestCase):
         finally:
             sys.modules.update(preserved)
 
+    def test_manifest_reader_import_does_not_load_ruamel(self):
+        purge_prefixes = (
+            "dev_project.manifest",
+            "dev_project.compose",
+            "dev_project.config",
+        )
+        ruamel_modules = tuple(
+            name
+            for name in sys.modules
+            if name == "ruamel" or name.startswith("ruamel.")
+        )
+        yaml_modules = tuple(
+            name for name in sys.modules if name.startswith("dev_project.yaml")
+        )
+        preserved = {
+            name: sys.modules.pop(name)
+            for name in list(sys.modules)
+            if name.startswith(purge_prefixes)
+            or name in ruamel_modules
+            or name in yaml_modules
+        }
+        try:
+            importlib.import_module("dev_project.manifest.reader")
+            for name in ruamel_modules + yaml_modules:
+                self.assertNotIn(
+                    name,
+                    sys.modules,
+                    msg=(
+                        f"{name} must not load when importing manifest.reader "
+                        "(container config path; ADR-005)"
+                    ),
+                )
+            self.assertNotIn("ruamel", sys.modules)
+            self.assertNotIn("dev_project.yaml", sys.modules)
+        finally:
+            sys.modules.update(preserved)
+
+    def test_config_payload_import_does_not_load_ruamel(self):
+        """Golden-path container bootstrap imports config.payload via config package."""
+        purge_prefixes = ("dev_project.",)
+        ruamel_modules = tuple(
+            name
+            for name in sys.modules
+            if name == "ruamel" or name.startswith("ruamel.")
+        )
+        yaml_modules = tuple(
+            name for name in sys.modules if name.startswith("dev_project.yaml")
+        )
+        preserved = {
+            name: sys.modules.pop(name)
+            for name in list(sys.modules)
+            if name.startswith(purge_prefixes)
+            or name in ruamel_modules
+            or name in yaml_modules
+        }
+        try:
+            importlib.import_module("dev_project.config.payload")
+            for name in ruamel_modules + yaml_modules:
+                self.assertNotIn(
+                    name,
+                    sys.modules,
+                    msg=(
+                        f"{name} must not load when importing config.payload "
+                        "(inside_docker_app virtualenv checker; ADR-005)"
+                    ),
+                )
+            self.assertNotIn("ruamel", sys.modules)
+            self.assertNotIn("dev_project.yaml", sys.modules)
+        finally:
+            sys.modules.update(preserved)
+
     def test_database_record_import_does_not_load_host_plan_or_config(self):
         purge_prefixes = ("dev_project.database",)
         preserved = {

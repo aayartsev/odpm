@@ -59,9 +59,10 @@ class PlanComposePreviewTests(unittest.TestCase):
         config.requirements_txt = []
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
+        config.db_creation_data = {}
         return config
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_preview_compose_service_does_not_write_runtime_config(self, mock_write):
         preview_compose_service(self._developer_compose_config())
         mock_write.assert_not_called()

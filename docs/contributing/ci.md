@@ -2,7 +2,7 @@
 
 Badges в README указывают на [ci.yml](https://github.com/aayartsev/odpm/actions/workflows/ci.yml) и [ci-docker.yml](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml).
 
-**Активная ветка разработки 4.5:** `4.5-dev` (push/PR → lint, unit, contract, compose-smoke, deploy `/dev/` docs).
+**Активная ветка разработки 4.6:** `4.6.0-dev` (push/PR → lint, unit, contract, compose-smoke, deploy `/dev/` docs).
 
 ## Матрица jobs
 
@@ -40,7 +40,7 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 |------------|----------------------|-----|
 | `ODPM_COMPOSE_SMOKE_TIMEOUT` | `900` | compose-smoke |
 | `ODPM_HTTP_SMOKE_TIMEOUT` | `600` | http-smoke |
-| `ODPM_GOLDEN_PATH_TIMEOUT` | `900` (локально), `2400` (CI golden-path) | golden-path |
+| `ODPM_GOLDEN_PATH_TIMEOUT` | `90` | golden-path |
 | `ODPM_FIXTURE_GOLDEN_TIMEOUT` | `900` | fixture-golden-path |
 | `ODPM_COMPOSE_DEBUG_DIR` | пусто | при ошибке — каталог debug bundle |
 
@@ -56,6 +56,38 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 |-----|-----|------------|
 | `ODPM_GOLDEN_PATH_ENABLED` | variable | `true` — включить job |
 | `ODPM_GOLDEN_PATH_PROJECT` | secret | Путь к odpm-проекту на self-hosted runner |
+
+### Обслуживание golden-path проекта (self-hosted)
+
+Проект в `ODPM_GOLDEN_PATH_PROJECT` — **долгоживущее окружение** на runner. CI **не** выполняет `odpm init` перед тестом: job только делает `docker compose up` и ждёт HTTP 200 на `/web`. Новый `.deb` из pre-release тега проверяется отдельным smoke-шагом, но контейнерный venv и клон Odoo остаются на диске runner.
+
+**Когда обновлять проект вручную**
+
+| Событие | Действие |
+|---------|----------|
+| `git pull` в каталоге Odoo (`requirements.txt` изменился) | На хосте: `odpm` (без `--skip-start`) или `odpm --plan` → ожидается `venv_lock_hash changed` и пересборка venv. С 4.6 хеш `odoo/requirements.txt` входит в `venv_lock_hash`. |
+| Смена `python_version` / distro / `odoo_version` в `odpm.json` | То же: `odpm` пересоберёт runtime и venv. |
+| Ошибка в логах odoo: `ModuleNotFoundError` (например `decorator`) | С 4.6 odpm ставит `decorator` как implicit-пакет при сборке venv. Если ошибка остаётся после `odpm` — удалить `.venv` и `.lock`, перезапустить `odpm`; для веток Odoo без `decorator` в `requirements.txt` это нормальный путь. |
+| HTTP 500 на `/web`, в логах `invalid manifest` / `Invalid version` (модуль проекта, напр. `first_module`) | Исправить `version` в `__manifest__.py` кастомного аддона под правила Odoo 19 (`19.0.1.0`, не `19.0.1.0.0`). Это содержимое `ODPM_GOLDEN_PATH_PROJECT`, не odpm. |
+| HTTP 500, в postgres: `translate IS TRUE must be type boolean` | БД создана старой версией Odoo. Пересоздать БД под текущий Odoo 19 (backup → drop DB / новый volume Postgres → `odpm` с init) или прогнать миграцию Odoo вне golden-path CI. |
+| После падения golden-path | `docker compose down` в каталоге проекта; смотреть artifact `golden-path-compose-logs`; при необходимости увеличить таймаут локально: `ODPM_GOLDEN_PATH_TIMEOUT=600`. |
+
+**Минимальная проверка на runner**
+
+```bash
+export PROJECT=/path/from/ODPM_GOLDEN_PATH_PROJECT
+cd "$PROJECT"
+docker compose down
+odpm --plan    # при изменении Odoo/requirements — шаг UPDATE compose.service (venv)
+odpm           # materialize без --skip-start при необходимости
+ODPM_GOLDEN_PATH_PROJECT="$PROJECT" ./scripts/run_golden_path_test.sh
+```
+
+**Проверка venv внутри контейнера** (после `compose up`):
+
+```bash
+docker compose exec odoo python3 -c "import decorator, passlib, lxml"
+```
 
 Label PR `run-docker`: добавить label, **перезапустить** workflow CI Docker.
 
@@ -77,14 +109,14 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
 | Ветка | Required checks |
 |-------|-----------------|
-| `4.5-dev` | **lint**, **unit**, **contract**, **i18n**, **compose-smoke**, **http-smoke** |
-| `4.4-dev`, `4.0-beta`, `main` | то же (если ветка ещё принимает PR) |
+| `4.6.0-dev` | **lint**, **unit**, **contract**, **i18n**, **compose-smoke**, **http-smoke** |
+| `4.5-dev`, `4.4-dev`, `4.0-beta`, `main` | то же (если ветка ещё принимает PR) |
 
-Настройка: GitHub → Settings → Branches → rule для `4.5-dev` → Require status checks.
+Настройка: GitHub → Settings → Branches → rule для `4.6.0-dev` → Require status checks.
 
 ```bash
 # Пример (нужны права admin; имена checks — как в UI Actions после первого green run):
-gh api repos/{owner}/{repo}/branches/4.5-dev/protection -X PUT \
+gh api repos/{owner}/{repo}/branches/4.6.0-dev/protection -X PUT \
   -f required_status_checks='{"strict":true,"contexts":["lint","unit","contract","i18n","compose-smoke","http-smoke"]}' \
   -f enforce_admins=false \
   -f required_pull_request_reviews='{"required_approving_review_count":0}' \

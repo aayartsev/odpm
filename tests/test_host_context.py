@@ -30,6 +30,36 @@ class HostProjectContextTests(unittest.TestCase):
         config.addon_layout = MagicMock(name="addon_layout")
         return config
 
+    def test_from_config_copies_manifest_fields_from_bootstrap(self):
+        from dev_project.manifest.reader import ManifestView
+
+        config = self._make_config()
+        view = ManifestView(
+            manifest_schema=2,
+            requires_odpm=">=4.5.0",
+            services=None,
+            hooks=None,
+            locks=None,
+            raw_normalized={},
+            source_raw={},
+        )
+        config.bootstrap = MagicMock(
+            manifest_view=view,
+            repo_odpm_json="/tmp/project/odpm.json",
+        )
+        ctx = HostProjectContext.from_config(config)
+
+        self.assertIs(ctx.manifest_view, view)
+        self.assertEqual(ctx.repo_odpm_json, "/tmp/project/odpm.json")
+
+    def test_from_config_without_bootstrap_leaves_manifest_fields_empty(self):
+        config = self._make_config()
+        config.bootstrap = None
+        ctx = HostProjectContext.from_config(config)
+
+        self.assertIsNone(ctx.manifest_view)
+        self.assertEqual(ctx.repo_odpm_json, "")
+
     def test_from_config_copies_host_view_fields(self):
         config = self._make_config()
         ctx = HostProjectContext.from_config(config)
@@ -74,8 +104,9 @@ class HostProjectContextTests(unittest.TestCase):
         from dev_project.config.config import Config
 
         config = self._make_config()
-        with patch(
-            "dev_project.host.context.HostProjectContext.from_config",
+        with patch.object(
+            HostProjectContext,
+            "from_config",
             wraps=HostProjectContext.from_config,
         ) as mock_from_config:
             ctx = Config.host_context.fget(config)

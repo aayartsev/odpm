@@ -59,6 +59,19 @@ class RunPipCommandTests(unittest.TestCase):
 
 class PipRunnerTests(unittest.TestCase):
     @patch("dev_project.bake_venv._run_subprocess")
+    def test_install_odoo_requirement_packages_installs_implicit_packages(self, mock_run):
+        pip = PipRunner(base_cmd=["uv"], pip_extra_args=["--link-mode=copy"], cwd="/home/odoo")
+        from dev_project.bake_venv import install_odoo_requirement_packages
+
+        install_odoo_requirement_packages(["wheel"], pip, "/home/odoo/requirements.txt")
+        mock_run.assert_called()
+        install_calls = [call.args[0] for call in mock_run.call_args_list]
+        self.assertTrue(
+            any("decorator" in cmd for cmd in install_calls),
+            msg=f"expected implicit decorator install, got: {install_calls}",
+        )
+
+    @patch("dev_project.bake_venv._run_subprocess")
     def test_install_builds_list_argv(self, mock_run):
         pip = PipRunner(base_cmd=["uv"], pip_extra_args=["--link-mode=copy"], cwd="/home/odoo")
         pip.install("setuptools", "wheel")

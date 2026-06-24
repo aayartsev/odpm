@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.errors import ConfigError, PipelineError
 from dev_project.extensions.context import ExtensionHostContext
 from dev_project.extensions.hooks import parse_hook_phase, run_lifecycle_hooks
@@ -82,6 +83,51 @@ class RunLifecycleHooksTests(unittest.TestCase):
         mock_run.assert_any_call(("echo", "two"), cwd="/tmp/project")
 
     @patch("dev_project.extensions.hooks.run_or_raise")
+    def test_expands_shell_hook_argv_and_passes_merged_env(self, mock_run):
+        resolver = EnvResolver.from_sources(
+            process_environ={"BUILD_DIR": "/from-process"},
+            project_dotenv={
+                "BUILD_DIR": "/from-dotenv",
+                "DIGITAL_AUTOPARTS_ENV_DIR": "/opt/autoparts",
+            },
+        )
+        ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_hooks={
+                "post_prepare": [
+                    [
+                        "docker",
+                        "build",
+                        "-f",
+                        "${DIGITAL_AUTOPARTS_ENV_DIR}/Dockerfile",
+                        "${DIGITAL_AUTOPARTS_ENV_DIR}",
+                    ]
+                ]
+            },
+        )
+        run_lifecycle_hooks(
+            ext,
+            "post_prepare",
+            cwd="/tmp/project",
+            env_resolver=resolver,
+        )
+        mock_run.assert_called_once_with(
+            (
+                "docker",
+                "build",
+                "-f",
+                "/opt/autoparts/Dockerfile",
+                "/opt/autoparts",
+            ),
+            cwd="/tmp/project",
+            env={
+                "BUILD_DIR": "/from-process",
+                "DIGITAL_AUTOPARTS_ENV_DIR": "/opt/autoparts",
+            },
+        )
+
+    @patch("dev_project.extensions.hooks.run_or_raise")
     def test_shell_hook_failure_raises_pipeline_error(self, mock_run):
         mock_run.side_effect = Exception("boom")
         ext = ExtensionHostContext(
@@ -151,6 +197,7 @@ class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
             ctx.extension_host.return_value,
             "post_prepare",
             cwd="/tmp/project",
+            env_resolver=ctx.env_resolver,
         )
 
 

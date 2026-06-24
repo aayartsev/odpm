@@ -38,6 +38,9 @@ msgstr "Принимаем текущую конфигурацию БД как b
 msgid "Application role {ROLE} present: {VALUE}"
 msgstr "Роль приложения {ROLE} присутствует: {VALUE}"
 
+msgid "Apply manifest compose patch to service {NAME}"
+msgstr "Применить compose patch из manifest к сервису {NAME}"
+
 msgid "Apply pinned commits from {SOURCE} before checkout"
 msgstr "Применить закреплённые коммиты из {SOURCE} перед checkout"
 
@@ -83,6 +86,9 @@ msgstr "Не удалось получить список контейнеров
 msgid "Cannot load local plugin module: {PATH}"
 msgstr "Не удалось загрузить локальный модуль плагина: {PATH}"
 
+msgid "Cannot read docker-compose.yml at {PATH}: {ERROR}"
+msgstr "Не удалось прочитать docker-compose.yml ({PATH}): {ERROR}"
+
 msgid "Canonical git pins: odpm.json locks.git; run --update-lock to refresh .odpm/deps.lock.json."
 msgstr "Канонические git-пины: locks.git в odpm.json; выполните --update-lock, чтобы обновить .odpm/deps.lock.json."
 
@@ -106,6 +112,27 @@ msgstr "Клонировать или обновить platform, developing и g
 
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Собрать разрешённые git-коммиты и записать .odpm/deps.lock.json"
+
+msgid "Compose service {NAME} must be a mapping"
+msgstr "Сервис compose {NAME} должен быть mapping"
+
+msgid "Compose service {NAME} must define a non-empty image"
+msgstr "Сервис compose {NAME} должен содержать непустой image"
+
+msgid "Compose service {NAME}.environment list entries must be strings"
+msgstr "Элементы списка environment сервиса compose {NAME} должны быть строками"
+
+msgid "Compose service {NAME}.environment must be a list or mapping"
+msgstr "environment сервиса compose {NAME} должен быть списком или mapping"
+
+msgid "Compose service {NAME}.tty must be a boolean"
+msgstr "Поле tty сервиса compose {NAME} должно быть boolean"
+
+msgid "Compose service {NAME}.user must be a non-empty string"
+msgstr "Поле user сервиса compose {NAME} должно быть непустой строкой"
+
+msgid "Compose service {NAME}.{FIELD} must be a list"
+msgstr "Поле {FIELD} сервиса compose {NAME} должно быть списком"
 
 msgid "Compose service: {SERVICE}"
 msgstr "Сервис compose: {SERVICE}"
@@ -187,6 +214,15 @@ msgstr "Не удалось запустить сервис PostgreSQL {SERVICE}
 
 msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 msgstr "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"
+
+msgid "Generated compose document must include services"
+msgstr "Сгенерированный compose-документ должен содержать services"
+
+msgid "Generated compose document root must be a mapping"
+msgstr "Корень сгенерированного compose-документа должен быть mapping"
+
+msgid "Generated compose volumes must be a mapping when present"
+msgstr "Секция volumes сгенерированного compose должна быть mapping, если присутствует"
 
 msgid "Git dependency lock updated; container start skipped."
 msgstr "Git dependency lock обновлён; запуск контейнеров пропущен."
@@ -743,6 +779,9 @@ msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 msgid "docker-compose.yml differs from preview"
 msgstr "docker-compose.yml отличается от preview"
 
+msgid "docker-compose.yml is missing at {PATH}"
+msgstr "docker-compose.yml отсутствует по пути {PATH}"
+
 msgid "docker-compose.yml matches preview"
 msgstr "docker-compose.yml соответствует preview"
 
@@ -794,6 +833,12 @@ msgstr "manifest locks.git"
 msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 msgstr "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
 
+msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
+msgstr "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
+
+msgid "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically"
+msgstr "manifest odoo_conf.options.{KEY} зарезервировано; odpm управляет этой опцией автоматически"
+
 msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\" или \"odpm manifest validate\"."
 
@@ -832,6 +877,9 @@ msgstr "в odoo.conf отсутствуют настройки БД"
 
 msgid "only used with --update-lock"
 msgstr "используется только с --update-lock"
+
+msgid "patch keys: {KEYS}"
+msgstr "ключи patch: {KEYS}"
 
 msgid "plugins: {PLUGIN_LIST}"
 msgstr "плагины: {PLUGIN_LIST}"
@@ -934,3 +982,6 @@ msgstr "записать deps.lock.json из разрешённых коммит
 
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell-команда(ы)"
+
+msgid "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"
+msgstr "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"

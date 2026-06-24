@@ -10,6 +10,7 @@ Manager **odpm 4.4** reads both formats without mandatory migration. Nested **ma
 |-----------|----------------|
 | Flat v1, team does not change manifest | **Do not migrate** — everything works as before |
 | Need declarative compose services (Mailpit, etc.) | v2 + `services` block |
+| Patch env/ports on `odoo` / `db` | v2 + `service_patches` (see [ADR-009](../contributing/adr-009-compose-service-patch.md)) |
 | Locks in git instead of only `.odpm/deps.lock.json` | v2 + `locks` |
 | Lifecycle hooks in manifest | v2 + `hooks` |
 | New project on 4.4 | v2 immediately or flat v1 (odpm writes v1 by default) |
@@ -61,7 +62,7 @@ Before `--write`, save a copy or commit the current `odpm.json`.
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.5.0",
+  "requires_odpm": "4.6.0",
   "platform": {
     "git": "https://github.com/odoo/odoo.git 19.0",
     "build_date": "latest"
@@ -91,7 +92,7 @@ Before `--write`, save a copy or commit the current `odpm.json`.
 
 ## After migration
 
-1. **`odpm plan`** — check prepare steps (including `compose.fragments`) and lock source warnings.
+1. **`odpm plan`** — check prepare steps (including `compose.fragments`, `compose.patch.*`) and lock source warnings.
 2. **`odpm up --skip-start`** — materialize without starting containers.
 3. **Locks** — see [Locks after migration (v2)](#locks-after-migration-v2).
 4. **Rollback** — restore v1 from git; dual-read does not require v2.
@@ -113,5 +114,5 @@ Details: [deps-lock.md](deps-lock.md#two-lock-sources-v1-flat-vs-v2-nested).
 ## Compatibility
 
 - **`odpm_version: "4.0"`** in flat v1 — format contract string, **not** the manager version.
-- **`requires_odpm: "4.5.0"`** in v2 — minimum installed odpm version (semver); new projects get current `RELEASE_VERSION`.
+- **`requires_odpm: "4.6.0"`** in v2 — minimum installed odpm version (semver); new projects get current `RELEASE_VERSION`.
 - Details: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).

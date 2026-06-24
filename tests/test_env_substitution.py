@@ -8,8 +8,10 @@ from unittest import mock
 from dev_project.config.transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
     EnvResolver,
+    expand_env_in_compose_service_map,
     expand_env_in_json,
     expand_env_string,
+    merged_subprocess_environ,
 )
 from dev_project.errors import ConfigError
 
@@ -150,6 +152,49 @@ class ExpandEnvInJsonTests(unittest.TestCase):
         self.assertIsNone(
             expand_env_in_json(None, resolver=resolver, allowed_fields=frozenset())
         )
+
+
+class ExpandComposeServiceMapTests(unittest.TestCase):
+    def test_expands_services_and_patches_string_fields(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={"DATA_DIR": "/opt/autoparts/data"},
+        )
+        services = {
+            "armtek": {
+                "image": "autoparts_env:emulator",
+                "user": "root",
+                "volumes": ["${DATA_DIR}:/data:Z"],
+                "environment": {"HOST": "${DATA_DIR}"},
+                "command": ["sh", "-c", "echo ${DATA_DIR}"],
+            }
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(
+            expanded,
+            {
+                "armtek": {
+                    "image": "autoparts_env:emulator",
+                    "user": "root",
+                    "volumes": ["/opt/autoparts/data:/data:Z"],
+                    "environment": {"HOST": "/opt/autoparts/data"},
+                    "command": ["sh", "-c", "echo /opt/autoparts/data"],
+                }
+            },
+        )
+
+    def test_merged_subprocess_environ_prefers_process_over_dotenv(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"BUILD_DIR": "/from-process"},
+            project_dotenv={"BUILD_DIR": "/from-dotenv", "ONLY_DOTENV": "yes"},
+        )
+        merged = merged_subprocess_environ(resolver)
+        self.assertEqual(merged["BUILD_DIR"], "/from-process")
+        self.assertEqual(merged["ONLY_DOTENV"], "yes")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ from ..debugger.user_env import (
     resolve_debugger_backend_id,
     resolve_debugger_connect_host,
 )
-from ..yaml import merge_services
+from ..yaml import merge_services, merge_services_with_patches
 
 if TYPE_CHECKING:
     from ..project_env.environment import CreateProjectEnvironment
@@ -60,7 +60,7 @@ def _compose_working_dir(compose_service) -> str:
 def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     """Assemble the full compose mapping (services + volumes)."""
     from ..extensions.context import ExtensionHostContext
-    from .fragments import collect_compose_services
+    from .fragments import collect_compose_services, collect_service_patches
 
     config = env.config
     policy = env.host_ctx.policy
@@ -137,11 +137,14 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         if debugger_connect_host.strip() == DEFAULT_DEBUGGER_CONNECT_HOST:
             odoo_service["extra_hosts"] = ["host.docker.internal:host-gateway"]
 
+    ext = ExtensionHostContext.from_config(config)
     base_services = {db_name: postgres_service, "odoo": odoo_service}
-    fragment_services = collect_compose_services(
-        ExtensionHostContext.from_config(config)
+    fragment_services = collect_compose_services(ext)
+    service_patches = collect_service_patches(ext)
+    services = merge_services_with_patches(
+        merge_services(base_services, fragment_services),
+        service_patches,
     )
-    services = merge_services(base_services, fragment_services)
 
     return {
         "services": services,

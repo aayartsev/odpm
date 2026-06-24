@@ -3,9 +3,9 @@
 **Status:** G/C/E tracks **completed** on branch `4.0-beta` (see CHANGELOG `[Unreleased]` refactor bullets).  
 This document is a **retrospective** for audits and onboarding; new architecture work needs a separate plan.
 
-**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1310** OK, 18 skipped.
+**Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1392** OK, 24 skipped.
 
-**Active dev branch:** `4.5-dev` (roadmap 4.5 **RELEASED** stable **v4.5.0**). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`).
+**Active dev branch:** `4.6.0-dev` (debt closure 4.6). Stable line: **v4.6.0** (`LATEST_STABLE_RELEASE`); roadmap 4.5 **RELEASED**; debt track 4.6 **RELEASED**.
 
 ---
 
@@ -36,7 +36,24 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 **ADR backlog (4.5):** ADR-003 Host ports **done**; ADR-004 Plugin API **done**; ADR-005 YAML engine **done**; ADR-006 Integration gate **done** (I1–I4); ADR-008 i18n host/container **done** (L); ADR-007 Base image profiles **done** (S).
 
-**R0 infra (4.5-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.5-dev`; branch protection — lint, unit, contract, **i18n**, compose-smoke, http-smoke.
+**R0 infra (4.6.0-dev):** CI workflows `ci.yml`, `ci-docker.yml`, `docs.yml` target `4.6.0-dev`; branch protection — lint, unit, contract, **i18n**, compose-smoke, http-smoke.
+
+---
+
+## 4.6 debt track (D1–D5) — RELEASED stable v4.6.0
+
+Старт после stable **v4.5.0** и R0 на `4.6.0-dev`. План: `.cursor/plans/debt_closure_4.5-4.6_a59fde99.plan.md`. Код D1–D5 на `4.6.0-dev`; smoke — тег **`v4.6.0-beta`**, stable **`v4.6.0`**.
+
+| Track | ID | Статус | Суть |
+|-------|-----|--------|------|
+| Ops / docs | **D1** | **DONE** | Pages post-deploy verify (`verify_pages_deploy.sh`); `services_ru` redirect; roadmap/plan hygiene; секция 4.6 track |
+| Compose | **D2** | **DONE** | ADR-009, `service_patches`, `merge_services_with_patches`, manifest `command` |
+| Config | **D3** | **DONE** | C-15…C-18: narrowed `BootstrapHandle`, `manifest_view` on `host_ctx`, coupling guards, ADR-003 amendment |
+| Plugins | **D4** | **DONE** | API 1.1, load-time version check, `compose_service_patches`, nested dep compose inherit, sample_plugin patch |
+| YAML | **D5** | **DONE** | Y3 compose validation + golden snapshots per scenario |
+| CI-INF | — | pending | runner runbook, deploy-pages bump, timeout docs |
+
+**ADR backlog (4.6):** ADR-009 compose service patch **done** (D2); ADR-003 amendment **done** (D3); ADR-004 plugin 1.1 **done** (D4); ADR-005 Y3 compose validation **done** (D5).
 
 ---
 

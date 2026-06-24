@@ -23,6 +23,22 @@ class ComposeHttpSmokePatchTests(unittest.TestCase):
         self.assertIn("    - 11025:1025", patched)
         self.assertNotIn("    - 8025:8025", patched)
 
+    def test_patch_mailpit_ports_skips_ruamel_sequence_indent(self):
+        source = """services:
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - 8025:8025
+      - 1025:1025
+"""
+        patched = patch_mailpit_service_ports(
+            source, ui_port=18025, smtp_port=11025, service_name="mailpit"
+        )
+        self.assertIn("    - 18025:8025", patched)
+        self.assertIn("    - 11025:1025", patched)
+        self.assertNotIn("    - 8025:8025", patched)
+        self.assertNotIn("      - 8025:8025", patched)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -263,9 +263,24 @@ DOCKER_SLICE_FIELDS = tuple(
 )
 ADDON_LAYOUT_SLICE_FIELDS = tuple(AddonLayoutState.__dataclass_fields__)
 
+# Bootstrap fields documented on host_ctx instead of generic bootstrap slice shims.
+BOOTSTRAP_HOST_CTX_SHIM_FIELDS = frozenset({"repo_odpm_json"})
+BOOTSTRAP_SHIM_FIELDS = tuple(
+    field_name
+    for field_name in BOOTSTRAP_FIELDS
+    if field_name not in BOOTSTRAP_HOST_CTX_SHIM_FIELDS
+)
+
 # Deprecated Config top-level property shims (bind_slice_properties / runtime facade).
 # New plan/prepare/runtime code should use HostProjectContext slices or host ports
 # (see docs/contributing/adr-003-host-ports-vs-config.md).
+BOOTSTRAP_HANDLE_SURFACES: tuple[str, ...] = (
+    "config",
+    "git_repos",
+    "new_lock_manager",
+    "compute_venv_lock_hash",
+)
+
 CONFIG_PROPERTY_SHIMS: tuple[tuple[str, str, str], ...] = (
     *(
         ("user_settings", field_name, "host_ctx.user_settings")
@@ -289,6 +304,8 @@ CONFIG_PROPERTY_SHIMS: tuple[tuple[str, str, str], ...] = (
     ("runtime_facade", "no_log_prefix", "RuntimeCoordinator.cli_args / runtime state"),
     *(
         ("bootstrap", field_name, "ports.bootstrap.config.bootstrap")
-        for field_name in BOOTSTRAP_FIELDS
+        for field_name in BOOTSTRAP_SHIM_FIELDS
     ),
+    ("bootstrap", "manifest_view", "host_ctx.manifest_view"),
+    ("bootstrap", "repo_odpm_json", "host_ctx.repo_odpm_json"),
 )

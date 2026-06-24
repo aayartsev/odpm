@@ -5,9 +5,9 @@ from __future__ import annotations
 from ..errors import ConfigError
 from ..translations import _
 
-EXTENSION_API_VERSION = "1.0"
+EXTENSION_API_VERSION = "1.1"
 
-SUPPORTED_EXTENSION_API_VERSIONS = frozenset({EXTENSION_API_VERSION})
+SUPPORTED_EXTENSION_API_VERSIONS = frozenset({"1.0", EXTENSION_API_VERSION})
 
 
 def assert_extension_api_compatible(

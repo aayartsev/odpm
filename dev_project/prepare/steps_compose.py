@@ -151,3 +151,12 @@ def exec_compose_service(ctx: PrepareContext) -> None:
 
 def exec_compose_generate(ctx: PrepareContext) -> None:
     ctx.compose_generator.generate_docker_compose_file()
+
+
+def exec_compose_validate(ctx: PrepareContext) -> None:
+    import os
+
+    from ..compose.validate import validate_compose_file
+
+    ctx.system_checker.check_docker_compose()
+    validate_compose_file(os.path.join(ctx.host_ctx.project_dir, "docker-compose.yml"))

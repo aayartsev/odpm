@@ -1,3 +1,18 @@
+odpm (4.6.0-1) unstable; urgency=medium
+
+  * Stable release 4.6.0 on branch 4.6.0-dev (debt closure D1–D5, manifest
+    compose UX, odoo_conf overrides; see CHANGELOG.md and
+    .github/release-notes/4.6.0.md).
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Mon, 23 Jun 2026 18:00:00 +0000
+
+odpm (4.6.0~beta-1) unstable; urgency=medium
+
+  * Pre-release 4.6.0-beta on branch 4.6.0-dev (debt closure D1–D5; see
+    CHANGELOG.md [4.6.0-beta] and .github/release-notes/4.6.0-beta.md).
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Mon, 23 Jun 2026 12:00:00 +0000
+
 odpm (4.5.0-1) unstable; urgency=medium
 
   * Stable release 4.5.0 on branch 4.5-dev (roadmap 4.5: plugins 2.0, YAML

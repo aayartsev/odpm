@@ -471,9 +471,10 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         config.requirements_txt = []
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
+        config.db_creation_data = {}
         return config
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_ci_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
         ComposeServiceBuilder(config).build()
@@ -484,7 +485,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         )
         self.assertNotIn("debugpy", command)
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_server_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
         ComposeServiceBuilder(config).build()
@@ -495,7 +496,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         )
         self.assertNotIn("debugpy", command)
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_developer_compose_uses_run_odoo_without_debugpy_in_command(
         self, _mock_write_runtime_config
     ):
@@ -508,7 +509,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         )
         self.assertNotIn("debugpy", command)
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_start_command_includes_database_name(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.arguments = replace(config.arguments, d="my_project")
@@ -516,7 +517,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         self.assertIn("-d", config.compose_service.command)
         self.assertIn("my_project", config.compose_service.command)
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_start_command_includes_translate_flags_for_odoo_19(
         self, _mock_write_runtime_config
     ):
@@ -536,7 +537,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         self.assertEqual(command.run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY)
         self.assertNotIn("exit", command.to_compose_service().command)
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_build_returns_compose_service(self, mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
         service = ComposeServiceBuilder(config).build()
@@ -544,7 +545,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         self.assertTrue(service.include_runtime_config)
         mock_write_runtime_config.assert_called_once_with(config)
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_ci_build_skips_host_runtime_config(self, mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
         service = ComposeServiceBuilder(config).build()

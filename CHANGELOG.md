@@ -8,6 +8,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.6.0] - 2026-06-23
+
+**Stable release 4.6.0** on branch `4.6.0-dev`; supersedes **4.5.0** as `LATEST_STABLE_RELEASE`. Debt closure D1–D5 (compose `service_patches`, config hub phase 2, plugin API 1.1, structural compose validation, ops hygiene) plus manifest compose UX and `odoo_conf` overrides. Pre-release **4.6.0-beta** verified packaging, docs channels, and integration gates. No breaking changes for v1 flat `odpm.json`; manifest v2 features remain opt-in.
+
+### Added
+
+- **Manifest v2 compose UX (4.6)** — `${VAR}` expansion in `services` / `service_patches` at manifest load (`expand_env_in_compose_service_map`); `${VAR}` in `hooks` shell argv at execution with merged subprocess env; `user` / `tty` on manifest `composeService` sidecars; docs (`plugins.md`, `odpm-json.md`), ADR-009 update. Tests: `test_env_substitution`, `test_manifest_hooks`, `test_manifest_v2_reader`, `test_compose_fragments`, `test_compose_validate`.
+- **Manifest `odoo_conf` overrides (4.6)** — optional `odoo_conf.options` in manifest v1/v2 to override team Odoo settings in git; reserved-key policy blocks odpm-managed keys (`addons_path`, `data_dir`, `db_*`, `admin_passwd`, `http_port`); merge priority disk `odoo.conf` → manifest → odpm-managed; `${VAR}` in `odoo_conf` values; `odpm manifest validate` checks policy. Docs (`odpm-json.md`, `odoo-conf.md`), i18n catalog. Tests: `test_manifest_odoo_conf`, `test_odoo_conf_builder`, `test_manifest_contract`.
+- **Unit gate plan/dry-run** — `tests/test_scenario_plan_matrix.py`: documented `odpm plan` and manifest CLI behaviour without Docker daemon (`developer` / `server` / `ci`); traceability table `tests/PLAN_MATRIX.md`; section in `docs/contributing/ci.md`.
+
+### Fixed
+
+- **False positives `--plan-strict` on compose steps** — `plan_strict` and `plan_format` excluded from preview runtime config comparison (`PLAN_ONLY_ARGUMENT_KEYS`): with materialized runtime config, `compose.service` / `compose.generate` are no longer flagged as required changes solely due to `--plan-strict`.
+
+### Changed
+
+- **Release gate (R6 / 4.6.0)** — `RELEASE_VERSION` → `4.6.0`; `LATEST_STABLE_RELEASE` → `4.6.0`; deb/rpm packaging synced; install docs and mike `stable` alias target **4.6.0**.
+
+## [4.6.0-beta] - 2026-06-23
+
+**Pre-release 4.6.0-beta** on branch `4.6.0-dev`; stable line remains **4.5.0** (`LATEST_STABLE_RELEASE`). Debt closure D1–D5: compose `service_patches`, config hub phase 2, plugin API 1.1, structural compose validation and golden snapshots. No breaking changes for v1 flat `odpm.json`; manifest v2 `service_patches` and plugin 1.1 features are opt-in.
+
+### Changed
+
+- **Release gate (R0 / 4.6.0-dev)** — `RELEASE_VERSION` → `4.6.0-beta`; `LATEST_STABLE_RELEASE` remains `4.5.0`; CI/docs workflows target `4.6.0-dev`; deb/rpm pre-release packaging synced.
+- **Debt closure (D1)** — post-deploy Pages verify (`verify_pages_deploy.sh` in `docs.yml` and `release-packages`); legacy `services_ru.md` redirect; `architecture-debt` 4.6 track section; roadmap 4.5 plan archived; `i18n.md` branch `4.6.0-dev`.
+- **Debt closure (D2)** — ADR-009 compose patch policy; manifest v2 `service_patches` and sidecar `command`/`entrypoint`; `merge_services_with_patches`; plan `compose.patch.*`; reserved `services.odoo` guard; ADR-005 amendment; EN manifest-migration parity.
+- **Debt closure (D3)** — Config hub phase 2: narrowed `BootstrapHandle` (`git_repos`, lock manager factory, venv lock hash); `manifest_view` / `repo_odpm_json` on `HostProjectContext`; `ExtensionHostContext.from_host`; `ComposePreviewPort` on `PrepareContext`; coupling guards; ADR-003 amendment.
+- **Debt closure (D4)** — Plugin API 1.1 (`EXTENSION_API_VERSION` 1.1, load-time `assert_extension_api_compatible`); optional `compose_service_patches` on compose plugins; nested dependency `services` / `service_patches` inherit (host wins); sample_plugin patch fixture; ADR-004 update.
+- **Debt closure (D5)** — Structural compose validation (`compose/validate.py`); `compose.validate` prepare step; golden YAML snapshots per scenario (`developer` / `server` / `ci`); ADR-005 Y3 amendment; `override.yml` merge still deferred.
+
 ## [4.5.0] - 2026-06-22
 
 **Stable release 4.5.0** on branch `4.5-dev`; supersedes **4.4.3** as `LATEST_STABLE_RELEASE`. Ships roadmap 4.5 (Config hub slimming, Plugins 2.0, host YAML engine, mandatory integration CI gates, full host gettext coverage, scenario base Dockerfile profiles). Pre-release **4.5.0-beta** verified packaging and docs channels. No breaking changes for v1 flat `odpm.json`; first run after upgrade may rebuild base Docker images (profile suffix + identity fingerprint).

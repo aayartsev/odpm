@@ -13,6 +13,7 @@ from ..logging import get_module_logger
 from ..translations import _
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .migrator import format_manifest_migration_diff, migrate_v1_flat_to_v2
+from .odoo_conf_policy import validate_manifest_odoo_conf
 from .schema import validate_manifest_v1, validate_manifest_v2
 
 if TYPE_CHECKING:
@@ -57,6 +58,7 @@ def _run_manifest_validate(config: Config) -> int:
     else:
         validate_manifest_v1(raw)
         schema_label = "v1"
+    validate_manifest_odoo_conf(raw)
     _logger.info(
         _("Manifest at {PATH} is valid ({SCHEMA} JSON Schema).").format(
             PATH=manifest_path,

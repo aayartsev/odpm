@@ -141,3 +141,106 @@ def _expand_field_value(
             for item in value
         ]
     return value
+
+
+_COMPOSE_SERVICE_STRING_SCALARS = frozenset({"image", "user", "restart"})
+_COMPOSE_SERVICE_STRING_LISTS = frozenset({
+    "ports",
+    "volumes",
+    "depends_on",
+    "networks",
+    "command",
+    "entrypoint",
+})
+
+
+def merged_subprocess_environ(resolver: EnvResolver) -> dict[str, str]:
+    """Process environ with project .env filling keys not already set."""
+    merged = dict(resolver.process_environ)
+    for key, value in resolver.project_dotenv.items():
+        merged.setdefault(key, value)
+    return merged
+
+
+def _expand_compose_service_spec(
+    spec: dict[str, Any],
+    *,
+    resolver: EnvResolver,
+    field_prefix: str,
+) -> dict[str, Any]:
+    result = dict(spec)
+    for key in _COMPOSE_SERVICE_STRING_SCALARS:
+        value = result.get(key)
+        if isinstance(value, str):
+            result[key] = expand_env_string(
+                value,
+                resolver,
+                field_path=f"{field_prefix}.{key}",
+            )
+    for key in _COMPOSE_SERVICE_STRING_LISTS:
+        value = result.get(key)
+        if not isinstance(value, list):
+            continue
+        result[key] = [
+            expand_env_string(item, resolver, field_path=f"{field_prefix}.{key}[]")
+            if isinstance(item, str)
+            else item
+            for item in value
+        ]
+    environment = result.get("environment")
+    if isinstance(environment, dict):
+        result["environment"] = {
+            env_key: expand_env_string(env_value, resolver, field_path=f"{field_prefix}.environment.{env_key}")
+            if isinstance(env_value, str)
+            else env_value
+            for env_key, env_value in environment.items()
+        }
+    return result
+
+
+def expand_env_in_compose_service_map(
+    services: dict[str, Any] | None,
+    *,
+    resolver: EnvResolver,
+    field_prefix: str,
+) -> dict[str, Any] | None:
+    """Expand ``${VAR}`` in manifest v2 ``services`` / ``service_patches`` string fields."""
+    if not isinstance(services, dict):
+        return services
+    expanded: dict[str, Any] = {}
+    for name, spec in services.items():
+        if not isinstance(spec, dict):
+            expanded[str(name)] = spec
+            continue
+        expanded[str(name)] = _expand_compose_service_spec(
+            dict(spec),
+            resolver=resolver,
+            field_prefix=f"{field_prefix}.{name}",
+        )
+    return expanded
+
+
+def expand_env_in_odoo_conf(
+    odoo_conf: dict[str, Any] | None,
+    *,
+    resolver: EnvResolver,
+) -> dict[str, Any] | None:
+    """Expand ``${VAR}`` in manifest ``odoo_conf`` string option values."""
+    if not isinstance(odoo_conf, dict):
+        return odoo_conf
+    expanded: dict[str, Any] = {}
+    for section_name, section_data in odoo_conf.items():
+        if not isinstance(section_data, dict):
+            expanded[str(section_name)] = section_data
+            continue
+        expanded[str(section_name)] = {
+            str(key): expand_env_string(
+                value,
+                resolver,
+                field_path=f"odoo_conf.{section_name}.{key}",
+            )
+            if isinstance(value, str)
+            else value
+            for key, value in section_data.items()
+        }
+    return expanded

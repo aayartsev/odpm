@@ -7,12 +7,44 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from ..yaml import dump_document
+from ..manifest.compose_policy import (
+    reject_reserved_compose_service_name,
+    validate_manifest_compose_services,
+)
 
 if TYPE_CHECKING:
     from ..extensions.context import ExtensionHostContext
 
 _COMPOSE_FRAGMENTS_GITIGNORE = "*\n!.gitignore\n"
+
+
+def collect_service_patches(ext: ExtensionHostContext) -> dict[str, dict[str, Any]]:
+    """Return manifest and plugin ``service_patches`` for built-in compose services."""
+    from ..extensions.registry import iter_compose_fragments
+    from ..yaml import merge_service_patch_maps
+
+    patches = ext.manifest_service_patches
+    result: dict[str, dict[str, Any]] = {}
+    if isinstance(patches, dict):
+        for name, spec in patches.items():
+            if isinstance(spec, dict):
+                result[str(name)] = dict(spec)
+    for _name, plugin in iter_compose_fragments():
+        plugin_patches = getattr(plugin, "compose_service_patches", None)
+        if plugin_patches is None:
+            continue
+        if callable(plugin_patches):
+            plugin_patches = plugin_patches(ext)
+        if not isinstance(plugin_patches, dict):
+            continue
+        normalized = {
+            str(name): dict(spec)
+            for name, spec in plugin_patches.items()
+            if isinstance(spec, dict)
+        }
+        if normalized:
+            result = merge_service_patch_maps(result, normalized)
+    return result
 
 
 def compose_fragments_dir(project_dir: str) -> str:
@@ -46,6 +78,7 @@ def collect_compose_services(ext: ExtensionHostContext) -> dict[str, dict[str, A
     services: dict[str, dict[str, Any]] = {}
     manifest_services = ext.manifest_services
     if isinstance(manifest_services, dict):
+        validate_manifest_compose_services(manifest_services)
         for name, spec in manifest_services.items():
             if isinstance(spec, dict):
                 services[str(name)] = dict(spec)
@@ -54,6 +87,7 @@ def collect_compose_services(ext: ExtensionHostContext) -> dict[str, dict[str, A
         if not isinstance(plugin_services, dict):
             continue
         for service_name, spec in plugin_services.items():
+            reject_reserved_compose_service_name(str(service_name), source="compose fragment plugin")
             if isinstance(spec, dict):
                 services[str(service_name)] = dict(spec)
     return services
@@ -87,6 +121,8 @@ def materialize_compose_fragments(
     services: dict[str, dict[str, Any]],
 ) -> None:
     """Write generated fragment YAML files and services snapshot under ``.odpm/compose/fragments``."""
+    from ..yaml import dump_document
+
     ensure_compose_fragments_gitignore(project_dir)
     fragments_dir = compose_fragments_dir(project_dir)
     for existing in Path(fragments_dir).glob("*.yml"):
@@ -105,6 +141,8 @@ def render_compose_services_block(services: dict[str, dict[str, Any]]) -> str:
     """Render extra ``services:`` entries (2-space service indent) for template injection."""
     if not services:
         return ""
+    from ..yaml import dump_document
+
     lines: list[str] = []
     for name, spec in sorted(services.items()):
         for line in dump_document({name: spec}).splitlines():

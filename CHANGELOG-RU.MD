@@ -8,13 +8,23 @@
 
 ## [Unreleased]
 
+## [4.6.0] - 2026-06-23
+
+**Stable-релиз 4.6.0** на ветке `4.6.0-dev`; заменяет **4.5.0** как `LATEST_STABLE_RELEASE`. Debt closure D1–D5 (compose `service_patches`, config hub phase 2, plugin API 1.1, структурная валидация compose, ops hygiene) плюс compose UX в manifest и переопределения `odoo_conf`. Pre-release **4.6.0-beta** проверил packaging, каналы документации и integration-гейты. Без breaking changes для flat v1 `odpm.json`; возможности manifest v2 по-прежнему opt-in.
+
 ### Добавлено
 
+- **Manifest v2 compose UX (4.6)** — раскрытие `${VAR}` в `services` / `service_patches` при чтении manifest; `${VAR}` в argv `hooks` при выполнении с merged subprocess env; поля `user` / `tty` у sidecar в `composeService`; документация (`plugins.md`, `odpm-json.md`), обновление ADR-009. Тесты: `test_env_substitution`, `test_manifest_hooks`, `test_manifest_v2_reader`, `test_compose_fragments`, `test_compose_validate`.
+- **Переопределения `odoo_conf` в manifest (4.6)** — необязательный `odoo_conf.options` в manifest v1/v2 для командных настроек Odoo в git; политика reserved keys блокирует ключи, которыми управляет odpm (`addons_path`, `data_dir`, `db_*`, `admin_passwd`, `http_port`); приоритет merge: дисковый `odoo.conf` → manifest → odpm-managed; `${VAR}` в значениях `odoo_conf`; `odpm manifest validate` проверяет политику. Документация (`odpm-json.md`, `odoo-conf.md`), каталог i18n. Тесты: `test_manifest_odoo_conf`, `test_odoo_conf_builder`, `test_manifest_contract`.
 - **Unit gate plan/dry-run** — `tests/test_scenario_plan_matrix.py`: задокументированное поведение `odpm plan` и manifest CLI без Docker daemon (сценарии `developer` / `server` / `ci`); таблица трассировки `tests/PLAN_MATRIX.md`; раздел в `docs/contributing/ci.md`.
 
 ### Исправлено
 
 - **Ложные срабатывания `--plan-strict` на шагах compose** — флаги `plan_strict` и `plan_format` исключены из сравнения preview runtime config (`PLAN_ONLY_ARGUMENT_KEYS`): при уже материализованном runtime config `compose.service` / `compose.generate` больше не помечаются как обязательные изменения только из‑за `--plan-strict`.
+
+### Изменено
+
+- **Release gate (R6 / 4.6.0)** — `RELEASE_VERSION` → `4.6.0`; `LATEST_STABLE_RELEASE` → `4.6.0`; deb/rpm packaging синхронизирован; install docs и alias mike `stable` указывают на **4.6.0**.
 
 ## [4.3-rc1] - 2026-06-08
 

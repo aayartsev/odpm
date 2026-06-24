@@ -1,5 +1,7 @@
 """Docker Compose service spec, file generation, and runtime helpers."""
 
+import importlib
+
 from .start_command import ComposeOdooService, StartCommand
 
 __all__ = [
@@ -16,6 +18,18 @@ __all__ = [
     "should_force_recreate_compose",
     "yaml_scalar",
 ]
+
+_COMPOSE_SUBMODULES = frozenset(
+    {
+        "command_render",
+        "compose_document",
+        "fragments",
+        "generator",
+        "runtime",
+        "service_builder",
+        "validate",
+    }
+)
 
 
 def __getattr__(name: str):
@@ -46,4 +60,6 @@ def __getattr__(name: str):
         from . import runtime as runtime_module
 
         return getattr(runtime_module, name)
+    if name in _COMPOSE_SUBMODULES:
+        return importlib.import_module(f".{name}", __name__)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

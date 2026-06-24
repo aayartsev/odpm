@@ -4,9 +4,17 @@
 
 odpm 4.4+ adds a host **extension API**: prepare steps, compose fragments, and lifecycle hooks. Plugins do not get direct access to mutable `Config` — only frozen [`ExtensionHostContext`](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py).
 
-## Extension API version (4.5+)
+## Extension API version (4.6+)
 
-Stable API: **`EXTENSION_API_VERSION = "1.0"`** (`dev_project/extensions/api.py`). Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+Current API: **`EXTENSION_API_VERSION = "1.1"`** (`dev_project/extensions/api.py`). Supported: **1.0**, **1.1**; modules without `EXTENSION_API_VERSION` are treated as **1.0**. The host validates version when loading entry points and `.odpm/plugins/*.py`. In your plugin:
+
+```python
+from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_api_compatible
+
+assert_extension_api_compatible(EXTENSION_API_VERSION)
+```
+
+Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Three ways to extend a project
 
@@ -26,7 +34,7 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.5.0",
+  "requires_odpm": "4.6.0",
   "services": {
     "mailpit": {
       "image": "axllent/mailpit",
@@ -37,9 +45,53 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 }
 ```
 
+Sidecars may set **`user`** and **`tty`** (same as `service_patches`):
+
+```json
+"services": {
+  "armtek_test": {
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
+  }
+}
+```
+
 Same spec in code: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC`.
 
 After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE_SERVICE_FRAGMENTS}` block). Materialize artifacts: `.odpm/compose/fragments/mailpit.yml` (gitignored).
+
+### Patch built-in services (`service_patches`, 4.6+)
+
+Names **`odoo`**, **`db`**, **`postgres`** cannot appear in `services` — use patches only. Policy: [ADR-009](../contributing/adr-009-compose-service-patch.md).
+
+```json
+"service_patches": {
+  "odoo": {
+    "environment": {
+      "CUSTOM_METRIC": "1"
+    }
+  }
+}
+```
+
+`odpm plan` shows `compose.patch.odoo` (preview); patches apply at `compose.generate`.
+
+### `command` / `entrypoint` for sidecars (4.6+)
+
+**Exec form only** (JSON string array) in `services.<name>`:
+
+```json
+"services": {
+  "worker": {
+    "image": "busybox:latest",
+    "command": ["sh", "-c", "sleep infinity"]
+  }
+}
+```
+
+The `odoo` start command stays owned by the generator; override via `service_patches.odoo.command` only when explicitly needed.
 
 ## Lifecycle hooks in manifest
 
@@ -58,7 +110,22 @@ After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE
 }
 ```
 
-Each element is either **argv** (string array, runs in `project_dir`) or a **plugin id** (string) for the pluggy hook runner.
+Each element is either **argv** (string array, runs in `project_dir` **without a shell**) or a **plugin id** (string) for the pluggy hook runner.
+
+Argv supports **`${VAR}`** / **`${VAR:-default}`** (Compose-style): expanded at hook execution from process env → project `.env` → inline default. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
+
+```json
+"hooks": {
+  "post_prepare": [[
+    "docker", "build",
+    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-t", "autoparts_env:emulator",
+    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+  ]]
+}
+```
+
+`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …) — expanded when the manifest is loaded with `EnvResolver`.
 
 Order per ADR-004:
 
@@ -70,7 +137,7 @@ Order per ADR-004:
 6. `hooks.pre_up`
 7. `docker compose up`
 
-`odpm plan` shows `hooks.*` and `compose.fragment.<service>` steps when configured.
+`odpm plan` shows `hooks.*`, `compose.fragment.<service>`, and `compose.patch.<service>` steps when configured.
 
 ### Prepare step `order` field
 
@@ -96,6 +163,19 @@ def _register():
 ```
 
 Register on package import or via entry point (see below).
+
+### Patch built-in services from Python (API 1.1+)
+
+Optional `compose_service_patches` on a compose fragment (same rules as manifest `service_patches`):
+
+```python
+def compose_service_patches(self, ctx: ExtensionHostContext) -> dict:
+    return {"odoo": {"environment": {"MY_FLAG": "1"}}}
+```
+
+### Nested dependency `services` (4.6+)
+
+With `use_oca_dependencies`, v2 `services` / `service_patches` from dependency `odpm.json` files are inherited into host compose after `project.map_folders`. On name conflict the **host manifest wins**. See [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Python plugin: prepare step
 
@@ -198,5 +278,5 @@ Template `pyproject.toml`: `tests/fixtures/sample_plugin/pyproject.toml`.
 ## See also
 
 - [Generated files](generated-files.md) — `.odpm/compose/fragments/`
-- [Service examples](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/services_ru.md) (legacy markdown)
-- Deprecated plugin draft: [plugins/todo_ru.md](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/todo_ru.md) → redirect here
+- Declarative sidecar services — **Mailpit** section above and the extension mechanisms table
+- Deprecated drafts in `dev_project/plugins/` (`services_ru.md`, `todo_ru.md`) — redirect here

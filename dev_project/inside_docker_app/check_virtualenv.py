@@ -21,6 +21,7 @@ from .extras_sync import (
     write_extras_requirements_file,
 )
 from .utils import delete_files_in_directory, resolve_venv_mode
+from .venv_import_smoke import verify_venv_import_smoke
 
 _logger = get_module_logger(__name__)
 
@@ -66,6 +67,7 @@ class VirtualenvChecker:
         if not lock_content or self.venv_lock_hash != lock_content:
             self.package_installation_error("Baked virtualenv lock hash mismatch")
         self.set_venv()
+        verify_venv_import_smoke()
 
     def ensure_fresh_venv(self) -> None:
         if not self._venv_lock_matches():
@@ -73,6 +75,14 @@ class VirtualenvChecker:
         else:
             self.sync_extras_requirements()
         self.set_venv()
+        if verify_venv_import_smoke(raise_on_failure=False):
+            return
+        _logger.warning(
+            "Virtualenv import smoke failed with matching lock; recreating venv"
+        )
+        self.recreate_uv_venv()
+        self.set_venv()
+        verify_venv_import_smoke()
 
     def _venv_lock_matches(self) -> bool:
         if not os.path.exists(self.venv_lock_file_path):

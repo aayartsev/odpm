@@ -9,13 +9,18 @@ from .artifacts import DeprecatedConfigHandler
 from .defaults import ConfigDefaultsFactory
 from .git_repos import GitRepoCoordinator
 from .manifests import OdpmJsonReader, UserSettingsReader
-from .manifests.odpm_json_writer import rewrite_odpm_json as write_odpm_json
 from .odoo_conf import OdooConfBuilder
 from .paths import ConfigPaths
 from .transforms import OdooBuildDateResolver
 
 if TYPE_CHECKING:
     from .config import Config
+
+
+def _rewrite_odpm_json_impl(config: Config, *, create_default) -> None:
+    from .manifests.odpm_json_writer import rewrite_odpm_json
+
+    rewrite_odpm_json(config, create_default=create_default)
 
 
 class ConfigBootstrapContext:
@@ -50,7 +55,10 @@ class ConfigBootstrapContext:
         )
 
     def rewrite_odpm_json(self) -> None:
-        write_odpm_json(
+        import sys
+
+        module = sys.modules[__name__]
+        module._rewrite_odpm_json_impl(
             self.config,
             create_default=self.defaults.create_default_odpm_json_write_payload,
         )

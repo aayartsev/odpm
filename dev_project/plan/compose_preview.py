@@ -24,13 +24,36 @@ if TYPE_CHECKING:
     from ..config import Config
     from ..prepare.types import PrepareContext
 
+_RUNTIME_PREVIEW_CACHE_KEY = "_odpm_plan_runtime_preview_cache"
+
+
+def _compose_preview_mutable_snapshot(config: Config) -> tuple[object, object, object]:
+    return (
+        getattr(config, "compose_service", None),
+        getattr(config, "container_run_mode", None),
+        getattr(config, "_odpm_plan_runtime_preview_cache", None),
+    )
+
+
+def _restore_compose_preview_mutable_snapshot(
+    config: Config, snapshot: tuple[object, object, object]
+) -> None:
+    compose_service, container_run_mode, cache = snapshot
+    config.compose_service = compose_service
+    config.container_run_mode = container_run_mode
+    if cache is None:
+        if hasattr(config, _RUNTIME_PREVIEW_CACHE_KEY):
+            delattr(config, _RUNTIME_PREVIEW_CACHE_KEY)
+    else:
+        setattr(config, _RUNTIME_PREVIEW_CACHE_KEY, cache)
+
 
 def docker_compose_path(project_dir: str) -> str:
     return os.path.join(project_dir, "docker-compose.yml")
 
 
 def preview_compose_service(config: Config):
-    with patch("dev_project.config.payload.write_runtime_config"):
+    with patch("dev_project.compose.service_builder.persist_runtime_config"):
         return ComposeServiceBuilder(config).build()
 
 
@@ -77,27 +100,32 @@ def compose_start_command_changed(config: Config) -> bool:
 
 
 def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
-    host = ctx.host_ctx
-    if runtime_config_stale_for_project(
-        host.project_dir,
-        ctx.compute_venv_lock_hash(),
-    ):
-        return True, "venv_lock_hash changed"
-    runtime_path = runtime_config_path(host.project_dir)
-    if os.path.isfile(runtime_path):
-        try:
-            preview = ctx.plan_runtime_config_preview_text()
-            on_disk = normalized_runtime_config_text_from_disk(
-                host.project_dir,
-                config=ctx.runtime_preview_cache_config(),
-            )
-            if preview is not None and preview != on_disk:
-                return True, "runtime config payload changed"
-        except (OSError, TypeError, ValueError, ConfigValidationError):
-            pass
-    if ctx.plan_compose_start_command_changed():
-        return True, "compose start command changed"
-    return False, "runtime config and start command unchanged"
+    config = ctx.compose_preview.runtime_cache_config()
+    snapshot = _compose_preview_mutable_snapshot(config)
+    try:
+        host = ctx.host_ctx
+        if runtime_config_stale_for_project(
+            host.project_dir,
+            ctx.compute_venv_lock_hash(),
+        ):
+            return True, "venv_lock_hash changed"
+        if ctx.compose_preview.compose_start_command_changed():
+            return True, "compose start command changed"
+        runtime_path = runtime_config_path(host.project_dir)
+        if os.path.isfile(runtime_path):
+            try:
+                preview = ctx.compose_preview.runtime_config_text()
+                on_disk = normalized_runtime_config_text_from_disk(
+                    host.project_dir,
+                    config=config,
+                )
+                if preview is not None and preview != on_disk:
+                    return True, "runtime config payload changed"
+            except (OSError, TypeError, ValueError, ConfigValidationError):
+                pass
+        return False, "runtime config and start command unchanged"
+    finally:
+        _restore_compose_preview_mutable_snapshot(config, snapshot)
 
 
 def _project_env_has_volume_map(ctx: PrepareContext) -> bool:
@@ -133,11 +161,15 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
         return False
     if not _project_env_has_volume_map(ctx):
         return False
+    config = ctx.compose_preview.runtime_cache_config()
+    snapshot = _compose_preview_mutable_snapshot(config)
     try:
-        ctx.plan_preview_compose_service()
+        ctx.compose_preview.preview_compose_service()
         preview = ctx.compose_generator.render_docker_compose_content()
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         return False
+    finally:
+        _restore_compose_preview_mutable_snapshot(config, snapshot)
     try:
         on_disk = Path(compose_path).read_text(encoding="utf-8")
     except OSError:

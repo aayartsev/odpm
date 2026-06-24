@@ -35,11 +35,17 @@ from .deps_lock import (
     sort_lock_entries,
 )
 
+from ..host.ports import BootstrapHandle
+
 if TYPE_CHECKING:
     from ..config import Config
     from .link import HandleOdooProjectLink
 
 _logger = get_module_logger(__name__)
+
+
+def _bootstrap_handle(config: Config) -> BootstrapHandle:
+    return BootstrapHandle(config=config)
 
 
 class DepsLockManager:
@@ -63,7 +69,7 @@ class DepsLockManager:
     def load(self) -> DepsLock | None:
         self._lock_source = resolve_lock_source(self._config)
         if self._lock_source == LockSource.MANIFEST:
-            view = self._config.bootstrap.manifest_view
+            view = _bootstrap_handle(self._config).manifest_view
             locks = (view.locks if view is not None else None) or {}
             git_locks = locks.get("git") or {}
             if not isinstance(git_locks, dict):
@@ -207,7 +213,7 @@ class DepsLockManager:
         return bool(getattr(arguments, "sync_manifest_locks", False))
 
     def _maybe_sync_manifest_git_locks(self, lock: DepsLock) -> None:
-        view = self._config.bootstrap.manifest_view
+        view = _bootstrap_handle(self._config).manifest_view
         is_v2 = (
             view is not None
             and view.manifest_schema == constants.MANIFEST_SCHEMA_V2

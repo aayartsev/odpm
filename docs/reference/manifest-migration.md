@@ -8,6 +8,7 @@
 |----------|--------------|
 | Flat v1, команда не меняет manifest | **Не мигрировать** — всё работает как раньше |
 | Нужны declarative compose services (Mailpit и др.) | v2 + блок `services` |
+| Patch env/ports у `odoo` / `db` | v2 + `service_patches` (см. [ADR-009](../contributing/adr-009-compose-service-patch.md)) |
 | Locks в git вместо только `.odpm/deps.lock.json` | v2 + `locks` |
 | Lifecycle hooks в manifest | v2 + `hooks` |
 | Новый проект на 4.4 | Можно сразу v2 или flat v1 (odpm пишет v1 по умолчанию) |
@@ -59,7 +60,7 @@ odpm manifest migrate --write  # записать odpm.json
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.5.0",
+  "requires_odpm": "4.6.0",
   "platform": {
     "git": "https://github.com/odoo/odoo.git 19.0",
     "build_date": "latest"
@@ -89,7 +90,7 @@ odpm manifest migrate --write  # записать odpm.json
 
 ## После миграции
 
-1. **`odpm plan`** — проверьте шаги prepare (в т.ч. `compose.fragments`) и предупреждения об источнике lock.
+1. **`odpm plan`** — проверьте шаги prepare (в т.ч. `compose.fragments`, `compose.patch.*`) и предупреждения об источнике lock.
 2. **`odpm up --skip-start`** — materialize без поднятия контейнеров.
 3. **Locks** — см. [Locks после миграции (v2)](#locks-после-миграции-v2).
 4. **Откат** — восстановите v1 из git; dual-read не требует v2.
@@ -111,5 +112,5 @@ odpm manifest migrate --write  # записать odpm.json
 ## Совместимость
 
 - **`odpm_version: "4.0"`** в flat v1 — контрактная строка формата, **не** версия менеджера.
-- **`requires_odpm: "4.5.0"`** в v2 — минимальная версия установленного odpm (semver); новые проекты получают текущий `RELEASE_VERSION`.
+- **`requires_odpm: "4.6.0"`** в v2 — минимальная версия установленного odpm (semver); новые проекты получают текущий `RELEASE_VERSION`.
 - Подробнее: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](../contributing/adr-001-extensions-and-manifest-v2.md).

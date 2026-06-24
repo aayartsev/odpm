@@ -59,6 +59,19 @@ class ComposeFragmentsRenderTests(unittest.TestCase):
         self.assertIn('    ports:', block)
         self.assertIn('    - 8025:8025', block)
 
+    def test_render_service_with_user_and_tty(self):
+        block = render_compose_services_block(
+            {
+                "sidecar": {
+                    "image": "busybox:latest",
+                    "user": "root",
+                    "tty": True,
+                }
+            }
+        )
+        self.assertIn("    user: root", block)
+        self.assertIn("    tty: true", block)
+
 
 class ComposeFragmentsCollectTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -257,6 +270,110 @@ class ComposeFragmentsPrepareStepTests(unittest.TestCase):
                 os.path.isfile(
                     os.path.join(compose_fragments_dir(project_dir), "mailpit.yml")
                 )
+            )
+
+
+class ComposeServicePatchTests(unittest.TestCase):
+    def _program_dir(self) -> str:
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    def _copy_compose_template(self, project_dir: str) -> None:
+        template_dest = os.path.join(
+            project_dir,
+            constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
+        )
+        os.makedirs(os.path.dirname(template_dest), exist_ok=True)
+        shutil.copy(
+            os.path.join(
+                self._program_dir(), "dev_project", "templates", "docker-compose.yml"
+            ),
+            template_dest,
+        )
+
+    def test_generator_applies_manifest_service_patch_to_odoo(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            self._copy_compose_template(project_dir)
+            policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.policy = policy
+            config.odoo_image_name = "odoo-base:dev"
+            config.compose_service = ComposeOdooService(
+                working_dir="/home/odoo",
+                include_runtime_config=policy.mount_runtime_config_from_host(),
+                include_runtime_secrets=False,
+                command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT],
+            )
+            config.compose_file_version = "3.8"
+            config.postgres_version = "16"
+            config.postgres_data_local_storage = "/tmp/postgres-data"
+            config.pd_manager = MagicMock()
+            config.bootstrap = MagicMock()
+            config.bootstrap.manifest_view = ManifestView(
+                manifest_schema=constants.MANIFEST_SCHEMA_V2,
+                requires_odpm="4.4",
+                services={
+                    "worker": {
+                        "image": "busybox:latest",
+                        "command": ["sh", "-c", "sleep infinity"],
+                    }
+                },
+                service_patches={
+                    "odoo": {"environment": {"PATCH_FLAG": "1"}},
+                },
+                hooks=None,
+                locks=None,
+                raw_normalized={},
+                source_raw={},
+            )
+            config.repo_odpm_json = os.path.join(project_dir, "odpm.json")
+            user_env = MagicMock()
+            user_env.postgres_port = 15432
+            user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
+            user_env.debugger_port = 5678
+            user_env.debugger_backend = DEBUGGER_BACKEND_DEBUGPY_LISTEN
+            user_env.debugger_connect_host = DEFAULT_DEBUGGER_CONNECT_HOST
+            user_env.odoo_port = 8069
+            user_env.gevent_port = 8072
+            config.user_env = user_env
+            env = CreateProjectEnvironment(config)
+            env.mapped_folders = []
+            content = ComposeGenerator(env).render_docker_compose_content()
+            self.assertIn("PATCH_FLAG=1", content)
+            self.assertIn("  worker:", content)
+            self.assertIn("    command:", content)
+
+    def test_build_plan_includes_compose_patch_step(self):
+        from dataclasses import replace
+
+        from dev_project.prepare.execute import build_prepare_plan
+
+        with tempfile.TemporaryDirectory() as project_dir:
+            ctx = ComposeFragmentsPrepareStepTests()._make_ctx(
+                project_dir,
+                services={"mailpit": {"image": "axllent/mailpit"}},
+            )
+            manifest_view = ManifestView(
+                manifest_schema=constants.MANIFEST_SCHEMA_V2,
+                requires_odpm="4.4",
+                services={"mailpit": {"image": "axllent/mailpit"}},
+                service_patches={"odoo": {"environment": {"X": "1"}}},
+                hooks=None,
+                locks=None,
+                raw_normalized={},
+                source_raw={},
+            )
+            ctx = replace(
+                ctx,
+                host_ctx=replace(ctx.host_ctx, manifest_view=manifest_view),
+            )
+            ctx.config.bootstrap.manifest_view = manifest_view
+            plan = build_prepare_plan(ctx)
+            step_ids = [step.id for step in plan.steps]
+            self.assertIn("compose.patch.odoo", step_ids)
+            self.assertLess(
+                step_ids.index("compose.patch.odoo"),
+                step_ids.index("compose.service"),
             )
 
 

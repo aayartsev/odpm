@@ -168,10 +168,11 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
+        config.db_creation_data = {}
 
         from dev_project.compose.service_builder import ComposeServiceBuilder
 
-        with patch("dev_project.config.payload.write_runtime_config"):
+        with patch("dev_project.compose.service_builder.persist_runtime_config"):
             builder = ComposeServiceBuilder(config)
             builder.build()
         self.assertIs(builder.policy, policy)
@@ -552,10 +553,12 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_skips_build_date_when_platform_lock_exists(self, _mock_builder):
         pipeline = self._pipeline_with_mocks()
-        with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
+        with patch(
+            "dev_project.host.ports.BootstrapHandle.new_lock_manager"
+        ) as mock_new_lock_manager:
             manager = MagicMock()
             manager.has_platform_lock.return_value = True
-            mock_manager_cls.return_value = manager
+            mock_new_lock_manager.return_value = manager
             with stub_prepare_service_executions():
                 pipeline.prepare_project_files()
         pipeline.config._git_repos.materialize_git_repos.assert_called_once_with(
@@ -567,9 +570,11 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
     def test_prepare_update_lock_collects_without_loading_lock(self, _mock_builder):
         pipeline = self._pipeline_with_mocks(update_lock=True)
-        with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
+        with patch(
+            "dev_project.host.ports.BootstrapHandle.new_lock_manager"
+        ) as mock_new_lock_manager:
             manager = MagicMock()
-            mock_manager_cls.return_value = manager
+            mock_new_lock_manager.return_value = manager
             with stub_prepare_service_executions() as service_mocks:
                 pipeline.prepare_project_files()
                 checkout_dependencies = service_mocks[-1]
@@ -593,10 +598,12 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
                 pipeline.project_environment,
                 pipeline.cli_args,
             )
-            with patch("dev_project.prepare.execute.DepsLockManager") as mock_manager_cls:
+            with patch(
+                "dev_project.host.ports.BootstrapHandle.new_lock_manager"
+            ) as mock_new_lock_manager:
                 manager = MagicMock()
                 manager.apply_mode = True
-                mock_manager_cls.return_value = manager
+                mock_new_lock_manager.return_value = manager
                 with stub_prepare_service_executions():
                     pipeline.prepare_project_files()
             manager.verify_pinned_checkout.assert_called_once()

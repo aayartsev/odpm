@@ -3,12 +3,24 @@
 from __future__ import annotations
 
 import ast
+import re
 import unittest
 from pathlib import Path
 
 PLAN_DIR = Path(__file__).resolve().parents[1] / "dev_project" / "plan"
 PREPARE_HELPERS = (
     Path(__file__).resolve().parents[1] / "dev_project" / "prepare" / "helpers.py"
+)
+
+# ``bootstrap.config`` is allowed on the narrowed BootstrapHandle boundary (D3).
+_FORBIDDEN_CONFIG_ACCESS = re.compile(r"ctx\.config|(?<!bootstrap\.)config\.")
+
+MANIFEST_PREVIEW_MODULES = frozenset(
+    {
+        "patches_preview.py",
+        "fragments_preview.py",
+        "hooks_preview.py",
+    }
 )
 
 COMPOSE_EVALUATE_HELPERS = frozenset(
@@ -74,7 +86,7 @@ def _assert_no_config_coupling(
 ) -> None:
     offenders: list[str] = []
     for name, source in _function_source_lines(path, function_names).items():
-        if "ctx.config" in source or "config." in source:
+        if _FORBIDDEN_CONFIG_ACCESS.search(source):
             offenders.append(name)
     test_case.assertEqual(
         offenders,
@@ -83,13 +95,42 @@ def _assert_no_config_coupling(
     )
 
 
+def _assert_module_has_no_config_coupling(test_case: unittest.TestCase, path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    test_case.assertNotIn("ctx.config", text)
+    test_case.assertIsNone(
+        _FORBIDDEN_CONFIG_ACCESS.search(text),
+        msg=f"{path.name} must not reference Config outside bootstrap handle",
+    )
+    test_case.assertNotIn("from ..config import Config", text)
+
+
 class PlanConfigCouplingTests(unittest.TestCase):
     def test_locks_preview_does_not_reference_config(self):
-        path = PLAN_DIR / "locks_preview.py"
-        text = path.read_text(encoding="utf-8")
-        self.assertNotIn("ctx.config", text)
-        self.assertNotIn("config.", text)
-        self.assertNotIn("from ..config import Config", text)
+        _assert_module_has_no_config_coupling(self, PLAN_DIR / "locks_preview.py")
+
+    def test_manifest_preview_modules_do_not_reference_config(self):
+        for module_name in sorted(MANIFEST_PREVIEW_MODULES):
+            _assert_module_has_no_config_coupling(self, PLAN_DIR / module_name)
+
+    def test_manifest_preview_helpers_do_not_reference_config(self):
+        for module_name, function_names in (
+            ("patches_preview.py", frozenset({"build_compose_patch_plan_steps"})),
+            (
+                "fragments_preview.py",
+                frozenset({"build_compose_fragment_service_plan_steps"}),
+            ),
+            (
+                "database_preview.py",
+                frozenset({"collect_database_drift_warnings_for_host"}),
+            ),
+        ):
+            _assert_no_config_coupling(
+                self,
+                PLAN_DIR / module_name,
+                function_names,
+                label=f"{module_name} evaluate helpers",
+            )
 
     def test_compose_preview_evaluate_helpers_do_not_reference_config(self):
         _assert_no_config_coupling(

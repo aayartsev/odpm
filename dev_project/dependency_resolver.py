@@ -6,9 +6,10 @@ import json
 import os
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from . import constants
+from .errors import ConfigError
 from .translations import _
 from .logging import get_module_logger
 
@@ -25,6 +26,8 @@ class NestedOdpmFragment:
     odoo_version: str | float | None
     python_version: str | None
     source_path: str
+    services: dict[str, Any] | None = None
+    service_patches: dict[str, Any] | None = None
 
 
 def _normalize_string_list(value: object) -> list[str]:
@@ -90,18 +93,34 @@ def read_nested_odpm_fragment(
     if python_version is not None:
         python_version = str(python_version).strip() or None
 
+    services: dict[str, Any] | None = None
+    service_patches: dict[str, Any] | None = None
+    try:
+        from .manifest.reader import load_manifest
+
+        view = load_manifest(raw, env_resolver=resolver)
+        services = view.services
+        service_patches = view.service_patches
+    except (TypeError, ValueError, ConfigError):
+        services = None
+        service_patches = None
+
     fragment = NestedOdpmFragment(
         dependencies=_normalize_string_list(raw.get("dependencies")),
         requirements_txt=_normalize_string_list(raw.get("requirements_txt")),
         odoo_version=odoo_version,
         python_version=python_version,
         source_path=manifest_path,
+        services=services,
+        service_patches=service_patches,
     )
     if (
         not fragment.dependencies
         and not fragment.requirements_txt
         and fragment.odoo_version is None
         and fragment.python_version is None
+        and not fragment.services
+        and not fragment.service_patches
     ):
         return None
     return fragment

@@ -34,9 +34,13 @@ def _load_contract_modules() -> unittest.TestSuite:
         "tests.test_pipeline_ports",
         "tests.test_addon_layout_ports",
         "tests.test_manifest_database_merge",
+        "tests.test_manifest_odoo_conf",
         "tests.test_compose_fragments",
+        "tests.test_compose_validate",
+        "tests.test_compose_golden_scenarios",
         "tests.test_extension_entry_points",
         "tests.test_sample_plugin",
+        "tests.test_extension_api_d4",
         "tests.test_extensions_local",
         "tests.test_plan_hooks_preview",
         "tests.test_prepare_registry_contract",
@@ -89,6 +93,18 @@ class ManifestExtensionContractTests(unittest.TestCase):
     def test_v2_service_without_image_rejected_by_schema(self):
         with self.assertRaises(ConfigError):
             load_manifest(_minimal_v2(services={"broken": {"ports": ["8025:8025"]}}))
+
+    def test_v2_odoo_conf_reserved_option_rejected(self):
+        with self.assertRaises(ConfigError):
+            load_manifest(
+                _minimal_v2(
+                    odoo_conf={
+                        "options": {
+                            "data_dir": "/tmp/data",
+                        }
+                    }
+                )
+            )
 
 
 def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite, pattern: str):

@@ -10,6 +10,7 @@ from ..subprocess_runner import run_or_raise
 from ..translations import _
 
 if TYPE_CHECKING:
+    from ..config.transforms.env_substitution import EnvResolver
     from .context import ExtensionHostContext
 
 _logger = get_module_logger(__name__)
@@ -60,22 +61,57 @@ def parse_hook_phase(
     return tuple(shell_commands), tuple(plugin_ids)
 
 
+def _expand_hook_argv(
+    argv: tuple[str, ...],
+    *,
+    resolver: EnvResolver,
+    phase: LifecyclePhase,
+    command_index: int,
+) -> tuple[str, ...]:
+    from ..config.transforms.env_substitution import expand_env_string
+
+    return tuple(
+        expand_env_string(
+            item,
+            resolver,
+            field_path=f"hooks.{phase}[{command_index}][]",
+        )
+        for item in argv
+    )
+
+
 def run_lifecycle_hooks(
     ext: ExtensionHostContext,
     phase: LifecyclePhase,
     *,
     cwd: str,
+    env_resolver: EnvResolver | None = None,
 ) -> None:
     """Run manifest shell hooks and registered pluggy hook runners for *phase*."""
     from .registry import get_hook_runner, load_hook_runners
 
     load_hook_runners()
     shell_commands, plugin_ids = parse_hook_phase(ext.manifest_hooks, phase)
-    for argv in shell_commands:
+    subprocess_env = None
+    if env_resolver is not None:
+        from ..config.transforms.env_substitution import merged_subprocess_environ
+
+        subprocess_env = merged_subprocess_environ(env_resolver)
+    for command_index, argv in enumerate(shell_commands):
+        if env_resolver is not None:
+            argv = _expand_hook_argv(
+                argv,
+                resolver=env_resolver,
+                phase=phase,
+                command_index=command_index,
+            )
         command = " ".join(argv)
         _logger.info("Running manifest hook %s: %s", phase, command)
         try:
-            run_or_raise(argv, cwd=cwd)
+            if subprocess_env is not None:
+                run_or_raise(argv, cwd=cwd, env=subprocess_env)
+            else:
+                run_or_raise(argv, cwd=cwd)
         except Exception as exc:
             message = _("Manifest hook {PHASE} failed: {COMMAND}").format(
                 PHASE=phase,

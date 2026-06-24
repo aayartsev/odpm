@@ -6,7 +6,7 @@ on:
       - 4.0-beta
       - 4.0-rc1
       - 4.4-dev
-      - 4.5-dev
+      - 4.6.0-dev
       - main
   workflow_dispatch:
 
@@ -31,24 +31,40 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Skip dev Pages when HEAD has a release tag
+        id: gate
+        run: |
+          set -euo pipefail
+          if git tag --points-at HEAD | grep -qE '^v[0-9]'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping dev docs deploy: release-packages publishes Pages for tagged commits."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-python@v6
+        if: steps.gate.outputs.skip != 'true'
         with:
           python-version: "3.12"
 
       - name: Install MkDocs and mike
+        if: steps.gate.outputs.skip != 'true'
         run: pip install -r requirements-docs.txt
 
       - name: Configure git for mike
+        if: steps.gate.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Preserve live package repos
+        if: steps.gate.outputs.skip != 'true'
         run: |
           set -euo pipefail
           ./scripts/preserve_live_pages_repos.sh /tmp/preserve-apt /tmp/preserve-yum
 
       - name: Deploy dev docs with mike
+        if: steps.gate.outputs.skip != 'true'
         id: mike
         run: |
           set -euo pipefail
@@ -74,11 +90,18 @@ jobs:
           echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/configure-pages@v5
+        if: steps.gate.outputs.skip != 'true'
 
       - uses: actions/upload-pages-artifact@v5
+        if: steps.gate.outputs.skip != 'true'
         with:
           path: ${{ steps.mike.outputs.site_dir }}
           include-hidden-files: true
 
       - id: deployment
+        if: steps.gate.outputs.skip != 'true'
         uses: actions/deploy-pages@v4
+
+      - name: Verify live Pages (dev docs)
+        if: steps.gate.outputs.skip != 'true'
+        run: ./scripts/verify_pages_deploy.sh --version dev

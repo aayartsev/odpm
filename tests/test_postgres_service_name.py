@@ -35,7 +35,7 @@ class PostgresServiceNameParsingTests(unittest.TestCase):
 
 
 class PostgresServiceNameUserEnvTests(unittest.TestCase):
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.host.user_env._stdin_is_interactive", return_value=False)
     def test_reads_postgres_service_name_from_project_env(self, _mock_tty):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             project_env = Path(project_dir) / ".env"

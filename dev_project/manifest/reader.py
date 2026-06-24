@@ -4,11 +4,32 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .. import constants
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .schema import validate_manifest_v2
+from .compose_policy import validate_manifest_compose_services
+from .odoo_conf_policy import validate_manifest_odoo_conf
+
+if TYPE_CHECKING:
+    from ..config.transforms.env_substitution import EnvResolver
+
+
+def _resolve_manifest_odoo_conf(
+    raw: dict[str, Any],
+    *,
+    env_resolver: EnvResolver | None,
+) -> dict[str, Any] | None:
+    odoo_conf = raw.get("odoo_conf")
+    if not isinstance(odoo_conf, dict):
+        return None
+    if env_resolver is not None:
+        from ..config.transforms.env_substitution import expand_env_in_odoo_conf
+
+        expanded = expand_env_in_odoo_conf(dict(odoo_conf), resolver=env_resolver)
+        return dict(expanded) if isinstance(expanded, dict) else None
+    return dict(odoo_conf)
 
 
 @dataclass(frozen=True)
@@ -20,9 +41,11 @@ class ManifestView:
     raw_normalized: dict[str, Any]
     hooks: dict[str, Any] | None = None
     services: dict[str, Any] | None = None
+    service_patches: dict[str, Any] | None = None
     locks: dict[str, Any] | None = None
     extensions: dict[str, Any] | None = None
     developing_git: str | None = None
+    odoo_conf: dict[str, Any] | None = None
     source_raw: dict[str, Any] = field(repr=False, default_factory=dict)
 
 
@@ -63,13 +86,18 @@ def normalize_v2_to_flat(raw: dict[str, Any]) -> dict[str, Any]:
     return flat
 
 
-def load_manifest(raw: dict[str, Any]) -> ManifestView:
+def load_manifest(
+    raw: dict[str, Any],
+    *,
+    env_resolver: EnvResolver | None = None,
+) -> ManifestView:
     """Validate, detect schema, and return a normalized :class:`ManifestView`."""
     if not isinstance(raw, dict):
         raise TypeError("manifest root must be a JSON object")
 
     assert_manager_supports_manifest(raw)
     info = parse_manifest_version_info(raw)
+    validate_manifest_odoo_conf(raw)
 
     if info.manifest_schema == constants.MANIFEST_SCHEMA_V2:
         validate_manifest_v2(raw)
@@ -79,23 +107,47 @@ def load_manifest(raw: dict[str, Any]) -> ManifestView:
         developing_git = str(developing_git).strip() if developing_git else None
         hooks = raw.get("hooks")
         services = raw.get("services")
+        service_patches = raw.get("service_patches")
+        validate_manifest_compose_services(services)
         locks = raw.get("locks")
         extensions = raw.get("extensions")
+        if env_resolver is not None:
+            from ..config.transforms.env_substitution import (
+                expand_env_in_compose_service_map,
+            )
+
+            services = expand_env_in_compose_service_map(
+                dict(services) if isinstance(services, dict) else None,
+                resolver=env_resolver,
+                field_prefix="services",
+            )
+            service_patches = expand_env_in_compose_service_map(
+                dict(service_patches) if isinstance(service_patches, dict) else None,
+                resolver=env_resolver,
+                field_prefix="service_patches",
+            )
+        odoo_conf = _resolve_manifest_odoo_conf(raw, env_resolver=env_resolver)
         return ManifestView(
             manifest_schema=constants.MANIFEST_SCHEMA_V2,
             requires_odpm=info.requires_odpm,
             raw_normalized=raw_normalized,
             hooks=dict(hooks) if isinstance(hooks, dict) else None,
-            services=dict(services) if isinstance(services, dict) else None,
+            services=services if isinstance(services, dict) else None,
+            service_patches=(
+                service_patches if isinstance(service_patches, dict) else None
+            ),
             locks=dict(locks) if isinstance(locks, dict) else None,
             extensions=dict(extensions) if isinstance(extensions, dict) else None,
             developing_git=developing_git,
+            odoo_conf=odoo_conf,
             source_raw=deepcopy(raw),
         )
 
+    odoo_conf = _resolve_manifest_odoo_conf(raw, env_resolver=env_resolver)
     return ManifestView(
         manifest_schema=constants.MANIFEST_SCHEMA_V1,
         requires_odpm=None,
         raw_normalized=deepcopy(raw),
+        odoo_conf=odoo_conf,
         source_raw=deepcopy(raw),
     )

@@ -12,6 +12,7 @@ from .steps_compose import (
     exec_compose_generate,
     exec_compose_service,
     exec_compose_template,
+    exec_compose_validate,
 )
 from .steps_database import evaluate_database_drift, exec_database_drift
 from .steps_secrets import evaluate_secrets_materialize, exec_secrets_materialize
@@ -127,7 +128,7 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "compose.validate",
         "",
         evaluate_compose_validate,
-        lambda ctx: ctx.system_checker.check_docker_compose(),
+        exec_compose_validate,
     ),
     PrepareStepDef("git.checkout", "", evaluate_git_checkout, exec_git_checkout),
     PrepareStepDef(

@@ -189,7 +189,7 @@ export ODPM_RUN_DOCKER_INTEGRATION=1
 |-------|----------|--------|------|
 | `test_compose_up_serves_web` | PASS; HTTP 200 on `/web` | | |
 
-Optional timeout: `ODPM_GOLDEN_PATH_TIMEOUT=600`.
+Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=90` (default); increase for slow cold starts.
 
 ---
 
@@ -295,7 +295,7 @@ Do not commit private project paths, host home directories, or proprietary depen
 
 ## 4.5 — Integration matrix (ADR-006)
 
-**Branch:** `4.5-dev`. Policy: [contributing/ci.md](contributing/ci.md), [ADR-006](contributing/adr-006-integration-gate-policy.md).
+**Branch:** `4.6.0-dev`. Policy: [contributing/ci.md](contributing/ci.md), [ADR-006](contributing/adr-006-integration-gate-policy.md).
 
 ### Required on every PR
 

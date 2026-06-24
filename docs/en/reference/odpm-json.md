@@ -9,7 +9,7 @@ odpm 4.4 supports two formats:
 | Format | Marker | When to use |
 |--------|--------|-------------|
 | **v1 flat** (default) | `odpm_version: "4.0"`, no `manifest_schema` | Existing projects, unchanged |
-| **v2 nested** | `manifest_schema: 2`, `requires_odpm: "4.5.0"` | `services`, `hooks`, `locks` in the manifest |
+| **v2 nested** | `manifest_schema: 2`, `requires_odpm: "4.6.0"` | `services`, `hooks`, `locks` in the manifest |
 
 Migration: **`odpm manifest migrate`** — see [manifest-migration.md](manifest-migration.md).
 
@@ -35,13 +35,13 @@ The **product** has one version; the **manifest** uses separate format fields:
 
 | Constant / field | Example | Purpose |
 |------------------|---------|---------|
-| `RELEASE_VERSION` / `ODPM_VERSION` | `"4.5.0"` | **Installed manager** version (`odpm --version`, pip, deb/rpm) |
+| `RELEASE_VERSION` / `ODPM_VERSION` | `"4.6.0"` | **Installed manager** version (`odpm --version`, pip, deb/rpm) |
 | `MANIFEST_V1_CONTRACT_LINE` | `"4.0"` | `odpm_version` string odpm **writes to new** flat projects |
 | `DEFAULT_ODPM_VERSION` | `"3.0"` | **Legacy fallback** when `odpm_version` is **missing** in flat v1 (manager logs a deprecation warning; behaviour unchanged) |
 
 Compat behaviour (`dev_project/manifest/compat.py`):
 
-- Flat v1 **without** `manifest_schema` and **without** `odpm_version` → contract is treated as `"3.0"` (supported by manager 4.5.0); odpm logs a **warning** suggesting `odpm_version: "4.0"`.
+- Flat v1 **without** `manifest_schema` and **without** `odpm_version` → contract is treated as `"3.0"` (supported by manager 4.6.0); odpm logs a **warning** suggesting `odpm_version: "4.0"`.
 - New projects and migrations → `odpm_version: "4.0"`.
 - v2 nested → `requires_odpm` (minimum manager semver; new projects get current `RELEASE_VERSION`), not `odpm_version`.
 
@@ -54,7 +54,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | Block / field | Purpose |
 |---------------|---------|
 | `manifest_schema` | `2` |
-| `requires_odpm` | Minimum odpm version, e.g. `"4.5.0"` |
+| `requires_odpm` | Minimum odpm version, e.g. `"4.6.0"` |
 | `platform.git` | Analog of `odoo_git_link` |
 | `platform.build_date` | Analog of `odoo_build_date` |
 | `python` | Analog of `python_version` |
@@ -66,7 +66,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | `locks.venv` | venv lock hash (optional) |
 | `hooks.post_prepare` | Shell argv or plugin id after prepare |
 | `hooks.pre_up` | Shell argv or plugin id before `docker compose up` |
-| `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart` |
+| `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
 
 Mailpit example: [plugins.md](plugins.md).
 
@@ -92,6 +92,23 @@ Example (v1 flat or v2):
 }
 ```
 
+## `odoo_conf` block (Odoo option overrides)
+
+Optional object for **team-wide** Odoo settings in git (preview, staging, production). Manifest values **override** same-named keys in the on-disk `odoo.conf` when building `odoo_config_data` for the container; manifest is **not** written back to `odoo.conf`.
+
+```json
+"odoo_conf": {
+  "options": {
+    "proxy_mode": "True",
+    "dbfilter": "^${PREVIEW_HOSTNAME}$",
+    "workers": "2",
+    "log_level": "debug"
+  }
+}
+```
+
+`odpm manifest validate` rejects keys managed by odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. See [odoo.conf](odoo-conf.md).
+
 ## Migration v1 → v2
 
 Command **`odpm manifest migrate`** shows a unified diff of flat manifest → nested v2. With **`--write`** it writes the result to the developing project’s `odpm.json`. Details: [manifest-migration.md](manifest-migration.md).
@@ -115,6 +132,9 @@ In **whitelist fields** odpm expands environment variable references right after
 |-------|--------------|
 | `odoo_git_link` | yes |
 | `dependencies` | yes (each list element) |
+| `services.*` / `service_patches.*` (v2) | yes — `image`, `user`, `restart`, lists (`ports`, `volumes`, `command`, …), `environment` values |
+| `odoo_conf.*` (v1/v2) | yes — all string values in `odoo_conf.options` |
+| `hooks.*` argv (v2) | yes — at hook **execution** (not during `odpm manifest validate`) |
 
 Syntax: **`${NAME}`** and **`${NAME:-default}`** (as in Docker Compose). Literal `$` — **`$$`**.
 
@@ -141,6 +161,19 @@ GIT_HOST=git.company.example
 ```
 
 Other fields (`odoo_version`, `python_version`, `requirements_txt`, …) have **no** substitution. Nested `odpm.json` in git dependencies supports the same fields — see [configuration hierarchy](config-hierarchy.md). `.odpm/deps.lock.json` stores **expanded** URLs and paths, not `${VAR}`.
+
+v2 sidecar with paths from `.env`:
+
+```json
+"services": {
+  "armtek_test": {
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
+  }
+}
+```
 
 See [`.env` variables](env-dotenv.md), [repository links](git-links.md).
 

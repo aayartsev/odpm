@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 
 from dev_project import constants
+from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.errors import ConfigError
 from dev_project.manifest.reader import (
     ManifestView,
@@ -115,6 +116,94 @@ class LoadManifestTests(unittest.TestCase):
     def test_v2_invalid_service_spec_raises(self):
         with self.assertRaises(ConfigError):
             load_manifest(_minimal_v2(services={"mailpit": {"ports": ["8025:8025"]}}))
+
+    def test_v2_reserved_service_in_services_raises(self):
+        with self.assertRaises(ConfigError):
+            load_manifest(
+                _minimal_v2(services={"odoo": {"image": "odoo:dev", "ports": []}})
+            )
+
+    def test_v2_service_patches_and_command_on_sidecar(self):
+        raw = _minimal_v2(
+            services={
+                "worker": {
+                    "image": "busybox:latest",
+                    "command": ["sh", "-c", "sleep infinity"],
+                    "entrypoint": ["sh"],
+                }
+            },
+            service_patches={
+                "odoo": {"environment": {"WORKER_ENABLED": "1"}},
+            },
+        )
+        view = load_manifest(raw)
+        self.assertEqual(
+            view.services,
+            {
+                "worker": {
+                    "image": "busybox:latest",
+                    "command": ["sh", "-c", "sleep infinity"],
+                    "entrypoint": ["sh"],
+                }
+            },
+        )
+        self.assertEqual(
+            view.service_patches,
+            {"odoo": {"environment": {"WORKER_ENABLED": "1"}}},
+        )
+
+    def test_v2_services_expand_env_when_resolver_provided(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={"DATA_DIR": "/opt/data"},
+        )
+        raw = _minimal_v2(
+            services={
+                "worker": {
+                    "image": "busybox:latest",
+                    "volumes": ["${DATA_DIR}:/data"],
+                }
+            },
+            service_patches={
+                "odoo": {"volumes": ["${DATA_DIR}:/mnt"]},
+            },
+        )
+        view = load_manifest(raw, env_resolver=resolver)
+        self.assertEqual(
+            view.services,
+            {
+                "worker": {
+                    "image": "busybox:latest",
+                    "volumes": ["/opt/data:/data"],
+                }
+            },
+        )
+        self.assertEqual(
+            view.service_patches,
+            {"odoo": {"volumes": ["/opt/data:/mnt"]}},
+        )
+
+    def test_v2_services_user_and_tty_allowed(self):
+        raw = _minimal_v2(
+            services={
+                "sidecar": {
+                    "image": "busybox:latest",
+                    "user": "root",
+                    "tty": True,
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(
+            view.services,
+            {
+                "sidecar": {
+                    "image": "busybox:latest",
+                    "user": "root",
+                    "tty": True,
+                }
+            },
+        )
 
     def test_v1_validate_accepts_minimal_flat_manifest(self):
         validate_manifest_v1(

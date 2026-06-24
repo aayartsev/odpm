@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16
+    user: root
+    tty: true
+    ports:
+      - 127.0.0.1:15432:5432
+    environment:
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  odoo:
+    image: odoo-ci:19
+    user: 1000:1000
+    tty: true
+    depends_on:
+      - db
+    working_dir: /home/odoo
+    environment:
+      - PYTHONUNBUFFERED=1
+    command:
+      - python3
+      - -m
+      - dev_project.inside_docker_app.run_odoo
+      - --
+      - /home/odoo/odoo/odoo-bin
+    ports:
+      - 8069:8069
+      - 8072:8072
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /tmp/odpm-golden-postgres-data

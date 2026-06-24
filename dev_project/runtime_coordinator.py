@@ -124,6 +124,7 @@ class RuntimeCoordinator:
             ExtensionHostContext.from_config(self.config),
             "pre_up",
             cwd=self.host_ctx.project_dir,
+            env_resolver=self.config.env_resolver,
         )
         try:
             self.start_containers()

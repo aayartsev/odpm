@@ -54,6 +54,13 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
         self.assertIs(ctx.args, args)
         self.assertIsInstance(ctx.host_ctx, HostProjectContext)
 
+    def test_compose_preview_binds_to_bootstrap_handle(self):
+        config = MagicMock()
+        ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
+
+        self.assertIs(ctx.compose_preview.bootstrap, ctx.ports.bootstrap)
+        self.assertIs(ctx.compose_preview.runtime_cache_config(), config)
+
 
 class PrepareStepServiceExecutionTests(unittest.TestCase):
     @patch("dev_project.project_env.templates.ProjectTemplates.generate_dockerfile")

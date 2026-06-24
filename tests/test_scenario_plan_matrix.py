@@ -259,7 +259,7 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
         finally:
             reset_extension_registry_state()
 
-    @patch("dev_project.config.payload.write_runtime_config")
+    @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_a17_plan_evaluate_does_not_write_runtime(self, mock_write) -> None:
         project_dir = self._provision(
             scenario=constants.DEVELOPER_SCENARIO,

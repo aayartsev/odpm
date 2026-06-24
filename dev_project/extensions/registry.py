@@ -10,6 +10,7 @@ import pluggy
 
 from ..prepare.types import PrepareStepDef
 from .protocols import ComposeFragmentPlugin, HookRunner, PrepareStepPlugin
+from .loader import validate_pluggy_manager_plugins
 from .specs import OdpmExtensionSpecs, PROJECT_NAME, hookimpl, hookspec
 
 __all__ = [
@@ -166,6 +167,7 @@ def _ensure_hook_entry_points_loaded() -> None:
     if _HOOK_ENTRY_POINTS_LOADED:
         return
     plugin_manager.load_setuptools_entrypoints("odpm.hooks")
+    validate_pluggy_manager_plugins(plugin_manager)
     _HOOK_ENTRY_POINTS_LOADED = True
 
 
@@ -229,6 +231,7 @@ def _ensure_entry_points_loaded() -> None:
     if _ENTRY_POINTS_LOADED:
         return
     plugin_manager.load_setuptools_entrypoints("odpm.prepare_steps")
+    validate_pluggy_manager_plugins(plugin_manager)
     _ENTRY_POINTS_LOADED = True
 
 

@@ -60,7 +60,7 @@ class OdpmJsonReader:
             self._rewrite_odpm_json()
         with open(self.config.repo_odpm_json) as repo_odpm_json:
             raw = json.load(repo_odpm_json)
-        view = load_manifest(raw)
+        view = load_manifest(raw, env_resolver=self.config.env_resolver)
         self.config.bootstrap.manifest_view = view
         self.config._raw_odpm_json = expand_env_in_json(
             view.raw_normalized,

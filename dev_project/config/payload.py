@@ -56,6 +56,16 @@ def compute_extras_stamp(requirements_txt: list[str]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def compute_odoo_requirements_hash(odoo_dir: str) -> str:
+    """SHA-256 of ``{odoo_dir}/requirements.txt`` (empty when missing)."""
+    if not odoo_dir or not isinstance(odoo_dir, str):
+        return ""
+    requirements_path = os.path.join(odoo_dir, "requirements.txt")
+    if not os.path.isfile(requirements_path):
+        return ""
+    return hashlib.sha256(Path(requirements_path).read_bytes()).hexdigest()
+
+
 def compute_venv_lock_hash(config: Config) -> str:
 
     arch = config.arch if config.arch != "auto" else constants.ARCH
@@ -75,6 +85,8 @@ def compute_venv_lock_hash(config: Config) -> str:
             payload[key] = str(config.postgres_version)
         elif key == "odoo_version":
             payload[key] = str(config.odoo_version)
+        elif key == "odoo_requirements_hash":
+            payload[key] = compute_odoo_requirements_hash(config.docker_odoo_dir)
         else:
             payload[key] = ""
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))

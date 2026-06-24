@@ -76,7 +76,9 @@ def load_project_settings(config: Config) -> None:
 
 
 def _apply_manifest_database_to_user_settings(config: Config) -> None:
-    view = config.bootstrap.manifest_view
+    from ..host.ports import BootstrapHandle
+
+    view = BootstrapHandle(config=config).manifest_view
     if view is None:
         return
     config._user.db_creation_data = merge_db_creation_from_manifest(

@@ -9,6 +9,7 @@ from ..project_dir_manager import template_needs_upgrade
 from ..logging import get_module_logger
 from ..yaml import dump_document
 from .compose_document import build_compose_document
+from .validate import validate_compose_document
 
 if TYPE_CHECKING:
     from ..project_env.environment import CreateProjectEnvironment
@@ -50,6 +51,7 @@ class ComposeGenerator:
         self._ensure_compose_template_current(docker_compose_template_path)
 
         document = build_compose_document(self.env)
+        validate_compose_document(document)
         header = f"# {_('Do not change this file, its content is generating automatically')}\n\n"
         return header + dump_document(document)
 

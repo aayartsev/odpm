@@ -15,6 +15,7 @@ from .l10n import plan_msg
 if TYPE_CHECKING:
     from ..config import Config
     from ..host.context import HostProjectContext
+    from ..host.ports import BootstrapHandle
 
 MSG_DATABASE_DRIFT_BLOCKING = (
     "Blocking database configuration drift detected; resolve before starting containers."
@@ -34,8 +35,8 @@ def collect_database_drift_warnings(config: Config) -> tuple[str, ...]:
 
 def collect_database_drift_warnings_for_host(
     host_ctx: HostProjectContext,
-    config: Config,
+    bootstrap: BootstrapHandle,
 ) -> tuple[str, ...]:
-    """Plan warnings keyed by host project dir; drift detection still uses *config*."""
+    """Plan warnings keyed by host project dir; drift uses bootstrap handle."""
     _ = host_ctx.project_dir
-    return collect_database_drift_warnings(config)
+    return collect_database_drift_warnings(bootstrap.config)

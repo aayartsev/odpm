@@ -60,4 +60,5 @@ def exec_hooks_post_clone(ctx: PrepareContext) -> None:
         ctx.extension_host(),
         "post_clone",
         cwd=ctx.host_ctx.project_dir,
+        env_resolver=ctx.env_resolver,
     )

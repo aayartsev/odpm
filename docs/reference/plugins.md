@@ -2,9 +2,17 @@
 
 odpm 4.4+ добавляет **extension API** на host: prepare steps, compose fragments и lifecycle hooks. Плагины не получают прямой доступ к mutable `Config` — только frozen [`ExtensionHostContext`](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/extensions/context.py).
 
-## Версия API (4.5+)
+## Версия API (4.6+)
 
-Стабильная версия extension API: **`EXTENSION_API_VERSION = "1.0"`** (`dev_project/extensions/api.py`). Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+Текущая версия extension API: **`EXTENSION_API_VERSION = "1.1"`** (`dev_project/extensions/api.py`). Поддерживаются **1.0** и **1.1**; модули без `EXTENSION_API_VERSION` считаются **1.0**. Host проверяет версию при загрузке entry points и `.odpm/plugins/*.py`. В плагине:
+
+```python
+from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_api_compatible
+
+assert_extension_api_compatible(EXTENSION_API_VERSION)
+```
+
+Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Три способа расширить проект
 
@@ -24,7 +32,7 @@ odpm 4.4+ добавляет **extension API** на host: prepare steps, compose
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.5.0",
+  "requires_odpm": "4.6.0",
   "services": {
     "mailpit": {
       "image": "axllent/mailpit",
@@ -35,9 +43,53 @@ odpm 4.4+ добавляет **extension API** на host: prepare steps, compose
 }
 ```
 
+Для sidecar допустимы **`user`** и **`tty`** (как в `service_patches`):
+
+```json
+"services": {
+  "armtek_test": {
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
+  }
+}
+```
+
 Тот же spec в коде: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC`.
 
 После `odpm up` сервис появится в сгенерированном `docker-compose.yml` (блок `{COMPOSE_SERVICE_FRAGMENTS}`). Артефакты materialize: `.odpm/compose/fragments/mailpit.yml` (gitignored).
+
+### Patch built-in сервисов (`service_patches`, 4.6+)
+
+Имена **`odoo`**, **`db`**, **`postgres`** нельзя объявлять в `services` — только patch. Политика: [ADR-009](../contributing/adr-009-compose-service-patch.md).
+
+```json
+"service_patches": {
+  "odoo": {
+    "environment": {
+      "CUSTOM_METRIC": "1"
+    }
+  }
+}
+```
+
+`odpm plan` показывает `compose.patch.odoo` (preview); patch применяется при `compose.generate`.
+
+### `command` / `entrypoint` для sidecar (4.6+)
+
+Только **exec form** (JSON-массив строк) в `services.<name>`:
+
+```json
+"services": {
+  "worker": {
+    "image": "busybox:latest",
+    "command": ["sh", "-c", "sleep infinity"]
+  }
+}
+```
+
+Команда `odoo` по-прежнему задаётся generator; override — через `service_patches.odoo.command` при явной необходимости.
 
 ## Lifecycle hooks в manifest
 
@@ -53,7 +105,22 @@ odpm 4.4+ добавляет **extension API** на host: prepare steps, compose
 }
 ```
 
-Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir`), либо **plugin id** (строка) для pluggy hook runner.
+Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir` **без shell**), либо **plugin id** (строка) для pluggy hook runner.
+
+В argv поддерживается **`${VAR}`** / **`${VAR:-default}`** (как в Compose): раскрытие при выполнении hook из process env → project `.env` → default в строке. Subprocess получает **merged env** (process + недостающие ключи из `.env`). Пример сборки образа sidecar:
+
+```json
+"hooks": {
+  "post_prepare": [[
+    "docker", "build",
+    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-t", "autoparts_env:emulator",
+    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+  ]]
+}
+```
+
+В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — раскрытие при чтении manifest с `EnvResolver`.
 
 Порядок по ADR-004:
 
@@ -65,7 +132,7 @@ odpm 4.4+ добавляет **extension API** на host: prepare steps, compose
 6. `hooks.pre_up`
 7. `docker compose up`
 
-`odpm plan` показывает шаги `hooks.*` и `compose.fragment.<service>` когда они настроены.
+`odpm plan` показывает шаги `hooks.*`, `compose.fragment.<service>` и `compose.patch.<service>` когда они настроены.
 
 ### Поле `order` у prepare steps
 
@@ -91,6 +158,19 @@ def _register():
 ```
 
 Регистрация при импорте пакета или через entry point (см. ниже).
+
+### Patch built-in из Python (API 1.1+)
+
+Опциональный метод `compose_service_patches` на compose fragment (те же правила, что manifest `service_patches`):
+
+```python
+def compose_service_patches(self, ctx: ExtensionHostContext) -> dict:
+    return {"odoo": {"environment": {"MY_FLAG": "1"}}}
+```
+
+### Nested dependency `services` (4.6+)
+
+При `use_oca_dependencies` v2 `services` / `service_patches` из `odpm.json` зависимостей наследуются в host compose после `project.map_folders`. При конфликте имён **побеждает host manifest**. См. [ADR-004](../contributing/adr-004-plugin-api-stability.md).
 
 ## Python-плагин: prepare step
 
@@ -193,5 +273,5 @@ dependencies = ["odpm>=4.4"]
 ## См. также
 
 - [Сгенерированные файлы](generated-files.md) — `.odpm/compose/fragments/`
-- [Примеры сервисов](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/services_ru.md) (legacy markdown)
-- Устаревший черновик плагинов: [plugins/todo_ru.md](https://github.com/aayartsev/odpm/blob/4.4-dev/dev_project/plugins/todo_ru.md) → redirect сюда
+- Declarative sidecar-сервисы — секция **Mailpit** выше и таблица механизмов расширения
+- Устаревшие черновики в `dev_project/plugins/` (`services_ru.md`, `todo_ru.md`) — redirect сюда

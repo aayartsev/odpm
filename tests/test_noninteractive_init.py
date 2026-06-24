@@ -60,7 +60,7 @@ class NonInteractiveOdpmJsonTests(unittest.TestCase):
 
 
 class NonInteractiveEnvFileTests(unittest.TestCase):
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.host.user_env._stdin_is_interactive", return_value=False)
     def test_missing_env_raises_without_configuration(self, _mock_tty):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
@@ -68,7 +68,7 @@ class NonInteractiveEnvFileTests(unittest.TestCase):
                 with self.assertRaises(ConfigError):
                     CreateUserEnvironment(pd_manager)
 
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.host.user_env._stdin_is_interactive", return_value=False)
     def test_missing_env_creates_from_environment_variables(self, _mock_tty):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
@@ -87,7 +87,7 @@ class NonInteractiveEnvFileTests(unittest.TestCase):
             self.assertEqual(user_env.odoo_projects_dir, "/tmp/projects")
             self.assertEqual(user_env.odpm_scenario, constants.CI_SCENARIO)
 
-    @patch("dev_project.host.user_env.stdin_is_interactive", return_value=False)
+    @patch("dev_project.host.user_env._stdin_is_interactive", return_value=False)
     def test_project_env_file_used_without_prompt(self, _mock_tty):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             project_env = os.path.join(project_dir, constants.ENV_FILE_NAME)

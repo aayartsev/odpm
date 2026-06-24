@@ -12,14 +12,16 @@ if [[ "${SITE_DIR}" != /* ]]; then
     SITE_DIR="$(cd "${SITE_DIR}" && pwd)"
 fi
 
-"${SCRIPT_DIR}/fetch_pages_repo.sh" apt "${SITE_DIR}/apt"
-"${SCRIPT_DIR}/fetch_pages_repo.sh" yum "${SITE_DIR}/yum"
-
+mkdir -p "${SITE_DIR}/apt" "${SITE_DIR}/yum"
 if [[ -n "${APT_SRC}" && -d "${APT_SRC}" ]]; then
-    "${SCRIPT_DIR}/overlay_pages_repo.sh" apt "${SITE_DIR}/apt" "${APT_SRC}"
+    rsync -a "${APT_SRC}/" "${SITE_DIR}/apt/"
+else
+    "${SCRIPT_DIR}/fetch_pages_repo.sh" apt "${SITE_DIR}/apt" || true
 fi
 if [[ -n "${YUM_SRC}" && -d "${YUM_SRC}" ]]; then
-    "${SCRIPT_DIR}/overlay_pages_repo.sh" yum "${SITE_DIR}/yum" "${YUM_SRC}"
+    rsync -a "${YUM_SRC}/" "${SITE_DIR}/yum/"
+else
+    "${SCRIPT_DIR}/fetch_pages_repo.sh" yum "${SITE_DIR}/yum" || true
 fi
 
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
