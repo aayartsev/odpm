@@ -10,7 +10,7 @@ Manager **odpm 4.4** reads both formats without mandatory migration. Nested **ma
 |-----------|----------------|
 | Flat v1, team does not change manifest | **Do not migrate** — everything works as before |
 | Need declarative compose services (Mailpit, etc.) | v2 + `services` block |
-| Patch env/ports on `odoo` / `db` | v2 + `service_patches` (see [ADR-009](../contributing/adr-009-compose-service-patch.md)) |
+| Patch env/ports on `odoo` / `db` | v2 + `service_patches` (see [ADR-009](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md)) |
 | Locks in git instead of only `.odpm/deps.lock.json` | v2 + `locks` |
 | Lifecycle hooks in manifest | v2 + `hooks` |
 | New project on 4.4 | v2 immediately or flat v1 (odpm writes v1 by default) |
@@ -115,4 +115,4 @@ Details: [deps-lock.md](deps-lock.md#two-lock-sources-v1-flat-vs-v2-nested).
 
 - **`odpm_version: "4.0"`** in flat v1 — format contract string, **not** the manager version.
 - **`requires_odpm: "4.6.0"`** in v2 — minimum installed odpm version (semver); new projects get current `RELEASE_VERSION`.
-- Details: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).
+- Details: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).

@@ -134,6 +134,50 @@ class InstallDocsP2Tests(unittest.TestCase):
         self.assertIn("odpm-stable.repo", script)
         self.assertIn("odpm-testing.repo", script)
         self.assertIn(".nojekyll", script)
+        self.assertIn("fix_stable_version_picker_symlinks", script)
+
+    def test_public_docs_do_not_link_to_excluded_contributing_paths(self):
+        """contributing/** is excluded from MkDocs; relative links 404 on Pages."""
+        rel_contrib = re.compile(
+            r"\[[^\]]*\]\((?:\.\./)+contributing/[^)]+\)"
+        )
+        abs_contrib = re.compile(
+            r"\[[^\]]*\]\(contributing/[^h][^)]*\)"
+        )
+        roots = (
+            PROJECT_ROOT / "docs" / "reference",
+            PROJECT_ROOT / "docs" / "scenarios",
+            PROJECT_ROOT / "docs" / "install",
+            PROJECT_ROOT / "docs" / "getting-started",
+            PROJECT_ROOT / "docs" / "operations",
+            PROJECT_ROOT / "docs" / "en",
+            PROJECT_ROOT / "docs",
+        )
+        checked: set[Path] = set()
+        for root in roots:
+            if not root.is_dir():
+                continue
+            for path in sorted(root.rglob("*.md")):
+                if path in checked:
+                    continue
+                rel = path.relative_to(PROJECT_ROOT).as_posix()
+                if rel.startswith("docs/contributing/"):
+                    continue
+                if rel.startswith("docs/how-to/") or rel.startswith("docs/changelog-prep/"):
+                    continue
+                if path.name.startswith("smoke-") or path.name == "cross-cutting-debt-plan.md":
+                    continue
+                checked.add(path)
+                text = path.read_text(encoding="utf-8")
+                with self.subTest(doc=rel):
+                    self.assertIsNone(
+                        rel_contrib.search(text),
+                        msg=f"relative contributing link in {rel}",
+                    )
+                    self.assertIsNone(
+                        abs_contrib.search(text),
+                        msg=f"absolute contributing link in {rel}",
+                    )
 
     def test_pages_workflows_use_upload_pages_artifact_v5(self):
         for rel in (

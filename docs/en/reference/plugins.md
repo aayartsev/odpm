@@ -14,7 +14,7 @@ from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_a
 assert_extension_api_compatible(EXTENSION_API_VERSION)
 ```
 
-Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: [ADR-004](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md).
 
 ## Three ways to extend a project
 
@@ -25,7 +25,7 @@ Breaking changes to pluggy protocols or manifest hooks require a major API bump.
 | **Python entry points** | package `pyproject.toml` | Pluggy: `odpm.prepare_steps`, `odpm.hooks` |
 | **Project-local plugins** | `.odpm/plugins/*.py` or `extensions.local` | Loaded at bootstrap (sandboxed to project dir) |
 
-v2 field details: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](../contributing/adr-001-extensions-and-manifest-v2.md).
+v2 field details: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).
 
 ## Declarative service (Mailpit)
 
@@ -64,7 +64,7 @@ After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE
 
 ### Patch built-in services (`service_patches`, 4.6+)
 
-Names **`odoo`**, **`db`**, **`postgres`** cannot appear in `services` — use patches only. Policy: [ADR-009](../contributing/adr-009-compose-service-patch.md).
+Names **`odoo`**, **`db`**, **`postgres`** cannot appear in `services` — use patches only. Policy: [ADR-009](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md).
 
 ```json
 "service_patches": {
@@ -175,7 +175,7 @@ def compose_service_patches(self, ctx: ExtensionHostContext) -> dict:
 
 ### Nested dependency `services` (4.6+)
 
-With `use_oca_dependencies`, v2 `services` / `service_patches` from dependency `odpm.json` files are inherited into host compose after `project.map_folders`. On name conflict the **host manifest wins**. See [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+With `use_oca_dependencies`, v2 `services` / `service_patches` from dependency `odpm.json` files are inherited into host compose after `project.map_folders`. On name conflict the **host manifest wins**. See [ADR-004](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md).
 
 ## Python plugin: prepare step
 

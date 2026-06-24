@@ -12,7 +12,7 @@ from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_a
 assert_extension_api_compatible(EXTENSION_API_VERSION)
 ```
 
-Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+Breaking changes в протоколах pluggy или manifest hooks требуют major bump API. Политика: [ADR-004](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md).
 
 ## Три способа расширить проект
 
@@ -23,7 +23,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 | **Python entry points** | `pyproject.toml` пакета | Pluggy: `odpm.prepare_steps`, `odpm.hooks` |
 | **Project-local plugins** | `.odpm/plugins/*.py` или `extensions.local` | Импорт при bootstrap (только внутри `project_dir`) |
 
-Подробнее о полях v2: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](../contributing/adr-001-extensions-and-manifest-v2.md).
+Подробнее о полях v2: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).
 
 ## Декларативный сервис (Mailpit)
 
@@ -62,7 +62,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 
 ### Patch built-in сервисов (`service_patches`, 4.6+)
 
-Имена **`odoo`**, **`db`**, **`postgres`** нельзя объявлять в `services` — только patch. Политика: [ADR-009](../contributing/adr-009-compose-service-patch.md).
+Имена **`odoo`**, **`db`**, **`postgres`** нельзя объявлять в `services` — только patch. Политика: [ADR-009](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md).
 
 ```json
 "service_patches": {
@@ -170,7 +170,7 @@ def compose_service_patches(self, ctx: ExtensionHostContext) -> dict:
 
 ### Nested dependency `services` (4.6+)
 
-При `use_oca_dependencies` v2 `services` / `service_patches` из `odpm.json` зависимостей наследуются в host compose после `project.map_folders`. При конфликте имён **побеждает host manifest**. См. [ADR-004](../contributing/adr-004-plugin-api-stability.md).
+При `use_oca_dependencies` v2 `services` / `service_patches` из `odpm.json` зависимостей наследуются в host compose после `project.map_folders`. При конфликте имён **побеждает host manifest**. См. [ADR-004](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md).
 
 ## Python-плагин: prepare step
 

@@ -25,6 +25,34 @@ else
 fi
 
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Mike alias `stable` is a copy at /stable/; the version picker links to ./VERSION/
+# relative to /stable/ → /stable/VERSION/ (404). Symlink to the real /VERSION/ tree.
+fix_stable_version_picker_symlinks() {
+    local site_dir="$1"
+    local version
+    version="$(
+        grep '^LATEST_STABLE_RELEASE' "${PROJECT_ROOT}/dev_project/constants/scenarios.py" |
+            sed -n 's/.*= "\([^"]*\)".*/\1/p'
+    )"
+    if [[ -z "${version}" ]]; then
+        return 0
+    fi
+    if [[ ! -d "${site_dir}/stable" || ! -d "${site_dir}/${version}" ]]; then
+        return 0
+    fi
+    local link="${site_dir}/stable/${version}"
+    if [[ -e "${link}" && ! -L "${link}" ]]; then
+        rm -rf "${link}"
+    fi
+    if [[ ! -e "${link}" ]]; then
+        ln -sfn "../${version}" "${link}"
+        echo "pages: symlink stable/${version} -> ../${version}"
+    fi
+}
+
+fix_stable_version_picker_symlinks "${SITE_DIR}"
+
 for repo_file in odpm-stable.repo odpm-testing.repo; do
     if [[ -f "${PROJECT_ROOT}/packaging/yum/${repo_file}" ]]; then
         cp "${PROJECT_ROOT}/packaging/yum/${repo_file}" "${SITE_DIR}/yum/${repo_file}"

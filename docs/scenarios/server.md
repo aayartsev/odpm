@@ -17,7 +17,7 @@
 | **Odoo и Gevent** | Порты на хосте доступны шире; для доступа из интернета — **обратный прокси** (nginx и аналоги) и межсетевой экран. |
 | **Режим разработки Odoo** | Поле `dev_mode` в `user_settings.json` **игнорируется** (предупреждение в журнале). |
 | **Исходники** | Как у разработчика — подключены с диска сервера. |
-| **Base image** | Профиль **medium**: wkhtmltopdf и build deps, без Chromium/Xvfb/IDE — см. [ADR-007](../contributing/adr-007-base-image-profiles.md). |
+| **Base image** | Профиль **medium**: wkhtmltopdf и build deps, без Chromium/Xvfb/IDE — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md). |
 | **Секреты модулей** | Как в `developer`: `.odpm/secrets.json` монтируется в `/run/odpm/secrets.json` (read-only). Доставка файла на сервер — `odpm --secrets-file` или копирование; см. [локальные секреты](../operations/secrets.md). |
 
 ## Рекомендации по безопасности

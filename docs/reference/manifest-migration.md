@@ -8,7 +8,7 @@
 |----------|--------------|
 | Flat v1, команда не меняет manifest | **Не мигрировать** — всё работает как раньше |
 | Нужны declarative compose services (Mailpit и др.) | v2 + блок `services` |
-| Patch env/ports у `odoo` / `db` | v2 + `service_patches` (см. [ADR-009](../contributing/adr-009-compose-service-patch.md)) |
+| Patch env/ports у `odoo` / `db` | v2 + `service_patches` (см. [ADR-009](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md)) |
 | Locks в git вместо только `.odpm/deps.lock.json` | v2 + `locks` |
 | Lifecycle hooks в manifest | v2 + `hooks` |
 | Новый проект на 4.4 | Можно сразу v2 или flat v1 (odpm пишет v1 по умолчанию) |
@@ -113,4 +113,4 @@ odpm manifest migrate --write  # записать odpm.json
 
 - **`odpm_version: "4.0"`** в flat v1 — контрактная строка формата, **не** версия менеджера.
 - **`requires_odpm: "4.6.0"`** в v2 — минимальная версия установленного odpm (semver); новые проекты получают текущий `RELEASE_VERSION`.
-- Подробнее: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](../contributing/adr-001-extensions-and-manifest-v2.md).
+- Подробнее: [odpm.json](odpm-json.md), [plugins.md](plugins.md), [ADR-001](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).
