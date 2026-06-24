@@ -11,7 +11,7 @@
 | **4.3.x** | `4.3.0`, тег `v4.3.0` | **заморожена** | Последний stable до 4.4; только критичные security-fix по решению maintainer (cherry-pick → patch tag). Новые фичи не добавляем. |
 | **4.4.x** | `4.4-dev` | **заморожена** (patch only) | Линия 4.4; stable **v4.4.3** |
 | **4.5.x** | `4.5-dev` | **заморожена** (patch only) | Линия 4.5; stable **v4.5.0**; архив: `v4.5.0-beta` |
-| **4.6.x** | `4.6.0-dev` | **активная** | Debt closure D1–D5; target stable **v4.6.0**; pre-release: `v4.6.0-beta`, … |
+| **4.6.x** | `4.6.0-dev` | **активная** | Debt closure D1–D5 **RELEASED** stable **v4.6.0**; архив: `v4.6.0-beta` |
 | Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
 
 **Правило:** изменения 4.6 merge в `4.6.0-dev`. Линии 4.4 (`4.4-dev`) и 4.5 (`4.5-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
@@ -20,8 +20,8 @@
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.6.0-dev` | `4.6.0-beta` (pre-release) |
-| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.5.0` |
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.6.0-dev` | `4.6.0` (stable) |
+| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.6.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
 
@@ -134,6 +134,33 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
 4. **Дальше**
    - [x] D1–D5 на `4.6.0-dev` (код) → tag `v4.6.0-beta` (pre-release smoke)
    - [ ] tag `v4.6.0` stable (единый debt release после beta smoke)
+
+## Чеклист: stable **v4.6.0** (после smoke beta)
+
+Выполнять на `4.6.0-dev` после успешного smoke `v4.6.0-beta` (APT testing, TestPyPI, docs `/4.6.0-beta/`).
+
+1. **Версия в коде**
+   - [ ] `RELEASE_VERSION = "4.6.0"` в `dev_project/constants/scenarios.py`
+   - [ ] `LATEST_STABLE_RELEASE = "4.6.0"`
+   - [ ] `debian/changelog`, `packaging/odpm.spec` — та же версия
+2. **Release notes**
+   - [ ] `.github/release-notes/4.6.0.md` (ссылки на `/stable/`, не flat `/install/`)
+3. **Install / hub docs**
+   - [ ] `docs/install/*`, `docs/en/install/*` — stable first; beta как archived
+   - [ ] `docs/getting-started/documentation-versions.md` (+ EN)
+   - [ ] reference docs: `requires_odpm` / version tables → `4.6.0`
+4. **Commit + tag**
+   - [ ] Commit на `4.6.0-dev`, push
+   - [ ] `git tag v4.6.0` && `git push origin v4.6.0`
+5. **CI (автоматически на тег)**
+   - [ ] `release-packages`: GitHub Release, APT/YUM **stable** merge, `publish-pages` → mike `4.6.0` + alias **stable**
+   - [ ] `publish-pypi` → **production PyPI**
+6. **Проверка live**
+   - [ ] `https://aayartsev.github.io/odpm/stable/` — 200, переключатель версий
+   - [ ] `https://aayartsev.github.io/odpm/apt/dists/stable/Release` — 200
+   - [ ] `pip install odpm` → `4.6.0`
+7. **Runner ops**
+   - [ ] `ODPM_GOLDEN_PATH_PROJECT`: `first_module` version `19.0.1.0`; odpm на runner → stable deb
 
 ## Чеклист: stable **v4.4.2** (архив, после smoke beta)
 

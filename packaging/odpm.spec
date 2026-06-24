@@ -4,7 +4,7 @@
 
 %global srcname odpm
 %global version 4.6.0
-%global release beta
+%global release 1
 
 Name:           %{srcname}
 Version:        %{version}

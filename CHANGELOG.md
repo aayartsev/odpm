@@ -8,9 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.6.0] - 2026-06-23
+
+**Stable release 4.6.0** on branch `4.6.0-dev`; supersedes **4.5.0** as `LATEST_STABLE_RELEASE`. Debt closure D1–D5 (compose `service_patches`, config hub phase 2, plugin API 1.1, structural compose validation, ops hygiene) plus manifest compose UX and `odoo_conf` overrides. Pre-release **4.6.0-beta** verified packaging, docs channels, and integration gates. No breaking changes for v1 flat `odpm.json`; manifest v2 features remain opt-in.
+
 ### Added
 
 - **Manifest v2 compose UX (4.6)** — `${VAR}` expansion in `services` / `service_patches` at manifest load (`expand_env_in_compose_service_map`); `${VAR}` in `hooks` shell argv at execution with merged subprocess env; `user` / `tty` on manifest `composeService` sidecars; docs (`plugins.md`, `odpm-json.md`), ADR-009 update. Tests: `test_env_substitution`, `test_manifest_hooks`, `test_manifest_v2_reader`, `test_compose_fragments`, `test_compose_validate`.
+- **Manifest `odoo_conf` overrides (4.6)** — optional `odoo_conf.options` in manifest v1/v2 to override team Odoo settings in git; reserved-key policy blocks odpm-managed keys (`addons_path`, `data_dir`, `db_*`, `admin_passwd`, `http_port`); merge priority disk `odoo.conf` → manifest → odpm-managed; `${VAR}` in `odoo_conf` values; `odpm manifest validate` checks policy. Docs (`odpm-json.md`, `odoo-conf.md`), i18n catalog. Tests: `test_manifest_odoo_conf`, `test_odoo_conf_builder`, `test_manifest_contract`.
+- **Unit gate plan/dry-run** — `tests/test_scenario_plan_matrix.py`: documented `odpm plan` and manifest CLI behaviour without Docker daemon (`developer` / `server` / `ci`); traceability table `tests/PLAN_MATRIX.md`; section in `docs/contributing/ci.md`.
+
+### Fixed
+
+- **False positives `--plan-strict` on compose steps** — `plan_strict` and `plan_format` excluded from preview runtime config comparison (`PLAN_ONLY_ARGUMENT_KEYS`): with materialized runtime config, `compose.service` / `compose.generate` are no longer flagged as required changes solely due to `--plan-strict`.
+
+### Changed
+
+- **Release gate (R6 / 4.6.0)** — `RELEASE_VERSION` → `4.6.0`; `LATEST_STABLE_RELEASE` → `4.6.0`; deb/rpm packaging synced; install docs and mike `stable` alias target **4.6.0**.
 
 ## [4.6.0-beta] - 2026-06-23
 

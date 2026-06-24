@@ -10,8 +10,8 @@ See [ADR-001](adr-001-extensions-and-manifest-v2.md) for manifest vs manager ver
 
 | Constant / artifact | Example | Meaning |
 |---------------------|---------|---------|
-| `RELEASE_VERSION` | `4.6.0-beta` | Git tag (`v4.6.0-beta`), deb/rpm filenames, GitHub Release title, `odpm --version` |
-| `LATEST_STABLE_RELEASE` | `4.5.0` | Recommended stable line for install docs and mike `stable` alias; bump **only** on stable tags |
+| `RELEASE_VERSION` | `4.6.0` | Git tag (`v4.6.0`), deb/rpm filenames, GitHub Release title, `odpm --version` |
+| `LATEST_STABLE_RELEASE` | `4.6.0` | Recommended stable line for install docs and mike `stable` alias; bump **only** on stable tags |
 | `ODPM_VERSION` | same as `RELEASE_VERSION` | Alias; pip wheel metadata |
 | `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new v1 projects — **not** the installed manager version |
 

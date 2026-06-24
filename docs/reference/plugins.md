@@ -32,7 +32,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 ```json
 {
   "manifest_schema": 2,
-  "requires_odpm": "4.5.0",
+  "requires_odpm": "4.6.0",
   "services": {
     "mailpit": {
       "image": "axllent/mailpit",

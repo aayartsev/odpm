@@ -1,6 +1,6 @@
 # Debian / Ubuntu (.deb)
 
-Рекомендуемый способ на Linux. Полная таблица платформ: [Установка odpm (все платформы)](README.md) · документация stable: [4.5.0](https://aayartsev.github.io/odpm/stable/install/linux-deb/).
+Рекомендуемый способ на Linux. Полная таблица платформ: [Установка odpm (все платформы)](README.md) · документация stable: [4.6.0](https://aayartsev.github.io/odpm/stable/install/linux-deb/).
 
 ## Установка через APT (обновления `apt upgrade`)
 
@@ -26,7 +26,7 @@ sudo gpg --no-default-keyring \
 
 ### Stable (рекомендуется для production)
 
-Ветка **`stable`** — сейчас odpm **4.5.0** (тег `v4.5.0`, без `-rc`/`-beta`):
+Ветка **`stable`** — сейчас odpm **4.6.0** (тег `v4.6.0`, без `-rc`/`-beta`):
 
 ```bash
 echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt stable main' | sudo tee /etc/apt/sources.list.d/odpm.list
@@ -34,23 +34,14 @@ echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayar
 sudo apt update
 sudo apt install odpm
 odpm --version
-# ожидается: odpm version: 4.5.0
+# ожидается: odpm version: 4.6.0
 ```
 
-### Предварительная версия (beta 4.6; архив 4.5 / 4.4)
+### Предварительные версии (архив)
 
-Ветка **`testing`** — предварительные теги (`*-beta`, `*-rc*`), сейчас **4.6.0-beta**:
+Активного pre-release сейчас нет. Архив инструкций для beta: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/install/linux-deb/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
 
-```bash
-echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm.list
-
-sudo apt update
-sudo apt install odpm
-odpm --version
-# ожидается: odpm version: 4.6.0-beta
-```
-
-Архив инструкций для более старых beta: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/install/linux-deb/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/linux-deb/).
+Ветка **`testing`** в APT по-прежнему используется для будущих pre-release; сейчас там могут оставаться пакеты архивных beta.
 
 Обновление при следующих релизах:
 
@@ -60,7 +51,7 @@ sudo apt update && sudo apt upgrade odpm
 
 ## Установка вручную (.deb с GitHub Releases)
 
-Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для нужного тега (`v4.6.0-beta` — testing, `v4.5.0` — stable, `v4.5.0-beta` — архив testing, `v4.4.3` — архив stable, `v4.4.3-beta` — архив testing, `v4.4.2-beta` — архив beta) или соберите локально:
+Скачайте `odpm_*_all.deb` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для нужного тега (`v4.6.0` — stable, `v4.6.0-beta` — архив testing, `v4.5.0` — архив stable, `v4.5.0-beta` — архив testing, `v4.4.3` — архив stable, `v4.4.3-beta` — архив testing, `v4.4.2-beta` — архив beta) или соберите локально:
 
 ```bash
 ./scripts/build_deb.sh

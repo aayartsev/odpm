@@ -5,7 +5,7 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 **Test baseline (2026-06-23):** `python3 -m unittest discover -s tests -q` → **1392** OK, 24 skipped.
 
-**Active dev branch:** `4.6.0-dev` (debt closure 4.6). Stable line: **v4.5.0** (`LATEST_STABLE_RELEASE`); roadmap 4.5 **RELEASED**.
+**Active dev branch:** `4.6.0-dev` (debt closure 4.6). Stable line: **v4.6.0** (`LATEST_STABLE_RELEASE`); roadmap 4.5 **RELEASED**; debt track 4.6 **RELEASED**.
 
 ---
 
@@ -40,9 +40,9 @@ This document is a **retrospective** for audits and onboarding; new architecture
 
 ---
 
-## 4.6 debt track (D1–D5) — DONE (pre-release v4.6.0-beta)
+## 4.6 debt track (D1–D5) — RELEASED stable v4.6.0
 
-Старт после stable **v4.5.0** и R0 на `4.6.0-dev`. План: `.cursor/plans/debt_closure_4.5-4.6_a59fde99.plan.md`. Код D1–D5 на `4.6.0-dev`; smoke — тег **`v4.6.0-beta`**, затем единый stable **v4.6.0** (без v4.5.1).
+Старт после stable **v4.5.0** и R0 на `4.6.0-dev`. План: `.cursor/plans/debt_closure_4.5-4.6_a59fde99.plan.md`. Код D1–D5 на `4.6.0-dev`; smoke — тег **`v4.6.0-beta`**, stable **`v4.6.0`**.
 
 | Track | ID | Статус | Суть |
 |-------|-----|--------|------|
