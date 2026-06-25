@@ -59,7 +59,7 @@ def patch_compose_for_golden_path(content: str, odoo_host_port: int) -> str:
             and current_service == "odoo"
         ):
             result.append("    ports:\n")
-            result.append(f"    - {odoo_host_port}:8069\n")
+            result.append(f"      - {odoo_host_port}:8069\n")
             index += 1
             while index < len(lines) and _PORT_LIST_ITEM.match(lines[index]):
                 index += 1

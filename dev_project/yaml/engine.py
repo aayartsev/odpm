@@ -14,14 +14,7 @@ _COMPOSE_QUOTED_STRINGS = frozenset(
 )
 
 
-def _yaml_instance() -> YAML:
-    yaml = YAML(typ="safe")
-    yaml.default_flow_style = False
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    yaml.width = 4096
-    yaml.allow_unicode = True
-    yaml.sort_base_mapping_type_on_output = False
-
+def _add_compose_str_representer(yaml: YAML) -> None:
     def _represent_compose_str(representer, data: str) -> Any:
         if data == "":
             return representer.represent_scalar(
@@ -34,12 +27,31 @@ def _yaml_instance() -> YAML:
         return representer.represent_scalar("tag:yaml.org,2002:str", data)
 
     yaml.representer.add_representer(str, _represent_compose_str)
+
+
+def _yaml_load_instance() -> YAML:
+    yaml = YAML(typ="safe")
+    yaml.width = 4096
+    yaml.allow_unicode = True
+    _add_compose_str_representer(yaml)
+    return yaml
+
+
+def _yaml_dump_instance() -> YAML:
+    """Round-trip dumper: nested sequences indent for Docker Compose CLI (Go yaml)."""
+    yaml = YAML(typ="rt")
+    yaml.default_flow_style = False
+    yaml.indent(mapping=2, sequence=2, offset=2)
+    yaml.width = 4096
+    yaml.allow_unicode = True
+    yaml.sort_base_mapping_type_on_output = False
+    _add_compose_str_representer(yaml)
     return yaml
 
 
 def load_document(text: str) -> dict[str, Any]:
     """Parse a YAML document into a dict (host-only)."""
-    loaded = _yaml_instance().load(text)
+    loaded = _yaml_load_instance().load(text)
     if loaded is None:
         return {}
     if not isinstance(loaded, dict):
@@ -55,10 +67,21 @@ def _to_plain_data(value: Any) -> Any:
     return value
 
 
+def _to_commented_data(value: Any) -> Any:
+    if isinstance(value, dict):
+        result = CommentedMap()
+        for key, item in value.items():
+            result[key] = _to_commented_data(item)
+        return result
+    if isinstance(value, list):
+        return [_to_commented_data(item) for item in value]
+    return value
+
+
 def dump_document(document: dict[str, Any]) -> str:
     """Serialize a mapping to YAML text without a trailing document marker."""
     stream = StringIO()
-    _yaml_instance().dump(_to_plain_data(document), stream)
+    _yaml_dump_instance().dump(_to_commented_data(document), stream)
     return stream.getvalue()
 
 

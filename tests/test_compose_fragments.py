@@ -57,7 +57,7 @@ class ComposeFragmentsRenderTests(unittest.TestCase):
         self.assertIn("  mailpit:", block)
         self.assertIn("    image: axllent/mailpit", block)
         self.assertIn('    ports:', block)
-        self.assertIn('    - 8025:8025', block)
+        self.assertIn('      - 8025:8025', block)
 
     def test_render_service_with_user_and_tty(self):
         block = render_compose_services_block(

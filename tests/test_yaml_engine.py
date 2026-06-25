@@ -19,6 +19,20 @@ class YamlEngineTests(unittest.TestCase):
         self.assertIn('- "true"', text)
         self.assertIn("- python3", text)
 
+    def test_dump_nested_sequences_indent_for_compose_cli(self):
+        text = dump_document(
+            {
+                "db": {
+                    "image": "postgres:16",
+                    "ports": ["15432:5432"],
+                    "environment": ["POSTGRES_PASSWORD=odoo"],
+                }
+            }
+        )
+        self.assertIn("  ports:\n    - 15432:5432", text)
+        self.assertIn("  environment:\n    - POSTGRES_PASSWORD=odoo", text)
+        self.assertNotIn("  ports:\n  - ", text)
+
     def test_merge_services_preserves_base_order_and_replaces_overlay_names(self):
         base = {
             "db": {"image": "postgres:16"},
@@ -84,7 +98,7 @@ class YamlEngineTests(unittest.TestCase):
         self.assertIn("  mailpit:", block)
         self.assertIn("    image: axllent/mailpit", block)
         self.assertIn("    ports:", block)
-        self.assertIn("    - 8025:8025", block)
+        self.assertIn("      - 8025:8025", block)
 
 
 if __name__ == "__main__":
