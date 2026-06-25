@@ -2350,7 +2350,7 @@
 
 <span class="n">assert_extension_api_compatible</span><span class="p">(</span><span class="n">EXTENSION_API_VERSION</span><span class="p">)</span>
 </code></pre></div>
-<p>Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
+<p>Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md">ADR-004</a>.</p>
 <h2 id="three-ways-to-extend-a-project">Three ways to extend a project<a class="headerlink" href="#three-ways-to-extend-a-project" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2383,7 +2383,7 @@
 </tr>
 </tbody>
 </table>
-<p>v2 field details: <a href="../odpm-json/">odpm.json</a>. ADR: <a href="../../contributing/adr-001-extensions-and-manifest-v2/">adr-001-extensions-and-manifest-v2.md</a>.</p>
+<p>v2 field details: <a href="../odpm-json/">odpm.json</a>. ADR: <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md">adr-001-extensions-and-manifest-v2.md</a>.</p>
 <h2 id="declarative-service-mailpit">Declarative service (Mailpit)<a class="headerlink" href="#declarative-service-mailpit" title="Permanent link">&para;</a></h2>
 <p>Test SMTP with web UI on port <strong>8025</strong>. Add to nested manifest v2:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2411,7 +2411,7 @@
 <p>Same spec in code: <code>dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC</code>.</p>
 <p>After <code>odpm up</code> the service appears in generated <code>docker-compose.yml</code> (<code>{COMPOSE_SERVICE_FRAGMENTS}</code> block). Materialize artifacts: <code>.odpm/compose/fragments/mailpit.yml</code> (gitignored).</p>
 <h3 id="patch-built-in-services-service_patches-46">Patch built-in services (<code>service_patches</code>, 4.6+)<a class="headerlink" href="#patch-built-in-services-service_patches-46" title="Permanent link">&para;</a></h3>
-<p>Names <strong><code>odoo</code></strong>, <strong><code>db</code></strong>, <strong><code>postgres</code></strong> cannot appear in <code>services</code> — use patches only. Policy: <a href="../../contributing/adr-009-compose-service-patch/">ADR-009</a>.</p>
+<p>Names <strong><code>odoo</code></strong>, <strong><code>db</code></strong>, <strong><code>postgres</code></strong> cannot appear in <code>services</code> — use patches only. Policy: <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md">ADR-009</a>.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;service_patches&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;odoo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2492,7 +2492,7 @@
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;odoo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;environment&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MY_FLAG&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}}</span>
 </code></pre></div>
 <h3 id="nested-dependency-services-46">Nested dependency <code>services</code> (4.6+)<a class="headerlink" href="#nested-dependency-services-46" title="Permanent link">&para;</a></h3>
-<p>With <code>use_oca_dependencies</code>, v2 <code>services</code> / <code>service_patches</code> from dependency <code>odpm.json</code> files are inherited into host compose after <code>project.map_folders</code>. On name conflict the <strong>host manifest wins</strong>. See <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
+<p>With <code>use_oca_dependencies</code>, v2 <code>services</code> / <code>service_patches</code> from dependency <code>odpm.json</code> files are inherited into host compose after <code>project.map_folders</code>. On name conflict the <strong>host manifest wins</strong>. See <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md">ADR-004</a>.</p>
 <h2 id="python-plugin-prepare-step">Python plugin: prepare step<a class="headerlink" href="#python-plugin-prepare-step" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.prepare_steps&quot;</span><span class="k">]</span>
 <span class="n">my_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_odpm_plugin.steps:plugin_factory&quot;</span>
