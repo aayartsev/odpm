@@ -1,0 +1,5 @@
+Usage:  docker compose up [OPTIONS] [SERVICE...]
+
+Options:
+  -d, --detach        Detached mode: Run containers in the background
+      --no-log-prefix Don't print prefix in logs

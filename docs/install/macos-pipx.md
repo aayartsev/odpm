@@ -4,7 +4,7 @@
 
 ## Требования
 
-- [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)
+- [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) **4.25+** (рекомендуется Compose **v2.23+**; на старых сборках нет `docker compose up -y`, и Compose может пытаться скачать локальный Odoo-образ с Docker Hub)
 - [git](https://git-scm.com/)
 - Python 3.10+ (часто уже есть; иначе [python.org](https://www.python.org/) или Homebrew)
 

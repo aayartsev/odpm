@@ -243,7 +243,8 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    def test_start_containers_uses_subprocess(self, _mock_should):
+    @patch("dev_project.project_env.services.BaseImageService")
+    def test_start_containers_uses_subprocess(self, mock_base_image, _mock_should):
         config = MagicMock()
         config.project_dir = "/tmp/project"
         config.docker_compose_command = "docker compose"
@@ -251,6 +252,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         config.user_env.odoo_port = 8069
         with patch("dev_project.runtime_coordinator.run_logged", return_value=0) as mock_run:
             self._coordinator(config).start_containers()
+        mock_base_image.return_value.ensure_base_image.assert_called_once()
         mock_run.assert_called_once_with(
             ["docker", "compose", "up", "--abort-on-container-exit"],
             cwd="/tmp/project",
@@ -260,8 +262,9 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
+    @patch("dev_project.project_env.services.BaseImageService")
     def test_start_containers_raises_pipeline_error_on_compose_failure(
-        self, _mock_should
+        self, _mock_base_image, _mock_should
     ):
         config = MagicMock()
         config.project_dir = "/tmp/project"
@@ -283,8 +286,9 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
+    @patch("dev_project.project_env.services.BaseImageService")
     def test_start_containers_skips_host_compose_summary_for_developer(
-        self, _mock_should
+        self, _mock_base_image, _mock_should
     ):
         config = MagicMock()
         config.project_dir = "/tmp/project"

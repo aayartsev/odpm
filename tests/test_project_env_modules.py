@@ -145,11 +145,23 @@ class BaseImageBuilderTests(unittest.TestCase):
         return BaseImageBuilder(env)
 
     @patch("dev_project.project_env.base_image.run_or_raise")
-    def test_base_image_exists_when_repository_matches(self, mock_run_or_raise):
-        mock_run_or_raise.return_value = MagicMock(
-            stdout='{"Repository":"odoo-base:test","Tag":"latest"}\n'
-        )
+    def test_base_image_exists_when_image_inspect_succeeds(self, mock_run_or_raise):
+        mock_run_or_raise.return_value = MagicMock(stdout="", stderr="")
         self.assertTrue(self._builder().base_image_exists())
+        mock_run_or_raise.assert_called_once_with(
+            ["docker", "image", "inspect", "odoo-base:test"]
+        )
+
+    @patch("dev_project.project_env.base_image.run_or_raise")
+    def test_base_image_exists_returns_false_when_inspect_fails(self, mock_run_or_raise):
+        from dev_project.errors import SubprocessError
+
+        mock_run_or_raise.side_effect = SubprocessError(
+            "missing",
+            argv=["docker", "image", "inspect", "odoo-base:test"],
+            returncode=1,
+        )
+        self.assertFalse(self._builder().base_image_exists())
 
     @patch("dev_project.project_env.base_image.run_logged", return_value=1)
     def test_build_base_image_raises_pipeline_error_on_failure(self, mock_logged):

@@ -179,8 +179,12 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
         checker = self._checker(config)
         mock_checked.return_value = MagicMock(returncode=0, stdout="unknown tool", stderr="")
-        with self.assertRaises(SystemCheckError):
-            checker.check_docker_compose()
+        with patch(
+            "dev_project.check_system.probe_compose_command_from_candidates",
+            return_value=None,
+        ):
+            with self.assertRaises(SystemCheckError):
+                checker.check_docker_compose()
 
     @patch("dev_project.check_system._logger")
     @patch.object(SystemChecker, "_platform_git_repo_ready", return_value=False)

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING
 
 from ..translations import _
@@ -51,16 +50,10 @@ class BaseImageBuilder:
 
     def base_image_exists(self) -> bool:
         try:
-            result = run_or_raise(["docker", "images", "--format", "'{{json .}}'"])
+            run_or_raise(["docker", "image", "inspect", self.config.odoo_image_name])
         except SubprocessError:
             return False
-        for record in result.stdout.split("\n"):
-            if not record:
-                continue
-            new_record = json.loads(record.replace("'", ""))
-            if self.config.odoo_image_name == new_record.get("Repository"):
-                return True
-        return False
+        return True
 
     def build_base_image(self) -> None:
         returncode = run_logged(

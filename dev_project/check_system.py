@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from . import constants
+from .docker_capabilities import probe_compose_command_from_candidates
 from .translations import _
 from .config import Config
 from .errors import SubprocessError, SystemCheckError
@@ -139,24 +140,17 @@ class SystemChecker(SystemCheckerProtocol):
                 run_logged(["docker", "stop", result.container_id])
 
     def check_docker_compose(self) -> None:
-        self.config.no_log_prefix = True
-        docker_compose_working_message_in_output_string = False
-        for command in constants.LIST_OF_DOCKER_COMPOSE_COMMANDS:
-            up_help_command_list = [*command.split(" "), "up", "--help"]
-            up_help_result = run_checked(up_help_command_list)
-            if constants.NO_LOG_PREFIX not in up_help_result.stdout:
-                self.config.no_log_prefix = False
-            version_command_list = [*command.split(" "), "version"]
-            process_result = run_checked(version_command_list)
-            output_string = process_result.stdout.lower().replace("-", " ")
-            if constants.DOCKER_COMPOSE_WORKING_MESSAGE in output_string:
-                docker_compose_working_message_in_output_string = True
-                self.config.docker_compose_command = command
-                break
-        if not docker_compose_working_message_in_output_string:
+        capabilities = probe_compose_command_from_candidates(
+            constants.LIST_OF_DOCKER_COMPOSE_COMMANDS,
+            run_checked=run_checked,
+        )
+        if capabilities is None:
             message = _('Cannot get docker-compose info, did you install it?')
             _logger.error(message)
             raise SystemCheckError(message)
+        self.config.docker_compose_command = capabilities.compose_command
+        self.config.no_log_prefix = capabilities.supports_no_log_prefix
+        self.config.docker_capabilities = capabilities
 
     def _platform_git_repo_ready(self) -> bool:
         odoo_src_dir = self.config.odoo_src_dir

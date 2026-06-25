@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.compose.compose_document import build_compose_document
 from dev_project.compose.start_command import ComposeOdooService
+from dev_project.docker_capabilities import DockerCapabilities
 from dev_project.debugger.constants import (
     DEBUGGER_BACKEND_DEBUGPY_LISTEN,
     DEFAULT_DEBUGGER_CONNECT_HOST,
@@ -56,6 +57,13 @@ def make_golden_compose_env(scenario: str) -> CreateProjectEnvironment:
     user_env.odoo_port = 8069
     user_env.gevent_port = 8072
     config.user_env = user_env
+    config.docker_capabilities = DockerCapabilities(
+        compose_command=constants.DEFAULT_DOCKER_COMPOSE_COMMAND,
+        compose_version_text="Docker Compose version v2.24.0",
+        supports_no_log_prefix=True,
+        supports_compose_up_yes=True,
+        supports_pull_policy_never=False,
+    )
     env = CreateProjectEnvironment(config)
     if policy.include_odoo_volumes:
         env.mapped_folders = [

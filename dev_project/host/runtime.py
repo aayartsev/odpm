@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from .. import constants
 from ..compose.start_command import ComposeOdooService
+
+if TYPE_CHECKING:
+    from ..docker_capabilities import DockerCapabilities
 
 
 @dataclass
@@ -16,6 +20,7 @@ class HostRuntimeState:
     container_run_mode: str = constants.RUN_MODE_ODOO
     no_log_prefix: bool = False
     docker_compose_command: str | None = None
+    docker_capabilities: DockerCapabilities | None = None
 
     def resolved_docker_compose_command(self, layout_default: str) -> str:
         if self.docker_compose_command is not None:

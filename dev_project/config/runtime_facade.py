@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from ..host.runtime import HostRuntimeState
 from ..compose.start_command import ComposeOdooService
+from ..docker_capabilities import DockerCapabilities
 
 if TYPE_CHECKING:
     from .config import Config
@@ -51,3 +52,11 @@ class ConfigRuntimeFacadeMixin:
     @docker_compose_command.setter
     def docker_compose_command(self: Config, value: str) -> None:
         self.runtime.docker_compose_command = value
+
+    @property
+    def docker_capabilities(self: Config) -> DockerCapabilities | None:
+        return self.runtime.docker_capabilities
+
+    @docker_capabilities.setter
+    def docker_capabilities(self: Config, value: DockerCapabilities | None) -> None:
+        self.runtime.docker_capabilities = value

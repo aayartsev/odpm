@@ -15,6 +15,7 @@ from ..debugger.user_env import (
     resolve_debugger_connect_host,
 )
 from ..yaml import merge_services, merge_services_with_patches
+from ..docker_capabilities import cached_docker_capabilities
 
 if TYPE_CHECKING:
     from ..project_env.environment import CreateProjectEnvironment
@@ -128,6 +129,9 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         "command": _compose_command(compose_service),
         "ports": odoo_ports,
     }
+    capabilities = cached_docker_capabilities(config)
+    if capabilities is not None and capabilities.supports_pull_policy_never:
+        odoo_service["pull_policy"] = "never"
 
     odoo_volumes = _build_odoo_volume_mounts(env, compose_service)
     if odoo_volumes:

@@ -6,6 +6,7 @@ import shlex
 from typing import TYPE_CHECKING
 
 from ..subprocess_runner import CommandResult, run_checked
+from ..docker_capabilities import resolve_docker_capabilities
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -60,10 +61,20 @@ def compose_stop_service(config: Config, service: str) -> CommandResult:
     )
 
 
+def compose_up_detached_argv(config: Config, service: str) -> list[str]:
+    """Build ``compose up -d`` argv; append ``-y`` only when the CLI supports it."""
+    capabilities = resolve_docker_capabilities(config)
+    argv = _compose_argv(config) + ["up", "-d"]
+    if capabilities.supports_compose_up_yes:
+        argv.append("-y")
+    argv.append(service)
+    return argv
+
+
 def compose_up_service_detached(config: Config, service: str) -> CommandResult:
-    """Start one compose service detached; ``-y`` avoids Compose volume prompts hanging when stdout is captured."""
+    """Start one compose service detached; ``-y`` avoids Compose volume prompts when supported."""
     return run_checked(
-        _compose_argv(config) + ["up", "-d", "-y", service],
+        compose_up_detached_argv(config, service),
         cwd=config.project_dir,
     )
 

@@ -84,9 +84,18 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
         "dev_project.compose.generator.ComposeGenerator.generate_docker_compose_file"
     )
     def test_exec_compose_generate_uses_ctx_compose_generator(self, mock_generate):
+        from dev_project.docker_capabilities import DockerCapabilities
         from dev_project.prepare.steps_compose import exec_compose_generate
 
-        ctx = make_prepare_context(MagicMock(), MagicMock(), MagicMock(), OdpmCliArgs())
+        config = MagicMock()
+        config.docker_capabilities = DockerCapabilities(
+            compose_command="docker compose",
+            compose_version_text="Docker Compose version v2.24.0",
+            supports_no_log_prefix=True,
+            supports_compose_up_yes=True,
+            supports_pull_policy_never=True,
+        )
+        ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
         exec_compose_generate(ctx)
         mock_generate.assert_called_once()
 

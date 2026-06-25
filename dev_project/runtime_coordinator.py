@@ -89,6 +89,9 @@ class RuntimeCoordinator:
         return argv
 
     def start_containers(self) -> None:
+        from .project_env.services import BaseImageService
+
+        BaseImageService(self.project_env).ensure_base_image()
         host_summaries.log_starting_containers(
             odoo_port=self.host_ctx.user_env.odoo_port,
         )
