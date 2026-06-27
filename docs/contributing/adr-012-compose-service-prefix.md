@@ -68,9 +68,10 @@ Manifest `services.*.depends_on: ["db"]` stays logical until `apply_compose_pref
 
 - **New:** `dev_project/compose/service_names.py`, constant `ODPM_COMPOSE_PREFIX_ENV`.
 - **Tests:** `tests/test_compose_service_names.py`.
-- **Related:** [ADR-011](adr-011-scenario-manifest-overrides.md) (scenario overlays use logical compose names).
+- **Related:** [ADR-011](adr-011-scenario-manifest-overrides.md) (scenario overlays use logical compose names); [ADR-014](adr-014-compose-stack-network.md) (optional stack network from `.env`, physical rewrite after prefix).
 
 ## References
 
 - Plan: `.cursor/plans/4.7_scenarios_compose_prefix_9b4acf8a.plan.md`
 - [ADR-009](adr-009-compose-service-patch.md) — logical service names in manifest
+- [ADR-014](adr-014-compose-stack-network.md) — compose stack network (track D)

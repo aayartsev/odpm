@@ -99,4 +99,5 @@ No new `.env` variable is introduced. No manifest `requires_odpm` bump.
 
 - Plan: `.cursor/plans/4.7_env_layering_bf783c4c.plan.md`
 - [ADR-012](adr-012-compose-service-prefix.md) — typical per-project override in `.env`
+- [ADR-014](adr-014-compose-stack-network.md) — shared external network in `~/.odpm/.env` (e.g. `ODPM_COMPOSE_NETWORK=proxy`)
 - [config-hierarchy.md](../reference/config-hierarchy.md), [env-dotenv.md](../reference/env-dotenv.md)

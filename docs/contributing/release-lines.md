@@ -163,12 +163,14 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
 7. **Runner ops**
    - [ ] `ODPM_GOLDEN_PATH_PROJECT`: `first_module` version `19.0.1.0`; odpm на runner → stable deb
 
-## Чеклист: линия **4.7.0-dev** (features A+B+C, pre-release)
+## Чеклист: линия **4.7.0-dev** (features A+B+C+D, pre-release)
 
-Выполнять на `4.7.0-dev` после merge треков scenario overlays, compose prefix и layered `.env`.
+Выполнять на `4.7.0-dev` после merge треков scenario overlays, compose prefix, layered `.env` и compose network.
 
 1. **Код и тесты**
    - [x] ADR-011 / ADR-012 / ADR-013 accepted; schema `scenarios`; `ODPM_COMPOSE_PREFIX`; `load_layered_dotenv_dict`
+   - [x] ADR-014 accepted (compose stack network contract)
+   - [ ] `ODPM_COMPOSE_NETWORK` / `network_names.py` / `test_compose_network` (track D1–D4)
    - [x] Unit: scenario + compose prefix + `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`
    - [x] Plan matrix: `test_scenario_overlay_marks_compose_fragments_stale`
    - [ ] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev` (если ещё на `4.6.0-dev`)
