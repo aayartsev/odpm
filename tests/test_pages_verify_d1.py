@@ -57,14 +57,6 @@ class PagesVerifyD1Tests(unittest.TestCase):
                 self.assertNotIn("plugins/services_ru.md", text)
                 self.assertNotIn("plugins/todo_ru.md", text)
 
-    def test_architecture_debt_has_46_track_section(self):
-        text = (PROJECT_ROOT / "docs/contributing/architecture-debt.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("## 4.6 debt track (D1–D5)", text)
-        self.assertIn("| **D1** | **DONE** |", text)
-        self.assertIn("**1392**", text)
-
     def test_i18n_doc_targets_46_dev_branch(self):
         text = (PROJECT_ROOT / "docs/contributing/i18n.md").read_text(encoding="utf-8")
         self.assertIn("`4.6.0-dev`", text)

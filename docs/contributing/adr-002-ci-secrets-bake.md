@@ -52,4 +52,4 @@ Two explicit delivery paths:
 
 - [docs/operations/secrets.md](../operations/secrets.md)
 - [docs/scenarios/ci.md](../scenarios/ci.md)
-- TD-FEAT-09 in [architecture-debt.md](architecture-debt.md)
+- TD-FEAT-09 (closed; см. CHANGELOG)

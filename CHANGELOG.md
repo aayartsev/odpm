@@ -140,7 +140,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **4.4 release docs and CI contract (4.4)** — [docs/reference/manifest-migration.md](docs/reference/manifest-migration.md); v2 fields in [odpm-json.md](docs/reference/odpm-json.md); CI job `contract` (`tests.test_manifest_contract`) and branch `4.4-dev` in workflows; [architecture-debt.md](docs/contributing/architecture-debt.md) 4.4 section; [goals_ru.md](goals_ru.md) plugin API marked done.
+- **4.4 release docs and CI contract (4.4)** — [docs/reference/manifest-migration.md](docs/reference/manifest-migration.md); v2 fields in [odpm-json.md](docs/reference/odpm-json.md); CI job `contract` (`tests.test_manifest_contract`) and branch `4.4-dev` in workflows; `architecture-debt.md` 4.4 section; [goals_ru.md](goals_ru.md) plugin API marked done.
 
 - **Extension registry foundation (4.4)** — package `dev_project/extensions/`: frozen `ExtensionHostContext`, prepare-step plugin protocols, pluggy hook `odpm_prepare_steps` with entry-point group `odpm.prepare_steps`, `register_prepare_step` / `register_compose_fragment`. `prepare.get_prepare_steps()` merges built-in steps with extensions sorted by `order`. Tests: `tests/test_extension_entry_points.py`.
 

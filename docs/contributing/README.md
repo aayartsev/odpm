@@ -9,7 +9,6 @@
 | [Переводы интерфейса](i18n.md) | gettext, ru_RU/en_US, CI job **i18n**, [ADR-008](adr-008-i18n-host-container-policy.md) |
 | [Линии релизов и каналы](release-lines.md) | Git 4.3/4.4, stable/testing, mike, чеклист v4.4.2 |
 | [Сборка пакетов](packaging.md) | deb, rpm, wheel, CI merge/mike |
-| [Architecture debt (status)](architecture-debt.md) | Ретроспектива G/C/E (A10, A4, A11) |
 | [Переименование модулей 4.0→4.1](imports-migration.md) | Таблица импортов Python |
 
 Пользовательская документация по работе **с Odoo через odpm**: [оглавление](../README.md).

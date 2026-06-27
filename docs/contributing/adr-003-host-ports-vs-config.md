@@ -68,5 +68,4 @@ Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
 
 ## References
 
-- [architecture-debt.md](architecture-debt.md) — C-8, C-12, C-13, C-14
 - [ADR-001](adr-001-extensions-and-manifest-v2.md) — manifest vs manager version axes
