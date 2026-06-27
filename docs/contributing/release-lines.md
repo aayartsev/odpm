@@ -170,7 +170,8 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
 1. **Код и тесты**
    - [x] ADR-011 / ADR-012 / ADR-013 accepted; schema `scenarios`; `ODPM_COMPOSE_PREFIX`; `load_layered_dotenv_dict`
    - [x] ADR-014 accepted (compose stack network contract)
-   - [ ] `ODPM_COMPOSE_NETWORK` / `network_names.py` / `test_compose_network` (track D1–D4)
+   - [x] `ODPM_COMPOSE_NETWORK` / `network_names.py` parse + `test_compose_network` (track D1)
+   - [ ] compose document generation + `apply_compose_network` (track D2–D4)
    - [x] Unit: scenario + compose prefix + `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`
    - [x] Plan matrix: `test_scenario_overlay_marks_compose_fragments_stale`
    - [ ] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev` (если ещё на `4.6.0-dev`)

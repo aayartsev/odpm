@@ -23,6 +23,7 @@ from ..debugger.env_parsing import (
     parse_odpm_ide,
 )
 from .postgres_service_name import parse_postgres_service_name
+from ..compose.network_names import resolve_compose_network
 from ..compose.service_names import resolve_compose_naming
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
@@ -50,6 +51,8 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_DEBUGGER_SUSPEND: str
     POSTGRES_SERVICE_NAME: str
     ODPM_COMPOSE_PREFIX: str
+    ODPM_COMPOSE_NETWORK: str
+    ODPM_COMPOSE_NETWORK_EXTERNAL: str
 
 
 @dataclass(frozen=True)
@@ -73,6 +76,9 @@ class ParsedUserEnv:
     compose_project_name: str | None
     odoo_service_name: str
     postgres_volume_name: str
+    compose_network_logical: str | None
+    compose_network_external: bool
+    compose_network_physical: str | None
 
 
 def resolve_env_file_path(
@@ -156,6 +162,11 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
             env_dict.get(constants.POSTGRES_SERVICE_NAME_ENV)
         ),
     )
+    network = resolve_compose_network(
+        network_raw=env_dict.get(constants.ODPM_COMPOSE_NETWORK_ENV),
+        external_raw=env_dict.get(constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV),
+        naming=naming,
+    )
     return ParsedUserEnv(
         dotenv=dict(env_dict),
         backups=env_dict["BACKUP_DIR"],
@@ -188,6 +199,9 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         compose_project_name=naming.compose_project_name,
         odoo_service_name=naming.odoo_service_name,
         postgres_volume_name=naming.postgres_volume_name,
+        compose_network_logical=network.logical_name,
+        compose_network_external=network.external,
+        compose_network_physical=network.physical_name,
     )
 
 
@@ -213,6 +227,7 @@ def has_noninteractive_env_configuration(pd_manager: ProjectDirManager) -> bool:
             "ODPM_SCENARIO",
             constants.ODPM_LOCALE_ENV_KEY,
             constants.ODPM_COMPOSE_PREFIX_ENV,
+            constants.ODPM_COMPOSE_NETWORK_ENV,
             ODPM_DEBUGGER_BACKEND_ENV,
             ODPM_IDE_ENV,
         )
@@ -282,4 +297,14 @@ def build_env_data_from_environ_or_defaults() -> EnvData:
     raw_compose_prefix = os.environ.get(constants.ODPM_COMPOSE_PREFIX_ENV, "").strip()
     if raw_compose_prefix:
         env_data[constants.ODPM_COMPOSE_PREFIX_ENV] = raw_compose_prefix
+    raw_compose_network = os.environ.get(
+        constants.ODPM_COMPOSE_NETWORK_ENV, ""
+    ).strip()
+    if raw_compose_network:
+        env_data[constants.ODPM_COMPOSE_NETWORK_ENV] = raw_compose_network
+    raw_network_external = os.environ.get(
+        constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV, ""
+    ).strip()
+    if raw_network_external:
+        env_data[constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV] = raw_network_external
     return env_data
