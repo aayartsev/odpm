@@ -13,13 +13,18 @@ def build_compose_fragment_service_plan_steps(
     ctx: PrepareContext,
 ) -> tuple[PlanStep, ...]:
     services = collect_compose_services(ctx.extension_host())
+    odpm_scenario = ctx.host_ctx.user_env.odpm_scenario
     steps: list[PlanStep] = []
     for name in sorted(services):
         single = {name: services[name]}
         description = plan_msg(
             "Materialize compose fragment for service {NAME}", NAME=name
         )
-        if compose_fragments_need_materialize(ctx.host_ctx.project_dir, single):
+        if compose_fragments_need_materialize(
+            ctx.host_ctx.project_dir,
+            single,
+            odpm_scenario=odpm_scenario,
+        ):
             outcome = "update"
             reason = plan_msg("compose fragment {NAME} stale", NAME=name)
         else:

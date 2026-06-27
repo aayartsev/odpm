@@ -42,7 +42,12 @@ def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
 
     description = plan_msg("Materialize manifest and plugin compose service fragments")
     services = collect_compose_services(ctx.extension_host())
-    if compose_fragments_need_materialize(ctx.host_ctx.project_dir, services):
+    odpm_scenario = ctx.host_ctx.user_env.odpm_scenario
+    if compose_fragments_need_materialize(
+        ctx.host_ctx.project_dir,
+        services,
+        odpm_scenario=odpm_scenario,
+    ):
         reason = (
             plan_msg("compose service fragments stale")
             if services
@@ -142,7 +147,11 @@ def exec_compose_fragments(ctx: PrepareContext) -> None:
     from ..compose.fragments import collect_compose_services, materialize_compose_fragments
 
     services = collect_compose_services(ctx.extension_host())
-    materialize_compose_fragments(ctx.host_ctx.project_dir, services)
+    materialize_compose_fragments(
+        ctx.host_ctx.project_dir,
+        services,
+        odpm_scenario=ctx.host_ctx.user_env.odpm_scenario,
+    )
 
 
 def exec_compose_service(ctx: PrepareContext) -> None:

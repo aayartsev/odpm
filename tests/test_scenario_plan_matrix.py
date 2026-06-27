@@ -664,6 +664,57 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
         self.assertTrue(fragment.is_file())
         self.assertIn("mailpit", fragment.read_text(encoding="utf-8"))
 
+    def test_scenario_overlay_marks_compose_fragments_stale(self) -> None:
+        from dev_project.prepare.steps_compose import exec_compose_fragments
+
+        project_dir = self._provision(
+            scenario=constants.DEVELOPER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        developing = project_dir / "developing" / "odpm.json"
+        payload = json.loads(developing.read_text(encoding="utf-8"))
+        payload["scenarios"] = {
+            "server": {
+                "services": {
+                    "mailpit": {"image": "axllent/mailpit:server-overlay"},
+                }
+            }
+        }
+        developing.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+        _plan, pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        ctx = make_prepare_context(
+            pipeline.config,
+            pipeline.project_environment,
+            pipeline.system_checker,
+            OdpmCliArgs(skip_start=True, no_git_update=True),
+        )
+        exec_compose_fragments(ctx)
+
+        env_path = project_dir / ".env"
+        env_text = env_path.read_text(encoding="utf-8").replace(
+            f"ODPM_SCENARIO={constants.DEVELOPER_SCENARIO}",
+            f"ODPM_SCENARIO={constants.SERVER_SCENARIO}",
+        )
+        env_path.write_text(env_text, encoding="utf-8")
+
+        plan, _pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertIn(
+            plan_step(plan, "compose.fragments").outcome,
+            ("run", "update"),
+        )
+        self.assertTrue(plan_has_step(plan, "compose.fragment.mailpit"))
+        self.assertIn(
+            plan_step(plan, "compose.fragment.mailpit").outcome,
+            ("run", "update"),
+        )
+
 
 class PlanMatrixCliInProcessTests(_MatrixProjectTestCase):
     """In-process CLI smoke for plan JSON across scenarios (A1, A5)."""

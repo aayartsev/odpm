@@ -244,6 +244,29 @@ class LoadManifestTests(unittest.TestCase):
         self.assertIsNotNone(server.scenario_slice)
         self.assertEqual(server.scenario_slice.requirements, ["requests==2.31.0", "gunicorn"])
 
+    def test_v2_load_wires_effective_services_and_patches(self):
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            services={"mailpit": {"image": "axllent/mailpit:base"}},
+            service_patches={"odoo": {"user": "1000:1000"}},
+            scenarios={
+                "server": {
+                    "services": {
+                        "mailpit": {"image": "axllent/mailpit:server"},
+                    },
+                    "service_patches": {
+                        "odoo": {"user": "0:0"},
+                    },
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(dev.services["mailpit"]["image"], "axllent/mailpit:base")
+        self.assertEqual(dev.service_patches["odoo"]["user"], "1000:1000")
+        self.assertEqual(server.services["mailpit"]["image"], "axllent/mailpit:server")
+        self.assertEqual(server.service_patches["odoo"]["user"], "0:0")
+
     def test_v2_load_rejects_reserved_odoo_conf_in_scenario_overlay(self):
         with self.assertRaises(ConfigError):
             load_manifest(

@@ -108,7 +108,9 @@ class ComposeFragmentsMaterializeTests(unittest.TestCase):
             snapshot = Path(compose_fragments_snapshot_path(project_dir)).read_text(
                 encoding="utf-8"
             )
-            self.assertEqual(json.loads(snapshot), services)
+            payload = json.loads(snapshot)
+            self.assertEqual(payload["odpm_scenario"], constants.DEVELOPER_SCENARIO)
+            self.assertEqual(payload["services"], services)
             gitignore = Path(fragments_dir, ".gitignore").read_text(encoding="utf-8")
             self.assertIn("*", gitignore)
 
@@ -376,6 +378,109 @@ class ComposeServicePatchTests(unittest.TestCase):
                 step_ids.index("compose.service"),
             )
 
+
+class ComposeFragmentsScenarioSliceTests(unittest.TestCase):
+    def test_need_materialize_detects_odpm_scenario_change(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            services = {"mailpit": {"image": "axllent/mailpit"}}
+            materialize_compose_fragments(
+                project_dir,
+                services,
+                odpm_scenario=constants.DEVELOPER_SCENARIO,
+            )
+            self.assertFalse(
+                compose_fragments_need_materialize(
+                    project_dir,
+                    services,
+                    odpm_scenario=constants.DEVELOPER_SCENARIO,
+                )
+            )
+            self.assertTrue(
+                compose_fragments_need_materialize(
+                    project_dir,
+                    services,
+                    odpm_scenario=constants.SERVER_SCENARIO,
+                )
+            )
+
+    def test_collect_compose_services_uses_effective_scenario_slice(self):
+        from dev_project.extensions.context import ExtensionHostContext
+        from dev_project.manifest.reader import load_manifest
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            services={"mailpit": {"image": "axllent/mailpit:base"}},
+            scenarios={
+                "server": {
+                    "services": {
+                        "mailpit": {"image": "axllent/mailpit:server"},
+                    }
+                }
+            },
+        )
+        dev_view = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server_view = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        dev_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_services=dev_view.services,
+            manifest_service_patches=dev_view.service_patches,
+        )
+        server_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_services=server_view.services,
+            manifest_service_patches=server_view.service_patches,
+        )
+        self.assertEqual(
+            collect_compose_services(dev_ext)["mailpit"]["image"],
+            "axllent/mailpit:base",
+        )
+        self.assertEqual(
+            collect_compose_services(server_ext)["mailpit"]["image"],
+            "axllent/mailpit:server",
+        )
+
+    def test_collect_service_patches_uses_effective_scenario_slice(self):
+        from dev_project.compose.fragments import collect_service_patches
+        from dev_project.extensions.context import ExtensionHostContext
+        from dev_project.manifest.reader import load_manifest
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            service_patches={"odoo": {"environment": {"BASE": "1"}}},
+            scenarios={
+                "ci": {
+                    "service_patches": {
+                        "odoo": {"environment": {"CI": "1"}},
+                    }
+                }
+            },
+        )
+        dev_view = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        ci_view = load_manifest(raw, active_scenario=constants.CI_SCENARIO)
+        dev_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_service_patches=dev_view.service_patches,
+        )
+        ci_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_service_patches=ci_view.service_patches,
+        )
+        dev_env = collect_service_patches(dev_ext)["odoo"]["environment"]
+        ci_env = collect_service_patches(ci_ext)["odoo"]["environment"]
+
+        def _env_pairs(value):
+            if isinstance(value, dict):
+                return {f"{key}={val}" for key, val in value.items()}
+            return set(value)
+
+        self.assertEqual(_env_pairs(dev_env), {"BASE=1"})
+        self.assertEqual(_env_pairs(ci_env), {"BASE=1", "CI=1"})
 
 if __name__ == "__main__":
     unittest.main()

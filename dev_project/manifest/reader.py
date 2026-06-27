@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any
 from .. import constants
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .schema import validate_manifest_v2
-from .compose_policy import validate_manifest_compose_services
 from .odoo_conf_policy import validate_manifest_odoo_conf
 from .scenario_overrides import (
     ScenarioManifestSlice,
@@ -137,9 +136,8 @@ def load_manifest(
         developing_git = developing.get("git")
         developing_git = str(developing_git).strip() if developing_git else None
         hooks = raw.get("hooks")
-        services = raw.get("services")
-        service_patches = raw.get("service_patches")
-        validate_manifest_compose_services(services)
+        services = effective.services
+        service_patches = effective.service_patches
         locks = raw.get("locks")
         extensions = raw.get("extensions")
         if env_resolver is not None:
