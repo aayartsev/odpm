@@ -111,6 +111,9 @@ RU_MESSAGES: dict[str, str] = {
     "Compose service {NAME} must define a non-empty image": (
         "Сервис compose {NAME} должен содержать непустой image"
     ),
+    "Compose service {NAME} references undeclared network {NET}": (
+        "Сервис compose {NAME} ссылается на необъявленную сеть {NET}"
+    ),
     "Compose service {NAME}.environment list entries must be strings": (
         "Элементы списка environment сервиса compose {NAME} должны быть строками"
     ),
@@ -358,6 +361,9 @@ RU_MESSAGES: dict[str, str] = {
     "Generated compose document root must be a mapping": (
         "Корень сгенерированного compose-документа должен быть mapping"
     ),
+    "Generated compose networks must be a mapping when present": (
+        "Секция networks сгенерированного compose должна быть mapping, если присутствует"
+    ),
     "Generated compose volumes must be a mapping when present": (
         "Секция volumes сгенерированного compose должна быть mapping, если присутствует"
     ),
@@ -379,6 +385,15 @@ RU_MESSAGES: dict[str, str] = {
     "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services": (
         "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
     ),
+    "manifest services.{SVC}.networks references logical network {NET!r}; "
+    "set {ENV}={NET} in .env or remove explicit networks": (
+        "manifest services.{SVC}.networks ссылается на логическую сеть {NET!r}; "
+        "задайте {ENV}={NET} в .env или уберите явные networks"
+    ),
+    'manifest v1 does not support scenarios; run "odpm manifest migrate --write" to upgrade to manifest v2.': (
+        'manifest v1 не поддерживает scenarios; выполните '
+        '"odpm manifest migrate --write" для перехода на manifest v2.'
+    ),
     "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically": (
         "manifest odoo_conf.options.{KEY} зарезервировано; odpm управляет этой опцией автоматически"
     ),
@@ -396,6 +411,10 @@ RU_MESSAGES: dict[str, str] = {
     "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}": (
         "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '_' или '-'); "
         "используется {DEFAULT}"
+    ),
+    "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled": (
+        "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; "
+        "должно начинаться с буквы); compose network отключена"
     ),
     "Invalid %s=%r, falling back to system locale": (
         "Недопустимое значение %s=%r, используется системная локаль"
@@ -663,6 +682,9 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Unknown ODPM_SCENARIO=%r, using %s": (
         "Неизвестный ODPM_SCENARIO=%r, используется %s"
+    ),
+    "Unknown {ENV}={VALUE!r}, using managed network": (
+        "Неизвестное значение {ENV}={VALUE!r}, используется managed network"
     ),
     "Unknown manifest hook plugin id: {PLUGIN_ID}": (
         "Неизвестный id плагина manifest hook: {PLUGIN_ID}"

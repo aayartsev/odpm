@@ -120,6 +120,9 @@ msgstr "Compose service {NAME} must be a mapping"
 msgid "Compose service {NAME} must define a non-empty image"
 msgstr "Compose service {NAME} must define a non-empty image"
 
+msgid "Compose service {NAME} references undeclared network {NET}"
+msgstr "Compose service {NAME} references undeclared network {NET}"
+
 msgid "Compose service {NAME}.environment list entries must be strings"
 msgstr "Compose service {NAME}.environment list entries must be strings"
 
@@ -222,6 +225,9 @@ msgstr "Generated compose document must include services"
 msgid "Generated compose document root must be a mapping"
 msgstr "Generated compose document root must be a mapping"
 
+msgid "Generated compose networks must be a mapping when present"
+msgstr "Generated compose networks must be a mapping when present"
+
 msgid "Generated compose volumes must be a mapping when present"
 msgstr "Generated compose volumes must be a mapping when present"
 
@@ -287,6 +293,9 @@ msgstr "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a 
 
 msgid "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
 msgstr "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
+
+msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
+msgstr "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
 
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
@@ -579,6 +588,9 @@ msgstr "Unknown ODPM_SCENARIO=%r, using %s"
 msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
 msgstr "Unknown manifest hook plugin id: {PLUGIN_ID}"
 
+msgid "Unknown {ENV}={VALUE!r}, using managed network"
+msgstr "Unknown {ENV}={VALUE!r}, using managed network"
+
 msgid "Unsupported manifest_schema {SCHEMA}."
 msgstr "Unsupported manifest_schema {SCHEMA}."
 
@@ -846,8 +858,14 @@ msgstr "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option a
 msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
 msgstr "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
 
+msgid "manifest services.{SVC}.networks references logical network {NET!r}; set {ENV}={NET} in .env or remove explicit networks"
+msgstr "manifest services.{SVC}.networks references logical network {NET!r}; set {ENV}={NET} in .env or remove explicit networks"
+
 msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 msgstr "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
+
+msgid "manifest v1 does not support scenarios; run \"odpm manifest migrate --write\" to upgrade to manifest v2."
+msgstr "manifest v1 does not support scenarios; run \"odpm manifest migrate --write\" to upgrade to manifest v2."
 
 msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
 msgstr "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
