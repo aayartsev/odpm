@@ -10,15 +10,10 @@ from .. import constants
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .schema import validate_manifest_v2
 from .odoo_conf_policy import validate_manifest_odoo_conf
-from .scenario_overrides import (
-    ScenarioManifestSlice,
-    resolve_effective_manifest_slice,
-    slice_from_manifest_fields,
-    validate_scenario_manifest,
-)
 
 if TYPE_CHECKING:
     from ..config.transforms.env_substitution import EnvResolver
+    from .scenario_overrides import ScenarioManifestSlice
 
 
 def _resolve_odoo_conf_dict(
@@ -114,6 +109,12 @@ def load_manifest(
     active_scenario: str | None = None,
 ) -> ManifestView:
     """Validate, detect schema, and return a normalized :class:`ManifestView`."""
+    from .scenario_overrides import (
+        resolve_effective_manifest_slice,
+        slice_from_manifest_fields,
+        validate_scenario_manifest,
+    )
+
     if not isinstance(raw, dict):
         raise TypeError("manifest root must be a JSON object")
 

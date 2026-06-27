@@ -159,15 +159,9 @@ def exec_compose_service(ctx: PrepareContext) -> None:
 
 
 def exec_compose_generate(ctx: PrepareContext) -> None:
-    from ..docker_capabilities import cached_docker_capabilities, probe_docker_capabilities
-    from ..subprocess_runner import run_checked
+    from ..docker_capabilities import ensure_config_docker_capabilities
 
-    config = ctx.config
-    if cached_docker_capabilities(config) is None:
-        config.docker_capabilities = probe_docker_capabilities(
-            config.docker_compose_command,
-            run_checked=run_checked,
-        )
+    ensure_config_docker_capabilities(ctx.ports.bootstrap.config)
     ctx.compose_generator.generate_docker_compose_file()
 
 

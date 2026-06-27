@@ -81,7 +81,7 @@ Changing **`POSTGRES_SERVICE_NAME`** or the port in `.env` causes **drift** vs t
 
 ### Shared profile in `~/.odpm/.env` (4.7)
 
-Since **4.7**, odpm **merges** `~/.odpm/.env` (shared paths, SSH, `ODPM_LOCALE`) with project `.env` (ports, `ODPM_COMPOSE_PREFIX`, local `${VAR}` helpers) on read; project wins on key collisions. Keep only differences in project `.env` — see [environment variables](../reference/env-dotenv.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md).
+Since **4.7**, odpm **merges** `~/.odpm/.env` (shared paths, SSH, `ODPM_LOCALE`) with project `.env` (ports, `ODPM_COMPOSE_PREFIX`, local `${VAR}` helpers) on read; project wins on key collisions. Keep only differences in project `.env` — see [environment variables](../reference/env-dotenv.md), [ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md).
 
 ### Multiple odpm projects on one host (4.7)
 
@@ -91,7 +91,7 @@ When several odpm environments run on the **same machine** and you need isolated
 ODPM_COMPOSE_PREFIX=acme
 ```
 
-odpm rewrites `db` / `odoo` services, the `postgres-data` volume, and passes `docker compose -p acme`. In manifest and plugins keep **logical** names (`depends_on: ["db"]`). See [environment variables](../reference/env-dotenv.md), [ADR-012](../contributing/adr-012-compose-service-prefix.md).
+odpm rewrites `db` / `odoo` services, the `postgres-data` volume, and passes `docker compose -p acme`. In manifest and plugins keep **logical** names (`depends_on: ["db"]`). See [environment variables](../reference/env-dotenv.md), [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md).
 
 ### Named compose network (4.7)
 
@@ -102,7 +102,7 @@ ODPM_COMPOSE_NETWORK=proxy
 ODPM_COMPOSE_NETWORK_EXTERNAL=1
 ```
 
-For a **managed** bridge network in project `.env` — `ODPM_COMPOSE_NETWORK=stack` (with prefix — physical `acme-stack`). Without these variables odpm keeps the implicit default network. See [environment variables](../reference/env-dotenv.md), [ADR-014](../contributing/adr-014-compose-stack-network.md).
+For a **managed** bridge network in project `.env` — `ODPM_COMPOSE_NETWORK=stack` (with prefix — physical `acme-stack`). Without these variables odpm keeps the implicit default network. See [environment variables](../reference/env-dotenv.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
 
 Adoption does **not** reassign owners of existing Odoo databases in PostgreSQL. For `--db-drop` / `--db-restore` on such databases see [database state](../reference/database-state.md).
 

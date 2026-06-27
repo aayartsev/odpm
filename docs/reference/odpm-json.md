@@ -101,10 +101,10 @@ GIT_HOST=git.company.example
 |------|-------|
 | `odoo_conf` | deep merge по секциям |
 | `services` | overlay заменяет сервис по имени |
-| `service_patches` | merge по [ADR-009](../contributing/adr-009-compose-service-patch.md) |
+| `service_patches` | merge по [ADR-009](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-009-compose-service-patch.md) |
 | `requirements` | concat + dedupe |
 
-Manifest со `scenarios` рекомендуется с **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → ошибка validate. Подробнее: [ADR-011](../contributing/adr-011-scenario-manifest-overrides.md).
+Manifest со `scenarios` рекомендуется с **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → ошибка validate. Подробнее: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 
 Пример: на сервере больше workers, в developer — sidecar mailpit:
 

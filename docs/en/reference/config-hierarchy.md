@@ -27,7 +27,7 @@ On **read**, odpm merges both files when present:
 1. `~/.odpm/.env` — base (shared paths, SSH, locale, defaults for all projects).
 2. `.env` in the odpm environment directory — **overlay**; matching keys **override** home.
 
-The effective dict drives ports, scenario, manifest `${VAR}`, and early `ODPM_LOCALE` (see [message locale](locale.md)). Details: [env-dotenv.md](env-dotenv.md), [ADR-013](../../contributing/adr-013-layered-env-dotenv.md).
+The effective dict drives ports, scenario, manifest `${VAR}`, and early `ODPM_LOCALE` (see [message locale](locale.md)). Details: [env-dotenv.md](env-dotenv.md), [ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md).
 
 On **write** (first-run wizard, non-interactive create) the **primary** target is unchanged: project `.env` if it already exists, else `~/.odpm/.env`. odpm does **not** auto-copy home into project — put only differing keys in project `.env`.
 

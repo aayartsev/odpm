@@ -1,6 +1,6 @@
 # Переменные файла `.env`
 
-Параметры odpm-окружения (порты, сценарий, пути к бэкапам и клонам git) задаются в **`.env`**. С **4.7** при чтении odpm объединяет два файла ([иерархия](config-hierarchy.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md)):
+Параметры odpm-окружения (порты, сценарий, пути к бэкапам и клонам git) задаются в **`.env`**. С **4.7** при чтении odpm объединяет два файла ([иерархия](config-hierarchy.md), [ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md)):
 
 | Файл | Роль |
 |------|------|
@@ -139,7 +139,7 @@ PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 ODPM_COMPOSE_PREFIX=acme
 ```
 
-См. [ADR-012](../contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md).
+См. [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md).
 
 ## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
 
@@ -155,7 +155,7 @@ ODPM_COMPOSE_PREFIX=acme
 
 Нормализация имени: как у prefix (`[a-z0-9-]`, с буквы). Невалидное значение отключает сеть (warning). `ODPM_COMPOSE_NETWORK_EXTERNAL` без имени сети не действует.
 
-Типичный split ([ADR-013](../contributing/adr-013-layered-env-dotenv.md)):
+Типичный split ([ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md)):
 
 `~/.odpm/.env`:
 
@@ -171,7 +171,7 @@ ODPM_COMPOSE_PREFIX=acme
 ODPM_COMPOSE_NETWORK=stack
 ```
 
-Sidecar в manifest с `networks: ["stack"]` согласован только при `ODPM_COMPOSE_NETWORK=stack`; иначе `odpm manifest validate` выдаёт warning. См. [плагины](plugins.md), [ADR-014](../contributing/adr-014-compose-stack-network.md).
+Sidecar в manifest с `networks: ["stack"]` согласован только при `ODPM_COMPOSE_NETWORK=stack`; иначе `odpm manifest validate` выдаёт warning. См. [плагины](plugins.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
 
 Смена сети **не** даёт database drift (не в снимке `last_run.json`); перегенерируется `docker-compose.yml` при следующем materialize.
 

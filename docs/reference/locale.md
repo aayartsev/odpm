@@ -14,7 +14,7 @@
 | 4 | Локаль операционной системы |
 | 5 | `en_US` |
 
-С **4.7** odpm при чтении **объединяет** `~/.odpm/.env` и project `.env`; `ODPM_LOCALE` может жить в home, а порты — в project ([переменные .env](env-dotenv.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md)).
+С **4.7** odpm при чтении **объединяет** `~/.odpm/.env` и project `.env`; `ODPM_LOCALE` может жить в home, а порты — в project ([переменные .env](env-dotenv.md), [ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md)).
 
 Пример в каталоге проекта:
 

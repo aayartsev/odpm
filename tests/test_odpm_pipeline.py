@@ -522,6 +522,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         args = OdpmCliArgs(build_image=False, skip_start=True, **args_overrides)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.config.docker_compose_command = "docker compose"
         pipeline.config.arguments = args
         pipeline.project_environment = MagicMock()
         pipeline.system_checker = MagicMock()

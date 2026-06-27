@@ -104,6 +104,27 @@ def probe_compose_command_from_candidates(
     return None
 
 
+def ensure_config_docker_capabilities(
+    config: Config,
+    *,
+    run_checked: Callable[..., CommandResult] | None = None,
+) -> DockerCapabilities | None:
+    """Probe compose CLI once and cache on ``config`` when not already set."""
+    cached = cached_docker_capabilities(config)
+    if cached is not None:
+        return cached
+    compose_command = config.docker_compose_command
+    if not isinstance(compose_command, str) or not compose_command.strip():
+        return None
+    if run_checked is None:
+        from .subprocess_runner import run_checked as default_run_checked
+
+        run_checked = default_run_checked
+    probed = probe_docker_capabilities(compose_command, run_checked=run_checked)
+    config.docker_capabilities = probed
+    return probed
+
+
 def cached_docker_capabilities(config: Config) -> DockerCapabilities | None:
     caps = getattr(config, "docker_capabilities", None)
     if isinstance(caps, DockerCapabilities):

@@ -164,6 +164,9 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
     config = ctx.compose_preview.runtime_cache_config()
     snapshot = _compose_preview_mutable_snapshot(config)
     try:
+        from ..docker_capabilities import ensure_config_docker_capabilities
+
+        ensure_config_docker_capabilities(config)
         ctx.compose_preview.preview_compose_service()
         preview = ctx.compose_generator.render_docker_compose_content()
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):

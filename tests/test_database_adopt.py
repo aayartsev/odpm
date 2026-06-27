@@ -178,13 +178,14 @@ class BuildAdoptionLastRunTests(unittest.TestCase):
 
 
 class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
+    @patch("dev_project.project_env.services.docker_base_image.BaseImageService.ensure_base_image")
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.configure_ide")
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.write_debug_profile")
     @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
     @patch("dev_project.database.adopt.adopt_database_baseline")
     def test_run_after_prepare_adopts_before_compose(
-        self, mock_adopt, mock_blocking, _mock_write, _mock_ide, _mock_run
+        self, mock_adopt, mock_blocking, _mock_write, _mock_ide, _mock_run, _mock_base_image
     ):
         from dev_project.host.cli.args import OdpmCliArgs
         from dev_project.runtime_coordinator import RuntimeCoordinator
@@ -194,6 +195,7 @@ class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
         config.no_log_prefix = False
         config.project_dir = "/tmp/project"
         config.docker_compose_command = "docker compose"
+        config.odoo_image_name = "odoo-base:test"
         config.user_env.odoo_port = 8069
         coordinator = RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
 

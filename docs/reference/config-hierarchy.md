@@ -25,7 +25,7 @@ odpm.json и user_settings.json (файлы в каталоге проекта /
 1. `~/.odpm/.env` — база (общие пути, SSH, locale, значения по умолчанию для всех проектов).
 2. `.env` в каталоге odpm-окружения — **overlay**; совпадающий ключ **перекрывает** home.
 
-Итоговый effective dict используется для портов, сценария, `${VAR}` в manifest и раннего `ODPM_LOCALE` (см. [locale.md](locale.md)). Подробнее: [env-dotenv.md](env-dotenv.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md).
+Итоговый effective dict используется для портов, сценария, `${VAR}` в manifest и раннего `ODPM_LOCALE` (см. [locale.md](locale.md)). Подробнее: [env-dotenv.md](env-dotenv.md), [ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md).
 
 При **записи** (мастер первого запуска, non-interactive create) по-прежнему один **primary** файл: project `.env`, если он уже есть, иначе `~/.odpm/.env`. odpm **не** копирует home в project автоматически — в project достаточно указать только отличающиеся ключи.
 

@@ -125,10 +125,10 @@ Merge rules:
 |-------|-------|
 | `odoo_conf` | deep merge by section |
 | `services` | overlay replaces service by name |
-| `service_patches` | merge per [ADR-009](../contributing/adr-009-compose-service-patch.md) |
+| `service_patches` | merge per [ADR-009](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-009-compose-service-patch.md) |
 | `requirements` | concat + dedupe |
 
-Manifests with `scenarios` SHOULD set **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → validate error. Details: [ADR-011](../contributing/adr-011-scenario-manifest-overrides.md).
+Manifests with `scenarios` SHOULD set **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → validate error. Details: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 
 Example — more workers on server, extra dev requirements:
 

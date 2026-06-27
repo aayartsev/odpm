@@ -2,7 +2,7 @@
 
 > **AI-translated** from Russian.
 
-Environment parameters (ports, scenario, backup paths, git clone roots) live in **`.env`**. Since **4.7**, odpm **merges** two files on read ([hierarchy](config-hierarchy.md), [ADR-013](../../contributing/adr-013-layered-env-dotenv.md)):
+Environment parameters (ports, scenario, backup paths, git clone roots) live in **`.env`**. Since **4.7**, odpm **merges** two files on read ([hierarchy](config-hierarchy.md), [ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md)):
 
 | File | Role |
 |------|------|
@@ -141,7 +141,7 @@ Example:
 ODPM_COMPOSE_PREFIX=acme
 ```
 
-See [ADR-012](../../contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md).
+See [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md).
 
 ## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
 
@@ -157,7 +157,7 @@ With **`ODPM_COMPOSE_PREFIX=acme`**, managed network `stack` becomes physical **
 
 Name normalization matches prefix (`[a-z0-9-]`, start with a letter). Invalid values disable the network (warning). `ODPM_COMPOSE_NETWORK_EXTERNAL` without a network name has no effect.
 
-Typical split ([ADR-013](../../contributing/adr-013-layered-env-dotenv.md)):
+Typical split ([ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md)):
 
 `~/.odpm/.env`:
 
@@ -173,7 +173,7 @@ ODPM_COMPOSE_PREFIX=acme
 ODPM_COMPOSE_NETWORK=stack
 ```
 
-Manifest sidecars with `networks: ["stack"]` are consistent only when `ODPM_COMPOSE_NETWORK=stack`; otherwise `odpm manifest validate` logs a warning. See [plugins](plugins.md), [ADR-014](../../contributing/adr-014-compose-stack-network.md).
+Manifest sidecars with `networks: ["stack"]` are consistent only when `ODPM_COMPOSE_NETWORK=stack`; otherwise `odpm manifest validate` logs a warning. See [plugins](plugins.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
 
 Changing the network does **not** cause database drift (not in `last_run.json`); `docker-compose.yml` is regenerated on the next materialize.
 
