@@ -121,6 +121,25 @@ class LayeredDotenvTests(unittest.TestCase):
             self.assertEqual(user_env.backups, "/tmp/backups")
             self.assertEqual(user_env.odoo_projects_dir, "/tmp/projects")
 
+    def test_layered_home_network_with_project_prefix(self):
+        with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
+            _write_minimal_env_file(
+                _home_env_path(home_dir),
+                extra_lines=[
+                    "ODPM_COMPOSE_NETWORK=proxy",
+                    "ODPM_COMPOSE_NETWORK_EXTERNAL=1",
+                ],
+            )
+            project_env = os.path.join(project_dir, constants.ENV_FILE_NAME)
+            Path(project_env).write_text("ODPM_COMPOSE_PREFIX=acme\n", encoding="utf-8")
+            pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
+            with patch.dict(os.environ, {"HOME": home_dir}, clear=False):
+                user_env = CreateUserEnvironment(pd_manager)
+            self.assertEqual(user_env.compose_prefix, "acme-")
+            self.assertEqual(user_env.compose_network_logical, "proxy")
+            self.assertEqual(user_env.compose_network_physical, "proxy")
+            self.assertTrue(user_env.compose_network_external)
+
     def test_project_dotenv_dict_merges_custom_keys_from_both_layers(self):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             _write_minimal_env_file(

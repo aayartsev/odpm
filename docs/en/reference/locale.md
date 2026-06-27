@@ -10,13 +10,13 @@ The **container** log (Odoo, PostgreSQL) intentionally stays **in English** — 
 
 | Priority | Source |
 |----------|--------|
-| 1 | `ODPM_LOCALE` in the active `.env` file |
+| 1 | `ODPM_LOCALE` in merged `.env` (home + project; project wins) |
 | 2 | `ODPM_LOCALE` in the process environment |
 | 3 | `LC_ALL`, `LC_MESSAGES`, or `LANG` |
 | 4 | Operating system locale |
 | 5 | `en_US` |
 
-**One** `.env` is read — project or `~/.odpm/`; keys are **not merged** ([`.env` variables](env-dotenv.md)).
+Since **4.7**, odpm **merges** `~/.odpm/.env` and project `.env` on read; `ODPM_LOCALE` can live in home while ports stay in project ([`.env` variables](env-dotenv.md), [ADR-013](../../contributing/adr-013-layered-env-dotenv.md)).
 
 Example in the project directory:
 

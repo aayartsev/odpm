@@ -12,6 +12,7 @@
 
 - **Per-scenario overlays в manifest (4.7)** — необязательный блок `scenarios.developer` / `server` / `ci` в manifest v2 для `odoo_conf`, `services`, `service_patches` и `requirements` по сценарию; effective slice при load и `odpm manifest validate`; runtime wire в `odoo.conf`, requirements, compose fragments и plan preview. ADR-011. Тесты: `test_manifest_scenario_overrides`, расширения `test_manifest_v2_reader`, `test_compose_fragments`, `test_scenario_plan_matrix`.
 - **Префикс compose-стека из `.env` (4.7)** — необязательный `ODPM_COMPOSE_PREFIX` для полной изоляции стека: физические ключи сервисов (`{prefix}db`, `{prefix}odoo`), том postgres, имя проекта Docker Compose (`-p` / `name:` в YAML), автоматическое переписывание `depends_on` и manifest sidecars; без префикса — прежний `POSTGRES_SERVICE_NAME`. Runtime CLI и снимок database drift включают physical names и `compose_project_name`. ADR-012. Тесты: `test_compose_service_names`, `test_compose_service_prefix`, `test_compose_runtime`, `test_compose_exec`, `test_database_drift`.
+- **Compose-сеть стека из `.env` (4.7)** — необязательные `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL` для одной именованной сети (managed bridge или external proxy) на весь стек; без переменных — implicit default; prefix для managed; warning в `manifest validate` при `networks: ["stack"]` без matching `.env`. ADR-014. Тесты: `test_compose_network`, `test_compose_validate`, расширения `test_manifest_scenario_overrides`, `test_user_env_bootstrap`, `test_env_substitution`.
 
 ### Изменено
 

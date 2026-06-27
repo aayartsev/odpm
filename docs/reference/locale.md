@@ -8,13 +8,13 @@
 
 | Приоритет | Источник |
 |-----------|----------|
-| 1 | `ODPM_LOCALE` в активном файле `.env` |
+| 1 | `ODPM_LOCALE` в merged `.env` (home + project; project побеждает) |
 | 2 | `ODPM_LOCALE` в окружении процесса |
 | 3 | `LC_ALL`, `LC_MESSAGES` или `LANG` |
 | 4 | Локаль операционной системы |
 | 5 | `en_US` |
 
-Читается **один** `.env` — проектный или `~/.odpm/`; ключи **не объединяются** ([переменные .env](env-dotenv.md)).
+С **4.7** odpm при чтении **объединяет** `~/.odpm/.env` и project `.env`; `ODPM_LOCALE` может жить в home, а порты — в project ([переменные .env](env-dotenv.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md)).
 
 Пример в каталоге проекта:
 

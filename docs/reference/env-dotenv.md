@@ -40,6 +40,8 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `POSTGRES_PORT` | Порт PostgreSQL на компьютере (в сценарии `server` — только localhost) | `5432` |
 | `POSTGRES_SERVICE_NAME` | Имя сервиса PostgreSQL в `docker-compose.yml` и `db_host` в `odoo.conf` (без `ODPM_COMPOSE_PREFIX`) | `db` |
 | `ODPM_COMPOSE_PREFIX` | Префикс для **полной** изоляции compose-стека: ключи `db`/`odoo`, том `postgres-data`, имя проекта Docker Compose | не задан |
+| `ODPM_COMPOSE_NETWORK` | Логическое имя **одной** compose-сети для всего стека (managed bridge или external); без значения — implicit default network | не задан |
+| `ODPM_COMPOSE_NETWORK_EXTERNAL` | `1` / `true` — сеть уже существует на хосте (`external: true`); без prefix на имени | `0` |
 | `DEBUGGER_PORT` | Порт отладчика; см. [семантику по backend](#debugger_port-backend) | `5678` |
 | `ODPM_DEBUGGER_BACKEND` | `debugpy_listen` или `pydevd_connect` | `debugpy_listen` |
 | `ODPM_IDE` | Какие настройки IDE генерировать: `vscode`, `pycharm`, `both`, `none` | `vscode` |
@@ -138,6 +140,40 @@ ODPM_COMPOSE_PREFIX=acme
 ```
 
 См. [ADR-012](../contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md).
+
+## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
+
+Опционально объявить **одну** именованную Docker Compose-сеть для **всего** odpm-стека (`db`, `odoo`, sidecars). Без этих переменных odpm **не** добавляет секцию `networks:` в `docker-compose.yml` — сервисы остаются в implicit default network проекта (как в 4.6).
+
+| Режим | `.env` | Поведение |
+|-------|--------|-----------|
+| **По умолчанию** | переменные не заданы | Без `networks:` в YAML |
+| **Managed** | `ODPM_COMPOSE_NETWORK=stack` | `networks: { stack: { driver: bridge } }`, все сервисы без своего `networks` подключаются |
+| **External** | `ODPM_COMPOSE_NETWORK=proxy` + `ODPM_COMPOSE_NETWORK_EXTERNAL=1` | `external: true`; имя **без** prefix (общая сеть reverse proxy) |
+
+С **`ODPM_COMPOSE_PREFIX=acme`** managed-сеть `stack` становится physical **`acme-stack`**; external `proxy` остаётся `proxy`.
+
+Нормализация имени: как у prefix (`[a-z0-9-]`, с буквы). Невалидное значение отключает сеть (warning). `ODPM_COMPOSE_NETWORK_EXTERNAL` без имени сети не действует.
+
+Типичный split ([ADR-013](../contributing/adr-013-layered-env-dotenv.md)):
+
+`~/.odpm/.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=proxy
+ODPM_COMPOSE_NETWORK_EXTERNAL=1
+```
+
+`<project>/.env`:
+
+```ini
+ODPM_COMPOSE_PREFIX=acme
+ODPM_COMPOSE_NETWORK=stack
+```
+
+Sidecar в manifest с `networks: ["stack"]` согласован только при `ODPM_COMPOSE_NETWORK=stack`; иначе `odpm manifest validate` выдаёт warning. См. [плагины](plugins.md), [ADR-014](../contributing/adr-014-compose-stack-network.md).
+
+Смена сети **не** даёт database drift (не в снимке `last_run.json`); перегенерируется `docker-compose.yml` при следующем materialize.
 
 ## Переменные для подстановки в manifest
 

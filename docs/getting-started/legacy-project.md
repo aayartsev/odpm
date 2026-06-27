@@ -91,6 +91,17 @@ ODPM_COMPOSE_PREFIX=acme
 
 odpm перепишет сервисы `db` / `odoo`, volume `postgres-data` и передаст `docker compose -p acme`. В manifest и плагинах по-прежнему используйте **логические** имена (`depends_on: ["db"]`). Подробнее: [переменные `.env`](../reference/env-dotenv.md), [ADR-012](../contributing/adr-012-compose-service-prefix.md).
 
+### Именованная compose-сеть (4.7)
+
+Чтобы подключить весь стек к **external** сети reverse proxy (Traefik, Caddy), обычно в `~/.odpm/.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=proxy
+ODPM_COMPOSE_NETWORK_EXTERNAL=1
+```
+
+Для **managed** bridge-сети в project `.env` — `ODPM_COMPOSE_NETWORK=stack` (с prefix — physical `acme-stack`). Без переменных odpm оставляет implicit default network. См. [переменные `.env`](../reference/env-dotenv.md), [ADR-014](../contributing/adr-014-compose-stack-network.md).
+
 Adoption **не** меняет владельца существующих Odoo-баз в PostgreSQL. Для `--db-drop` / `--db-restore` на таких базах см. [состояние PostgreSQL](../reference/database-state.md).
 
 ## Частые затруднения

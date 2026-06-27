@@ -173,15 +173,16 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
    - [x] `ODPM_COMPOSE_NETWORK` / `network_names.py` parse + `test_compose_network` (track D1)
    - [x] compose document generation + `apply_compose_network` + validate (track D2)
    - [x] sidecar `stack` network warning in manifest validate; plugins.md proxy (track D3)
-   - [ ] extended tests T10 + env-dotenv CHANGELOG (track D4–D5)
+   - [x] extended tests T10 + env-dotenv CHANGELOG (track D4–D5)
    - [x] Unit: scenario + compose prefix + `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`
    - [x] Plan matrix: `test_scenario_overlay_marks_compose_fragments_stale`
    - [ ] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev` (если ещё на `4.6.0-dev`)
 2. **Документация (pre-release)**
    - [x] `docs/reference/odpm-json.md` — блок `scenarios`
    - [x] `docs/reference/env-dotenv.md`, `config-hierarchy.md`, `database-state.md`, `odoo-conf.md`
-   - [x] `CHANGELOG.md` `[Unreleased]` / `.github/release-notes/4.7.0.md` (A+B+C)
-   - [x] `docs/getting-started/legacy-project.md` — `ODPM_COMPOSE_PREFIX`, layered `.env`
+   - [x] `CHANGELOG.md` `[Unreleased]` / `.github/release-notes/4.7.0.md` (A+B+C+D)
+   - [x] `docs/reference/env-dotenv.md`, `locale.md` — `ODPM_COMPOSE_NETWORK`, layered `ODPM_LOCALE`
+   - [x] `docs/getting-started/legacy-project.md` — compose network + prefix, layered `.env`
 3. **Release commit (отдельно, после smoke)**
    - [ ] `RELEASE_VERSION = "4.7.0"` (или `4.7.0-beta` для pre-release)
    - [ ] `LATEST_STABLE_RELEASE = "4.6.0"` до stable `v4.7.0`

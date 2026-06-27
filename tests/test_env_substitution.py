@@ -225,6 +225,24 @@ class ExpandComposeServiceMapTests(unittest.TestCase):
         self.assertEqual(merged["BUILD_DIR"], "/from-process")
         self.assertEqual(merged["ONLY_DOTENV"], "yes")
 
+    def test_expands_networks_list_in_compose_services(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={"PROXY_NETWORK": "proxy"},
+        )
+        services = {
+            "metrics": {
+                "image": "prom/prometheus",
+                "networks": ["${PROXY_NETWORK}"],
+            }
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["metrics"]["networks"], ["proxy"])
+
 
 if __name__ == "__main__":
     unittest.main()
