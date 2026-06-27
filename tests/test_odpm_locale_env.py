@@ -139,6 +139,38 @@ class LocaleBootstrapTests(unittest.TestCase):
                     os.chdir(previous_cwd)
             self.assertEqual(_("Did you install git?"), "Вы установили git?")
 
+    def test_bootstrap_host_locale_applies_home_env_when_project_omits_locale(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
+            home_env = (
+                Path(home_dir) / constants.CONFIG_DIR_IN_HOME_DIR / constants.ENV_FILE_NAME
+            )
+            home_env.parent.mkdir(parents=True, exist_ok=True)
+            _write_env_file(str(home_env), odpm_locale="ru_RU")
+            with patch.dict(os.environ, {"HOME": home_dir, "LANG": "C"}, clear=True):
+                bootstrap_host_locale(project_dir)
+            self.assertEqual(_("Did you install git?"), "Вы установили git?")
+
+    def test_bootstrap_host_locale_project_locale_overrides_home(self) -> None:
+        with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
+            home_env = (
+                Path(home_dir) / constants.CONFIG_DIR_IN_HOME_DIR / constants.ENV_FILE_NAME
+            )
+            home_env.parent.mkdir(parents=True, exist_ok=True)
+            _write_env_file(str(home_env), odpm_locale="ru_RU")
+            _write_env_file(
+                os.path.join(project_dir, constants.ENV_FILE_NAME),
+                odpm_locale="de_DE",
+            )
+            with patch.dict(
+                os.environ,
+                {"HOME": home_dir, "LANG": "ru_RU.UTF-8"},
+                clear=True,
+            ):
+                bootstrap_host_locale(project_dir)
+            self.assertEqual(_("Did you install git?"), "Did you install git?")
+
     @patch("dev_project.cli.OdpmPipeline")
     @patch("dev_project.cli.parse_cli_args")
     def test_main_root_guard_uses_project_env_locale(
