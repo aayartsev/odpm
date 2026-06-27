@@ -1,6 +1,6 @@
 # ADR-012: Compose service prefix from `.env` (4.7)
 
-**Status:** proposed (4.7.0-dev)  
+**Status:** accepted (4.7.0-dev)  
 **Date:** 2026-06-27
 
 ## Context

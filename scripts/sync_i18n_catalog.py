@@ -385,6 +385,14 @@ RU_MESSAGES: dict[str, str] = {
     "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead": (
         "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"
     ),
+    "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled": (
+        "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '-'; "
+        "должно начинаться с буквы); префикс отключён"
+    ),
+    "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})": (
+        "Задан {PREFIX_ENV}; {LEGACY_ENV}=%r игнорируется "
+        "(сервис postgres будет {DB_NAME})"
+    ),
     "Invalid %s=%r, falling back to system locale": (
         "Недопустимое значение %s=%r, используется системная локаль"
     ),

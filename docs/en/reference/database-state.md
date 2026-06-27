@@ -98,10 +98,14 @@ Commands run prepare (without `compose up`) when needed to read configuration.
 
 ## `.env` and `odoo.conf`
 
-**`POSTGRES_SERVICE_NAME`** in `.env` sets the compose service name and the expected **`db_host`** in `odoo.conf`. On mismatch:
+**`POSTGRES_SERVICE_NAME`** in `.env` sets the postgres compose service name and the expected **`db_host`** in `odoo.conf` when **`ODPM_COMPOSE_PREFIX`** is unset.
 
-- prepare step **`template.odoo_conf`** regenerates the config;
-- drift **`db_host_mismatch`** appears in plan.
+**`ODPM_COMPOSE_PREFIX`** sets **physical** built-in service names (`{prefix}db`, `{prefix}odoo`), the data volume, and the Docker Compose project name. The `last_run.json` snapshot stores `compose.service_name` (postgres), `compose.compose_project_name`, and `compose.odoo_service_name`. When the prefix or `POSTGRES_SERVICE_NAME` changes relative to the snapshot:
+
+- prepare step **`template.odoo_conf`** regenerates the config on `db_host` mismatch;
+- drift **`service_name`**, **`compose_project_name`**, or **`db_host_mismatch`** appears in plan.
+
+See [`.env` variables](env-dotenv.md), [odoo.conf](odoo-conf.md).
 
 ## Odoo databases: backup, restore, drop
 
@@ -120,13 +124,14 @@ odpm -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
 ```bash
 odpm database status
 odpm plan --skip-start
-docker compose logs db-dev    # service name from POSTGRES_SERVICE_NAME
+docker compose logs db-dev    # postgres service name from .env (or acme-db when ODPM_COMPOSE_PREFIX=acme)
 ```
 
-After renaming the postgres service, remove orphan containers:
+After changing `POSTGRES_SERVICE_NAME` or `ODPM_COMPOSE_PREFIX`, remove orphan containers (with the same project scope odpm uses):
 
 ```bash
 docker compose down --remove-orphans
+# odpm passes -p automatically; manually: docker compose -p acme down --remove-orphans
 ```
 
 ## What odpm does not automate

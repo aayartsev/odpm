@@ -1,6 +1,6 @@
 # ADR-011: Scenario-specific manifest overrides (4.7)
 
-**Status:** proposed (4.7.0-dev)  
+**Status:** accepted (4.7.0-dev)  
 **Date:** 2026-06-25
 
 ## Context
@@ -72,14 +72,13 @@ Host helper: `resolve_effective_manifest_slice(raw, active_scenario) -> Scenario
 
 `${VAR}` expansion in validate is **deferred** to PR2 (runtime wire with `EnvResolver`); PR1 tests use raw JSON.
 
-### Runtime wire (deferred)
+### Runtime wire (4.7)
 
 | Phase | Scope |
 |-------|--------|
-| **4.7 PR1 (A1)** | `scenario_overrides.py`, schema, `validate` only — **no** `load_manifest` / `ManifestView` change |
-| **4.7 PR2 (A2)** | `load_manifest` wires effective `odoo_conf` + `requirements_txt`; `ManifestView.scenario_slice` |
-| **4.7 PR2 (A2)** | Effective slice → `odoo_conf`, `requirements_txt` pipeline |
-| **4.7 PR3 (A3)** | Effective slice → compose fragments / plan |
+| **A1** | `scenario_overrides.py`, schema, `validate` |
+| **A2** | Effective slice → `odoo_conf`, `requirements_txt`; `ManifestView.scenario_slice` |
+| **A3** | Effective slice → compose fragments / plan preview; fragment snapshot includes `ODPM_SCENARIO` |
 
 Compose **service name prefix** from `.env` is a separate track ([ADR-012](adr-012-compose-service-prefix.md)); logical names `db` / `odoo` in manifest are unchanged.
 

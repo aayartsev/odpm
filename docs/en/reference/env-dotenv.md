@@ -14,7 +14,8 @@ On the **first interactive** odpm run, the setup wizard asks questions and write
 | `ODOO_PROJECTS_DIR` | Where to clone platform and git dependencies | `~/odoo_projects` |
 | `ODOO_PORT` | Odoo HTTP port on the host | `8069` |
 | `POSTGRES_PORT` | PostgreSQL port on the host (in `server` scenario — localhost only) | `5432` |
-| `POSTGRES_SERVICE_NAME` | PostgreSQL service name in `docker-compose.yml` and `db_host` in `odoo.conf` | `db` |
+| `POSTGRES_SERVICE_NAME` | PostgreSQL service name in `docker-compose.yml` and `db_host` in `odoo.conf` (when `ODPM_COMPOSE_PREFIX` is unset) | `db` |
+| `ODPM_COMPOSE_PREFIX` | Prefix for **full** compose-stack isolation: `db`/`odoo` service keys, `postgres-data` volume, Docker Compose project name | unset |
 | `DEBUGGER_PORT` | Debugger port; see [backend semantics](#debugger_port-and-backend) | `5678` |
 | `ODPM_DEBUGGER_BACKEND` | `debugpy_listen` or `pydevd_connect` | `debugpy_listen` |
 | `ODPM_IDE` | Which IDE settings to generate: `vscode`, `pycharm`, `both`, `none` | `vscode` |
@@ -25,7 +26,7 @@ On the **first interactive** odpm run, the setup wizard asks questions and write
 | `ODPM_LOCALE` | odpm message language, e.g. `ru_RU` | from system | see [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | SSH key path for git (rarely needed) | empty |
 
-Changing `POSTGRES_SERVICE_NAME` or `POSTGRES_PORT` relative to the saved snapshot causes **database drift** — see [PostgreSQL state](database-state.md).
+Changing `POSTGRES_SERVICE_NAME`, `POSTGRES_PORT`, or `ODPM_COMPOSE_PREFIX` relative to the saved snapshot causes **database drift** — see [PostgreSQL state](database-state.md).
 
 ## `DEBUGGER_PORT` and backend
 
@@ -90,6 +91,29 @@ One key applies to all specified remote repositories.
 ## `POSTGRES_SERVICE_NAME`
 
 PostgreSQL service name in `docker-compose.yml` and `db_host` value in `odoo.conf` (DNS inside the docker network). Lowercase letters, digits, `_`, and `-` are allowed; the name must start with a letter. After a change, regenerate `docker-compose.yml` and `odoo.conf` (a normal `odpm` run).
+
+**Ignored** when **`ODPM_COMPOSE_PREFIX`** is set — postgres is named `{prefix}db` (e.g. `acme-db`), with a warning in the log.
+
+## `ODPM_COMPOSE_PREFIX`
+
+Optional prefix for **full compose-stack isolation** on a shared host: multiple odpm environments without colliding service names, volumes, or Docker Compose project scope.
+
+| Mode | Behaviour |
+|------|-----------|
+| **Unset** | Same as 4.6: postgres from `POSTGRES_SERVICE_NAME` (default `db`), odoo `odoo`, volume `postgres-data` |
+| **Set** (`acme` or `acme-`) | Services `acme-db`, `acme-odoo`; volume `acme-postgres-data`; project name / `docker compose -p` — `acme` |
+
+Normalization: lowercase, charset `[a-z0-9-]`, must start with a letter; trailing `-` in `.env` is optional. Invalid values are **ignored** (prefix disabled, warning logged).
+
+Manifest sidecars keep **logical** names (`depends_on: ["db"]`); odpm rewrites them to physical names when generating `docker-compose.yml`.
+
+Example:
+
+```ini
+ODPM_COMPOSE_PREFIX=acme
+```
+
+See [ADR-012](../../contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md).
 
 ## Variables for manifest substitution
 

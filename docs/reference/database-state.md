@@ -96,10 +96,12 @@ odpm database ensure-role
 
 ## Связь с `.env` и `odoo.conf`
 
-Переменная **`POSTGRES_SERVICE_NAME`** в `.env` задаёт имя сервиса в `docker-compose.yml` и ожидаемый **`db_host`** в `odoo.conf`. При рассинхроне:
+Переменная **`POSTGRES_SERVICE_NAME`** в `.env` задаёт имя сервиса postgres в `docker-compose.yml` и ожидаемый **`db_host`** в `odoo.conf`, когда **`ODPM_COMPOSE_PREFIX`** не задан.
 
-- шаг **`template.odoo_conf`** пересоздаёт конфиг;
-- drift **`db_host_mismatch`** попадает в plan.
+Переменная **`ODPM_COMPOSE_PREFIX`** задаёт **физические** имена встроенных сервисов (`{prefix}db`, `{prefix}odoo`), том данных и имя проекта Docker Compose. В снимке `last_run.json` сохраняются `compose.service_name` (postgres), `compose.compose_project_name` и `compose.odoo_service_name`. При смене префикса или `POSTGRES_SERVICE_NAME` относительно снимка:
+
+- шаг **`template.odoo_conf`** пересоздаёт конфиг при рассинхроне `db_host`;
+- drift **`service_name`**, **`compose_project_name`** или **`db_host_mismatch`** попадает в plan.
 
 Подробнее: [переменные .env](env-dotenv.md), [odoo.conf](odoo-conf.md).
 
@@ -120,13 +122,14 @@ odpm -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
 ```bash
 odpm database status
 odpm plan --skip-start
-docker compose logs db-dev    # имя сервиса из POSTGRES_SERVICE_NAME
+docker compose logs db-dev    # имя postgres-сервиса из .env (или acme-db при ODPM_COMPOSE_PREFIX=acme)
 ```
 
-После переименования сервиса postgres удалите orphan-контейнеры:
+После смены `POSTGRES_SERVICE_NAME` или `ODPM_COMPOSE_PREFIX` удалите orphan-контейнеры (с тем же project scope, что у odpm):
 
 ```bash
 docker compose down --remove-orphans
+# при префиксе odpm передаёт -p автоматически; вручную: docker compose -p acme down --remove-orphans
 ```
 
 ## Что odpm не автоматизирует

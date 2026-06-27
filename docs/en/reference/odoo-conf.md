@@ -41,13 +41,13 @@ odoo.conf on disk                     ← local defaults
 
 - **`addons_path`** — full list of addon paths inside the container;
 - **`data_dir`** — Odoo data directory inside the container;
-- **`db_host`** — synced with **`POSTGRES_SERVICE_NAME`** from `.env` (PostgreSQL service name in compose);
+- **`db_host`** — synced with the **physical** postgres service name from `.env` (`POSTGRES_SERVICE_NAME` or `{prefix}db` when `ODPM_COMPOSE_PREFIX` is set);
 - database placeholders in the template — real values from runtime;
 - **`admin_passwd`** — in the container from `db_manager_password` (not from manifest).
 
 These and other reserved keys **cannot** appear in manifest **`odoo_conf`** — `odpm manifest validate` fails.
 
-If `db_host` on disk does not match `POSTGRES_SERVICE_NAME`, step **`template.odoo_conf`** recreates the config; `odpm plan` shows drift **`db_host_mismatch`**. See [PostgreSQL state](database-state.md).
+If `db_host` on disk does not match the expected postgres service name from `.env`, step **`template.odoo_conf`** recreates the config; `odpm plan` shows drift **`db_host_mismatch`**. See [PostgreSQL state](database-state.md).
 
 ## When the file is recreated entirely
 

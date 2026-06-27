@@ -12,7 +12,8 @@
 | `ODOO_PROJECTS_DIR` | Куда клонировать platform и git-зависимости | `~/odoo_projects` |
 | `ODOO_PORT` | HTTP-порт Odoo на компьютере | `8069` |
 | `POSTGRES_PORT` | Порт PostgreSQL на компьютере (в сценарии `server` — только localhost) | `5432` |
-| `POSTGRES_SERVICE_NAME` | Имя сервиса PostgreSQL в `docker-compose.yml` и `db_host` в `odoo.conf` | `db` |
+| `POSTGRES_SERVICE_NAME` | Имя сервиса PostgreSQL в `docker-compose.yml` и `db_host` в `odoo.conf` (без `ODPM_COMPOSE_PREFIX`) | `db` |
+| `ODPM_COMPOSE_PREFIX` | Префикс для **полной** изоляции compose-стека: ключи `db`/`odoo`, том `postgres-data`, имя проекта Docker Compose | не задан |
 | `DEBUGGER_PORT` | Порт отладчика; см. [семантику по backend](#debugger_port-backend) | `5678` |
 | `ODPM_DEBUGGER_BACKEND` | `debugpy_listen` или `pydevd_connect` | `debugpy_listen` |
 | `ODPM_IDE` | Какие настройки IDE генерировать: `vscode`, `pycharm`, `both`, `none` | `vscode` |
@@ -23,7 +24,7 @@
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
 
-Смена `POSTGRES_SERVICE_NAME` или `POSTGRES_PORT` относительно сохранённого снимка даёт **database drift** — см. [состояние PostgreSQL](database-state.md).
+Смена `POSTGRES_SERVICE_NAME`, `POSTGRES_PORT` или `ODPM_COMPOSE_PREFIX` относительно сохранённого снимка даёт **database drift** — см. [состояние PostgreSQL](database-state.md).
 
 ## `DEBUGGER_PORT` и backend
 
@@ -88,6 +89,29 @@ PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 ## `POSTGRES_SERVICE_NAME`
 
 Имя сервиса PostgreSQL в `docker-compose.yml` и значение `db_host` в `odoo.conf` (DNS внутри docker-сети). Допустимы строчные буквы, цифры, `_` и `-`; имя должно начинаться с буквы. После смены перегенерируйте `docker-compose.yml` и `odoo.conf` (обычный запуск `odpm`).
+
+**Не используется**, если задан **`ODPM_COMPOSE_PREFIX`** — postgres получает имя `{prefix}db` (например `acme-db`), с предупреждением в логе.
+
+## `ODPM_COMPOSE_PREFIX`
+
+Опциональный префикс для **изоляции полного compose-стека** на общем хосте: несколько odpm-проектов в одном каталоге или параллельные копии без коллизий имён сервисов, томов и scope Docker Compose.
+
+| Режим | Поведение |
+|-------|-----------|
+| **Не задан** | Как в 4.6: postgres — из `POSTGRES_SERVICE_NAME` (по умолчанию `db`), odoo — `odoo`, том — `postgres-data` |
+| **Задан** (`acme` или `acme-`) | Сервисы `acme-db`, `acme-odoo`; том `acme-postgres-data`; project name / `docker compose -p` — `acme` |
+
+Нормализация: lowercase, символы `[a-z0-9-]`, имя начинается с буквы; завершающий `-` в `.env` опционален. Невалидное значение **игнорируется** (префикс отключён, warning в логе).
+
+В `odpm.json` sidecar по-прежнему указывают логические имена (`depends_on: ["db"]`); odpm переписывает их в physical при генерации `docker-compose.yml`.
+
+Пример:
+
+```ini
+ODPM_COMPOSE_PREFIX=acme
+```
+
+См. [ADR-012](../contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md).
 
 ## Переменные для подстановки в manifest
 

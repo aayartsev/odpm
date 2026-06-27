@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Scenario manifest overlays (4.7)** — optional `scenarios.developer` / `server` / `ci` blocks in manifest v2 for per-scenario `odoo_conf`, `services`, `service_patches`, and `requirements`; effective slice at load and `odpm manifest validate`; runtime wire into `odoo.conf`, requirements, compose fragments, and plan preview. ADR-011. Tests: `test_manifest_scenario_overrides`, extended `test_manifest_v2_reader`, `test_compose_fragments`, `test_scenario_plan_matrix`.
+- **Compose stack prefix from `.env` (4.7)** — optional `ODPM_COMPOSE_PREFIX` for full-stack isolation: physical service keys (`{prefix}db`, `{prefix}odoo`), postgres volume, Docker Compose project name (`-p` / top-level `name:`), automatic rewrite of `depends_on` and manifest sidecars; legacy `POSTGRES_SERVICE_NAME` when prefix unset. Runtime CLI and database drift snapshot include physical names and `compose_project_name`. ADR-012. Tests: `test_compose_service_names`, `test_compose_service_prefix`, `test_compose_runtime`, `test_compose_exec`, `test_database_drift`.
+
+### Changed
+
+- **Compose fragment snapshot** — `.odpm/compose/fragments/services.snapshot.json` includes `odpm_scenario`; switching `ODPM_SCENARIO` marks fragments stale for rematerialize.
+
 ## [4.6.0] - 2026-06-23
 
 **Stable release 4.6.0** on branch `4.6.0-dev`; supersedes **4.5.0** as `LATEST_STABLE_RELEASE`. Debt closure D1–D5 (compose `service_patches`, config hub phase 2, plugin API 1.1, structural compose validation, ops hygiene) plus manifest compose UX and `odoo_conf` overrides. Pre-release **4.6.0-beta** verified packaging, docs channels, and integration gates. No breaking changes for v1 flat `odpm.json`; manifest v2 features remain opt-in.

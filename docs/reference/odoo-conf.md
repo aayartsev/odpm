@@ -39,13 +39,13 @@ odoo.conf на диске                    ← локальные значен
 
 - **`addons_path`** — полный список путей к дополнениям внутри контейнера;
 - **`data_dir`** — каталог данных Odoo внутри контейнера;
-- **`db_host`** — синхронизируется с **`POSTGRES_SERVICE_NAME`** из `.env` (имя сервиса PostgreSQL в compose);
+- **`db_host`** — синхронизируется с **физическим** именем postgres-сервиса из `.env` (`POSTGRES_SERVICE_NAME` или `{prefix}db` при `ODPM_COMPOSE_PREFIX`);
 - маркеры базы в шаблоне — реальные значения из runtime;
 - **`admin_passwd`** — в контейнере из `db_manager_password` (не из manifest).
 
 В manifest **`odoo_conf`** нельзя задавать эти и другие зарезервированные ключи — `odpm manifest validate` завершится ошибкой.
 
-Если `db_host` в файле на диске не совпадает с `POSTGRES_SERVICE_NAME`, шаг **`template.odoo_conf`** пересоздаёт конфиг; в `odpm plan` появится drift **`db_host_mismatch`**. См. [состояние PostgreSQL](database-state.md).
+Если `db_host` в файле на диске не совпадает с ожидаемым именем postgres-сервиса из `.env`, шаг **`template.odoo_conf`** пересоздаёт конфиг; в `odpm plan` появится drift **`db_host_mismatch`**. См. [состояние PostgreSQL](database-state.md).
 
 ## Когда файл пересоздаётся целиком
 
