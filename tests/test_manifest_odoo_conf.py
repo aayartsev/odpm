@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import unittest
 
+from dev_project import constants
 from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.errors import ConfigError
 from dev_project.manifest.odoo_conf import merge_odoo_conf_sections, odoo_conf_from_manifest
@@ -107,6 +108,19 @@ class ManifestOdooConfEnvExpandTests(unittest.TestCase):
                 env_resolver=resolver,
             )
         self.assertIn("PREVIEW_HOSTNAME", str(ctx.exception))
+
+    def test_load_manifest_applies_scenario_odoo_conf_overlay(self):
+        view = load_manifest(
+            _minimal_v2(
+                requires_odpm="4.6.0",
+                odoo_conf={"options": {"workers": "0"}},
+                scenarios={
+                    "server": {"odoo_conf": {"options": {"workers": "8"}}},
+                },
+            ),
+            active_scenario=constants.SERVER_SCENARIO,
+        )
+        self.assertEqual(view.odoo_conf, {"options": {"workers": "8"}})
 
 
 class ManifestOdooConfMergeTests(unittest.TestCase):

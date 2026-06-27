@@ -77,6 +77,7 @@ Host helper: `resolve_effective_manifest_slice(raw, active_scenario) -> Scenario
 | Phase | Scope |
 |-------|--------|
 | **4.7 PR1 (A1)** | `scenario_overrides.py`, schema, `validate` only — **no** `load_manifest` / `ManifestView` change |
+| **4.7 PR2 (A2)** | `load_manifest` wires effective `odoo_conf` + `requirements_txt`; `ManifestView.scenario_slice` |
 | **4.7 PR2 (A2)** | Effective slice → `odoo_conf`, `requirements_txt` pipeline |
 | **4.7 PR3 (A3)** | Effective slice → compose fragments / plan |
 

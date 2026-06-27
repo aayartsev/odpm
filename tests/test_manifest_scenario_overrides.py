@@ -142,7 +142,7 @@ class ScenarioOverridesSchemaTests(unittest.TestCase):
     def test_schema_accepts_valid_scenarios(self):
         validate_manifest_v2(
             _minimal_v2(
-                requires_odpm="4.7.0",
+                requires_odpm="4.6.0",
                 scenarios={
                     "developer": {"requirements": ["debugpy"]},
                     "server": {
@@ -156,7 +156,7 @@ class ScenarioOverridesSchemaTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             validate_manifest_v2(
                 _minimal_v2(
-                    requires_odpm="4.7.0",
+                    requires_odpm="4.6.0",
                     scenarios={"staging": {"requirements": ["x"]}},
                 )
             )
@@ -174,7 +174,7 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
     def test_validate_multi_effective_slices(self):
         validate_scenario_manifest(
             _minimal_v2(
-                requires_odpm="4.7.0",
+                requires_odpm="4.6.0",
                 scenarios={
                     "developer": {"requirements": ["ipython"]},
                     "server": {"odoo_conf": {"options": {"workers": "2"}}},
@@ -198,7 +198,7 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
         with self.assertRaises(ConfigError) as ctx:
             validate_scenario_manifest(
                 _minimal_v2(
-                    requires_odpm="4.7.0",
+                    requires_odpm="4.6.0",
                     scenarios={
                         "server": {
                             "odoo_conf": {
@@ -214,7 +214,7 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
         with self.assertRaises(ConfigError) as ctx:
             validate_scenario_manifest(
                 _minimal_v2(
-                    requires_odpm="4.7.0",
+                    requires_odpm="4.6.0",
                     scenarios={
                         "developer": {
                             "services": {
@@ -243,12 +243,19 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
         self.assertIn("db", RESERVED_MANIFEST_SERVICE_NAMES)
 
 
-class ScenarioOverridesValidateCommandTests(unittest.TestCase):
-    def test_run_manifest_validate_does_not_wire_reader(self):
-        """PR1 guard: validate path must not import scenario wire from reader."""
-        import dev_project.manifest.reader as reader_module
+class ScenarioOverridesLoadWireTests(unittest.TestCase):
+    def test_manifest_view_exposes_scenario_slice_after_load(self):
+        from dev_project.manifest.reader import load_manifest
 
-        self.assertFalse(hasattr(reader_module.ManifestView, "effective_odoo_conf"))
+        view = load_manifest(
+            _minimal_v2(
+                requires_odpm="4.6.0",
+                scenarios={"developer": {"requirements": ["ipython"]}},
+            ),
+            active_scenario=constants.DEVELOPER_SCENARIO,
+        )
+        self.assertIsNotNone(view.scenario_slice)
+        self.assertEqual(view.scenario_slice.requirements, ["ipython"])
 
 
 if __name__ == "__main__":

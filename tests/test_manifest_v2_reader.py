@@ -217,6 +217,47 @@ class LoadManifestTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             load_manifest({"odpm_version": "2.0"})
 
+    def test_v2_scenario_overlay_wires_effective_odoo_conf_and_requirements(self):
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            requirements=["requests==2.31.0"],
+            odoo_conf={"options": {"proxy_mode": "True", "workers": "0"}},
+            scenarios={
+                "server": {
+                    "requirements": ["gunicorn"],
+                    "odoo_conf": {"options": {"workers": "4"}},
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(dev.raw_normalized["requirements_txt"], ["requests==2.31.0"])
+        self.assertEqual(
+            server.raw_normalized["requirements_txt"],
+            ["requests==2.31.0", "gunicorn"],
+        )
+        self.assertEqual(dev.odoo_conf, {"options": {"proxy_mode": "True", "workers": "0"}})
+        self.assertEqual(
+            server.odoo_conf,
+            {"options": {"proxy_mode": "True", "workers": "4"}},
+        )
+        self.assertIsNotNone(server.scenario_slice)
+        self.assertEqual(server.scenario_slice.requirements, ["requests==2.31.0", "gunicorn"])
+
+    def test_v2_load_rejects_reserved_odoo_conf_in_scenario_overlay(self):
+        with self.assertRaises(ConfigError):
+            load_manifest(
+                _minimal_v2(
+                    requires_odpm="4.6.0",
+                    scenarios={
+                        "server": {
+                            "odoo_conf": {"options": {"db_host": "evil"}},
+                        }
+                    },
+                ),
+                active_scenario=constants.SERVER_SCENARIO,
+            )
+
 
 class OdpmJsonReaderIntegrationTests(unittest.TestCase):
     def test_get_odpm_settings_stores_manifest_view_and_normalized_flat(self):
@@ -240,6 +281,8 @@ class OdpmJsonReaderIntegrationTests(unittest.TestCase):
             config.bootstrap = MagicMock()
             config.env_resolver = MagicMock()
             config.env_resolver.resolve.return_value = None
+            config.user_env = MagicMock()
+            config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
 
             OdpmJsonReader(config, rewrite_odpm_json=MagicMock()).get_odpm_settings()
 

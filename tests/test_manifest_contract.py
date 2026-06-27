@@ -35,6 +35,7 @@ def _load_contract_modules() -> unittest.TestSuite:
         "tests.test_addon_layout_ports",
         "tests.test_manifest_database_merge",
         "tests.test_manifest_odoo_conf",
+        "tests.test_manifest_scenario_overrides",
         "tests.test_compose_fragments",
         "tests.test_compose_validate",
         "tests.test_compose_golden_scenarios",
