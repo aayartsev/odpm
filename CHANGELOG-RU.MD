@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+## [4.7.0-beta] - 2026-06-23
+
+**Pre-release 4.7.0-beta** на ветке `4.7.0-dev`; stable-линия остаётся **4.6.0** (`LATEST_STABLE_RELEASE`). Scenario overlays в manifest, префикс compose-стека, layered `.env` на хосте, compose-сеть стека. Без breaking changes для flat v1 `odpm.json`; возможности 4.7 по-прежнему opt-in.
+
 ### Добавлено
 
 - **Per-scenario overlays в manifest (4.7)** — необязательный блок `scenarios.developer` / `server` / `ci` в manifest v2 для `odoo_conf`, `services`, `service_patches` и `requirements` по сценарию; effective slice при load и `odpm manifest validate`; runtime wire в `odoo.conf`, requirements, compose fragments и plan preview. ADR-011. Тесты: `test_manifest_scenario_overrides`, расширения `test_manifest_v2_reader`, `test_compose_fragments`, `test_scenario_plan_matrix`.
@@ -18,6 +22,7 @@
 
 - **Layered `.env` на хосте (4.7)** — при чтении merge `~/.odpm/.env` (база) и project `.env` (overlay; project побеждает по ключу); write target без изменений. Ранний `ODPM_LOCALE` и `${VAR}` в manifest используют effective dict. ADR-013. Тесты: `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`.
 - **Снимок compose fragments** — `.odpm/compose/fragments/services.snapshot.json` включает `odpm_scenario`; смена `ODPM_SCENARIO` помечает fragments как stale.
+- **Release gate (R7 / 4.7.0-dev)** — `RELEASE_VERSION` → `4.7.0-beta`; `LATEST_STABLE_RELEASE` остаётся `4.6.0`; CI/docs workflows на `4.7.0-dev`; deb/rpm pre-release packaging синхронизирован; install docs и documentation-versions hub указывают **4.7.0-beta** в APT/YUM **testing**.
 
 ## [4.6.0] - 2026-06-23
 

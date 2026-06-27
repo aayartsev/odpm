@@ -59,7 +59,7 @@ class PagesVerifyD1Tests(unittest.TestCase):
 
     def test_i18n_doc_targets_46_dev_branch(self):
         text = (PROJECT_ROOT / "docs/contributing/i18n.md").read_text(encoding="utf-8")
-        self.assertIn("`4.6.0-dev`", text)
+        self.assertIn("`4.7.0-dev`", text)
         self.assertNotIn("`4.5-dev`", text)
 
     def test_en_manifest_migration_documents_service_patches(self):

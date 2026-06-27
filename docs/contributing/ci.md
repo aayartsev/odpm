@@ -2,7 +2,7 @@
 
 Badges в README указывают на [ci.yml](https://github.com/aayartsev/odpm/actions/workflows/ci.yml) и [ci-docker.yml](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml).
 
-**Активная ветка разработки 4.6:** `4.6.0-dev` (push/PR → lint, unit, contract, compose-smoke, deploy `/dev/` docs).
+**Активная ветка разработки 4.7:** `4.7.0-dev` (push/PR → lint, unit, contract, compose-smoke, deploy `/dev/` docs).
 
 ## Матрица jobs
 
@@ -109,14 +109,14 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
 | Ветка | Required checks |
 |-------|-----------------|
-| `4.6.0-dev` | **lint**, **unit**, **contract**, **i18n**, **compose-smoke**, **http-smoke** |
+| `4.7.0-dev` | **lint**, **unit**, **contract**, **i18n**, **compose-smoke**, **http-smoke** |
 | `4.5-dev`, `4.4-dev`, `4.0-beta`, `main` | то же (если ветка ещё принимает PR) |
 
-Настройка: GitHub → Settings → Branches → rule для `4.6.0-dev` → Require status checks.
+Настройка: GitHub → Settings → Branches → rule для `4.7.0-dev` → Require status checks.
 
 ```bash
 # Пример (нужны права admin; имена checks — как в UI Actions после первого green run):
-gh api repos/{owner}/{repo}/branches/4.6.0-dev/protection -X PUT \
+gh api repos/{owner}/{repo}/branches/4.7.0-dev/protection -X PUT \
   -f required_status_checks='{"strict":true,"contexts":["lint","unit","contract","i18n","compose-smoke","http-smoke"]}' \
   -f enforce_admins=false \
   -f required_pull_request_reviews='{"required_approving_review_count":0}' \

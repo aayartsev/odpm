@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.7.0-beta] - 2026-06-23
+
+**Pre-release 4.7.0-beta** on branch `4.7.0-dev`; stable line remains **4.6.0** (`LATEST_STABLE_RELEASE`). Scenario manifest overlays, compose stack prefix, layered host `.env`, and compose stack network. No breaking changes for v1 flat `odpm.json`; 4.7 features remain opt-in.
+
 ### Added
 
 - **Scenario manifest overlays (4.7)** — optional `scenarios.developer` / `server` / `ci` blocks in manifest v2 for per-scenario `odoo_conf`, `services`, `service_patches`, and `requirements`; effective slice at load and `odpm manifest validate`; runtime wire into `odoo.conf`, requirements, compose fragments, and plan preview. ADR-011. Tests: `test_manifest_scenario_overrides`, extended `test_manifest_v2_reader`, `test_compose_fragments`, `test_scenario_plan_matrix`.
@@ -18,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Layered host `.env` (4.7)** — on read, merge `~/.odpm/.env` (base) with project `.env` (overlay; project wins per key); write target unchanged (`resolve_env_file_path`). Early `ODPM_LOCALE` and manifest `${VAR}` use the effective dict. ADR-013. Tests: `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`.
 - **Compose fragment snapshot** — `.odpm/compose/fragments/services.snapshot.json` includes `odpm_scenario`; switching `ODPM_SCENARIO` marks fragments stale for rematerialize.
+- **Release gate (R7 / 4.7.0-dev)** — `RELEASE_VERSION` → `4.7.0-beta`; `LATEST_STABLE_RELEASE` remains `4.6.0`; CI/docs workflows target `4.7.0-dev`; deb/rpm pre-release packaging synced; install docs and documentation-versions hub list **4.7.0-beta** in APT/YUM **testing**.
 
 ## [4.6.0] - 2026-06-23
 

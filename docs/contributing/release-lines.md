@@ -21,7 +21,7 @@
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.7.0-dev` | `4.6.0` (до bump stable 4.7) |
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.7.0-dev` | `4.7.0-beta` |
 | `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.6.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
@@ -67,7 +67,7 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 | `4.3.0` | `4.3` | Bootstrap или ручной deploy | Линия 4.3.x |
 | `4.6.0-beta` | — | Pre-release tag → mike deploy | Early adopters, debt closure D1–D5 |
 | `4.5.0-beta`, … | — | Pre-release tag (без alias stable) | Архив early adopters |
-| `dev` | — | Push `4.6.0-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
+| `dev` | — | Push `4.7.0-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
 
 `site_url` в `mkdocs.yml`: `/stable/`. Пользовательский hub: [documentation-versions](../getting-started/documentation-versions.md).
 
@@ -176,18 +176,22 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
    - [x] extended tests T10 + env-dotenv CHANGELOG (track D4–D5)
    - [x] Unit: scenario + compose prefix + `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`
    - [x] Plan matrix: `test_scenario_overlay_marks_compose_fragments_stale`
-   - [ ] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev` (если ещё на `4.6.0-dev`)
+   - [x] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev`
 2. **Документация (pre-release)**
    - [x] `docs/reference/odpm-json.md` — блок `scenarios`
    - [x] `docs/reference/env-dotenv.md`, `config-hierarchy.md`, `database-state.md`, `odoo-conf.md`
    - [x] `CHANGELOG.md` `[Unreleased]` / `.github/release-notes/4.7.0.md` (A+B+C+D)
    - [x] `docs/reference/env-dotenv.md`, `locale.md` — `ODPM_COMPOSE_NETWORK`, layered `ODPM_LOCALE`
    - [x] `docs/getting-started/legacy-project.md` — compose network + prefix, layered `.env`
-3. **Release commit (отдельно, после smoke)**
-   - [ ] `RELEASE_VERSION = "4.7.0"` (или `4.7.0-beta` для pre-release)
-   - [ ] `LATEST_STABLE_RELEASE = "4.6.0"` до stable `v4.7.0`
-   - [ ] Закрыть `[Unreleased]` в CHANGELOG → `[4.7.0]`
-   - [ ] `debian/changelog`, `packaging/odpm.spec`
+3. **Release commit (beta)**
+   - [x] `RELEASE_VERSION = "4.7.0-beta"`; `LATEST_STABLE_RELEASE = "4.6.0"`
+   - [x] Закрыть `[Unreleased]` в CHANGELOG → `[4.7.0-beta]`
+   - [x] `debian/changelog`, `packaging/odpm.spec`, `.github/release-notes/4.7.0-beta.md`
+   - [ ] `git tag v4.7.0-beta` && push → `release-packages`, mike `4.7.0-beta`
+4. **Release commit (stable, после smoke)**
+   - [ ] `RELEASE_VERSION = "4.7.0"`; `LATEST_STABLE_RELEASE = "4.7.0"`
+   - [ ] Закрыть beta в CHANGELOG → добавить `[4.7.0]`
+   - [ ] `debian/changelog`, `packaging/odpm.spec`, install hub → stable **4.7.0**
    - [ ] `git tag v4.7.0` && push → `release-packages`, mike `4.7.0` + alias **stable**
 
 ## Чеклист: stable **v4.4.2** (архив, после smoke beta)

@@ -37,11 +37,24 @@ odpm --version
 # expected: odpm version: 4.6.0
 ```
 
+### Pre-release (4.7.0-beta)
+
+For early adopters of the **4.7** line. Use **`stable`** above in production. Beta packages are only in APT **`testing`** and on [TestPyPI](https://test.pypi.org/project/odpm/). Docs: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/linux-deb/).
+
+```bash
+echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main' | sudo tee /etc/apt/sources.list.d/odpm-testing.list
+
+sudo apt update
+sudo apt install odpm
+odpm --version
+# expected: odpm version: 4.7.0-beta
+```
+
 ### Pre-release (archived)
 
-There is no active pre-release right now. Archived beta guides: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/linux-deb/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/).
+Archived beta guides: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/linux-deb/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/).
 
-The APT **`testing`** suite is still used for future pre-releases; it may still contain packages from archived betas.
+The APT **`testing`** suite also contains the current **4.7.0-beta** packages and archived pre-releases.
 
 Updates on later releases:
 
@@ -51,7 +64,7 @@ sudo apt update && sudo apt upgrade odpm
 
 ## Manual install (.deb from GitHub Releases)
 
-Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.6.0` — stable, `v4.6.0-beta` — archived testing, `v4.5.0` — archived stable, `v4.5.0-beta` — archived testing, `v4.4.3` — archived stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta), or build locally:
+Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.6.0` — stable, `v4.7.0-beta` — testing, `v4.6.0-beta` — archived testing, `v4.5.0` — archived stable, `v4.5.0-beta` — archived testing, `v4.4.3` — archived stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta), or build locally:
 
 ```bash
 ./scripts/build_deb.sh
