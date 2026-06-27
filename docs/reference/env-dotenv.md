@@ -1,8 +1,34 @@
 # Переменные файла `.env`
 
-Файл **`.env`** задаёт параметры **этого** каталога odpm-окружения: порты, сценарий, пути к резервным копиям и клонам git. Если он лежит **в каталоге проекта**, он **полностью заменяет** `~/.odpm/.env` — значения из двух файлов не смешиваются ([иерархия](config-hierarchy.md)).
+Параметры odpm-окружения (порты, сценарий, пути к бэкапам и клонам git) задаются в **`.env`**. С **4.7** при чтении odpm объединяет два файла ([иерархия](config-hierarchy.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md)):
 
-При **первом интерактивном** запуске odpm задаёт вопросы мастера настройки и записывает ответы в `.env` (глобальный или проектный). На незнакомые пункты можно нажать Enter.
+| Файл | Роль |
+|------|------|
+| `~/.odpm/.env` | Общий профиль пользователя (база) |
+| `.env` в каталоге проекта | Переопределения для **этого** окружения (overlay, сильнее home) |
+
+Мастер первого запуска **записывает** в project `.env`, если файл уже есть, иначе в `~/.odpm/.env`. В project можно держать только отличающиеся ключи (например `ODOO_PORT` и `ODPM_COMPOSE_PREFIX`), а `BACKUP_DIR` и `ODOO_PROJECTS_DIR` — в home.
+
+При **первом интерактивном** запуске odpm задаёт вопросы мастера настройки. На незнакомые пункты можно нажать Enter.
+
+### Пример: общее в home, своё в project
+
+`~/.odpm/.env`:
+
+```ini
+BACKUP_DIR=/home/dev/backups
+ODOO_PROJECTS_DIR=/home/dev/odoo_projects
+PATH_TO_SSH_KEY=/home/dev/.ssh/id_ed25519
+ODPM_LOCALE=ru_RU
+```
+
+`<project>/.env`:
+
+```ini
+ODOO_PORT=8070
+ODPM_COMPOSE_PREFIX=acme
+ODOO_PLATFORM_DIR=/work/client/odoo/19.0
+```
 
 ## Переменные
 
@@ -117,7 +143,7 @@ ODPM_COMPOSE_PREFIX=acme
 
 Помимо встроенных ключей odpm в `.env` можно задавать **произвольные** имена для `${VAR}` в `odpm.json` и `user_settings.json` (например `ODOO_PLATFORM_DIR`, `OCA_WEB_PATH`, `GIT_HOST`). Они **не** управляют портами или сценарием сами по себе — только подставляются в whitelist-поля manifest при чтении JSON.
 
-Приоритет для `${VAR}`: переменные **процесса** odpm перекрывают project `.env`. Пустой default в manifest: `${VAR:-}`.
+Приоритет для `${VAR}`: переменные **процесса** odpm перекрывают effective `.env` (merge home + project). Пустой default в manifest: `${VAR:-}`.
 
 Типичный фрагмент project `.env` для локальной разработки:
 

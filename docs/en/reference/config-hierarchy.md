@@ -10,21 +10,33 @@ Several configuration sources act **at the same time**. It is important to under
 Command-line parameters for a single run
     ↓
 odpm.json and user_settings.json (files in the project directory / in git)
-    ↓  (in whitelist strings: ${VAR} ← process env, then project .env)
-project .env file
+    ↓  (in whitelist strings: ${VAR} ← process env, then effective .env: project over ~/.odpm/.env)
+project .env file (overlay)
     ↓
-~/.odpm/.env file (shared user profile)
+~/.odpm/.env file (user base profile)
     ↓
 shell environment variables (when creating .env without prompts)
     ↓
 odpm built-in defaults
 ```
 
-## One .env file at a time
+## Two `.env` layers on read (4.7)
 
-odpm reads **either** `.env` in the project directory **or** `~/.odpm/.env` — **not both at once**. If the project directory has its own `.env`, the global file **does not supplement** it: a key missing in the project **is not** pulled from `~/.odpm/.env`.
+On **read**, odpm merges both files when present:
 
-Timing exception: before full initialization, only the project `.env` may be read for early checks (see [message locale](locale.md)).
+1. `~/.odpm/.env` — base (shared paths, SSH, locale, defaults for all projects).
+2. `.env` in the odpm environment directory — **overlay**; matching keys **override** home.
+
+The effective dict drives ports, scenario, manifest `${VAR}`, and early `ODPM_LOCALE` (see [message locale](locale.md)). Details: [env-dotenv.md](env-dotenv.md), [ADR-013](../../contributing/adr-013-layered-env-dotenv.md).
+
+On **write** (first-run wizard, non-interactive create) the **primary** target is unchanged: project `.env` if it already exists, else `~/.odpm/.env`. odpm does **not** auto-copy home into project — put only differing keys in project `.env`.
+
+| Setup | Behaviour |
+|-------|-----------|
+| Home only | Same as before when no project `.env` |
+| Full project only | Same as before with a complete project `.env` |
+| Both, disjoint keys | Merge: home fill-in + project overrides |
+| Both, same key | Value from project `.env` |
 
 ## Generated files
 

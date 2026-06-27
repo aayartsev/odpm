@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Layered host `.env` (4.7)** — on read, merge `~/.odpm/.env` (base) with project `.env` (overlay; project wins per key); write target unchanged (`resolve_env_file_path`). Early `ODPM_LOCALE` and manifest `${VAR}` use the effective dict. ADR-013. Tests: `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`.
 - **Compose fragment snapshot** — `.odpm/compose/fragments/services.snapshot.json` includes `odpm_scenario`; switching `ODPM_SCENARIO` marks fragments stale for rematerialize.
 
 ## [4.6.0] - 2026-06-23

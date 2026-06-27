@@ -79,6 +79,10 @@ odpm database ensure-role
 
 Changing **`POSTGRES_SERVICE_NAME`** or the port in `.env` causes **drift** vs the snapshot — odpm warns in plan. After renaming the postgres service, remove orphan containers: `docker compose down --remove-orphans`.
 
+### Shared profile in `~/.odpm/.env` (4.7)
+
+Since **4.7**, odpm **merges** `~/.odpm/.env` (shared paths, SSH, `ODPM_LOCALE`) with project `.env` (ports, `ODPM_COMPOSE_PREFIX`, local `${VAR}` helpers) on read; project wins on key collisions. Keep only differences in project `.env` — see [environment variables](../reference/env-dotenv.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md).
+
 ### Multiple odpm projects on one host (4.7)
 
 When several odpm environments run on the **same machine** and you need isolated Docker Compose names, set a unique prefix in project `.env`:

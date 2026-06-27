@@ -2,9 +2,35 @@
 
 > **AI-translated** from Russian.
 
-The **`.env`** file sets parameters for **this** odpm environment directory: ports, scenario, backup paths, and git clone locations. If it lives **in the project directory**, it **fully replaces** `~/.odpm/.env` — values from the two files are not merged ([hierarchy](config-hierarchy.md)).
+Environment parameters (ports, scenario, backup paths, git clone roots) live in **`.env`**. Since **4.7**, odpm **merges** two files on read ([hierarchy](config-hierarchy.md), [ADR-013](../../contributing/adr-013-layered-env-dotenv.md)):
 
-On the **first interactive** odpm run, the setup wizard asks questions and writes answers to `.env` (global or project-level). Press Enter for unfamiliar items.
+| File | Role |
+|------|------|
+| `~/.odpm/.env` | Shared user profile (base) |
+| `.env` in the project directory | Overrides for **this** environment (overlay, stronger than home) |
+
+The first-run wizard **writes** to project `.env` when that file already exists, else to `~/.odpm/.env`. In project `.env` you can keep only differing keys (e.g. `ODOO_PORT`, `ODPM_COMPOSE_PREFIX`) while `BACKUP_DIR` and `ODOO_PROJECTS_DIR` stay in home.
+
+On the **first interactive** run, the setup wizard asks questions. Press Enter for unfamiliar items.
+
+### Example: shared home, per-project overrides
+
+`~/.odpm/.env`:
+
+```ini
+BACKUP_DIR=/home/dev/backups
+ODOO_PROJECTS_DIR=/home/dev/odoo_projects
+PATH_TO_SSH_KEY=/home/dev/.ssh/id_ed25519
+ODPM_LOCALE=en_US
+```
+
+`<project>/.env`:
+
+```ini
+ODOO_PORT=8070
+ODPM_COMPOSE_PREFIX=acme
+ODOO_PLATFORM_DIR=/work/client/odoo/19.0
+```
 
 ## Variables
 
@@ -119,7 +145,7 @@ See [ADR-012](../../contributing/adr-012-compose-service-prefix.md), [PostgreSQL
 
 Besides built-in odpm keys, `.env` may define **arbitrary** names for `${VAR}` in `odpm.json` and `user_settings.json` (e.g. `ODOO_PLATFORM_DIR`, `OCA_WEB_PATH`, `GIT_HOST`). They **do not** control ports or scenario by themselves — they are only substituted into whitelist manifest fields when JSON is read.
 
-Priority for `${VAR}`: odpm **process** variables override the project `.env`. Empty default in manifest: `${VAR:-}`.
+Priority for `${VAR}`: odpm **process** variables override the effective merged `.env` (home + project). Empty default in manifest: `${VAR:-}`.
 
 Typical project `.env` fragment for local development:
 

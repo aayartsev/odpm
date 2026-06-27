@@ -15,6 +15,7 @@
 
 ### Изменено
 
+- **Layered `.env` на хосте (4.7)** — при чтении merge `~/.odpm/.env` (база) и project `.env` (overlay; project побеждает по ключу); write target без изменений. Ранний `ODPM_LOCALE` и `${VAR}` в manifest используют effective dict. ADR-013. Тесты: `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`.
 - **Снимок compose fragments** — `.odpm/compose/fragments/services.snapshot.json` включает `odpm_scenario`; смена `ODPM_SCENARIO` помечает fragments как stale.
 
 ## [4.6.0] - 2026-06-23

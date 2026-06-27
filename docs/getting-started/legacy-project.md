@@ -77,6 +77,10 @@ odpm database ensure-role
 
 Смена **`POSTGRES_SERVICE_NAME`** или порта в `.env` даёт **drift** относительно снимка — odpm предупредит в plan. После переименования сервиса удалите orphan-контейнеры: `docker compose down --remove-orphans`.
 
+### Общий профиль в `~/.odpm/.env` (4.7)
+
+С **4.7** odpm при чтении **объединяет** `~/.odpm/.env` (общие пути, SSH, `ODPM_LOCALE`) и project `.env` (порты, `ODPM_COMPOSE_PREFIX`, локальные `${VAR}`). При совпадении ключа побеждает project. В project достаточно хранить только отличия — см. [переменные `.env`](../reference/env-dotenv.md), [ADR-013](../contributing/adr-013-layered-env-dotenv.md).
+
 ### Несколько odpm-проектов на одном хосте (4.7)
 
 Если на машине одновременно работают **несколько** odpm-окружений и нужно избежать конфликтов имён Docker Compose, задайте в project `.env` уникальный префикс:
