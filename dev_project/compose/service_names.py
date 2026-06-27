@@ -232,9 +232,15 @@ def _apply_legacy_postgres_service_rename(
 
 
 def apply_compose_physical_names(
-    document: dict[str, Any], ctx: ComposeNamingContext
+    document: dict[str, Any],
+    ctx: ComposeNamingContext,
+    network_ctx=None,
 ) -> dict[str, Any]:
-    """Apply prefix rewrite and legacy postgres service rename to a logical compose document."""
+    """Apply prefix rewrite, legacy postgres rename, and optional network rewrite."""
+    from .network_names import ComposeNetworkContext, apply_compose_network
+
     apply_compose_prefix(document, ctx)
     _apply_legacy_postgres_service_rename(document, ctx)
+    if isinstance(network_ctx, ComposeNetworkContext) and network_ctx.is_active:
+        apply_compose_network(document, network_ctx, ctx)
     return document

@@ -1,4 +1,4 @@
-"""Tests for ODPM_COMPOSE_NETWORK parse and ComposeNetworkContext (4.7 D1)."""
+"""Tests for ODPM_COMPOSE_NETWORK parse and ComposeNetworkContext (4.7 D1–D2)."""
 
 from __future__ import annotations
 
@@ -8,16 +8,29 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from dev_project import constants
+from dev_project.compose.compose_document import build_compose_document
 from dev_project.compose.network_names import (
     LOGICAL_STACK_NETWORK,
+    ComposeNetworkContext,
+    apply_compose_network,
+    attach_logical_compose_network,
     compose_network_from_user_env,
     parse_compose_network_external,
     parse_compose_network_name,
     resolve_compose_network,
 )
-from dev_project.compose.service_names import resolve_compose_naming
+from dev_project.compose.service_names import (
+    LOGICAL_DB,
+    LOGICAL_ODOO,
+    apply_compose_physical_names,
+    resolve_compose_naming,
+)
+from dev_project.compose.validate import validate_compose_document
 from dev_project.host.user_env import CreateUserEnvironment
+from tests.test_compose_service_prefix import _make_compose_env
 from tests.test_noninteractive_init import _make_pd_manager
+from tests.fixtures.compose.golden_scenario_env import GOLDEN_PROJECT_DIR
 
 _ENV_LINES = [
     "BACKUP_DIR=/tmp/backups",
@@ -191,6 +204,147 @@ class ComposeNetworkUserEnvTests(unittest.TestCase):
             self.assertIsNone(user_env.compose_network_logical)
             self.assertIsNone(user_env.compose_network_physical)
             self.assertFalse(user_env.compose_network_external)
+
+
+class AttachComposeNetworkTests(unittest.TestCase):
+    def test_attach_managed_network_to_services_without_networks(self):
+        document = {
+            "services": {
+                LOGICAL_DB: {"image": "postgres:16"},
+                LOGICAL_ODOO: {"image": "odoo:dev", "depends_on": [LOGICAL_DB]},
+            }
+        }
+        net_ctx = ComposeNetworkContext(
+            logical_name="stack",
+            physical_name="stack",
+            external=False,
+        )
+        attach_logical_compose_network(document, net_ctx)
+        self.assertEqual(document["networks"], {"stack": {"driver": "bridge"}})
+        self.assertEqual(document["services"][LOGICAL_DB]["networks"], ["stack"])
+        self.assertEqual(document["services"][LOGICAL_ODOO]["networks"], ["stack"])
+
+    def test_attach_skips_service_with_existing_networks(self):
+        document = {
+            "services": {
+                LOGICAL_DB: {"image": "postgres:16"},
+                "mailpit": {"image": "axllent/mailpit", "networks": ["proxy"]},
+            }
+        }
+        net_ctx = ComposeNetworkContext(
+            logical_name="stack",
+            physical_name="stack",
+            external=False,
+        )
+        attach_logical_compose_network(document, net_ctx)
+        self.assertEqual(document["services"][LOGICAL_DB]["networks"], ["stack"])
+        self.assertEqual(document["services"]["mailpit"]["networks"], ["proxy"])
+
+
+class ApplyComposeNetworkTests(unittest.TestCase):
+    def test_apply_rewrites_managed_network_with_prefix(self):
+        document = {
+            "services": {
+                "db": {"image": "postgres:16", "networks": ["stack"]},
+                "odoo": {"image": "odoo:dev", "networks": ["stack"]},
+                "mailpit": {
+                    "image": "axllent/mailpit",
+                    "networks": ["stack"],
+                    "depends_on": ["db"],
+                },
+            },
+            "networks": {"stack": {"driver": "bridge"}},
+        }
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name=constants.DEFAULT_POSTGRES_SERVICE_NAME,
+        )
+        net_ctx = resolve_compose_network(
+            network_raw="stack",
+            external_raw=None,
+            naming=naming,
+        )
+        apply_compose_physical_names(
+            document,
+            naming,
+            network_ctx=net_ctx,
+        )
+        self.assertEqual(document["networks"], {"acme-stack": {"driver": "bridge"}})
+        self.assertEqual(document["services"]["acme-db"]["networks"], ["acme-stack"])
+        self.assertEqual(document["services"]["mailpit"]["networks"], ["acme-stack"])
+        validate_compose_document(document)
+
+    def test_apply_external_network_keeps_name_with_prefix(self):
+        document = {
+            "services": {
+                LOGICAL_DB: {"image": "postgres:16", "networks": ["proxy"]},
+                LOGICAL_ODOO: {"image": "odoo:dev", "networks": ["proxy"]},
+            },
+            "networks": {"proxy": {"external": True}},
+        }
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name=constants.DEFAULT_POSTGRES_SERVICE_NAME,
+        )
+        net_ctx = resolve_compose_network(
+            network_raw="proxy",
+            external_raw="1",
+            naming=naming,
+        )
+        apply_compose_network(document, net_ctx, naming)
+        self.assertEqual(document["networks"], {"proxy": {"external": True}})
+        self.assertEqual(document["services"][LOGICAL_DB]["networks"], ["proxy"])
+        validate_compose_document(document)
+
+
+class BuildComposeDocumentNetworkTests(unittest.TestCase):
+    def test_build_without_network_has_no_networks_section(self):
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        document = build_compose_document(_make_compose_env())
+        validate_compose_document(document)
+        self.assertNotIn("networks", document)
+
+    def test_build_managed_network_attaches_builtin_services(self):
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        document = build_compose_document(
+            _make_compose_env(
+                compose_network_logical="stack",
+                compose_network_physical="stack",
+            )
+        )
+        validate_compose_document(document)
+        self.assertEqual(document["networks"], {"stack": {"driver": "bridge"}})
+        self.assertEqual(document["services"][LOGICAL_DB]["networks"], ["stack"])
+        self.assertEqual(document["services"][LOGICAL_ODOO]["networks"], ["stack"])
+
+    def test_build_external_network_with_prefix(self):
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        document = build_compose_document(
+            _make_compose_env(
+                compose_prefix="acme",
+                compose_network_logical="proxy",
+                compose_network_physical="proxy",
+                compose_network_external=True,
+            )
+        )
+        validate_compose_document(document)
+        self.assertEqual(document["networks"], {"proxy": {"external": True}})
+        self.assertEqual(document["services"]["acme-db"]["networks"], ["proxy"])
+        self.assertEqual(document["services"]["acme-odoo"]["networks"], ["proxy"])
+
+    def test_build_prefix_and_managed_network_physical_name(self):
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        document = build_compose_document(
+            _make_compose_env(
+                compose_prefix="acme",
+                compose_network_logical="stack",
+                compose_network_physical="acme-stack",
+            )
+        )
+        validate_compose_document(document)
+        self.assertEqual(document["networks"], {"acme-stack": {"driver": "bridge"}})
+        self.assertEqual(document["services"]["acme-odoo"]["depends_on"], ["acme-db"])
+        self.assertEqual(document["services"]["acme-db"]["networks"], ["acme-stack"])
 
 
 if __name__ == "__main__":

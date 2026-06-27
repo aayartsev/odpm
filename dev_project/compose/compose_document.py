@@ -16,6 +16,10 @@ from ..debugger.user_env import (
 )
 from ..yaml import merge_services, merge_services_with_patches
 from ..docker_capabilities import cached_docker_capabilities
+from .network_names import (
+    attach_logical_compose_network,
+    compose_network_from_user_env,
+)
 from .service_names import (
     LOGICAL_DB,
     LOGICAL_ODOO,
@@ -166,8 +170,12 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             },
         },
     }
+    network_ctx = compose_network_from_user_env(user_env)
+    attach_logical_compose_network(document, network_ctx)
     return apply_compose_physical_names(
-        document, compose_naming_from_user_env(user_env)
+        document,
+        compose_naming_from_user_env(user_env),
+        network_ctx=network_ctx,
     )
 
 

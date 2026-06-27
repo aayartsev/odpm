@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from .. import constants
 from ..logging import get_module_logger
@@ -96,6 +97,71 @@ def resolve_compose_network(
         physical_name=physical,
         external=False,
     )
+
+
+def attach_logical_compose_network(
+    document: dict[str, Any], net_ctx: ComposeNetworkContext
+) -> dict[str, Any]:
+    """Declare logical ``networks:`` and attach services that omit ``networks``."""
+    if not net_ctx.is_active or not net_ctx.logical_name:
+        return document
+
+    logical = net_ctx.logical_name
+    if net_ctx.external:
+        document["networks"] = {logical: {"external": True}}
+    else:
+        document["networks"] = {logical: {"driver": "bridge"}}
+
+    services = document.get("services")
+    if not isinstance(services, dict):
+        return document
+    for spec in services.values():
+        if isinstance(spec, dict) and "networks" not in spec:
+            spec["networks"] = [logical]
+    return document
+
+
+def _rewrite_network_name_list(
+    items: list[Any], net_ctx: ComposeNetworkContext
+) -> list[Any]:
+    logical = net_ctx.logical_name
+    physical = net_ctx.physical_name
+    if not logical or not physical or logical == physical:
+        return items
+    rewritten: list[Any] = []
+    for item in items:
+        if isinstance(item, str) and item == logical:
+            rewritten.append(physical)
+        else:
+            rewritten.append(item)
+    return rewritten
+
+
+def apply_compose_network(
+    document: dict[str, Any],
+    net_ctx: ComposeNetworkContext,
+    _naming_ctx: ComposeNamingContext,
+) -> dict[str, Any]:
+    """Rewrite logical network keys and ``service.networks`` to physical names."""
+    if not net_ctx.is_active or not net_ctx.logical_name or not net_ctx.physical_name:
+        return document
+
+    logical = net_ctx.logical_name
+    physical = net_ctx.physical_name
+    networks = document.get("networks")
+    if isinstance(networks, dict) and logical in networks and logical != physical:
+        networks[physical] = networks.pop(logical)
+
+    services = document.get("services")
+    if not isinstance(services, dict):
+        return document
+    for spec in services.values():
+        if not isinstance(spec, dict):
+            continue
+        value = spec.get("networks")
+        if isinstance(value, list):
+            spec["networks"] = _rewrite_network_name_list(value, net_ctx)
+    return document
 
 
 def compose_network_from_user_env(user_env) -> ComposeNetworkContext:

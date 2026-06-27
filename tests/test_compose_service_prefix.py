@@ -124,6 +124,9 @@ def _make_compose_env(
     compose_prefix: str | None = None,
     postgres_service_name: str = constants.DEFAULT_POSTGRES_SERVICE_NAME,
     manifest_services: dict | None = None,
+    compose_network_logical: str | None = None,
+    compose_network_physical: str | None = None,
+    compose_network_external: bool = False,
 ) -> CreateProjectEnvironment:
     policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
     config = MagicMock()
@@ -178,6 +181,9 @@ def _make_compose_env(
     user_env.debugger_connect_host = DEFAULT_DEBUGGER_CONNECT_HOST
     user_env.odoo_port = 8069
     user_env.gevent_port = 8072
+    user_env.compose_network_logical = compose_network_logical
+    user_env.compose_network_physical = compose_network_physical
+    user_env.compose_network_external = compose_network_external
     config.user_env = user_env
     return CreateProjectEnvironment(config)
 
@@ -215,6 +221,7 @@ class BuildComposeDocumentPrefixTests(unittest.TestCase):
         validate_compose_document(document)
         self.assertEqual(set(document["services"]), {LOGICAL_DB, LOGICAL_ODOO})
         self.assertNotIn("name", document)
+        self.assertNotIn("networks", document)
 
 
 if __name__ == "__main__":

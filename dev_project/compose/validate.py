@@ -16,6 +16,7 @@ _LIST_FIELDS = frozenset(
         "ports",
         "volumes",
         "depends_on",
+        "networks",
         "extra_hosts",
     }
 )
@@ -28,8 +29,11 @@ def validate_compose_document(document: dict[str, Any]) -> None:
     services = document.get("services")
     if not isinstance(services, dict) or not services:
         raise ConfigError(_("Generated compose document must include services"))
+    networks = document.get("networks")
+    if networks is not None and not isinstance(networks, dict):
+        raise ConfigError(_("Generated compose networks must be a mapping when present"))
     for name, spec in services.items():
-        _validate_service(str(name), spec)
+        _validate_service(str(name), spec, declared_networks=networks)
     volumes = document.get("volumes")
     if volumes is not None and not isinstance(volumes, dict):
         raise ConfigError(_("Generated compose volumes must be a mapping when present"))
@@ -61,7 +65,12 @@ def validate_compose_file(path: str) -> None:
     validate_compose_text(text)
 
 
-def _validate_service(name: str, spec: object) -> None:
+def _validate_service(
+    name: str,
+    spec: object,
+    *,
+    declared_networks: dict[str, Any] | None,
+) -> None:
     if not isinstance(spec, dict):
         raise ConfigError(
             _("Compose service {NAME} must be a mapping").format(NAME=name)
@@ -106,3 +115,13 @@ def _validate_service(name: str, spec: object) -> None:
         raise ConfigError(
             _("Compose service {NAME}.tty must be a boolean").format(NAME=name)
         )
+    if isinstance(declared_networks, dict):
+        networks = spec.get("networks")
+        if isinstance(networks, list):
+            for entry in networks:
+                if isinstance(entry, str) and entry not in declared_networks:
+                    raise ConfigError(
+                        _(
+                            "Compose service {NAME} references undeclared network {NET}"
+                        ).format(NAME=name, NET=entry)
+                    )

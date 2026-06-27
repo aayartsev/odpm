@@ -80,6 +80,33 @@ class ComposeValidateTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             validate_compose_file("/nonexistent/docker-compose.yml")
 
+    def test_undeclared_service_network_raises(self):
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {
+                    "services": {
+                        "odoo": {
+                            "image": "odoo:dev",
+                            "networks": ["missing"],
+                        }
+                    },
+                    "networks": {"stack": {"driver": "bridge"}},
+                }
+            )
+
+    def test_declared_service_network_passes(self):
+        validate_compose_document(
+            {
+                "services": {
+                    "odoo": {
+                        "image": "odoo:dev",
+                        "networks": ["stack"],
+                    }
+                },
+                "networks": {"stack": {"driver": "bridge"}},
+            }
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
