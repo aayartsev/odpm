@@ -152,9 +152,46 @@
           "additionalProperties": { "type": "string" }
         }
       }
+    },
+    "scenarios": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "developer": { "$ref": "#/$defs/scenarioOverlay" },
+        "server": { "$ref": "#/$defs/scenarioOverlay" },
+        "ci": { "$ref": "#/$defs/scenarioOverlay" }
+      }
     }
   },
   "$defs": {
+    "scenarioOverlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "odoo_conf": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "options": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            }
+          }
+        },
+        "services": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/composeService" }
+        },
+        "service_patches": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/composeServicePatch" }
+        },
+        "requirements": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
     "composeService": {
       "type": "object",
       "additionalProperties": false,
