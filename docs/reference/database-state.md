@@ -24,7 +24,7 @@
 
 Снимок содержит:
 
-- **`compose`** — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте;
+- **`compose`** — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте; при `ODPM_COMPOSE_PREFIX` — также `compose_project_name` и `odoo_service_name`;
 - **`odoo_conf`** — `db_host`, `db_port`, `db_user`;
 - **`cluster`** — data dir непустой, major PostgreSQL (`PG_VERSION`), роль приложения и её наличие.
 

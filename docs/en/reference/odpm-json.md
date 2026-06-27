@@ -67,6 +67,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | `hooks.post_prepare` | Shell argv or plugin id after prepare |
 | `hooks.pre_up` | Shell argv or plugin id before `docker compose up` |
 | `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
+| `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `requirements` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
 
 Mailpit example: [plugins.md](plugins.md).
 
@@ -108,6 +109,49 @@ Optional object for **team-wide** Odoo settings in git (preview, staging, produc
 ```
 
 `odpm manifest validate` rejects keys managed by odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. See [odoo.conf](odoo-conf.md).
+
+## `scenarios` block (per `ODPM_SCENARIO` overlays, 4.7)
+
+Optional **manifest v2** object to override `odoo_conf`, `services`, `service_patches`, and `requirements` **per scenario** from project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). One `odpm.json` in git — different effective settings on laptop, server, and CI without `${VAR}` workarounds.
+
+| Mode | Condition | Effective slice |
+|------|-----------|-----------------|
+| **Legacy** | no `scenarios` key | top-level fields only |
+| **Multi** | `scenarios` present (even `{}`) | top-level **+** `scenarios[ODPM_SCENARIO]` overlay |
+
+Merge rules:
+
+| Field | Merge |
+|-------|-------|
+| `odoo_conf` | deep merge by section |
+| `services` | overlay replaces service by name |
+| `service_patches` | merge per [ADR-009](../contributing/adr-009-compose-service-patch.md) |
+| `requirements` | concat + dedupe |
+
+Manifests with `scenarios` SHOULD set **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → validate error. Details: [ADR-011](../contributing/adr-011-scenario-manifest-overrides.md).
+
+Example — more workers on server, extra dev requirements:
+
+```json
+{
+  "manifest_schema": 2,
+  "requires_odpm": "4.7.0",
+  "odoo_conf": { "options": { "proxy_mode": "True", "workers": "0" } },
+  "services": {
+    "mailpit": { "image": "axllent/mailpit", "depends_on": ["db"] }
+  },
+  "scenarios": {
+    "server": {
+      "odoo_conf": { "options": { "workers": "4" } }
+    },
+    "developer": {
+      "requirements": ["ipython"]
+    }
+  }
+}
+```
+
+In manifest and plugins, sidecars use **logical** `depends_on: ["db"]`; with `ODPM_COMPOSE_PREFIX` in `.env` odpm rewrites to physical names — see [env-dotenv.md](env-dotenv.md).
 
 ## Migration v1 → v2
 

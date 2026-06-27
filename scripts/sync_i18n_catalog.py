@@ -393,6 +393,10 @@ RU_MESSAGES: dict[str, str] = {
         "Задан {PREFIX_ENV}; {LEGACY_ENV}=%r игнорируется "
         "(сервис postgres будет {DB_NAME})"
     ),
+    "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}": (
+        "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '_' или '-'); "
+        "используется {DEFAULT}"
+    ),
     "Invalid %s=%r, falling back to system locale": (
         "Недопустимое значение %s=%r, используется системная локаль"
     ),

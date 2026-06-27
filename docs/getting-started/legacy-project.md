@@ -77,6 +77,16 @@ odpm database ensure-role
 
 Смена **`POSTGRES_SERVICE_NAME`** или порта в `.env` даёт **drift** относительно снимка — odpm предупредит в plan. После переименования сервиса удалите orphan-контейнеры: `docker compose down --remove-orphans`.
 
+### Несколько odpm-проектов на одном хосте (4.7)
+
+Если на машине одновременно работают **несколько** odpm-окружений и нужно избежать конфликтов имён Docker Compose, задайте в project `.env` уникальный префикс:
+
+```ini
+ODPM_COMPOSE_PREFIX=acme
+```
+
+odpm перепишет сервисы `db` / `odoo`, volume `postgres-data` и передаст `docker compose -p acme`. В manifest и плагинах по-прежнему используйте **логические** имена (`depends_on: ["db"]`). Подробнее: [переменные `.env`](../reference/env-dotenv.md), [ADR-012](../contributing/adr-012-compose-service-prefix.md).
+
 Adoption **не** меняет владельца существующих Odoo-баз в PostgreSQL. Для `--db-drop` / `--db-restore` на таких базах см. [состояние PostgreSQL](../reference/database-state.md).
 
 ## Частые затруднения

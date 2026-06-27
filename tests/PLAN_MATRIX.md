@@ -35,6 +35,9 @@ Unit gate for **documented odpm features verifiable without a Docker daemon**. I
 | A15 | compose template/generate/service | `PlanMatrixCoreTests.test_a15_*` | compose steps noop after idle sync |
 | A16 | Mailpit `compose.fragments` | `PlanMatrixCoreTests.test_a16_*`, `PlanMatrixComposeMarkersTests.test_a16_*` | fragments step + YAML artifact |
 | A17 | Evaluate side-effect free | `PlanMatrixCoreTests.test_a17_*` | no runtime config write on plan |
+| A18 | Manifest hook plan steps (v2) | `PlanMatrixCoreTests.test_a18_*` | `hooks.pre_up` in plan |
+| A19 | Extension prepare step | `PlanMatrixCoreTests.test_a19_*` | registered prepare step |
+| A20 | Scenario overlay → compose fragments | `PlanMatrixComposeMarkersTests.test_scenario_overlay_*` | stale regen on `ODPM_SCENARIO` change |
 
 ## Registry B — runtime plan steps
 

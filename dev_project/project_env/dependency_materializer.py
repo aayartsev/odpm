@@ -75,6 +75,7 @@ class DependencyMaterializer:
             nested = read_nested_odpm_fragment(
                 project.project_path,
                 resolver=self.config.env_resolver,
+                active_scenario=self.config.user_env.odpm_scenario,
             )
             if nested is None:
                 return DependencyDiscovery(urls=urls)

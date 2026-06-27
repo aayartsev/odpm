@@ -285,6 +285,9 @@ msgstr "Invalid manifest_schema value {VALUE!r}; expected an integer."
 msgid "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
 msgstr "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
 
+msgid "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
+msgstr "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
+
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 

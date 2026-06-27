@@ -284,6 +284,9 @@ msgstr "Недопустимое значение manifest_schema {VALUE!r}; о�
 msgid "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
 msgstr "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '-'; должно начинаться с буквы); префикс отключён"
 
+msgid "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
+msgstr "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '_' или '-'); используется {DEFAULT}"
+
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия (например 4.4 или 4.4.0)."
 

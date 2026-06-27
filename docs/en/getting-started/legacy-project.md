@@ -79,6 +79,16 @@ odpm database ensure-role
 
 Changing **`POSTGRES_SERVICE_NAME`** or the port in `.env` causes **drift** vs the snapshot — odpm warns in plan. After renaming the postgres service, remove orphan containers: `docker compose down --remove-orphans`.
 
+### Multiple odpm projects on one host (4.7)
+
+When several odpm environments run on the **same machine** and you need isolated Docker Compose names, set a unique prefix in project `.env`:
+
+```ini
+ODPM_COMPOSE_PREFIX=acme
+```
+
+odpm rewrites `db` / `odoo` services, the `postgres-data` volume, and passes `docker compose -p acme`. In manifest and plugins keep **logical** names (`depends_on: ["db"]`). See [environment variables](../reference/env-dotenv.md), [ADR-012](../contributing/adr-012-compose-service-prefix.md).
+
 Adoption does **not** reassign owners of existing Odoo databases in PostgreSQL. For `--db-drop` / `--db-restore` on such databases see [database state](../reference/database-state.md).
 
 ## Common issues

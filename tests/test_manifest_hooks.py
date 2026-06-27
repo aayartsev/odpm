@@ -206,6 +206,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
+    @patch("dev_project.project_env.services.BaseImageService")
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
     @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
     @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
@@ -216,6 +217,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         _mock_drift,
         mock_run_hooks,
         mock_run_logged,
+        mock_base_image_service,
         _mock_force_recreate,
     ):
         config = MagicMock()
@@ -232,6 +234,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         config.arguments = OdpmCliArgs(skip_start=False)
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
+        config.odoo_image_name = "odoo:dev"
         coordinator = RuntimeCoordinator(OdpmCliArgs(skip_start=False), config, MagicMock())
         coordinator.handle_build_image = MagicMock(return_value=False)
         coordinator.write_debug_profile = MagicMock()
@@ -247,6 +250,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
 
         mock_run_hooks.side_effect = record_hooks
         mock_run_logged.side_effect = record_up
+        mock_base_image_service.return_value.ensure_base_image.return_value = None
         coordinator.run_after_prepare()
         self.assertEqual(call_order, ["pre_up", "compose_up"])
         mock_run_hooks.assert_called_once()

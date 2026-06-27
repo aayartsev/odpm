@@ -62,6 +62,8 @@ Same spec in code: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPE
 
 After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE_SERVICE_FRAGMENTS}` block). Materialize artifacts: `.odpm/compose/fragments/mailpit.yml` (gitignored).
 
+In sidecar `depends_on`, use the **logical** name `db` (not physical `acme-db`); with `ODPM_COMPOSE_PREFIX` odpm rewrites dependencies at compose generation — see [env-dotenv.md](env-dotenv.md).
+
 ### Patch built-in services (`service_patches`, 4.6+)
 
 Names **`odoo`**, **`db`**, **`postgres`** cannot appear in `services` — use patches only. Policy: [ADR-009](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md).

@@ -11,16 +11,17 @@
 | **4.3.x** | `4.3.0`, тег `v4.3.0` | **заморожена** | Последний stable до 4.4; только критичные security-fix по решению maintainer (cherry-pick → patch tag). Новые фичи не добавляем. |
 | **4.4.x** | `4.4-dev` | **заморожена** (patch only) | Линия 4.4; stable **v4.4.3** |
 | **4.5.x** | `4.5-dev` | **заморожена** (patch only) | Линия 4.5; stable **v4.5.0**; архив: `v4.5.0-beta` |
-| **4.6.x** | `4.6.0-dev` | **активная** | Debt closure D1–D5 **RELEASED** stable **v4.6.0**; архив: `v4.6.0-beta` |
+| **4.6.x** | `4.6.0-dev` | **stable** | Debt closure D1–D5 **RELEASED** stable **v4.6.0**; архив: `v4.6.0-beta` |
+| **4.7.x** | `4.7.0-dev` | **активная** | Scenario manifest overlays (ADR-011) + `ODPM_COMPOSE_PREFIX` (ADR-012); pre-release на ветке |
 | Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
 
-**Правило:** изменения 4.6 merge в `4.6.0-dev`. Линии 4.4 (`4.4-dev`) и 4.5 (`4.5-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
+**Правило:** изменения 4.7 merge в `4.7.0-dev`. Линии 4.4 (`4.4-dev`), 4.5 (`4.5-dev`) и 4.6 (`4.6.0-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
 
 ### Константы в `scenarios.py`
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.6.0-dev` | `4.6.0` (stable) |
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.7.0-dev` | `4.6.0` (до bump stable 4.7) |
 | `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.6.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
@@ -161,6 +162,27 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
    - [ ] `pip install odpm` → `4.6.0`
 7. **Runner ops**
    - [ ] `ODPM_GOLDEN_PATH_PROJECT`: `first_module` version `19.0.1.0`; odpm на runner → stable deb
+
+## Чеклист: линия **4.7.0-dev** (features A+B, pre-release)
+
+Выполнять на `4.7.0-dev` после merge треков scenario overlays и compose prefix.
+
+1. **Код и тесты**
+   - [x] ADR-011 / ADR-012 accepted; schema `scenarios`; `ODPM_COMPOSE_PREFIX`
+   - [x] Unit: `test_manifest_scenario_overrides`, `test_compose_service_names`, `test_compose_service_prefix`, `test_compose_runtime`, `test_database_drift`
+   - [x] Plan matrix: `test_scenario_overlay_marks_compose_fragments_stale`
+   - [ ] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev` (если ещё на `4.6.0-dev`)
+2. **Документация (pre-release)**
+   - [x] `docs/reference/odpm-json.md` — блок `scenarios`
+   - [x] `docs/reference/env-dotenv.md`, `database-state.md`, `odoo-conf.md`
+   - [x] `CHANGELOG.md` `[Unreleased]` / `.github/release-notes/4.7.0.md`
+   - [x] `docs/getting-started/legacy-project.md` — `ODPM_COMPOSE_PREFIX`
+3. **Release commit (отдельно, после smoke)**
+   - [ ] `RELEASE_VERSION = "4.7.0"` (или `4.7.0-beta` для pre-release)
+   - [ ] `LATEST_STABLE_RELEASE = "4.6.0"` до stable `v4.7.0`
+   - [ ] Закрыть `[Unreleased]` в CHANGELOG → `[4.7.0]`
+   - [ ] `debian/changelog`, `packaging/odpm.spec`
+   - [ ] `git tag v4.7.0` && push → `release-packages`, mike `4.7.0` + alias **stable**
 
 ## Чеклист: stable **v4.4.2** (архив, после smoke beta)
 
