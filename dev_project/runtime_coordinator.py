@@ -78,7 +78,11 @@ class RuntimeCoordinator:
     ) -> list[str]:
         if force_recreate is None:
             force_recreate = should_force_recreate_compose_for_host(self.host_ctx)
-        argv = shlex.split(self.host_ctx.docker_compose_command) + ["up"]
+        argv = shlex.split(self.host_ctx.docker_compose_command)
+        from .compose.runtime import compose_project_cli_args
+
+        argv.extend(compose_project_cli_args(self.host_ctx.user_env))
+        argv += ["up"]
         if self.config.no_log_prefix:
             argv.append("--no-log-prefix")
         argv.append("--abort-on-container-exit")

@@ -100,9 +100,16 @@ def read_odoo_conf_db_fingerprint(
 
 def collect_database_state(config: Config) -> DatabaseCurrentState:
     data_path = os.path.realpath(config.postgres_data_local_storage)
-    service_name = config.user_env.postgres_service_name
+    user_env = config.user_env
+    service_name = user_env.postgres_service_name
+    compose_project_name = getattr(user_env, "compose_project_name", None)
+    if not isinstance(compose_project_name, str) or not compose_project_name:
+        compose_project_name = None
+    odoo_service_name = getattr(user_env, "odoo_service_name", None)
+    if not isinstance(odoo_service_name, str) or not odoo_service_name:
+        odoo_service_name = None
     host_port = int(
-        config.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
+        user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
     )
     default_user = constants.POSTGRES_ODOO_USER
     odoo_conf = read_odoo_conf_db_fingerprint(
@@ -119,6 +126,8 @@ def collect_database_state(config: Config) -> DatabaseCurrentState:
             image_tag=str(config.postgres_version),
             data_path_abs=data_path,
             host_port=host_port,
+            compose_project_name=compose_project_name,
+            odoo_service_name=odoo_service_name,
         ),
         odoo_conf=odoo_conf,
         cluster=DatabaseClusterFingerprint(

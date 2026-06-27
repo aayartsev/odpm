@@ -54,10 +54,15 @@ Manifest `services.*.depends_on: ["db"]` stays logical until `apply_compose_pref
 - `apply_compose_prefix` / `apply_compose_physical_names` in `service_names.py` — rewrite service keys, `depends_on`, named volumes, top-level `name:`.
 - `compose_document.py` builds with logical `db` / `odoo`, then applies physical names from `user_env`.
 
-### Deferred (B2+)
+### Deferred (B3)
 
-- Runtime wire: `compose_exec`, drift snapshots, `docker compose -p` (B2).
 - User docs in `env-dotenv.md` (B3).
+
+### Runtime wire (4.7 B2)
+
+- `compose/runtime.py` — physical `odoo_service_name` / `postgres_service_name`; `compose_cli_argv` adds `-p` when prefix active.
+- `database/compose_exec.py`, `runtime_coordinator.py` — all compose CLI invocations use `compose_cli_argv`.
+- `database/state.py` / drift — snapshot includes `compose_project_name` and `odoo_service_name`; drift kind `compose_project_name`.
 
 ## Consequences
 

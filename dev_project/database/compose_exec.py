@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-import shlex
 from typing import TYPE_CHECKING
 
 from ..subprocess_runner import CommandResult, run_checked
 from ..docker_capabilities import resolve_docker_capabilities
+from ..compose.runtime import compose_cli_argv
 
 if TYPE_CHECKING:
     from ..config import Config
 
 
 def _compose_argv(config: Config) -> list[str]:
-    return shlex.split(config.docker_compose_command)
+    return compose_cli_argv(config)
 
 
 def postgres_service_name(config: Config) -> str:

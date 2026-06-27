@@ -10,6 +10,7 @@ from .schema import DatabaseCurrentState, DatabaseLastRun
 DatabaseDriftKind = Literal[
     "first_run",
     "service_name",
+    "compose_project_name",
     "db_host_mismatch",
     "host_port",
     "data_path",
@@ -24,6 +25,7 @@ DatabaseDriftSeverity = Literal["info", "low", "medium", "high"]
 _DRIFT_SEVERITY: dict[DatabaseDriftKind, DatabaseDriftSeverity] = {
     "first_run": "info",
     "service_name": "low",
+    "compose_project_name": "low",
     "db_host_mismatch": "low",
     "host_port": "low",
     "data_path": "high",
@@ -94,6 +96,16 @@ def _detect_last_run_drifts(
                 "service_name",
                 previous=last_run.compose.service_name,
                 current=current.compose.service_name,
+            )
+        )
+    previous_project = last_run.compose.compose_project_name or ""
+    current_project = current.compose.compose_project_name or ""
+    if current_project != previous_project:
+        drifts.append(
+            _drift(
+                "compose_project_name",
+                previous=previous_project,
+                current=current_project,
             )
         )
     if current.compose.data_path_abs != last_run.compose.data_path_abs:
