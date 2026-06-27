@@ -1404,6 +1404,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scenarios-overlays-odpm_scenario-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Блок scenarios (overlays по ODPM_SCENARIO, 4.7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1960,6 +1971,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scenarios-overlays-odpm_scenario-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Блок scenarios (overlays по ODPM_SCENARIO, 4.7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1987,7 +2009,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/reference/odpm-json.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/odpm-json.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2123,6 +2145,77 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>На <code>odpm manifest validate</code> нельзя указывать ключи, которыми управляет odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. Подробнее: <a href="../odoo-conf/">odoo.conf</a>.</p>
+<h2 id="scenarios-overlays-odpm_scenario-47">Блок <code>scenarios</code> (overlays по <code>ODPM_SCENARIO</code>, 4.7)<a class="headerlink" href="#scenarios-overlays-odpm_scenario-47" title="Permanent link">&para;</a></h2>
+<p>Необязательный объект в <strong>manifest v2</strong> для переопределения <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code> и <code>requirements</code> <strong>по сценарию</strong> из project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). Один <code>odpm.json</code> в git — разные effective-настройки на ноутбуке, сервере и CI без <code>${VAR}</code>-обходов.</p>
+<table>
+<thead>
+<tr>
+<th>Режим</th>
+<th>Условие</th>
+<th>Effective slice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Legacy</strong></td>
+<td>ключа <code>scenarios</code> <strong>нет</strong></td>
+<td>только top-level поля</td>
+</tr>
+<tr>
+<td><strong>Multi</strong></td>
+<td><code>scenarios</code> <strong>есть</strong> (даже <code>{}</code>)</td>
+<td>top-level <strong>+</strong> overlay <code>scenarios[ODPM_SCENARIO]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Правила merge:</p>
+<table>
+<thead>
+<tr>
+<th>Поле</th>
+<th>Merge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>odoo_conf</code></td>
+<td>deep merge по секциям</td>
+</tr>
+<tr>
+<td><code>services</code></td>
+<td>overlay заменяет сервис по имени</td>
+</tr>
+<tr>
+<td><code>service_patches</code></td>
+<td>merge по <a href="../../contributing/adr-009-compose-service-patch/">ADR-009</a></td>
+</tr>
+<tr>
+<td><code>requirements</code></td>
+<td>concat + dedupe</td>
+</tr>
+</tbody>
+</table>
+<p>Manifest со <code>scenarios</code> рекомендуется с <strong><code>requires_odpm: "4.7.0"</code></strong>. v1 + <code>scenarios</code> → ошибка validate. Подробнее: <a href="../../contributing/adr-011-scenario-manifest-overrides/">ADR-011</a>.</p>
+<p>Пример: на сервере больше workers, в developer — sidecar mailpit:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.7.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;proxy_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;True&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;mailpit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;axllent/mailpit&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;depends_on&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;scenarios&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;developer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ipython&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>В manifest и плагинах для sidecar используйте <strong>логические</strong> имена <code>depends_on: ["db"]</code>; при <code>ODPM_COMPOSE_PREFIX</code> в <code>.env</code> odpm перепишет их в physical — см. <a href="../env-dotenv/">env-dotenv.md</a>.</p>
 <h2 id="_1">Проверенные сочетания<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Debian 11:</strong> Python 3.7, 3.10 — Odoo 11–16.</li>

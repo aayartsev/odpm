@@ -874,6 +874,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#470-beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Предварительная версия (4.7.0-beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2022,6 +2033,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#470-beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Предварительная версия (4.7.0-beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2087,7 +2109,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/install/fedora-rpm.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/install/fedora-rpm.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2116,9 +2138,19 @@ sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> <
 odpm<span class="w"> </span>--version
 <span class="c1"># ожидается: odpm version: 4.6.0</span>
 </code></pre></div>
+<h3 id="470-beta">Предварительная версия (4.7.0-beta)<a class="headerlink" href="#470-beta" title="Permanent link">&para;</a></h3>
+<p>Для early adopters линии <strong>4.7</strong>. В production используйте ветку <strong><code>stable</code></strong> выше. Пакеты beta — только в YUM <strong><code>testing</code></strong> и на <a href="https://test.pypi.org/project/odpm/">TestPyPI</a>. Документация: <a href="https://aayartsev.github.io/odpm/4.7.0-beta/install/fedora-rpm/">4.7.0-beta</a>.</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/yum/odpm-testing.repo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>/etc/yum.repos.d/odpm-testing.repo
+
+sudo<span class="w"> </span>dnf<span class="w"> </span>makecache
+sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>odpm
+odpm<span class="w"> </span>--version
+<span class="c1"># ожидается: odpm version: 4.7.0-beta</span>
+</code></pre></div>
 <h3 id="_2">Предварительные версии (архив)<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
-<p>Активного pre-release сейчас нет. Архив инструкций для beta: <a href="https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/">4.6.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/">4.5.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/">4.4.2-beta</a>.</p>
-<p>Ветка <strong><code>testing</code></strong> в YUM по-прежнему используется для будущих pre-release (<code>https://aayartsev.github.io/odpm/yum/odpm-testing.repo</code>); сейчас там могут оставаться пакеты архивных beta.</p>
+<p>Архив инструкций для beta: <a href="https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/">4.6.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/">4.5.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/">4.4.2-beta</a>.</p>
+<p>Ветка <strong><code>testing</code></strong> в YUM также содержит пакеты текущей beta <strong>4.7.0-beta</strong> и архивных pre-release (<code>https://aayartsev.github.io/odpm/yum/odpm-testing.repo</code>).</p>
 <blockquote>
 <p>Если <code>odpm-archive-keyring.asc</code> ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg<span class="w"> </span>-o<span class="w"> </span>/tmp/odpm-key.gpg
@@ -2130,7 +2162,7 @@ gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>makecache<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>dnf<span class="w"> </span>upgrade<span class="w"> </span>odpm
 </code></pre></div>
 <h2 id="rpm-github-releases">Установка вручную (.rpm с GitHub Releases)<a class="headerlink" href="#rpm-github-releases" title="Permanent link">&para;</a></h2>
-<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.6.0</code> (stable), <code>v4.6.0-beta</code> (архив testing), <code>v4.5.0</code> (архив stable), <code>v4.5.0-beta</code> (архив testing), <code>v4.4.3</code> (архив stable), <code>v4.4.3-beta</code> (архив testing) или <code>v4.4.2-beta</code> (архив beta), или соберите локально:</p>
+<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.6.0</code> (stable), <code>v4.7.0-beta</code> (testing), <code>v4.6.0-beta</code> (архив testing), <code>v4.5.0</code> (архив stable), <code>v4.5.0-beta</code> (архив testing), <code>v4.4.3</code> (архив stable), <code>v4.4.3-beta</code> (архив testing) или <code>v4.4.2-beta</code> (архив beta), или соберите локально:</p>
 <div class="highlight"><pre><span></span><code>./scripts/build_rpm.sh
 sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>./dist/odpm-*.rpm
 odpm<span class="w"> </span>--version

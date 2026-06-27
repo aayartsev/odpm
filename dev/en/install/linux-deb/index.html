@@ -846,6 +846,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pre-release-470-beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-release (4.7.0-beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pre-release-archived" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2022,6 +2033,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pre-release-470-beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-release (4.7.0-beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pre-release-archived" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2087,7 +2109,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/en/install/linux-deb.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/install/linux-deb.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2119,14 +2141,23 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 odpm<span class="w"> </span>--version
 <span class="c1"># expected: odpm version: 4.6.0</span>
 </code></pre></div>
+<h3 id="pre-release-470-beta">Pre-release (4.7.0-beta)<a class="headerlink" href="#pre-release-470-beta" title="Permanent link">&para;</a></h3>
+<p>For early adopters of the <strong>4.7</strong> line. Use <strong><code>stable</code></strong> above in production. Beta packages are only in APT <strong><code>testing</code></strong> and on <a href="https://test.pypi.org/project/odpm/">TestPyPI</a>. Docs: <a href="https://aayartsev.github.io/odpm/4.7.0-beta/en/install/linux-deb/">4.7.0-beta</a>.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayartsev.github.io/odpm/apt testing main&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/odpm-testing.list
+
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>odpm
+odpm<span class="w"> </span>--version
+<span class="c1"># expected: odpm version: 4.7.0-beta</span>
+</code></pre></div>
 <h3 id="pre-release-archived">Pre-release (archived)<a class="headerlink" href="#pre-release-archived" title="Permanent link">&para;</a></h3>
-<p>There is no active pre-release right now. Archived beta guides: <a href="https://aayartsev.github.io/odpm/4.6.0-beta/en/install/linux-deb/">4.6.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/">4.5.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/">4.4.2-beta</a>.</p>
-<p>The APT <strong><code>testing</code></strong> suite is still used for future pre-releases; it may still contain packages from archived betas.</p>
+<p>Archived beta guides: <a href="https://aayartsev.github.io/odpm/4.6.0-beta/en/install/linux-deb/">4.6.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/">4.5.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/">4.4.2-beta</a>.</p>
+<p>The APT <strong><code>testing</code></strong> suite also contains the current <strong>4.7.0-beta</strong> packages and archived pre-releases.</p>
 <p>Updates on later releases:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>odpm
 </code></pre></div>
 <h2 id="manual-install-deb-from-github-releases">Manual install (.deb from GitHub Releases)<a class="headerlink" href="#manual-install-deb-from-github-releases" title="Permanent link">&para;</a></h2>
-<p>Download <code>odpm_*_all.deb</code> from <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> for the tag you need (<code>v4.6.0</code> — stable, <code>v4.6.0-beta</code> — archived testing, <code>v4.5.0</code> — archived stable, <code>v4.5.0-beta</code> — archived testing, <code>v4.4.3</code> — archived stable, <code>v4.4.3-beta</code> — archived testing, <code>v4.4.2-beta</code> — archived beta), or build locally:</p>
+<p>Download <code>odpm_*_all.deb</code> from <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> for the tag you need (<code>v4.6.0</code> — stable, <code>v4.7.0-beta</code> — testing, <code>v4.6.0-beta</code> — archived testing, <code>v4.5.0</code> — archived stable, <code>v4.5.0-beta</code> — archived testing, <code>v4.4.3</code> — archived stable, <code>v4.4.3-beta</code> — archived testing, <code>v4.4.2-beta</code> — archived beta), or build locally:</p>
 <div class="highlight"><pre><span></span><code>./scripts/build_deb.sh
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>./dist/odpm_*_all.deb
 odpm<span class="w"> </span>--version

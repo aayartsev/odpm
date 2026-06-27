@@ -2175,7 +2175,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/en/reference/database-state.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/database-state.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2337,11 +2337,13 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </table>
 <p>Commands run prepare (without <code>compose up</code>) when needed to read configuration.</p>
 <h2 id="env-and-odooconf"><code>.env</code> and <code>odoo.conf</code><a class="headerlink" href="#env-and-odooconf" title="Permanent link">&para;</a></h2>
-<p><strong><code>POSTGRES_SERVICE_NAME</code></strong> in <code>.env</code> sets the compose service name and the expected <strong><code>db_host</code></strong> in <code>odoo.conf</code>. On mismatch:</p>
+<p><strong><code>POSTGRES_SERVICE_NAME</code></strong> in <code>.env</code> sets the postgres compose service name and the expected <strong><code>db_host</code></strong> in <code>odoo.conf</code> when <strong><code>ODPM_COMPOSE_PREFIX</code></strong> is unset.</p>
+<p><strong><code>ODPM_COMPOSE_PREFIX</code></strong> sets <strong>physical</strong> built-in service names (<code>{prefix}db</code>, <code>{prefix}odoo</code>), the data volume, and the Docker Compose project name. The <code>last_run.json</code> snapshot stores <code>compose.service_name</code> (postgres), <code>compose.compose_project_name</code>, and <code>compose.odoo_service_name</code>. When the prefix or <code>POSTGRES_SERVICE_NAME</code> changes relative to the snapshot:</p>
 <ul>
-<li>prepare step <strong><code>template.odoo_conf</code></strong> regenerates the config;</li>
-<li>drift <strong><code>db_host_mismatch</code></strong> appears in plan.</li>
+<li>prepare step <strong><code>template.odoo_conf</code></strong> regenerates the config on <code>db_host</code> mismatch;</li>
+<li>drift <strong><code>service_name</code></strong>, <strong><code>compose_project_name</code></strong>, or <strong><code>db_host_mismatch</code></strong> appears in plan.</li>
 </ul>
+<p>See <a href="../env-dotenv/"><code>.env</code> variables</a>, <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="odoo-databases-backup-restore-drop">Odoo databases: backup, restore, drop<a class="headerlink" href="#odoo-databases-backup-restore-drop" title="Permanent link">&para;</a></h2>
 <p><strong><code>--db-drop</code></strong>, <strong><code>--db-restore</code></strong>, <strong><code>--db-backup</code></strong> operate on <strong>Odoo databases</strong> inside the cluster, not on <code>last_run.json</code>.</p>
 <p>On a legacy cluster a database may exist but be <strong>owned by another PostgreSQL user</strong>. Standard Odoo <code>exp_drop</code> then skips silently; odpm falls back to direct <code>DROP DATABASE</code> and fails clearly if the database remains.</p>
@@ -2351,10 +2353,11 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>status
 odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
-docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>db-dev<span class="w">    </span><span class="c1"># service name from POSTGRES_SERVICE_NAME</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>db-dev<span class="w">    </span><span class="c1"># postgres service name from .env (or acme-db when ODPM_COMPOSE_PREFIX=acme)</span>
 </code></pre></div>
-<p>After renaming the postgres service, remove orphan containers:</p>
+<p>After changing <code>POSTGRES_SERVICE_NAME</code> or <code>ODPM_COMPOSE_PREFIX</code>, remove orphan containers (with the same project scope odpm uses):</p>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>down<span class="w"> </span>--remove-orphans
+<span class="c1"># odpm passes -p automatically; manually: docker compose -p acme down --remove-orphans</span>
 </code></pre></div>
 <h2 id="what-odpm-does-not-automate">What odpm does not automate<a class="headerlink" href="#what-odpm-does-not-automate" title="Permanent link">&para;</a></h2>
 <ul>

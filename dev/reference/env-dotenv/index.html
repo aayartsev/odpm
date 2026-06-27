@@ -1326,6 +1326,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#home-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Пример: общее в home, своё в project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1413,6 +1424,28 @@
     <span class="md-ellipsis">
       
         POSTGRES_SERVICE_NAME
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odpm_compose_prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODPM_COMPOSE_PREFIX
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odpm_compose_network-odpm_compose_network_external" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODPM_COMPOSE_NETWORK / ODPM_COMPOSE_NETWORK_EXTERNAL
       
     </span>
   </a>
@@ -2010,6 +2043,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#home-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Пример: общее в home, своё в project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2104,6 +2148,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#odpm_compose_prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODPM_COMPOSE_PREFIX
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odpm_compose_network-odpm_compose_network_external" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODPM_COMPOSE_NETWORK / ODPM_COMPOSE_NETWORK_EXTERNAL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#manifest" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2131,7 +2197,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/reference/env-dotenv.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/env-dotenv.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2140,8 +2206,39 @@
 
 
 <h1 id="env">Переменные файла <code>.env</code><a class="headerlink" href="#env" title="Permanent link">&para;</a></h1>
-<p>Файл <strong><code>.env</code></strong> задаёт параметры <strong>этого</strong> каталога odpm-окружения: порты, сценарий, пути к резервным копиям и клонам git. Если он лежит <strong>в каталоге проекта</strong>, он <strong>полностью заменяет</strong> <code>~/.odpm/.env</code> — значения из двух файлов не смешиваются (<a href="../config-hierarchy/">иерархия</a>).</p>
-<p>При <strong>первом интерактивном</strong> запуске odpm задаёт вопросы мастера настройки и записывает ответы в <code>.env</code> (глобальный или проектный). На незнакомые пункты можно нажать Enter.</p>
+<p>Параметры odpm-окружения (порты, сценарий, пути к бэкапам и клонам git) задаются в <strong><code>.env</code></strong>. С <strong>4.7</strong> при чтении odpm объединяет два файла (<a href="../config-hierarchy/">иерархия</a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>):</p>
+<table>
+<thead>
+<tr>
+<th>Файл</th>
+<th>Роль</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~/.odpm/.env</code></td>
+<td>Общий профиль пользователя (база)</td>
+</tr>
+<tr>
+<td><code>.env</code> в каталоге проекта</td>
+<td>Переопределения для <strong>этого</strong> окружения (overlay, сильнее home)</td>
+</tr>
+</tbody>
+</table>
+<p>Мастер первого запуска <strong>записывает</strong> в project <code>.env</code>, если файл уже есть, иначе в <code>~/.odpm/.env</code>. В project можно держать только отличающиеся ключи (например <code>ODOO_PORT</code> и <code>ODPM_COMPOSE_PREFIX</code>), а <code>BACKUP_DIR</code> и <code>ODOO_PROJECTS_DIR</code> — в home.</p>
+<p>При <strong>первом интерактивном</strong> запуске odpm задаёт вопросы мастера настройки. На незнакомые пункты можно нажать Enter.</p>
+<h3 id="home-project">Пример: общее в home, своё в project<a class="headerlink" href="#home-project" title="Permanent link">&para;</a></h3>
+<p><code>~/.odpm/.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">BACKUP_DIR</span><span class="o">=</span><span class="s">/home/dev/backups</span>
+<span class="na">ODOO_PROJECTS_DIR</span><span class="o">=</span><span class="s">/home/dev/odoo_projects</span>
+<span class="na">PATH_TO_SSH_KEY</span><span class="o">=</span><span class="s">/home/dev/.ssh/id_ed25519</span>
+<span class="na">ODPM_LOCALE</span><span class="o">=</span><span class="s">ru_RU</span>
+</code></pre></div>
+<p><code>&lt;project&gt;/.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODOO_PORT</span><span class="o">=</span><span class="s">8070</span>
+<span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
+<span class="na">ODOO_PLATFORM_DIR</span><span class="o">=</span><span class="s">/work/client/odoo/19.0</span>
+</code></pre></div>
 <h2 id="_1">Переменные<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2174,8 +2271,23 @@
 </tr>
 <tr>
 <td><code>POSTGRES_SERVICE_NAME</code></td>
-<td>Имя сервиса PostgreSQL в <code>docker-compose.yml</code> и <code>db_host</code> в <code>odoo.conf</code></td>
+<td>Имя сервиса PostgreSQL в <code>docker-compose.yml</code> и <code>db_host</code> в <code>odoo.conf</code> (без <code>ODPM_COMPOSE_PREFIX</code>)</td>
 <td><code>db</code></td>
+</tr>
+<tr>
+<td><code>ODPM_COMPOSE_PREFIX</code></td>
+<td>Префикс для <strong>полной</strong> изоляции compose-стека: ключи <code>db</code>/<code>odoo</code>, том <code>postgres-data</code>, имя проекта Docker Compose</td>
+<td>не задан</td>
+</tr>
+<tr>
+<td><code>ODPM_COMPOSE_NETWORK</code></td>
+<td>Логическое имя <strong>одной</strong> compose-сети для всего стека (managed bridge или external); без значения — implicit default network</td>
+<td>не задан</td>
+</tr>
+<tr>
+<td><code>ODPM_COMPOSE_NETWORK_EXTERNAL</code></td>
+<td><code>1</code> / <code>true</code> — сеть уже существует на хосте (<code>external: true</code>); без prefix на имени</td>
+<td><code>0</code></td>
 </tr>
 <tr>
 <td><code>DEBUGGER_PORT</code></td>
@@ -2224,7 +2336,7 @@
 </tr>
 </tbody>
 </table>
-<p>Смена <code>POSTGRES_SERVICE_NAME</code> или <code>POSTGRES_PORT</code> относительно сохранённого снимка даёт <strong>database drift</strong> — см. <a href="../database-state/">состояние PostgreSQL</a>.</p>
+<p>Смена <code>POSTGRES_SERVICE_NAME</code>, <code>POSTGRES_PORT</code> или <code>ODPM_COMPOSE_PREFIX</code> относительно сохранённого снимка даёт <strong>database drift</strong> — см. <a href="../database-state/">состояние PostgreSQL</a>.</p>
 <h2 id="debugger_port-backend"><code>DEBUGGER_PORT</code> и backend<a class="headerlink" href="#debugger_port-backend" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2284,9 +2396,77 @@
 <p>Один ключ применяется ко всем указанным удалённым репозиториям.</p>
 <h2 id="postgres_service_name"><code>POSTGRES_SERVICE_NAME</code><a class="headerlink" href="#postgres_service_name" title="Permanent link">&para;</a></h2>
 <p>Имя сервиса PostgreSQL в <code>docker-compose.yml</code> и значение <code>db_host</code> в <code>odoo.conf</code> (DNS внутри docker-сети). Допустимы строчные буквы, цифры, <code>_</code> и <code>-</code>; имя должно начинаться с буквы. После смены перегенерируйте <code>docker-compose.yml</code> и <code>odoo.conf</code> (обычный запуск <code>odpm</code>).</p>
+<p><strong>Не используется</strong>, если задан <strong><code>ODPM_COMPOSE_PREFIX</code></strong> — postgres получает имя <code>{prefix}db</code> (например <code>acme-db</code>), с предупреждением в логе.</p>
+<h2 id="odpm_compose_prefix"><code>ODPM_COMPOSE_PREFIX</code><a class="headerlink" href="#odpm_compose_prefix" title="Permanent link">&para;</a></h2>
+<p>Опциональный префикс для <strong>изоляции полного compose-стека</strong> на общем хосте: несколько odpm-проектов в одном каталоге или параллельные копии без коллизий имён сервисов, томов и scope Docker Compose.</p>
+<table>
+<thead>
+<tr>
+<th>Режим</th>
+<th>Поведение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Не задан</strong></td>
+<td>Как в 4.6: postgres — из <code>POSTGRES_SERVICE_NAME</code> (по умолчанию <code>db</code>), odoo — <code>odoo</code>, том — <code>postgres-data</code></td>
+</tr>
+<tr>
+<td><strong>Задан</strong> (<code>acme</code> или <code>acme-</code>)</td>
+<td>Сервисы <code>acme-db</code>, <code>acme-odoo</code>; том <code>acme-postgres-data</code>; project name / <code>docker compose -p</code> — <code>acme</code></td>
+</tr>
+</tbody>
+</table>
+<p>Нормализация: lowercase, символы <code>[a-z0-9-]</code>, имя начинается с буквы; завершающий <code>-</code> в <code>.env</code> опционален. Невалидное значение <strong>игнорируется</strong> (префикс отключён, warning в логе).</p>
+<p>В <code>odpm.json</code> sidecar по-прежнему указывают логические имена (<code>depends_on: ["db"]</code>); odpm переписывает их в physical при генерации <code>docker-compose.yml</code>.</p>
+<p>Пример:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
+</code></pre></div>
+<p>См. <a href="../../contributing/adr-012-compose-service-prefix/">ADR-012</a>, <a href="../database-state/">состояние PostgreSQL</a>.</p>
+<h2 id="odpm_compose_network-odpm_compose_network_external"><code>ODPM_COMPOSE_NETWORK</code> / <code>ODPM_COMPOSE_NETWORK_EXTERNAL</code><a class="headerlink" href="#odpm_compose_network-odpm_compose_network_external" title="Permanent link">&para;</a></h2>
+<p>Опционально объявить <strong>одну</strong> именованную Docker Compose-сеть для <strong>всего</strong> odpm-стека (<code>db</code>, <code>odoo</code>, sidecars). Без этих переменных odpm <strong>не</strong> добавляет секцию <code>networks:</code> в <code>docker-compose.yml</code> — сервисы остаются в implicit default network проекта (как в 4.6).</p>
+<table>
+<thead>
+<tr>
+<th>Режим</th>
+<th><code>.env</code></th>
+<th>Поведение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>По умолчанию</strong></td>
+<td>переменные не заданы</td>
+<td>Без <code>networks:</code> в YAML</td>
+</tr>
+<tr>
+<td><strong>Managed</strong></td>
+<td><code>ODPM_COMPOSE_NETWORK=stack</code></td>
+<td><code>networks: { stack: { driver: bridge } }</code>, все сервисы без своего <code>networks</code> подключаются</td>
+</tr>
+<tr>
+<td><strong>External</strong></td>
+<td><code>ODPM_COMPOSE_NETWORK=proxy</code> + <code>ODPM_COMPOSE_NETWORK_EXTERNAL=1</code></td>
+<td><code>external: true</code>; имя <strong>без</strong> prefix (общая сеть reverse proxy)</td>
+</tr>
+</tbody>
+</table>
+<p>С <strong><code>ODPM_COMPOSE_PREFIX=acme</code></strong> managed-сеть <code>stack</code> становится physical <strong><code>acme-stack</code></strong>; external <code>proxy</code> остаётся <code>proxy</code>.</p>
+<p>Нормализация имени: как у prefix (<code>[a-z0-9-]</code>, с буквы). Невалидное значение отключает сеть (warning). <code>ODPM_COMPOSE_NETWORK_EXTERNAL</code> без имени сети не действует.</p>
+<p>Типичный split (<a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>):</p>
+<p><code>~/.odpm/.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">proxy</span>
+<span class="na">ODPM_COMPOSE_NETWORK_EXTERNAL</span><span class="o">=</span><span class="s">1</span>
+</code></pre></div>
+<p><code>&lt;project&gt;/.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
+<span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">stack</span>
+</code></pre></div>
+<p>Sidecar в manifest с <code>networks: ["stack"]</code> согласован только при <code>ODPM_COMPOSE_NETWORK=stack</code>; иначе <code>odpm manifest validate</code> выдаёт warning. См. <a href="../plugins/">плагины</a>, <a href="../../contributing/adr-014-compose-stack-network/">ADR-014</a>.</p>
+<p>Смена сети <strong>не</strong> даёт database drift (не в снимке <code>last_run.json</code>); перегенерируется <code>docker-compose.yml</code> при следующем materialize.</p>
 <h2 id="manifest">Переменные для подстановки в manifest<a class="headerlink" href="#manifest" title="Permanent link">&para;</a></h2>
 <p>Помимо встроенных ключей odpm в <code>.env</code> можно задавать <strong>произвольные</strong> имена для <code>${VAR}</code> в <code>odpm.json</code> и <code>user_settings.json</code> (например <code>ODOO_PLATFORM_DIR</code>, <code>OCA_WEB_PATH</code>, <code>GIT_HOST</code>). Они <strong>не</strong> управляют портами или сценарием сами по себе — только подставляются в whitelist-поля manifest при чтении JSON.</p>
-<p>Приоритет для <code>${VAR}</code>: переменные <strong>процесса</strong> odpm перекрывают project <code>.env</code>. Пустой default в manifest: <code>${VAR:-}</code>.</p>
+<p>Приоритет для <code>${VAR}</code>: переменные <strong>процесса</strong> odpm перекрывают effective <code>.env</code> (merge home + project). Пустой default в manifest: <code>${VAR:-}</code>.</p>
 <p>Типичный фрагмент project <code>.env</code> для локальной разработки:</p>
 <div class="highlight"><pre><span></span><code><span class="na">ODOO_PLATFORM_DIR</span><span class="o">=</span><span class="s">/home/dev/odoo/19.0</span>
 <span class="na">DEVELOPING_PROJECT_DIR</span><span class="o">=</span><span class="s">/home/dev/my_addons</span>

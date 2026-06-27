@@ -1281,10 +1281,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#one-env-file-at-a-time" class="md-nav__link">
+  <a href="#two-env-layers-on-read-47" class="md-nav__link">
     <span class="md-ellipsis">
       
-        One .env file at a time
+        Two .env layers on read (4.7)
       
     </span>
   </a>
@@ -1960,10 +1960,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#one-env-file-at-a-time" class="md-nav__link">
+  <a href="#two-env-layers-on-read-47" class="md-nav__link">
     <span class="md-ellipsis">
       
-        One .env file at a time
+        Two .env layers on read (4.7)
       
     </span>
   </a>
@@ -2009,7 +2009,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/en/reference/config-hierarchy.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/config-hierarchy.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2026,18 +2026,49 @@
 <div class="highlight"><pre><span></span><code>Command-line parameters for a single run
     ↓
 odpm.json and user_settings.json (files in the project directory / in git)
-    ↓  (in whitelist strings: ${VAR} ← process env, then project .env)
-project .env file
+    ↓  (in whitelist strings: ${VAR} ← process env, then effective .env: project over ~/.odpm/.env)
+project .env file (overlay)
     ↓
-~/.odpm/.env file (shared user profile)
+~/.odpm/.env file (user base profile)
     ↓
 shell environment variables (when creating .env without prompts)
     ↓
 odpm built-in defaults
 </code></pre></div>
-<h2 id="one-env-file-at-a-time">One .env file at a time<a class="headerlink" href="#one-env-file-at-a-time" title="Permanent link">&para;</a></h2>
-<p>odpm reads <strong>either</strong> <code>.env</code> in the project directory <strong>or</strong> <code>~/.odpm/.env</code> — <strong>not both at once</strong>. If the project directory has its own <code>.env</code>, the global file <strong>does not supplement</strong> it: a key missing in the project <strong>is not</strong> pulled from <code>~/.odpm/.env</code>.</p>
-<p>Timing exception: before full initialization, only the project <code>.env</code> may be read for early checks (see <a href="../locale/">message locale</a>).</p>
+<h2 id="two-env-layers-on-read-47">Two <code>.env</code> layers on read (4.7)<a class="headerlink" href="#two-env-layers-on-read-47" title="Permanent link">&para;</a></h2>
+<p>On <strong>read</strong>, odpm merges both files when present:</p>
+<ol>
+<li><code>~/.odpm/.env</code> — base (shared paths, SSH, locale, defaults for all projects).</li>
+<li><code>.env</code> in the odpm environment directory — <strong>overlay</strong>; matching keys <strong>override</strong> home.</li>
+</ol>
+<p>The effective dict drives ports, scenario, manifest <code>${VAR}</code>, and early <code>ODPM_LOCALE</code> (see <a href="../locale/">message locale</a>). Details: <a href="../env-dotenv/">env-dotenv.md</a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>.</p>
+<p>On <strong>write</strong> (first-run wizard, non-interactive create) the <strong>primary</strong> target is unchanged: project <code>.env</code> if it already exists, else <code>~/.odpm/.env</code>. odpm does <strong>not</strong> auto-copy home into project — put only differing keys in project <code>.env</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Setup</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Home only</td>
+<td>Same as before when no project <code>.env</code></td>
+</tr>
+<tr>
+<td>Full project only</td>
+<td>Same as before with a complete project <code>.env</code></td>
+</tr>
+<tr>
+<td>Both, disjoint keys</td>
+<td>Merge: home fill-in + project overrides</td>
+</tr>
+<tr>
+<td>Both, same key</td>
+<td>Value from project <code>.env</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="generated-files">Generated files<a class="headerlink" href="#generated-files" title="Permanent link">&para;</a></h2>
 <p><code>docker-compose.yml</code>, <code>.odpm/runtime/config.json</code>, <code>.odpm/database/last_run.json</code>, and the root <code>.dockerignore</code> are <strong>generated</strong> by odpm from the project description and scenario. Do not treat them as the place for “manual truth” — see <a href="../generated-files/">generated files</a> and <a href="../database-state/">PostgreSQL state</a>.</p>
 <h2 id="git-version-pinning">Git version pinning<a class="headerlink" href="#git-version-pinning" title="Permanent link">&para;</a></h2>

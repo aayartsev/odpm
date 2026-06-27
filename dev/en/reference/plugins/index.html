@@ -1612,6 +1612,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#compose-network-networks-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compose network (networks, 4.7+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#patch-built-in-services-service_patches-46" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2144,6 +2155,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#compose-network-networks-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compose network (networks, 4.7+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#patch-built-in-services-service_patches-46" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2331,7 +2353,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/en/reference/plugins.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/plugins.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2350,7 +2372,7 @@
 
 <span class="n">assert_extension_api_compatible</span><span class="p">(</span><span class="n">EXTENSION_API_VERSION</span><span class="p">)</span>
 </code></pre></div>
-<p>Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
+<p>Breaking changes to pluggy protocols or manifest hooks require a major API bump. Policy: <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md">ADR-004</a>.</p>
 <h2 id="three-ways-to-extend-a-project">Three ways to extend a project<a class="headerlink" href="#three-ways-to-extend-a-project" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2383,7 +2405,7 @@
 </tr>
 </tbody>
 </table>
-<p>v2 field details: <a href="../odpm-json/">odpm.json</a>. ADR: <a href="../../contributing/adr-001-extensions-and-manifest-v2/">adr-001-extensions-and-manifest-v2.md</a>.</p>
+<p>v2 field details: <a href="../odpm-json/">odpm.json</a>. ADR: <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md">adr-001-extensions-and-manifest-v2.md</a>.</p>
 <h2 id="declarative-service-mailpit">Declarative service (Mailpit)<a class="headerlink" href="#declarative-service-mailpit" title="Permanent link">&para;</a></h2>
 <p>Test SMTP with web UI on port <strong>8025</strong>. Add to nested manifest v2:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2410,8 +2432,31 @@
 </code></pre></div>
 <p>Same spec in code: <code>dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC</code>.</p>
 <p>After <code>odpm up</code> the service appears in generated <code>docker-compose.yml</code> (<code>{COMPOSE_SERVICE_FRAGMENTS}</code> block). Materialize artifacts: <code>.odpm/compose/fragments/mailpit.yml</code> (gitignored).</p>
+<p>In sidecar <code>depends_on</code>, use the <strong>logical</strong> name <code>db</code> (not physical <code>acme-db</code>); with <code>ODPM_COMPOSE_PREFIX</code> odpm rewrites dependencies at compose generation — see <a href="../env-dotenv/">env-dotenv.md</a>.</p>
+<h3 id="compose-network-networks-47">Compose network (<code>networks</code>, 4.7+)<a class="headerlink" href="#compose-network-networks-47" title="Permanent link">&para;</a></h3>
+<p>By default the stack uses Docker Compose implicit default network. To attach <strong>all</strong> services to one named network, set in <code>.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">stack</span>
+</code></pre></div>
+<p>For an <strong>external</strong> reverse-proxy network (Traefik, Caddy), typically in <code>~/.odpm/.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">proxy</span>
+<span class="na">ODPM_COMPOSE_NETWORK_EXTERNAL</span><span class="o">=</span><span class="s">1</span>
+</code></pre></div>
+<p>See <a href="../env-dotenv/">env-dotenv.md</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md">ADR-014</a>.</p>
+<p>Sidecars may declare <code>networks</code> (logical names; with <code>ODPM_COMPOSE_PREFIX</code> odpm rewrites managed networks to physical names; external names stay as-is):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;metrics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prom/prometheus&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;networks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;stack&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>If manifest uses <code>networks: ["stack"]</code>, <code>.env</code> must set <strong><code>ODPM_COMPOSE_NETWORK=stack</code></strong> (or omit <code>networks</code> — odpm attaches the sidecar automatically). <code>odpm manifest validate</code> logs a <strong>warning</strong> when logical <code>stack</code> does not match <code>.env</code>.</p>
+<p>Proxy-only sidecar with <code>${VAR}</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;networks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${PROXY_NETWORK}&quot;</span><span class="p">]</span>
+</code></pre></div>
+<p>with <code>PROXY_NETWORK=proxy</code> and <code>ODPM_COMPOSE_NETWORK=proxy</code> in <code>.env</code>.</p>
 <h3 id="patch-built-in-services-service_patches-46">Patch built-in services (<code>service_patches</code>, 4.6+)<a class="headerlink" href="#patch-built-in-services-service_patches-46" title="Permanent link">&para;</a></h3>
-<p>Names <strong><code>odoo</code></strong>, <strong><code>db</code></strong>, <strong><code>postgres</code></strong> cannot appear in <code>services</code> — use patches only. Policy: <a href="../../contributing/adr-009-compose-service-patch/">ADR-009</a>.</p>
+<p>Names <strong><code>odoo</code></strong>, <strong><code>db</code></strong>, <strong><code>postgres</code></strong> cannot appear in <code>services</code> — use patches only. Policy: <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md">ADR-009</a>.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;service_patches&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;odoo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2492,7 +2537,7 @@
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;odoo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;environment&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MY_FLAG&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}}</span>
 </code></pre></div>
 <h3 id="nested-dependency-services-46">Nested dependency <code>services</code> (4.6+)<a class="headerlink" href="#nested-dependency-services-46" title="Permanent link">&para;</a></h3>
-<p>With <code>use_oca_dependencies</code>, v2 <code>services</code> / <code>service_patches</code> from dependency <code>odpm.json</code> files are inherited into host compose after <code>project.map_folders</code>. On name conflict the <strong>host manifest wins</strong>. See <a href="../../contributing/adr-004-plugin-api-stability/">ADR-004</a>.</p>
+<p>With <code>use_oca_dependencies</code>, v2 <code>services</code> / <code>service_patches</code> from dependency <code>odpm.json</code> files are inherited into host compose after <code>project.map_folders</code>. On name conflict the <strong>host manifest wins</strong>. See <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md">ADR-004</a>.</p>
 <h2 id="python-plugin-prepare-step">Python plugin: prepare step<a class="headerlink" href="#python-plugin-prepare-step" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.prepare_steps&quot;</span><span class="k">]</span>
 <span class="n">my_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_odpm_plugin.steps:plugin_factory&quot;</span>

@@ -1281,10 +1281,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#env" class="md-nav__link">
+  <a href="#env-47" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Один файл .env за раз
+        Два уровня .env при чтении (4.7)
       
     </span>
   </a>
@@ -1960,10 +1960,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#env" class="md-nav__link">
+  <a href="#env-47" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Один файл .env за раз
+        Два уровня .env при чтении (4.7)
       
     </span>
   </a>
@@ -2009,7 +2009,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/reference/config-hierarchy.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/config-hierarchy.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2023,18 +2023,49 @@
 <div class="highlight"><pre><span></span><code>Параметры командной строки при одном запуске
     ↓
 odpm.json и user_settings.json (файлы в каталоге проекта / в git)
-    ↓  (в whitelist-строках: ${VAR} ← process env, затем project .env)
-файл .env в каталоге проекта
+    ↓  (в whitelist-строках: ${VAR} ← process env, затем effective .env: project поверх ~/.odpm/.env)
+файл .env в каталоге проекта (overlay)
     ↓
-файл ~/.odpm/.env (общий профиль пользователя)
+файл ~/.odpm/.env (базовый профиль пользователя)
     ↓
 переменные окружения оболочки (при создании .env без диалога)
     ↓
 встроенные значения по умолчанию odpm
 </code></pre></div>
-<h2 id="env">Один файл .env за раз<a class="headerlink" href="#env" title="Permanent link">&para;</a></h2>
-<p>odpm читает <strong>либо</strong> <code>.env</code> в каталоге проекта, <strong>либо</strong> <code>~/.odpm/.env</code> — <strong>не оба сразу</strong>. Если в каталоге проекта есть свой <code>.env</code>, глобальный файл <strong>не дополняет</strong> его: отсутствующий в проекте ключ <strong>не</strong> подтягивается из <code>~/.odpm/.env</code>.</p>
-<p>Исключение по времени: до полной инициализации для ранних проверок может читаться только project <code>.env</code> (см. <a href="../locale/">язык сообщений</a>).</p>
+<h2 id="env-47">Два уровня <code>.env</code> при чтении (4.7)<a class="headerlink" href="#env-47" title="Permanent link">&para;</a></h2>
+<p>При <strong>чтении</strong> odpm объединяет оба файла, если они существуют:</p>
+<ol>
+<li><code>~/.odpm/.env</code> — база (общие пути, SSH, locale, значения по умолчанию для всех проектов).</li>
+<li><code>.env</code> в каталоге odpm-окружения — <strong>overlay</strong>; совпадающий ключ <strong>перекрывает</strong> home.</li>
+</ol>
+<p>Итоговый effective dict используется для портов, сценария, <code>${VAR}</code> в manifest и раннего <code>ODPM_LOCALE</code> (см. <a href="../locale/">locale.md</a>). Подробнее: <a href="../env-dotenv/">env-dotenv.md</a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>.</p>
+<p>При <strong>записи</strong> (мастер первого запуска, non-interactive create) по-прежнему один <strong>primary</strong> файл: project <code>.env</code>, если он уже есть, иначе <code>~/.odpm/.env</code>. odpm <strong>не</strong> копирует home в project автоматически — в project достаточно указать только отличающиеся ключи.</p>
+<table>
+<thead>
+<tr>
+<th>Ситуация</th>
+<th>Поведение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Только home</td>
+<td>Как раньше при отсутствии project <code>.env</code></td>
+</tr>
+<tr>
+<td>Только project (полный)</td>
+<td>Как раньше при наличии project <code>.env</code></td>
+</tr>
+<tr>
+<td>Оба, разные ключи</td>
+<td>Merge: home fill-in + project override</td>
+</tr>
+<tr>
+<td>Оба, один ключ</td>
+<td>Значение из project <code>.env</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="_3">Сгенерированные файлы<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p><code>docker-compose.yml</code>, <code>.odpm/runtime/config.json</code>, <code>.odpm/database/last_run.json</code>, корневой <code>.dockerignore</code> <strong>генерируются</strong> odpm из описания проекта и сценария. Их не следует считать местом «ручной правды» — см. <a href="../generated-files/">сгенерированные файлы</a> и <a href="../database-state/">состояние PostgreSQL</a>.</p>
 <h2 id="git">Фиксация версий git<a class="headerlink" href="#git" title="Permanent link">&para;</a></h2>

@@ -758,6 +758,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Унаследованный data dir PostgreSQL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#odpmenv-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Общий профиль в ~/.odpm/.env (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odpm-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Несколько odpm-проектов на одном хосте (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compose-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Именованная compose-сеть (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2045,6 +2084,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Унаследованный data dir PostgreSQL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#odpmenv-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Общий профиль в ~/.odpm/.env (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odpm-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Несколько odpm-проектов на одном хосте (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compose-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Именованная compose-сеть (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2075,7 +2153,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/getting-started/legacy-project.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/getting-started/legacy-project.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2130,6 +2208,19 @@ odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </code></pre></div>
 <p>Смена <strong><code>POSTGRES_SERVICE_NAME</code></strong> или порта в <code>.env</code> даёт <strong>drift</strong> относительно снимка — odpm предупредит в plan. После переименования сервиса удалите orphan-контейнеры: <code>docker compose down --remove-orphans</code>.</p>
+<h3 id="odpmenv-47">Общий профиль в <code>~/.odpm/.env</code> (4.7)<a class="headerlink" href="#odpmenv-47" title="Permanent link">&para;</a></h3>
+<p>С <strong>4.7</strong> odpm при чтении <strong>объединяет</strong> <code>~/.odpm/.env</code> (общие пути, SSH, <code>ODPM_LOCALE</code>) и project <code>.env</code> (порты, <code>ODPM_COMPOSE_PREFIX</code>, локальные <code>${VAR}</code>). При совпадении ключа побеждает project. В project достаточно хранить только отличия — см. <a href="../../reference/env-dotenv/">переменные <code>.env</code></a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>.</p>
+<h3 id="odpm-47">Несколько odpm-проектов на одном хосте (4.7)<a class="headerlink" href="#odpm-47" title="Permanent link">&para;</a></h3>
+<p>Если на машине одновременно работают <strong>несколько</strong> odpm-окружений и нужно избежать конфликтов имён Docker Compose, задайте в project <code>.env</code> уникальный префикс:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
+</code></pre></div>
+<p>odpm перепишет сервисы <code>db</code> / <code>odoo</code>, volume <code>postgres-data</code> и передаст <code>docker compose -p acme</code>. В manifest и плагинах по-прежнему используйте <strong>логические</strong> имена (<code>depends_on: ["db"]</code>). Подробнее: <a href="../../reference/env-dotenv/">переменные <code>.env</code></a>, <a href="../../contributing/adr-012-compose-service-prefix/">ADR-012</a>.</p>
+<h3 id="compose-47">Именованная compose-сеть (4.7)<a class="headerlink" href="#compose-47" title="Permanent link">&para;</a></h3>
+<p>Чтобы подключить весь стек к <strong>external</strong> сети reverse proxy (Traefik, Caddy), обычно в <code>~/.odpm/.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">proxy</span>
+<span class="na">ODPM_COMPOSE_NETWORK_EXTERNAL</span><span class="o">=</span><span class="s">1</span>
+</code></pre></div>
+<p>Для <strong>managed</strong> bridge-сети в project <code>.env</code> — <code>ODPM_COMPOSE_NETWORK=stack</code> (с prefix — physical <code>acme-stack</code>). Без переменных odpm оставляет implicit default network. См. <a href="../../reference/env-dotenv/">переменные <code>.env</code></a>, <a href="../../contributing/adr-014-compose-stack-network/">ADR-014</a>.</p>
 <p>Adoption <strong>не</strong> меняет владельца существующих Odoo-баз в PostgreSQL. Для <code>--db-drop</code> / <code>--db-restore</code> на таких базах см. <a href="../../reference/database-state/">состояние PostgreSQL</a>.</p>
 <h2 id="_7">Частые затруднения<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
 <ul>

@@ -1437,6 +1437,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scenarios-block-per-odpm_scenario-overlays-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scenarios block (per ODPM_SCENARIO overlays, 4.7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#migration-v1-v2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2048,6 +2059,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scenarios-block-per-odpm_scenario-overlays-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scenarios block (per ODPM_SCENARIO overlays, 4.7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#migration-v1-v2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2097,7 +2119,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/en/reference/odpm-json.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/odpm-json.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2289,6 +2311,10 @@
 <td><code>services.&lt;name&gt;</code></td>
 <td>Extra compose services: <code>image</code> required; optional <code>ports[]</code>, <code>environment</code>, <code>volumes[]</code>, <code>depends_on[]</code>, <code>restart</code>, <code>user</code>, <code>tty</code>, <code>command[]</code>, <code>entrypoint[]</code></td>
 </tr>
+<tr>
+<td><code>scenarios.developer</code> / <code>server</code> / <code>ci</code></td>
+<td>Per-scenario overlays for <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>requirements</code> (4.7); effective slice from <code>ODPM_SCENARIO</code> in <code>.env</code></td>
+</tr>
 </tbody>
 </table>
 <p>Mailpit example: <a href="../plugins/">plugins.md</a>.</p>
@@ -2332,6 +2358,76 @@
 <span class="p">}</span>
 </code></pre></div>
 <p><code>odpm manifest validate</code> rejects keys managed by odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. See <a href="../odoo-conf/">odoo.conf</a>.</p>
+<h2 id="scenarios-block-per-odpm_scenario-overlays-47"><code>scenarios</code> block (per <code>ODPM_SCENARIO</code> overlays, 4.7)<a class="headerlink" href="#scenarios-block-per-odpm_scenario-overlays-47" title="Permanent link">&para;</a></h2>
+<p>Optional <strong>manifest v2</strong> object to override <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, and <code>requirements</code> <strong>per scenario</strong> from project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). One <code>odpm.json</code> in git — different effective settings on laptop, server, and CI without <code>${VAR}</code> workarounds.</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Condition</th>
+<th>Effective slice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Legacy</strong></td>
+<td>no <code>scenarios</code> key</td>
+<td>top-level fields only</td>
+</tr>
+<tr>
+<td><strong>Multi</strong></td>
+<td><code>scenarios</code> present (even <code>{}</code>)</td>
+<td>top-level <strong>+</strong> <code>scenarios[ODPM_SCENARIO]</code> overlay</td>
+</tr>
+</tbody>
+</table>
+<p>Merge rules:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Merge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>odoo_conf</code></td>
+<td>deep merge by section</td>
+</tr>
+<tr>
+<td><code>services</code></td>
+<td>overlay replaces service by name</td>
+</tr>
+<tr>
+<td><code>service_patches</code></td>
+<td>merge per <a href="../../contributing/adr-009-compose-service-patch/">ADR-009</a></td>
+</tr>
+<tr>
+<td><code>requirements</code></td>
+<td>concat + dedupe</td>
+</tr>
+</tbody>
+</table>
+<p>Manifests with <code>scenarios</code> SHOULD set <strong><code>requires_odpm: "4.7.0"</code></strong>. v1 + <code>scenarios</code> → validate error. Details: <a href="../../contributing/adr-011-scenario-manifest-overrides/">ADR-011</a>.</p>
+<p>Example — more workers on server, extra dev requirements:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.7.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;proxy_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;True&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;mailpit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;axllent/mailpit&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;depends_on&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;scenarios&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;developer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ipython&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>In manifest and plugins, sidecars use <strong>logical</strong> <code>depends_on: ["db"]</code>; with <code>ODPM_COMPOSE_PREFIX</code> in <code>.env</code> odpm rewrites to physical names — see <a href="../env-dotenv/">env-dotenv.md</a>.</p>
 <h2 id="migration-v1-v2">Migration v1 → v2<a class="headerlink" href="#migration-v1-v2" title="Permanent link">&para;</a></h2>
 <p>Command <strong><code>odpm manifest migrate</code></strong> shows a unified diff of flat manifest → nested v2. With <strong><code>--write</code></strong> it writes the result to the developing project’s <code>odpm.json</code>. Details: <a href="../manifest-migration/">manifest-migration.md</a>.</p>
 <p>On migration odpm moves:</p>

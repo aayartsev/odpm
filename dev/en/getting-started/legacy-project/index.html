@@ -758,6 +758,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Inherited PostgreSQL data directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shared-profile-in-odpmenv-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared profile in ~/.odpm/.env (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-odpm-projects-on-one-host-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple odpm projects on one host (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#named-compose-network-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Named compose network (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2045,6 +2084,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Inherited PostgreSQL data directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shared-profile-in-odpmenv-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared profile in ~/.odpm/.env (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-odpm-projects-on-one-host-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple odpm projects on one host (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#named-compose-network-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Named compose network (4.7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2075,7 +2153,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/en/getting-started/legacy-project.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/getting-started/legacy-project.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2133,6 +2211,19 @@ odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </code></pre></div>
 <p>Changing <strong><code>POSTGRES_SERVICE_NAME</code></strong> or the port in <code>.env</code> causes <strong>drift</strong> vs the snapshot — odpm warns in plan. After renaming the postgres service, remove orphan containers: <code>docker compose down --remove-orphans</code>.</p>
+<h3 id="shared-profile-in-odpmenv-47">Shared profile in <code>~/.odpm/.env</code> (4.7)<a class="headerlink" href="#shared-profile-in-odpmenv-47" title="Permanent link">&para;</a></h3>
+<p>Since <strong>4.7</strong>, odpm <strong>merges</strong> <code>~/.odpm/.env</code> (shared paths, SSH, <code>ODPM_LOCALE</code>) with project <code>.env</code> (ports, <code>ODPM_COMPOSE_PREFIX</code>, local <code>${VAR}</code> helpers) on read; project wins on key collisions. Keep only differences in project <code>.env</code> — see <a href="../../reference/env-dotenv/">environment variables</a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>.</p>
+<h3 id="multiple-odpm-projects-on-one-host-47">Multiple odpm projects on one host (4.7)<a class="headerlink" href="#multiple-odpm-projects-on-one-host-47" title="Permanent link">&para;</a></h3>
+<p>When several odpm environments run on the <strong>same machine</strong> and you need isolated Docker Compose names, set a unique prefix in project <code>.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
+</code></pre></div>
+<p>odpm rewrites <code>db</code> / <code>odoo</code> services, the <code>postgres-data</code> volume, and passes <code>docker compose -p acme</code>. In manifest and plugins keep <strong>logical</strong> names (<code>depends_on: ["db"]</code>). See <a href="../../reference/env-dotenv/">environment variables</a>, <a href="../../contributing/adr-012-compose-service-prefix/">ADR-012</a>.</p>
+<h3 id="named-compose-network-47">Named compose network (4.7)<a class="headerlink" href="#named-compose-network-47" title="Permanent link">&para;</a></h3>
+<p>To attach the full stack to an <strong>external</strong> reverse-proxy network (Traefik, Caddy), typically in <code>~/.odpm/.env</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">proxy</span>
+<span class="na">ODPM_COMPOSE_NETWORK_EXTERNAL</span><span class="o">=</span><span class="s">1</span>
+</code></pre></div>
+<p>For a <strong>managed</strong> bridge network in project <code>.env</code> — <code>ODPM_COMPOSE_NETWORK=stack</code> (with prefix — physical <code>acme-stack</code>). Without these variables odpm keeps the implicit default network. See <a href="../../reference/env-dotenv/">environment variables</a>, <a href="../../contributing/adr-014-compose-stack-network/">ADR-014</a>.</p>
 <p>Adoption does <strong>not</strong> reassign owners of existing Odoo databases in PostgreSQL. For <code>--db-drop</code> / <code>--db-restore</code> on such databases see <a href="../../reference/database-state/">database state</a>.</p>
 <h2 id="common-issues">Common issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h2>
 <ul>

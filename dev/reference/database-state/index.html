@@ -2175,7 +2175,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/reference/database-state.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/database-state.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2223,7 +2223,7 @@
 </table>
 <p>Снимок содержит:</p>
 <ul>
-<li><strong><code>compose</code></strong> — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте;</li>
+<li><strong><code>compose</code></strong> — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте; при <code>ODPM_COMPOSE_PREFIX</code> — также <code>compose_project_name</code> и <code>odoo_service_name</code>;</li>
 <li><strong><code>odoo_conf</code></strong> — <code>db_host</code>, <code>db_port</code>, <code>db_user</code>;</li>
 <li><strong><code>cluster</code></strong> — data dir непустой, major PostgreSQL (<code>PG_VERSION</code>), роль приложения и её наличие.</li>
 </ul>
@@ -2334,10 +2334,11 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </table>
 <p>Команды выполняют prepare (без <code>compose up</code>), если это нужно для чтения конфигурации.</p>
 <h2 id="env-odooconf">Связь с <code>.env</code> и <code>odoo.conf</code><a class="headerlink" href="#env-odooconf" title="Permanent link">&para;</a></h2>
-<p>Переменная <strong><code>POSTGRES_SERVICE_NAME</code></strong> в <code>.env</code> задаёт имя сервиса в <code>docker-compose.yml</code> и ожидаемый <strong><code>db_host</code></strong> в <code>odoo.conf</code>. При рассинхроне:</p>
+<p>Переменная <strong><code>POSTGRES_SERVICE_NAME</code></strong> в <code>.env</code> задаёт имя сервиса postgres в <code>docker-compose.yml</code> и ожидаемый <strong><code>db_host</code></strong> в <code>odoo.conf</code>, когда <strong><code>ODPM_COMPOSE_PREFIX</code></strong> не задан.</p>
+<p>Переменная <strong><code>ODPM_COMPOSE_PREFIX</code></strong> задаёт <strong>физические</strong> имена встроенных сервисов (<code>{prefix}db</code>, <code>{prefix}odoo</code>), том данных и имя проекта Docker Compose. В снимке <code>last_run.json</code> сохраняются <code>compose.service_name</code> (postgres), <code>compose.compose_project_name</code> и <code>compose.odoo_service_name</code>. При смене префикса или <code>POSTGRES_SERVICE_NAME</code> относительно снимка:</p>
 <ul>
-<li>шаг <strong><code>template.odoo_conf</code></strong> пересоздаёт конфиг;</li>
-<li>drift <strong><code>db_host_mismatch</code></strong> попадает в plan.</li>
+<li>шаг <strong><code>template.odoo_conf</code></strong> пересоздаёт конфиг при рассинхроне <code>db_host</code>;</li>
+<li>drift <strong><code>service_name</code></strong>, <strong><code>compose_project_name</code></strong> или <strong><code>db_host_mismatch</code></strong> попадает в plan.</li>
 </ul>
 <p>Подробнее: <a href="../env-dotenv/">переменные .env</a>, <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="odoo-backup-restore-drop">Odoo-базы: backup, restore, drop<a class="headerlink" href="#odoo-backup-restore-drop" title="Permanent link">&para;</a></h2>
@@ -2349,10 +2350,11 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <h2 id="_3">Диагностика<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>status
 odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
-docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>db-dev<span class="w">    </span><span class="c1"># имя сервиса из POSTGRES_SERVICE_NAME</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>db-dev<span class="w">    </span><span class="c1"># имя postgres-сервиса из .env (или acme-db при ODPM_COMPOSE_PREFIX=acme)</span>
 </code></pre></div>
-<p>После переименования сервиса postgres удалите orphan-контейнеры:</p>
+<p>После смены <code>POSTGRES_SERVICE_NAME</code> или <code>ODPM_COMPOSE_PREFIX</code> удалите orphan-контейнеры (с тем же project scope, что у odpm):</p>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>down<span class="w"> </span>--remove-orphans
+<span class="c1"># при префиксе odpm передаёт -p автоматически; вручную: docker compose -p acme down --remove-orphans</span>
 </code></pre></div>
 <h2 id="odpm">Что odpm не автоматизирует<a class="headerlink" href="#odpm" title="Permanent link">&para;</a></h2>
 <ul>

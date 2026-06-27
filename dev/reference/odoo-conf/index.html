@@ -2075,7 +2075,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.6.0-dev/docs/reference/odoo-conf.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/odoo-conf.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2112,12 +2112,12 @@ odoo.conf на диске                    ← локальные значен
 <ul>
 <li><strong><code>addons_path</code></strong> — полный список путей к дополнениям внутри контейнера;</li>
 <li><strong><code>data_dir</code></strong> — каталог данных Odoo внутри контейнера;</li>
-<li><strong><code>db_host</code></strong> — синхронизируется с <strong><code>POSTGRES_SERVICE_NAME</code></strong> из <code>.env</code> (имя сервиса PostgreSQL в compose);</li>
+<li><strong><code>db_host</code></strong> — синхронизируется с <strong>физическим</strong> именем postgres-сервиса из <code>.env</code> (<code>POSTGRES_SERVICE_NAME</code> или <code>{prefix}db</code> при <code>ODPM_COMPOSE_PREFIX</code>);</li>
 <li>маркеры базы в шаблоне — реальные значения из runtime;</li>
 <li><strong><code>admin_passwd</code></strong> — в контейнере из <code>db_manager_password</code> (не из manifest).</li>
 </ul>
 <p>В manifest <strong><code>odoo_conf</code></strong> нельзя задавать эти и другие зарезервированные ключи — <code>odpm manifest validate</code> завершится ошибкой.</p>
-<p>Если <code>db_host</code> в файле на диске не совпадает с <code>POSTGRES_SERVICE_NAME</code>, шаг <strong><code>template.odoo_conf</code></strong> пересоздаёт конфиг; в <code>odpm plan</code> появится drift <strong><code>db_host_mismatch</code></strong>. См. <a href="../database-state/">состояние PostgreSQL</a>.</p>
+<p>Если <code>db_host</code> в файле на диске не совпадает с ожидаемым именем postgres-сервиса из <code>.env</code>, шаг <strong><code>template.odoo_conf</code></strong> пересоздаёт конфиг; в <code>odpm plan</code> появится drift <strong><code>db_host_mismatch</code></strong>. См. <a href="../database-state/">состояние PostgreSQL</a>.</p>
 <h2 id="_4">Когда файл пересоздаётся целиком<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>Если файл отсутствует, повреждён или в нём не заполнены обязательные параметры базы — odpm создаст шаблон заново.</p>
 <p>После правок, влияющих на пути или состав дополнений: <code>odpm --skip-start</code> и перезапуск контейнеров.</p>
