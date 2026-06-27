@@ -87,11 +87,14 @@ class CreateUserEnvironment:
         return env_path
 
     def project_dotenv_dict(self) -> dict[str, str]:
-        """Return all key/value pairs from the resolved .env for manifest ${VAR} lookup."""
+        """Return effective merged home + project ``.env`` for manifest ``${VAR}`` lookup."""
         return dict(self._project_dotenv)
 
     def parse_env_file(self) -> None:
-        env_dict = parse.load_dotenv_dict(self.env_file)
+        env_dict = parse.load_layered_dotenv_dict(
+            project_path=self.pd_manager.project_path,
+            config_home_dir=self.config_home_dir,
+        )
         _apply_parsed_user_env(self, parse.parse_dotenv_dict(env_dict))
 
     def create_env_file(self, local_env_file: str) -> None:

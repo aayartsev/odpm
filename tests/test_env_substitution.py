@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
+from unittest.mock import patch
 
+from dev_project import constants
 from dev_project.config.transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
     EnvResolver,
@@ -45,6 +50,30 @@ class EnvResolverTests(unittest.TestCase):
         self.assertEqual(resolver.resolve("GIT_HOST"), "from-process")
         self.assertEqual(resolver.resolve("PLATFORM_DIR"), "/tmp/platform")
         user_env.project_dotenv_dict.assert_called_once_with()
+
+    def test_from_user_env_sees_home_only_key_after_layered_merge(self):
+        from dev_project.host.user_env import CreateUserEnvironment
+        from tests.test_user_env_bootstrap import (
+            _home_env_path,
+            _make_pd_manager,
+            _write_minimal_env_file,
+        )
+
+        with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
+            _write_minimal_env_file(
+                _home_env_path(home_dir),
+                extra_lines=["GIT_HOST=git.home.example"],
+            )
+            Path(os.path.join(project_dir, constants.ENV_FILE_NAME)).write_text(
+                "ODOO_PLATFORM_DIR=/work/odoo/19.0\n",
+                encoding="utf-8",
+            )
+            pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
+            with patch.dict(os.environ, {"HOME": home_dir}, clear=False):
+                user_env = CreateUserEnvironment(pd_manager)
+            resolver = EnvResolver.from_user_env(user_env, process_environ={})
+            self.assertEqual(resolver.resolve("GIT_HOST"), "git.home.example")
+            self.assertEqual(resolver.resolve("ODOO_PLATFORM_DIR"), "/work/odoo/19.0")
 
 
 class ExpandEnvStringTests(unittest.TestCase):

@@ -78,13 +78,41 @@ class ParsedUserEnv:
 def resolve_env_file_path(
     pd_manager: ProjectDirManager, *, config_home_dir: str
 ) -> str:
-    """Return project-local .env when present, else the home config path."""
+    """Return project-local .env when present, else the home config path (write target)."""
     project_env_file = os.path.join(
         pd_manager.project_path, constants.ENV_FILE_NAME
     )
     if os.path.exists(project_env_file):
         return project_env_file
     return os.path.join(config_home_dir, constants.ENV_FILE_NAME)
+
+
+def layered_env_paths(
+    *, project_path: str, config_home_dir: str
+) -> tuple[str | None, str | None]:
+    """Return ``(home_path, project_path)`` for existing ``.env`` files."""
+    home_path = os.path.join(config_home_dir, constants.ENV_FILE_NAME)
+    project_path_file = os.path.join(project_path, constants.ENV_FILE_NAME)
+    return (
+        home_path if os.path.isfile(home_path) else None,
+        project_path_file if os.path.isfile(project_path_file) else None,
+    )
+
+
+def load_layered_dotenv_dict(
+    *, project_path: str, config_home_dir: str
+) -> dict[str, str]:
+    """Load home ``.env`` as base and project ``.env`` as overlay (project wins)."""
+    merged: dict[str, str] = {}
+    home_path, project_path_file = layered_env_paths(
+        project_path=project_path,
+        config_home_dir=config_home_dir,
+    )
+    if home_path is not None:
+        merged.update(load_dotenv_dict(home_path))
+    if project_path_file is not None:
+        merged.update(load_dotenv_dict(project_path_file))
+    return merged
 
 
 def load_dotenv_dict(env_file: str) -> dict[str, str]:
@@ -191,7 +219,12 @@ def has_noninteractive_env_configuration(pd_manager: ProjectDirManager) -> bool:
     ):
         return True
     project_env = os.path.join(pd_manager.project_path, constants.ENV_FILE_NAME)
-    return os.path.isfile(project_env)
+    if os.path.isfile(project_env):
+        return True
+    home_env = os.path.join(
+        pd_manager.home_config_dir, constants.ENV_FILE_NAME
+    )
+    return os.path.isfile(home_env)
 
 
 def debugger_env_defaults_from_environ() -> EnvData:
