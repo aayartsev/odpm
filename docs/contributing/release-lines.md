@@ -172,7 +172,8 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
    - [x] ADR-014 accepted (compose stack network contract)
    - [x] `ODPM_COMPOSE_NETWORK` / `network_names.py` parse + `test_compose_network` (track D1)
    - [x] compose document generation + `apply_compose_network` + validate (track D2)
-   - [ ] sidecar warn + plugins docs (track D3); extended tests T10 (D4)
+   - [x] sidecar `stack` network warning in manifest validate; plugins.md proxy (track D3)
+   - [ ] extended tests T10 + env-dotenv CHANGELOG (track D4–D5)
    - [x] Unit: scenario + compose prefix + `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`
    - [x] Plan matrix: `test_scenario_overlay_marks_compose_fragments_stale`
    - [ ] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev` (если ещё на `4.6.0-dev`)

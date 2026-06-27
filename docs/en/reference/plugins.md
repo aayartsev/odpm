@@ -64,6 +64,44 @@ After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE
 
 In sidecar `depends_on`, use the **logical** name `db` (not physical `acme-db`); with `ODPM_COMPOSE_PREFIX` odpm rewrites dependencies at compose generation — see [env-dotenv.md](env-dotenv.md).
 
+### Compose network (`networks`, 4.7+)
+
+By default the stack uses Docker Compose implicit default network. To attach **all** services to one named network, set in `.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=stack
+```
+
+For an **external** reverse-proxy network (Traefik, Caddy), typically in `~/.odpm/.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=proxy
+ODPM_COMPOSE_NETWORK_EXTERNAL=1
+```
+
+See [env-dotenv.md](env-dotenv.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
+
+Sidecars may declare `networks` (logical names; with `ODPM_COMPOSE_PREFIX` odpm rewrites managed networks to physical names; external names stay as-is):
+
+```json
+"services": {
+  "metrics": {
+    "image": "prom/prometheus",
+    "networks": ["stack"]
+  }
+}
+```
+
+If manifest uses `networks: ["stack"]`, `.env` must set **`ODPM_COMPOSE_NETWORK=stack`** (or omit `networks` — odpm attaches the sidecar automatically). `odpm manifest validate` logs a **warning** when logical `stack` does not match `.env`.
+
+Proxy-only sidecar with `${VAR}`:
+
+```json
+"networks": ["${PROXY_NETWORK}"]
+```
+
+with `PROXY_NETWORK=proxy` and `ODPM_COMPOSE_NETWORK=proxy` in `.env`.
+
 ### Patch built-in services (`service_patches`, 4.6+)
 
 Names **`odoo`**, **`db`**, **`postgres`** cannot appear in `services` — use patches only. Policy: [ADR-009](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md).

@@ -9,7 +9,10 @@ from .. import constants
 from ..errors import ConfigError
 from ..translations import _
 from ..yaml import merge_service_patch_maps, merge_services
-from .compose_policy import validate_manifest_compose_services
+from .compose_policy import (
+    validate_manifest_compose_services,
+    warn_manifest_compose_stack_network,
+)
 from .odoo_conf import _normalize_odoo_conf_sections, merge_odoo_conf_sections
 from .odoo_conf_policy import validate_manifest_odoo_conf
 
@@ -175,18 +178,37 @@ def _validate_odoo_conf_fragment(odoo_conf: dict[str, Any] | None) -> None:
     validate_manifest_odoo_conf({"odoo_conf": odoo_conf})
 
 
-def _validate_services_fragment(services: dict[str, Any] | None) -> None:
+def _validate_services_fragment(
+    services: dict[str, Any] | None,
+    *,
+    compose_network_logical: str | None = None,
+) -> None:
     if services is None:
         return
     validate_manifest_compose_services(services)
+    warn_manifest_compose_stack_network(
+        services,
+        compose_network_logical=compose_network_logical,
+    )
 
 
-def _validate_effective_slice(effective: ScenarioManifestSlice) -> None:
+def _validate_effective_slice(
+    effective: ScenarioManifestSlice,
+    *,
+    compose_network_logical: str | None = None,
+) -> None:
     _validate_odoo_conf_fragment(effective.odoo_conf)
-    _validate_services_fragment(effective.services)
+    _validate_services_fragment(
+        effective.services,
+        compose_network_logical=compose_network_logical,
+    )
 
 
-def _validate_declared_overlays(raw: dict[str, Any]) -> None:
+def _validate_declared_overlays(
+    raw: dict[str, Any],
+    *,
+    compose_network_logical: str | None = None,
+) -> None:
     scenarios = raw.get("scenarios")
     if not isinstance(scenarios, dict):
         return
@@ -195,10 +217,17 @@ def _validate_declared_overlays(raw: dict[str, Any]) -> None:
             continue
         overlay = scenario_overlay_slice(overlay_raw)
         _validate_odoo_conf_fragment(overlay.odoo_conf)
-        _validate_services_fragment(overlay.services)
+        _validate_services_fragment(
+            overlay.services,
+            compose_network_logical=compose_network_logical,
+        )
 
 
-def validate_scenario_manifest(raw: dict[str, Any]) -> None:
+def validate_scenario_manifest(
+    raw: dict[str, Any],
+    *,
+    compose_network_logical: str | None = None,
+) -> None:
     """Validate scenario overlays and effective slices (v2 only; call after JSON Schema)."""
     if "scenarios" in raw and raw.get("manifest_schema") != constants.MANIFEST_SCHEMA_V2:
         raise ConfigError(
@@ -213,12 +242,24 @@ def validate_scenario_manifest(raw: dict[str, Any]) -> None:
 
     if not manifest_uses_scenarios(raw):
         _validate_odoo_conf_fragment(_optional_dict(raw.get("odoo_conf")))
-        _validate_services_fragment(_optional_dict(raw.get("services")))
+        _validate_services_fragment(
+            _optional_dict(raw.get("services")),
+            compose_network_logical=compose_network_logical,
+        )
         return
 
     _validate_odoo_conf_fragment(_optional_dict(raw.get("odoo_conf")))
-    _validate_services_fragment(_optional_dict(raw.get("services")))
-    _validate_declared_overlays(raw)
+    _validate_services_fragment(
+        _optional_dict(raw.get("services")),
+        compose_network_logical=compose_network_logical,
+    )
+    _validate_declared_overlays(
+        raw,
+        compose_network_logical=compose_network_logical,
+    )
 
     for scenario in sorted(constants.ODPM_SCENARIO_VALUES):
-        _validate_effective_slice(resolve_effective_manifest_slice(raw, scenario))
+        _validate_effective_slice(
+            resolve_effective_manifest_slice(raw, scenario),
+            compose_network_logical=compose_network_logical,
+        )

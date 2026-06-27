@@ -62,6 +62,44 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 
 В `depends_on` sidecar указывайте **логическое** имя `db` (не physical `acme-db`); при `ODPM_COMPOSE_PREFIX` odpm перепишет зависимости при генерации compose — см. [env-dotenv.md](env-dotenv.md).
 
+### Compose-сеть (`networks`, 4.7+)
+
+По умолчанию весь стек живёт в implicit default network Docker Compose. Чтобы объявить **одну** именованную сеть для всех сервисов, задайте в `.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=stack
+```
+
+Для **external** сети reverse proxy (Traefik, Caddy) — обычно в `~/.odpm/.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=proxy
+ODPM_COMPOSE_NETWORK_EXTERNAL=1
+```
+
+См. [env-dotenv.md](env-dotenv.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
+
+В manifest sidecar можно указать `networks` (логические имена; при `ODPM_COMPOSE_PREFIX` odpm перепишет managed-сеть в physical, external — без prefix):
+
+```json
+"services": {
+  "metrics": {
+    "image": "prom/prometheus",
+    "networks": ["stack"]
+  }
+}
+```
+
+Если в manifest указано `networks: ["stack"]`, в `.env` должно быть **`ODPM_COMPOSE_NETWORK=stack`** (или уберите `networks` — odpm подключит sidecar автоматически). `odpm manifest validate` выдаёт **warning**, если логическое имя `stack` не совпадает с `.env`.
+
+Для proxy-only sidecar без odpm-managed `stack`:
+
+```json
+"networks": ["${PROXY_NETWORK}"]
+```
+
+с `PROXY_NETWORK=proxy` и `ODPM_COMPOSE_NETWORK=proxy` в `.env`.
+
 ### Patch built-in сервисов (`service_patches`, 4.6+)
 
 Имена **`odoo`**, **`db`**, **`postgres`** нельзя объявлять в `services` — только patch. Политика: [ADR-009](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md).

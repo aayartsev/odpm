@@ -56,11 +56,23 @@ def _run_manifest_validate(config: Config) -> int:
     if info.manifest_schema == constants.MANIFEST_SCHEMA_V2:
         validate_manifest_v2(raw)
         schema_label = "v2"
-        validate_scenario_manifest(raw)
+        network_logical = getattr(config.user_env, "compose_network_logical", None)
+        if not isinstance(network_logical, str) or not network_logical:
+            network_logical = None
+        validate_scenario_manifest(
+            raw,
+            compose_network_logical=network_logical,
+        )
     else:
         validate_manifest_v1(raw)
         schema_label = "v1"
-        validate_scenario_manifest(raw)
+        network_logical = getattr(config.user_env, "compose_network_logical", None)
+        if not isinstance(network_logical, str) or not network_logical:
+            network_logical = None
+        validate_scenario_manifest(
+            raw,
+            compose_network_logical=network_logical,
+        )
         validate_manifest_odoo_conf(raw)
     _logger.info(
         _("Manifest at {PATH} is valid ({SCHEMA} JSON Schema).").format(

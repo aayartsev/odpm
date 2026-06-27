@@ -242,6 +242,44 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
         self.assertIn("odoo", RESERVED_MANIFEST_SERVICE_NAMES)
         self.assertIn("db", RESERVED_MANIFEST_SERVICE_NAMES)
 
+    def test_warns_when_sidecar_references_stack_without_env(self):
+        with self.assertLogs("dev_project.manifest.compose_policy", level="WARNING") as logs:
+            validate_scenario_manifest(
+                _minimal_v2(
+                    services={
+                        "mailpit": {
+                            "image": "axllent/mailpit",
+                            "networks": ["stack"],
+                        }
+                    },
+                ),
+                compose_network_logical=None,
+            )
+        self.assertTrue(any("networks references logical network" in msg for msg in logs.output))
+
+    def test_no_warn_when_env_matches_stack(self):
+        with self.assertNoLogs("dev_project.manifest.compose_policy", level="WARNING"):
+            validate_scenario_manifest(
+                _minimal_v2(
+                    services={
+                        "mailpit": {
+                            "image": "axllent/mailpit",
+                            "networks": ["stack"],
+                        }
+                    },
+                ),
+                compose_network_logical="stack",
+            )
+
+    def test_warns_when_env_proxy_but_manifest_stack(self):
+        services = _mailpit_service()
+        services["mailpit"] = {**services["mailpit"], "networks": ["stack"]}
+        with self.assertLogs("dev_project.manifest.compose_policy", level="WARNING"):
+            validate_scenario_manifest(
+                _minimal_v2(services=services),
+                compose_network_logical="proxy",
+            )
+
 
 class ScenarioOverridesLoadWireTests(unittest.TestCase):
     def test_manifest_view_exposes_scenario_slice_after_load(self):
