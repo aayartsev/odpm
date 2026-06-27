@@ -81,7 +81,7 @@ Host helper: `resolve_effective_manifest_slice(raw, active_scenario) -> Scenario
 | **4.7 PR2 (A2)** | Effective slice → `odoo_conf`, `requirements_txt` pipeline |
 | **4.7 PR3 (A3)** | Effective slice → compose fragments / plan |
 
-Compose **service name prefix** from `.env` is a separate track (4.7 plan track B); logical names `db` / `odoo` in manifest are unchanged.
+Compose **service name prefix** from `.env` is a separate track ([ADR-012](adr-012-compose-service-prefix.md)); logical names `db` / `odoo` in manifest are unchanged.
 
 ## Consequences
 

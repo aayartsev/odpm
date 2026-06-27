@@ -47,6 +47,10 @@ def _apply_parsed_user_env(target: CreateUserEnvironment, parsed: ParsedUserEnv)
     target.odpm_ide = parsed.odpm_ide
     target.debugger_connect_host = parsed.debugger_connect_host
     target.debugger_suspend = parsed.debugger_suspend
+    target.compose_prefix = parsed.compose_prefix
+    target.compose_project_name = parsed.compose_project_name
+    target.odoo_service_name = parsed.odoo_service_name
+    target.postgres_volume_name = parsed.postgres_volume_name
 
 
 class CreateUserEnvironment:

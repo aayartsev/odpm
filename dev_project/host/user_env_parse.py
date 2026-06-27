@@ -23,6 +23,7 @@ from ..debugger.env_parsing import (
     parse_odpm_ide,
 )
 from .postgres_service_name import parse_postgres_service_name
+from ..compose.service_names import resolve_compose_naming
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..translations import _, parse_odpm_locale_setting
@@ -48,6 +49,7 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_DEBUGGER_CONNECT_HOST: str
     ODPM_DEBUGGER_SUSPEND: str
     POSTGRES_SERVICE_NAME: str
+    ODPM_COMPOSE_PREFIX: str
 
 
 @dataclass(frozen=True)
@@ -67,6 +69,10 @@ class ParsedUserEnv:
     odpm_ide: str
     debugger_connect_host: str
     debugger_suspend: bool
+    compose_prefix: str | None
+    compose_project_name: str | None
+    odoo_service_name: str
+    postgres_volume_name: str
 
 
 def resolve_env_file_path(
@@ -116,6 +122,12 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
             odpm_locale = parsed_locale
     else:
         odpm_locale = None
+    naming = resolve_compose_naming(
+        compose_prefix_raw=env_dict.get(constants.ODPM_COMPOSE_PREFIX_ENV),
+        legacy_postgres_service_name=parse_postgres_service_name(
+            env_dict.get(constants.POSTGRES_SERVICE_NAME_ENV)
+        ),
+    )
     return ParsedUserEnv(
         dotenv=dict(env_dict),
         backups=env_dict["BACKUP_DIR"],
@@ -127,9 +139,7 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         postgres_port=int(
             env_dict.get("POSTGRES_PORT", str(constants.POSTGRES_DEFAULT_PORT))
         ),
-        postgres_service_name=parse_postgres_service_name(
-            env_dict.get(constants.POSTGRES_SERVICE_NAME_ENV)
-        ),
+        postgres_service_name=naming.postgres_service_name,
         gevent_port=int(
             env_dict.get("GEVENT_PORT", str(constants.GEVENT_DEFAULT_PORT))
         ),
@@ -146,6 +156,10 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         debugger_suspend=parse_debugger_suspend(
             env_dict.get(ODPM_DEBUGGER_SUSPEND_ENV)
         ),
+        compose_prefix=naming.compose_prefix,
+        compose_project_name=naming.compose_project_name,
+        odoo_service_name=naming.odoo_service_name,
+        postgres_volume_name=naming.postgres_volume_name,
     )
 
 
@@ -170,6 +184,7 @@ def has_noninteractive_env_configuration(pd_manager: ProjectDirManager) -> bool:
             "GEVENT_PORT",
             "ODPM_SCENARIO",
             constants.ODPM_LOCALE_ENV_KEY,
+            constants.ODPM_COMPOSE_PREFIX_ENV,
             ODPM_DEBUGGER_BACKEND_ENV,
             ODPM_IDE_ENV,
         )
@@ -231,4 +246,7 @@ def build_env_data_from_environ_or_defaults() -> EnvData:
         env_data[constants.POSTGRES_SERVICE_NAME_ENV] = parse_postgres_service_name(
             raw_postgres_service
         )
+    raw_compose_prefix = os.environ.get(constants.ODPM_COMPOSE_PREFIX_ENV, "").strip()
+    if raw_compose_prefix:
+        env_data[constants.ODPM_COMPOSE_PREFIX_ENV] = raw_compose_prefix
     return env_data
