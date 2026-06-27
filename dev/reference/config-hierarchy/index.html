@@ -2038,7 +2038,7 @@ odpm.json и user_settings.json (файлы в каталоге проекта /
 <li><code>~/.odpm/.env</code> — база (общие пути, SSH, locale, значения по умолчанию для всех проектов).</li>
 <li><code>.env</code> в каталоге odpm-окружения — <strong>overlay</strong>; совпадающий ключ <strong>перекрывает</strong> home.</li>
 </ol>
-<p>Итоговый effective dict используется для портов, сценария, <code>${VAR}</code> в manifest и раннего <code>ODPM_LOCALE</code> (см. <a href="../locale/">locale.md</a>). Подробнее: <a href="../env-dotenv/">env-dotenv.md</a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>.</p>
+<p>Итоговый effective dict используется для портов, сценария, <code>${VAR}</code> в manifest и раннего <code>ODPM_LOCALE</code> (см. <a href="../locale/">locale.md</a>). Подробнее: <a href="../env-dotenv/">env-dotenv.md</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md">ADR-013</a>.</p>
 <p>При <strong>записи</strong> (мастер первого запуска, non-interactive create) по-прежнему один <strong>primary</strong> файл: project <code>.env</code>, если он уже есть, иначе <code>~/.odpm/.env</code>. odpm <strong>не</strong> копирует home в project автоматически — в project достаточно указать только отличающиеся ключи.</p>
 <table>
 <thead>

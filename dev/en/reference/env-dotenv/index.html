@@ -2209,7 +2209,7 @@
 <blockquote>
 <p><strong>AI-translated</strong> from Russian.</p>
 </blockquote>
-<p>Environment parameters (ports, scenario, backup paths, git clone roots) live in <strong><code>.env</code></strong>. Since <strong>4.7</strong>, odpm <strong>merges</strong> two files on read (<a href="../config-hierarchy/">hierarchy</a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>):</p>
+<p>Environment parameters (ports, scenario, backup paths, git clone roots) live in <strong><code>.env</code></strong>. Since <strong>4.7</strong>, odpm <strong>merges</strong> two files on read (<a href="../config-hierarchy/">hierarchy</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md">ADR-013</a>):</p>
 <table>
 <thead>
 <tr>
@@ -2425,7 +2425,7 @@
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
 </code></pre></div>
-<p>See <a href="../../contributing/adr-012-compose-service-prefix/">ADR-012</a>, <a href="../database-state/">PostgreSQL state</a>.</p>
+<p>See <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md">ADR-012</a>, <a href="../database-state/">PostgreSQL state</a>.</p>
 <h2 id="odpm_compose_network-odpm_compose_network_external"><code>ODPM_COMPOSE_NETWORK</code> / <code>ODPM_COMPOSE_NETWORK_EXTERNAL</code><a class="headerlink" href="#odpm_compose_network-odpm_compose_network_external" title="Permanent link">&para;</a></h2>
 <p>Optionally declare <strong>one</strong> named Docker Compose network for the <strong>entire</strong> odpm stack (<code>db</code>, <code>odoo</code>, sidecars). When unset, odpm does <strong>not</strong> add a <code>networks:</code> section to <code>docker-compose.yml</code> — services stay on the project's implicit default network (same as 4.6).</p>
 <table>
@@ -2456,7 +2456,7 @@
 </table>
 <p>With <strong><code>ODPM_COMPOSE_PREFIX=acme</code></strong>, managed network <code>stack</code> becomes physical <strong><code>acme-stack</code></strong>; external <code>proxy</code> stays <code>proxy</code>.</p>
 <p>Name normalization matches prefix (<code>[a-z0-9-]</code>, start with a letter). Invalid values disable the network (warning). <code>ODPM_COMPOSE_NETWORK_EXTERNAL</code> without a network name has no effect.</p>
-<p>Typical split (<a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>):</p>
+<p>Typical split (<a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md">ADR-013</a>):</p>
 <p><code>~/.odpm/.env</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">proxy</span>
 <span class="na">ODPM_COMPOSE_NETWORK_EXTERNAL</span><span class="o">=</span><span class="s">1</span>
@@ -2465,7 +2465,7 @@
 <div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
 <span class="na">ODPM_COMPOSE_NETWORK</span><span class="o">=</span><span class="s">stack</span>
 </code></pre></div>
-<p>Manifest sidecars with <code>networks: ["stack"]</code> are consistent only when <code>ODPM_COMPOSE_NETWORK=stack</code>; otherwise <code>odpm manifest validate</code> logs a warning. See <a href="../plugins/">plugins</a>, <a href="../../contributing/adr-014-compose-stack-network/">ADR-014</a>.</p>
+<p>Manifest sidecars with <code>networks: ["stack"]</code> are consistent only when <code>ODPM_COMPOSE_NETWORK=stack</code>; otherwise <code>odpm manifest validate</code> logs a warning. See <a href="../plugins/">plugins</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md">ADR-014</a>.</p>
 <p>Changing the network does <strong>not</strong> cause database drift (not in <code>last_run.json</code>); <code>docker-compose.yml</code> is regenerated on the next materialize.</p>
 <h2 id="variables-for-manifest-substitution">Variables for manifest substitution<a class="headerlink" href="#variables-for-manifest-substitution" title="Permanent link">&para;</a></h2>
 <p>Besides built-in odpm keys, <code>.env</code> may define <strong>arbitrary</strong> names for <code>${VAR}</code> in <code>odpm.json</code> and <code>user_settings.json</code> (e.g. <code>ODOO_PLATFORM_DIR</code>, <code>OCA_WEB_PATH</code>, <code>GIT_HOST</code>). They <strong>do not</strong> control ports or scenario by themselves — they are only substituted into whitelist manifest fields when JSON is read.</p>

@@ -2041,7 +2041,7 @@ odpm built-in defaults
 <li><code>~/.odpm/.env</code> — base (shared paths, SSH, locale, defaults for all projects).</li>
 <li><code>.env</code> in the odpm environment directory — <strong>overlay</strong>; matching keys <strong>override</strong> home.</li>
 </ol>
-<p>The effective dict drives ports, scenario, manifest <code>${VAR}</code>, and early <code>ODPM_LOCALE</code> (see <a href="../locale/">message locale</a>). Details: <a href="../env-dotenv/">env-dotenv.md</a>, <a href="../../contributing/adr-013-layered-env-dotenv/">ADR-013</a>.</p>
+<p>The effective dict drives ports, scenario, manifest <code>${VAR}</code>, and early <code>ODPM_LOCALE</code> (see <a href="../locale/">message locale</a>). Details: <a href="../env-dotenv/">env-dotenv.md</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md">ADR-013</a>.</p>
 <p>On <strong>write</strong> (first-run wizard, non-interactive create) the <strong>primary</strong> target is unchanged: project <code>.env</code> if it already exists, else <code>~/.odpm/.env</code>. odpm does <strong>not</strong> auto-copy home into project — put only differing keys in project <code>.env</code>.</p>
 <table>
 <thead>
