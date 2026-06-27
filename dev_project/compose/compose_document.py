@@ -16,16 +16,16 @@ from ..debugger.user_env import (
 )
 from ..yaml import merge_services, merge_services_with_patches
 from ..docker_capabilities import cached_docker_capabilities
+from .service_names import (
+    LOGICAL_DB,
+    LOGICAL_ODOO,
+    LOGICAL_POSTGRES_VOLUME,
+    apply_compose_physical_names,
+    compose_naming_from_user_env,
+)
 
 if TYPE_CHECKING:
     from ..project_env.environment import CreateProjectEnvironment
-
-
-def _resolve_postgres_service_name(user_env) -> str:
-    name = getattr(user_env, "postgres_service_name", None)
-    if isinstance(name, str) and name:
-        return name
-    return constants.DEFAULT_POSTGRES_SERVICE_NAME
 
 
 def _resolve_port(user_env, attr: str, default: int) -> int:
@@ -74,7 +74,6 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
 
     odoo_image = _config_str(config, policy.odoo_image_attr, "odoo:dev")
     compose_user = policy.runtime_unix_user()
-    db_name = _resolve_postgres_service_name(user_env)
 
     postgres_port = _resolve_port(user_env, "postgres_port", constants.POSTGRES_DEFAULT_PORT)
     postgres_port_map = policy.build_postgres_port_map(
@@ -95,7 +94,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             f"POSTGRES_USER={constants.POSTGRES_ODOO_USER}",
             "POSTGRES_DB=postgres",
         ],
-        "volumes": ["postgres-data:/var/lib/postgresql/data"],
+        "volumes": [f"{LOGICAL_POSTGRES_VOLUME}:/var/lib/postgresql/data"],
     }
 
     odoo_environment = ["PYTHONUNBUFFERED=1"]
@@ -123,7 +122,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         "image": odoo_image,
         "user": compose_user,
         "tty": True,
-        "depends_on": [db_name],
+        "depends_on": [LOGICAL_DB],
         "working_dir": _compose_working_dir(compose_service),
         "environment": odoo_environment,
         "command": _compose_command(compose_service),
@@ -142,7 +141,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             odoo_service["extra_hosts"] = ["host.docker.internal:host-gateway"]
 
     ext = ExtensionHostContext.from_config(config)
-    base_services = {db_name: postgres_service, "odoo": odoo_service}
+    base_services = {LOGICAL_DB: postgres_service, LOGICAL_ODOO: odoo_service}
     fragment_services = collect_compose_services(ext)
     service_patches = collect_service_patches(ext)
     services = merge_services_with_patches(
@@ -150,10 +149,10 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         service_patches,
     )
 
-    return {
+    document = {
         "services": services,
         "volumes": {
-            "postgres-data": {
+            LOGICAL_POSTGRES_VOLUME: {
                 "driver": "local",
                 "driver_opts": {
                     "type": "none",
@@ -167,6 +166,9 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             },
         },
     }
+    return apply_compose_physical_names(
+        document, compose_naming_from_user_env(user_env)
+    )
 
 
 def _build_odoo_volume_mounts(

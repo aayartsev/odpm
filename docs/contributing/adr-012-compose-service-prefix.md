@@ -49,10 +49,14 @@ Manifest `services.*.depends_on: ["db"]` stays logical until `apply_compose_pref
 - `dev_project/compose/service_names.py` — `parse_compose_prefix`, `ComposeNamingContext`, `resolve_compose_naming`.
 - `ParsedUserEnv` / `CreateUserEnvironment` expose `compose_prefix`, `compose_project_name`, `odoo_service_name`, `postgres_volume_name`, and effective `postgres_service_name`.
 
-### Deferred (B1+)
+### Compose document rewrite (4.7 B1)
 
-- `apply_compose_prefix` on compose document (`compose_document.py`).
-- Runtime wire: `compose_exec`, drift snapshots, `docker compose -p` ([ADR-012](adr-012-compose-service-prefix.md) phases B1–B2).
+- `apply_compose_prefix` / `apply_compose_physical_names` in `service_names.py` — rewrite service keys, `depends_on`, named volumes, top-level `name:`.
+- `compose_document.py` builds with logical `db` / `odoo`, then applies physical names from `user_env`.
+
+### Deferred (B2+)
+
+- Runtime wire: `compose_exec`, drift snapshots, `docker compose -p` (B2).
 - User docs in `env-dotenv.md` (B3).
 
 ## Consequences
