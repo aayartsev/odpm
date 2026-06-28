@@ -135,7 +135,7 @@ jobs:
         || contains(github.ref, '-alpha')
       )
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 20
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
 
@@ -210,6 +210,7 @@ jobs:
       - name: Install built odpm on runner and refresh golden-path project
         env:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
         run: |
           set -euo pipefail
           sudo dpkg -i dist/odpm_*.deb

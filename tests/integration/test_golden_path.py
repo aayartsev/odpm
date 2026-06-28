@@ -198,3 +198,23 @@ class GoldenPathMaintenanceHintTests(unittest.TestCase):
             golden_path_maintenance_hint(odoo_logs="ok", db_logs="ok"),
             "",
         )
+
+
+class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
+    def test_refresh_and_preflight_scripts_exist(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        for name in (
+            "golden_path_project_lib.sh",
+            "refresh_golden_path_project.sh",
+            "preflight_golden_path_project.sh",
+        ):
+            path = root / "scripts" / name
+            self.assertTrue(path.is_file(), msg=name)
+            self.assertTrue(path.stat().st_mode & 0o111, msg=name)
+        refresh = (root / "scripts" / "refresh_golden_path_project.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("ODPM_GOLDEN_PATH_AUTO_REMEDIATE", refresh)
+        self.assertIn("golden_path_remediate_database", refresh)
+        lib = (root / "scripts" / "golden_path_project_lib.sh").read_text(encoding="utf-8")
+        self.assertIn("--db-drop", lib)

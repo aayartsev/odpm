@@ -95,6 +95,8 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertIn("grep -Fq", golden)
         self.assertNotIn("sudo apt-get", golden)
         self.assertIn("tests.integration.test_golden_path", golden)
+        self.assertIn("refresh_golden_path_project.sh", golden)
+        self.assertIn("preflight_golden_path_project.sh", golden)
         self.assertIn("needs: [deb, rpm, golden-path]", workflow)
         self.assertIn("needs.golden-path.result == 'skipped'", workflow)
         for job in ("publish-pypi:", "publish-pages:"):

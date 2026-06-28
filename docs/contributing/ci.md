@@ -69,7 +69,7 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 | Смена `python_version` / distro / `odoo_version` в `odpm.json` | То же: `odpm` пересоберёт runtime и venv. |
 | Ошибка в логах odoo: `ModuleNotFoundError` (например `decorator`) | С 4.6 odpm ставит `decorator` как implicit-пакет при сборке venv. Если ошибка остаётся после `odpm` — удалить `.venv` и `.lock`, перезапустить `odpm`; для веток Odoo без `decorator` в `requirements.txt` это нормальный путь. |
 | HTTP 500 на `/web`, в логах `invalid manifest` / `Invalid version` (модуль проекта, напр. `first_module`) | Исправить `version` в `__manifest__.py` кастомного аддона под правила Odoo 19 (`19.0.1.0`, не `19.0.1.0.0`). Это содержимое `ODPM_GOLDEN_PATH_PROJECT`, не odpm. |
-| HTTP 500, в postgres: `translate IS TRUE must be type boolean` | БД создана старой версией Odoo. Пересоздать БД под текущий Odoo 19 (backup → drop DB / новый volume Postgres → `odpm -d test_db -i base,web`) или прогнать миграцию Odoo вне golden-path CI. |
+| HTTP 500, в postgres: `translate IS TRUE must be type boolean` | БД создана старой версией Odoo. Пересоздать БД под текущий Odoo 19 (backup → drop DB / новый volume Postgres → `odpm -d test_db -i --odoo-bin --stop-after-init`) или прогнать миграцию Odoo вне golden-path CI. На pre-release CI `refresh_golden_path_project.sh` делает это автоматически, если `ODPM_GOLDEN_PATH_AUTO_REMEDIATE` не `0`. |
 | HTTP 500, в odoo: `res.lang` / `_get_data` / `QWebException` на `/web/login` | Часто та же причина: БД или addons не соответствуют Odoo 19 на диске runner. Пересоздать `test_db` как в строке выше; затем `docker compose down` и повторить golden-path. |
 | После падения golden-path | `docker compose down` в каталоге проекта; смотреть artifact `golden-path-compose-logs`; при необходимости увеличить таймаут локально: `ODPM_GOLDEN_PATH_TIMEOUT=600`. |
 
@@ -99,8 +99,9 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 На pre-release тегах (`v*-beta`, `v*-rc*`, `v*-alpha`) job **golden-path** в `release-packages.yml`:
 
 1. проверяет **собранный .deb** в чистом `ubuntu:24.04` (Docker, без `sudo` на runner);
-2. проверяет `odpm --version` внутри контейнера;
-3. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT`.
+2. устанавливает `.deb` на runner, вызывает `scripts/refresh_golden_path_project.sh` (по умолчанию **авто-ремедиация** устаревшей `test_db`: `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`);
+3. `scripts/preflight_golden_path_project.sh` — fail-fast, если схема всё ещё несовместима с Odoo 19;
+4. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT`.
 
 Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуются `ODPM_GOLDEN_PATH_ENABLED=true` и secret `ODPM_GOLDEN_PATH_PROJECT` (иначе workflow падает явно, без ложного зелёного).
 
