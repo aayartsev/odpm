@@ -58,10 +58,16 @@ else
     echo "Golden-path DB ${DB_NAME} missing; initializing..."
 fi
 
-golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${HAD_DATABASE}"
+golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}"
 
 golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
+if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
+    echo "Golden-path DB ${DB_NAME} still stale (translate=${TRANSLATE_TYPE:-missing}); wiping postgres volume and retrying..."
+    golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}" 1
+    golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
+    TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
+fi
 if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
     echo "::error::Golden-path DB ${DB_NAME} still incompatible after remediation (translate=${TRANSLATE_TYPE:-missing})." >&2
     exit 1

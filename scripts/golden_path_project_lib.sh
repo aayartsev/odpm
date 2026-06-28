@@ -85,20 +85,67 @@ golden_path_schema_compatible() {
     [[ "${translate_type}" == "boolean" ]]
 }
 
+golden_path_init_modules() {
+    echo "${ODPM_GOLDEN_PATH_INIT_MODULES:-base,web}"
+}
+
+golden_path_sql_drop_database() {
+    local postgres_service="$1"
+    local pguser="$2"
+    local db_name="$3"
+
+    if ! golden_path_database_exists "${postgres_service}" "${pguser}" "${db_name}"; then
+        return 0
+    fi
+
+    echo "Golden-path: dropping database ${db_name} via PostgreSQL..."
+    docker compose exec -T "${postgres_service}" psql -U "${pguser}" -d postgres -v ON_ERROR_STOP=1 <<-SQL
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = '${db_name}' AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS "${db_name}";
+SQL
+}
+
+golden_path_postgres_data_dir() {
+    local project="$1"
+    echo "${project}/data/postgresql/var/lib/postgresql/data"
+}
+
+golden_path_wipe_postgres_data() {
+    local project="$1"
+    local data_dir
+    data_dir="$(golden_path_postgres_data_dir "${project}")"
+    if [[ ! -d "${data_dir}" ]]; then
+        return 0
+    fi
+    echo "Golden-path: wiping postgres data at ${data_dir}..."
+    find "${data_dir}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+}
+
 golden_path_remediate_database() {
     local project="$1"
     local db_name="$2"
-    local had_database="$3"
+    local postgres_service="$3"
+    local pguser="$4"
+    local wipe_volume="${5:-0}"
+    local init_modules
+    init_modules="$(golden_path_init_modules)"
 
     cd "${project}"
     docker compose down --remove-orphans 2>/dev/null || true
 
-    local drop_flag=()
-    if [[ "${had_database}" == "1" ]]; then
-        drop_flag=(--db-drop)
+    if [[ "${wipe_volume}" == "1" ]]; then
+        golden_path_wipe_postgres_data "${project}"
+    else
+        golden_path_ensure_postgres_up "${project}" "${postgres_service}" "${pguser}"
+        golden_path_sql_drop_database "${postgres_service}" "${pguser}" "${db_name}"
+        docker compose down --remove-orphans 2>/dev/null || true
     fi
 
-    echo "Golden-path: reinitializing Odoo database ${db_name} (had_database=${had_database})..."
-    odpm -d "${db_name}" "${drop_flag[@]}" -i --odoo-bin --stop-after-init
+    echo "Golden-path: initializing Odoo database ${db_name} (modules=${init_modules})..."
+    # Pass -i MODULES via --odoo-bin only: user_settings.init_modules may be empty and
+    # odpm's -i flag would not forward module names to odoo-bin.
+    odpm -d "${db_name}" --odoo-bin -i "${init_modules}" --stop-after-init
     docker compose down --remove-orphans 2>/dev/null || true
 }

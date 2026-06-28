@@ -25,7 +25,7 @@ trap 'cd "${PROJECT}" && docker compose down --remove-orphans 2>/dev/null || tru
 
 if ! golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
     echo "Preflight: database ${DB_NAME} does not exist yet (first init required on runner)." >&2
-    echo "Run: cd ${PROJECT} && odpm -d ${DB_NAME} -i --odoo-bin --stop-after-init" >&2
+    echo "Run: cd ${PROJECT} && odpm -d ${DB_NAME} --odoo-bin -i base,web --stop-after-init" >&2
     echo "Or re-run release CI (refresh auto-remediates when ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1)." >&2
     exit 1
 fi

@@ -217,4 +217,6 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("ODPM_GOLDEN_PATH_AUTO_REMEDIATE", refresh)
         self.assertIn("golden_path_remediate_database", refresh)
         lib = (root / "scripts" / "golden_path_project_lib.sh").read_text(encoding="utf-8")
-        self.assertIn("--db-drop", lib)
+        self.assertIn("ODPM_GOLDEN_PATH_INIT_MODULES", lib)
+        self.assertIn("golden_path_sql_drop_database", lib)
+        self.assertIn('--odoo-bin -i "${init_modules}"', lib)

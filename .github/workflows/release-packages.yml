@@ -211,6 +211,7 @@ jobs:
         env:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
           ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
+          ODPM_GOLDEN_PATH_INIT_MODULES: base,web
         run: |
           set -euo pipefail
           sudo dpkg -i dist/odpm_*.deb
