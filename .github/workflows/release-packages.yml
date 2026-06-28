@@ -207,6 +207,19 @@ jobs:
               echo \"deb install smoke OK: \${expected}\"
             "
 
+      - name: Install built odpm on runner and refresh golden-path project
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+        run: |
+          set -euo pipefail
+          sudo dpkg -i dist/odpm_*.deb
+          bash "${{ github.workspace }}/scripts/refresh_golden_path_project.sh"
+
+      - name: Preflight golden-path Postgres schema
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+        run: bash "${{ github.workspace }}/scripts/preflight_golden_path_project.sh"
+
       - name: Run golden-path integration test
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
@@ -599,6 +612,10 @@ jobs:
               awk -F= '/^SITE_DIR=/ { print $2; exit }'
           )"
           ./scripts/mike_pages_finalize.sh "${SITE_DIR}" apt-repo-out yum-repo-out
+          SITE_DIR="$(
+            ./scripts/pages_artifact_from_gh_pages.sh "${VERSION}" | tee /dev/stderr |
+              awk -F= '/^SITE_DIR=/ { print $2; exit }'
+          )"
           echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/configure-pages@v5
@@ -611,30 +628,47 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
 
+  verify-pages:
+    needs: publish-pages
+    if: >-
+      always()
+      && !cancelled()
+      && needs.publish-pages.result == 'success'
+      && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/verify_pages_deploy.sh
+          path: repo
+
       - name: Verify live Pages (release docs)
         env:
           TAG: ${{ github.ref_name }}
+          ODPM_PAGES_VERIFY_RETRIES: 24
+          ODPM_PAGES_VERIFY_SLEEP: 15
         run: |
           set -euo pipefail
           VERSION="${TAG#v}"
           if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
-            ./scripts/verify_pages_deploy.sh --version "${VERSION}"
+            ./repo/scripts/verify_pages_deploy.sh --version "${VERSION}"
           else
-            ./scripts/verify_pages_deploy.sh --version stable
-            ./scripts/verify_pages_deploy.sh --version "${VERSION}"
+            ./repo/scripts/verify_pages_deploy.sh --version stable
+            ./repo/scripts/verify_pages_deploy.sh --version "${VERSION}"
           fi
           if [[ "${VERSION}" == *-beta* || "${VERSION}" == *-rc* || "${VERSION}" == *-alpha* ]]; then
             DEB_VER="${VERSION/-beta/~beta}-1"
             DEB_VER="${DEB_VER/-rc/~rc}"
             DEB_VER="${DEB_VER/-alpha/~alpha}"
-            for attempt in 1 2 3 4 5 6; do
+            for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
               if curl -fsSL "https://aayartsev.github.io/odpm/apt/dists/testing/main/binary-amd64/Packages" \
                 | grep -q "Version: ${DEB_VER}"; then
                 echo "OK: APT testing has odpm ${DEB_VER}"
                 exit 0
               fi
-              echo "APT testing not ready (want ${DEB_VER}); sleep 10s (${attempt}/6)"
-              sleep 10
+              echo "APT testing not ready (want ${DEB_VER}); sleep 15s (${attempt}/12)"
+              sleep 15
             done
             echo "APT testing suite missing ${DEB_VER}" >&2
             exit 1

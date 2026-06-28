@@ -22,6 +22,8 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    outputs:
+      skipped: ${{ steps.gate.outputs.skip }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -87,6 +89,10 @@ jobs:
           ./scripts/mike_pages_finalize.sh "${SITE_DIR}" \
             ${FINALIZE_APT:+"${FINALIZE_APT}"} \
             ${FINALIZE_YUM:+"${FINALIZE_YUM}"}
+          SITE_DIR="$(
+            ./scripts/pages_artifact_from_gh_pages.sh dev | tee /dev/stderr |
+              awk -F= '/^SITE_DIR=/ { print $2; exit }'
+          )"
           echo "site_dir=${SITE_DIR}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/configure-pages@v5
@@ -102,6 +108,23 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         uses: actions/deploy-pages@v4
 
+  verify-pages:
+    needs: deploy
+    if: >-
+      always()
+      && !cancelled()
+      && needs.deploy.result == 'success'
+      && needs.deploy.outputs.skipped != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/verify_pages_deploy.sh
+          path: repo
+
       - name: Verify live Pages (dev docs)
-        if: steps.gate.outputs.skip != 'true'
-        run: ./scripts/verify_pages_deploy.sh --version dev
+        env:
+          ODPM_PAGES_VERIFY_RETRIES: 18
+          ODPM_PAGES_VERIFY_SLEEP: 10
+        run: ./repo/scripts/verify_pages_deploy.sh --version dev

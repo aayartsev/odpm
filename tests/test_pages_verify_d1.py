@@ -22,24 +22,47 @@ class PagesVerifyD1Tests(unittest.TestCase):
             encoding="utf-8"
         )
         deploy_idx = workflow.index("actions/deploy-pages@v4")
-        verify_idx = workflow.index("verify_pages_deploy.sh", deploy_idx)
-        self.assertIn("--version dev", workflow[verify_idx : verify_idx + 120])
+        verify_job_idx = workflow.index("verify-pages:", deploy_idx)
+        tail = workflow[verify_job_idx : verify_job_idx + 700]
+        self.assertIn("verify_pages_deploy.sh", tail)
+        self.assertIn("--version dev", tail)
 
     def test_release_packages_workflow_verifies_pages_after_deploy(self):
         workflow = (
             PROJECT_ROOT / ".github/workflows/release-packages.yml"
         ).read_text(encoding="utf-8")
-        deploy_idx = workflow.rindex("actions/deploy-pages@v4")
-        verify_idx = workflow.index("verify_pages_deploy.sh", deploy_idx)
-        tail = workflow[verify_idx : verify_idx + 400]
-        self.assertIn("--version stable", tail)
-        self.assertIn('verify_pages_deploy.sh --version "${VERSION}"', tail)
+        self.assertIn("verify-pages:", workflow)
+        self.assertIn("needs: publish-pages", workflow)
+        verify_idx = workflow.index("verify-pages:")
+        tail = workflow[verify_idx : verify_idx + 1200]
+        self.assertIn('./repo/scripts/verify_pages_deploy.sh --version stable', tail)
+        self.assertIn('./repo/scripts/verify_pages_deploy.sh --version "${VERSION}"', tail)
+        self.assertNotIn("uses: actions/deploy-pages@v4", tail)
+
+    def test_docs_workflow_splits_pages_verify_job(self):
+        workflow = (PROJECT_ROOT / ".github/workflows/docs.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("verify-pages:", workflow)
+        deploy_idx = workflow.index("actions/deploy-pages@v4")
+        verify_job_idx = workflow.index("verify-pages:", deploy_idx)
+        tail = workflow[verify_job_idx : verify_job_idx + 700]
+        self.assertIn("--version dev", tail)
+        self.assertNotIn("uses: actions/deploy-pages@v4", tail)
+
+    def test_pages_artifact_from_gh_pages_script_exists(self):
+        path = PROJECT_ROOT / "scripts" / "pages_artifact_from_gh_pages.sh"
+        self.assertTrue(path.is_file())
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("git archive", text)
+        self.assertIn("versions.json", text)
 
     def test_release_lines_documents_pages_verify_runbook(self):
         text = (PROJECT_ROOT / "docs/contributing/release-lines.md").read_text(
             encoding="utf-8"
         )
         self.assertIn("verify_pages_deploy.sh", text)
+        self.assertIn("verify-pages", text)
         self.assertIn("OPS-01", text)
 
     def test_services_ru_is_deprecation_redirect(self):

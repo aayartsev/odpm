@@ -75,14 +75,14 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 
 ### Verify Pages после deploy (OPS-01 / OPS-02)
 
-После `deploy-pages` CI вызывает `scripts/verify_pages_deploy.sh` (с retry на CDN lag):
+После `deploy-pages` отдельный job **`verify-pages`** вызывает `scripts/verify_pages_deploy.sh` (с retry на CDN lag). Verify **не** в том же job, что `deploy-pages`: иначе падение verify помечает deployment failed и CDN откатывается на предыдущий успешный deploy (типично `dev` без нового релиза).
 
 | Workflow | Проверка |
 |----------|----------|
-| [docs.yml](../../.github/workflows/docs.yml) | `--version dev` → `/versions.json`, `/dev/install/linux-deb/` |
-| [release-packages.yml](../../.github/workflows/release-packages.yml) `publish-pages` | pre-release: `/{VERSION}/install/`; stable: `stable` + `/{VERSION}/install/`; pre-release также APT `testing` |
+| [docs.yml](../../.github/workflows/docs.yml) | job `verify-pages`: `--version dev` → `/versions.json`, `/dev/install/linux-deb/` |
+| [release-packages.yml](../../.github/workflows/release-packages.yml) | job `verify-pages`: pre-release: `/{VERSION}/install/`; stable: `stable` + `/{VERSION}/install/`; pre-release также APT `testing` |
 
-Если push в `4.6.0-dev` и тег `v*` на одном коммите, **docs.yml** больше не деплоит Pages (release выигрывает). Если CDN отстаёт от ветки `gh-pages` (docs/apt 404 при успешном CI), вручную: workflow **[Redeploy Pages](../../.github/workflows/redeploy-pages.yml)** (`workflow_dispatch`, `verify_version=4.6.0-beta`).
+Если push в `4.7.0-dev` и тег `v*` на одном коммите, **docs.yml** больше не деплоит Pages (release выигрывает). Если CDN отстаёт от ветки `gh-pages` (docs/apt 404 при успешном `publish-pages`), вручную: workflow **[Redeploy Pages](../../.github/workflows/redeploy-pages.yml)** (`workflow_dispatch`, `verify_version=4.7.0-beta`).
 
 Ручная проверка после релиза (если CDN отстаёт):
 

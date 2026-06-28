@@ -24,6 +24,29 @@ GOLDEN_PATH_TIMEOUT = float(os.environ.get("ODPM_GOLDEN_PATH_TIMEOUT", "90"))
 DEBUG_BUNDLE_DIR = os.environ.get("ODPM_COMPOSE_DEBUG_DIR", "").strip()
 
 
+def golden_path_maintenance_hint(*, odoo_logs: str, db_logs: str) -> str:
+    """Actionable runner maintenance when golden-path logs match known stale-DB signatures."""
+    combined = f"{odoo_logs}\n{db_logs}"
+    hints: list[str] = []
+    if "translate IS TRUE must be type boolean" in combined:
+        hints.append(
+            "PostgreSQL was created with an older Odoo major; recreate test_db "
+            "or the postgres data volume, then run "
+            "`odpm -d test_db -i base,web` on the runner."
+        )
+    if "_get_data" in odoo_logs and "res.lang" in odoo_logs:
+        hints.append(
+            "Odoo web templates expect Odoo 19+ ORM but the database or addons "
+            "are inconsistent — usually fixed by the same DB recreate as above."
+        )
+    if not hints:
+        return ""
+    return (
+        "Runner maintenance (see docs/contributing/ci.md):\n- "
+        + "\n- ".join(hints)
+    )
+
+
 def _docker_available() -> bool:
     return shutil.which("docker") is not None
 
@@ -148,11 +171,30 @@ class GoldenPathIntegrationTests(unittest.TestCase):
                 self.postgres_service,
                 tail=15,
             )
+            hint = golden_path_maintenance_hint(odoo_logs=odoo_logs, db_logs=db_logs)
+            hint_block = f"\n\n--- maintenance ---\n{hint}" if hint else ""
             raise AssertionError(
                 f"{error}\n\n--- odoo logs (tail) ---\n{odoo_logs}\n\n"
                 f"--- {self.postgres_service} logs (tail) ---\n{db_logs}"
+                f"{hint_block}"
             ) from error
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GoldenPathMaintenanceHintTests(unittest.TestCase):
+    def test_hint_for_stale_postgres_schema(self) -> None:
+        hint = golden_path_maintenance_hint(
+            odoo_logs="QWebException res.lang _get_data",
+            db_logs="translate IS TRUE must be type boolean",
+        )
+        self.assertIn("recreate test_db", hint)
+        self.assertIn("Odoo 19", hint)
+
+    def test_hint_empty_for_unrelated_logs(self) -> None:
+        self.assertEqual(
+            golden_path_maintenance_hint(odoo_logs="ok", db_logs="ok"),
+            "",
+        )
