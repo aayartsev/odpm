@@ -219,4 +219,7 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         lib = (root / "scripts" / "golden_path_project_lib.sh").read_text(encoding="utf-8")
         self.assertIn("ODPM_GOLDEN_PATH_INIT_MODULES", lib)
         self.assertIn("golden_path_sql_drop_database", lib)
+        self.assertIn("golden_path_wipe_postgres_data", lib)
+        self.assertIn("alpine:3.20", lib)
+        self.assertIn("golden_path_emit_schema_failure", lib)
         self.assertIn('--odoo-bin -i "${init_modules}"', lib)

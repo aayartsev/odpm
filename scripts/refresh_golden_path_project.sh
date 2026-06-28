@@ -36,6 +36,10 @@ docker compose down --remove-orphans 2>/dev/null || true
 
 odpm --skip-start --no-git-update
 echo "Golden-path project refreshed with $(odpm --version 2>&1 | head -1)"
+ODOO_MANIFEST_VERSION="$(golden_path_odoo_version_from_manifest "${PROJECT}" || true)"
+if [[ -n "${ODOO_MANIFEST_VERSION}" ]]; then
+    echo "Golden-path odpm.json odoo_version=${ODOO_MANIFEST_VERSION}"
+fi
 
 if [[ "${AUTO_REMEDIATE}" == "0" || "${AUTO_REMEDIATE}" == "false" ]]; then
     echo "ODPM_GOLDEN_PATH_AUTO_REMEDIATE=${AUTO_REMEDIATE}; skipping DB schema check."
@@ -69,7 +73,7 @@ if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
     TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
 fi
 if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
-    echo "::error::Golden-path DB ${DB_NAME} still incompatible after remediation (translate=${TRANSLATE_TYPE:-missing})." >&2
+    golden_path_emit_schema_failure "${PROJECT}" "${DB_NAME}" "${TRANSLATE_TYPE}"
     exit 1
 fi
 

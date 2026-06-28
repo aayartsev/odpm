@@ -33,9 +33,7 @@ fi
 TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
 
 if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
-    echo "::error::Golden-path Postgres schema is stale for Odoo 19 (ir_model_fields.translate=${TRANSLATE_TYPE:-missing})." >&2
-    echo "Recreate the database on the self-hosted runner (backup, drop ${DB_NAME} or postgres volume, then odpm -d ${DB_NAME} -i --odoo-bin --stop-after-init)." >&2
-    echo "See docs/contributing/ci.md (golden-path maintenance table)." >&2
+    golden_path_emit_schema_failure "${PROJECT}" "${DB_NAME}" "${TRANSLATE_TYPE}"
     exit 1
 fi
 

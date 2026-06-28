@@ -112,6 +112,51 @@ golden_path_postgres_data_dir() {
     echo "${project}/data/postgresql/var/lib/postgresql/data"
 }
 
+golden_path_odoo_version_from_manifest() {
+    local project="$1"
+    python3 - "${project}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+for rel in ("odpm.json", "developing/odpm.json"):
+    path = root / rel
+    if not path.is_file():
+        continue
+    try:
+        version = json.loads(path.read_text(encoding="utf-8")).get("odoo_version")
+    except (OSError, json.JSONDecodeError):
+        continue
+    if version:
+        print(version)
+        break
+PY
+}
+
+golden_path_emit_schema_failure() {
+    local project="$1"
+    local db_name="$2"
+    local translate_type="$3"
+    local init_modules odoo_version
+
+    init_modules="$(golden_path_init_modules)"
+    odoo_version="$(golden_path_odoo_version_from_manifest "${project}" || true)"
+
+    echo "::error::Golden-path DB ${db_name} incompatible with Odoo 19+ (ir_model_fields.translate=${translate_type:-missing})." >&2
+    if [[ -n "${odoo_version}" && "${odoo_version}" != 19* && "${odoo_version}" != "19.0" ]]; then
+        echo "odpm.json reports odoo_version=${odoo_version}; golden-path preflight expects Odoo 19 (translate=boolean)." >&2
+        echo "Update the Odoo platform checkout on the runner, then re-run refresh." >&2
+    elif [[ "${translate_type}" == "character varying" ]]; then
+        echo "translate=character varying usually means Odoo < 19 or base modules were not installed." >&2
+        echo "Ensure init runs: odpm -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
+    fi
+    echo "Manual wipe (postgres data is often root-owned from Docker):" >&2
+    echo "  cd ${project} && docker compose down" >&2
+    echo "  docker run --rm -v \"$(golden_path_postgres_data_dir "${project}"):/data\" alpine sh -c 'find /data -mindepth 1 -maxdepth 1 -exec rm -rf {} +'" >&2
+    echo "See docs/contributing/ci.md (golden-path maintenance table)." >&2
+}
+
 golden_path_wipe_postgres_data() {
     local project="$1"
     local data_dir
@@ -120,7 +165,18 @@ golden_path_wipe_postgres_data() {
         return 0
     fi
     echo "Golden-path: wiping postgres data at ${data_dir}..."
-    find "${data_dir}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+    if docker run --rm -v "${data_dir}:/data:rw" alpine:3.20 \
+        sh -c 'find /data -mindepth 1 -maxdepth 1 -exec rm -rf {} +'; then
+        return 0
+    fi
+    if command -v sudo >/dev/null 2>&1 \
+        && sudo find "${data_dir}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +; then
+        return 0
+    fi
+    echo "::error::Cannot wipe postgres data at ${data_dir} (permission denied)." >&2
+    echo "On the self-hosted runner:" >&2
+    echo "  docker run --rm -v \"${data_dir}:/data\" alpine sh -c 'find /data -mindepth 1 -maxdepth 1 -exec rm -rf {} +'" >&2
+    return 1
 }
 
 golden_path_remediate_database() {
