@@ -49,15 +49,14 @@ fi
 golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 trap 'cd "${PROJECT}" && docker compose down --remove-orphans 2>/dev/null || true' EXIT
 
-HAD_DATABASE=0
+if golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}" \
+    && golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
+    echo "Golden-path DB ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."
+    exit 0
+fi
+
 if golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
-    HAD_DATABASE=1
-    TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
-    if golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
-        echo "Golden-path DB ${DB_NAME} schema OK (translate=boolean)."
-        exit 0
-    fi
-    echo "Golden-path DB ${DB_NAME} schema stale (translate=${TRANSLATE_TYPE:-missing}); remediating..."
+    echo "Golden-path DB ${DB_NAME} not ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")); remediating..."
 else
     echo "Golden-path DB ${DB_NAME} missing; initializing..."
 fi
@@ -65,16 +64,14 @@ fi
 golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}"
 
 golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
-TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
-if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
-    echo "Golden-path DB ${DB_NAME} still stale (translate=${TRANSLATE_TYPE:-missing}); wiping postgres volume and retrying..."
+if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
+    echo "Golden-path DB ${DB_NAME} still not ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")); wiping postgres volume and retrying..."
     golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}" 1
     golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
-    TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
 fi
-if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
-    golden_path_emit_schema_failure "${PROJECT}" "${DB_NAME}" "${TRANSLATE_TYPE}"
+if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
+    golden_path_emit_schema_failure "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}"
     exit 1
 fi
 
-echo "Golden-path DB ${DB_NAME} reinitialized for Odoo 19+ (translate=boolean)."
+echo "Golden-path DB ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."

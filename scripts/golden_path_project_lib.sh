@@ -70,19 +70,70 @@ golden_path_database_exists() {
         "SELECT 1 FROM pg_database WHERE datname = '${db_name}'" | grep -q 1
 }
 
-golden_path_translate_column_type() {
+golden_path_db_has_odoo_tables() {
     local postgres_service="$1"
     local pguser="$2"
     local db_name="$3"
 
     docker compose exec -T "${postgres_service}" psql -U "${pguser}" -d "${db_name}" -tAc \
-        "SELECT data_type FROM information_schema.columns \
-         WHERE table_schema = 'public' AND table_name = 'ir_model_fields' AND column_name = 'translate'"
+        "SELECT 1 FROM information_schema.tables \
+         WHERE table_schema = 'public' AND table_name = 'ir_module_module' LIMIT 1" | grep -q 1
 }
 
+golden_path_base_module_version() {
+    local postgres_service="$1"
+    local pguser="$2"
+    local db_name="$3"
+
+    docker compose exec -T "${postgres_service}" psql -U "${pguser}" -d "${db_name}" -tAc \
+        "SELECT latest_version FROM ir_module_module \
+         WHERE name = 'base' AND state = 'installed' LIMIT 1" | tr -d '[:space:]'
+}
+
+golden_path_module_is_installed() {
+    local postgres_service="$1"
+    local pguser="$2"
+    local db_name="$3"
+    local module_name="$4"
+
+    docker compose exec -T "${postgres_service}" psql -U "${pguser}" -d "${db_name}" -tAc \
+        "SELECT 1 FROM ir_module_module \
+         WHERE name = '${module_name}' AND state = 'installed' LIMIT 1" | grep -q 1
+}
+
+golden_path_schema_status_line() {
+    local postgres_service="$1"
+    local pguser="$2"
+    local db_name="$3"
+    local base_version web_state
+
+    if ! golden_path_db_has_odoo_tables "${postgres_service}" "${pguser}" "${db_name}"; then
+        echo "odoo_tables=missing base=missing web=missing"
+        return
+    fi
+    base_version="$(golden_path_base_module_version "${postgres_service}" "${pguser}" "${db_name}")"
+    if golden_path_module_is_installed "${postgres_service}" "${pguser}" "${db_name}" web; then
+        web_state=installed
+    else
+        web_state=missing
+    fi
+    echo "base=${base_version:-missing} web=${web_state}"
+}
+
+# Odoo 19 golden-path: base 19.x installed + web installed.
+# Do not use ir_model_fields.translate SQL type — on Odoo 19 it stays character varying.
 golden_path_schema_compatible() {
-    local translate_type="$1"
-    [[ "${translate_type}" == "boolean" ]]
+    local postgres_service="$1"
+    local pguser="$2"
+    local db_name="$3"
+    local base_version
+
+    if ! golden_path_db_has_odoo_tables "${postgres_service}" "${pguser}" "${db_name}"; then
+        return 1
+    fi
+    base_version="$(golden_path_base_module_version "${postgres_service}" "${pguser}" "${db_name}")"
+    [[ -n "${base_version}" && "${base_version}" == 19* ]] || return 1
+    golden_path_module_is_installed "${postgres_service}" "${pguser}" "${db_name}" web
 }
 
 golden_path_init_modules() {
@@ -137,19 +188,27 @@ PY
 golden_path_emit_schema_failure() {
     local project="$1"
     local db_name="$2"
-    local translate_type="$3"
-    local init_modules odoo_version
+    local postgres_service="$3"
+    local pguser="$4"
+    local status_line init_modules odoo_version base_version
 
+    status_line="$(golden_path_schema_status_line "${postgres_service}" "${pguser}" "${db_name}")"
     init_modules="$(golden_path_init_modules)"
     odoo_version="$(golden_path_odoo_version_from_manifest "${project}" || true)"
+    base_version="${status_line#*base=}"
+    base_version="${base_version%% web=*}"
 
-    echo "::error::Golden-path DB ${db_name} incompatible with Odoo 19+ (ir_model_fields.translate=${translate_type:-missing})." >&2
-    if [[ -n "${odoo_version}" && "${odoo_version}" != 19* && "${odoo_version}" != "19.0" ]]; then
-        echo "odpm.json reports odoo_version=${odoo_version}; golden-path preflight expects Odoo 19 (translate=boolean)." >&2
-        echo "Update the Odoo platform checkout on the runner, then re-run refresh." >&2
-    elif [[ "${translate_type}" == "character varying" ]]; then
-        echo "translate=character varying usually means Odoo < 19 or base modules were not installed." >&2
-        echo "Ensure init runs: odpm -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
+    echo "::error::Golden-path DB ${db_name} not ready for Odoo 19 golden-path (${status_line})." >&2
+    if [[ -n "${base_version}" && "${base_version}" != missing && "${base_version}" != 19* ]]; then
+        echo "Installed base module is ${base_version}; expected 19.x (stale DB from older Odoo major)." >&2
+    elif [[ "${status_line}" == *"web=missing"* ]]; then
+        echo "Module web is not installed; golden-path needs /web." >&2
+        echo "Run: odpm -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
+    elif [[ "${status_line}" == *"odoo_tables=missing"* ]]; then
+        echo "Database exists but has no Odoo tables; run init on the runner." >&2
+    fi
+    if [[ -n "${odoo_version}" && "${odoo_version}" != 19* ]]; then
+        echo "odpm.json reports odoo_version=${odoo_version}; golden-path expects 19.0." >&2
     fi
     echo "Manual wipe (postgres data is often root-owned from Docker):" >&2
     echo "  cd ${project} && docker compose down" >&2

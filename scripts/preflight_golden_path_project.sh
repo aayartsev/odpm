@@ -30,11 +30,9 @@ if ! golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}";
     exit 1
 fi
 
-TRANSLATE_TYPE="$(golden_path_translate_column_type "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")"
-
-if ! golden_path_schema_compatible "${TRANSLATE_TYPE}"; then
-    golden_path_emit_schema_failure "${PROJECT}" "${DB_NAME}" "${TRANSLATE_TYPE}"
+if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
+    golden_path_emit_schema_failure "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}"
     exit 1
 fi
 
-echo "Preflight OK: ${DB_NAME} schema compatible with Odoo 19+ (translate=boolean)."
+echo "Preflight OK: ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."
