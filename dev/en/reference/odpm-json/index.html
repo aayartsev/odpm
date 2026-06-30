@@ -2313,7 +2313,7 @@
 </tr>
 <tr>
 <td><code>scenarios.developer</code> / <code>server</code> / <code>ci</code></td>
-<td>Per-scenario overlays for <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>requirements</code> (4.7); effective slice from <code>ODPM_SCENARIO</code> in <code>.env</code></td>
+<td>Per-scenario overlays for <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>requirements</code>, <code>dependencies</code>, <code>hooks</code> (4.7); effective slice from <code>ODPM_SCENARIO</code> in <code>.env</code></td>
 </tr>
 </tbody>
 </table>
@@ -2359,7 +2359,7 @@
 </code></pre></div>
 <p><code>odpm manifest validate</code> rejects keys managed by odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. See <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="scenarios-block-per-odpm_scenario-overlays-47"><code>scenarios</code> block (per <code>ODPM_SCENARIO</code> overlays, 4.7)<a class="headerlink" href="#scenarios-block-per-odpm_scenario-overlays-47" title="Permanent link">&para;</a></h2>
-<p>Optional <strong>manifest v2</strong> object to override <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, and <code>requirements</code> <strong>per scenario</strong> from project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). One <code>odpm.json</code> in git — different effective settings on laptop, server, and CI without <code>${VAR}</code> workarounds.</p>
+<p>Optional <strong>manifest v2</strong> object to override <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>requirements</code>, <code>dependencies</code>, and <code>hooks</code> <strong>per scenario</strong> from project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). One <code>odpm.json</code> in git — different effective settings on laptop, server, and CI without <code>${VAR}</code> workarounds.</p>
 <table>
 <thead>
 <tr>
@@ -2406,6 +2406,14 @@
 <td><code>requirements</code></td>
 <td>concat + dedupe</td>
 </tr>
+<tr>
+<td><code>dependencies</code></td>
+<td>concat + dedupe (git repo URLs)</td>
+</tr>
+<tr>
+<td><code>hooks</code></td>
+<td>append per phase (<code>post_clone</code>, <code>post_prepare</code>, <code>pre_up</code>); base then overlay</td>
+</tr>
 </tbody>
 </table>
 <p>Manifests with <code>scenarios</code> SHOULD set <strong><code>requires_odpm: "4.7.0"</code></strong>. v1 + <code>scenarios</code> → validate error. Details: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md">ADR-011</a>.</p>
@@ -2422,7 +2430,11 @@
 <span class="w">      </span><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="nt">&quot;developer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ipython&quot;</span><span class="p">]</span>
+<span class="w">      </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ipython&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;https://github.com/my-org/test-fixtures.git 17.0&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span><span class="p">]]</span>
+<span class="w">      </span><span class="p">}</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
