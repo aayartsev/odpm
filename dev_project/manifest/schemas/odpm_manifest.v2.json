@@ -45,12 +45,10 @@
     },
     "postgres": { "type": "string", "minLength": 1 },
     "dependencies": {
-      "type": "array",
-      "items": { "type": "string" }
+      "$ref": "#/$defs/stringList"
     },
     "requirements": {
-      "type": "array",
-      "items": { "type": "string" }
+      "$ref": "#/$defs/stringList"
     },
     "developing": {
       "type": "object",
@@ -73,49 +71,7 @@
       }
     },
     "hooks": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "post_clone": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "array",
-                "minItems": 1,
-                "items": { "type": "string" }
-              },
-              { "type": "string", "minLength": 1 }
-            ]
-          }
-        },
-        "post_prepare": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "array",
-                "minItems": 1,
-                "items": { "type": "string" }
-              },
-              { "type": "string", "minLength": 1 }
-            ]
-          }
-        },
-        "pre_up": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "array",
-                "minItems": 1,
-                "items": { "type": "string" }
-              },
-              { "type": "string", "minLength": 1 }
-            ]
-          }
-        }
-      }
+      "$ref": "#/$defs/manifestHooks"
     },
     "services": {
       "type": "object",
@@ -187,8 +143,45 @@
           "additionalProperties": { "$ref": "#/$defs/composeServicePatch" }
         },
         "requirements": {
+          "$ref": "#/$defs/stringList"
+        },
+        "dependencies": {
+          "$ref": "#/$defs/stringList"
+        },
+        "hooks": {
+          "$ref": "#/$defs/manifestHooks"
+        }
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "hookCommandEntry": {
+      "oneOf": [
+        {
           "type": "array",
+          "minItems": 1,
           "items": { "type": "string" }
+        },
+        { "type": "string", "minLength": 1 }
+      ]
+    },
+    "manifestHooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "post_clone": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hookCommandEntry" }
+        },
+        "post_prepare": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hookCommandEntry" }
+        },
+        "pre_up": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hookCommandEntry" }
         }
       }
     },

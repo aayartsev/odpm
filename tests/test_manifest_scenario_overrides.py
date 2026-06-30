@@ -161,6 +161,25 @@ class ScenarioOverridesSchemaTests(unittest.TestCase):
                 )
             )
 
+    def test_schema_accepts_scenario_hooks_and_dependencies_overlay(self):
+        validate_manifest_v2(
+            _minimal_v2(
+                requires_odpm="4.7.0",
+                dependencies=["https://github.com/OCA/queue"],
+                scenarios={
+                    "developer": {
+                        "dependencies": [
+                            "https://github.com/my-org/test-fixtures.git 17.0"
+                        ],
+                        "hooks": {
+                            "post_prepare": [["docker", "build", "-t", "img:tag", "."]],
+                            "pre_up": ["my.hook.plugin"],
+                        },
+                    }
+                },
+            )
+        )
+
 
 class ScenarioOverridesValidateTests(unittest.TestCase):
     def test_validate_accepts_legacy_v2_without_scenarios(self):
