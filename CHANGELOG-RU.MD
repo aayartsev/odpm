@@ -10,6 +10,7 @@
 
 ### Добавлено
 
+- **Manifest `secrets.required` (4.7)** — блок `secrets` в manifest v2 (и scenario overlays): обязательные ключи в `.odpm/secrets.json`; предупреждения на `odpm manifest validate` и `odpm plan`; остановка до compose при `required: true` и отсутствующих/заглушечных секретах. Тесты: `test_manifest_secrets_policy`.
 - **Scenario overlay `hooks` и `dependencies` (4.7)** — lifecycle hooks и дополнительные git-зависимости в `scenarios.*`; merge с корнем (hooks — append по фазам; dependencies — append + dedupe как у `requirements`); effective slice в `ManifestView.hooks`, flat `dependencies` и шаги `odpm plan`. Поправка ADR-011. Тесты: `test_manifest_scenario_overrides`, `test_manifest_v2_reader`, `test_manifest_hooks`, `test_scenario_plan_matrix` (A18b).
 
 ## [4.7.0-beta] - 2026-06-23

@@ -493,6 +493,22 @@ RU_MESSAGES: dict[str, str] = {
     "manifest locks.git vs deps.lock.json differ: {DETAIL}": (
         "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
     ),
+    ".odpm/secrets.json has placeholder values for keys: {KEYS}": (
+        "В .odpm/secrets.json для ключей указаны заглушки: {KEYS}"
+    ),
+    ".odpm/secrets.json is missing required keys: {KEYS}": (
+        "В .odpm/secrets.json отсутствуют обязательные ключи: {KEYS}"
+    ),
+    "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; "
+    "copy from .odpm/secrets.example.json or pass --secrets-file": (
+        "Для сценария {SCENARIO} нужен .odpm/secrets.json с ключами: {KEYS}; "
+        "скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+    ),
+    "Scenario {SCENARIO} requires .odpm/secrets.json; "
+    "copy from .odpm/secrets.example.json or pass --secrets-file": (
+        "Для сценария {SCENARIO} нужен .odpm/secrets.json; "
+        "скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+    ),
     "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
         "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
     ),

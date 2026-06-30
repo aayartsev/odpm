@@ -131,6 +131,20 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     gitignore_warning = secrets_gitignore_warning(ctx.host_ctx.project_dir)
     if gitignore_warning:
         warnings.append(plan_msg(gitignore_warning))
+    from ..plan.secrets_preview import collect_secrets_requirement_warnings
+
+    secrets_spec = (
+        ctx.manifest_view.scenario_slice.secrets
+        if ctx.manifest_view is not None and ctx.manifest_view.scenario_slice is not None
+        else None
+    )
+    for issue in collect_secrets_requirement_warnings(
+        ctx.host_ctx.project_dir,
+        secrets_spec,
+        mount_secrets_from_host=ctx.host_ctx.policy.mount_runtime_secrets_from_host(),
+        scenario=ctx.host_ctx.policy.scenario,
+    ):
+        warnings.append(plan_msg(issue))
     from ..plan.database_preview import collect_database_drift_warnings_for_host
     from ..plan.locks_preview import collect_git_lock_warnings
 

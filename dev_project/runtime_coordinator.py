@@ -10,7 +10,7 @@ from . import host_summaries
 from .translations import _
 from .host.context import HostProjectContext
 from .compose.runtime import should_force_recreate_compose_for_host
-from .errors import PipelineError
+from .errors import ConfigError, PipelineError
 from .host.cli.args import OdpmCliArgs
 from .logging import get_module_logger
 from .debugger.ide import ide_includes_pycharm, ide_includes_vscode
@@ -124,6 +124,24 @@ class RuntimeCoordinator:
 
         adopt_database_baseline(self.config)
         ensure_no_blocking_database_drift(self.config, self.cli_args)
+        from .manifest.secrets_policy import ensure_secrets_requirements_met
+
+        manifest_view = self.config.bootstrap.manifest_view
+        secrets_spec = (
+            manifest_view.scenario_slice.secrets
+            if manifest_view is not None and manifest_view.scenario_slice is not None
+            else None
+        )
+        try:
+            ensure_secrets_requirements_met(
+                self.host_ctx.project_dir,
+                secrets_spec,
+                mount_secrets_from_host=self.host_ctx.policy.mount_runtime_secrets_from_host(),
+                scenario=self.host_ctx.policy.scenario,
+            )
+        except ConfigError as exc:
+            _logger.error(str(exc))
+            raise PipelineError(str(exc), exit_code=1) from exc
         from .extensions.hooks import run_lifecycle_hooks
         from .extensions.context import ExtensionHostContext
 

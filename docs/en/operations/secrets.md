@@ -38,6 +38,21 @@ Directory layout: [project-layout](../reference/project-layout.md). Generated ar
 - `secrets` — object of string → string; keys are flat (often dotted: `service.field`)
 - Invalid JSON or types — error on import/materialize
 
+## Required secrets in `odpm.json` (4.7)
+
+When modules **cannot run** without API keys, declare it in manifest v2:
+
+```json
+"secrets": {
+  "required": true,
+  "keys": ["payment_provider.api_key"]
+}
+```
+
+You may omit `keys` — with `"required": true` odpm checks **file presence** only. Key names in the error message may come from `secrets.example.json` as a hint. Use manifest `keys` for strict per-key validation.
+
+odpm warns on `odpm manifest validate` and `odpm plan`, and on a full run (`odpm` without `--skip-start`) stops **before** database deploy and compose when `.odpm/secrets.json` is missing or still contains placeholders. See [`secrets` fields](../../reference/odpm-json.md#secrets-block-required-local-secrets-47).
+
 ## Quick start
 
 ### Option A: from template

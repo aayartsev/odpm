@@ -67,7 +67,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | `hooks.post_prepare` | Shell argv or plugin id after prepare |
 | `hooks.pre_up` | Shell argv or plugin id before `docker compose up` |
 | `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
-| `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
+| `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks`, `secrets` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
 
 Mailpit example: [plugins.md](plugins.md).
 
@@ -110,9 +110,33 @@ Optional object for **team-wide** Odoo settings in git (preview, staging, produc
 
 `odpm manifest validate` rejects keys managed by odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. See [odoo.conf](odoo-conf.md).
 
+## `secrets` block (required local secrets, 4.7)
+
+Optional **manifest v2** object (and in `scenarios.*`) declaring that the project needs `.odpm/secrets.json` before the stack starts:
+
+```json
+"secrets": {
+  "required": true,
+  "keys": ["payment_provider.api_key", "armtek.api_token"]
+}
+```
+
+| Field | Purpose |
+|-------|---------|
+| `required` | when `true`, for scenarios with host secrets mount (`developer`, `server`) odpm checks that `.odpm/secrets.json` exists **before** `docker compose up` |
+| `keys` | optional list for **strict** content checks; without `keys`, file presence is enough (example key names in error text are hints only) |
+
+Checks (never printing secret values):
+
+- **`odpm manifest validate`** — warning when requirements are not met;
+- **`odpm plan`** — warning in the plan warning list;
+- **`odpm`** (without `--skip-start`) — error before `pre_up` / compose when the file is missing, keys are missing, or placeholders remain (`REPLACE_ME`).
+
+In **`ci`** the host mount is disabled — checks are skipped; an overlay may set `"secrets": { "required": false }`. See [secrets.md](../operations/secrets.md).
+
 ## `scenarios` block (per `ODPM_SCENARIO` overlays, 4.7)
 
-Optional **manifest v2** object to override `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, and `hooks` **per scenario** from project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). One `odpm.json` in git — different effective settings on laptop, server, and CI without `${VAR}` workarounds.
+Optional **manifest v2** object to override `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks`, and `secrets` **per scenario** from project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). One `odpm.json` in git — different effective settings on laptop, server, and CI without `${VAR}` workarounds.
 
 | Mode | Condition | Effective slice |
 |------|-----------|-----------------|
@@ -129,6 +153,7 @@ Merge rules:
 | `requirements` | concat + dedupe |
 | `dependencies` | concat + dedupe (git repo URLs) |
 | `hooks` | append per phase (`post_clone`, `post_prepare`, `pre_up`); base then overlay |
+| `secrets` | `required` — overlay overrides when set; `keys` — concat + dedupe for strict checks; without `keys`, only `.odpm/secrets.json` presence is required |
 
 Manifests with `scenarios` SHOULD set **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → validate error. Details: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 

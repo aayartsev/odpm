@@ -109,6 +109,9 @@
         }
       }
     },
+    "secrets": {
+      "$ref": "#/$defs/manifestSecrets"
+    },
     "scenarios": {
       "type": "object",
       "additionalProperties": false,
@@ -150,6 +153,19 @@
         },
         "hooks": {
           "$ref": "#/$defs/manifestHooks"
+        },
+        "secrets": {
+          "$ref": "#/$defs/manifestSecrets"
+        }
+      }
+    },
+    "manifestSecrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "keys": {
+          "$ref": "#/$defs/stringList"
         }
       }
     },

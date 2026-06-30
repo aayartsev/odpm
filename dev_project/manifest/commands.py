@@ -14,7 +14,8 @@ from ..translations import _
 from .compat import assert_manager_supports_manifest, parse_manifest_version_info
 from .migrator import format_manifest_migration_diff, migrate_v1_flat_to_v2
 from .odoo_conf_policy import validate_manifest_odoo_conf
-from .scenario_overrides import validate_scenario_manifest
+from .scenario_overrides import resolve_effective_manifest_slice, validate_scenario_manifest
+from .secrets_policy import collect_secrets_requirement_issues
 from .schema import validate_manifest_v1, validate_manifest_v2
 
 if TYPE_CHECKING:
@@ -74,6 +75,18 @@ def _run_manifest_validate(config: Config) -> int:
             compose_network_logical=network_logical,
         )
         validate_manifest_odoo_conf(raw)
+    scenario = getattr(config.user_env, "odpm_scenario", None) or constants.DEFAULT_ODPM_SCENARIO
+    secrets_spec = None
+    if info.manifest_schema == constants.MANIFEST_SCHEMA_V2:
+        effective = resolve_effective_manifest_slice(raw, str(scenario))
+        secrets_spec = effective.secrets
+    for issue in collect_secrets_requirement_issues(
+        config.project_dir,
+        secrets_spec,
+        mount_secrets_from_host=config.policy.mount_runtime_secrets_from_host(),
+        scenario=str(scenario),
+    ):
+        _logger.warning(issue)
     _logger.info(
         _("Manifest at {PATH} is valid ({SCHEMA} JSON Schema).").format(
             PATH=manifest_path,

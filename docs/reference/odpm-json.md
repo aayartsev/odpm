@@ -86,9 +86,33 @@ GIT_HOST=git.company.example
 
 На `odpm manifest validate` нельзя указывать ключи, которыми управляет odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. Подробнее: [odoo.conf](odoo-conf.md).
 
+## Блок `secrets` (обязательные локальные секреты, 4.7)
+
+Необязательный объект в **manifest v2** (и в `scenarios.*`) — декларация, что проекту нужен `.odpm/secrets.json` до подъёма стека:
+
+```json
+"secrets": {
+  "required": true,
+  "keys": ["payment_provider.api_key", "armtek.api_token"]
+}
+```
+
+| Поле | Назначение |
+|------|------------|
+| `required` | `true` — для сценариев с host-mount секретов (`developer`, `server`) odpm проверяет наличие `.odpm/secrets.json` **до** `docker compose up` |
+| `keys` | Необязательный список ключей для **строгой** проверки содержимого; без `keys` достаточно существования файла (в сообщении об ошибке ключи из `secrets.example.json` — только подсказка) |
+
+Проверки (без вывода значений):
+
+- **`odpm manifest validate`** — предупреждение, если секреты не удовлетворены;
+- **`odpm plan`** — warning в списке предупреждений;
+- **`odpm`** (без `--skip-start`) — ошибка до `pre_up` / compose, если файл отсутствует, ключи не заполнены или остались placeholder (`REPLACE_ME`).
+
+В сценарии **`ci`** host-mount отключён — проверка не выполняется; overlay может задать `"secrets": { "required": false }`. Подробнее: [secrets.md](../operations/secrets.md).
+
 ## Блок `scenarios` (overlays по `ODPM_SCENARIO`, 4.7)
 
-Необязательный объект в **manifest v2** для переопределения `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies` и `hooks` **по сценарию** из project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). Один `odpm.json` в git — разные effective-настройки на ноутбуке, сервере и CI без `${VAR}`-обходов.
+Необязательный объект в **manifest v2** для переопределения `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks` и `secrets` **по сценарию** из project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). Один `odpm.json` в git — разные effective-настройки на ноутбуке, сервере и CI без `${VAR}`-обходов.
 
 | Режим | Условие | Effective slice |
 |-------|---------|-----------------|
@@ -105,6 +129,7 @@ GIT_HOST=git.company.example
 | `requirements` | concat + dedupe |
 | `dependencies` | concat + dedupe (git-репозитории) |
 | `hooks` | append по фазам (`post_clone`, `post_prepare`, `pre_up`); корень, затем overlay |
+| `secrets` | `required` — overlay переопределяет, если задан; `keys` — concat + dedupe для строгой проверки; без `keys` проверяется только наличие `.odpm/secrets.json` |
 
 Manifest со `scenarios` рекомендуется с **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → ошибка validate. Подробнее: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 

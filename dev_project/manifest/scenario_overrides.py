@@ -16,11 +16,12 @@ from .compose_policy import (
 )
 from .odoo_conf import _normalize_odoo_conf_sections, merge_odoo_conf_sections
 from .odoo_conf_policy import validate_manifest_odoo_conf
+from .secrets_policy import ManifestSecretsSpec, merge_secrets_spec, secrets_spec_from_raw
 
 
 @dataclass(frozen=True)
 class ScenarioManifestSlice:
-    """Effective manifest fields for one scenario (odoo_conf / compose / requirements / deps / hooks)."""
+    """Effective manifest fields for one scenario (odoo_conf / compose / requirements / deps / hooks / secrets)."""
 
     odoo_conf: dict[str, Any] | None = None
     services: dict[str, Any] | None = None
@@ -28,6 +29,7 @@ class ScenarioManifestSlice:
     requirements: list[str] | None = None
     dependencies: list[str] | None = None
     hooks: dict[str, Any] | None = None
+    secrets: ManifestSecretsSpec | None = None
 
 
 def manifest_uses_scenarios(raw: dict[str, Any]) -> bool:
@@ -56,6 +58,7 @@ def slice_from_manifest_fields(
     requirements: Any = None,
     dependencies: Any = None,
     hooks: Any = None,
+    secrets: Any = None,
 ) -> ScenarioManifestSlice:
     return ScenarioManifestSlice(
         odoo_conf=_optional_dict(odoo_conf),
@@ -64,6 +67,7 @@ def slice_from_manifest_fields(
         requirements=_optional_str_list(requirements),
         dependencies=_optional_str_list(dependencies),
         hooks=_optional_dict(hooks),
+        secrets=secrets_spec_from_raw(secrets),
     )
 
 
@@ -76,6 +80,7 @@ def top_level_slice(raw: dict[str, Any]) -> ScenarioManifestSlice:
         requirements=raw.get("requirements"),
         dependencies=raw.get("dependencies"),
         hooks=raw.get("hooks"),
+        secrets=raw.get("secrets"),
     )
 
 
@@ -88,6 +93,7 @@ def scenario_overlay_slice(overlay: dict[str, Any]) -> ScenarioManifestSlice:
         requirements=overlay.get("requirements"),
         dependencies=overlay.get("dependencies"),
         hooks=overlay.get("hooks"),
+        secrets=overlay.get("secrets"),
     )
 
 
@@ -140,6 +146,9 @@ def _merge_hooks(
 def merge_manifest_slice(
     base: ScenarioManifestSlice,
     overlay: ScenarioManifestSlice,
+    *,
+    base_secrets_raw: Any = None,
+    overlay_secrets_raw: Any = None,
 ) -> ScenarioManifestSlice:
     """Merge base manifest fields with a scenario overlay."""
     merged_odoo = _manifest_odoo_conf_from_sections(
@@ -174,6 +183,7 @@ def merge_manifest_slice(
         requirements=_merge_string_list(base.requirements, overlay.requirements),
         dependencies=_merge_string_list(base.dependencies, overlay.dependencies),
         hooks=_merge_hooks(base.hooks, overlay.hooks),
+        secrets=merge_secrets_spec(base_secrets_raw, overlay_secrets_raw),
     )
 
 
@@ -198,7 +208,12 @@ def resolve_effective_manifest_slice(
     if not isinstance(overlay_raw, dict):
         return base
 
-    return merge_manifest_slice(base, scenario_overlay_slice(overlay_raw))
+    return merge_manifest_slice(
+        base,
+        scenario_overlay_slice(overlay_raw),
+        base_secrets_raw=raw.get("secrets"),
+        overlay_secrets_raw=overlay_raw.get("secrets"),
+    )
 
 
 def _validate_hooks_fragment(hooks: dict[str, Any] | None) -> None:

@@ -27,6 +27,12 @@ msgstr "--update-lock cannot be used together with --no-git-update"
 msgid ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
 msgstr ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
 
+msgid ".odpm/secrets.json has placeholder values for keys: {KEYS}"
+msgstr ".odpm/secrets.json has placeholder values for keys: {KEYS}"
+
+msgid ".odpm/secrets.json is missing required keys: {KEYS}"
+msgstr ".odpm/secrets.json is missing required keys: {KEYS}"
+
 msgid "Accepted database drift: {KIND}"
 msgstr "Accepted database drift: {KIND}"
 
@@ -503,6 +509,12 @@ msgstr "Run manifest {PHASE} lifecycle hooks"
 
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Running with sudo/root privileges is not permitted."
+
+msgid "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy from .odpm/secrets.example.json or pass --secrets-file"
+msgstr "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy from .odpm/secrets.example.json or pass --secrets-file"
+
+msgid "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
+msgstr "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
 
 msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
 msgstr "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"

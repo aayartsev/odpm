@@ -26,6 +26,12 @@ msgstr "Нельзя использовать --update-lock вместе с --no
 msgid ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
 msgstr "файл .odpm/secrets.json существует, но не указан в .odpm/.gitignore; риск случайного коммита"
 
+msgid ".odpm/secrets.json has placeholder values for keys: {KEYS}"
+msgstr "В .odpm/secrets.json для ключей указаны заглушки: {KEYS}"
+
+msgid ".odpm/secrets.json is missing required keys: {KEYS}"
+msgstr "В .odpm/secrets.json отсутствуют обязательные ключи: {KEYS}"
+
 msgid "Accepted database drift: {KIND}"
 msgstr "Принят дрейф конфигурации БД: {KIND}"
 
@@ -502,6 +508,12 @@ msgstr "Выполнить lifecycle hooks manifest ({PHASE})"
 
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Запуск скрипта от root/sudo запрещен"
+
+msgid "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy from .odpm/secrets.example.json or pass --secrets-file"
+msgstr "Для сценария {SCENARIO} нужен .odpm/secrets.json с ключами: {KEYS}; скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+
+msgid "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
+msgstr "Для сценария {SCENARIO} нужен .odpm/secrets.json; скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
 
 msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
 msgstr "Выберите конфигурацию IDE для генерации (Enter — по умолчанию {DEFAULT_IDE}):\n{OPTIONS}\n"

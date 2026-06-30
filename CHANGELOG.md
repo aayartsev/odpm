@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Manifest `secrets.required` (4.7)** — optional `secrets` block in manifest v2 (and scenario overlays) to declare required `.odpm/secrets.json` keys; warnings on `odpm manifest validate` and `odpm plan`; hard stop before compose when `required: true` and secrets are missing or placeholders. Tests: `test_manifest_secrets_policy`.
 - **Scenario overlay `hooks` and `dependencies` (4.7)** — per-scenario lifecycle hooks and extra git dependencies in `scenarios.developer` / `server` / `ci`; merge with top-level base (hooks append per phase; dependencies append + dedupe like `requirements`); effective slice wired into `ManifestView.hooks`, flat `dependencies`, and `odpm plan` hook steps. ADR-011 amendment. Tests: `test_manifest_scenario_overrides`, `test_manifest_v2_reader`, `test_manifest_hooks`, `test_scenario_plan_matrix` (A18b).
 
 ## [4.7.0-beta] - 2026-06-23
