@@ -239,6 +239,44 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
         self.assertEqual(plan_step(plan, "hooks.post_prepare").outcome, "run")
         self.assertEqual(plan_step(plan, "hooks.pre_up").outcome, "run")
 
+    def test_a18b_plan_includes_scenario_overlay_hooks_for_active_scenario(self) -> None:
+        project_dir = self._provision(
+            scenario=constants.DEVELOPER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        odpm_path = project_dir / "developing" / "odpm.json"
+        payload = json.loads(odpm_path.read_text(encoding="utf-8"))
+        payload["scenarios"] = {
+            "developer": {
+                "hooks": {
+                    "post_prepare": [["echo", "scenario-prepare"]],
+                }
+            }
+        }
+        odpm_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        plan, _pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertEqual(plan_step(plan, "hooks.post_prepare").outcome, "run")
+
+        server_dir = self._provision(
+            scenario=constants.SERVER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        server_odpm = server_dir / "developing" / "odpm.json"
+        server_payload = json.loads(server_odpm.read_text(encoding="utf-8"))
+        server_payload["scenarios"] = payload["scenarios"]
+        server_odpm.write_text(
+            json.dumps(server_payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        server_plan, _ = build_matrix_plan(
+            server_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertFalse(plan_has_step(server_plan, "hooks.post_prepare"))
+
     def test_a19_extension_prepare_step_in_plan_matrix(self) -> None:
         from dev_project.extensions.registry import reset_extension_registry_state
         from tests.fixtures.sample_plugin import sample_odpm_plugin

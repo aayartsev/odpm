@@ -159,6 +159,56 @@ class RunLifecycleHooksTests(unittest.TestCase):
             run_lifecycle_hooks(ext, "pre_up", cwd="/tmp/project")
 
 
+class LoadManifestScenarioHooksTests(unittest.TestCase):
+    def test_load_manifest_wires_scenario_overlay_hooks(self):
+        from dev_project.manifest.reader import load_manifest
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            hooks={"pre_up": [["echo", "shared"]]},
+            scenarios={
+                "developer": {
+                    "hooks": {
+                        "post_prepare": [["echo", "developer"]],
+                    },
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(
+            dev.hooks,
+            {
+                "pre_up": [["echo", "shared"]],
+                "post_prepare": [["echo", "developer"]],
+            },
+        )
+        self.assertEqual(server.hooks, {"pre_up": [["echo", "shared"]]})
+
+    @patch("dev_project.extensions.hooks.run_or_raise")
+    def test_run_lifecycle_hooks_uses_merged_scenario_overlay_hooks(self, mock_run):
+        from dev_project.manifest.reader import load_manifest
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            scenarios={
+                "developer": {
+                    "hooks": {"post_prepare": [["echo", "scenario"]]},
+                }
+            },
+        )
+        view = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_hooks=view.hooks,
+        )
+        run_lifecycle_hooks(ext, "post_prepare", cwd="/tmp/project")
+        mock_run.assert_called_once_with(("echo", "scenario"), cwd="/tmp/project")
+
+
 class HookRunnerRegistryTests(unittest.TestCase):
     def setUp(self) -> None:
         reset_extension_registry_state()

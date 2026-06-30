@@ -88,7 +88,7 @@ GIT_HOST=git.company.example
 
 ## Блок `scenarios` (overlays по `ODPM_SCENARIO`, 4.7)
 
-Необязательный объект в **manifest v2** для переопределения `odoo_conf`, `services`, `service_patches` и `requirements` **по сценарию** из project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). Один `odpm.json` в git — разные effective-настройки на ноутбуке, сервере и CI без `${VAR}`-обходов.
+Необязательный объект в **manifest v2** для переопределения `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies` и `hooks` **по сценарию** из project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). Один `odpm.json` в git — разные effective-настройки на ноутбуке, сервере и CI без `${VAR}`-обходов.
 
 | Режим | Условие | Effective slice |
 |-------|---------|-----------------|
@@ -103,6 +103,8 @@ GIT_HOST=git.company.example
 | `services` | overlay заменяет сервис по имени |
 | `service_patches` | merge по [ADR-009](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-009-compose-service-patch.md) |
 | `requirements` | concat + dedupe |
+| `dependencies` | concat + dedupe (git-репозитории) |
+| `hooks` | append по фазам (`post_clone`, `post_prepare`, `pre_up`); корень, затем overlay |
 
 Manifest со `scenarios` рекомендуется с **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → ошибка validate. Подробнее: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 
@@ -122,7 +124,11 @@ Manifest со `scenarios` рекомендуется с **`requires_odpm: "4.7.0
       "services": {}
     },
     "developer": {
-      "requirements": ["ipython"]
+      "requirements": ["ipython"],
+      "dependencies": ["https://github.com/my-org/test-fixtures.git 17.0"],
+      "hooks": {
+        "post_prepare": [["docker", "build", "-t", "autoparts_env:emulator", "."]]
+      }
     }
   }
 }

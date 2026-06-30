@@ -67,7 +67,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | `hooks.post_prepare` | Shell argv or plugin id after prepare |
 | `hooks.pre_up` | Shell argv or plugin id before `docker compose up` |
 | `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
-| `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `requirements` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
+| `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
 
 Mailpit example: [plugins.md](plugins.md).
 
@@ -112,7 +112,7 @@ Optional object for **team-wide** Odoo settings in git (preview, staging, produc
 
 ## `scenarios` block (per `ODPM_SCENARIO` overlays, 4.7)
 
-Optional **manifest v2** object to override `odoo_conf`, `services`, `service_patches`, and `requirements` **per scenario** from project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). One `odpm.json` in git — different effective settings on laptop, server, and CI without `${VAR}` workarounds.
+Optional **manifest v2** object to override `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, and `hooks` **per scenario** from project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). One `odpm.json` in git — different effective settings on laptop, server, and CI without `${VAR}` workarounds.
 
 | Mode | Condition | Effective slice |
 |------|-----------|-----------------|
@@ -127,6 +127,8 @@ Merge rules:
 | `services` | overlay replaces service by name |
 | `service_patches` | merge per [ADR-009](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-009-compose-service-patch.md) |
 | `requirements` | concat + dedupe |
+| `dependencies` | concat + dedupe (git repo URLs) |
+| `hooks` | append per phase (`post_clone`, `post_prepare`, `pre_up`); base then overlay |
 
 Manifests with `scenarios` SHOULD set **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → validate error. Details: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 
@@ -145,7 +147,11 @@ Example — more workers on server, extra dev requirements:
       "odoo_conf": { "options": { "workers": "4" } }
     },
     "developer": {
-      "requirements": ["ipython"]
+      "requirements": ["ipython"],
+      "dependencies": ["https://github.com/my-org/test-fixtures.git 17.0"],
+      "hooks": {
+        "post_prepare": [["docker", "build", "-t", "autoparts_env:emulator", "."]]
+      }
     }
   }
 }

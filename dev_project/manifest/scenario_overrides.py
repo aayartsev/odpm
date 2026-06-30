@@ -201,6 +201,15 @@ def resolve_effective_manifest_slice(
     return merge_manifest_slice(base, scenario_overlay_slice(overlay_raw))
 
 
+def _validate_hooks_fragment(hooks: dict[str, Any] | None) -> None:
+    if hooks is None:
+        return
+    from ..extensions.hooks import LIFECYCLE_PHASES, parse_hook_phase
+
+    for phase in LIFECYCLE_PHASES:
+        parse_hook_phase(hooks, phase)
+
+
 def _validate_odoo_conf_fragment(odoo_conf: dict[str, Any] | None) -> None:
     if odoo_conf is None:
         return
@@ -227,6 +236,7 @@ def _validate_effective_slice(
     compose_network_logical: str | None = None,
 ) -> None:
     _validate_odoo_conf_fragment(effective.odoo_conf)
+    _validate_hooks_fragment(effective.hooks)
     _validate_services_fragment(
         effective.services,
         compose_network_logical=compose_network_logical,
@@ -246,6 +256,7 @@ def _validate_declared_overlays(
             continue
         overlay = scenario_overlay_slice(overlay_raw)
         _validate_odoo_conf_fragment(overlay.odoo_conf)
+        _validate_hooks_fragment(overlay.hooks)
         _validate_services_fragment(
             overlay.services,
             compose_network_logical=compose_network_logical,
@@ -271,6 +282,7 @@ def validate_scenario_manifest(
 
     if not manifest_uses_scenarios(raw):
         _validate_odoo_conf_fragment(_optional_dict(raw.get("odoo_conf")))
+        _validate_hooks_fragment(_optional_dict(raw.get("hooks")))
         _validate_services_fragment(
             _optional_dict(raw.get("services")),
             compose_network_logical=compose_network_logical,
@@ -278,6 +290,7 @@ def validate_scenario_manifest(
         return
 
     _validate_odoo_conf_fragment(_optional_dict(raw.get("odoo_conf")))
+    _validate_hooks_fragment(_optional_dict(raw.get("hooks")))
     _validate_services_fragment(
         _optional_dict(raw.get("services")),
         compose_network_logical=compose_network_logical,

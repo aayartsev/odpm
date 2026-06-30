@@ -68,6 +68,7 @@ def normalize_v2_to_flat(
     raw: dict[str, Any],
     *,
     requirements_txt: list[str] | None = None,
+    dependencies: list[str] | None = None,
 ) -> dict[str, Any]:
     """Map nested manifest v2 fields to legacy flat keys for bootstrap."""
     platform = raw.get("platform") or {}
@@ -85,7 +86,11 @@ def normalize_v2_to_flat(
         "distro_name": distro.get("name"),
         "distro_version": str(distro.get("version", "")),
         "postgres_version": str(raw.get("postgres", "")),
-        "dependencies": list(raw.get("dependencies") or []),
+        "dependencies": list(
+            dependencies
+            if dependencies is not None
+            else (raw.get("dependencies") or [])
+        ),
         "requirements_txt": list(
             requirements_txt
             if requirements_txt is not None
@@ -132,11 +137,12 @@ def load_manifest(
         raw_normalized = normalize_v2_to_flat(
             raw,
             requirements_txt=list(effective.requirements or []),
+            dependencies=list(effective.dependencies or []),
         )
         developing = raw.get("developing") or {}
         developing_git = developing.get("git")
         developing_git = str(developing_git).strip() if developing_git else None
-        hooks = raw.get("hooks")
+        hooks = effective.hooks
         services = effective.services
         service_patches = effective.service_patches
         locks = raw.get("locks")

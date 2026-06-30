@@ -40,6 +40,10 @@ Each value (`scenarioOverlay`) may include any subset of:
 | `services` | `#/$defs/composeService` |
 | `service_patches` | `#/$defs/composeServicePatch` |
 | `requirements` | Same as top-level `requirements` (string array) |
+| `dependencies` | Same as top-level `dependencies` (git URL string array) |
+| `hooks` | Same shape as top-level `hooks` (`#/$defs/manifestHooks`) |
+
+**Amendment (4.7.0-dev, post-beta):** `dependencies` and `hooks` in `scenarioOverlay` — schema, merge, effective slice at load, hook validate via `parse_hook_phase`.
 
 ### Effective slice semantics
 
@@ -47,7 +51,7 @@ Host helper: `resolve_effective_manifest_slice(raw, active_scenario) -> Scenario
 
 | Mode | Condition | Effective slice |
 |------|-----------|-----------------|
-| **Legacy** | `scenarios` key **absent** | Top-level `odoo_conf` / `services` / `service_patches` / `requirements` only |
+| **Legacy** | `scenarios` key **absent** | Top-level `odoo_conf` / `services` / `service_patches` / `requirements` / `dependencies` / `hooks` only |
 | **Multi** | `scenarios` key **present** (including `{}`) | Deep merge: top-level base + `scenarios[active_scenario]` overlay |
 
 `active_scenario` comes from `ODPM_SCENARIO` in `.env` (unchanged). Unknown scenario → `developer`.
@@ -60,6 +64,8 @@ Host helper: `resolve_effective_manifest_slice(raw, active_scenario) -> Scenario
 | `services` | `merge_services` — overlay replaces whole service by name |
 | `service_patches` | `merge_service_patch_maps` per ADR-009 |
 | `requirements` | **Append + dedupe** (base order, then overlay; first occurrence wins) |
+| `dependencies` | **Append + dedupe** (same as `requirements`) |
+| `hooks` | **Append per phase** (`post_clone`, `post_prepare`, `pre_up`); base then overlay; no dedupe |
 
 `ScenarioPolicy` (debugpy, stubs, baked venv, …) still applies **after** manifest effective requirements at bootstrap (PR2).
 
@@ -68,7 +74,7 @@ Host helper: `resolve_effective_manifest_slice(raw, active_scenario) -> Scenario
 1. JSON Schema (v2) including `scenarios`.
 2. **v1 + `scenarios`** → reject.
 3. **Legacy:** validate top-level `odoo_conf` + `services` once.
-4. **Multi:** validate each **declared** `scenarios.*` subtree; then for **each** of `developer`, `server`, `ci` compute `resolve_effective_manifest_slice(raw, S)` and validate effective `odoo_conf` + `services` (reserved keys, compose policy).
+4. **Multi:** validate each **declared** `scenarios.*` subtree; then for **each** of `developer`, `server`, `ci` compute `resolve_effective_manifest_slice(raw, S)` and validate effective `odoo_conf` + `services` + `hooks` (reserved keys, compose policy, `parse_hook_phase`).
 
 `${VAR}` expansion in validate is **deferred** to PR2 (runtime wire with `EnvResolver`); PR1 tests use raw JSON.
 
@@ -77,7 +83,7 @@ Host helper: `resolve_effective_manifest_slice(raw, active_scenario) -> Scenario
 | Phase | Scope |
 |-------|--------|
 | **A1** | `scenario_overrides.py`, schema, `validate` |
-| **A2** | Effective slice → `odoo_conf`, `requirements_txt`; `ManifestView.scenario_slice` |
+| **A2** | Effective slice → `odoo_conf`, `requirements_txt`, `dependencies`, `hooks`; `ManifestView.scenario_slice` |
 | **A3** | Effective slice → compose fragments / plan preview; fragment snapshot includes `ODPM_SCENARIO` |
 
 Compose **service name prefix** from `.env` is a separate track ([ADR-012](adr-012-compose-service-prefix.md)); logical names `db` / `odoo` in manifest are unchanged.

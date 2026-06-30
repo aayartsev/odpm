@@ -284,6 +284,43 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
             )
         )
 
+    def test_validate_accepts_scenario_hooks_overlay(self):
+        validate_scenario_manifest(
+            _minimal_v2(
+                requires_odpm="4.6.0",
+                scenarios={
+                    "developer": {
+                        "hooks": {
+                            "post_prepare": [["echo", "ok"]],
+                            "pre_up": ["my.plugin"],
+                        }
+                    }
+                },
+            )
+        )
+
+    def test_validate_rejects_invalid_hook_in_scenario_overlay(self):
+        with self.assertRaises(ConfigError):
+            validate_scenario_manifest(
+                _minimal_v2(
+                    requires_odpm="4.6.0",
+                    scenarios={
+                        "developer": {
+                            "hooks": {"post_prepare": [[]]},
+                        }
+                    },
+                )
+            )
+
+    def test_validate_rejects_invalid_hook_in_effective_slice(self):
+        with self.assertRaises(ConfigError):
+            validate_scenario_manifest(
+                _minimal_v2(
+                    requires_odpm="4.6.0",
+                    hooks={"pre_up": [123]},
+                )
+            )
+
     def test_validate_rejects_v1_with_scenarios(self):
         with self.assertRaises(ConfigError) as ctx:
             validate_scenario_manifest(
@@ -360,7 +397,12 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
                 ),
                 compose_network_logical=None,
             )
-        self.assertTrue(any("networks references logical network" in msg for msg in logs.output))
+        self.assertTrue(
+            any(
+                "logical network" in msg or "логическую сеть" in msg
+                for msg in logs.output
+            )
+        )
 
     def test_no_warn_when_env_matches_stack(self):
         with self.assertNoLogs("dev_project.manifest.compose_policy", level="WARNING"):

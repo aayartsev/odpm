@@ -57,6 +57,23 @@ class NormalizeV2Tests(unittest.TestCase):
         self.assertEqual(flat["dependencies"], ["https://github.com/OCA/web.git 19.0"])
         self.assertEqual(flat["requirements_txt"], ["requests==2.31.0"])
 
+    def test_normalize_accepts_effective_dependencies_override(self):
+        raw = _minimal_v2(dependencies=["https://github.com/OCA/web.git 19.0"])
+        flat = normalize_v2_to_flat(
+            raw,
+            dependencies=[
+                "https://github.com/OCA/web.git 19.0",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+        self.assertEqual(
+            flat["dependencies"],
+            [
+                "https://github.com/OCA/web.git 19.0",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+
     def test_explicit_odoo_version_overrides_git_branch(self):
         flat = normalize_v2_to_flat(_minimal_v2(odoo_version="18.0"))
         self.assertEqual(flat["odoo_version"], "18.0")
@@ -266,6 +283,39 @@ class LoadManifestTests(unittest.TestCase):
         self.assertEqual(dev.service_patches["odoo"]["user"], "1000:1000")
         self.assertEqual(server.services["mailpit"]["image"], "axllent/mailpit:server")
         self.assertEqual(server.service_patches["odoo"]["user"], "0:0")
+
+    def test_v2_scenario_overlay_wires_effective_hooks_and_dependencies(self):
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            dependencies=["https://github.com/OCA/web"],
+            hooks={"pre_up": [["echo", "shared"]]},
+            scenarios={
+                "developer": {
+                    "dependencies": ["https://github.com/my-org/fixtures.git 17.0"],
+                    "hooks": {
+                        "post_prepare": [["docker", "build", "-t", "img:tag", "."]],
+                    },
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(
+            dev.raw_normalized["dependencies"],
+            [
+                "https://github.com/OCA/web",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+        self.assertEqual(server.raw_normalized["dependencies"], ["https://github.com/OCA/web"])
+        self.assertEqual(
+            dev.hooks,
+            {
+                "pre_up": [["echo", "shared"]],
+                "post_prepare": [["docker", "build", "-t", "img:tag", "."]],
+            },
+        )
+        self.assertEqual(server.hooks, {"pre_up": [["echo", "shared"]]})
 
     def test_v2_load_rejects_reserved_odoo_conf_in_scenario_overlay(self):
         with self.assertRaises(ConfigError):

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Scenario overlay `hooks` and `dependencies` (4.7)** — per-scenario lifecycle hooks and extra git dependencies in `scenarios.developer` / `server` / `ci`; merge with top-level base (hooks append per phase; dependencies append + dedupe like `requirements`); effective slice wired into `ManifestView.hooks`, flat `dependencies`, and `odpm plan` hook steps. ADR-011 amendment. Tests: `test_manifest_scenario_overrides`, `test_manifest_v2_reader`, `test_manifest_hooks`, `test_scenario_plan_matrix` (A18b).
+
 ## [4.7.0-beta] - 2026-06-23
 
 **Pre-release 4.7.0-beta** on branch `4.7.0-dev`; stable line remains **4.6.0** (`LATEST_STABLE_RELEASE`). Scenario manifest overlays, compose stack prefix, layered host `.env`, and compose stack network. No breaking changes for v1 flat `odpm.json`; 4.7 features remain opt-in.
