@@ -1404,6 +1404,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#secrets-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Блок secrets (обязательные локальные секреты, 4.7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#scenarios-overlays-odpm_scenario-47" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1971,6 +1982,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#secrets-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Блок secrets (обязательные локальные секреты, 4.7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#scenarios-overlays-odpm_scenario-47" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2145,8 +2167,40 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>На <code>odpm manifest validate</code> нельзя указывать ключи, которыми управляет odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. Подробнее: <a href="../odoo-conf/">odoo.conf</a>.</p>
+<h2 id="secrets-47">Блок <code>secrets</code> (обязательные локальные секреты, 4.7)<a class="headerlink" href="#secrets-47" title="Permanent link">&para;</a></h2>
+<p>Необязательный объект в <strong>manifest v2</strong> (и в <code>scenarios.*</code>) — декларация, что проекту нужен <code>.odpm/secrets.json</code> до подъёма стека:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;secrets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;keys&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;payment_provider.api_key&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;armtek.api_token&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Поле</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>required</code></td>
+<td><code>true</code> — для сценариев с host-mount секретов (<code>developer</code>, <code>server</code>) odpm проверяет наличие <code>.odpm/secrets.json</code> <strong>до</strong> <code>docker compose up</code></td>
+</tr>
+<tr>
+<td><code>keys</code></td>
+<td>Необязательный список ключей для <strong>строгой</strong> проверки содержимого; без <code>keys</code> достаточно существования файла (в сообщении об ошибке ключи из <code>secrets.example.json</code> — только подсказка)</td>
+</tr>
+</tbody>
+</table>
+<p>Проверки (без вывода значений):</p>
+<ul>
+<li><strong><code>odpm manifest validate</code></strong> — предупреждение, если секреты не удовлетворены;</li>
+<li><strong><code>odpm plan</code></strong> — warning в списке предупреждений;</li>
+<li><strong><code>odpm</code></strong> (без <code>--skip-start</code>) — ошибка до <code>pre_up</code> / compose, если файл отсутствует, ключи не заполнены или остались placeholder (<code>REPLACE_ME</code>).</li>
+</ul>
+<p>В сценарии <strong><code>ci</code></strong> host-mount отключён — проверка не выполняется; overlay может задать <code>"secrets": { "required": false }</code>. Подробнее: <a href="../../operations/secrets/">secrets.md</a>.</p>
 <h2 id="scenarios-overlays-odpm_scenario-47">Блок <code>scenarios</code> (overlays по <code>ODPM_SCENARIO</code>, 4.7)<a class="headerlink" href="#scenarios-overlays-odpm_scenario-47" title="Permanent link">&para;</a></h2>
-<p>Необязательный объект в <strong>manifest v2</strong> для переопределения <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code> и <code>requirements</code> <strong>по сценарию</strong> из project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). Один <code>odpm.json</code> в git — разные effective-настройки на ноутбуке, сервере и CI без <code>${VAR}</code>-обходов.</p>
+<p>Необязательный объект в <strong>manifest v2</strong> для переопределения <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>requirements</code>, <code>dependencies</code>, <code>hooks</code> и <code>secrets</code> <strong>по сценарию</strong> из project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). Один <code>odpm.json</code> в git — разные effective-настройки на ноутбуке, сервере и CI без <code>${VAR}</code>-обходов.</p>
 <table>
 <thead>
 <tr>
@@ -2193,6 +2247,18 @@
 <td><code>requirements</code></td>
 <td>concat + dedupe</td>
 </tr>
+<tr>
+<td><code>dependencies</code></td>
+<td>concat + dedupe (git-репозитории)</td>
+</tr>
+<tr>
+<td><code>hooks</code></td>
+<td>append по фазам (<code>post_clone</code>, <code>post_prepare</code>, <code>pre_up</code>); корень, затем overlay</td>
+</tr>
+<tr>
+<td><code>secrets</code></td>
+<td><code>required</code> — overlay переопределяет, если задан; <code>keys</code> — concat + dedupe для строгой проверки; без <code>keys</code> проверяется только наличие <code>.odpm/secrets.json</code></td>
+</tr>
 </tbody>
 </table>
 <p>Manifest со <code>scenarios</code> рекомендуется с <strong><code>requires_odpm: "4.7.0"</code></strong>. v1 + <code>scenarios</code> → ошибка validate. Подробнее: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md">ADR-011</a>.</p>
@@ -2210,7 +2276,11 @@
 <span class="w">      </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="nt">&quot;developer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ipython&quot;</span><span class="p">]</span>
+<span class="w">      </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ipython&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;https://github.com/my-org/test-fixtures.git 17.0&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span><span class="p">]]</span>
+<span class="w">      </span><span class="p">}</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
