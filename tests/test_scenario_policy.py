@@ -97,6 +97,16 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.allows_venv_recreate())
         self.assertFalse(policy.is_ci())
         self.assertFalse(policy.is_developer())
+        self.assertTrue(policy.is_server())
+        self.assertEqual(policy.compose_service_restart_policy(), "unless-stopped")
+
+    def test_compose_restart_policy_only_on_server(self):
+        self.assertIsNone(
+            ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO).compose_service_restart_policy()
+        )
+        self.assertIsNone(
+            ScenarioPolicy.from_scenario(constants.CI_SCENARIO).compose_service_restart_policy()
+        )
 
     def test_report_compose_failure_on_host_by_scenario(self):
         self.assertFalse(

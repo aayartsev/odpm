@@ -19,6 +19,7 @@
 | **Исходники** | Как у разработчика — подключены с диска сервера. |
 | **Base image** | Профиль **medium**: wkhtmltopdf и build deps, без Chromium/Xvfb/IDE — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md). |
 | **Секреты модулей** | Как в `developer`: `.odpm/secrets.json` монтируется в `/run/odpm/secrets.json` (read-only). Доставка файла на сервер — `odpm --secrets-file` или копирование; см. [локальные секреты](../operations/secrets.md). |
+| **Docker Compose** | Сервисы `db` и `odoo` получают `restart: unless-stopped` — после перезагрузки хоста контейнеры поднимаются сами (при `docker compose up -d`). |
 
 ## Рекомендации по безопасности
 

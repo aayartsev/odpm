@@ -88,18 +88,26 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     debugger_backend = resolve_debugger_backend_id(user_env)
     debugger_connect_host = resolve_debugger_connect_host(user_env)
 
+    restart_policy = policy.compose_service_restart_policy()
+
     postgres_service: dict[str, Any] = {
         "image": f"postgres:{_config_str(config, 'postgres_version', '16')}",
         "user": "root",
         "tty": True,
-        "ports": [postgres_port_map],
-        "environment": [
-            f"POSTGRES_PASSWORD={constants.POSTGRES_ODOO_PASS}",
-            f"POSTGRES_USER={constants.POSTGRES_ODOO_USER}",
-            "POSTGRES_DB=postgres",
-        ],
-        "volumes": [f"{LOGICAL_POSTGRES_VOLUME}:/var/lib/postgresql/data"],
     }
+    if restart_policy:
+        postgres_service["restart"] = restart_policy
+    postgres_service.update(
+        {
+            "ports": [postgres_port_map],
+            "environment": [
+                f"POSTGRES_PASSWORD={constants.POSTGRES_ODOO_PASS}",
+                f"POSTGRES_USER={constants.POSTGRES_ODOO_USER}",
+                "POSTGRES_DB=postgres",
+            ],
+            "volumes": [f"{LOGICAL_POSTGRES_VOLUME}:/var/lib/postgresql/data"],
+        }
+    )
 
     odoo_environment = ["PYTHONUNBUFFERED=1"]
     if policy.is_developer():
@@ -126,12 +134,18 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         "image": odoo_image,
         "user": compose_user,
         "tty": True,
-        "depends_on": [LOGICAL_DB],
-        "working_dir": _compose_working_dir(compose_service),
-        "environment": odoo_environment,
-        "command": _compose_command(compose_service),
-        "ports": odoo_ports,
     }
+    if restart_policy:
+        odoo_service["restart"] = restart_policy
+    odoo_service.update(
+        {
+            "depends_on": [LOGICAL_DB],
+            "working_dir": _compose_working_dir(compose_service),
+            "environment": odoo_environment,
+            "command": _compose_command(compose_service),
+            "ports": odoo_ports,
+        }
+    )
     capabilities = cached_docker_capabilities(config)
     if capabilities is not None and capabilities.supports_pull_policy_never:
         odoo_service["pull_policy"] = "never"

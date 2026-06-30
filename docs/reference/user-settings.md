@@ -10,7 +10,7 @@
 | `db_creation_data` | Параметры **новой** базы при первом `-d` |
 | `db_creation_data.db_lang` | Язык базы, напр. `ru_RU` (не язык сообщений odpm) |
 | `db_creation_data.db_country_code` | Код страны или `false` |
-| `db_creation_data.create_demo` | Создавать ли демо-данные |
+| `db_creation_data.create_demo` | Создавать ли демо-данные (по умолчанию `false` в новом `user_settings.json`) |
 | `db_creation_data.db_default_admin_login` | Логин администратора |
 | `db_creation_data.db_default_admin_password` | Пароль администратора |
 | `update_git_repos` | Обновлять ли git при перезапуске |

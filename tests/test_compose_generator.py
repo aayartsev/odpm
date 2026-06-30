@@ -155,8 +155,14 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertNotIn("5678:5678", content)
             self.assertNotIn(constants.PYTHONWARNINGS_ENV, content)
             self.assertIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
+            self.assertIn("restart: unless-stopped", content)
             policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
             self.assertIn(f"user: {policy.runtime_unix_user()}", content)
+
+    def test_developer_compose_omits_restart_policy(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            content = self._compose_content(project_dir, constants.DEVELOPER_SCENARIO)
+            self.assertNotIn("restart:", content)
 
     def test_ci_compose_uses_ci_image_without_volumes_or_debugger(self):
         with tempfile.TemporaryDirectory() as project_dir:

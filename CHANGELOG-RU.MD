@@ -13,6 +13,11 @@
 - **Manifest `secrets.required` (4.7)** — блок `secrets` в manifest v2 (и scenario overlays): обязательные ключи в `.odpm/secrets.json`; предупреждения на `odpm manifest validate` и `odpm plan`; остановка до compose при `required: true` и отсутствующих/заглушечных секретах. Тесты: `test_manifest_secrets_policy`.
 - **Scenario overlay `hooks` и `dependencies` (4.7)** — lifecycle hooks и дополнительные git-зависимости в `scenarios.*`; merge с корнем (hooks — append по фазам; dependencies — append + dedupe как у `requirements`); effective slice в `ManifestView.hooks`, flat `dependencies` и шаги `odpm plan`. Поправка ADR-011. Тесты: `test_manifest_scenario_overrides`, `test_manifest_v2_reader`, `test_manifest_hooks`, `test_scenario_plan_matrix` (A18b).
 
+### Изменено
+
+- **Новые проекты:** в `user_settings.json` по умолчанию `create_demo: false`.
+- **Сценарий server:** в compose для `db` и `odoo` задаётся `restart: unless-stopped` (переживает перезагрузку хоста).
+
 ## [4.7.0-beta] - 2026-06-23
 
 **Pre-release 4.7.0-beta** на ветке `4.7.0-dev`; stable-линия остаётся **4.6.0** (`LATEST_STABLE_RELEASE`). Scenario overlays в manifest, префикс compose-стека, layered `.env` на хосте, compose-сеть стека. Без breaking changes для flat v1 `odpm.json`; возможности 4.7 по-прежнему opt-in.

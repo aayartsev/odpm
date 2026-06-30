@@ -12,7 +12,7 @@ The file describes **how to work** with an already defined stack (`odpm.json`): 
 | `db_creation_data` | Parameters for a **new** database on first `-d` |
 | `db_creation_data.db_lang` | *(deprecated)* Database language — prefer `database.language` in [odpm.json](odpm-json.md) |
 | `db_creation_data.db_country_code` | *(deprecated)* Country code — prefer `database.country` in [odpm.json](odpm-json.md) |
-| `db_creation_data.create_demo` | Whether to create demo data |
+| `db_creation_data.create_demo` | Whether to create demo data (default `false` in new `user_settings.json`) |
 | `db_creation_data.db_default_admin_login` | Administrator login |
 | `db_creation_data.db_default_admin_password` | Administrator password |
 | `update_git_repos` | Whether to update git on restart |

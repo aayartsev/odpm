@@ -252,6 +252,13 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         content = ConfigDefaultsFactory(config).create_default_user_setting_json_content()
         self.assertTrue(content["check_system"])
 
+    def test_create_default_user_settings_create_demo_false_by_default(self):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.pd_manager = MagicMock(init=".", project_path="/tmp/project")
+        content = ConfigDefaultsFactory(config).create_default_user_setting_json_content()
+        self.assertFalse(content["db_creation_data"]["create_demo"])
+
     @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
     def test_create_default_odpm_json_raises_without_odoo_version(self, _mock_tty):
         config = MagicMock()

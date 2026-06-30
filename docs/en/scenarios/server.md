@@ -21,6 +21,7 @@ A full pipeline with an image registry is **not required** — `docker compose u
 | **Python warnings in logs** | The `PYTHONWARNINGS` variable is **not** set: on Odoo startup the log may show `DeprecationWarning` from **docutils** (often with traceback). This is noise from a dependency in the virtual environment, not a sign of broken project modules; if needed, update docutils in requirements or pin a compatible version. In the `developer` scenario odpm intentionally hides such messages. |
 | **Sources** | Same as developer — mounted from the server disk. |
 | **Module secrets** | Same as `developer`: `.odpm/secrets.json` is mounted at `/run/odpm/secrets.json` (read-only). Deliver the file to the server via `odpm --secrets-file` or copy; see [local secrets](../operations/secrets.md). |
+| **Docker Compose** | `db` and `odoo` services use `restart: unless-stopped` — containers come back after a host reboot (with `docker compose up -d`). |
 
 ## Security recommendations
 

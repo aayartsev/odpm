@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Manifest `secrets.required` (4.7)** — optional `secrets` block in manifest v2 (and scenario overlays) to declare required `.odpm/secrets.json` keys; warnings on `odpm manifest validate` and `odpm plan`; hard stop before compose when `required: true` and secrets are missing or placeholders. Tests: `test_manifest_secrets_policy`.
 - **Scenario overlay `hooks` and `dependencies` (4.7)** — per-scenario lifecycle hooks and extra git dependencies in `scenarios.developer` / `server` / `ci`; merge with top-level base (hooks append per phase; dependencies append + dedupe like `requirements`); effective slice wired into `ManifestView.hooks`, flat `dependencies`, and `odpm plan` hook steps. ADR-011 amendment. Tests: `test_manifest_scenario_overrides`, `test_manifest_v2_reader`, `test_manifest_hooks`, `test_scenario_plan_matrix` (A18b).
 
+### Changed
+
+- **New projects default `create_demo: false`** in generated `user_settings.json` (`DEFAULT_DB_CREATION_DATA_CREATE_DEMO`).
+- **Server scenario compose** — built-in `db` and `odoo` services get `restart: unless-stopped` so stacks survive host reboot (developer/ci unchanged).
+
 ## [4.7.0-beta] - 2026-06-23
 
 **Pre-release 4.7.0-beta** on branch `4.7.0-dev`; stable line remains **4.6.0** (`LATEST_STABLE_RELEASE`). Scenario manifest overlays, compose stack prefix, layered host `.env`, and compose stack network. No breaking changes for v1 flat `odpm.json`; 4.7 features remain opt-in.

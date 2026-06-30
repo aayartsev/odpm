@@ -3,6 +3,7 @@ services:
     image: postgres:16
     user: root
     tty: true
+    restart: unless-stopped
     ports:
       - 127.0.0.1:15432:5432
     environment:
@@ -15,6 +16,7 @@ services:
     image: odoo-base:dev
     user: 1000:1000
     tty: true
+    restart: unless-stopped
     depends_on:
       - db
     working_dir: /home/odoo

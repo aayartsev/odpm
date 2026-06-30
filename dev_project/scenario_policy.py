@@ -119,6 +119,15 @@ class ScenarioPolicy:
     def is_developer(self) -> bool:
         return self.scenario == constants.DEVELOPER_SCENARIO
 
+    def is_server(self) -> bool:
+        return self.scenario == constants.SERVER_SCENARIO
+
+    def compose_service_restart_policy(self) -> str | None:
+        """Docker restart policy for built-in db/odoo services (server: survive host reboot)."""
+        if self.is_server():
+            return "unless-stopped"
+        return None
+
     def report_compose_failure_on_host(self) -> bool:
         """Whether to emit a host summary when ``docker compose up`` exits non-zero."""
         return not self.is_developer()
