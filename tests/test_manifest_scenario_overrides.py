@@ -82,6 +82,88 @@ class ScenarioOverridesMergeTests(unittest.TestCase):
         merged = merge_manifest_slice(base, overlay)
         self.assertEqual(merged.requirements, ["pkg-a", "pkg-b", "pkg-c"])
 
+    def test_dependencies_dedupe_preserves_first_occurrence(self):
+        base = ScenarioManifestSlice(
+            dependencies=["https://github.com/OCA/queue"],
+        )
+        overlay = ScenarioManifestSlice(
+            dependencies=[
+                "https://github.com/OCA/queue",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+        merged = merge_manifest_slice(base, overlay)
+        self.assertEqual(
+            merged.dependencies,
+            [
+                "https://github.com/OCA/queue",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+
+    def test_hooks_merge_appends_phases_in_order(self):
+        base = ScenarioManifestSlice(
+            hooks={
+                "post_prepare": [["echo", "base"]],
+                "pre_up": ["base.plugin"],
+            }
+        )
+        overlay = ScenarioManifestSlice(
+            hooks={
+                "post_prepare": [["echo", "overlay"], "overlay.plugin"],
+                "pre_up": [["echo", "pre"]],
+            }
+        )
+        merged = merge_manifest_slice(base, overlay)
+        self.assertEqual(
+            merged.hooks,
+            {
+                "post_prepare": [["echo", "base"], ["echo", "overlay"], "overlay.plugin"],
+                "pre_up": ["base.plugin", ["echo", "pre"]],
+            },
+        )
+
+    def test_resolve_merges_developer_hooks_and_dependencies(self):
+        raw = _minimal_v2(
+            dependencies=["https://github.com/OCA/web"],
+            hooks={"pre_up": [["echo", "shared"]]},
+            scenarios={
+                "developer": {
+                    "dependencies": ["https://github.com/my-org/fixtures.git 17.0"],
+                    "hooks": {
+                        "post_prepare": [["docker", "build", "-t", "img:tag", "."]],
+                    },
+                }
+            },
+        )
+        dev = resolve_effective_manifest_slice(raw, constants.DEVELOPER_SCENARIO)
+        server = resolve_effective_manifest_slice(raw, constants.SERVER_SCENARIO)
+        self.assertEqual(
+            dev.dependencies,
+            [
+                "https://github.com/OCA/web",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+        self.assertEqual(
+            dev.hooks,
+            {
+                "pre_up": [["echo", "shared"]],
+                "post_prepare": [["docker", "build", "-t", "img:tag", "."]],
+            },
+        )
+        self.assertEqual(server.dependencies, ["https://github.com/OCA/web"])
+        self.assertEqual(server.hooks, {"pre_up": [["echo", "shared"]]})
+
+    def test_legacy_resolve_includes_top_level_hooks_and_dependencies(self):
+        raw = _minimal_v2(
+            dependencies=["https://github.com/OCA/queue"],
+            hooks={"post_clone": [["echo", "init"]]},
+        )
+        effective = resolve_effective_manifest_slice(raw, constants.SERVER_SCENARIO)
+        self.assertEqual(effective.dependencies, ["https://github.com/OCA/queue"])
+        self.assertEqual(effective.hooks, {"post_clone": [["echo", "init"]]})
+
     def test_service_patches_merge_uses_adr009_rules(self):
         base = ScenarioManifestSlice(
             service_patches={
@@ -249,11 +331,15 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
     def test_top_level_slice_extracts_fields(self):
         raw = _minimal_v2(
             requirements=["a"],
+            dependencies=["https://github.com/OCA/web"],
+            hooks={"pre_up": [["echo", "hi"]]},
             services=_mailpit_service(),
             service_patches={"odoo": {"user": "9999"}},
         )
         slice_ = top_level_slice(raw)
         self.assertEqual(slice_.requirements, ["a"])
+        self.assertEqual(slice_.dependencies, ["https://github.com/OCA/web"])
+        self.assertEqual(slice_.hooks, {"pre_up": [["echo", "hi"]]})
         self.assertIn("mailpit", slice_.services or {})
         self.assertIn("odoo", slice_.service_patches or {})
 

@@ -7,6 +7,7 @@ from typing import Any
 
 from .. import constants
 from ..errors import ConfigError
+from ..extensions.hooks import LIFECYCLE_PHASES
 from ..translations import _
 from ..yaml import merge_service_patch_maps, merge_services
 from .compose_policy import (
@@ -19,12 +20,14 @@ from .odoo_conf_policy import validate_manifest_odoo_conf
 
 @dataclass(frozen=True)
 class ScenarioManifestSlice:
-    """Effective manifest fields for one scenario (odoo_conf / compose / requirements)."""
+    """Effective manifest fields for one scenario (odoo_conf / compose / requirements / deps / hooks)."""
 
     odoo_conf: dict[str, Any] | None = None
     services: dict[str, Any] | None = None
     service_patches: dict[str, Any] | None = None
     requirements: list[str] | None = None
+    dependencies: list[str] | None = None
+    hooks: dict[str, Any] | None = None
 
 
 def manifest_uses_scenarios(raw: dict[str, Any]) -> bool:
@@ -51,12 +54,16 @@ def slice_from_manifest_fields(
     services: Any = None,
     service_patches: Any = None,
     requirements: Any = None,
+    dependencies: Any = None,
+    hooks: Any = None,
 ) -> ScenarioManifestSlice:
     return ScenarioManifestSlice(
         odoo_conf=_optional_dict(odoo_conf),
         services=_optional_dict(services),
         service_patches=_optional_dict(service_patches),
         requirements=_optional_str_list(requirements),
+        dependencies=_optional_str_list(dependencies),
+        hooks=_optional_dict(hooks),
     )
 
 
@@ -67,6 +74,8 @@ def top_level_slice(raw: dict[str, Any]) -> ScenarioManifestSlice:
         services=raw.get("services"),
         service_patches=raw.get("service_patches"),
         requirements=raw.get("requirements"),
+        dependencies=raw.get("dependencies"),
+        hooks=raw.get("hooks"),
     )
 
 
@@ -77,6 +86,8 @@ def scenario_overlay_slice(overlay: dict[str, Any]) -> ScenarioManifestSlice:
         services=overlay.get("services"),
         service_patches=overlay.get("service_patches"),
         requirements=overlay.get("requirements"),
+        dependencies=overlay.get("dependencies"),
+        hooks=overlay.get("hooks"),
     )
 
 
@@ -95,18 +106,34 @@ def _manifest_odoo_conf_from_sections(
     return {section: dict(values) for section, values in sections.items()}
 
 
-def _merge_requirements(
+def _merge_string_list(
     base: list[str] | None,
     overlay: list[str] | None,
 ) -> list[str] | None:
     merged: list[str] = []
     seen: set[str] = set()
     for source in (base or []), (overlay or []):
-        for requirement in source:
-            cleaned = str(requirement).strip()
+        for item in source:
+            cleaned = str(item).strip()
             if cleaned and cleaned not in seen:
                 seen.add(cleaned)
                 merged.append(cleaned)
+    return merged or None
+
+
+def _merge_hooks(
+    base: dict[str, Any] | None,
+    overlay: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    merged: dict[str, Any] = {}
+    for phase in LIFECYCLE_PHASES:
+        phase_entries: list[Any] = []
+        for source in (base or {}), (overlay or {}):
+            entries = source.get(phase)
+            if isinstance(entries, list):
+                phase_entries.extend(entries)
+        if phase_entries:
+            merged[phase] = phase_entries
     return merged or None
 
 
@@ -144,7 +171,9 @@ def merge_manifest_slice(
         odoo_conf=merged_odoo,
         services=merged_services,
         service_patches=merged_patches,
-        requirements=_merge_requirements(base.requirements, overlay.requirements),
+        requirements=_merge_string_list(base.requirements, overlay.requirements),
+        dependencies=_merge_string_list(base.dependencies, overlay.dependencies),
+        hooks=_merge_hooks(base.hooks, overlay.hooks),
     )
 
 
