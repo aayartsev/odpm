@@ -9,6 +9,7 @@ from unittest import mock
 
 from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.errors import ConfigError
+from dev_project.git import service_sources as service_sources_mod
 from dev_project.git.service_sources import (
     SERVICE_SOURCES_DIR,
     apply_materialized_service_sources,
@@ -61,8 +62,9 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
 
             expected = service_source_target_dir(config, "autoparts_env")
 
-            with mock.patch(
-                "dev_project.git.service_sources._clone_service_source_repo"
+            with mock.patch.object(
+                service_sources_mod,
+                "_clone_service_source_repo",
             ) as clone_mock:
                 clone_mock.side_effect = lambda link, **kwargs: setattr(
                     link, "project_path", kwargs["target_dir"]

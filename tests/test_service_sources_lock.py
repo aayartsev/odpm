@@ -72,31 +72,32 @@ class DepsLockManagerServiceSourcesTests(unittest.TestCase):
                 },
             ),
         )
+        source_path = os.path.join(project_dir, "service-sources", "autoparts_env")
+        os.makedirs(os.path.join(source_path, ".git"), exist_ok=True)
         config = MagicMock()
         config.project_dir = project_dir
         config.policy = ScenarioPolicy.from_scenario(scenario)
         config.bootstrap.manifest_view = view
         config.bootstrap.service_source_paths = {
-            "autoparts_env": os.path.join(project_dir, "service-sources", "autoparts_env"),
+            "autoparts_env": source_path,
         }
         config.dependencies = []
         config.seed_dependency_urls = MagicMock(return_value=[])
         config.odoo_platform_project = MagicMock()
         config.dependencies_projects = []
         config.developing_project = MagicMock()
-        config.handle_git_link = MagicMock(
-            return_value=MagicMock(
-                project_path=config.bootstrap.service_source_paths["autoparts_env"],
-                branch="17.0",
-                branch_explicit=True,
-                commit_explicit=False,
-                link_type=constants.GITLINK_TYPE_HTTP,
-                is_true=True,
-                resolve_head_sha=MagicMock(
-                    return_value="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-                ),
-            )
+        link = MagicMock()
+        link.project_path = source_path
+        link.branch = "17.0"
+        link.branch_explicit = True
+        link.commit_explicit = False
+        link.link_type = constants.GITLINK_TYPE_HTTP
+        link.is_true = True
+        link.get_project_path = MagicMock(return_value=source_path)
+        link.resolve_head_sha = MagicMock(
+            return_value="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         )
+        config.handle_git_link = MagicMock(return_value=link)
         return config
 
     def test_collect_writes_service_sources_entries(self):
