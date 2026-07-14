@@ -101,30 +101,14 @@ golden_path_module_is_installed() {
          WHERE name = '${module_name}' AND state = 'installed' LIMIT 1" | grep -q 1
 }
 
-# Marker for Odoo 19+ ORM columns that older DBs lack (HTTP /web fails without it).
-golden_path_column_exists() {
-    local postgres_service="$1"
-    local pguser="$2"
-    local db_name="$3"
-    local table_name="$4"
-    local column_name="$5"
-
-    docker compose exec -T "${postgres_service}" psql -U "${pguser}" -d "${db_name}" -tAc \
-        "SELECT 1 FROM information_schema.columns \
-         WHERE table_schema = 'public' \
-           AND table_name = '${table_name}' \
-           AND column_name = '${column_name}' \
-         LIMIT 1" | grep -q 1
-}
-
 golden_path_schema_status_line() {
     local postgres_service="$1"
     local pguser="$2"
     local db_name="$3"
-    local base_version web_state short_time
+    local base_version web_state
 
     if ! golden_path_db_has_odoo_tables "${postgres_service}" "${pguser}" "${db_name}"; then
-        echo "odoo_tables=missing base=missing web=missing short_time_format=missing"
+        echo "odoo_tables=missing base=missing web=missing"
         return
     fi
     base_version="$(golden_path_base_module_version "${postgres_service}" "${pguser}" "${db_name}")"
@@ -133,15 +117,11 @@ golden_path_schema_status_line() {
     else
         web_state=missing
     fi
-    if golden_path_column_exists "${postgres_service}" "${pguser}" "${db_name}" res_lang short_time_format; then
-        short_time=present
-    else
-        short_time=missing
-    fi
-    echo "base=${base_version:-missing} web=${web_state} short_time_format=${short_time}"
+    echo "base=${base_version:-missing} web=${web_state}"
 }
 
-# Odoo 19 golden-path: base 19.x + web + res_lang.short_time_format (stale-DB marker).
+# Odoo 19 golden-path: base 19.x installed + web installed.
+# Do not require res_lang.short_time_format — removed in Odoo 19 datetime remake.
 # Do not use ir_model_fields.translate SQL type — on Odoo 19 it stays character varying.
 golden_path_schema_compatible() {
     local postgres_service="$1"
@@ -154,8 +134,7 @@ golden_path_schema_compatible() {
     fi
     base_version="$(golden_path_base_module_version "${postgres_service}" "${pguser}" "${db_name}")"
     [[ -n "${base_version}" && "${base_version}" == 19* ]] || return 1
-    golden_path_module_is_installed "${postgres_service}" "${pguser}" "${db_name}" web || return 1
-    golden_path_column_exists "${postgres_service}" "${pguser}" "${db_name}" res_lang short_time_format
+    golden_path_module_is_installed "${postgres_service}" "${pguser}" "${db_name}" web
 }
 
 golden_path_init_modules() {
@@ -223,9 +202,6 @@ golden_path_emit_schema_failure() {
     echo "::error::Golden-path DB ${db_name} not ready for Odoo 19 golden-path (${status_line})." >&2
     if [[ -n "${base_version}" && "${base_version}" != missing && "${base_version}" != 19* ]]; then
         echo "Installed base module is ${base_version}; expected 19.x (stale DB from older Odoo major)." >&2
-    elif [[ "${status_line}" == *"short_time_format=missing"* ]]; then
-        echo "Column res_lang.short_time_format is missing; DB schema is older than Odoo on disk." >&2
-        echo "Run with ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 or: odpm -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
     elif [[ "${status_line}" == *"web=missing"* ]]; then
         echo "Module web is not installed; golden-path needs /web." >&2
         echo "Run: odpm -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
