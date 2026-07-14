@@ -2622,8 +2622,8 @@
 </tr>
 </tbody>
 </table>
-<p>Syntax: <strong><code>${NAME}</code></strong> and <strong><code>${NAME:-default}</code></strong> (as in Docker Compose). For sidecar build contexts after <code>service_sources</code> materialize — <strong><code>${@source:&lt;name&gt;}</code></strong> (env key <code>ODPM_SOURCE_&lt;NAME&gt;</code>). Literal <code>$</code> — <strong><code>$$</code></strong>.</p>
-<p>When reading the manifest, odpm <strong>does not fail</strong> on unresolved <code>${@source:...}</code> in <code>services</code> / <code>service_patches</code>; paths are injected after source materialize, then compose fields are re-expanded before compose generation.</p>
+<p>Syntax: <strong><code>${NAME}</code></strong> and <strong><code>${NAME:-default}</code></strong> (as in Docker Compose). For sidecar build contexts after <code>service_sources</code> materialize — <strong><code>${@source:&lt;name&gt;}</code></strong> (env key <code>ODPM_SOURCE_&lt;NAME&gt;</code>). For logical compose service names (<code>db</code>, <code>odoo</code>, sidecars) — <strong><code>${@service:&lt;name&gt;}</code></strong>: the generated <code>docker-compose.yml</code> gets the physical name from <code>ODPM_COMPOSE_PREFIX</code> / <code>POSTGRES_SERVICE_NAME</code> (e.g. <code>acme-db</code>). Literal <code>$</code> — <strong><code>$$</code></strong>.</p>
+<p>When reading the manifest, odpm <strong>does not fail</strong> on unresolved <code>${@source:...}</code> / <code>${@service:...}</code> in <code>services</code> / <code>service_patches</code> (tokens are kept until paths/naming are available); <code>@source</code> paths are injected after source materialize, <code>@service</code> resolves from <code>.env</code> naming on bootstrap / re-expand.</p>
 <p>Value source (strongest to weakest): <strong>process</strong> variables (<code>export</code>, CI secrets) → keys from <strong>project <code>.env</code></strong> → default in the manifest string. No separate enable flag is needed.</p>
 <p>Example for a team manifest in git and local paths on a developer machine:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2643,16 +2643,22 @@
 <span class="na">GIT_HOST</span><span class="o">=</span><span class="s">git.company.example</span>
 </code></pre></div>
 <p>Other fields (<code>odoo_version</code>, <code>python_version</code>, <code>requirements_txt</code>, …) have <strong>no</strong> substitution. Nested <code>odpm.json</code> in git dependencies supports the same fields — see <a href="../config-hierarchy/">configuration hierarchy</a>. <code>.odpm/deps.lock.json</code> stores <strong>expanded</strong> URLs and paths, not <code>${VAR}</code>.</p>
-<p>v2 sidecar with paths from <code>.env</code>:</p>
+<p>v2 sidecar with paths from <code>.env</code> and stack service hostnames:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;depends_on&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DB_HOST&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:db}&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;ODOO_URL&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://${@service:odoo}:8069&quot;</span>
+<span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>With <code>ODPM_COMPOSE_PREFIX=acme</code>, compose gets <code>DB_HOST=acme-db</code> and <code>ODOO_URL=http://acme-odoo:8069</code> (<code>depends_on: ["db"]</code> stays logical — prefix rewrites the list separately).</p>
 <p>See <a href="../env-dotenv/"><code>.env</code> variables</a>, <a href="../git-links/">repository links</a>.</p>
 <h2 id="service_sources-block-git-sidecarbuild-contexts-47"><code>service_sources</code> block (git sidecar/build contexts, 4.7+)<a class="headerlink" href="#service_sources-block-git-sidecarbuild-contexts-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object (and in <code>scenarios.*</code>) — named git links to external repositories for sidecar services and <code>docker build</code> hooks. Link syntax matches <a href="../git-links/"><code>dependencies</code></a> and <code>platform.git</code>.</p>
