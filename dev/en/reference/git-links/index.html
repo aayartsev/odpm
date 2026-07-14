@@ -16,7 +16,7 @@
         <link rel="prev" href="../env-dotenv/">
       
       
-        <link rel="next" href="../odpm-json/">
+        <link rel="next" href="../service-sources/">
       
       
         
@@ -1435,6 +1435,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../service-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service sources (sidecar git)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../odpm-json/" class="md-nav__link">
         
   
@@ -2065,7 +2093,7 @@
 <blockquote>
 <p><strong>AI-translated</strong> from Russian.</p>
 </blockquote>
-<p>Such links are used in <strong><code>developing_project</code></strong>, in <strong><code>dependencies</code></strong>, in <strong><code>odoo_git_link</code></strong>, and in the <strong><code>--init</code></strong> parameter.</p>
+<p>Such links are used in <strong><code>developing_project</code></strong>, in <strong><code>dependencies</code></strong>, in <strong><code>odoo_git_link</code></strong>, in <strong><code>service_sources</code></strong> (manifest v2), and in the <strong><code>--init</code></strong> parameter.</p>
 <h2 id="three-ways-to-specify-a-code-source">Three ways to specify a code source<a class="headerlink" href="#three-ways-to-specify-a-code-source" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2138,6 +2166,7 @@ git@github.com:org/odoo.git 19.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
 <li><strong>Developing project:</strong> <code>--init &lt;link&gt;</code> or <code>developing_project</code> in <code>user_settings.json</code>.</li>
 <li><strong>Odoo platform:</strong> <code>odoo_git_link</code> in <code>odpm.json</code> or <code>--odoo-git-link</code> at initialization.</li>
 <li><strong>Dependencies:</strong> <code>dependencies</code> array in <code>odpm.json</code>.</li>
+<li><strong>Sidecar / build contexts (v2):</strong> <code>service_sources</code> object in <code>odpm.json</code> — see <a href="../service-sources/">service-sources.md</a>.</li>
 </ul>
 <h2 id="practical-tips">Practical tips<a class="headerlink" href="#practical-tips" title="Permanent link">&para;</a></h2>
 <ul>

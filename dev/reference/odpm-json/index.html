@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/dev/reference/odpm-json/">
       
       
-        <link rel="prev" href="../git-links/">
+        <link rel="prev" href="../service-sources/">
       
       
         <link rel="next" href="../manifest-migration/">
@@ -1319,6 +1319,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../service-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service sources (sidecar git)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1386,6 +1414,17 @@
     <span class="md-ellipsis">
       
         Подстановка ${VAR} в строковых полях
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service_sources-git-sidecarbuild-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Блок service_sources (git sidecar/build-контексты, 4.7+)
       
     </span>
   </a>
@@ -1971,6 +2010,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#service_sources-git-sidecarbuild-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Блок service_sources (git sidecar/build-контексты, 4.7+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#odoo_conf-odoo" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2125,9 +2175,14 @@
 <td><code>hooks.*</code> argv (v2)</td>
 <td>да — при <strong>выполнении</strong> hook (не при <code>odpm manifest validate</code>)</td>
 </tr>
+<tr>
+<td><code>service_sources.*</code> (v2)</td>
+<td>да — значение git-ссылки для каждого имени</td>
+</tr>
 </tbody>
 </table>
-<p>Синтаксис: <strong><code>${ИМЯ}</code></strong> и <strong><code>${ИМЯ:-значение_по_умолчанию}</code></strong> (как в Docker Compose). Литеральный <code>$</code> — <strong><code>$$</code></strong>.</p>
+<p>Синтаксис: <strong><code>${ИМЯ}</code></strong> и <strong><code>${ИМЯ:-значение_по_умолчанию}</code></strong> (как в Docker Compose). Для sidecar build-контекстов после materialize <code>service_sources</code> — <strong><code>${@source:&lt;имя&gt;}</code></strong> (env-ключ <code>ODPM_SOURCE_&lt;ИМЯ&gt;</code>). Литеральный <code>$</code> — <strong><code>$$</code></strong>.</p>
+<p>При чтении manifest odpm <strong>не падает</strong> на неразрешённый <code>${@source:...}</code> в <code>services</code> / <code>service_patches</code>; пути подставляются после materialize источников, затем выполняется повторное раскрытие перед compose.</p>
 <p>Источник значений (от сильного к слабому): переменные <strong>процесса</strong> (<code>export</code>, CI secrets) → ключи из <strong>project <code>.env</code></strong> → default в строке manifest. Отдельный флаг включения <strong>не нужен</strong>.</p>
 <p>Пример для команды в git и локальных путей на машине разработчика:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2135,7 +2190,10 @@
 <span class="w">  </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="s2">&quot;file://${OCA_WEB_PATH}&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="s2">&quot;https://${GIT_HOST}/company/extra.git 19.0&quot;</span>
-<span class="w">  </span><span class="p">]</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://${GIT_HOST}/org/autoparts-env.git 17.0&quot;</span>
+<span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>В <code>.env</code> проекта (или <code>export</code> / CI):</p>
@@ -2155,6 +2213,44 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>См. <a href="../env-dotenv/">переменные <code>.env</code></a>, <a href="../git-links/">ссылки на репозитории</a>.</p>
+<h2 id="service_sources-git-sidecarbuild-47">Блок <code>service_sources</code> (git sidecar/build-контексты, 4.7+)<a class="headerlink" href="#service_sources-git-sidecarbuild-47" title="Permanent link">&para;</a></h2>
+<p>Необязательный объект в <strong>manifest v2</strong> (и в <code>scenarios.*</code>) — именованные git-ссылки на внешние репозитории для sidecar-сервисов и <code>docker build</code> в hooks. Синтаксис ссылок — как у <a href="../git-links/"><code>dependencies</code></a> и <code>platform.git</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Поле</th>
+<th>Правило</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ключ</td>
+<td><code>[a-z][a-z0-9_]*</code> — логическое имя источника</td>
+</tr>
+<tr>
+<td>Значение</td>
+<td>git-ссылка (строка); поддерживается <code>file://</code> для локального override</td>
+</tr>
+<tr>
+<td><code>services.&lt;svc&gt;.source</code></td>
+<td>необязательно; ссылка на имя из effective <code>service_sources</code>; при <code>odpm manifest validate</code> имя должно существовать</td>
+</tr>
+</tbody>
+</table>
+<p>Пример:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
+<span class="p">},</span>
+<span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Правила merge в <code>scenarios.*</code>: <strong><code>service_sources</code> — replace-by-name</strong> (overlay перекрывает то же имя, остальные записи сохраняются).</p>
+<p>Репозитории из <code>service_sources</code> <strong>не</strong> попадают в <code>dependencies</code> / <code>addons_path</code>. Шаг prepare <strong><code>sources.materialize</code></strong> (после <code>git.materialize</code>) клонирует их в <code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code> и подставляет путь через <code>${@source:&lt;name&gt;}</code>. Пины коммитов — в <code>.odpm/deps.lock.json</code> → <code>service_sources.&lt;name&gt;</code> (см. <code>odpm --update-lock</code>). Подробнее: <a href="../service-sources/">service-sources.md</a>.</p>
 <h2 id="odoo_conf-odoo">Блок <code>odoo_conf</code> (переопределения Odoo)<a class="headerlink" href="#odoo_conf-odoo" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект для <strong>командных</strong> настроек Odoo в git (preview, staging, production). Значения из manifest <strong>перекрывают</strong> одноимённые ключи в дисковом <code>odoo.conf</code> при сборке <code>odoo_config_data</code> для контейнера; обратная запись в <code>odoo.conf</code> <strong>не выполняется</strong>.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2200,7 +2296,7 @@
 </ul>
 <p>В сценарии <strong><code>ci</code></strong> host-mount отключён — проверка не выполняется; overlay может задать <code>"secrets": { "required": false }</code>. Подробнее: <a href="../../operations/secrets/">secrets.md</a>.</p>
 <h2 id="scenarios-overlays-odpm_scenario-47">Блок <code>scenarios</code> (overlays по <code>ODPM_SCENARIO</code>, 4.7)<a class="headerlink" href="#scenarios-overlays-odpm_scenario-47" title="Permanent link">&para;</a></h2>
-<p>Необязательный объект в <strong>manifest v2</strong> для переопределения <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>requirements</code>, <code>dependencies</code>, <code>hooks</code> и <code>secrets</code> <strong>по сценарию</strong> из project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). Один <code>odpm.json</code> в git — разные effective-настройки на ноутбуке, сервере и CI без <code>${VAR}</code>-обходов.</p>
+<p>Необязательный объект в <strong>manifest v2</strong> для переопределения <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>service_sources</code>, <code>requirements</code>, <code>dependencies</code>, <code>hooks</code> и <code>secrets</code> <strong>по сценарию</strong> из project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). Один <code>odpm.json</code> в git — разные effective-настройки на ноутбуке, сервере и CI без <code>${VAR}</code>-обходов.</p>
 <table>
 <thead>
 <tr>
@@ -2242,6 +2338,10 @@
 <tr>
 <td><code>service_patches</code></td>
 <td>merge по <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-009-compose-service-patch.md">ADR-009</a></td>
+</tr>
+<tr>
+<td><code>service_sources</code></td>
+<td>replace-by-name (overlay перекрывает то же имя)</td>
 </tr>
 <tr>
 <td><code>requirements</code></td>

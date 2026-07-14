@@ -10,17 +10,17 @@
       
       
       
-        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/dev/en/getting-started/local-dev-from-scratch/">
+        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/service-sources/">
       
       
-        <link rel="prev" href="../beginner-friendly/">
+        <link rel="prev" href="../git-links/">
       
       
-        <link rel="next" href="../legacy-project/">
+        <link rel="next" href="../odpm-json/">
       
       
         
-          <link rel="alternate" href="../../../getting-started/local-dev-from-scratch/" hreflang="ru">
+          <link rel="alternate" href="../../../reference/service-sources/" hreflang="ru">
         
           <link rel="alternate" href="./" hreflang="en">
         
@@ -31,7 +31,7 @@
     
     
       
-        <title>Local dev from scratch - odpm</title>
+        <title>Service sources (sidecar git) - odpm</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#local-dev-from-scratch" class="md-skip">
+        <a href="#service-sources-git-sidecar-build-contexts" class="md-skip">
           Skip to content
         </a>
       
@@ -133,7 +133,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Local dev from scratch
+              Service sources (sidecar git)
             
           </span>
         </div>
@@ -180,7 +180,7 @@
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../getting-started/local-dev-from-scratch/" hreflang="ru" class="md-select__link">
+            <a href="../../../reference/service-sources/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
@@ -289,13 +289,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../documentation-versions/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../getting-started/documentation-versions/" class="md-tabs__link">
           
   
   
@@ -351,11 +349,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../reference/tools-by-scenario/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tools-by-scenario/" class="md-tabs__link">
           
   
   
@@ -463,31 +463,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -505,7 +502,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -523,7 +520,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../documentation-versions/" class="md-nav__link">
+      <a href="../../getting-started/documentation-versions/" class="md-nav__link">
         
   
   
@@ -551,7 +548,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../why-odpm/" class="md-nav__link">
+      <a href="../../getting-started/why-odpm/" class="md-nav__link">
         
   
   
@@ -579,7 +576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../beginner-friendly/" class="md-nav__link">
+      <a href="../../getting-started/beginner-friendly/" class="md-nav__link">
         
   
   
@@ -604,37 +601,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Local dev from scratch
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../getting-started/local-dev-from-scratch/" class="md-nav__link">
         
   
   
@@ -650,136 +620,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#why-a-separate-directory-per-odoo-version" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why a separate directory per Odoo version
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#editor-and-terminal" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Editor and terminal
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#init-from-a-git-repository" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Init from a git repository
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#init-from-a-local-directory" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Init from a local directory
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-happens-on-first-run" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What happens on first run
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#first-database-and-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        First database and modules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#two-main-config-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Two main config files
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#day-to-day-tasks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Day-to-day tasks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#module-secrets-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Module secrets (optional)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dockerignore-template" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        .dockerignore template
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -792,7 +632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../legacy-project/" class="md-nav__link">
+      <a href="../../getting-started/legacy-project/" class="md-nav__link">
         
   
   
@@ -1282,28 +1122,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -1321,7 +1164,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1339,7 +1182,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/tools-by-scenario/" class="md-nav__link">
+      <a href="../tools-by-scenario/" class="md-nav__link">
         
   
   
@@ -1367,7 +1210,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/config-hierarchy/" class="md-nav__link">
+      <a href="../config-hierarchy/" class="md-nav__link">
         
   
   
@@ -1395,7 +1238,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/config-split/" class="md-nav__link">
+      <a href="../config-split/" class="md-nav__link">
         
   
   
@@ -1423,7 +1266,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/env-dotenv/" class="md-nav__link">
+      <a href="../env-dotenv/" class="md-nav__link">
         
   
   
@@ -1451,7 +1294,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/git-links/" class="md-nav__link">
+      <a href="../git-links/" class="md-nav__link">
         
   
   
@@ -1476,10 +1319,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../reference/service-sources/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service sources (sidecar git)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1495,6 +1365,103 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#materialize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materialize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-substitution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ${@source:...} substitution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-overlays" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario overlays
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#depslock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deps.lock
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1507,7 +1474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/odpm-json/" class="md-nav__link">
+      <a href="../odpm-json/" class="md-nav__link">
         
   
   
@@ -1535,7 +1502,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/manifest-migration/" class="md-nav__link">
+      <a href="../manifest-migration/" class="md-nav__link">
         
   
   
@@ -1563,7 +1530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/user-settings/" class="md-nav__link">
+      <a href="../user-settings/" class="md-nav__link">
         
   
   
@@ -1591,7 +1558,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/odoo-conf/" class="md-nav__link">
+      <a href="../odoo-conf/" class="md-nav__link">
         
   
   
@@ -1619,7 +1586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/database-state/" class="md-nav__link">
+      <a href="../database-state/" class="md-nav__link">
         
   
   
@@ -1647,7 +1614,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/cli/" class="md-nav__link">
+      <a href="../cli/" class="md-nav__link">
         
   
   
@@ -1675,7 +1642,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/deps-lock/" class="md-nav__link">
+      <a href="../deps-lock/" class="md-nav__link">
         
   
   
@@ -1703,7 +1670,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/plugins/" class="md-nav__link">
+      <a href="../plugins/" class="md-nav__link">
         
   
   
@@ -1731,7 +1698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/project-layout/" class="md-nav__link">
+      <a href="../project-layout/" class="md-nav__link">
         
   
   
@@ -1759,7 +1726,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/generated-files/" class="md-nav__link">
+      <a href="../generated-files/" class="md-nav__link">
         
   
   
@@ -1787,7 +1754,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/locale/" class="md-nav__link">
+      <a href="../locale/" class="md-nav__link">
         
   
   
@@ -2043,10 +2010,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#why-a-separate-directory-per-odoo-version" class="md-nav__link">
+  <a href="#model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why a separate directory per Odoo version
+        Model
       
     </span>
   </a>
@@ -2054,10 +2021,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#editor-and-terminal" class="md-nav__link">
+  <a href="#manifest-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Editor and terminal
+        Manifest example
       
     </span>
   </a>
@@ -2065,10 +2032,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#init-from-a-git-repository" class="md-nav__link">
+  <a href="#materialize" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Init from a git repository
+        Materialize
       
     </span>
   </a>
@@ -2076,10 +2043,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#init-from-a-local-directory" class="md-nav__link">
+  <a href="#source-substitution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Init from a local directory
+        ${@source:...} substitution
       
     </span>
   </a>
@@ -2087,10 +2054,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-happens-on-first-run" class="md-nav__link">
+  <a href="#scenario-overlays" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What happens on first run
+        Scenario overlays
       
     </span>
   </a>
@@ -2098,10 +2065,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#first-database-and-modules" class="md-nav__link">
+  <a href="#depslock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        First database and modules
+        deps.lock
       
     </span>
   </a>
@@ -2109,43 +2076,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#two-main-config-files" class="md-nav__link">
+  <a href="#validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Two main config files
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#day-to-day-tasks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Day-to-day tasks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#module-secrets-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Module secrets (optional)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dockerignore-template" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        .dockerignore template
+        Validation
       
     </span>
   </a>
@@ -2169,7 +2103,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/getting-started/local-dev-from-scratch.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/service-sources.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2177,124 +2111,111 @@
   
 
 
-<h1 id="local-dev-from-scratch">Local dev from scratch<a class="headerlink" href="#local-dev-from-scratch" title="Permanent link">&para;</a></h1>
+<h1 id="service-sources-git-sidecar-build-contexts">Service sources (git sidecar / build contexts)<a class="headerlink" href="#service-sources-git-sidecar-build-contexts" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p><strong>AI-translated</strong> from Russian.</p>
 </blockquote>
-<p>Typical path for a <strong>developer</strong> on their own machine. Usage scenario: <strong><code>ODPM_SCENARIO=developer</code></strong> (default).</p>
-<h2 id="why-a-separate-directory-per-odoo-version">Why a separate directory per Odoo version<a class="headerlink" href="#why-a-separate-directory-per-odoo-version" title="Permanent link">&para;</a></h2>
-<p>Create a disk folder for the project <strong>environment</strong>, not necessarily only module sources. A version suffix helps, e.g. <code>my-odoo-project-19</code>: major versions differ enough that 18.0 and 19.0 deserve <strong>separate</strong> odpm directories even when modules share one git repo.</p>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my-odoo-project-19
-<span class="nb">cd</span><span class="w"> </span>my-odoo-project-19
+<p>The <strong><code>service_sources</code></strong> block in manifest v2 describes <strong>external git repositories</strong> for sidecar services and <code>docker build</code> hooks — without manual absolute paths in <code>.env</code>.</p>
+<p>See also: <a href="../odpm-json/">odpm.json</a>, <a href="../git-links/">repository links</a>, <a href="../plugins/">plugins</a>, <a href="../deps-lock/">deps.lock</a>.</p>
+<h2 id="model">Model<a class="headerlink" href="#model" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>service_sources.&lt;name&gt;</code></td>
+<td>git link (same syntax as <code>dependencies</code> / <code>platform.git</code>)</td>
+</tr>
+<tr>
+<td>Name <code>&lt;name&gt;</code></td>
+<td><code>[a-z][a-z0-9_]*</code></td>
+</tr>
+<tr>
+<td><code>services.&lt;svc&gt;.source</code></td>
+<td>optional reference to a name from effective <code>service_sources</code></td>
+</tr>
+<tr>
+<td><code>${@source:&lt;name&gt;}</code></td>
+<td>path after materialize (env <code>ODPM_SOURCE_&lt;NAME&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>file://</code></td>
+<td>local override without clone</td>
+</tr>
+</tbody>
+</table>
+<p>Repositories from <code>service_sources</code> are <strong>not</strong> added to <code>dependencies</code> and <strong>not</strong> included in <code>addons_path</code>.</p>
+<h2 id="manifest-example">Manifest example<a class="headerlink" href="#manifest-example" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.7.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${@source:autoparts_env}/Dockerfile&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;${@source:autoparts_env}&quot;</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
-<p>odpm fills this folder with service files (<code>docker-compose.yml</code>, <code>user_settings.json</code>, <code>.odpm/</code>, etc.). Your <strong>developing project</strong> (modules) may live elsewhere or in another repo — odpm links it during init.</p>
-<h2 id="editor-and-terminal">Editor and terminal<a class="headerlink" href="#editor-and-terminal" title="Permanent link">&para;</a></h2>
-<p>Open the folder in <strong>Visual Studio Code</strong> (File → Open Folder). The integrated terminal is convenient for odpm commands.</p>
-<p><strong>Important:</strong> do not run <code>odpm</code> inside a host Python venv. Use system <code>python3</code> or the <code>odpm</code> package command; Odoo’s isolated Python env is created <strong>inside the container</strong>.</p>
-<h2 id="init-from-a-git-repository">Init from a git repository<a class="headerlink" href="#init-from-a-git-repository" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
-</code></pre></div>
-<p><code>--branch</code> is the <strong>developing</strong> repository branch. If omitted, the git server’s default branch is used.</p>
-<h2 id="init-from-a-local-directory">Init from a local directory<a class="headerlink" href="#init-from-a-local-directory" title="Permanent link">&para;</a></h2>
-<p>If you are not using remote git yet:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>file:///home/user/path/to/my_addons
-</code></pre></div>
-<p>See <a href="../../reference/git-links/">Git repository links</a> for <code>file://</code> and the three slashes.</p>
-<h2 id="what-happens-on-first-run">What happens on first run<a class="headerlink" href="#what-happens-on-first-run" title="Permanent link">&para;</a></h2>
-<p>On first <code>odpm --init</code> (and on full prepare runs), odpm:</p>
+<p>Project <code>.env</code> only needs standard odpm variables; <strong><code>DIGITAL_AUTOPARTS_ENV_DIR</code> is not required</strong>.</p>
+<h2 id="materialize">Materialize<a class="headerlink" href="#materialize" title="Permanent link">&para;</a></h2>
+<p>Prepare step <strong><code>sources.materialize</code></strong> (after <code>git.materialize</code>, before <code>hooks.post_clone</code>):</p>
 <ol>
-<li>Runs the setup wizard and saves answers to <code>.env</code> (backup dir, git clone dir, ports, <strong>scenario</strong> <code>developer</code> / <code>server</code> / <code>ci</code>).</li>
-<li>When deploying from scratch, asks for Odoo version if missing from the developing project’s <code>odpm.json</code>.</li>
-<li>Clones the Odoo <strong>platform</strong> repo (can take <strong>40+ minutes</strong> — be patient).</li>
-<li>Clones the developing project or links the local path you gave.</li>
-<li>Generates <code>Dockerfile</code> for the chosen Linux distro and Python version.</li>
-<li>Copies the template to <code>.odpm/dockerignore</code> and creates the root <code>.dockerignore</code> for image builds.</li>
-<li>Builds the base Docker image when needed.</li>
-<li>Generates <code>docker-compose.yml</code>.</li>
-<li>In developer scenario — creates VS Code debugger settings.</li>
-<li>Starts containers (<code>docker compose up</code>), installs Python deps in the container venv, and starts Odoo.</li>
+<li>Clones git sources under <strong><code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code></strong></li>
+<li>For <code>file://</code> — uses the given directory (no clone)</li>
+<li>Writes paths to <code>ODPM_SOURCE_*</code> and <strong>re-expands</strong> <code>services</code> / <code>service_patches</code> before compose</li>
 </ol>
-<p>Stop a foreground interactive run: <strong>Ctrl+C</strong>. Stop containers separately if needed: <code>docker compose down</code>.</p>
-<h2 id="first-database-and-modules">First database and modules<a class="headerlink" href="#first-database-and-modules" title="Permanent link">&para;</a></h2>
-<p>After a successful prepare:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+<p>With <code>--no-git-update</code>, odpm only verifies that directories already exist.</p>
+<h2 id="source-substitution"><code>${@source:...}</code> substitution<a class="headerlink" href="#source-substitution" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Syntax: <strong><code>${@source:&lt;name&gt;}</code></strong> → env key <strong><code>ODPM_SOURCE_&lt;NAME&gt;</code></strong> (uppercase name)</li>
+<li>On manifest read, unresolved <code>${@source:...}</code> in compose fields <strong>does not fail</strong>; paths are injected after <code>sources.materialize</code></li>
+<li>Hooks expand <code>${@source:...}</code> at execution time (when the resolver already holds paths)</li>
+<li>The <code>source</code> field on <code>services.*</code> is <strong>stripped</strong> from generated compose YAML</li>
+</ul>
+<p>Backward compatibility: legacy <code>${DIGITAL_AUTOPARTS_ENV_DIR}</code> from <code>.env</code> still works.</p>
+<h2 id="scenario-overlays">Scenario overlays<a class="headerlink" href="#scenario-overlays" title="Permanent link">&para;</a></h2>
+<p>In <code>scenarios.*</code>, <code>service_sources</code> merges <strong>replace-by-name</strong> (overlay overrides the same name).</p>
+<h2 id="depslock">deps.lock<a class="headerlink" href="#depslock" title="Permanent link">&para;</a></h2>
+<p>In <code>.odpm/deps.lock.json</code> (schema v1):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;commit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;…&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;branch&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;17.0&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
 <ul>
-<li><code>-d test_db</code> — database name; created with <code>db_creation_data</code> from <code>user_settings.json</code> if missing.</li>
-<li><code>-i</code> — install modules from <code>init_modules</code>.</li>
-<li><code>-u</code> — update modules from <code>update_modules</code>.</li>
+<li><code>odpm --update-lock</code> collects pins after materialize</li>
+<li>CI (strict) verifies drift by source name</li>
 </ul>
-<p>Open <code>http://127.0.0.1:8069</code> — Odoo login should appear.</p>
-<h2 id="two-main-config-files">Two main config files<a class="headerlink" href="#two-main-config-files" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>File</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong><code>odpm.json</code></strong></td>
-<td><strong>Stack</strong> manifest: Odoo/Python/PostgreSQL versions, git dependencies, Python packages. Often in git with modules.</td>
-</tr>
-<tr>
-<td><strong><code>user_settings.json</code></strong></td>
-<td><strong>Workflow</strong>: developing project link, modules to install/update, DB creation params, Odoo dev mode. Created from template if missing.</td>
-</tr>
-</tbody>
-</table>
-<p>More detail: <a href="../../reference/config-split/">odpm.json and user_settings.json</a>.</p>
-<h2 id="day-to-day-tasks">Day-to-day tasks<a class="headerlink" href="#day-to-day-tasks" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Task</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Restart after config changes</td>
-<td><code>odpm</code> or <code>odpm --skip-start</code>, then <code>docker compose up -d</code> if needed</td>
-</tr>
-<tr>
-<td>Update module after code change</td>
-<td><code>odpm -d test_db -u</code></td>
-</tr>
-<tr>
-<td>Database backup</td>
-<td><code>odpm -d test_db --db-backup</code></td>
-</tr>
-<tr>
-<td>Restore from archive</td>
-<td><code>odpm -d test_db --db-restore archive_name</code></td>
-</tr>
-<tr>
-<td>New module scaffold</td>
-<td><code>odpm scaffold module_name</code></td>
-</tr>
-<tr>
-<td>Breakpoint debugging</td>
-<td><a href="../../operations/vscode-debug/">IDE debugging</a></td>
-</tr>
-<tr>
-<td>Module API keys / tokens</td>
-<td><a href="../../operations/secrets/">Local secrets</a> — <code>.odpm/secrets.json</code> → <code>/run/odpm/secrets.json</code></td>
-</tr>
-</tbody>
-</table>
-<h2 id="module-secrets-optional">Module secrets (optional)<a class="headerlink" href="#module-secrets-optional" title="Permanent link">&para;</a></h2>
-<p>If modules call external APIs, prepare secrets <strong>before or after</strong> init:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># from template (after odpm --init)</span>
-cp<span class="w"> </span>.odpm/secrets.example.json<span class="w"> </span>.odpm/secrets.json
-<span class="c1"># edit keys, then:</span>
-odpm<span class="w"> </span>--skip-start
-</code></pre></div>
-<p>Or at init: <code>odpm --init … --secrets-file /path/to/secrets.json</code>.</p>
-<p>After value changes, run <code>odpm --skip-start</code> and <code>docker compose up -d</code> if needed. See <a href="../../operations/secrets/">local secrets</a>.</p>
-<h2 id="dockerignore-template"><code>.dockerignore</code> template<a class="headerlink" href="#dockerignore-template" title="Permanent link">&para;</a></h2>
-<p>Edit exclusion rules in <strong><code>.odpm/dockerignore</code></strong>. odpm recreates the root <code>.dockerignore</code> on each run — do not edit it by hand. To reset the template, delete <code>.odpm/dockerignore</code> and run odpm again.</p>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<p><code>odpm manifest validate</code>:</p>
+<ul>
+<li><code>service_sources</code> keys — JSON Schema + name regex</li>
+<li><code>services.*.source</code> — must exist in effective <code>service_sources</code></li>
+</ul>
 
 
 

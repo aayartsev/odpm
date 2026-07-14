@@ -1413,6 +1413,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/service-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service sources (sidecar git)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/odpm-json/" class="md-nav__link">
         
   
@@ -2061,6 +2089,10 @@
 <tr>
 <td><strong>Module secrets</strong></td>
 <td>Same as <code>developer</code>: <code>.odpm/secrets.json</code> is mounted at <code>/run/odpm/secrets.json</code> (read-only). Deliver the file to the server via <code>odpm --secrets-file</code> or copy; see <a href="../../operations/secrets/">local secrets</a>.</td>
+</tr>
+<tr>
+<td><strong>Docker Compose</strong></td>
+<td><code>db</code> and <code>odoo</code> services use <code>restart: unless-stopped</code> — containers come back after a host reboot (with <code>docker compose up -d</code>).</td>
 </tr>
 </tbody>
 </table>
