@@ -2446,11 +2446,11 @@
 </tbody>
 </table>
 <p>Нормализация: lowercase, символы <code>[a-z0-9-]</code>, имя начинается с буквы; завершающий <code>-</code> в <code>.env</code> опционален. Невалидное значение <strong>игнорируется</strong> (префикс отключён, warning в логе).</p>
-<p>В <code>odpm.json</code> sidecar по-прежнему указывают логические имена (<code>depends_on: ["db"]</code>); odpm переписывает их в physical при генерации <code>docker-compose.yml</code>.</p>
+<p>В <code>odpm.json</code> sidecar по-прежнему указывают логические имена (<code>depends_on: ["db"]</code>); odpm переписывает их в physical при генерации <code>docker-compose.yml</code>. Для hostname внутри <code>environment</code> / <code>command</code> используйте <strong><code>${@service:db}</code></strong> / <strong><code>${@service:odoo}</code></strong> — в YAML попадёт уже physical имя (<code>acme-db</code>). Sidecar-ключи без префикса резолвятся в то же имя.</p>
 <p>Пример:</p>
 <div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
 </code></pre></div>
-<p>См. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md">ADR-012</a>, <a href="../database-state/">состояние PostgreSQL</a>.</p>
+<p>См. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md">ADR-012</a>, <a href="../database-state/">состояние PostgreSQL</a>, <a href="../odpm-json/">подстановку в <code>odpm.json</code></a>.</p>
 <h2 id="odpm_compose_network-odpm_compose_network_external"><code>ODPM_COMPOSE_NETWORK</code> / <code>ODPM_COMPOSE_NETWORK_EXTERNAL</code><a class="headerlink" href="#odpm_compose_network-odpm_compose_network_external" title="Permanent link">&para;</a></h2>
 <p>Опционально объявить <strong>одну</strong> именованную Docker Compose-сеть для <strong>всего</strong> odpm-стека (<code>db</code>, <code>odoo</code>, sidecars). Без этих переменных odpm <strong>не</strong> добавляет секцию <code>networks:</code> в <code>docker-compose.yml</code> — сервисы остаются в implicit default network проекта (как в 4.6).</p>
 <table>

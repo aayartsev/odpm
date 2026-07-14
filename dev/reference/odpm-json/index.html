@@ -2181,8 +2181,8 @@
 </tr>
 </tbody>
 </table>
-<p>Синтаксис: <strong><code>${ИМЯ}</code></strong> и <strong><code>${ИМЯ:-значение_по_умолчанию}</code></strong> (как в Docker Compose). Для sidecar build-контекстов после materialize <code>service_sources</code> — <strong><code>${@source:&lt;имя&gt;}</code></strong> (env-ключ <code>ODPM_SOURCE_&lt;ИМЯ&gt;</code>). Литеральный <code>$</code> — <strong><code>$$</code></strong>.</p>
-<p>При чтении manifest odpm <strong>не падает</strong> на неразрешённый <code>${@source:...}</code> в <code>services</code> / <code>service_patches</code>; пути подставляются после materialize источников, затем выполняется повторное раскрытие перед compose.</p>
+<p>Синтаксис: <strong><code>${ИМЯ}</code></strong> и <strong><code>${ИМЯ:-значение_по_умолчанию}</code></strong> (как в Docker Compose). Для sidecar build-контекстов после materialize <code>service_sources</code> — <strong><code>${@source:&lt;имя&gt;}</code></strong> (env-ключ <code>ODPM_SOURCE_&lt;ИМЯ&gt;</code>). Для логических имён сервисов compose (<code>db</code>, <code>odoo</code>, sidecar) — <strong><code>${@service:&lt;имя&gt;}</code></strong>: в итоговом <code>docker-compose.yml</code> подставляется physical имя с учётом <code>ODPM_COMPOSE_PREFIX</code> / <code>POSTGRES_SERVICE_NAME</code> (например <code>acme-db</code>). Литеральный <code>$</code> — <strong><code>$$</code></strong>.</p>
+<p>При чтении manifest odpm <strong>не падает</strong> на неразрешённый <code>${@source:...}</code> / <code>${@service:...}</code> в <code>services</code> / <code>service_patches</code> (токены сохраняются, пока нет naming/путей); пути <code>@source</code> подставляются после materialize, <code>@service</code> — из naming <code>.env</code> на bootstrap / при повторном expand.</p>
 <p>Источник значений (от сильного к слабому): переменные <strong>процесса</strong> (<code>export</code>, CI secrets) → ключи из <strong>project <code>.env</code></strong> → default в строке manifest. Отдельный флаг включения <strong>не нужен</strong>.</p>
 <p>Пример для команды в git и локальных путей на машине разработчика:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2202,16 +2202,22 @@
 <span class="na">GIT_HOST</span><span class="o">=</span><span class="s">git.company.example</span>
 </code></pre></div>
 <p>Остальные поля (<code>odoo_version</code>, <code>python_version</code>, <code>requirements_txt</code>, …) <strong>без</strong> подстановки. Вложенный <code>odpm.json</code> в git-зависимостях поддерживает те же поля — см. <a href="../config-hierarchy/">иерархию конфигурации</a>. В <code>.odpm/deps.lock.json</code> попадают <strong>уже раскрытые</strong> URL и пути, не <code>${VAR}</code>.</p>
-<p>Для v2 sidecar с путями из <code>.env</code>:</p>
+<p>Для v2 sidecar с путями из <code>.env</code> и hostname сервисов стека:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;depends_on&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DB_HOST&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:db}&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;ODOO_URL&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://${@service:odoo}:8069&quot;</span>
+<span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>При <code>ODPM_COMPOSE_PREFIX=acme</code> в compose попадут <code>DB_HOST=acme-db</code> и <code>ODOO_URL=http://acme-odoo:8069</code> (синтаксис <code>depends_on: ["db"]</code> по-прежнему logical — prefix переписывает список отдельно).</p>
 <p>См. <a href="../env-dotenv/">переменные <code>.env</code></a>, <a href="../git-links/">ссылки на репозитории</a>.</p>
 <h2 id="service_sources-git-sidecarbuild-47">Блок <code>service_sources</code> (git sidecar/build-контексты, 4.7+)<a class="headerlink" href="#service_sources-git-sidecarbuild-47" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект в <strong>manifest v2</strong> (и в <code>scenarios.*</code>) — именованные git-ссылки на внешние репозитории для sidecar-сервисов и <code>docker build</code> в hooks. Синтаксис ссылок — как у <a href="../git-links/"><code>dependencies</code></a> и <code>platform.git</code>.</p>
