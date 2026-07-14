@@ -8,6 +8,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=golden_path_project_lib.sh
 source "${SCRIPT_DIR}/golden_path_project_lib.sh"
 
+log() {
+    echo "[golden-path refresh $(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"
+}
+
 PROJECT="${ODPM_GOLDEN_PATH_PROJECT:?Set ODPM_GOLDEN_PATH_PROJECT}"
 # Default off: CI fail-fast. Opt in for manual maintenance on the runner.
 AUTO_REMEDIATE="${ODPM_GOLDEN_PATH_AUTO_REMEDIATE:-0}"
@@ -27,6 +31,10 @@ if ! command -v odpm >/dev/null 2>&1; then
     exit 1
 fi
 
+SECONDS=0
+log "start project=${PROJECT} AUTO_REMEDIATE=${AUTO_REMEDIATE}"
+log "odpm=$(command -v odpm); $(odpm --version 2>&1 | head -1)"
+
 REPO_ROOT="$(golden_path_repo_root)"
 POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"
 PGUSER="$(golden_path_read_env "${PROJECT}" POSTGRES_ODOO_USER odoo)"
@@ -35,40 +43,46 @@ export PGPASSWORD
 DB_NAME="$(golden_path_read_env "${PROJECT}" ODOO_DB_NAME test_db)"
 
 cd "${PROJECT}"
+log "docker compose down --remove-orphans ..."
 docker compose down --remove-orphans 2>/dev/null || true
+log "docker compose down done (${SECONDS}s elapsed)"
 
+log "odpm --skip-start --no-git-update ..."
 odpm --skip-start --no-git-update
-echo "Golden-path project refreshed with $(odpm --version 2>&1 | head -1)"
+log "odpm --skip-start done (${SECONDS}s elapsed)"
+log "Golden-path project refreshed with $(odpm --version 2>&1 | head -1)"
 ODOO_MANIFEST_VERSION="$(golden_path_odoo_version_from_manifest "${PROJECT}" || true)"
 if [[ -n "${ODOO_MANIFEST_VERSION}" ]]; then
-    echo "Golden-path odpm.json odoo_version=${ODOO_MANIFEST_VERSION}"
+    log "odpm.json odoo_version=${ODOO_MANIFEST_VERSION}"
 fi
 
 if [[ "${AUTO_REMEDIATE}" == "0" || "${AUTO_REMEDIATE}" == "false" ]]; then
-    echo "ODPM_GOLDEN_PATH_AUTO_REMEDIATE=${AUTO_REMEDIATE}; skipping DB schema check."
+    log "ODPM_GOLDEN_PATH_AUTO_REMEDIATE=${AUTO_REMEDIATE}; skipping DB schema check."
     exit 0
 fi
 
+log "ensure postgres up (service=${POSTGRES_SERVICE}) ..."
 golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 trap 'cd "${PROJECT}" && docker compose down --remove-orphans 2>/dev/null || true' EXIT
 
 if golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}" \
     && golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
-    echo "Golden-path DB ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."
+    log "DB ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."
     exit 0
 fi
 
 if golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
-    echo "Golden-path DB ${DB_NAME} not ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")); remediating..."
+    log "DB ${DB_NAME} not ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")); remediating..."
 else
-    echo "Golden-path DB ${DB_NAME} missing; initializing..."
+    log "DB ${DB_NAME} missing; initializing..."
 fi
 
 golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}"
 
+log "re-check schema after remedi ate ..."
 golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
-    echo "Golden-path DB ${DB_NAME} still not ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")); wiping postgres volume and retrying..."
+    log "DB ${DB_NAME} still not ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")); wiping postgres volume and retrying..."
     golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}" 1
     golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 fi
@@ -77,4 +91,4 @@ if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}
     exit 1
 fi
 
-echo "Golden-path DB ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."
+log "DB ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."

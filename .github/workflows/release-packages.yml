@@ -215,13 +215,20 @@ jobs:
           ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "0"
         run: |
           set -euo pipefail
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] sudo dpkg -i dist/odpm_*.deb ..."
           sudo dpkg -i dist/odpm_*.deb
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] dpkg done; refresh_golden_path_project.sh ..."
           bash "${{ github.workspace }}/scripts/refresh_golden_path_project.sh"
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] refresh finished"
 
       - name: Preflight golden-path Postgres schema
         env:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-        run: bash "${{ github.workspace }}/scripts/preflight_golden_path_project.sh"
+        run: |
+          set -euo pipefail
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] preflight_golden_path_project.sh ..."
+          bash "${{ github.workspace }}/scripts/preflight_golden_path_project.sh"
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] preflight finished"
 
       - name: Run golden-path integration test
         env:
