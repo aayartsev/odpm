@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Golden-path CI gate ≤3 min** — `release-packages.yml` / `ci-docker.yml` job `timeout-minutes: 3`; `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=0` on pre-release refresh (no `odpm -i` / wipe in CI); HTTP wait `ODPM_GOLDEN_PATH_TIMEOUT=60`. DB remedi ate remains a manual runner maintenance step (`AUTO_REMEDIATE=1`). Docs: `docs/contributing/ci.md`, ADR-006.
 - **New projects default `create_demo: false`** in generated `user_settings.json` (`DEFAULT_DB_CREATION_DATA_CREATE_DEMO`).
 - **Server scenario compose** — built-in `db` and `odoo` services get `restart: unless-stopped` so stacks survive host reboot (developer/ci unchanged).
 

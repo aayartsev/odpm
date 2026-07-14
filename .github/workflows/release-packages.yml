@@ -135,7 +135,8 @@ jobs:
         || contains(github.ref, '-alpha')
       )
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 90
+    # Gate only: warm project + HTTP. No DB remedi ate / odpm -i in this job.
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v6
 
@@ -210,8 +211,8 @@ jobs:
       - name: Install built odpm on runner and refresh golden-path project
         env:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
-          ODPM_GOLDEN_PATH_INIT_MODULES: base,web
+          # Fail-fast gate: remedi ate (odpm -i / wipe) is maintenance, not CI.
+          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "0"
         run: |
           set -euo pipefail
           sudo dpkg -i dist/odpm_*.deb
@@ -226,7 +227,7 @@ jobs:
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          ODPM_GOLDEN_PATH_TIMEOUT: "90"
+          ODPM_GOLDEN_PATH_TIMEOUT: "60"
         run: python3.12 -m unittest tests.integration.test_golden_path -v
 
   publish:

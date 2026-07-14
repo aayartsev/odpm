@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Refresh long-lived ODPM_GOLDEN_PATH_PROJECT before golden-path CI (release-packages).
+# Refresh long-lived ODPM_GOLDEN_PATH_PROJECT (odpm --skip-start).
+# Set ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 for manual DB remedi ate on the runner;
+# CI release/opt-in golden-path keeps AUTO_REMEDIATE=0 (fail-fast ≤3 min).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,7 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/golden_path_project_lib.sh"
 
 PROJECT="${ODPM_GOLDEN_PATH_PROJECT:?Set ODPM_GOLDEN_PATH_PROJECT}"
-AUTO_REMEDIATE="${ODPM_GOLDEN_PATH_AUTO_REMEDIATE:-1}"
+# Default off: CI fail-fast. Opt in for manual maintenance on the runner.
+AUTO_REMEDIATE="${ODPM_GOLDEN_PATH_AUTO_REMEDIATE:-0}"
 
 if [[ ! -d "${PROJECT}" ]]; then
     echo "ODPM_GOLDEN_PATH_PROJECT is not a directory: ${PROJECT}" >&2

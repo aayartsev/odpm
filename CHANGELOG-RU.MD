@@ -16,6 +16,7 @@
 
 ### Изменено
 
+- **Golden-path CI ≤3 мин** — job `timeout-minutes: 3` в `release-packages.yml` / `ci-docker.yml`; на pre-release `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=0` (без `odpm -i` / wipe в CI); HTTP wait `ODPM_GOLDEN_PATH_TIMEOUT=60`. Remedi ate БД — вручную на runner (`AUTO_REMEDIATE=1`). Документация: `docs/contributing/ci.md`, ADR-006.
 - **Новые проекты:** в `user_settings.json` по умолчанию `create_demo: false`.
 - **Сценарий server:** в compose для `db` и `odoo` задаётся `restart: unless-stopped` (переживает перезагрузку хоста).
 

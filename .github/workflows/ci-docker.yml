@@ -178,7 +178,8 @@ jobs:
         )
       )
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 15
+    # Warm long-lived project only; remedi ate DB outside this job.
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v6
 
@@ -217,7 +218,7 @@ jobs:
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          ODPM_GOLDEN_PATH_TIMEOUT: "90"
+          ODPM_GOLDEN_PATH_TIMEOUT: "60"
           ODPM_COMPOSE_DEBUG_DIR: /tmp/odpm-compose-debug
         run: .ci-golden-venv/bin/python -m unittest tests.integration.test_golden_path -v
 
