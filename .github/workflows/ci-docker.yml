@@ -178,8 +178,8 @@ jobs:
         )
       )
     runs-on: [self-hosted, Linux, X64]
-    # Warm long-lived project only; remedi ate DB outside this job.
-    timeout-minutes: 3
+    # Warm long-lived project; allow remedi ate budget when refresh runs separately.
+    timeout-minutes: 9
     steps:
       - uses: actions/checkout@v6
 

@@ -189,7 +189,7 @@ export ODPM_RUN_DOCKER_INTEGRATION=1
 |-------|----------|--------|------|
 | `test_compose_up_serves_web` | PASS; HTTP 200 on `/web` | | |
 
-Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=60` (default; CI job ≤3 min). DB remedi ate is not part of CI — run `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 … refresh_golden_path_project.sh` on the runner.
+Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=60` (default; CI job ≤9 min). Pre-release refresh remediates only when schema is incompatible (`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`).
 
 ---
 

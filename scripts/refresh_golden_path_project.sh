@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Refresh long-lived ODPM_GOLDEN_PATH_PROJECT (odpm --skip-start).
-# Set ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 for manual DB remedi ate on the runner;
-# CI release/opt-in golden-path keeps AUTO_REMEDIATE=0 (fail-fast ≤3 min).
+# With ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1, remedi ate only when schema is incompatible
+# (odpm -i / wipe on failure). Pre-release CI enables this; job budget ≈9 min.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,7 +13,7 @@ log() {
 }
 
 PROJECT="${ODPM_GOLDEN_PATH_PROJECT:?Set ODPM_GOLDEN_PATH_PROJECT}"
-# Default off: CI fail-fast. Opt in for manual maintenance on the runner.
+# Default off for local/ad-hoc. Release golden-path sets AUTO_REMEDIATE=1.
 AUTO_REMEDIATE="${ODPM_GOLDEN_PATH_AUTO_REMEDIATE:-0}"
 
 if [[ ! -d "${PROJECT}" ]]; then

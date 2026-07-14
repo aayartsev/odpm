@@ -135,8 +135,8 @@ jobs:
         || contains(github.ref, '-alpha')
       )
     runs-on: [self-hosted, Linux, X64]
-    # Gate only: warm project + HTTP. No DB remedi ate / odpm -i in this job.
-    timeout-minutes: 3
+    # Gate: warm project + HTTP; remedi ate DB only when schema is incompatible.
+    timeout-minutes: 9
     steps:
       - uses: actions/checkout@v6
 
@@ -211,8 +211,8 @@ jobs:
       - name: Install built odpm on runner and refresh golden-path project
         env:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          # Fail-fast gate: remedi ate (odpm -i / wipe) is maintenance, not CI.
-          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "0"
+          # Remedi ate only if schema incompatible (base 19 + web + short_time_format).
+          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
           DEBIAN_FRONTEND: noninteractive
         run: |
           set -euo pipefail

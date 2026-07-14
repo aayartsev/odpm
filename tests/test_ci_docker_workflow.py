@@ -50,7 +50,7 @@ class CiDockerWorkflowContractTests(unittest.TestCase):
         self.assertIn("ODPM_GOLDEN_PATH_ENABLED", golden_block)
         self.assertIn("run-docker", golden_block)
         self.assertIn("needs: compose-smoke", golden_block)
-        self.assertIn("timeout-minutes: 3", golden_block)
+        self.assertIn("timeout-minutes: 9", golden_block)
         self.assertIn('ODPM_GOLDEN_PATH_TIMEOUT: "60"', golden_block)
 
 

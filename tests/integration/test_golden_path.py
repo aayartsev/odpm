@@ -225,6 +225,8 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("golden_path_wipe_postgres_data", lib)
         self.assertIn("ir_module_module", lib)
         self.assertIn("golden_path_schema_compatible", lib)
+        self.assertIn("short_time_format", lib)
+        self.assertIn("golden_path_column_exists", lib)
         self.assertNotIn("translate=boolean", lib)
         self.assertIn("alpine:3.20", lib)
         self.assertIn("golden_path_emit_schema_failure", lib)

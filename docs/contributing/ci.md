@@ -40,7 +40,7 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 |------------|----------------------|-----|
 | `ODPM_COMPOSE_SMOKE_TIMEOUT` | `900` | compose-smoke |
 | `ODPM_HTTP_SMOKE_TIMEOUT` | `600` | http-smoke |
-| `ODPM_GOLDEN_PATH_TIMEOUT` | `60` | golden-path (HTTP wait; job ≤3 min) |
+| `ODPM_GOLDEN_PATH_TIMEOUT` | `60` | golden-path (HTTP wait; job ≤9 min) |
 | `ODPM_FIXTURE_GOLDEN_TIMEOUT` | `900` | fixture-golden-path |
 | `ODPM_COMPOSE_DEBUG_DIR` | пусто | при ошибке — каталог debug bundle |
 
@@ -69,9 +69,9 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 | Смена `python_version` / distro / `odoo_version` в `odpm.json` | То же: `odpm` пересоберёт runtime и venv. |
 | Ошибка в логах odoo: `ModuleNotFoundError` (например `decorator`) | С 4.6 odpm ставит `decorator` как implicit-пакет при сборке venv. Если ошибка остаётся после `odpm` — удалить `.venv` и `.lock`, перезапустить `odpm`; для веток Odoo без `decorator` в `requirements.txt` это нормальный путь. |
 | HTTP 500 на `/web`, в логах `invalid manifest` / `Invalid version` (модуль проекта, напр. `first_module`) | Исправить `version` в `__manifest__.py` кастомного аддона под правила Odoo 19 (`19.0.1.0`, не `19.0.1.0.0`). Это содержимое `ODPM_GOLDEN_PATH_PROJECT`, не odpm. |
-| HTTP 500, в postgres: `translate IS TRUE must be type boolean` | БД создана старой версией Odoo (несовместимая схема под Odoo 19). Пересоздать БД **на runner вручную** (backup → drop DB / wipe volume Postgres → `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 ODPM_GOLDEN_PATH_INIT_MODULES=base,web bash scripts/refresh_golden_path_project.sh` или `odpm -d test_db --odoo-bin -i base,web --stop-after-init`). Preflight в CI проверяет **`base` 19.x + `web` installed** в `ir_module_module`, не тип SQL-колонки `ir_model_fields.translate` (на Odoo 19 она остаётся `character varying`). **CI не делает auto-remediate** (fail-fast, job ≤3 мин). Wipe volume — через `docker run … alpine`, не `find` от пользователя runner. |
+| HTTP 500, в postgres: `translate IS TRUE must be type boolean` / в odoo: `res_lang.short_time_format does not exist` | БД отстаёт от Odoo на диске (несовместимая схема). Preflight / remedi ate проверяют **`base` 19.x + `web` installed + колонку `res_lang.short_time_format`**. На pre-release gate CI refresh идёт с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`**: remedi ate только если схема несовместима (`odpm -i` / wipe при провале). Вручную: `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 … refresh_golden_path_project.sh`. Wipe volume — через `docker run … alpine`, не `find` от пользователя runner. |
 | HTTP 500, в odoo: `res.lang` / `_get_data` / `QWebException` на `/web/login` | Часто та же причина: БД или addons не соответствуют Odoo 19 на диске runner. Пересоздать `test_db` как в строке выше; затем `docker compose down` и повторить golden-path. |
-| После падения golden-path | `docker compose down` в каталоге проекта; смотреть artifact `golden-path-compose-logs`; remedi ate БД вручную (см. выше). HTTP wait в CI: `ODPM_GOLDEN_PATH_TIMEOUT=60` внутри job `timeout-minutes: 3`. |
+| После падения golden-path | `docker compose down` в каталоге проекта; смотреть artifact `golden-path-compose-logs`. HTTP wait: `ODPM_GOLDEN_PATH_TIMEOUT=60` внутри job `timeout-minutes: 9`. |
 
 **Минимальная проверка на runner**
 
@@ -114,14 +114,14 @@ sudo -n /usr/bin/dpkg --version   # must print version without password
 
 ### Pre-release golden-path gate
 
-На pre-release тегах (`v*-beta`, `v*-rc*`, `v*-alpha`) job **golden-path** в `release-packages.yml` (`timeout-minutes: 3`):
+На pre-release тегах (`v*-beta`, `v*-rc*`, `v*-alpha`) job **golden-path** в `release-packages.yml` (`timeout-minutes: 9`):
 
 1. проверяет **собранный .deb** в чистом `ubuntu:24.04` (Docker, без `sudo` на runner);
-2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n -E dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=0`** (`odpm --skip-start` только; без `odpm -i` / wipe DB);
-3. `scripts/preflight_golden_path_project.sh` — fail-fast, если схема несовместима с Odoo 19;
+2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n -E dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`** (`odpm --skip-start`; remedi ate **только** при несовместимой схеме);
+3. `scripts/preflight_golden_path_project.sh` — fail-fast, если схема всё ещё несовместима с Odoo 19;
 4. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT` (`ODPM_GOLDEN_PATH_TIMEOUT=60`).
 
-Ремонт БД (`AUTO_REMEDIATE=1` / wipe volume) — **только вручную на runner**, не в release gate. Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуются `ODPM_GOLDEN_PATH_ENABLED=true` и secret `ODPM_GOLDEN_PATH_PROJECT` (иначе workflow падает явно, без ложного зелёного).
+Remedi ate в gate ограничен несовместимой схемой (не wipe на каждом run). Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуются `ODPM_GOLDEN_PATH_ENABLED=true` и secret `ODPM_GOLDEN_PATH_PROJECT` (иначе workflow падает явно, без ложного зелёного).
 
 ## Branch protection
 
