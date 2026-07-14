@@ -1,44 +1,44 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Документация Odoo Developer Project Manager">
+        <meta name="description" content="Odoo Developer Project Manager documentation">
       
       
       
-        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/4.7.0-beta/install/macos-pipx/">
+        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/4.7.0-beta/en/reference/service-sources/">
       
       
-        <link rel="prev" href="../fedora-rpm/">
+        <link rel="prev" href="../git-links/">
       
       
-        <link rel="next" href="../windows-wsl/">
+        <link rel="next" href="../odpm-json/">
       
       
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="../../../reference/service-sources/" hreflang="ru">
         
-          <link rel="alternate" href="../../en/install/macos-pipx/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>macOS - odpm</title>
+        <title>Service sources (sidecar git) - odpm</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -57,7 +57,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#macos-pipx" class="md-skip">
-          Перейти к содержанию
+        <a href="#service-sources-git-sidecar-build-contexts" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -112,8 +112,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
-    <a href="../.." title="odpm" class="md-header__button md-logo" aria-label="odpm" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="odpm" class="md-header__button md-logo" aria-label="odpm" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -133,7 +133,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              macOS
+              Service sources (sidecar git)
             
           </span>
         </div>
@@ -146,9 +146,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Тёмная тема"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Тёмная тема" for="__palette_1" hidden>
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
@@ -156,9 +156,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Светлая тема"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
     
-      <label class="md-header__button md-icon" title="Светлая тема" for="__palette_0" hidden>
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
@@ -173,20 +173,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
+            <a href="../../../reference/service-sources/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/install/macos-pipx/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -207,16 +207,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -229,7 +229,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -241,7 +241,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/aayartsev/odpm" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+        <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -262,7 +262,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -272,13 +272,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../" class="md-tabs__link">
         
   
   
     
   
-  Главная
+  Home
 
       </a>
     </li>
@@ -297,7 +297,7 @@
           
   
   
-  С чего начать
+  Getting started
 
         </a>
       </li>
@@ -309,17 +309,15 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../install/" class="md-tabs__link">
           
   
   
-  Установка odpm
+  Installing odpm
 
         </a>
       </li>
@@ -339,7 +337,7 @@
           
   
   
-  Сценарии
+  Scenarios
 
         </a>
       </li>
@@ -351,15 +349,17 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../reference/tools-by-scenario/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tools-by-scenario/" class="md-tabs__link">
           
   
   
-  Справочник
+  Reference
 
         </a>
       </li>
@@ -379,7 +379,7 @@
           
   
   
-  Эксплуатация
+  Operations
 
         </a>
       </li>
@@ -407,9 +407,9 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="odpm" class="md-nav__button md-logo" aria-label="odpm" data-md-component="logo">
+    <a href="../../" title="odpm" class="md-nav__button md-logo" aria-label="odpm" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -419,7 +419,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/aayartsev/odpm" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+      <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -439,14 +439,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Главная
+    Home
   
 
     
@@ -491,7 +491,7 @@
   <span class="md-ellipsis">
     
   
-    С чего начать
+    Getting started
   
 
     
@@ -507,7 +507,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    С чего начать
+    Getting started
   
 
           </label>
@@ -527,7 +527,7 @@
   <span class="md-ellipsis">
     
   
-    Какую документацию читать
+    Which docs to read
   
 
     
@@ -555,7 +555,7 @@
   <span class="md-ellipsis">
     
   
-    Зачем odpm
+    Why odpm
   
 
     
@@ -583,7 +583,7 @@
   <span class="md-ellipsis">
     
   
-    Дружелюбность к новичкам
+    Beginner-friendly
   
 
     
@@ -611,7 +611,7 @@
   <span class="md-ellipsis">
     
   
-    Локальная разработка с нуля
+    Local dev from scratch
   
 
     
@@ -639,7 +639,7 @@
   <span class="md-ellipsis">
     
   
-    Чужой или унаследованный проект
+    Legacy project
   
 
     
@@ -664,38 +664,35 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    Установка odpm
+    Installing odpm
   
 
     
@@ -706,12 +703,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Установка odpm
+    Installing odpm
   
 
           </label>
@@ -724,14 +721,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../install/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Все платформы
+    All platforms
   
 
     
@@ -752,7 +749,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../linux-deb/" class="md-nav__link">
+      <a href="../../install/linux-deb/" class="md-nav__link">
         
   
   
@@ -780,7 +777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../fedora-rpm/" class="md-nav__link">
+      <a href="../../install/fedora-rpm/" class="md-nav__link">
         
   
   
@@ -805,37 +802,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    macOS
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../install/macos-pipx/" class="md-nav__link">
         
   
   
@@ -851,59 +821,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Содержание
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Требования
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#odpm" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Установка odpm
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Дальше
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -916,7 +833,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../windows-wsl/" class="md-nav__link">
+      <a href="../../install/windows-wsl/" class="md-nav__link">
         
   
   
@@ -944,14 +861,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../pip-legacy/" class="md-nav__link">
+      <a href="../../install/pip-legacy/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    pip и копирование исходников
+    pip and source checkout
   
 
     
@@ -1004,7 +921,7 @@
   <span class="md-ellipsis">
     
   
-    Сценарии
+    Scenarios
   
 
     
@@ -1020,7 +937,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Сценарии
+    Scenarios
   
 
           </label>
@@ -1124,7 +1041,7 @@
   <span class="md-ellipsis">
     
   
-    Координатор команды
+    Team coordinator
   
 
     
@@ -1152,7 +1069,7 @@
   <span class="md-ellipsis">
     
   
-    Свой репозиторий платформы Odoo
+    Custom Odoo platform repo
   
 
     
@@ -1180,7 +1097,7 @@
   <span class="md-ellipsis">
     
   
-    Масштабирование
+    Scaling
   
 
     
@@ -1205,35 +1122,38 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Справочник
+    Reference
   
 
     
@@ -1244,12 +1164,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Reference
   
 
           </label>
@@ -1262,14 +1182,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/tools-by-scenario/" class="md-nav__link">
+      <a href="../tools-by-scenario/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Инструменты по сценариям
+    Tools by scenario
   
 
     
@@ -1290,14 +1210,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/config-hierarchy/" class="md-nav__link">
+      <a href="../config-hierarchy/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Иерархия конфигурации
+    Config hierarchy
   
 
     
@@ -1318,14 +1238,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/config-split/" class="md-nav__link">
+      <a href="../config-split/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    odpm.json и user_settings.json
+    odpm.json and user_settings.json
   
 
     
@@ -1346,14 +1266,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/env-dotenv/" class="md-nav__link">
+      <a href="../env-dotenv/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Переменные .env
+    .env variables
   
 
     
@@ -1374,14 +1294,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/git-links/" class="md-nav__link">
+      <a href="../git-links/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Ссылки на репозитории
+    Git repository links
   
 
     
@@ -1399,10 +1319,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../reference/service-sources/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service sources (sidecar git)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1418,6 +1365,103 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manifest-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#materialize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materialize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-substitution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ${@source:...} substitution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-overlays" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario overlays
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#depslock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deps.lock
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1430,7 +1474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/odpm-json/" class="md-nav__link">
+      <a href="../odpm-json/" class="md-nav__link">
         
   
   
@@ -1458,14 +1502,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/manifest-migration/" class="md-nav__link">
+      <a href="../manifest-migration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Миграция manifest v1→v2
+    Manifest v1 to v2 migration
   
 
     
@@ -1486,7 +1530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/user-settings/" class="md-nav__link">
+      <a href="../user-settings/" class="md-nav__link">
         
   
   
@@ -1514,7 +1558,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/odoo-conf/" class="md-nav__link">
+      <a href="../odoo-conf/" class="md-nav__link">
         
   
   
@@ -1542,7 +1586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/database-state/" class="md-nav__link">
+      <a href="../database-state/" class="md-nav__link">
         
   
   
@@ -1570,14 +1614,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/cli/" class="md-nav__link">
+      <a href="../cli/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Параметры командной строки
+    Command-line options
   
 
     
@@ -1598,7 +1642,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/deps-lock/" class="md-nav__link">
+      <a href="../deps-lock/" class="md-nav__link">
         
   
   
@@ -1626,14 +1670,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/plugins/" class="md-nav__link">
+      <a href="../plugins/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Плагины и расширения
+    Plugins and extensions
   
 
     
@@ -1654,14 +1698,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/project-layout/" class="md-nav__link">
+      <a href="../project-layout/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Структура каталога проекта
+    Project directory layout
   
 
     
@@ -1682,14 +1726,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/generated-files/" class="md-nav__link">
+      <a href="../generated-files/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Сгенерированные файлы
+    Generated files
   
 
     
@@ -1710,14 +1754,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/locale/" class="md-nav__link">
+      <a href="../locale/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Язык сообщений odpm
+    odpm message locale
   
 
     
@@ -1770,7 +1814,7 @@
   <span class="md-ellipsis">
     
   
-    Эксплуатация
+    Operations
   
 
     
@@ -1786,7 +1830,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Эксплуатация
+    Operations
   
 
           </label>
@@ -1806,7 +1850,7 @@
   <span class="md-ellipsis">
     
   
-    Отладка в IDE
+    IDE debugging
   
 
     
@@ -1834,7 +1878,7 @@
   <span class="md-ellipsis">
     
   
-    Локальные секреты
+    Local secrets
   
 
     
@@ -1862,7 +1906,7 @@
   <span class="md-ellipsis">
     
   
-    Запуск без диалогов
+    Non-interactive mode
   
 
     
@@ -1890,7 +1934,7 @@
   <span class="md-ellipsis">
     
   
-    Безопасность
+    Security
   
 
     
@@ -1918,7 +1962,7 @@
   <span class="md-ellipsis">
     
   
-    Переход с версии 3.0
+    Migrating from 3.0
   
 
     
@@ -1952,7 +1996,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1961,15 +2005,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Требования
+        Model
       
     </span>
   </a>
@@ -1977,10 +2021,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#odpm" class="md-nav__link">
+  <a href="#manifest-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Установка odpm
+        Manifest example
       
     </span>
   </a>
@@ -1988,10 +2032,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#materialize" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Дальше
+        Materialize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-substitution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ${@source:...} substitution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-overlays" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario overlays
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#depslock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deps.lock
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
       
     </span>
   </a>
@@ -2015,7 +2103,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/install/macos-pipx.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/service-sources.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2023,25 +2111,111 @@
   
 
 
-<h1 id="macos-pipx">macOS (pipx)<a class="headerlink" href="#macos-pipx" title="Permanent link">&para;</a></h1>
-<p>На macOS нативного <code>.pkg</code> пока нет. Установите через <strong>pipx</strong> (изолированно от системного Python).</p>
-<h2 id="_1">Требования<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="https://www.docker.com/products/docker-desktop/">Docker Desktop for Mac</a> <strong>4.25+</strong> (рекомендуется Compose <strong>v2.23+</strong>; на старых сборках нет <code>docker compose up -y</code>, и Compose может пытаться скачать локальный Odoo-образ с Docker Hub)</li>
-<li><a href="https://git-scm.com/">git</a></li>
-<li>Python 3.10+ (часто уже есть; иначе <a href="https://www.python.org/">python.org</a> или Homebrew)</li>
-</ul>
-<h2 id="odpm">Установка odpm<a class="headerlink" href="#odpm" title="Permanent link">&para;</a></h2>
-<p>Из wheel релиза:</p>
-<div class="highlight"><pre><span></span><code>pipx<span class="w"> </span>install<span class="w"> </span>odpm<span class="w">  </span><span class="c1"># когда пакет опубликован на PyPI</span>
-<span class="c1"># или из клона / wheel файла:</span>
-pipx<span class="w"> </span>install<span class="w"> </span>/path/to/odpm
-odpm<span class="w"> </span>--version
+<h1 id="service-sources-git-sidecar-build-contexts">Service sources (git sidecar / build contexts)<a class="headerlink" href="#service-sources-git-sidecar-build-contexts" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>AI-translated</strong> from Russian.</p>
+</blockquote>
+<p>The <strong><code>service_sources</code></strong> block in manifest v2 describes <strong>external git repositories</strong> for sidecar services and <code>docker build</code> hooks — without manual absolute paths in <code>.env</code>.</p>
+<p>See also: <a href="../odpm-json/">odpm.json</a>, <a href="../git-links/">repository links</a>, <a href="../plugins/">plugins</a>, <a href="../deps-lock/">deps.lock</a>.</p>
+<h2 id="model">Model<a class="headerlink" href="#model" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>service_sources.&lt;name&gt;</code></td>
+<td>git link (same syntax as <code>dependencies</code> / <code>platform.git</code>)</td>
+</tr>
+<tr>
+<td>Name <code>&lt;name&gt;</code></td>
+<td><code>[a-z][a-z0-9_]*</code></td>
+</tr>
+<tr>
+<td><code>services.&lt;svc&gt;.source</code></td>
+<td>optional reference to a name from effective <code>service_sources</code></td>
+</tr>
+<tr>
+<td><code>${@source:&lt;name&gt;}</code></td>
+<td>path after materialize (env <code>ODPM_SOURCE_&lt;NAME&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>file://</code></td>
+<td>local override without clone</td>
+</tr>
+</tbody>
+</table>
+<p>Repositories from <code>service_sources</code> are <strong>not</strong> added to <code>dependencies</code> and <strong>not</strong> included in <code>addons_path</code>.</p>
+<h2 id="manifest-example">Manifest example<a class="headerlink" href="#manifest-example" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.7.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${@source:autoparts_env}/Dockerfile&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;${@source:autoparts_env}&quot;</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
-<p>На Apple Silicon Docker Desktop эмулирует linux/amd64 или использует arm64-образы — убедитесь, что Docker запущен.</p>
-<p>Полная таблица установки: <a href="../">Установка odpm (все платформы)</a>.</p>
-<h2 id="_2">Дальше<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p><a href="../../getting-started/local-dev-from-scratch/">Локальная разработка с нуля</a></p>
+<p>Project <code>.env</code> only needs standard odpm variables; <strong><code>DIGITAL_AUTOPARTS_ENV_DIR</code> is not required</strong>.</p>
+<h2 id="materialize">Materialize<a class="headerlink" href="#materialize" title="Permanent link">&para;</a></h2>
+<p>Prepare step <strong><code>sources.materialize</code></strong> (after <code>git.materialize</code>, before <code>hooks.post_clone</code>):</p>
+<ol>
+<li>Clones git sources under <strong><code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code></strong></li>
+<li>For <code>file://</code> — uses the given directory (no clone)</li>
+<li>Writes paths to <code>ODPM_SOURCE_*</code> and <strong>re-expands</strong> <code>services</code> / <code>service_patches</code> before compose</li>
+</ol>
+<p>With <code>--no-git-update</code>, odpm only verifies that directories already exist.</p>
+<h2 id="source-substitution"><code>${@source:...}</code> substitution<a class="headerlink" href="#source-substitution" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Syntax: <strong><code>${@source:&lt;name&gt;}</code></strong> → env key <strong><code>ODPM_SOURCE_&lt;NAME&gt;</code></strong> (uppercase name)</li>
+<li>On manifest read, unresolved <code>${@source:...}</code> in compose fields <strong>does not fail</strong>; paths are injected after <code>sources.materialize</code></li>
+<li>Hooks expand <code>${@source:...}</code> at execution time (when the resolver already holds paths)</li>
+<li>The <code>source</code> field on <code>services.*</code> is <strong>stripped</strong> from generated compose YAML</li>
+</ul>
+<p>Backward compatibility: legacy <code>${DIGITAL_AUTOPARTS_ENV_DIR}</code> from <code>.env</code> still works.</p>
+<h2 id="scenario-overlays">Scenario overlays<a class="headerlink" href="#scenario-overlays" title="Permanent link">&para;</a></h2>
+<p>In <code>scenarios.*</code>, <code>service_sources</code> merges <strong>replace-by-name</strong> (overlay overrides the same name).</p>
+<h2 id="depslock">deps.lock<a class="headerlink" href="#depslock" title="Permanent link">&para;</a></h2>
+<p>In <code>.odpm/deps.lock.json</code> (schema v1):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;commit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;…&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;branch&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;17.0&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><code>odpm --update-lock</code> collects pins after materialize</li>
+<li>CI (strict) verifies drift by source name</li>
+</ul>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<p><code>odpm manifest validate</code>:</p>
+<ul>
+<li><code>service_sources</code> keys — JSON Schema + name regex</li>
+<li><code>services.*.source</code> — must exist in effective <code>service_sources</code></li>
+</ul>
 
 
 
@@ -2065,7 +2239,7 @@ odpm<span class="w"> </span>--version
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Back to top
 </button>
         
       </main>
@@ -2097,10 +2271,10 @@ odpm<span class="w"> </span>--version
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

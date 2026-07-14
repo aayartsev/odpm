@@ -1322,6 +1322,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../service-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service sources (sidecar git)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../odpm-json/" class="md-nav__link">
         
   
@@ -2417,7 +2445,31 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Для sidecar допустимы <strong><code>user</code></strong> и <strong><code>tty</code></strong> (как в <code>service_patches</code>):</p>
+<p>Для sidecar с <strong>git build-контекстом</strong> (рекомендуется, 4.7+) используйте <code>service_sources</code> и <code>${@source:...}</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
+<span class="p">},</span>
+<span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">},</span>
+<span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${@source:autoparts_env}/Dockerfile&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;${@source:autoparts_env}&quot;</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>См. <a href="../service-sources/">service-sources.md</a>. Legacy-вариант с путём из <code>.env</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
@@ -2485,20 +2537,21 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>Каждый элемент — либо <strong>argv</strong> (массив строк, выполняется в <code>project_dir</code> <strong>без shell</strong>), либо <strong>plugin id</strong> (строка) для pluggy hook runner.</p>
-<p>В argv поддерживается <strong><code>${VAR}</code></strong> / <strong><code>${VAR:-default}</code></strong> (как в Compose): раскрытие при выполнении hook из process env → project <code>.env</code> → default в строке. Subprocess получает <strong>merged env</strong> (process + недостающие ключи из <code>.env</code>). Пример сборки образа sidecar:</p>
+<p>В argv поддерживается <strong><code>${VAR}</code></strong> / <strong><code>${VAR:-default}</code></strong> и <strong><code>${@source:&lt;name&gt;}</code></strong> (после <code>sources.materialize</code>): раскрытие при выполнении hook из process env → project <code>.env</code> → default в строке. Subprocess получает <strong>merged env</strong> (process + недостающие ключи из <code>.env</code>). Пример сборки образа sidecar:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span>
 <span class="w">    </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${@source:autoparts_env}/Dockerfile&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}&quot;</span>
+<span class="w">    </span><span class="s2">&quot;${@source:autoparts_env}&quot;</span>
 <span class="w">  </span><span class="p">]]</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>В <code>services</code> / <code>service_patches</code> те же правила подстановки для строковых полей (<code>image</code>, <code>volumes[]</code>, <code>command[]</code>, <code>environment</code>, …) — раскрытие при чтении manifest с <code>EnvResolver</code>.</p>
-<p>Порядок по ADR-004:</p>
+<p>В <code>services</code> / <code>service_patches</code> те же правила подстановки для строковых полей (<code>image</code>, <code>volumes[]</code>, <code>command[]</code>, <code>environment</code>, …) — <code>${VAR}</code> при чтении manifest; <code>${@source:...}</code> после <code>sources.materialize</code>.</p>
+<p>Порядок prepare (фрагмент):</p>
 <ol>
 <li>Git materialize</li>
+<li><strong><code>sources.materialize</code></strong> (если есть <code>service_sources</code>)</li>
 <li><code>hooks.post_clone</code> (если задан)</li>
 <li>Все prepare steps (built-in + <code>odpm.prepare_steps</code> + local plugins), сортировка по <code>order</code></li>
 <li><code>hooks.post_prepare</code></li>

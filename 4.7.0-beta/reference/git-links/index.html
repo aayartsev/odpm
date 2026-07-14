@@ -16,7 +16,7 @@
         <link rel="prev" href="../env-dotenv/">
       
       
-        <link rel="next" href="../odpm-json/">
+        <link rel="next" href="../service-sources/">
       
       
         
@@ -1435,6 +1435,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../service-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service sources (sidecar git)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../odpm-json/" class="md-nav__link">
         
   
@@ -2062,7 +2090,7 @@
 
 
 <h1 id="_1">Ссылки на репозитории и локальные каталоги<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>Такие ссылки используются в поле <strong><code>developing_project</code></strong>, в списке <strong><code>dependencies</code></strong>, в <strong><code>odoo_git_link</code></strong> и в параметре <strong><code>--init</code></strong>.</p>
+<p>Такие ссылки используются в поле <strong><code>developing_project</code></strong>, в списке <strong><code>dependencies</code></strong>, в <strong><code>odoo_git_link</code></strong>, в <strong><code>service_sources</code></strong> (manifest v2) и в параметре <strong><code>--init</code></strong>.</p>
 <h2 id="_2">Три способа указать источник кода<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2135,6 +2163,7 @@ git@github.com:org/odoo.git 19.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
 <li><strong>Разрабатываемый проект:</strong> <code>--init &lt;ссылка&gt;</code> или <code>developing_project</code> в <code>user_settings.json</code>.</li>
 <li><strong>Платформа Odoo:</strong> <code>odoo_git_link</code> в <code>odpm.json</code> или <code>--odoo-git-link</code> при инициализации.</li>
 <li><strong>Зависимости:</strong> массив <code>dependencies</code> в <code>odpm.json</code>.</li>
+<li><strong>Sidecar / build-контексты (v2):</strong> объект <code>service_sources</code> в <code>odpm.json</code> — см. <a href="../service-sources/">service-sources.md</a>.</li>
 </ul>
 <h2 id="_4">Практические советы<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ul>
