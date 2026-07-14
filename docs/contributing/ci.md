@@ -94,12 +94,30 @@ Label PR `run-docker`: добавить label, **перезапустить** wo
 
 Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
+### Self-hosted: узкий NOPASSWD для установки `.deb`
+
+Pre-release golden-path ставит артефактный `.deb` **на хост runner** (`sudo -n /usr/bin/dpkg -i`). Без passwordless sudo шаг **молча зависает** на prompt — поэтому CI сначала проверяет `sudo -n /usr/bin/dpkg --version` и ставит пакет под `timeout 60` с `DEBIAN_FRONTEND=noninteractive`.
+
+На машине runner (один раз, от root):
+
+```bash
+# от имени пользователя сервиса actions-runner:
+id -un
+sed "s/RUNNER_USER/$(id -un)/" /path/to/odpm/scripts/ci/github-actions-runner-sudoers.example \
+  | sudo tee /etc/sudoers.d/github-actions-runner >/dev/null
+sudo chmod 0440 /etc/sudoers.d/github-actions-runner
+sudo visudo -cf /etc/sudoers.d/github-actions-runner
+sudo -n /usr/bin/dpkg --version   # must print version without password
+```
+
+Шаблон: [`scripts/ci/github-actions-runner-sudoers.example`](../../scripts/ci/github-actions-runner-sudoers.example) — только `dpkg` / `apt-get` / `apt`, не `NOPASSWD:ALL`.
+
 ### Pre-release golden-path gate
 
 На pre-release тегах (`v*-beta`, `v*-rc*`, `v*-alpha`) job **golden-path** в `release-packages.yml` (`timeout-minutes: 3`):
 
 1. проверяет **собранный .deb** в чистом `ubuntu:24.04` (Docker, без `sudo` на runner);
-2. устанавливает `.deb` на runner, вызывает `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=0`** (`odpm --skip-start` только; без `odpm -i` / wipe DB);
+2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n -E dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=0`** (`odpm --skip-start` только; без `odpm -i` / wipe DB);
 3. `scripts/preflight_golden_path_project.sh` — fail-fast, если схема несовместима с Odoo 19;
 4. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT` (`ODPM_GOLDEN_PATH_TIMEOUT=60`).
 

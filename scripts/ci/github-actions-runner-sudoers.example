@@ -1,0 +1,21 @@
+# Narrow NOPASSWD for the self-hosted GitHub Actions runner user.
+# Used by release-packages.yml golden-path: `sudo -n /usr/bin/dpkg -i …`.
+#
+# Install (as root), replace RUNNER_USER with `whoami` of the runner service:
+#
+#   sed "s/RUNNER_USER/$(id -un)/" scripts/ci/github-actions-runner-sudoers.example \
+#     | sudo tee /etc/sudoers.d/github-actions-runner >/dev/null
+#   sudo chmod 0440 /etc/sudoers.d/github-actions-runner
+#   sudo visudo -cf /etc/sudoers.d/github-actions-runner
+#
+# Verify as the runner user (not root):
+#
+#   sudo -n /usr/bin/dpkg --version
+#   sudo -n /usr/bin/apt-get --version
+#
+# Do NOT use NOPASSWD:ALL unless you accept full root from CI jobs.
+# Do NOT rely on `sudo -n true` — it fails under this narrow rule.
+
+Cmnd_Alias ODPM_RUNNER_PKG = /usr/bin/dpkg, /usr/bin/apt-get, /usr/bin/apt
+
+RUNNER_USER ALL=(root) NOPASSWD: ODPM_RUNNER_PKG
