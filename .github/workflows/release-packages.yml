@@ -213,11 +213,11 @@ jobs:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
           # Remedi ate only if schema incompatible (base 19 + web + short_time_format).
           ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
-          DEBIAN_FRONTEND: noninteractive
         run: |
           set -euo pipefail
           # Narrow NOPASSWD for /usr/bin/dpkg (see docs/contributing/ci.md).
           # Do not use `sudo -n true` — that fails under a dpkg-only sudoers rule.
+          # Do not use `sudo -E` — narrow sudoers has no SETENV ("not allowed to preserve environment").
           if ! sudo -n /usr/bin/dpkg --version >/dev/null 2>&1; then
             echo "::error::Runner cannot run sudo -n /usr/bin/dpkg (password required or missing rule)."
             echo "Install scripts/ci/github-actions-runner-sudoers.example as /etc/sudoers.d/github-actions-runner"
@@ -229,8 +229,8 @@ jobs:
             echo "::error::expected exactly one odpm_*.deb under dist/, got ${#debs[@]}"
             exit 1
           fi
-          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] timeout 60 sudo -n -E dpkg -i ${debs[0]} ..."
-          timeout 60 sudo -n -E /usr/bin/dpkg -i "${debs[0]}"
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] timeout 60 sudo -n dpkg -i ${debs[0]} ..."
+          timeout 60 sudo -n /usr/bin/dpkg -i "${debs[0]}"
           echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] dpkg done; refresh_golden_path_project.sh ..."
           bash "${{ github.workspace }}/scripts/refresh_golden_path_project.sh"
           echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] refresh finished"

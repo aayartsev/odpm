@@ -96,7 +96,7 @@ Self-hosted runner: labels `self-hosted`, `Linux`, `X64`.
 
 ### Self-hosted: узкий NOPASSWD для установки `.deb`
 
-Pre-release golden-path ставит артефактный `.deb` **на хост runner** (`sudo -n /usr/bin/dpkg -i`). Без passwordless sudo шаг **молча зависает** на prompt — поэтому CI сначала проверяет `sudo -n /usr/bin/dpkg --version` и ставит пакет под `timeout 60` с `DEBIAN_FRONTEND=noninteractive`.
+Pre-release golden-path ставит артефактный `.deb` **на хост runner** (`sudo -n /usr/bin/dpkg -i`). Без passwordless sudo шаг **молча зависает** на prompt — поэтому CI сначала проверяет `sudo -n /usr/bin/dpkg --version` и ставит пакет под `timeout 60`. Не использовать `sudo -E`: узкий sudoers без `SETENV` отвечает «не разрешено сохранять окружение».
 
 На машине runner (один раз, от root):
 
@@ -117,7 +117,7 @@ sudo -n /usr/bin/dpkg --version   # must print version without password
 На pre-release тегах (`v*-beta`, `v*-rc*`, `v*-alpha`) job **golden-path** в `release-packages.yml` (`timeout-minutes: 9`):
 
 1. проверяет **собранный .deb** в чистом `ubuntu:24.04` (Docker, без `sudo` на runner);
-2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n -E dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`** (`odpm --skip-start`; remedi ate **только** при несовместимой схеме);
+2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`** (`odpm --skip-start`; remedi ate **только** при несовместимой схеме);
 3. `scripts/preflight_golden_path_project.sh` — fail-fast, если схема всё ещё несовместима с Odoo 19;
 4. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT` (`ODPM_GOLDEN_PATH_TIMEOUT=60`).
 

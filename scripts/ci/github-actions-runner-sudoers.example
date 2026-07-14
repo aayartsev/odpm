@@ -15,6 +15,7 @@
 #
 # Do NOT use NOPASSWD:ALL unless you accept full root from CI jobs.
 # Do NOT rely on `sudo -n true` — it fails under this narrow rule.
+# Do NOT use `sudo -E` from CI — this rule has no SETENV ("not allowed to preserve environment").
 
 Cmnd_Alias ODPM_RUNNER_PKG = /usr/bin/dpkg, /usr/bin/apt-get, /usr/bin/apt
 
