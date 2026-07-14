@@ -23,6 +23,9 @@ PLAN_L10N_RU: dict[str, str] = {
     "Clone or update platform, developing, and dependency git repos": (
         "Клонировать или обновить platform, developing и git-зависимости"
     ),
+    "Clone or update manifest service_sources git repositories": (
+        "Клонировать или обновить git-репозитории service_sources из manifest"
+    ),
     "Collect resolved git commits and write .odpm/deps.lock.json": (
         "Собрать разрешённые git-коммиты и записать .odpm/deps.lock.json"
     ),
@@ -141,6 +144,9 @@ PLAN_L10N_RU: dict[str, str] = {
         "освободить порты odoo, debugger, postgres и gevent перед compose up"
     ),
     "git repos will be materialized": "git-репозитории будут материализованы",
+    "inject service_sources paths into env resolver": (
+        "подставить пути service_sources в env resolver"
+    ),
     "invalid JSON in secrets file {PATH}: {DETAIL}": (
         "некорректный JSON в файле secrets {PATH}: {DETAIL}"
     ),
@@ -154,6 +160,7 @@ PLAN_L10N_RU: dict[str, str] = {
         "материализовать репозитории перед записью deps.lock"
     ),
     "no git lock source available": "источник git lock недоступен",
+    "no service_sources declared": "service_sources не объявлены",
     "no {PHASE} hooks configured": "hooks {PHASE} не настроены",
     "odoo config template stale": "шаблон конфигурации Odoo устарел",
     "odoo.conf and template up to date": "odoo.conf и шаблон актуальны",
@@ -185,6 +192,8 @@ PLAN_L10N_RU: dict[str, str] = {
         "монтирование secrets отключено для CI-сценария"
     ),
     "skipped with --no-git-update": "пропущено с --no-git-update",
+    "service_sources stale or missing": "service_sources устарели или отсутствуют",
+    "service_sources up to date": "service_sources актуальны",
     "skipped with --update-lock": "пропущено с --update-lock",
     "start compose stack (--force-recreate unknown without docker probe)": (
         "запуск compose-стека (--force-recreate неизвестен без docker probe)"
@@ -208,6 +217,9 @@ PLAN_L10N_RU: dict[str, str] = {
     ),
     "verify local git directories exist": (
         "проверить наличие локальных git-каталогов"
+    ),
+    "verify service_sources paths exist": (
+        "проверить наличие путей service_sources"
     ),
     "write deps.lock.json from resolved commits": (
         "записать deps.lock.json из разрешённых коммитов"

@@ -12,6 +12,9 @@ msgstr " \"config.json\" is deprecated. Please read documentation"
 msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 msgstr "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 
+msgid "--no-git-update requires existing service_sources directories: {PATHS}"
+msgstr "--no-git-update requires existing service_sources directories: {PATHS}"
+
 msgid "--sync-manifest-locks is only supported in developer scenario"
 msgstr "--sync-manifest-locks is only supported in developer scenario"
 
@@ -113,6 +116,9 @@ msgstr "Checking out {REF} for {PROJECT}"
 
 msgid "Checkout dependency repos to odoo version branch"
 msgstr "Checkout dependency repos to odoo version branch"
+
+msgid "Clone or update manifest service_sources git repositories"
+msgstr "Clone or update manifest service_sources git repositories"
 
 msgid "Clone or update platform, developing, and dependency git repos"
 msgstr "Clone or update platform, developing, and dependency git repos"
@@ -351,6 +357,9 @@ msgstr "Materialize compose fragment for service {NAME}"
 msgid "Materialize manifest and plugin compose service fragments"
 msgstr "Materialize manifest and plugin compose service fragments"
 
+msgid "Materialized service source {NAME} at {PATH}"
+msgstr "Materialized service source {NAME} at {PATH}"
+
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 
@@ -521,6 +530,15 @@ msgstr "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\
 
 msgid "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
 msgstr "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
+
+msgid "Service source {NAME} file:// path does not exist: {PATH}"
+msgstr "Service source {NAME} file:// path does not exist: {PATH}"
+
+msgid "Service source {NAME} is not materialized (required for manifest field {FIELD})"
+msgstr "Service source {NAME} is not materialized (required for manifest field {FIELD})"
+
+msgid "Service source {NAME} materialize failed: {PATH}"
+msgstr "Service source {NAME} materialize failed: {PATH}"
 
 msgid "Set IDE host name for pydevd_connect (container connects to Debug Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
 msgstr "Set IDE host name for pydevd_connect (container connects to Debug Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
@@ -846,6 +864,9 @@ msgstr "free odoo, debugger, postgres, and gevent ports before compose up"
 msgid "git repos will be materialized"
 msgstr "git repos will be materialized"
 
+msgid "inject service_sources paths into env resolver"
+msgstr "inject service_sources paths into env resolver"
+
 msgid "invalid JSON in secrets file {PATH}: {DETAIL}"
 msgstr "invalid JSON in secrets file {PATH}: {DETAIL}"
 
@@ -870,6 +891,12 @@ msgstr "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option a
 msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
 msgstr "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
 
+msgid "manifest services.{NAME}.source must be a non-empty name."
+msgstr "manifest services.{NAME}.source must be a non-empty name."
+
+msgid "manifest services.{NAME}.source references unknown service_sources entry {SOURCE!r}"
+msgstr "manifest services.{NAME}.source references unknown service_sources entry {SOURCE!r}"
+
 msgid "manifest services.{SVC}.networks references logical network {NET!r}; set {ENV}={NET} in .env or remove explicit networks"
 msgstr "manifest services.{SVC}.networks references logical network {NET!r}; set {ENV}={NET} in .env or remove explicit networks"
 
@@ -890,6 +917,9 @@ msgstr "no git lock source available"
 
 msgid "no secrets source"
 msgstr "no secrets source"
+
+msgid "no service_sources declared"
+msgstr "no service_sources declared"
 
 msgid "no {PHASE} hooks configured"
 msgstr "no {PHASE} hooks configured"
@@ -975,6 +1005,21 @@ msgstr "secrets runtime up to date"
 msgid "secrets source changed"
 msgstr "secrets source changed"
 
+msgid "service_sources file:// link must be a non-empty path."
+msgstr "service_sources file:// link must be a non-empty path."
+
+msgid "service_sources key {NAME!r} is invalid; use lowercase letters, digits, and underscores (must start with a letter)."
+msgstr "service_sources key {NAME!r} is invalid; use lowercase letters, digits, and underscores (must start with a letter)."
+
+msgid "service_sources stale or missing"
+msgstr "service_sources stale or missing"
+
+msgid "service_sources up to date"
+msgstr "service_sources up to date"
+
+msgid "service_sources.{NAME} must be a non-empty git link."
+msgstr "service_sources.{NAME} must be a non-empty git link."
+
 msgid "skipped with --no-git-update"
 msgstr "skipped with --no-git-update"
 
@@ -1013,6 +1058,9 @@ msgstr "verify checked-out commits match {SOURCE}"
 
 msgid "verify local git directories exist"
 msgstr "verify local git directories exist"
+
+msgid "verify service_sources paths exist"
+msgstr "verify service_sources paths exist"
 
 msgid "write deps.lock.json from resolved commits"
 msgstr "write deps.lock.json from resolved commits"

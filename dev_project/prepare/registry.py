@@ -23,6 +23,7 @@ from .steps_docker import (
     exec_docker_ports_release,
 )
 from .steps_hooks import evaluate_hooks_post_clone, exec_hooks_post_clone
+from .steps_sources import evaluate_sources_materialize, exec_sources_materialize
 from .steps_git import (
     evaluate_git_checkout,
     evaluate_git_ensure_present,
@@ -62,6 +63,12 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     ),
     PrepareStepDef(
         "git.materialize", "", evaluate_git_materialize, exec_git_materialize
+    ),
+    PrepareStepDef(
+        "sources.materialize",
+        "",
+        evaluate_sources_materialize,
+        exec_sources_materialize,
     ),
     PrepareStepDef(
         "hooks.post_clone", "", evaluate_hooks_post_clone, exec_hooks_post_clone

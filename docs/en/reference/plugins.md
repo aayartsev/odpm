@@ -45,7 +45,24 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 }
 ```
 
-Sidecars may set **`user`** and **`tty`** (same as `service_patches`):
+Sidecars may set **`user`** and **`tty`** (same as `service_patches`). For **git build contexts** (recommended, 4.7+), use `service_sources` and `${@source:...}`:
+
+```json
+"service_sources": {
+  "autoparts_env": "https://github.com/org/autoparts-env.git 17.0"
+},
+"services": {
+  "armtek_test": {
+    "source": "autoparts_env",
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"]
+  }
+}
+```
+
+See [service-sources.md](service-sources.md). Legacy path from `.env`:
 
 ```json
 "services": {
@@ -152,30 +169,31 @@ The `odoo` start command stays owned by the generator; override via `service_pat
 
 Each element is either **argv** (string array, runs in `project_dir` **without a shell**) or a **plugin id** (string) for the pluggy hook runner.
 
-Argv supports **`${VAR}`** / **`${VAR:-default}`** (Compose-style): expanded at hook execution from process env → project `.env` → inline default. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
+Argv supports **`${VAR}`** / **`${VAR:-default}`** and **`${@source:<name>}`** (after `sources.materialize`): expanded at hook execution from process env → project `.env` → inline default. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
 
 ```json
 "hooks": {
   "post_prepare": [[
     "docker", "build",
-    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-f", "${@source:autoparts_env}/Dockerfile",
     "-t", "autoparts_env:emulator",
-    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+    "${@source:autoparts_env}"
   ]]
 }
 ```
 
-`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …) — expanded when the manifest is loaded with `EnvResolver`.
+`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …): `${VAR}` at manifest read; `${@source:...}` after `sources.materialize`.
 
-Order per ADR-004:
+Prepare order (excerpt):
 
 1. Git materialize
-2. `hooks.post_clone` (when configured)
-3. All prepare steps (built-in + `odpm.prepare_steps` + local plugins), sorted by `order`
-4. `hooks.post_prepare`
-5. Runtime: debug profile, IDE, database drift
-6. `hooks.pre_up`
-7. `docker compose up`
+2. **`sources.materialize`** (when `service_sources` is set)
+3. `hooks.post_clone` (if configured)
+4. All prepare steps (built-in + `odpm.prepare_steps` + local plugins), sorted by `order`
+5. `hooks.post_prepare`
+6. Runtime: debug profile, IDE, database drift
+7. `hooks.pre_up`
+8. `docker compose up`
 
 `odpm plan` shows `hooks.*`, `compose.fragment.<service>`, and `compose.patch.<service>` steps when configured.
 

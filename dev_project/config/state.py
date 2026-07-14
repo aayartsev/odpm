@@ -151,6 +151,7 @@ class BootstrapState:
     raw_user_settings: dict = field(default_factory=dict)
     raw_odpm_json: dict = field(default_factory=dict)
     manifest_view: ManifestView | None = None
+    service_source_paths: dict[str, str] = field(default_factory=dict)
     user_loaded: bool = False
     project_loaded: bool = False
 

@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Manifest `service_sources` (4.7+)** — named git links for sidecar/build contexts in manifest v2; prepare step `sources.materialize` clones to `${ODOO_PROJECTS_DIR}/service-sources/<name>`; `${@source:<name>}` substitution and `ODPM_SOURCE_*` env keys; optional `services.*.source` validation; `deps.lock.json` `service_sources` map; not added to `addons_path`. ADR-015. Docs: `docs/reference/service-sources.md`. Tests: `test_service_sources_manifest`, `test_service_sources_materialize`, `test_service_sources_lock`, `test_service_sources_addons_path`, extended `test_env_substitution`.
 - **Manifest `secrets.required` (4.7)** — optional `secrets` block in manifest v2 (and scenario overlays) to declare required `.odpm/secrets.json` keys; warnings on `odpm manifest validate` and `odpm plan`; hard stop before compose when `required: true` and secrets are missing or placeholders. Tests: `test_manifest_secrets_policy`.
 - **Scenario overlay `hooks` and `dependencies` (4.7)** — per-scenario lifecycle hooks and extra git dependencies in `scenarios.developer` / `server` / `ci`; merge with top-level base (hooks append per phase; dependencies append + dedupe like `requirements`); effective slice wired into `ManifestView.hooks`, flat `dependencies`, and `odpm plan` hook steps. ADR-011 amendment. Tests: `test_manifest_scenario_overrides`, `test_manifest_v2_reader`, `test_manifest_hooks`, `test_scenario_plan_matrix` (A18b).
 

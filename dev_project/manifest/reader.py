@@ -49,6 +49,7 @@ class ManifestView:
     hooks: dict[str, Any] | None = None
     services: dict[str, Any] | None = None
     service_patches: dict[str, Any] | None = None
+    service_sources: dict[str, str] | None = None
     locks: dict[str, Any] | None = None
     extensions: dict[str, Any] | None = None
     developing_git: str | None = None
@@ -145,22 +146,30 @@ def load_manifest(
         hooks = effective.hooks
         services = effective.services
         service_patches = effective.service_patches
+        service_sources = effective.service_sources
         locks = raw.get("locks")
         extensions = raw.get("extensions")
         if env_resolver is not None:
             from ..config.transforms.env_substitution import (
                 expand_env_in_compose_service_map,
+                expand_env_in_service_sources,
             )
 
+            service_sources = expand_env_in_service_sources(
+                dict(service_sources) if isinstance(service_sources, dict) else None,
+                resolver=env_resolver,
+            )
             services = expand_env_in_compose_service_map(
                 dict(services) if isinstance(services, dict) else None,
                 resolver=env_resolver,
                 field_prefix="services",
+                allow_unresolved_source=True,
             )
             service_patches = expand_env_in_compose_service_map(
                 dict(service_patches) if isinstance(service_patches, dict) else None,
                 resolver=env_resolver,
                 field_prefix="service_patches",
+                allow_unresolved_source=True,
             )
         odoo_conf = _resolve_odoo_conf_dict(
             effective.odoo_conf,
@@ -174,6 +183,9 @@ def load_manifest(
             services=services if isinstance(services, dict) else None,
             service_patches=(
                 service_patches if isinstance(service_patches, dict) else None
+            ),
+            service_sources=(
+                service_sources if isinstance(service_sources, dict) else None
             ),
             locks=dict(locks) if isinstance(locks, dict) else None,
             extensions=dict(extensions) if isinstance(extensions, dict) else None,
@@ -199,4 +211,48 @@ def load_manifest(
         odoo_conf=odoo_conf,
         scenario_slice=effective_v1,
         source_raw=deepcopy(raw),
+    )
+
+
+def refresh_manifest_view_compose_expansion(
+    view: ManifestView,
+    *,
+    env_resolver: EnvResolver,
+) -> ManifestView:
+    """Re-expand ``services`` / ``service_patches`` after service source materialize."""
+    from ..config.transforms.env_substitution import expand_env_in_compose_service_map
+
+    if view.manifest_schema != constants.MANIFEST_SCHEMA_V2:
+        return view
+    effective = view.scenario_slice
+    if effective is None:
+        return view
+    services = expand_env_in_compose_service_map(
+        dict(effective.services) if isinstance(effective.services, dict) else None,
+        resolver=env_resolver,
+        field_prefix="services",
+        allow_unresolved_source=False,
+    )
+    service_patches = expand_env_in_compose_service_map(
+        dict(effective.service_patches)
+        if isinstance(effective.service_patches, dict)
+        else None,
+        resolver=env_resolver,
+        field_prefix="service_patches",
+        allow_unresolved_source=False,
+    )
+    return ManifestView(
+        manifest_schema=view.manifest_schema,
+        requires_odpm=view.requires_odpm,
+        raw_normalized=view.raw_normalized,
+        hooks=view.hooks,
+        services=services if isinstance(services, dict) else None,
+        service_patches=service_patches if isinstance(service_patches, dict) else None,
+        service_sources=view.service_sources,
+        locks=view.locks,
+        extensions=view.extensions,
+        developing_git=view.developing_git,
+        odoo_conf=view.odoo_conf,
+        scenario_slice=effective,
+        source_raw=view.source_raw,
     )

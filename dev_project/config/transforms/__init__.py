@@ -7,6 +7,7 @@ from .env_substitution import (
     expand_env_in_json,
     expand_env_in_odoo_conf,
     expand_env_string,
+    inject_service_source_paths,
     merged_subprocess_environ,
 )
 from .modules import beautify_module_list
@@ -21,5 +22,6 @@ __all__ = [
     "expand_env_in_json",
     "expand_env_in_odoo_conf",
     "expand_env_string",
+    "inject_service_source_paths",
     "merged_subprocess_environ",
 ]

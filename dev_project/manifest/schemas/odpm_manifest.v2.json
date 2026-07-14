@@ -81,6 +81,9 @@
       "type": "object",
       "additionalProperties": { "$ref": "#/$defs/composeServicePatch" }
     },
+    "service_sources": {
+      "$ref": "#/$defs/serviceSources"
+    },
     "extensions": {
       "type": "object",
       "additionalProperties": false,
@@ -145,6 +148,9 @@
           "type": "object",
           "additionalProperties": { "$ref": "#/$defs/composeServicePatch" }
         },
+        "service_sources": {
+          "$ref": "#/$defs/serviceSources"
+        },
         "requirements": {
           "$ref": "#/$defs/stringList"
         },
@@ -172,6 +178,18 @@
     "stringList": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "serviceSourceName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "serviceSources": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": { "$ref": "#/$defs/serviceSourceName" },
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": { "type": "string", "minLength": 1 }
+      }
     },
     "hookCommandEntry": {
       "oneOf": [
@@ -206,6 +224,7 @@
       "additionalProperties": false,
       "required": ["image"],
       "properties": {
+        "source": { "$ref": "#/$defs/serviceSourceName" },
         "image": { "type": "string", "minLength": 1 },
         "ports": {
           "type": "array",

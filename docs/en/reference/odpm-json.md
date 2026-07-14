@@ -66,8 +66,9 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | `locks.venv` | venv lock hash (optional) |
 | `hooks.post_prepare` | Shell argv or plugin id after prepare |
 | `hooks.pre_up` | Shell argv or plugin id before `docker compose up` |
-| `services.<name>` | Extra compose services: `image` required; optional `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
-| `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks`, `secrets` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
+| `service_sources` | Named git links for sidecar/build contexts (keys `[a-z][a-z0-9_]*`) |
+| `services.<name>` | Extra compose services: `image` required; optional `source` (service_sources name), `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
+| `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `service_sources`, `requirements`, `dependencies`, `hooks`, `secrets` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
 
 Mailpit example: [plugins.md](plugins.md).
 
@@ -136,7 +137,7 @@ In **`ci`** the host mount is disabled — checks are skipped; an overlay may se
 
 ## `scenarios` block (per `ODPM_SCENARIO` overlays, 4.7)
 
-Optional **manifest v2** object to override `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks`, and `secrets` **per scenario** from project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). One `odpm.json` in git — different effective settings on laptop, server, and CI without `${VAR}` workarounds.
+Optional **manifest v2** object to override `odoo_conf`, `services`, `service_patches`, `service_sources`, `requirements`, `dependencies`, `hooks`, and `secrets` **per scenario** from project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). One `odpm.json` in git — different effective settings on laptop, server, and CI without `${VAR}` workarounds.
 
 | Mode | Condition | Effective slice |
 |------|-----------|-----------------|
@@ -150,6 +151,7 @@ Merge rules:
 | `odoo_conf` | deep merge by section |
 | `services` | overlay replaces service by name |
 | `service_patches` | merge per [ADR-009](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-009-compose-service-patch.md) |
+| `service_sources` | replace-by-name (overlay overrides the same name) |
 | `requirements` | concat + dedupe |
 | `dependencies` | concat + dedupe (git repo URLs) |
 | `hooks` | append per phase (`post_clone`, `post_prepare`, `pre_up`); base then overlay |
@@ -210,8 +212,11 @@ In **whitelist fields** odpm expands environment variable references right after
 | `services.*` / `service_patches.*` (v2) | yes — `image`, `user`, `restart`, lists (`ports`, `volumes`, `command`, …), `environment` values |
 | `odoo_conf.*` (v1/v2) | yes — all string values in `odoo_conf.options` |
 | `hooks.*` argv (v2) | yes — at hook **execution** (not during `odpm manifest validate`) |
+| `service_sources.*` (v2) | yes — git link value for each source name |
 
-Syntax: **`${NAME}`** and **`${NAME:-default}`** (as in Docker Compose). Literal `$` — **`$$`**.
+Syntax: **`${NAME}`** and **`${NAME:-default}`** (as in Docker Compose). For sidecar build contexts after `service_sources` materialize — **`${@source:<name>}`** (env key `ODPM_SOURCE_<NAME>`). Literal `$` — **`$$`**.
+
+When reading the manifest, odpm **does not fail** on unresolved `${@source:...}` in `services` / `service_patches`; paths are injected after source materialize, then compose fields are re-expanded before compose generation.
 
 Value source (strongest to weakest): **process** variables (`export`, CI secrets) → keys from **project `.env`** → default in the manifest string. No separate enable flag is needed.
 
@@ -223,7 +228,10 @@ Example for a team manifest in git and local paths on a developer machine:
   "dependencies": [
     "file://${OCA_WEB_PATH}",
     "https://${GIT_HOST}/company/extra.git 19.0"
-  ]
+  ],
+  "service_sources": {
+    "autoparts_env": "https://${GIT_HOST}/org/autoparts-env.git 17.0"
+  }
 }
 ```
 
@@ -251,6 +259,35 @@ v2 sidecar with paths from `.env`:
 ```
 
 See [`.env` variables](env-dotenv.md), [repository links](git-links.md).
+
+## `service_sources` block (git sidecar/build contexts, 4.7+)
+
+Optional **manifest v2** object (and in `scenarios.*`) — named git links to external repositories for sidecar services and `docker build` hooks. Link syntax matches [`dependencies`](git-links.md) and `platform.git`.
+
+| Field | Rule |
+|-------|------|
+| Key | `[a-z][a-z0-9_]*` — logical source name |
+| Value | git link (string); `file://` supported for local override |
+| `services.<svc>.source` | optional; references a name from effective `service_sources`; `odpm manifest validate` requires the name to exist |
+
+Example:
+
+```json
+"service_sources": {
+  "autoparts_env": "https://github.com/org/autoparts-env.git 17.0"
+},
+"services": {
+  "armtek_test": {
+    "source": "autoparts_env",
+    "image": "autoparts_env:emulator",
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"]
+  }
+}
+```
+
+Merge in `scenarios.*`: **`service_sources` — replace-by-name** (overlay overrides the same name; other entries are kept).
+
+Repositories from `service_sources` are **not** added to `dependencies` / `addons_path`. Prepare step **`sources.materialize`** (after `git.materialize`) clones them under `${ODOO_PROJECTS_DIR}/service-sources/<name>` and exposes the path via `${@source:<name>}`. Commit pins live in `.odpm/deps.lock.json` → `service_sources.<name>` (see `odpm --update-lock`). Details: [service-sources.md](service-sources.md).
 
 ## Verified combinations
 

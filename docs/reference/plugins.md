@@ -43,7 +43,34 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 }
 ```
 
-Для sidecar допустимы **`user`** и **`tty`** (как в `service_patches`):
+Для sidecar с **git build-контекстом** (рекомендуется, 4.7+) используйте `service_sources` и `${@source:...}`:
+
+```json
+"service_sources": {
+  "autoparts_env": "https://github.com/org/autoparts-env.git 17.0"
+},
+"services": {
+  "armtek_test": {
+    "source": "autoparts_env",
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"]
+  }
+},
+"hooks": {
+  "post_prepare": [
+    [
+      "docker", "build",
+      "-f", "${@source:autoparts_env}/Dockerfile",
+      "-t", "autoparts_env:emulator",
+      "${@source:autoparts_env}"
+    ]
+  ]
+}
+```
+
+См. [service-sources.md](service-sources.md). Legacy-вариант с путём из `.env`:
 
 ```json
 "services": {
@@ -147,28 +174,29 @@ ODPM_COMPOSE_NETWORK_EXTERNAL=1
 
 Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir` **без shell**), либо **plugin id** (строка) для pluggy hook runner.
 
-В argv поддерживается **`${VAR}`** / **`${VAR:-default}`** (как в Compose): раскрытие при выполнении hook из process env → project `.env` → default в строке. Subprocess получает **merged env** (process + недостающие ключи из `.env`). Пример сборки образа sidecar:
+В argv поддерживается **`${VAR}`** / **`${VAR:-default}`** и **`${@source:<name>}`** (после `sources.materialize`): раскрытие при выполнении hook из process env → project `.env` → default в строке. Subprocess получает **merged env** (process + недостающие ключи из `.env`). Пример сборки образа sidecar:
 
 ```json
 "hooks": {
   "post_prepare": [[
     "docker", "build",
-    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-f", "${@source:autoparts_env}/Dockerfile",
     "-t", "autoparts_env:emulator",
-    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+    "${@source:autoparts_env}"
   ]]
 }
 ```
 
-В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — раскрытие при чтении manifest с `EnvResolver`.
+В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — `${VAR}` при чтении manifest; `${@source:...}` после `sources.materialize`.
 
-Порядок по ADR-004:
+Порядок prepare (фрагмент):
 
 1. Git materialize
-2. `hooks.post_clone` (если задан)
-3. Все prepare steps (built-in + `odpm.prepare_steps` + local plugins), сортировка по `order`
-4. `hooks.post_prepare`
-5. Runtime: debug profile, IDE, database drift
+2. **`sources.materialize`** (если есть `service_sources`)
+3. `hooks.post_clone` (если задан)
+4. Все prepare steps (built-in + `odpm.prepare_steps` + local plugins), сортировка по `order`
+5. `hooks.post_prepare`
+6. Runtime: debug profile, IDE, database drift
 6. `hooks.pre_up`
 7. `docker compose up`
 

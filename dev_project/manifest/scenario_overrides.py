@@ -14,9 +14,11 @@ from .compose_policy import (
     validate_manifest_compose_services,
     warn_manifest_compose_stack_network,
 )
+from .service_sources import validate_service_source_fields
 from .odoo_conf import _normalize_odoo_conf_sections, merge_odoo_conf_sections
 from .odoo_conf_policy import validate_manifest_odoo_conf
 from .secrets_policy import ManifestSecretsSpec, merge_secrets_spec, secrets_spec_from_raw
+from .service_sources import merge_service_sources, normalize_service_sources
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,7 @@ class ScenarioManifestSlice:
     odoo_conf: dict[str, Any] | None = None
     services: dict[str, Any] | None = None
     service_patches: dict[str, Any] | None = None
+    service_sources: dict[str, str] | None = None
     requirements: list[str] | None = None
     dependencies: list[str] | None = None
     hooks: dict[str, Any] | None = None
@@ -55,6 +58,7 @@ def slice_from_manifest_fields(
     odoo_conf: Any = None,
     services: Any = None,
     service_patches: Any = None,
+    service_sources: Any = None,
     requirements: Any = None,
     dependencies: Any = None,
     hooks: Any = None,
@@ -64,6 +68,7 @@ def slice_from_manifest_fields(
         odoo_conf=_optional_dict(odoo_conf),
         services=_optional_dict(services),
         service_patches=_optional_dict(service_patches),
+        service_sources=normalize_service_sources(service_sources),
         requirements=_optional_str_list(requirements),
         dependencies=_optional_str_list(dependencies),
         hooks=_optional_dict(hooks),
@@ -77,6 +82,7 @@ def top_level_slice(raw: dict[str, Any]) -> ScenarioManifestSlice:
         odoo_conf=raw.get("odoo_conf"),
         services=raw.get("services"),
         service_patches=raw.get("service_patches"),
+        service_sources=raw.get("service_sources"),
         requirements=raw.get("requirements"),
         dependencies=raw.get("dependencies"),
         hooks=raw.get("hooks"),
@@ -90,6 +96,7 @@ def scenario_overlay_slice(overlay: dict[str, Any]) -> ScenarioManifestSlice:
         odoo_conf=overlay.get("odoo_conf"),
         services=overlay.get("services"),
         service_patches=overlay.get("service_patches"),
+        service_sources=overlay.get("service_sources"),
         requirements=overlay.get("requirements"),
         dependencies=overlay.get("dependencies"),
         hooks=overlay.get("hooks"),
@@ -180,6 +187,10 @@ def merge_manifest_slice(
         odoo_conf=merged_odoo,
         services=merged_services,
         service_patches=merged_patches,
+        service_sources=merge_service_sources(
+            base.service_sources,
+            overlay.service_sources,
+        ),
         requirements=_merge_string_list(base.requirements, overlay.requirements),
         dependencies=_merge_string_list(base.dependencies, overlay.dependencies),
         hooks=_merge_hooks(base.hooks, overlay.hooks),
@@ -234,11 +245,13 @@ def _validate_odoo_conf_fragment(odoo_conf: dict[str, Any] | None) -> None:
 def _validate_services_fragment(
     services: dict[str, Any] | None,
     *,
+    service_sources: dict[str, str] | None = None,
     compose_network_logical: str | None = None,
 ) -> None:
     if services is None:
         return
     validate_manifest_compose_services(services)
+    validate_service_source_fields(services, service_sources=service_sources)
     warn_manifest_compose_stack_network(
         services,
         compose_network_logical=compose_network_logical,
@@ -254,6 +267,7 @@ def _validate_effective_slice(
     _validate_hooks_fragment(effective.hooks)
     _validate_services_fragment(
         effective.services,
+        service_sources=effective.service_sources,
         compose_network_logical=compose_network_logical,
     )
 
@@ -274,6 +288,7 @@ def _validate_declared_overlays(
         _validate_hooks_fragment(overlay.hooks)
         _validate_services_fragment(
             overlay.services,
+            service_sources=overlay.service_sources,
             compose_network_logical=compose_network_logical,
         )
 
@@ -300,6 +315,7 @@ def validate_scenario_manifest(
         _validate_hooks_fragment(_optional_dict(raw.get("hooks")))
         _validate_services_fragment(
             _optional_dict(raw.get("services")),
+            service_sources=normalize_service_sources(raw.get("service_sources")),
             compose_network_logical=compose_network_logical,
         )
         return
@@ -308,6 +324,7 @@ def validate_scenario_manifest(
     _validate_hooks_fragment(_optional_dict(raw.get("hooks")))
     _validate_services_fragment(
         _optional_dict(raw.get("services")),
+        service_sources=normalize_service_sources(raw.get("service_sources")),
         compose_network_logical=compose_network_logical,
     )
     _validate_declared_overlays(

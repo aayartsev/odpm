@@ -27,8 +27,11 @@
 | `services.*` / `service_patches.*` (v2) | да — `image`, `user`, `restart`, списки (`ports`, `volumes`, `command`, …), значения `environment` |
 | `odoo_conf.*` (v1/v2) | да — все строковые значения в `odoo_conf.options` |
 | `hooks.*` argv (v2) | да — при **выполнении** hook (не при `odpm manifest validate`) |
+| `service_sources.*` (v2) | да — значение git-ссылки для каждого имени |
 
-Синтаксис: **`${ИМЯ}`** и **`${ИМЯ:-значение_по_умолчанию}`** (как в Docker Compose). Литеральный `$` — **`$$`**.
+Синтаксис: **`${ИМЯ}`** и **`${ИМЯ:-значение_по_умолчанию}`** (как в Docker Compose). Для sidecar build-контекстов после materialize `service_sources` — **`${@source:<имя>}`** (env-ключ `ODPM_SOURCE_<ИМЯ>`). Литеральный `$` — **`$$`**.
+
+При чтении manifest odpm **не падает** на неразрешённый `${@source:...}` в `services` / `service_patches`; пути подставляются после materialize источников, затем выполняется повторное раскрытие перед compose.
 
 Источник значений (от сильного к слабому): переменные **процесса** (`export`, CI secrets) → ключи из **project `.env`** → default в строке manifest. Отдельный флаг включения **не нужен**.
 
@@ -40,7 +43,10 @@
   "dependencies": [
     "file://${OCA_WEB_PATH}",
     "https://${GIT_HOST}/company/extra.git 19.0"
-  ]
+  ],
+  "service_sources": {
+    "autoparts_env": "https://${GIT_HOST}/org/autoparts-env.git 17.0"
+  }
 }
 ```
 
@@ -68,6 +74,35 @@ GIT_HOST=git.company.example
 ```
 
 См. [переменные `.env`](env-dotenv.md), [ссылки на репозитории](git-links.md).
+
+## Блок `service_sources` (git sidecar/build-контексты, 4.7+)
+
+Необязательный объект в **manifest v2** (и в `scenarios.*`) — именованные git-ссылки на внешние репозитории для sidecar-сервисов и `docker build` в hooks. Синтаксис ссылок — как у [`dependencies`](git-links.md) и `platform.git`.
+
+| Поле | Правило |
+|------|---------|
+| Ключ | `[a-z][a-z0-9_]*` — логическое имя источника |
+| Значение | git-ссылка (строка); поддерживается `file://` для локального override |
+| `services.<svc>.source` | необязательно; ссылка на имя из effective `service_sources`; при `odpm manifest validate` имя должно существовать |
+
+Пример:
+
+```json
+"service_sources": {
+  "autoparts_env": "https://github.com/org/autoparts-env.git 17.0"
+},
+"services": {
+  "armtek_test": {
+    "source": "autoparts_env",
+    "image": "autoparts_env:emulator",
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"]
+  }
+}
+```
+
+Правила merge в `scenarios.*`: **`service_sources` — replace-by-name** (overlay перекрывает то же имя, остальные записи сохраняются).
+
+Репозитории из `service_sources` **не** попадают в `dependencies` / `addons_path`. Шаг prepare **`sources.materialize`** (после `git.materialize`) клонирует их в `${ODOO_PROJECTS_DIR}/service-sources/<name>` и подставляет путь через `${@source:<name>}`. Пины коммитов — в `.odpm/deps.lock.json` → `service_sources.<name>` (см. `odpm --update-lock`). Подробнее: [service-sources.md](service-sources.md).
 
 ## Блок `odoo_conf` (переопределения Odoo)
 
@@ -112,7 +147,7 @@ GIT_HOST=git.company.example
 
 ## Блок `scenarios` (overlays по `ODPM_SCENARIO`, 4.7)
 
-Необязательный объект в **manifest v2** для переопределения `odoo_conf`, `services`, `service_patches`, `requirements`, `dependencies`, `hooks` и `secrets` **по сценарию** из project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). Один `odpm.json` в git — разные effective-настройки на ноутбуке, сервере и CI без `${VAR}`-обходов.
+Необязательный объект в **manifest v2** для переопределения `odoo_conf`, `services`, `service_patches`, `service_sources`, `requirements`, `dependencies`, `hooks` и `secrets` **по сценарию** из project `.env` (`ODPM_SCENARIO`: `developer`, `server`, `ci`). Один `odpm.json` в git — разные effective-настройки на ноутбуке, сервере и CI без `${VAR}`-обходов.
 
 | Режим | Условие | Effective slice |
 |-------|---------|-----------------|
@@ -126,6 +161,7 @@ GIT_HOST=git.company.example
 | `odoo_conf` | deep merge по секциям |
 | `services` | overlay заменяет сервис по имени |
 | `service_patches` | merge по [ADR-009](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-009-compose-service-patch.md) |
+| `service_sources` | replace-by-name (overlay перекрывает то же имя) |
 | `requirements` | concat + dedupe |
 | `dependencies` | concat + dedupe (git-репозитории) |
 | `hooks` | append по фазам (`post_clone`, `post_prepare`, `pre_up`); корень, затем overlay |

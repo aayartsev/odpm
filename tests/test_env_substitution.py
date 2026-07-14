@@ -144,6 +144,112 @@ class ExpandEnvStringTests(unittest.TestCase):
         )
         self.assertEqual(result, "file:///fixed/path")
 
+    def test_expands_source_reference_from_resolver(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"ODPM_SOURCE_AUTOPARTS_ENV": "/opt/autoparts"},
+            project_dotenv={},
+        )
+        result = expand_env_string(
+            "${@source:autoparts_env}/data",
+            resolver,
+            field_path="services.armtek.volumes[]",
+        )
+        self.assertEqual(result, "/opt/autoparts/data")
+
+    def test_missing_source_raises_config_error(self):
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@source:autoparts_env}/data",
+                self.resolver,
+                field_path="services.armtek.volumes[]",
+            )
+        self.assertIn("autoparts_env", str(ctx.exception))
+
+    def test_allow_unresolved_source_preserves_token(self):
+        result = expand_env_string(
+            "${@source:autoparts_env}/data",
+            self.resolver,
+            field_path="services.armtek.volumes[]",
+            allow_unresolved_source=True,
+        )
+        self.assertEqual(result, "${@source:autoparts_env}/data")
+
+    def test_source_and_var_in_same_string(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"ODPM_SOURCE_AUTOPARTS_ENV": "/opt/autoparts"},
+            project_dotenv={"DATA_SUBDIR": "data"},
+        )
+        result = expand_env_string(
+            "${@source:autoparts_env}/${DATA_SUBDIR}",
+            resolver,
+            field_path="services.armtek.volumes[]",
+        )
+        self.assertEqual(result, "/opt/autoparts/data")
+
+
+class SourceEnvKeyTests(unittest.TestCase):
+    def test_source_env_key_uppercases_name(self):
+        from dev_project.manifest.service_sources import source_env_key
+
+        self.assertEqual(source_env_key("autoparts_env"), "ODPM_SOURCE_AUTOPARTS_ENV")
+
+
+class InjectServiceSourcePathsTests(unittest.TestCase):
+    def test_inject_adds_odpm_source_keys(self):
+        from dev_project.config.transforms.env_substitution import (
+            inject_service_source_paths,
+        )
+
+        base = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        injected = inject_service_source_paths(
+            base,
+            {"autoparts_env": "/opt/autoparts"},
+        )
+        self.assertEqual(
+            injected.resolve("ODPM_SOURCE_AUTOPARTS_ENV"),
+            "/opt/autoparts",
+        )
+
+
+class RefreshManifestViewComposeExpansionTests(unittest.TestCase):
+    def test_reexpands_services_after_source_materialize(self):
+        from dev_project.config.transforms.env_substitution import (
+            inject_service_source_paths,
+        )
+        from dev_project.manifest.reader import (
+            load_manifest,
+            refresh_manifest_view_compose_expansion,
+        )
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        view = load_manifest(
+            _minimal_v2(
+                service_sources={
+                    "autoparts_env": "https://github.com/org/autoparts-env.git 17.0",
+                },
+                services={
+                    "armtek_test": {
+                        "image": "autoparts_env:emulator",
+                        "volumes": ["${@source:autoparts_env}/data:/data:Z"],
+                    }
+                },
+            ),
+            env_resolver=EnvResolver.from_sources(process_environ={}, project_dotenv={}),
+        )
+        self.assertEqual(
+            view.services["armtek_test"]["volumes"],
+            ["${@source:autoparts_env}/data:/data:Z"],
+        )
+        resolver = inject_service_source_paths(
+            EnvResolver.from_sources(process_environ={}, project_dotenv={}),
+            {"autoparts_env": "/opt/autoparts-env"},
+        )
+        refreshed = refresh_manifest_view_compose_expansion(view, env_resolver=resolver)
+        self.assertEqual(
+            refreshed.services["armtek_test"]["volumes"],
+            ["/opt/autoparts-env/data:/data:Z"],
+        )
+
 
 class ExpandEnvInJsonTests(unittest.TestCase):
     def test_expands_whitelist_fields_only(self):
@@ -242,6 +348,21 @@ class ExpandComposeServiceMapTests(unittest.TestCase):
             field_prefix="services",
         )
         self.assertEqual(expanded["metrics"]["networks"], ["proxy"])
+
+    def test_strips_source_field_from_compose_spec(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        services = {
+            "armtek": {
+                "source": "autoparts_env",
+                "image": "autoparts_env:emulator",
+            }
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertNotIn("source", expanded["armtek"])
 
 
 if __name__ == "__main__":

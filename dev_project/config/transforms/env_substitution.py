@@ -24,7 +24,9 @@ USER_SETTINGS_ENV_EXPAND_FIELDS = frozenset({
 })
 
 _ENV_REF_PATTERN = re.compile(
-    r"\$\{([^}:]+)(?::-([^}]*))?\}|\$\$"
+    r"\$\{@source:([a-z][a-z0-9_]*)\}|"
+    r"\$\{([^}:]+)(?::-([^}]*))?\}|"
+    r"\$\$"
 )
 
 
@@ -71,7 +73,13 @@ class EnvResolver:
         return None
 
 
-def expand_env_string(value: str, resolver: EnvResolver, *, field_path: str) -> str:
+def expand_env_string(
+    value: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved_source: bool = False,
+) -> str:
     if "$" not in value:
         return value
 
@@ -83,9 +91,26 @@ def expand_env_string(value: str, resolver: EnvResolver, *, field_path: str) -> 
         token = match.group(0)
         if token == "$$":
             parts.append("$")
+        elif match.group(1) is not None:
+            source_name = match.group(1)
+            from ...manifest.service_sources import source_env_key
+
+            env_key = source_env_key(source_name)
+            resolved = resolver.resolve(env_key)
+            if resolved is not None:
+                parts.append(resolved)
+            elif allow_unresolved_source:
+                parts.append(token)
+            else:
+                raise ConfigError(
+                    _(
+                        "Service source {NAME} is not materialized "
+                        "(required for manifest field {FIELD})"
+                    ).format(NAME=source_name, FIELD=field_path)
+                )
         else:
-            name = match.group(1)
-            default = match.group(2)
+            name = match.group(2)
+            default = match.group(3)
             resolved = resolver.resolve(name)
             if resolved is not None:
                 parts.append(resolved)
@@ -130,12 +155,23 @@ def _expand_field_value(
     *,
     resolver: EnvResolver,
     field_path: str,
+    allow_unresolved_source: bool = False,
 ) -> Any:
     if isinstance(value, str):
-        return expand_env_string(value, resolver, field_path=field_path)
+        return expand_env_string(
+            value,
+            resolver,
+            field_path=field_path,
+            allow_unresolved_source=allow_unresolved_source,
+        )
     if isinstance(value, list):
         return [
-            expand_env_string(item, resolver, field_path=f"{field_path}[]")
+            expand_env_string(
+                item,
+                resolver,
+                field_path=f"{field_path}[]",
+                allow_unresolved_source=allow_unresolved_source,
+            )
             if isinstance(item, str)
             else item
             for item in value
@@ -167,6 +203,7 @@ def _expand_compose_service_spec(
     *,
     resolver: EnvResolver,
     field_prefix: str,
+    allow_unresolved_source: bool = False,
 ) -> dict[str, Any]:
     result = dict(spec)
     for key in _COMPOSE_SERVICE_STRING_SCALARS:
@@ -176,13 +213,19 @@ def _expand_compose_service_spec(
                 value,
                 resolver,
                 field_path=f"{field_prefix}.{key}",
+                allow_unresolved_source=allow_unresolved_source,
             )
     for key in _COMPOSE_SERVICE_STRING_LISTS:
         value = result.get(key)
         if not isinstance(value, list):
             continue
         result[key] = [
-            expand_env_string(item, resolver, field_path=f"{field_prefix}.{key}[]")
+            expand_env_string(
+                item,
+                resolver,
+                field_path=f"{field_prefix}.{key}[]",
+                allow_unresolved_source=allow_unresolved_source,
+            )
             if isinstance(item, str)
             else item
             for item in value
@@ -190,11 +233,17 @@ def _expand_compose_service_spec(
     environment = result.get("environment")
     if isinstance(environment, dict):
         result["environment"] = {
-            env_key: expand_env_string(env_value, resolver, field_path=f"{field_prefix}.environment.{env_key}")
+            env_key: expand_env_string(
+                env_value,
+                resolver,
+                field_path=f"{field_prefix}.environment.{env_key}",
+                allow_unresolved_source=allow_unresolved_source,
+            )
             if isinstance(env_value, str)
             else env_value
             for env_key, env_value in environment.items()
         }
+    result.pop("source", None)
     return result
 
 
@@ -203,8 +252,9 @@ def expand_env_in_compose_service_map(
     *,
     resolver: EnvResolver,
     field_prefix: str,
+    allow_unresolved_source: bool = False,
 ) -> dict[str, Any] | None:
-    """Expand ``${VAR}`` in manifest v2 ``services`` / ``service_patches`` string fields."""
+    """Expand ``${VAR}`` / ``${@source:name}`` in manifest v2 compose service maps."""
     if not isinstance(services, dict):
         return services
     expanded: dict[str, Any] = {}
@@ -216,8 +266,25 @@ def expand_env_in_compose_service_map(
             dict(spec),
             resolver=resolver,
             field_prefix=f"{field_prefix}.{name}",
+            allow_unresolved_source=allow_unresolved_source,
         )
     return expanded
+
+
+def inject_service_source_paths(
+    resolver: EnvResolver,
+    source_paths: Mapping[str, str],
+) -> EnvResolver:
+    """Return resolver with ``ODPM_SOURCE_*`` keys set from materialized paths."""
+    from ...manifest.service_sources import source_env_key
+
+    merged_environ = dict(resolver.process_environ)
+    for name, path in source_paths.items():
+        merged_environ[source_env_key(name)] = str(path)
+    return EnvResolver(
+        process_environ=merged_environ,
+        project_dotenv=resolver.project_dotenv,
+    )
 
 
 def expand_env_in_odoo_conf(
@@ -244,3 +311,21 @@ def expand_env_in_odoo_conf(
             for key, value in section_data.items()
         }
     return expanded
+
+
+def expand_env_in_service_sources(
+    service_sources: dict[str, str] | None,
+    *,
+    resolver: EnvResolver,
+) -> dict[str, str] | None:
+    """Expand ``${VAR}`` in manifest ``service_sources`` git link values."""
+    if not isinstance(service_sources, dict):
+        return service_sources
+    expanded: dict[str, str] = {}
+    for name, link in service_sources.items():
+        expanded[str(name)] = expand_env_string(
+            str(link),
+            resolver,
+            field_path=f"service_sources.{name}",
+        )
+    return expanded or None

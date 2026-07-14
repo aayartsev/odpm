@@ -385,6 +385,12 @@ RU_MESSAGES: dict[str, str] = {
     "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services": (
         "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
     ),
+    "manifest services.{NAME}.source must be a non-empty name.": (
+        "manifest services.{NAME}.source должно быть непустым именем."
+    ),
+    "manifest services.{NAME}.source references unknown service_sources entry {SOURCE!r}": (
+        "manifest services.{NAME}.source ссылается на неизвестный service_sources {SOURCE!r}"
+    ),
     "manifest services.{SVC}.networks references logical network {NET!r}; "
     "set {ENV}={NET} in .env or remove explicit networks": (
         "manifest services.{SVC}.networks ссылается на логическую сеть {NET!r}; "
@@ -508,6 +514,35 @@ RU_MESSAGES: dict[str, str] = {
     "copy from .odpm/secrets.example.json or pass --secrets-file": (
         "Для сценария {SCENARIO} нужен .odpm/secrets.json; "
         "скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+    ),
+    "service_sources key {NAME!r} is invalid; "
+    "use lowercase letters, digits, and underscores "
+    "(must start with a letter).": (
+        "Ключ service_sources {NAME!r} недопустим; "
+        "используйте строчные буквы, цифры и подчёркивания "
+        "(имя должно начинаться с буквы)."
+    ),
+    "service_sources.{NAME} must be a non-empty git link.": (
+        "service_sources.{NAME} должно быть непустой git-ссылкой."
+    ),
+    "Service source {NAME} is not materialized (required for manifest field {FIELD})": (
+        "Источник service_sources {NAME} ещё не materialized "
+        "(нужен для поля manifest {FIELD})"
+    ),
+    "Service source {NAME} file:// path does not exist: {PATH}": (
+        "Путь file:// источника service_sources {NAME} не существует: {PATH}"
+    ),
+    "Service source {NAME} materialize failed: {PATH}": (
+        "Не удалось materialize источник service_sources {NAME}: {PATH}"
+    ),
+    "Materialized service source {NAME} at {PATH}": (
+        "Materialized источник service_sources {NAME} в {PATH}"
+    ),
+    "--no-git-update requires existing service_sources directories: {PATHS}": (
+        "--no-git-update требует существующие каталоги service_sources: {PATHS}"
+    ),
+    "service_sources file:// link must be a non-empty path.": (
+        "Ссылка service_sources file:// должна быть непустым путём."
     ),
     "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
         "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."

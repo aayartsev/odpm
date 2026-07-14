@@ -2,7 +2,7 @@
 
 > **AI-translated** from Russian.
 
-Such links are used in **`developing_project`**, in **`dependencies`**, in **`odoo_git_link`**, and in the **`--init`** parameter.
+Such links are used in **`developing_project`**, in **`dependencies`**, in **`odoo_git_link`**, in **`service_sources`** (manifest v2), and in the **`--init`** parameter.
 
 ## Three ways to specify a code source
 
@@ -57,6 +57,7 @@ Values are set in the project `.env` or in the process environment (CI). After e
 - **Developing project:** `--init <link>` or `developing_project` in `user_settings.json`.
 - **Odoo platform:** `odoo_git_link` in `odpm.json` or `--odoo-git-link` at initialization.
 - **Dependencies:** `dependencies` array in `odpm.json`.
+- **Sidecar / build contexts (v2):** `service_sources` object in `odpm.json` — see [service-sources.md](service-sources.md).
 
 ## Practical tips
 
