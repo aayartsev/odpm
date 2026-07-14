@@ -29,9 +29,9 @@
 | `hooks.*` argv (v2) | да — при **выполнении** hook (не при `odpm manifest validate`) |
 | `service_sources.*` (v2) | да — значение git-ссылки для каждого имени |
 
-Синтаксис: **`${ИМЯ}`** и **`${ИМЯ:-значение_по_умолчанию}`** (как в Docker Compose). Для sidecar build-контекстов после materialize `service_sources` — **`${@source:<имя>}`** (env-ключ `ODPM_SOURCE_<ИМЯ>`). Литеральный `$` — **`$$`**.
+Синтаксис: **`${ИМЯ}`** и **`${ИМЯ:-значение_по_умолчанию}`** (как в Docker Compose). Для sidecar build-контекстов после materialize `service_sources` — **`${@source:<имя>}`** (env-ключ `ODPM_SOURCE_<ИМЯ>`). Для логических имён сервисов compose (`db`, `odoo`, sidecar) — **`${@service:<имя>}`**: в итоговом `docker-compose.yml` подставляется physical имя с учётом `ODPM_COMPOSE_PREFIX` / `POSTGRES_SERVICE_NAME` (например `acme-db`). Литеральный `$` — **`$$`**.
 
-При чтении manifest odpm **не падает** на неразрешённый `${@source:...}` в `services` / `service_patches`; пути подставляются после materialize источников, затем выполняется повторное раскрытие перед compose.
+При чтении manifest odpm **не падает** на неразрешённый `${@source:...}` / `${@service:...}` в `services` / `service_patches` (токены сохраняются, пока нет naming/путей); пути `@source` подставляются после materialize, `@service` — из naming `.env` на bootstrap / при повторном expand.
 
 Источник значений (от сильного к слабому): переменные **процесса** (`export`, CI secrets) → ключи из **project `.env`** → default в строке manifest. Отдельный флаг включения **не нужен**.
 
@@ -60,7 +60,7 @@ GIT_HOST=git.company.example
 
 Остальные поля (`odoo_version`, `python_version`, `requirements_txt`, …) **без** подстановки. Вложенный `odpm.json` в git-зависимостях поддерживает те же поля — см. [иерархию конфигурации](config-hierarchy.md). В `.odpm/deps.lock.json` попадают **уже раскрытые** URL и пути, не `${VAR}`.
 
-Для v2 sidecar с путями из `.env`:
+Для v2 sidecar с путями из `.env` и hostname сервисов стека:
 
 ```json
 "services": {
@@ -68,10 +68,17 @@ GIT_HOST=git.company.example
     "image": "autoparts_env:emulator",
     "user": "root",
     "tty": true,
+    "depends_on": ["db"],
+    "environment": {
+      "DB_HOST": "${@service:db}",
+      "ODOO_URL": "http://${@service:odoo}:8069"
+    },
     "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
   }
 }
 ```
+
+При `ODPM_COMPOSE_PREFIX=acme` в compose попадут `DB_HOST=acme-db` и `ODOO_URL=http://acme-odoo:8069` (синтаксис `depends_on: ["db"]` по-прежнему logical — prefix переписывает список отдельно).
 
 См. [переменные `.env`](env-dotenv.md), [ссылки на репозитории](git-links.md).
 

@@ -37,6 +37,8 @@ When **unset or invalid**, behaviour matches **4.6** (legacy).
 
 Manifest `services.*.depends_on: ["db"]` stays logical until `apply_compose_prefix` in compose generation ([ADR-009](adr-009-compose-service-patch.md)).
 
+String fields that need the **hostname** of a stack service (notably `environment` / `command`) use **`${@service:<logical>}`** ([env substitution](../reference/odpm-json.md)): resolved via `ComposeNamingContext` / `map_logical_service_name` when the manifest is expanded (`db` → physical postgres, `odoo` → physical odoo, other keys identity). Wiring: `EnvResolver.compose_naming` from `compose_naming_from_user_env` on bootstrap; preserved across `inject_service_source_paths`.
+
 ### Legacy `POSTGRES_SERVICE_NAME`
 
 | Mode | Behaviour |

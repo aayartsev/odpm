@@ -120,7 +120,8 @@ def compose_naming_from_user_env(user_env) -> ComposeNamingContext:
     )
 
 
-def _map_logical_service_name(name: str, ctx: ComposeNamingContext) -> str:
+def map_logical_service_name(name: str, ctx: ComposeNamingContext) -> str:
+    """Map logical compose service name to physical (prefix / legacy postgres)."""
     if name == LOGICAL_DB:
         return ctx.postgres_service_name
     if name == LOGICAL_ODOO:
@@ -134,7 +135,7 @@ def _rewrite_service_name_list(
     rewritten: list[Any] = []
     for item in items:
         if isinstance(item, str):
-            rewritten.append(_map_logical_service_name(item, ctx))
+            rewritten.append(map_logical_service_name(item, ctx))
         else:
             rewritten.append(item)
     return rewritten
@@ -167,7 +168,7 @@ def _rename_service_keys(
 ) -> dict[str, Any]:
     renamed: dict[str, Any] = {}
     for key, spec in services.items():
-        physical_key = _map_logical_service_name(key, ctx)
+        physical_key = map_logical_service_name(key, ctx)
         if physical_key in renamed:
             raise ValueError(f"duplicate compose service key after rename: {physical_key!r}")
         renamed[physical_key] = spec

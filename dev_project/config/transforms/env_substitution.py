@@ -1,4 +1,4 @@
-"""Expand ${VAR} / ${VAR:-default} references in manifest JSON string fields."""
+"""Expand ${VAR} / ${VAR:-default} / ${@source:} / ${@service:} in manifest strings."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from ...errors import ConfigError
 from ...translations import _
 
 if TYPE_CHECKING:
+    from ...compose.service_names import ComposeNamingContext
     from ...host.user_env import CreateUserEnvironment
 
 ODPM_JSON_ENV_EXPAND_FIELDS = frozenset({
@@ -25,6 +26,7 @@ USER_SETTINGS_ENV_EXPAND_FIELDS = frozenset({
 
 _ENV_REF_PATTERN = re.compile(
     r"\$\{@source:([a-z][a-z0-9_]*)\}|"
+    r"\$\{@service:([a-z][a-z0-9_]*)\}|"
     r"\$\{([^}:]+)(?::-([^}]*))?\}|"
     r"\$\$"
 )
@@ -36,6 +38,7 @@ class EnvResolver:
 
     process_environ: Mapping[str, str]
     project_dotenv: Mapping[str, str]
+    compose_naming: ComposeNamingContext | None = None
 
     @classmethod
     def from_sources(
@@ -43,6 +46,7 @@ class EnvResolver:
         *,
         process_environ: Mapping[str, str] | None = None,
         project_dotenv: Mapping[str, str] | None = None,
+        compose_naming: ComposeNamingContext | None = None,
     ) -> EnvResolver:
         environ = process_environ if process_environ is not None else os.environ
         return cls(
@@ -50,6 +54,7 @@ class EnvResolver:
             project_dotenv={
                 key: str(value) for key, value in (project_dotenv or {}).items()
             },
+            compose_naming=compose_naming,
         )
 
     @classmethod
@@ -58,10 +63,16 @@ class EnvResolver:
         user_env: CreateUserEnvironment,
         *,
         process_environ: Mapping[str, str] | None = None,
+        compose_naming: ComposeNamingContext | None = None,
     ) -> EnvResolver:
+        if compose_naming is None:
+            from ...compose.service_names import compose_naming_from_user_env
+
+            compose_naming = compose_naming_from_user_env(user_env)
         return cls.from_sources(
             process_environ=process_environ,
             project_dotenv=user_env.project_dotenv_dict(),
+            compose_naming=compose_naming,
         )
 
     def resolve(self, name: str) -> str | None:
@@ -79,6 +90,7 @@ def expand_env_string(
     *,
     field_path: str,
     allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
 ) -> str:
     if "$" not in value:
         return value
@@ -108,9 +120,25 @@ def expand_env_string(
                         "(required for manifest field {FIELD})"
                     ).format(NAME=source_name, FIELD=field_path)
                 )
+        elif match.group(2) is not None:
+            service_name = match.group(2)
+            naming = resolver.compose_naming
+            if naming is not None:
+                from ...compose.service_names import map_logical_service_name
+
+                parts.append(map_logical_service_name(service_name, naming))
+            elif allow_unresolved_service:
+                parts.append(token)
+            else:
+                raise ConfigError(
+                    _(
+                        "Compose service reference {NAME} cannot be resolved "
+                        "(required for manifest field {FIELD})"
+                    ).format(NAME=service_name, FIELD=field_path)
+                )
         else:
-            name = match.group(2)
-            default = match.group(3)
+            name = match.group(3)
+            default = match.group(4)
             resolved = resolver.resolve(name)
             if resolved is not None:
                 parts.append(resolved)
@@ -156,6 +184,7 @@ def _expand_field_value(
     resolver: EnvResolver,
     field_path: str,
     allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
 ) -> Any:
     if isinstance(value, str):
         return expand_env_string(
@@ -163,6 +192,7 @@ def _expand_field_value(
             resolver,
             field_path=field_path,
             allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
         )
     if isinstance(value, list):
         return [
@@ -171,6 +201,7 @@ def _expand_field_value(
                 resolver,
                 field_path=f"{field_path}[]",
                 allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
             )
             if isinstance(item, str)
             else item
@@ -204,6 +235,7 @@ def _expand_compose_service_spec(
     resolver: EnvResolver,
     field_prefix: str,
     allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
 ) -> dict[str, Any]:
     result = dict(spec)
     for key in _COMPOSE_SERVICE_STRING_SCALARS:
@@ -214,6 +246,7 @@ def _expand_compose_service_spec(
                 resolver,
                 field_path=f"{field_prefix}.{key}",
                 allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
             )
     for key in _COMPOSE_SERVICE_STRING_LISTS:
         value = result.get(key)
@@ -225,6 +258,7 @@ def _expand_compose_service_spec(
                 resolver,
                 field_path=f"{field_prefix}.{key}[]",
                 allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
             )
             if isinstance(item, str)
             else item
@@ -238,6 +272,7 @@ def _expand_compose_service_spec(
                 resolver,
                 field_path=f"{field_prefix}.environment.{env_key}",
                 allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
             )
             if isinstance(env_value, str)
             else env_value
@@ -253,8 +288,9 @@ def expand_env_in_compose_service_map(
     resolver: EnvResolver,
     field_prefix: str,
     allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
 ) -> dict[str, Any] | None:
-    """Expand ``${VAR}`` / ``${@source:name}`` in manifest v2 compose service maps."""
+    """Expand ``${VAR}`` / ``${@source:}`` / ``${@service:}`` in compose service maps."""
     if not isinstance(services, dict):
         return services
     expanded: dict[str, Any] = {}
@@ -267,6 +303,7 @@ def expand_env_in_compose_service_map(
             resolver=resolver,
             field_prefix=f"{field_prefix}.{name}",
             allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
         )
     return expanded
 
@@ -284,6 +321,7 @@ def inject_service_source_paths(
     return EnvResolver(
         process_environ=merged_environ,
         project_dotenv=resolver.project_dotenv,
+        compose_naming=resolver.compose_naming,
     )
 
 

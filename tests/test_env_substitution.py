@@ -43,13 +43,40 @@ class EnvResolverTests(unittest.TestCase):
     def test_from_user_env_uses_project_dotenv_dict(self):
         user_env = mock.MagicMock()
         user_env.project_dotenv_dict.return_value = {"PLATFORM_DIR": "/tmp/platform"}
+        user_env.compose_prefix = None
+        user_env.compose_project_name = None
+        user_env.postgres_service_name = "db"
+        user_env.odoo_service_name = "odoo"
+        user_env.postgres_volume_name = "postgres-data"
         resolver = EnvResolver.from_user_env(
             user_env,
             process_environ={"GIT_HOST": "from-process"},
         )
         self.assertEqual(resolver.resolve("GIT_HOST"), "from-process")
         self.assertEqual(resolver.resolve("PLATFORM_DIR"), "/tmp/platform")
+        self.assertIsNotNone(resolver.compose_naming)
+        self.assertEqual(resolver.compose_naming.postgres_service_name, "db")
         user_env.project_dotenv_dict.assert_called_once_with()
+
+    def test_from_user_env_wires_compose_prefix_naming(self):
+        user_env = mock.MagicMock()
+        user_env.project_dotenv_dict.return_value = {}
+        user_env.compose_prefix = "acme-"
+        user_env.compose_project_name = "acme"
+        user_env.postgres_service_name = "acme-db"
+        user_env.odoo_service_name = "acme-odoo"
+        user_env.postgres_volume_name = "acme-postgres-data"
+        resolver = EnvResolver.from_user_env(user_env, process_environ={})
+        self.assertEqual(resolver.compose_naming.postgres_service_name, "acme-db")
+        self.assertEqual(resolver.compose_naming.odoo_service_name, "acme-odoo")
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "acme-db",
+        )
 
     def test_from_user_env_sees_home_only_key_after_layered_merge(self):
         from dev_project.host.user_env import CreateUserEnvironment
@@ -74,6 +101,7 @@ class EnvResolverTests(unittest.TestCase):
             resolver = EnvResolver.from_user_env(user_env, process_environ={})
             self.assertEqual(resolver.resolve("GIT_HOST"), "git.home.example")
             self.assertEqual(resolver.resolve("ODOO_PLATFORM_DIR"), "/work/odoo/19.0")
+            self.assertIsNotNone(resolver.compose_naming)
 
 
 class ExpandEnvStringTests(unittest.TestCase):
@@ -210,6 +238,170 @@ class InjectServiceSourcePathsTests(unittest.TestCase):
             "/opt/autoparts",
         )
 
+    def test_inject_preserves_compose_naming(self):
+        from dev_project.compose.service_names import resolve_compose_naming
+        from dev_project.config.transforms.env_substitution import (
+            inject_service_source_paths,
+        )
+
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name="db",
+        )
+        base = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=naming,
+        )
+        injected = inject_service_source_paths(
+            base,
+            {"autoparts_env": "/opt/autoparts"},
+        )
+        self.assertIs(injected.compose_naming, naming)
+        self.assertEqual(
+            injected.resolve("ODPM_SOURCE_AUTOPARTS_ENV"),
+            "/opt/autoparts",
+        )
+
+
+class ExpandServiceRefTests(unittest.TestCase):
+    def _naming(self, *, prefix: str | None = "acme", legacy_db: str = "db"):
+        from dev_project.compose.service_names import resolve_compose_naming
+
+        return resolve_compose_naming(
+            compose_prefix_raw=prefix,
+            legacy_postgres_service_name=legacy_db,
+        )
+
+    def test_expands_db_and_odoo_with_prefix(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "acme-db",
+        )
+        self.assertEqual(
+            expand_env_string(
+                "http://${@service:odoo}:8069",
+                resolver,
+                field_path="services.x.environment.ODOO_URL",
+            ),
+            "http://acme-odoo:8069",
+        )
+
+    def test_sidecar_identity_unchanged(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:mailpit}",
+                resolver,
+                field_path="services.x.environment.PEER",
+            ),
+            "mailpit",
+        )
+
+    def test_no_prefix_keeps_logical_db(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix=None),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "db",
+        )
+
+    def test_legacy_postgres_service_name(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix=None, legacy_db="pg"),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "pg",
+        )
+
+    def test_missing_naming_raises_without_allow_flag(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            )
+        self.assertIn("db", str(ctx.exception))
+        self.assertIn("services.x.environment.DB_HOST", str(ctx.exception))
+
+    def test_allow_unresolved_service_preserves_token(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        result = expand_env_string(
+            "${@service:db}",
+            resolver,
+            field_path="services.x.environment.DB_HOST",
+            allow_unresolved_service=True,
+        )
+        self.assertEqual(result, "${@service:db}")
+
+    def test_dollar_escape_with_service_ref(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        result = expand_env_string(
+            "cost $$ and ${@service:db}",
+            resolver,
+            field_path="services.x.command[]",
+        )
+        self.assertEqual(result, "cost $ and acme-db")
+
+    def test_compose_map_expands_environment_service_refs(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        expanded = expand_env_in_compose_service_map(
+            {
+                "worker": {
+                    "image": "busybox",
+                    "environment": {
+                        "DB_HOST": "${@service:db}",
+                        "ODOO_URL": "http://${@service:odoo}:8069",
+                    },
+                    "command": ["echo", "${@service:db}"],
+                }
+            },
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["worker"]["environment"]["DB_HOST"], "acme-db")
+        self.assertEqual(
+            expanded["worker"]["environment"]["ODOO_URL"],
+            "http://acme-odoo:8069",
+        )
+        self.assertEqual(expanded["worker"]["command"], ["echo", "acme-db"])
+
 
 class RefreshManifestViewComposeExpansionTests(unittest.TestCase):
     def test_reexpands_services_after_source_materialize(self):
@@ -249,6 +441,32 @@ class RefreshManifestViewComposeExpansionTests(unittest.TestCase):
             refreshed.services["armtek_test"]["volumes"],
             ["/opt/autoparts-env/data:/data:Z"],
         )
+
+    def test_load_manifest_expands_service_refs_when_naming_present(self):
+        from dev_project.compose.service_names import resolve_compose_naming
+        from dev_project.manifest.reader import load_manifest
+        from tests.test_manifest_v2_reader import _minimal_v2
+
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name="db",
+        )
+        view = load_manifest(
+            _minimal_v2(
+                services={
+                    "worker": {
+                        "image": "busybox",
+                        "environment": {"DB_HOST": "${@service:db}"},
+                    }
+                },
+            ),
+            env_resolver=EnvResolver.from_sources(
+                process_environ={},
+                project_dotenv={},
+                compose_naming=naming,
+            ),
+        )
+        self.assertEqual(view.services["worker"]["environment"]["DB_HOST"], "acme-db")
 
 
 class ExpandEnvInJsonTests(unittest.TestCase):

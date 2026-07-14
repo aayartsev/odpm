@@ -214,6 +214,112 @@ class BuildComposeDocumentPrefixTests(unittest.TestCase):
         validate_compose_document(document)
         self.assertEqual(document["services"]["mailpit"]["depends_on"], ["acme-db"])
 
+    def test_build_compose_document_expands_service_refs_with_prefix(self):
+        from dev_project.config.transforms.env_substitution import (
+            EnvResolver,
+            expand_env_in_compose_service_map,
+        )
+
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name=constants.DEFAULT_POSTGRES_SERVICE_NAME,
+        )
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=naming,
+        )
+        services = expand_env_in_compose_service_map(
+            {
+                "worker": {
+                    "image": "busybox",
+                    "depends_on": [LOGICAL_DB],
+                    "environment": {
+                        "DB_HOST": "${@service:db}",
+                        "ODOO_URL": "http://${@service:odoo}:8069",
+                    },
+                }
+            },
+            resolver=resolver,
+            field_prefix="services",
+        )
+        env = _make_compose_env(compose_prefix="acme", manifest_services=services)
+        document = build_compose_document(env)
+        validate_compose_document(document)
+        worker = document["services"]["worker"]
+        self.assertEqual(worker["depends_on"], ["acme-db"])
+        self.assertEqual(worker["environment"]["DB_HOST"], "acme-db")
+        self.assertEqual(worker["environment"]["ODOO_URL"], "http://acme-odoo:8069")
+
+    def test_build_compose_document_expands_service_refs_without_prefix(self):
+        from dev_project.config.transforms.env_substitution import (
+            EnvResolver,
+            expand_env_in_compose_service_map,
+        )
+
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        naming = resolve_compose_naming(
+            compose_prefix_raw=None,
+            legacy_postgres_service_name=constants.DEFAULT_POSTGRES_SERVICE_NAME,
+        )
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=naming,
+        )
+        services = expand_env_in_compose_service_map(
+            {
+                "worker": {
+                    "image": "busybox",
+                    "environment": {"DB_HOST": "${@service:db}"},
+                }
+            },
+            resolver=resolver,
+            field_prefix="services",
+        )
+        env = _make_compose_env(manifest_services=services)
+        document = build_compose_document(env)
+        self.assertEqual(
+            document["services"]["worker"]["environment"]["DB_HOST"],
+            "db",
+        )
+
+    def test_build_compose_document_expands_service_refs_legacy_postgres_name(self):
+        from dev_project.config.transforms.env_substitution import (
+            EnvResolver,
+            expand_env_in_compose_service_map,
+        )
+
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        naming = resolve_compose_naming(
+            compose_prefix_raw=None,
+            legacy_postgres_service_name="pg",
+        )
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=naming,
+        )
+        services = expand_env_in_compose_service_map(
+            {
+                "worker": {
+                    "image": "busybox",
+                    "depends_on": [LOGICAL_DB],
+                    "environment": {"DB_HOST": "${@service:db}"},
+                }
+            },
+            resolver=resolver,
+            field_prefix="services",
+        )
+        env = _make_compose_env(
+            postgres_service_name="pg",
+            manifest_services=services,
+        )
+        document = build_compose_document(env)
+        self.assertEqual(document["services"]["worker"]["depends_on"], ["pg"])
+        self.assertEqual(document["services"]["worker"]["environment"]["DB_HOST"], "pg")
+
     def test_build_compose_document_without_prefix_matches_logical_names(self):
         os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
         env = _make_compose_env()

@@ -529,6 +529,10 @@ RU_MESSAGES: dict[str, str] = {
         "Источник service_sources {NAME} ещё не materialized "
         "(нужен для поля manifest {FIELD})"
     ),
+    "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})": (
+        "Ссылка на compose-сервис {NAME} не может быть раскрыта "
+        "(нужна для поля manifest {FIELD})"
+    ),
     "Service source {NAME} file:// path does not exist: {PATH}": (
         "Путь file:// источника service_sources {NAME} не существует: {PATH}"
     ),

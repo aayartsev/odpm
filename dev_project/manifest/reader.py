@@ -164,12 +164,14 @@ def load_manifest(
                 resolver=env_resolver,
                 field_prefix="services",
                 allow_unresolved_source=True,
+                allow_unresolved_service=True,
             )
             service_patches = expand_env_in_compose_service_map(
                 dict(service_patches) if isinstance(service_patches, dict) else None,
                 resolver=env_resolver,
                 field_prefix="service_patches",
                 allow_unresolved_source=True,
+                allow_unresolved_service=True,
             )
         odoo_conf = _resolve_odoo_conf_dict(
             effective.odoo_conf,

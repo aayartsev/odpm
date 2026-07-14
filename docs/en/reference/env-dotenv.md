@@ -133,7 +133,7 @@ Optional prefix for **full compose-stack isolation** on a shared host: multiple 
 
 Normalization: lowercase, charset `[a-z0-9-]`, must start with a letter; trailing `-` in `.env` is optional. Invalid values are **ignored** (prefix disabled, warning logged).
 
-Manifest sidecars keep **logical** names (`depends_on: ["db"]`); odpm rewrites them to physical names when generating `docker-compose.yml`.
+Manifest sidecars keep **logical** names (`depends_on: ["db"]`); odpm rewrites them to physical names when generating `docker-compose.yml`. For hostnames inside `environment` / `command`, use **`${@service:db}`** / **`${@service:odoo}`** — the YAML gets the physical name (`acme-db`). Sidecar keys without a prefix resolve to the same name.
 
 Example:
 
@@ -141,7 +141,7 @@ Example:
 ODPM_COMPOSE_PREFIX=acme
 ```
 
-See [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md).
+See [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md), [`odpm.json` substitution](odpm-json.md).
 
 ## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
 

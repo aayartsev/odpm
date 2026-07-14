@@ -214,9 +214,9 @@ In **whitelist fields** odpm expands environment variable references right after
 | `hooks.*` argv (v2) | yes — at hook **execution** (not during `odpm manifest validate`) |
 | `service_sources.*` (v2) | yes — git link value for each source name |
 
-Syntax: **`${NAME}`** and **`${NAME:-default}`** (as in Docker Compose). For sidecar build contexts after `service_sources` materialize — **`${@source:<name>}`** (env key `ODPM_SOURCE_<NAME>`). Literal `$` — **`$$`**.
+Syntax: **`${NAME}`** and **`${NAME:-default}`** (as in Docker Compose). For sidecar build contexts after `service_sources` materialize — **`${@source:<name>}`** (env key `ODPM_SOURCE_<NAME>`). For logical compose service names (`db`, `odoo`, sidecars) — **`${@service:<name>}`**: the generated `docker-compose.yml` gets the physical name from `ODPM_COMPOSE_PREFIX` / `POSTGRES_SERVICE_NAME` (e.g. `acme-db`). Literal `$` — **`$$`**.
 
-When reading the manifest, odpm **does not fail** on unresolved `${@source:...}` in `services` / `service_patches`; paths are injected after source materialize, then compose fields are re-expanded before compose generation.
+When reading the manifest, odpm **does not fail** on unresolved `${@source:...}` / `${@service:...}` in `services` / `service_patches` (tokens are kept until paths/naming are available); `@source` paths are injected after source materialize, `@service` resolves from `.env` naming on bootstrap / re-expand.
 
 Value source (strongest to weakest): **process** variables (`export`, CI secrets) → keys from **project `.env`** → default in the manifest string. No separate enable flag is needed.
 
@@ -245,7 +245,7 @@ GIT_HOST=git.company.example
 
 Other fields (`odoo_version`, `python_version`, `requirements_txt`, …) have **no** substitution. Nested `odpm.json` in git dependencies supports the same fields — see [configuration hierarchy](config-hierarchy.md). `.odpm/deps.lock.json` stores **expanded** URLs and paths, not `${VAR}`.
 
-v2 sidecar with paths from `.env`:
+v2 sidecar with paths from `.env` and stack service hostnames:
 
 ```json
 "services": {
@@ -253,10 +253,17 @@ v2 sidecar with paths from `.env`:
     "image": "autoparts_env:emulator",
     "user": "root",
     "tty": true,
+    "depends_on": ["db"],
+    "environment": {
+      "DB_HOST": "${@service:db}",
+      "ODOO_URL": "http://${@service:odoo}:8069"
+    },
     "volumes": ["${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"]
   }
 }
 ```
+
+With `ODPM_COMPOSE_PREFIX=acme`, compose gets `DB_HOST=acme-db` and `ODOO_URL=http://acme-odoo:8069` (`depends_on: ["db"]` stays logical — prefix rewrites the list separately).
 
 See [`.env` variables](env-dotenv.md), [repository links](git-links.md).
 

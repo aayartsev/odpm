@@ -103,6 +103,20 @@ class ComposePrefixUserEnvTests(unittest.TestCase):
             self.assertEqual(user_env.postgres_service_name, "acme-db")
             self.assertEqual(user_env.odoo_service_name, "acme-odoo")
             self.assertEqual(user_env.postgres_volume_name, "acme-postgres-data")
+            from dev_project.config.transforms.env_substitution import (
+                EnvResolver,
+                expand_env_string,
+            )
+
+            resolver = EnvResolver.from_user_env(user_env, process_environ={})
+            self.assertEqual(
+                expand_env_string(
+                    "${@service:db}",
+                    resolver,
+                    field_path="services.sidecar.environment.DB_HOST",
+                ),
+                "acme-db",
+            )
 
     @patch("dev_project.host.user_env._stdin_is_interactive", return_value=False)
     def test_legacy_postgres_name_when_prefix_absent(self, _mock_tty):

@@ -126,6 +126,9 @@ msgstr "Clone or update platform, developing, and dependency git repos"
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Collect resolved git commits and write .odpm/deps.lock.json"
 
+msgid "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})"
+msgstr "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})"
+
 msgid "Compose service {NAME} must be a mapping"
 msgstr "Compose service {NAME} must be a mapping"
 

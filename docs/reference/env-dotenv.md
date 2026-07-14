@@ -131,7 +131,7 @@ PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 
 Нормализация: lowercase, символы `[a-z0-9-]`, имя начинается с буквы; завершающий `-` в `.env` опционален. Невалидное значение **игнорируется** (префикс отключён, warning в логе).
 
-В `odpm.json` sidecar по-прежнему указывают логические имена (`depends_on: ["db"]`); odpm переписывает их в physical при генерации `docker-compose.yml`.
+В `odpm.json` sidecar по-прежнему указывают логические имена (`depends_on: ["db"]`); odpm переписывает их в physical при генерации `docker-compose.yml`. Для hostname внутри `environment` / `command` используйте **`${@service:db}`** / **`${@service:odoo}`** — в YAML попадёт уже physical имя (`acme-db`). Sidecar-ключи без префикса резолвятся в то же имя.
 
 Пример:
 
@@ -139,7 +139,7 @@ PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 ODPM_COMPOSE_PREFIX=acme
 ```
 
-См. [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md).
+См. [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md), [подстановку в `odpm.json`](odpm-json.md).
 
 ## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
 
