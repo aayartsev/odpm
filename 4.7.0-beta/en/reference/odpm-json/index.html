@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -2622,8 +2622,8 @@
 </tr>
 </tbody>
 </table>
-<p>Syntax: <strong><code>${NAME}</code></strong> and <strong><code>${NAME:-default}</code></strong> (as in Docker Compose). For sidecar build contexts after <code>service_sources</code> materialize — <strong><code>${@source:&lt;name&gt;}</code></strong> (env key <code>ODPM_SOURCE_&lt;NAME&gt;</code>). For logical compose service names (<code>db</code>, <code>odoo</code>, sidecars) — <strong><code>${@service:&lt;name&gt;}</code></strong>: the generated <code>docker-compose.yml</code> gets the physical name from <code>ODPM_COMPOSE_PREFIX</code> / <code>POSTGRES_SERVICE_NAME</code> (e.g. <code>acme-db</code>). Literal <code>$</code> — <strong><code>$$</code></strong>.</p>
-<p>When reading the manifest, odpm <strong>does not fail</strong> on unresolved <code>${@source:...}</code> / <code>${@service:...}</code> in <code>services</code> / <code>service_patches</code> (tokens are kept until paths/naming are available); <code>@source</code> paths are injected after source materialize, <code>@service</code> resolves from <code>.env</code> naming on bootstrap / re-expand.</p>
+<p>Syntax: <strong><code>${NAME}</code></strong> and <strong><code>${NAME:-default}</code></strong> (as in Docker Compose). For sidecar build contexts after <code>service_sources</code> materialize — <strong><code>${@source:&lt;name&gt;}</code></strong> (env key <code>ODPM_SOURCE_&lt;NAME&gt;</code>). For logical compose service names (<code>db</code>, <code>odoo</code>, sidecars) — <strong><code>${@service:&lt;name&gt;}</code></strong>: the generated <code>docker-compose.yml</code> gets the physical name from <code>ODPM_COMPOSE_PREFIX</code> / <code>POSTGRES_SERVICE_NAME</code> (e.g. <code>acme-db</code>). For values from <strong><code>.odpm/secrets.json</code></strong> — <strong><code>${@secret:&lt;key&gt;}</code></strong> (dotted keys as in secrets schema v1, e.g. <code>partner_armtek.armtek.apilogin</code>). Expansion into <code>services.*.environment</code> <strong>intentionally</strong> lands in generated <code>docker-compose.yml</code> (derived file, not committed); Odoo modules should still prefer the <code>/run/odpm/secrets.json</code> mount. Using <code>@secret</code> requires an existing <code>.odpm/secrets.json</code> or <code>--secrets-file</code> on this run (otherwise <code>ConfigError</code>). Placeholder values <code>REPLACE_ME</code> / <code>CHANGEME</code> / <code>TODO</code> are rejected. Literal <code>$</code> — <strong><code>$$</code></strong>.</p>
+<p>When reading the manifest, odpm <strong>does not fail</strong> on unresolved <code>${@source:...}</code> / <code>${@service:...}</code> in <code>services</code> / <code>service_patches</code> (tokens are kept until paths/naming are available); <code>@source</code> paths are injected after source materialize, <code>@service</code> resolves from <code>.env</code> naming on bootstrap / re-expand. <code>${@secret:...}</code> tokens are <strong>not</strong> left unresolved when the secrets file is missing — hard fail.</p>
 <p>Value source (strongest to weakest): <strong>process</strong> variables (<code>export</code>, CI secrets) → keys from <strong>project <code>.env</code></strong> → default in the manifest string. No separate enable flag is needed.</p>
 <p>Example for a team manifest in git and local paths on a developer machine:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2763,7 +2763,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
