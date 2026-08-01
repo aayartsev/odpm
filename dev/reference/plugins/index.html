@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -2445,7 +2445,7 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Для sidecar с <strong>git build-контекстом</strong> (рекомендуется, 4.7+) используйте <code>service_sources</code> и <code>${@source:...}</code>:</p>
+<p>Для sidecar с <strong>git build-контекстом</strong> (рекомендуется, 4.7+) используйте <code>service_sources</code> и <code>${@source:...}</code>; для API-ключей sidecar — <code>${@secret:...}</code> из <code>.odpm/secrets.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
 <span class="p">},</span>
@@ -2455,7 +2455,10 @@
 <span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;APILOGIN&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:partner_armtek.armtek.apilogin}&quot;</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">},</span>
 <span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2469,6 +2472,7 @@
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
+<p><code>${@secret:...}</code> требует <code>.odpm/secrets.json</code> или <code>--secrets-file</code>; значение попадёт в generated compose YAML (осознанно). Подробнее: <a href="../../operations/secrets/">secrets.md</a>.</p>
 <p>См. <a href="../service-sources/">service-sources.md</a>. Legacy-вариант с путём из <code>.env</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2537,7 +2541,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>Каждый элемент — либо <strong>argv</strong> (массив строк, выполняется в <code>project_dir</code> <strong>без shell</strong>), либо <strong>plugin id</strong> (строка) для pluggy hook runner.</p>
-<p>В argv поддерживается <strong><code>${VAR}</code></strong> / <strong><code>${VAR:-default}</code></strong> и <strong><code>${@source:&lt;name&gt;}</code></strong> (после <code>sources.materialize</code>): раскрытие при выполнении hook из process env → project <code>.env</code> → default в строке. Subprocess получает <strong>merged env</strong> (process + недостающие ключи из <code>.env</code>). Пример сборки образа sidecar:</p>
+<p>В argv поддерживается <strong><code>${VAR}</code></strong> / <strong><code>${VAR:-default}</code></strong>, <strong><code>${@source:&lt;name&gt;}</code></strong> (после <code>sources.materialize</code>) и <strong><code>${@secret:&lt;key&gt;}</code></strong> (из <code>.odpm/secrets.json</code>): раскрытие при выполнении hook. Subprocess получает <strong>merged env</strong> (process + недостающие ключи из <code>.env</code>).</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span>
 <span class="w">    </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
@@ -2547,7 +2551,7 @@
 <span class="w">  </span><span class="p">]]</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>В <code>services</code> / <code>service_patches</code> те же правила подстановки для строковых полей (<code>image</code>, <code>volumes[]</code>, <code>command[]</code>, <code>environment</code>, …) — <code>${VAR}</code> при чтении manifest; <code>${@source:...}</code> после <code>sources.materialize</code>.</p>
+<p>В <code>services</code> / <code>service_patches</code> те же правила подстановки для строковых полей (<code>image</code>, <code>volumes[]</code>, <code>command[]</code>, <code>environment</code>, …) — <code>${VAR}</code> / <code>${@secret:...}</code> при чтении manifest; <code>${@source:...}</code> после <code>sources.materialize</code>.</p>
 <p>Порядок prepare (фрагмент):</p>
 <ol>
 <li>Git materialize</li>
@@ -2725,7 +2729,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -2181,8 +2181,8 @@
 </tr>
 </tbody>
 </table>
-<p>Синтаксис: <strong><code>${ИМЯ}</code></strong> и <strong><code>${ИМЯ:-значение_по_умолчанию}</code></strong> (как в Docker Compose). Для sidecar build-контекстов после materialize <code>service_sources</code> — <strong><code>${@source:&lt;имя&gt;}</code></strong> (env-ключ <code>ODPM_SOURCE_&lt;ИМЯ&gt;</code>). Для логических имён сервисов compose (<code>db</code>, <code>odoo</code>, sidecar) — <strong><code>${@service:&lt;имя&gt;}</code></strong>: в итоговом <code>docker-compose.yml</code> подставляется physical имя с учётом <code>ODPM_COMPOSE_PREFIX</code> / <code>POSTGRES_SERVICE_NAME</code> (например <code>acme-db</code>). Литеральный <code>$</code> — <strong><code>$$</code></strong>.</p>
-<p>При чтении manifest odpm <strong>не падает</strong> на неразрешённый <code>${@source:...}</code> / <code>${@service:...}</code> в <code>services</code> / <code>service_patches</code> (токены сохраняются, пока нет naming/путей); пути <code>@source</code> подставляются после materialize, <code>@service</code> — из naming <code>.env</code> на bootstrap / при повторном expand.</p>
+<p>Синтаксис: <strong><code>${ИМЯ}</code></strong> и <strong><code>${ИМЯ:-значение_по_умолчанию}</code></strong> (как в Docker Compose). Для sidecar build-контекстов после materialize <code>service_sources</code> — <strong><code>${@source:&lt;имя&gt;}</code></strong> (env-ключ <code>ODPM_SOURCE_&lt;ИМЯ&gt;</code>). Для логических имён сервисов compose (<code>db</code>, <code>odoo</code>, sidecar) — <strong><code>${@service:&lt;имя&gt;}</code></strong>: в итоговом <code>docker-compose.yml</code> подставляется physical имя с учётом <code>ODPM_COMPOSE_PREFIX</code> / <code>POSTGRES_SERVICE_NAME</code> (например <code>acme-db</code>). Для значений из <strong><code>.odpm/secrets.json</code></strong> — <strong><code>${@secret:&lt;ключ&gt;}</code></strong> (ключи с точкой, как в schema v1: <code>partner_armtek.armtek.apilogin</code>). Подстановка в <code>services.*.environment</code> <strong>осознанно</strong> попадает в generated <code>docker-compose.yml</code> (файл производный, в git не коммитится); для Odoo-модулей по-прежнему предпочтителен mount <code>/run/odpm/secrets.json</code>. Использование <code>@secret</code> требует уже существующий <code>.odpm/secrets.json</code> или <code>--secrets-file</code> в этом запуске (иначе <code>ConfigError</code>). Заглушки <code>REPLACE_ME</code> / <code>CHANGEME</code> / <code>TODO</code> — ошибка. Литеральный <code>$</code> — <strong><code>$$</code></strong>.</p>
+<p>При чтении manifest odpm <strong>не падает</strong> на неразрешённый <code>${@source:...}</code> / <code>${@service:...}</code> в <code>services</code> / <code>service_patches</code> (токены сохраняются, пока нет naming/путей); пути <code>@source</code> подставляются после materialize, <code>@service</code> — из naming <code>.env</code> на bootstrap / при повторном expand. Токены <code>${@secret:...}</code> при отсутствии файла секретов <strong>не</strong> оставляются — hard fail.</p>
 <p>Источник значений (от сильного к слабому): переменные <strong>процесса</strong> (<code>export</code>, CI secrets) → ключи из <strong>project <code>.env</code></strong> → default в строке manifest. Отдельный флаг включения <strong>не нужен</strong>.</p>
 <p>Пример для команды в git и локальных путей на машине разработчика:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -2457,7 +2457,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
