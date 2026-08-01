@@ -124,6 +124,110 @@ def collect_secret_refs_in_value(value: Any) -> set[str]:
     return found
 
 
+def _resolve_source_ref(
+    source_name: str,
+    token: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved: bool,
+) -> str:
+    from ...manifest.service_sources import source_env_key
+
+    resolved = resolver.resolve(source_env_key(source_name))
+    if resolved is not None:
+        return resolved
+    if allow_unresolved:
+        return token
+    raise ConfigError(
+        _(
+            "Service source {NAME} is not materialized "
+            "(required for manifest field {FIELD})"
+        ).format(NAME=source_name, FIELD=field_path)
+    )
+
+
+def _resolve_service_ref(
+    service_name: str,
+    token: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved: bool,
+) -> str:
+    naming = resolver.compose_naming
+    if naming is not None:
+        from ...compose.service_names import map_logical_service_name
+
+        return map_logical_service_name(service_name, naming)
+    if allow_unresolved:
+        return token
+    raise ConfigError(
+        _(
+            "Compose service reference {NAME} cannot be resolved "
+            "(required for manifest field {FIELD})"
+        ).format(NAME=service_name, FIELD=field_path)
+    )
+
+
+def _resolve_secret_ref(
+    secret_key: str,
+    token: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved: bool,
+) -> str:
+    if secret_key not in resolver.secrets:
+        if allow_unresolved:
+            return token
+        if not resolver.secrets:
+            raise ConfigError(
+                _(
+                    "Manifest references secrets (@secret) but "
+                    ".odpm/secrets.json is missing; create it or pass "
+                    "--secrets-file (required for manifest field {FIELD})"
+                ).format(FIELD=field_path)
+            )
+        raise ConfigError(
+            _(
+                "Secret {KEY} is not set in .odpm/secrets.json "
+                "(required for manifest field {FIELD})"
+            ).format(KEY=secret_key, FIELD=field_path)
+        )
+    secret_value = resolver.secrets[secret_key]
+    from ...manifest.secrets_policy import is_secret_placeholder
+
+    if is_secret_placeholder(secret_value):
+        raise ConfigError(
+            _(
+                "Secret {KEY} still has a placeholder value "
+                "(required for manifest field {FIELD})"
+            ).format(KEY=secret_key, FIELD=field_path)
+        )
+    return secret_value
+
+
+def _resolve_env_var_ref(
+    name: str,
+    default: str | None,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+) -> str:
+    resolved = resolver.resolve(name)
+    if resolved is not None:
+        return resolved
+    if default is not None:
+        return default
+    raise ConfigError(
+        _(
+            "Environment variable {VAR} is not set "
+            "(required for manifest field {FIELD})"
+        ).format(VAR=name, FIELD=field_path)
+    )
+
+
 def expand_env_string(
     value: str,
     resolver: EnvResolver,
@@ -145,85 +249,44 @@ def expand_env_string(
         if token == "$$":
             parts.append("$")
         elif match.group(1) is not None:
-            source_name = match.group(1)
-            from ...manifest.service_sources import source_env_key
-
-            env_key = source_env_key(source_name)
-            resolved = resolver.resolve(env_key)
-            if resolved is not None:
-                parts.append(resolved)
-            elif allow_unresolved_source:
-                parts.append(token)
-            else:
-                raise ConfigError(
-                    _(
-                        "Service source {NAME} is not materialized "
-                        "(required for manifest field {FIELD})"
-                    ).format(NAME=source_name, FIELD=field_path)
+            parts.append(
+                _resolve_source_ref(
+                    match.group(1),
+                    token,
+                    resolver,
+                    field_path=field_path,
+                    allow_unresolved=allow_unresolved_source,
                 )
+            )
         elif match.group(2) is not None:
-            service_name = match.group(2)
-            naming = resolver.compose_naming
-            if naming is not None:
-                from ...compose.service_names import map_logical_service_name
-
-                parts.append(map_logical_service_name(service_name, naming))
-            elif allow_unresolved_service:
-                parts.append(token)
-            else:
-                raise ConfigError(
-                    _(
-                        "Compose service reference {NAME} cannot be resolved "
-                        "(required for manifest field {FIELD})"
-                    ).format(NAME=service_name, FIELD=field_path)
+            parts.append(
+                _resolve_service_ref(
+                    match.group(2),
+                    token,
+                    resolver,
+                    field_path=field_path,
+                    allow_unresolved=allow_unresolved_service,
                 )
+            )
         elif match.group(3) is not None:
-            secret_key = match.group(3)
-            if secret_key not in resolver.secrets:
-                if allow_unresolved_secret:
-                    parts.append(token)
-                elif not resolver.secrets:
-                    raise ConfigError(
-                        _(
-                            "Manifest references secrets (@secret) but "
-                            ".odpm/secrets.json is missing; create it or pass "
-                            "--secrets-file (required for manifest field {FIELD})"
-                        ).format(FIELD=field_path)
-                    )
-                else:
-                    raise ConfigError(
-                        _(
-                            "Secret {KEY} is not set in .odpm/secrets.json "
-                            "(required for manifest field {FIELD})"
-                        ).format(KEY=secret_key, FIELD=field_path)
-                    )
-            else:
-                secret_value = resolver.secrets[secret_key]
-                from ...manifest.secrets_policy import is_secret_placeholder
-
-                if is_secret_placeholder(secret_value):
-                    raise ConfigError(
-                        _(
-                            "Secret {KEY} still has a placeholder value "
-                            "(required for manifest field {FIELD})"
-                        ).format(KEY=secret_key, FIELD=field_path)
-                    )
-                parts.append(secret_value)
-        else:
-            name = match.group(4)
-            default = match.group(5)
-            resolved = resolver.resolve(name)
-            if resolved is not None:
-                parts.append(resolved)
-            elif default is not None:
-                parts.append(default)
-            else:
-                raise ConfigError(
-                    _(
-                        "Environment variable {VAR} is not set "
-                        "(required for manifest field {FIELD})"
-                    ).format(VAR=name, FIELD=field_path)
+            parts.append(
+                _resolve_secret_ref(
+                    match.group(3),
+                    token,
+                    resolver,
+                    field_path=field_path,
+                    allow_unresolved=allow_unresolved_secret,
                 )
+            )
+        else:
+            parts.append(
+                _resolve_env_var_ref(
+                    match.group(4),
+                    match.group(5),
+                    resolver,
+                    field_path=field_path,
+                )
+            )
         last_end = match.end()
 
     parts.append(value[last_end:])

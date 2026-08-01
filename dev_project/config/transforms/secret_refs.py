@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from ...errors import ConfigError
-from ...project_env.secrets import read_secrets_source, secrets_source_path
+from ...project_env.secrets import read_secrets_source
 from ...translations import _
 from .env_substitution import collect_secret_refs_in_value
 
@@ -32,7 +32,6 @@ def ensure_secrets_available_for_refs(
     if not refs:
         return load_secrets_map(project_dir)
 
-    source_path = secrets_source_path(project_dir)
     loaded = read_secrets_source(project_dir)
     if loaded is None:
         raise ConfigError(
