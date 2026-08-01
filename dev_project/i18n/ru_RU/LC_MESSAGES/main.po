@@ -344,6 +344,12 @@ msgstr "Manifest hook {PHASE} завершился с ошибкой: {COMMAND}"
 msgid "Manifest is already manifest_schema 2."
 msgstr "Манифест уже использует manifest_schema 2."
 
+msgid "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for manifest field {FIELD})"
+msgstr "В manifest есть ссылки на секреты (@secret), но нет .odpm/secrets.json; создайте файл или передайте --secrets-file (нужно для поля manifest {FIELD})"
+
+msgid "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
+msgstr "В manifest есть ссылки на секреты (@secret), но нет .odpm/secrets.json; создайте файл или передайте --secrets-file (нужные ключи: {KEYS})"
+
 msgid "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
 msgstr "Manifest требует odpm менеджер {REQUIRES} или новее; текущий менеджер {ODPM_VERSION}."
 
@@ -526,6 +532,12 @@ msgstr "Для сценария {SCENARIO} нужен .odpm/secrets.json с кл
 
 msgid "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
 msgstr "Для сценария {SCENARIO} нужен .odpm/secrets.json; скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+
+msgid "Secret {KEY} is not set in .odpm/secrets.json (required for manifest field {FIELD})"
+msgstr "Секрет {KEY} не задан в .odpm/secrets.json (нужен для поля manifest {FIELD})"
+
+msgid "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
+msgstr "Секрет {KEY} всё ещё содержит значение-заглушку (нужен для поля manifest {FIELD})"
 
 msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
 msgstr "Выберите конфигурацию IDE для генерации (Enter — по умолчанию {DEFAULT_IDE}):\n{OPTIONS}\n"

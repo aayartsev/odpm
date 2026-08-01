@@ -345,6 +345,12 @@ msgstr "Manifest hook {PHASE} failed: {COMMAND}"
 msgid "Manifest is already manifest_schema 2."
 msgstr "Manifest is already manifest_schema 2."
 
+msgid "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for manifest field {FIELD})"
+msgstr "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for manifest field {FIELD})"
+
+msgid "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
+msgstr "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
+
 msgid "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
 msgstr "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
 
@@ -527,6 +533,12 @@ msgstr "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy 
 
 msgid "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
 msgstr "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
+
+msgid "Secret {KEY} is not set in .odpm/secrets.json (required for manifest field {FIELD})"
+msgstr "Secret {KEY} is not set in .odpm/secrets.json (required for manifest field {FIELD})"
+
+msgid "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
+msgstr "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
 
 msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
 msgstr "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"

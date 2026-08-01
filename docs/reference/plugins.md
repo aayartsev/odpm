@@ -43,7 +43,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 }
 ```
 
-Для sidecar с **git build-контекстом** (рекомендуется, 4.7+) используйте `service_sources` и `${@source:...}`:
+Для sidecar с **git build-контекстом** (рекомендуется, 4.7+) используйте `service_sources` и `${@source:...}`; для API-ключей sidecar — `${@secret:...}` из `.odpm/secrets.json`:
 
 ```json
 "service_sources": {
@@ -55,7 +55,10 @@ Breaking changes в протоколах pluggy или manifest hooks требу
     "image": "autoparts_env:emulator",
     "user": "root",
     "tty": true,
-    "volumes": ["${@source:autoparts_env}/data:/data:Z"]
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"],
+    "environment": {
+      "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}"
+    }
   }
 },
 "hooks": {
@@ -69,6 +72,8 @@ Breaking changes в протоколах pluggy или manifest hooks требу
   ]
 }
 ```
+
+`${@secret:...}` требует `.odpm/secrets.json` или `--secrets-file`; значение попадёт в generated compose YAML (осознанно). Подробнее: [secrets.md](../operations/secrets.md).
 
 См. [service-sources.md](service-sources.md). Legacy-вариант с путём из `.env`:
 
@@ -174,7 +179,7 @@ ODPM_COMPOSE_NETWORK_EXTERNAL=1
 
 Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir` **без shell**), либо **plugin id** (строка) для pluggy hook runner.
 
-В argv поддерживается **`${VAR}`** / **`${VAR:-default}`** и **`${@source:<name>}`** (после `sources.materialize`): раскрытие при выполнении hook из process env → project `.env` → default в строке. Subprocess получает **merged env** (process + недостающие ключи из `.env`). Пример сборки образа sidecar:
+В argv поддерживается **`${VAR}`** / **`${VAR:-default}`**, **`${@source:<name>}`** (после `sources.materialize`) и **`${@secret:<key>}`** (из `.odpm/secrets.json`): раскрытие при выполнении hook. Subprocess получает **merged env** (process + недостающие ключи из `.env`).
 
 ```json
 "hooks": {
@@ -187,7 +192,7 @@ ODPM_COMPOSE_NETWORK_EXTERNAL=1
 }
 ```
 
-В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — `${VAR}` при чтении manifest; `${@source:...}` после `sources.materialize`.
+В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — `${VAR}` / `${@secret:...}` при чтении manifest; `${@source:...}` после `sources.materialize`.
 
 Порядок prepare (фрагмент):
 

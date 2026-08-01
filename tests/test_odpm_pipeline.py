@@ -498,6 +498,50 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         self.assertIs(pipeline.cli_args, normalized)
         self.assertIs(mock_config_cls.call_args[0][1], normalized)
 
+    @patch("dev_project.odpm_pipeline.SystemChecker")
+    @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
+    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
+    @patch("dev_project.odpm_pipeline.ProjectDirManager")
+    @patch("dev_project.project_env.secrets.import_secrets_from_path")
+    def test_setup_imports_secrets_before_config(
+        self,
+        mock_import_secrets,
+        mock_pd_manager_cls,
+        mock_user_env_cls,
+        mock_config_cls,
+        _mock_project_env_cls,
+        _mock_checker_cls,
+    ):
+        call_order: list[str] = []
+        mock_pd = MagicMock()
+        mock_pd.project_path = "/tmp/golden-project"
+        pipeline_args = OdpmCliArgs(secrets_file="/tmp/incoming-secrets.json")
+        mock_pd.arguments = pipeline_args
+        mock_pd_manager_cls.return_value = mock_pd
+
+        def _import_side_effect(project_dir, external_path):
+            call_order.append("import")
+            self.assertEqual(project_dir, "/tmp/golden-project")
+            self.assertEqual(external_path, "/tmp/incoming-secrets.json")
+
+        def _config_side_effect(*_args, **_kwargs):
+            call_order.append("config")
+            return MagicMock(policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO))
+
+        mock_import_secrets.side_effect = _import_side_effect
+        mock_config_cls.side_effect = _config_side_effect
+        mock_user_env_cls.return_value = MagicMock()
+
+        pipeline = OdpmPipeline(pipeline_args, "/opt/odpm")
+        pipeline.setup()
+
+        self.assertEqual(call_order, ["import", "config"])
+        mock_import_secrets.assert_called_once_with(
+            "/tmp/golden-project",
+            "/tmp/incoming-secrets.json",
+        )
+
 
 class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.ProjectMaterializer")

@@ -13,10 +13,13 @@ from dev_project import constants
 from dev_project.config.transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
     EnvResolver,
+    collect_secret_refs_in_value,
     expand_env_in_compose_service_map,
     expand_env_in_json,
     expand_env_string,
+    inject_service_source_paths,
     merged_subprocess_environ,
+    with_secrets,
 )
 from dev_project.errors import ConfigError
 
@@ -581,6 +584,147 @@ class ExpandComposeServiceMapTests(unittest.TestCase):
             field_prefix="services",
         )
         self.assertNotIn("source", expanded["armtek"])
+
+
+class SecretRefExpansionTests(unittest.TestCase):
+    def test_expands_dotted_secret_key(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"partner_armtek.armtek.apilogin": "login-value"},
+        )
+        result = expand_env_string(
+            "${@secret:partner_armtek.armtek.apilogin}",
+            resolver,
+            field_path="services.armtek.environment.APILOGIN",
+        )
+        self.assertEqual(result, "login-value")
+
+    def test_secret_coexists_with_dollar_escape(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"api.key": "secret"},
+        )
+        result = expand_env_string(
+            "cost $$ and ${@secret:api.key}",
+            resolver,
+            field_path="services.x.command[]",
+        )
+        self.assertEqual(result, "cost $ and secret")
+
+    def test_missing_secret_key_raises(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"other.key": "x"},
+        )
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@secret:missing.key}",
+                resolver,
+                field_path="services.x.environment.TOKEN",
+            )
+        self.assertIn("missing.key", str(ctx.exception))
+
+    def test_empty_secrets_map_raises_file_gate_message(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={},
+        )
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@secret:api.key}",
+                resolver,
+                field_path="services.x.environment.TOKEN",
+            )
+        message = str(ctx.exception)
+        self.assertIn("secrets.json", message)
+        self.assertIn("--secrets-file", message)
+
+    def test_placeholder_secret_raises(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"api.key": "REPLACE_ME"},
+        )
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@secret:api.key}",
+                resolver,
+                field_path="services.x.environment.TOKEN",
+            )
+        message = str(ctx.exception).lower()
+        self.assertIn("api.key", message)
+        self.assertTrue(
+            "placeholder" in message or "заглуш" in message,
+            msg=message,
+        )
+
+    def test_allow_unresolved_secret_preserves_token(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={},
+        )
+        result = expand_env_string(
+            "${@secret:api.key}",
+            resolver,
+            field_path="services.x.environment.TOKEN",
+            allow_unresolved_secret=True,
+        )
+        self.assertEqual(result, "${@secret:api.key}")
+
+    def test_with_secrets_and_inject_preserve_secrets(self):
+        base = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"api.key": "v1"},
+        )
+        updated = with_secrets(base, {"api.key": "v2", "other": "o"})
+        self.assertEqual(updated.secrets["api.key"], "v2")
+        injected = inject_service_source_paths(updated, {"autoparts_env": "/opt/src"})
+        self.assertEqual(injected.secrets["api.key"], "v2")
+        self.assertEqual(injected.resolve("ODPM_SOURCE_AUTOPARTS_ENV"), "/opt/src")
+
+    def test_collect_secret_refs_in_nested_tree(self):
+        refs = collect_secret_refs_in_value(
+            {
+                "environment": {
+                    "USER": "${@secret:partner_armtek.armtek.apilogin}",
+                    "PASS": "${@secret:partner_armtek.armtek.apipass}",
+                },
+                "command": ["echo", "$$", "${VAR}"],
+            }
+        )
+        self.assertEqual(
+            refs,
+            {
+                "partner_armtek.armtek.apilogin",
+                "partner_armtek.armtek.apipass",
+            },
+        )
+
+    def test_compose_environment_expands_secret(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"partner_armtek.armtek.apilogin": "u1"},
+        )
+        expanded = expand_env_in_compose_service_map(
+            {
+                "armtek": {
+                    "image": "armtek:latest",
+                    "environment": {
+                        "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}",
+                    },
+                }
+            },
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["armtek"]["environment"]["APILOGIN"], "u1")
 
 
 if __name__ == "__main__":

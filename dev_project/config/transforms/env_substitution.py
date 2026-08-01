@@ -1,11 +1,11 @@
-"""Expand ${VAR} / ${VAR:-default} / ${@source:} / ${@service:} in manifest strings."""
+"""Expand ${VAR} / ${VAR:-default} / ${@source:} / ${@service:} / ${@secret:} in manifest strings."""
 
 from __future__ import annotations
 
 import os
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from ...errors import ConfigError
@@ -24,21 +24,26 @@ USER_SETTINGS_ENV_EXPAND_FIELDS = frozenset({
     "developing_project",
 })
 
+# Groups: 1=@source, 2=@service, 3=@secret, 4=VAR, 5=default
 _ENV_REF_PATTERN = re.compile(
     r"\$\{@source:([a-z][a-z0-9_]*)\}|"
     r"\$\{@service:([a-z][a-z0-9_]*)\}|"
+    r"\$\{@secret:([A-Za-z0-9_.-]+)\}|"
     r"\$\{([^}:]+)(?::-([^}]*))?\}|"
     r"\$\$"
 )
 
+_SECRET_REF_ONLY_PATTERN = re.compile(r"\$\{@secret:([A-Za-z0-9_.-]+)\}")
+
 
 @dataclass(frozen=True)
 class EnvResolver:
-    """Resolve manifest env var names from process environ and project .env."""
+    """Resolve manifest env var names from process environ, project .env, and secrets."""
 
     process_environ: Mapping[str, str]
     project_dotenv: Mapping[str, str]
     compose_naming: ComposeNamingContext | None = None
+    secrets: Mapping[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_sources(
@@ -47,6 +52,7 @@ class EnvResolver:
         process_environ: Mapping[str, str] | None = None,
         project_dotenv: Mapping[str, str] | None = None,
         compose_naming: ComposeNamingContext | None = None,
+        secrets: Mapping[str, str] | None = None,
     ) -> EnvResolver:
         environ = process_environ if process_environ is not None else os.environ
         return cls(
@@ -55,6 +61,7 @@ class EnvResolver:
                 key: str(value) for key, value in (project_dotenv or {}).items()
             },
             compose_naming=compose_naming,
+            secrets={key: str(value) for key, value in (secrets or {}).items()},
         )
 
     @classmethod
@@ -64,6 +71,7 @@ class EnvResolver:
         *,
         process_environ: Mapping[str, str] | None = None,
         compose_naming: ComposeNamingContext | None = None,
+        secrets: Mapping[str, str] | None = None,
     ) -> EnvResolver:
         if compose_naming is None:
             from ...compose.service_names import compose_naming_from_user_env
@@ -73,6 +81,7 @@ class EnvResolver:
             process_environ=process_environ,
             project_dotenv=user_env.project_dotenv_dict(),
             compose_naming=compose_naming,
+            secrets=secrets,
         )
 
     def resolve(self, name: str) -> str | None:
@@ -84,6 +93,37 @@ class EnvResolver:
         return None
 
 
+def with_secrets(
+    resolver: EnvResolver,
+    secrets: Mapping[str, str],
+) -> EnvResolver:
+    """Return resolver with secrets map replaced (for bootstrap / re-expand)."""
+    return EnvResolver(
+        process_environ=resolver.process_environ,
+        project_dotenv=resolver.project_dotenv,
+        compose_naming=resolver.compose_naming,
+        secrets={key: str(value) for key, value in secrets.items()},
+    )
+
+
+def collect_secret_refs_in_value(value: Any) -> set[str]:
+    """Collect ``${@secret:key}`` keys from nested str/list/dict trees."""
+    found: set[str] = set()
+    if isinstance(value, str):
+        for match in _SECRET_REF_ONLY_PATTERN.finditer(value):
+            found.add(match.group(1))
+        return found
+    if isinstance(value, list):
+        for item in value:
+            found.update(collect_secret_refs_in_value(item))
+        return found
+    if isinstance(value, dict):
+        for item in value.values():
+            found.update(collect_secret_refs_in_value(item))
+        return found
+    return found
+
+
 def expand_env_string(
     value: str,
     resolver: EnvResolver,
@@ -91,6 +131,7 @@ def expand_env_string(
     field_path: str,
     allow_unresolved_source: bool = False,
     allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
 ) -> str:
     if "$" not in value:
         return value
@@ -136,9 +177,41 @@ def expand_env_string(
                         "(required for manifest field {FIELD})"
                     ).format(NAME=service_name, FIELD=field_path)
                 )
+        elif match.group(3) is not None:
+            secret_key = match.group(3)
+            if secret_key not in resolver.secrets:
+                if allow_unresolved_secret:
+                    parts.append(token)
+                elif not resolver.secrets:
+                    raise ConfigError(
+                        _(
+                            "Manifest references secrets (@secret) but "
+                            ".odpm/secrets.json is missing; create it or pass "
+                            "--secrets-file (required for manifest field {FIELD})"
+                        ).format(FIELD=field_path)
+                    )
+                else:
+                    raise ConfigError(
+                        _(
+                            "Secret {KEY} is not set in .odpm/secrets.json "
+                            "(required for manifest field {FIELD})"
+                        ).format(KEY=secret_key, FIELD=field_path)
+                    )
+            else:
+                secret_value = resolver.secrets[secret_key]
+                from ...manifest.secrets_policy import is_secret_placeholder
+
+                if is_secret_placeholder(secret_value):
+                    raise ConfigError(
+                        _(
+                            "Secret {KEY} still has a placeholder value "
+                            "(required for manifest field {FIELD})"
+                        ).format(KEY=secret_key, FIELD=field_path)
+                    )
+                parts.append(secret_value)
         else:
-            name = match.group(3)
-            default = match.group(4)
+            name = match.group(4)
+            default = match.group(5)
             resolved = resolver.resolve(name)
             if resolved is not None:
                 parts.append(resolved)
@@ -185,6 +258,7 @@ def _expand_field_value(
     field_path: str,
     allow_unresolved_source: bool = False,
     allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
 ) -> Any:
     if isinstance(value, str):
         return expand_env_string(
@@ -193,6 +267,7 @@ def _expand_field_value(
             field_path=field_path,
             allow_unresolved_source=allow_unresolved_source,
             allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
         )
     if isinstance(value, list):
         return [
@@ -202,6 +277,7 @@ def _expand_field_value(
                 field_path=f"{field_path}[]",
                 allow_unresolved_source=allow_unresolved_source,
                 allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
             )
             if isinstance(item, str)
             else item
@@ -236,6 +312,7 @@ def _expand_compose_service_spec(
     field_prefix: str,
     allow_unresolved_source: bool = False,
     allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
 ) -> dict[str, Any]:
     result = dict(spec)
     for key in _COMPOSE_SERVICE_STRING_SCALARS:
@@ -247,6 +324,7 @@ def _expand_compose_service_spec(
                 field_path=f"{field_prefix}.{key}",
                 allow_unresolved_source=allow_unresolved_source,
                 allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
             )
     for key in _COMPOSE_SERVICE_STRING_LISTS:
         value = result.get(key)
@@ -259,6 +337,7 @@ def _expand_compose_service_spec(
                 field_path=f"{field_prefix}.{key}[]",
                 allow_unresolved_source=allow_unresolved_source,
                 allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
             )
             if isinstance(item, str)
             else item
@@ -273,6 +352,7 @@ def _expand_compose_service_spec(
                 field_path=f"{field_prefix}.environment.{env_key}",
                 allow_unresolved_source=allow_unresolved_source,
                 allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
             )
             if isinstance(env_value, str)
             else env_value
@@ -289,8 +369,9 @@ def expand_env_in_compose_service_map(
     field_prefix: str,
     allow_unresolved_source: bool = False,
     allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
 ) -> dict[str, Any] | None:
-    """Expand ``${VAR}`` / ``${@source:}`` / ``${@service:}`` in compose service maps."""
+    """Expand ``${VAR}`` / ``${@source:}`` / ``${@service:}`` / ``${@secret:}`` in compose maps."""
     if not isinstance(services, dict):
         return services
     expanded: dict[str, Any] = {}
@@ -304,6 +385,7 @@ def expand_env_in_compose_service_map(
             field_prefix=f"{field_prefix}.{name}",
             allow_unresolved_source=allow_unresolved_source,
             allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
         )
     return expanded
 
@@ -322,6 +404,7 @@ def inject_service_source_paths(
         process_environ=merged_environ,
         project_dotenv=resolver.project_dotenv,
         compose_naming=resolver.compose_naming,
+        secrets=resolver.secrets,
     )
 
 
@@ -330,7 +413,7 @@ def expand_env_in_odoo_conf(
     *,
     resolver: EnvResolver,
 ) -> dict[str, Any] | None:
-    """Expand ``${VAR}`` in manifest ``odoo_conf`` string option values."""
+    """Expand ``${VAR}`` / ``${@secret:}`` in manifest ``odoo_conf`` string option values."""
     if not isinstance(odoo_conf, dict):
         return odoo_conf
     expanded: dict[str, Any] = {}
@@ -356,7 +439,7 @@ def expand_env_in_service_sources(
     *,
     resolver: EnvResolver,
 ) -> dict[str, str] | None:
-    """Expand ``${VAR}`` in manifest ``service_sources`` git link values."""
+    """Expand ``${VAR}`` / ``${@secret:}`` in manifest ``service_sources`` git link values."""
     if not isinstance(service_sources, dict):
         return service_sources
     expanded: dict[str, str] = {}

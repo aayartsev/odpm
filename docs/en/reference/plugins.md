@@ -45,7 +45,7 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 }
 ```
 
-Sidecars may set **`user`** and **`tty`** (same as `service_patches`). For **git build contexts** (recommended, 4.7+), use `service_sources` and `${@source:...}`:
+Sidecars may set **`user`** and **`tty`** (same as `service_patches`). For **git build contexts** (recommended, 4.7+), use `service_sources` and `${@source:...}`; for sidecar API keys use `${@secret:...}` from `.odpm/secrets.json`:
 
 ```json
 "service_sources": {
@@ -57,12 +57,15 @@ Sidecars may set **`user`** and **`tty`** (same as `service_patches`). For **git
     "image": "autoparts_env:emulator",
     "user": "root",
     "tty": true,
-    "volumes": ["${@source:autoparts_env}/data:/data:Z"]
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"],
+    "environment": {
+      "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}"
+    }
   }
 }
 ```
 
-See [service-sources.md](service-sources.md). Legacy path from `.env`:
+`${@secret:...}` requires `.odpm/secrets.json` or `--secrets-file`; the value lands in generated compose YAML intentionally. See [secrets.md](../operations/secrets.md). See also [service-sources.md](service-sources.md). Legacy path from `.env`:
 
 ```json
 "services": {
@@ -169,7 +172,7 @@ The `odoo` start command stays owned by the generator; override via `service_pat
 
 Each element is either **argv** (string array, runs in `project_dir` **without a shell**) or a **plugin id** (string) for the pluggy hook runner.
 
-Argv supports **`${VAR}`** / **`${VAR:-default}`** and **`${@source:<name>}`** (after `sources.materialize`): expanded at hook execution from process env → project `.env` → inline default. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
+Argv supports **`${VAR}`** / **`${VAR:-default}`**, **`${@source:<name>}`** (after `sources.materialize`), and **`${@secret:<key>}`** (from `.odpm/secrets.json`): expanded at hook execution. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
 
 ```json
 "hooks": {
@@ -182,7 +185,7 @@ Argv supports **`${VAR}`** / **`${VAR:-default}`** and **`${@source:<name>}`** (
 }
 ```
 
-`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …): `${VAR}` at manifest read; `${@source:...}` after `sources.materialize`.
+`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …): `${VAR}` / `${@secret:...}` at manifest read; `${@source:...}` after `sources.materialize`.
 
 Prepare order (excerpt):
 

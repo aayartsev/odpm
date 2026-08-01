@@ -76,7 +76,13 @@ def init_context(
     config.project_dir = config.pd_manager.project_path
     config.config_home_dir = config.pd_manager.home_config_dir
     config.user_env = user_env
-    config._env_resolver = EnvResolver.from_user_env(user_env)
+    from .transforms.env_substitution import with_secrets
+    from .transforms.secret_refs import load_secrets_map
+
+    config._env_resolver = with_secrets(
+        EnvResolver.from_user_env(user_env),
+        load_secrets_map(config.project_dir),
+    )
     config.policy = ScenarioPolicy.from_scenario(config.user_env.odpm_scenario)
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()

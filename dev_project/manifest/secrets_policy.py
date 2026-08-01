@@ -19,6 +19,11 @@ from ..translations import _
 _PLACEHOLDER_VALUES = frozenset({"REPLACE_ME", "CHANGEME", "TODO"})
 
 
+def is_secret_placeholder(value: str) -> bool:
+    """True when a secrets.json value is still a template stub."""
+    return value.strip() in _PLACEHOLDER_VALUES
+
+
 @dataclass(frozen=True)
 class ManifestSecretsSpec:
     """Effective secrets contract from manifest root + scenario overlay."""

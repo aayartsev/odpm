@@ -51,6 +51,26 @@ odpm даёт отдельный контракт: вы храните знач�
 
 odpm предупредит на `odpm manifest validate` и `odpm plan`, а при полном запуске (`odpm` без `--skip-start`) остановится **до** развёртывания базы и compose, если `.odpm/secrets.json` отсутствует или содержит заглушки. См. [поля `secrets`](../../reference/odpm-json.md#блок-secrets-обязательные-локальные-секреты-47).
 
+## `${@secret:}` в manifest (sidecar / hooks)
+
+Для **вспомогательных** сервисов (эмуляторы, прокси) значения из `.odpm/secrets.json` можно подставить в manifest:
+
+```json
+"services": {
+  "armtek": {
+    "image": "armtek:latest",
+    "environment": {
+      "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}",
+      "APIPASS": "${@secret:partner_armtek.armtek.apipass}"
+    }
+  }
+}
+```
+
+- Значения **осознанно** попадают в generated `docker-compose.yml` (файл не в git).
+- Нужен уже существующий `.odpm/secrets.json` **или** `--secrets-file` в этом запуске; иначе `ConfigError`.
+- Для **Odoo-модулей** по-прежнему читайте `/run/odpm/secrets.json` в контейнере — не дублируйте секреты в `environment` сервиса `odoo`, если достаточно файлового mount.
+
 ## Быстрый старт
 
 ### Вариант A: из шаблона

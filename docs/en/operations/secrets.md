@@ -53,6 +53,26 @@ You may omit `keys` — with `"required": true` odpm checks **file presence** on
 
 odpm warns on `odpm manifest validate` and `odpm plan`, and on a full run (`odpm` without `--skip-start`) stops **before** database deploy and compose when `.odpm/secrets.json` is missing or still contains placeholders. See [`secrets` fields](../../reference/odpm-json.md#secrets-block-required-local-secrets-47).
 
+## `${@secret:}` in the manifest (sidecars / hooks)
+
+For **auxiliary** services (emulators, proxies), inject values from `.odpm/secrets.json` into the manifest:
+
+```json
+"services": {
+  "armtek": {
+    "image": "armtek:latest",
+    "environment": {
+      "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}",
+      "APIPASS": "${@secret:partner_armtek.armtek.apipass}"
+    }
+  }
+}
+```
+
+- Values **intentionally** appear in generated `docker-compose.yml` (not committed).
+- Requires an existing `.odpm/secrets.json` **or** `--secrets-file` on this run; otherwise `ConfigError`.
+- For **Odoo modules**, keep reading `/run/odpm/secrets.json` in the container — do not put secrets in the `odoo` service `environment` when the file mount is enough.
+
 ## Quick start
 
 ### Option A: from template
