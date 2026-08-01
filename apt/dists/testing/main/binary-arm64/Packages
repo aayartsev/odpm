@@ -9,10 +9,10 @@ Homepage: https://github.com/aayartsev/odpm
 Priority: optional
 Section: python
 Filename: pool/main/o/odpm/odpm_4.7.0~beta-1_all.deb
-Size: 177152
-SHA256: 4c5324863970641865b2bf65e591d6d4bb0cbfad94c6c5cb5065b5fdfad0b584
-SHA1: 3f3f18fa0056d0c493236e7e36f81cfa1f69c23b
-MD5sum: 2afad74639251569319aea6974375378
+Size: 177184
+SHA256: fe48f8275e33f9439e80dc83a76f800e2cf97edd086c626250bf5b372d6a8ee8
+SHA1: 1250ad533b06121273e31debf25e9f80a729b0c0
+MD5sum: c67a480ca6d07b42593b0d9e80bdce54
 Description: Odoo Developers Project Manager
  Declarative environment manager for Odoo development projects.
  Reads odpm.json from a project repository and prepares Docker-based
