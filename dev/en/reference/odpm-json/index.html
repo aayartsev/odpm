@@ -2385,7 +2385,7 @@
 </tr>
 <tr>
 <td><code>services.&lt;name&gt;</code></td>
-<td>Extra compose services: <code>image</code> required; optional <code>source</code> (service_sources name), <code>ports[]</code>, <code>environment</code>, <code>volumes[]</code>, <code>depends_on[]</code>, <code>restart</code>, <code>user</code>, <code>tty</code>, <code>command[]</code>, <code>entrypoint[]</code></td>
+<td>Extra compose services: <code>image</code> required; optional <code>source</code> (service_sources name), <code>ports[]</code>, <code>environment</code>, <code>volumes[]</code>, <code>depends_on[]</code>, <code>restart</code>, <code>hostname</code>, <code>healthcheck</code>, <code>user</code>, <code>tty</code>, <code>command[]</code>, <code>entrypoint[]</code></td>
 </tr>
 <tr>
 <td><code>scenarios.developer</code> / <code>server</code> / <code>ci</code></td>
@@ -2424,16 +2424,29 @@
 </code></pre></div>
 <h2 id="odoo_conf-block-odoo-option-overrides"><code>odoo_conf</code> block (Odoo option overrides)<a class="headerlink" href="#odoo_conf-block-odoo-option-overrides" title="Permanent link">&para;</a></h2>
 <p>Optional object for <strong>team-wide</strong> Odoo settings in git (preview, staging, production). Manifest values <strong>override</strong> same-named keys in the on-disk <code>odoo.conf</code> when building <code>odoo_config_data</code> for the container; manifest is <strong>not</strong> written back to <code>odoo.conf</code>.</p>
+<ul>
+<li><strong><code>options</code></strong> — core Odoo section (<code>proxy_mode</code>, <code>workers</code>, …).</li>
+<li><strong>Other sections</strong> (<code>redis_server</code>, <code>s3_server</code>, …) — for modules/integrations; merged by section name like INI. Values are strings (JSON numbers/bools are stringified). <code>${VAR}</code>, <code>${@service:…}</code>, <code>${@secret:…}</code> work in values.</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;proxy_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;dbfilter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^${PREVIEW_HOSTNAME}$&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;log_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;redis_server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:redis}&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;6379&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:redis_password}&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;s3_server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;endpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:minio}:9000&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;secret_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:minio_root_password}&quot;</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><code>odpm manifest validate</code> rejects keys managed by odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. See <a href="../odoo-conf/">odoo.conf</a>.</p>
+<p><code>odpm manifest validate</code> rejects keys managed by odpm <strong>in <code>options</code></strong>: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. See <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="secrets-block-required-local-secrets-47"><code>secrets</code> block (required local secrets, 4.7)<a class="headerlink" href="#secrets-block-required-local-secrets-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object (and in <code>scenarios.*</code>) declaring that the project needs <code>.odpm/secrets.json</code> before the stack starts:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;secrets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2606,11 +2619,11 @@
 </tr>
 <tr>
 <td><code>services.*</code> / <code>service_patches.*</code> (v2)</td>
-<td>yes — <code>image</code>, <code>user</code>, <code>restart</code>, lists (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), <code>environment</code> values</td>
+<td>yes — <code>image</code>, <code>user</code>, <code>restart</code>, <code>hostname</code>, lists (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), <code>environment</code> values, strings in <code>healthcheck.test</code> / intervals</td>
 </tr>
 <tr>
 <td><code>odoo_conf.*</code> (v1/v2)</td>
-<td>yes — all string values in <code>odoo_conf.options</code></td>
+<td>yes — all string values in every <code>odoo_conf</code> section (<code>options</code>, <code>redis_server</code>, …)</td>
 </tr>
 <tr>
 <td><code>hooks.*</code> argv (v2)</td>
@@ -2659,6 +2672,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>With <code>ODPM_COMPOSE_PREFIX=acme</code>, compose gets <code>DB_HOST=acme-db</code> and <code>ODOO_URL=http://acme-odoo:8069</code> (<code>depends_on: ["db"]</code> stays logical — prefix rewrites the list separately).</p>
+<p>Optional on sidecars and in <code>service_patches</code>: <strong><code>hostname</code></strong> (string) and <strong><code>healthcheck</code></strong> (<code>test</code> string or string array; <code>interval</code> / <code>timeout</code> / <code>retries</code> / <code>start_period</code> / <code>start_interval</code> / <code>disable</code>) — Compose-compatible; <code>${VAR}</code> / <code>${@service:}</code> / <code>${@secret:}</code> expand in <code>hostname</code> and <code>healthcheck</code> strings.</p>
 <p>See <a href="../env-dotenv/"><code>.env</code> variables</a>, <a href="../git-links/">repository links</a>.</p>
 <h2 id="service_sources-block-git-sidecarbuild-contexts-47"><code>service_sources</code> block (git sidecar/build contexts, 4.7+)<a class="headerlink" href="#service_sources-block-git-sidecarbuild-contexts-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object (and in <code>scenarios.*</code>) — named git links to external repositories for sidecar services and <code>docker build</code> hooks. Link syntax matches <a href="../git-links/"><code>dependencies</code></a> and <code>platform.git</code>.</p>

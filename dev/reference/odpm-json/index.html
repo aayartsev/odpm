@@ -2165,11 +2165,11 @@
 </tr>
 <tr>
 <td><code>services.*</code> / <code>service_patches.*</code> (v2)</td>
-<td>да — <code>image</code>, <code>user</code>, <code>restart</code>, списки (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), значения <code>environment</code></td>
+<td>да — <code>image</code>, <code>user</code>, <code>restart</code>, <code>hostname</code>, списки (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), значения <code>environment</code>, строки в <code>healthcheck.test</code> / интервалах</td>
 </tr>
 <tr>
 <td><code>odoo_conf.*</code> (v1/v2)</td>
-<td>да — все строковые значения в <code>odoo_conf.options</code></td>
+<td>да — все строковые значения во <strong>всех</strong> секциях <code>odoo_conf</code> (<code>options</code>, <code>redis_server</code>, …)</td>
 </tr>
 <tr>
 <td><code>hooks.*</code> argv (v2)</td>
@@ -2218,6 +2218,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>При <code>ODPM_COMPOSE_PREFIX=acme</code> в compose попадут <code>DB_HOST=acme-db</code> и <code>ODOO_URL=http://acme-odoo:8069</code> (синтаксис <code>depends_on: ["db"]</code> по-прежнему logical — prefix переписывает список отдельно).</p>
+<p>Опционально на sidecar и в <code>service_patches</code>: <strong><code>hostname</code></strong> (строка) и <strong><code>healthcheck</code></strong> (<code>test</code> строка или массив строк; <code>interval</code> / <code>timeout</code> / <code>retries</code> / <code>start_period</code> / <code>start_interval</code> / <code>disable</code>) — как в Docker Compose; <code>${VAR}</code> / <code>${@service:}</code> / <code>${@secret:}</code> раскрываются в <code>hostname</code> и строках <code>healthcheck</code>.</p>
 <p>См. <a href="../env-dotenv/">переменные <code>.env</code></a>, <a href="../git-links/">ссылки на репозитории</a>.</p>
 <h2 id="service_sources-git-sidecarbuild-47">Блок <code>service_sources</code> (git sidecar/build-контексты, 4.7+)<a class="headerlink" href="#service_sources-git-sidecarbuild-47" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект в <strong>manifest v2</strong> (и в <code>scenarios.*</code>) — именованные git-ссылки на внешние репозитории для sidecar-сервисов и <code>docker build</code> в hooks. Синтаксис ссылок — как у <a href="../git-links/"><code>dependencies</code></a> и <code>platform.git</code>.</p>
@@ -2259,16 +2260,29 @@
 <p>Репозитории из <code>service_sources</code> <strong>не</strong> попадают в <code>dependencies</code> / <code>addons_path</code>. Шаг prepare <strong><code>sources.materialize</code></strong> (после <code>git.materialize</code>) клонирует их в <code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code> и подставляет путь через <code>${@source:&lt;name&gt;}</code>. Пины коммитов — в <code>.odpm/deps.lock.json</code> → <code>service_sources.&lt;name&gt;</code> (см. <code>odpm --update-lock</code>). Подробнее: <a href="../service-sources/">service-sources.md</a>.</p>
 <h2 id="odoo_conf-odoo">Блок <code>odoo_conf</code> (переопределения Odoo)<a class="headerlink" href="#odoo_conf-odoo" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект для <strong>командных</strong> настроек Odoo в git (preview, staging, production). Значения из manifest <strong>перекрывают</strong> одноимённые ключи в дисковом <code>odoo.conf</code> при сборке <code>odoo_config_data</code> для контейнера; обратная запись в <code>odoo.conf</code> <strong>не выполняется</strong>.</p>
+<ul>
+<li><strong><code>options</code></strong> — секция ядра Odoo (<code>proxy_mode</code>, <code>workers</code>, …).</li>
+<li><strong>Другие секции</strong> (<code>redis_server</code>, <code>s3_server</code>, …) — для модулей/интеграций; merge по имени секции, как в INI. Значения — строки (числа/bool в JSON приводятся к строке). В значениях работают <code>${VAR}</code>, <code>${@service:…}</code>, <code>${@secret:…}</code>.</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;proxy_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;dbfilter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^${PREVIEW_HOSTNAME}$&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;log_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;redis_server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:redis}&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;6379&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:redis_password}&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;s3_server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;endpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:minio}:9000&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;secret_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:minio_root_password}&quot;</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>На <code>odpm manifest validate</code> нельзя указывать ключи, которыми управляет odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. Подробнее: <a href="../odoo-conf/">odoo.conf</a>.</p>
+<p>На <code>odpm manifest validate</code> в <strong><code>options</code></strong> нельзя указывать ключи, которыми управляет odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. Подробнее: <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="secrets-47">Блок <code>secrets</code> (обязательные локальные секреты, 4.7)<a class="headerlink" href="#secrets-47" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект в <strong>manifest v2</strong> (и в <code>scenarios.*</code>) — декларация, что проекту нужен <code>.odpm/secrets.json</code> до подъёма стека:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;secrets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>

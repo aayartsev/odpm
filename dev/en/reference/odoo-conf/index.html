@@ -2130,8 +2130,8 @@
 </ol>
 <p>So the file in the project directory is <strong>your configuration interface</strong>; the container receives a <strong>consistent</strong> version with correct paths.</p>
 <h2 id="what-you-may-edit-manually">What you may edit manually<a class="headerlink" href="#what-you-may-edit-manually" title="Permanent link">&para;</a></h2>
-<p>Parameters from Odoo documentation: <code>proxy_mode</code>, <code>dbfilter</code>, <code>log_level</code>, worker count, etc.</p>
-<p>On a server reachable from the internet, <strong><code>proxy_mode</code></strong> and <strong><code>dbfilter</code></strong> are usually set together with a reverse proxy (nginx). For CI/preview you can set the same keys in <strong><code>odoo_conf</code></strong> in <code>odpm.json</code> — see <a href="../odpm-json/#odoo_conf-block-odoo-option-overrides">odpm.json fields</a>.</p>
+<p>Parameters from Odoo documentation: <code>proxy_mode</code>, <code>dbfilter</code>, <code>log_level</code>, worker count, etc. Extra <strong>INI sections</strong> for modules (<code>[redis_server]</code>, <code>[s3_server]</code>, …) may be declared in manifest <code>odoo_conf</code> next to <code>options</code> — see <a href="../odpm-json/#odoo_conf-block-odoo-option-overrides">odpm.json fields</a>.</p>
+<p>On a server reachable from the internet, <strong><code>proxy_mode</code></strong> and <strong><code>dbfilter</code></strong> are usually set together with a reverse proxy (nginx). For CI/preview you can set the same keys in <strong><code>odoo_conf</code></strong> in <code>odpm.json</code>.</p>
 <h2 id="source-priority">Source priority<a class="headerlink" href="#source-priority" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>odpm-managed (addons_path, data_dir)  ← always wins
     ↑

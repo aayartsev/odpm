@@ -2127,8 +2127,8 @@
 </ol>
 <p>То есть файл в каталоге проекта — <strong>ваш интерфейс настройки</strong>; в контейнер попадает <strong>согласованная</strong> версия с правильными путями.</p>
 <h2 id="_2">Что можно править вручную<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>Параметры из документации Odoo: <code>proxy_mode</code>, <code>dbfilter</code>, <code>log_level</code>, число воркеров и т.д.</p>
-<p>На сервере, доступном из интернета, обычно настраивают <strong><code>proxy_mode</code></strong> и <strong><code>dbfilter</code></strong> вместе с обратным прокси (nginx). Для CI/preview те же ключи можно задать в <strong><code>odoo_conf</code></strong> в <code>odpm.json</code> — см. <a href="../odpm-json/#odoo_conf-odoo">поля odpm.json</a>.</p>
+<p>Параметры из документации Odoo: <code>proxy_mode</code>, <code>dbfilter</code>, <code>log_level</code>, число воркеров и т.д. Дополнительные <strong>секции INI</strong> для модулей (<code>[redis_server]</code>, <code>[s3_server]</code>, …) можно задать в manifest <code>odoo_conf</code> рядом с <code>options</code> — см. <a href="../odpm-json/#блок-odoo_conf-переопределения-odoo">поля odpm.json</a>.</p>
+<p>На сервере, доступном из интернета, обычно настраивают <strong><code>proxy_mode</code></strong> и <strong><code>dbfilter</code></strong> вместе с обратным прокси (nginx). Для CI/preview те же ключи можно задать в <strong><code>odoo_conf</code></strong> в <code>odpm.json</code>.</p>
 <h2 id="_3">Приоритет источников<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>odpm-managed (addons_path, data_dir)  ← всегда сильнее всего
     ↑
