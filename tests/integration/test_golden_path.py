@@ -34,6 +34,14 @@ def golden_path_maintenance_hint(*, odoo_logs: str, db_logs: str) -> str:
             "or the postgres data volume, then run "
             "`odpm -d test_db -i base,web` on the runner."
         )
+    if "short_time_format does not exist" in combined:
+        hints.append(
+            "Odoo source still SELECTs res_lang.short_time_format but the DB "
+            "was built with a newer 19.0 tree (column removed in the datetime "
+            "remake). Prefer: git pull Odoo 19.0 past that remake. Or remedi ate "
+            "the DB to match the mounted source: "
+            "`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 …/refresh_golden_path_project.sh`."
+        )
     if "_get_data" in odoo_logs and "res.lang" in odoo_logs:
         hints.append(
             "Odoo web templates expect Odoo 19+ ORM but the database or addons "
@@ -193,6 +201,15 @@ class GoldenPathMaintenanceHintTests(unittest.TestCase):
         self.assertIn("recreate test_db", hint)
         self.assertIn("Odoo 19", hint)
 
+    def test_hint_for_short_time_format_mismatch(self) -> None:
+        hint = golden_path_maintenance_hint(
+            odoo_logs="UndefinedColumn: column res_lang.short_time_format does not exist",
+            db_logs="ERROR: column res_lang.short_time_format does not exist",
+        )
+        self.assertIn("short_time_format", hint)
+        self.assertIn("AUTO_REMEDIATE", hint)
+        self.assertIn("git pull", hint)
+
     def test_hint_empty_for_unrelated_logs(self) -> None:
         self.assertEqual(
             golden_path_maintenance_hint(odoo_logs="ok", db_logs="ok"),
@@ -225,7 +242,8 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("golden_path_wipe_postgres_data", lib)
         self.assertIn("ir_module_module", lib)
         self.assertIn("golden_path_schema_compatible", lib)
-        self.assertNotIn("golden_path_column_exists", lib)
+        self.assertIn("golden_path_column_exists", lib)
+        self.assertIn("golden_path_code_expects_short_time_format", lib)
         self.assertNotIn("translate=boolean", lib)
         self.assertIn("alpine:3.20", lib)
         self.assertIn("golden_path_emit_schema_failure", lib)

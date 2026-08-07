@@ -214,6 +214,24 @@ jobs:
           python3.12 -m venv .ci-golden-venv
           .ci-golden-venv/bin/pip install -e .
 
+      - name: Refresh golden-path project
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
+          PATH: ${{ github.workspace }}/.ci-golden-venv/bin:/usr/local/bin:/usr/bin:/bin
+        run: |
+          echo "[golden-path $(date -u +%Y-%m-%dT%H:%M:%SZ)] refresh_golden_path_project.sh ..."
+          bash "${{ github.workspace }}/scripts/refresh_golden_path_project.sh"
+          echo "[golden-path $(date -u +%Y-%m-%dT%H:%M:%SZ)] refresh finished"
+
+      - name: Preflight golden-path Postgres schema
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+        run: |
+          echo "[golden-path $(date -u +%Y-%m-%dT%H:%M:%SZ)] preflight_golden_path_project.sh ..."
+          bash "${{ github.workspace }}/scripts/preflight_golden_path_project.sh"
+          echo "[golden-path $(date -u +%Y-%m-%dT%H:%M:%SZ)] preflight finished"
+
       - name: Run golden-path integration test
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"

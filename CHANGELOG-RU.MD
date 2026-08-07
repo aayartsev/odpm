@@ -19,7 +19,7 @@
 
 ### Изменено
 
-- **Golden-path CI ≤9 мин** — job `timeout-minutes: 9` в `release-packages.yml` / `ci-docker.yml`; на pre-release `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1` (remedi ate только при несовместимой схеме: `base` 19.x + `web`); HTTP wait `ODPM_GOLDEN_PATH_TIMEOUT=60`. Установка `.deb`: `sudo -n` fail-fast + `timeout 60` (без `-E`: узкий sudoers без SETENV); шаблон узкого NOPASSWD `scripts/ci/github-actions-runner-sudoers.example`. Документация: `docs/contributing/ci.md`, ADR-006.
+- **Golden-path CI ≤9 мин** — job `timeout-minutes: 9` в `release-packages.yml` / `ci-docker.yml`; refresh с `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1` (remedi ate при несовместимой схеме: `base` 19.x + `web`, и `res_lang.short_time_format` только если смонтированный Odoo ещё объявляет поле); HTTP wait `ODPM_GOLDEN_PATH_TIMEOUT=60`. Установка `.deb`: `sudo -n` fail-fast + `timeout 60` (без `-E`: узкий sudoers без SETENV); шаблон узкого NOPASSWD `scripts/ci/github-actions-runner-sudoers.example`. Документация: `docs/contributing/ci.md`, ADR-006.
 - **Новые проекты:** в `user_settings.json` по умолчанию `create_demo: false`.
 - **Сценарий server:** в compose для `db` и `odoo` задаётся `restart: unless-stopped` (переживает перезагрузку хоста).
 
