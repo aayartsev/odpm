@@ -98,6 +98,9 @@ Example (v1 flat or v2):
 
 Optional object for **team-wide** Odoo settings in git (preview, staging, production). Manifest values **override** same-named keys in the on-disk `odoo.conf` when building `odoo_config_data` for the container; manifest is **not** written back to `odoo.conf`.
 
+- **`options`** — core Odoo section (`proxy_mode`, `workers`, …).
+- **Other sections** (`redis_server`, `s3_server`, …) — for modules/integrations; merged by section name like INI. Values are strings (JSON numbers/bools are stringified). `${VAR}`, `${@service:…}`, `${@secret:…}` work in values.
+
 ```json
 "odoo_conf": {
   "options": {
@@ -105,11 +108,20 @@ Optional object for **team-wide** Odoo settings in git (preview, staging, produc
     "dbfilter": "^${PREVIEW_HOSTNAME}$",
     "workers": "2",
     "log_level": "debug"
+  },
+  "redis_server": {
+    "host": "${@service:redis}",
+    "port": "6379",
+    "password": "${@secret:redis_password}"
+  },
+  "s3_server": {
+    "endpoint": "${@service:minio}:9000",
+    "secret_key": "${@secret:minio_root_password}"
   }
 }
 ```
 
-`odpm manifest validate` rejects keys managed by odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. See [odoo.conf](odoo-conf.md).
+`odpm manifest validate` rejects keys managed by odpm **in `options`**: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. See [odoo.conf](odoo-conf.md).
 
 ## `secrets` block (required local secrets, 4.7)
 
@@ -210,7 +222,7 @@ In **whitelist fields** odpm expands environment variable references right after
 | `odoo_git_link` | yes |
 | `dependencies` | yes (each list element) |
 | `services.*` / `service_patches.*` (v2) | yes — `image`, `user`, `restart`, lists (`ports`, `volumes`, `command`, …), `environment` values |
-| `odoo_conf.*` (v1/v2) | yes — all string values in `odoo_conf.options` |
+| `odoo_conf.*` (v1/v2) | yes — all string values in every `odoo_conf` section (`options`, `redis_server`, …) |
 | `hooks.*` argv (v2) | yes — at hook **execution** (not during `odpm manifest validate`) |
 | `service_sources.*` (v2) | yes — git link value for each source name |
 

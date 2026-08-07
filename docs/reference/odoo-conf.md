@@ -21,9 +21,9 @@
 
 ## Что можно править вручную
 
-Параметры из документации Odoo: `proxy_mode`, `dbfilter`, `log_level`, число воркеров и т.д.
+Параметры из документации Odoo: `proxy_mode`, `dbfilter`, `log_level`, число воркеров и т.д. Дополнительные **секции INI** для модулей (`[redis_server]`, `[s3_server]`, …) можно задать в manifest `odoo_conf` рядом с `options` — см. [поля odpm.json](odpm-json.md#блок-odoo_conf-переопределения-odoo).
 
-На сервере, доступном из интернета, обычно настраивают **`proxy_mode`** и **`dbfilter`** вместе с обратным прокси (nginx). Для CI/preview те же ключи можно задать в **`odoo_conf`** в `odpm.json` — см. [поля odpm.json](odpm-json.md#odoo_conf-odoo).
+На сервере, доступном из интернета, обычно настраивают **`proxy_mode`** и **`dbfilter`** вместе с обратным прокси (nginx). Для CI/preview те же ключи можно задать в **`odoo_conf`** в `odpm.json`.
 
 ## Приоритет источников
 

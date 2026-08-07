@@ -23,9 +23,9 @@ So the file in the project directory is **your configuration interface**; the co
 
 ## What you may edit manually
 
-Parameters from Odoo documentation: `proxy_mode`, `dbfilter`, `log_level`, worker count, etc.
+Parameters from Odoo documentation: `proxy_mode`, `dbfilter`, `log_level`, worker count, etc. Extra **INI sections** for modules (`[redis_server]`, `[s3_server]`, …) may be declared in manifest `odoo_conf` next to `options` — see [odpm.json fields](odpm-json.md#odoo_conf-block-odoo-option-overrides).
 
-On a server reachable from the internet, **`proxy_mode`** and **`dbfilter`** are usually set together with a reverse proxy (nginx). For CI/preview you can set the same keys in **`odoo_conf`** in `odpm.json` — see [odpm.json fields](odpm-json.md#odoo_conf-block-odoo-option-overrides).
+On a server reachable from the internet, **`proxy_mode`** and **`dbfilter`** are usually set together with a reverse proxy (nginx). For CI/preview you can set the same keys in **`odoo_conf`** in `odpm.json`.
 
 ## Source priority
 

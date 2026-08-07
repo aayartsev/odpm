@@ -51,24 +51,83 @@ class ManifestOdooConfPolicyTests(unittest.TestCase):
                 )
             )
 
-    def test_load_manifest_v2_accepts_valid_odoo_conf(self):
+    def test_load_manifest_v2_accepts_extra_odoo_conf_sections(self):
         view = load_manifest(
             _minimal_v2(
                 odoo_conf={
-                    "options": {
-                        "proxy_mode": "True",
-                        "dbfilter": "^preview\\.local$",
-                    }
+                    "options": {"proxy_mode": "True"},
+                    "redis_server": {
+                        "host": "redis",
+                        "port": 6379,
+                        "password": "secret",
+                    },
+                    "s3_server": {
+                        "endpoint": "minio:9000",
+                        "secret_key": "minio-secret",
+                    },
                 }
             )
         )
-        self.assertEqual(
-            view.odoo_conf,
-            {
-                "options": {
-                    "proxy_mode": "True",
-                    "dbfilter": "^preview\\.local$",
+        self.assertEqual(view.odoo_conf["options"]["proxy_mode"], "True")
+        self.assertEqual(view.odoo_conf["redis_server"]["port"], 6379)
+        self.assertEqual(view.odoo_conf["s3_server"]["endpoint"], "minio:9000")
+
+    def test_load_manifest_expands_secret_and_service_in_extra_sections(self):
+        from dev_project.compose.service_names import ComposeNamingContext
+
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"redis_password": "pw", "minio_root_password": "msecret"},
+            compose_naming=ComposeNamingContext(
+                compose_prefix=None,
+                compose_project_name=None,
+                postgres_service_name="db",
+                odoo_service_name="odoo",
+                postgres_volume_name="postgres-data",
+            ),
+        )
+        view = load_manifest(
+            _minimal_v2(
+                odoo_conf={
+                    "redis_server": {
+                        "host": "${@service:redis}",
+                        "password": "${@secret:redis_password}",
+                    },
+                    "s3_server": {
+                        "endpoint": "${@service:minio}:9000",
+                        "secret_key": "${@secret:minio_root_password}",
+                    },
                 }
+            ),
+            env_resolver=resolver,
+        )
+        self.assertEqual(view.odoo_conf["redis_server"]["host"], "redis")
+        self.assertEqual(view.odoo_conf["redis_server"]["password"], "pw")
+        self.assertEqual(view.odoo_conf["s3_server"]["endpoint"], "minio:9000")
+        self.assertEqual(view.odoo_conf["s3_server"]["secret_key"], "msecret")
+
+    def test_merge_extra_sections_with_disk(self):
+        merged = merge_odoo_conf_sections(
+            {
+                "options": {"proxy_mode": "False"},
+                "redis_server": {"host": "old", "port": "6379"},
+            },
+            {
+                "redis_server": {"host": "redis", "password": "pw"},
+                "s3_server": {"endpoint": "minio:9000"},
+            },
+        )
+        self.assertEqual(
+            merged,
+            {
+                "options": {"proxy_mode": "False"},
+                "redis_server": {
+                    "host": "redis",
+                    "port": "6379",
+                    "password": "pw",
+                },
+                "s3_server": {"endpoint": "minio:9000"},
             },
         )
 

@@ -103,14 +103,7 @@
       }
     },
     "odoo_conf": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "options": {
-          "type": "object",
-          "additionalProperties": { "type": "string" }
-        }
-      }
+      "$ref": "#/$defs/odooConf"
     },
     "secrets": {
       "$ref": "#/$defs/manifestSecrets"
@@ -126,19 +119,30 @@
     }
   },
   "$defs": {
+    "odooConf": {
+      "type": "object",
+      "description": "INI-like sections for Odoo. options is core Odoo; other section names (redis_server, s3_server, …) are allowed for modules.",
+      "properties": {
+        "options": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "number", "boolean"]
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["string", "number", "boolean"]
+        }
+      }
+    },
     "scenarioOverlay": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "odoo_conf": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "options": {
-              "type": "object",
-              "additionalProperties": { "type": "string" }
-            }
-          }
+          "$ref": "#/$defs/odooConf"
         },
         "services": {
           "type": "object",

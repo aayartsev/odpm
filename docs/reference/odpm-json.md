@@ -25,7 +25,7 @@
 | `odoo_git_link` | да |
 | `dependencies` | да (каждый элемент списка) |
 | `services.*` / `service_patches.*` (v2) | да — `image`, `user`, `restart`, списки (`ports`, `volumes`, `command`, …), значения `environment` |
-| `odoo_conf.*` (v1/v2) | да — все строковые значения в `odoo_conf.options` |
+| `odoo_conf.*` (v1/v2) | да — все строковые значения во **всех** секциях `odoo_conf` (`options`, `redis_server`, …) |
 | `hooks.*` argv (v2) | да — при **выполнении** hook (не при `odpm manifest validate`) |
 | `service_sources.*` (v2) | да — значение git-ссылки для каждого имени |
 
@@ -115,6 +115,9 @@ GIT_HOST=git.company.example
 
 Необязательный объект для **командных** настроек Odoo в git (preview, staging, production). Значения из manifest **перекрывают** одноимённые ключи в дисковом `odoo.conf` при сборке `odoo_config_data` для контейнера; обратная запись в `odoo.conf` **не выполняется**.
 
+- **`options`** — секция ядра Odoo (`proxy_mode`, `workers`, …).
+- **Другие секции** (`redis_server`, `s3_server`, …) — для модулей/интеграций; merge по имени секции, как в INI. Значения — строки (числа/bool в JSON приводятся к строке). В значениях работают `${VAR}`, `${@service:…}`, `${@secret:…}`.
+
 ```json
 "odoo_conf": {
   "options": {
@@ -122,11 +125,20 @@ GIT_HOST=git.company.example
     "dbfilter": "^${PREVIEW_HOSTNAME}$",
     "workers": "2",
     "log_level": "debug"
+  },
+  "redis_server": {
+    "host": "${@service:redis}",
+    "port": "6379",
+    "password": "${@secret:redis_password}"
+  },
+  "s3_server": {
+    "endpoint": "${@service:minio}:9000",
+    "secret_key": "${@secret:minio_root_password}"
   }
 }
 ```
 
-На `odpm manifest validate` нельзя указывать ключи, которыми управляет odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. Подробнее: [odoo.conf](odoo-conf.md).
+На `odpm manifest validate` в **`options`** нельзя указывать ключи, которыми управляет odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. Подробнее: [odoo.conf](odoo-conf.md).
 
 ## Блок `secrets` (обязательные локальные секреты, 4.7)
 
