@@ -2448,7 +2448,7 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Sidecars may set <strong><code>user</code></strong> and <strong><code>tty</code></strong> (same as <code>service_patches</code>). For <strong>git build contexts</strong> (recommended, 4.7+), use <code>service_sources</code> and <code>${@source:...}</code>; for sidecar API keys use <code>${@secret:...}</code> from <code>.odpm/secrets.json</code>:</p>
+<p>Sidecars may set <strong><code>user</code></strong>, <strong><code>tty</code></strong>, <strong><code>hostname</code></strong>, and <strong><code>healthcheck</code></strong> (same as <code>service_patches</code>). For <strong>git build contexts</strong> (recommended, 4.7+), use <code>service_sources</code> and <code>${@source:...}</code>; for sidecar API keys use <code>${@secret:...}</code> from <code>.odpm/secrets.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
 <span class="p">},</span>
