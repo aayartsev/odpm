@@ -72,6 +72,25 @@ class ComposeFragmentsRenderTests(unittest.TestCase):
         self.assertIn("    user: root", block)
         self.assertIn("    tty: true", block)
 
+    def test_render_service_with_hostname_and_healthcheck(self):
+        block = render_compose_services_block(
+            {
+                "minio": {
+                    "image": "minio/minio:latest",
+                    "hostname": "minio",
+                    "healthcheck": {
+                        "test": ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"],
+                        "interval": "30s",
+                        "retries": 3,
+                    },
+                }
+            }
+        )
+        self.assertIn("    hostname: minio", block)
+        self.assertIn("    healthcheck:", block)
+        self.assertIn("      interval: 30s", block)
+        self.assertIn("      retries: 3", block)
+
 
 class ComposeFragmentsCollectTests(unittest.TestCase):
     def setUp(self) -> None:

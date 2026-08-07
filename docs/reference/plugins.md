@@ -43,7 +43,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 }
 ```
 
-Для sidecar с **git build-контекстом** (рекомендуется, 4.7+) используйте `service_sources` и `${@source:...}`; для API-ключей sidecar — `${@secret:...}` из `.odpm/secrets.json`:
+Для sidecar доступны также **`user`**, **`tty`**, **`hostname`**, **`healthcheck`** (как в `service_patches`). Для sidecar с **git build-контекстом** (рекомендуется, 4.7+) используйте `service_sources` и `${@source:...}`; для API-ключей sidecar — `${@secret:...}` из `.odpm/secrets.json`:
 
 ```json
 "service_sources": {

@@ -585,6 +585,40 @@ class ExpandComposeServiceMapTests(unittest.TestCase):
         )
         self.assertNotIn("source", expanded["armtek"])
 
+    def test_expands_hostname_and_healthcheck_strings(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"HC_HOST": "127.0.0.1"},
+            project_dotenv={"SIDECAR_HOST": "minio-local"},
+        )
+        services = {
+            "minio": {
+                "image": "minio/minio:latest",
+                "hostname": "${SIDECAR_HOST}",
+                "healthcheck": {
+                    "test": [
+                        "CMD",
+                        "curl",
+                        "-f",
+                        "http://${HC_HOST}:9000/minio/health/live",
+                    ],
+                    "interval": "${HC_INTERVAL:-30s}",
+                    "retries": 3,
+                },
+            }
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["minio"]["hostname"], "minio-local")
+        self.assertEqual(
+            expanded["minio"]["healthcheck"]["test"][-1],
+            "http://127.0.0.1:9000/minio/health/live",
+        )
+        self.assertEqual(expanded["minio"]["healthcheck"]["interval"], "30s")
+        self.assertEqual(expanded["minio"]["healthcheck"]["retries"], 3)
+
 
 class SecretRefExpansionTests(unittest.TestCase):
     def test_expands_dotted_secret_key(self):

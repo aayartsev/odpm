@@ -143,6 +143,12 @@ msgstr "Элементы списка environment сервиса compose {NAME} 
 msgid "Compose service {NAME}.environment must be a list or mapping"
 msgstr "environment сервиса compose {NAME} должен быть списком или mapping"
 
+msgid "Compose service {NAME}.healthcheck must be a mapping"
+msgstr "Поле healthcheck сервиса compose {NAME} должно быть mapping"
+
+msgid "Compose service {NAME}.hostname must be a non-empty string"
+msgstr "Поле hostname сервиса compose {NAME} должно быть непустой строкой"
+
 msgid "Compose service {NAME}.tty must be a boolean"
 msgstr "Поле tty сервиса compose {NAME} должно быть boolean"
 

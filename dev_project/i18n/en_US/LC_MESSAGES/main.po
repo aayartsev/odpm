@@ -144,6 +144,12 @@ msgstr "Compose service {NAME}.environment list entries must be strings"
 msgid "Compose service {NAME}.environment must be a list or mapping"
 msgstr "Compose service {NAME}.environment must be a list or mapping"
 
+msgid "Compose service {NAME}.healthcheck must be a mapping"
+msgstr "Compose service {NAME}.healthcheck must be a mapping"
+
+msgid "Compose service {NAME}.hostname must be a non-empty string"
+msgstr "Compose service {NAME}.hostname must be a non-empty string"
+
 msgid "Compose service {NAME}.tty must be a boolean"
 msgstr "Compose service {NAME}.tty must be a boolean"
 

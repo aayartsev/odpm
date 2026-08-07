@@ -45,7 +45,7 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 }
 ```
 
-Sidecars may set **`user`** and **`tty`** (same as `service_patches`). For **git build contexts** (recommended, 4.7+), use `service_sources` and `${@source:...}`; for sidecar API keys use `${@secret:...}` from `.odpm/secrets.json`:
+Sidecars may set **`user`**, **`tty`**, **`hostname`**, and **`healthcheck`** (same as `service_patches`). For **git build contexts** (recommended, 4.7+), use `service_sources` and `${@source:...}`; for sidecar API keys use `${@secret:...}` from `.odpm/secrets.json`:
 
 ```json
 "service_sources": {

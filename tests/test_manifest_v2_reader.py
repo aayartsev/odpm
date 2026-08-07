@@ -222,6 +222,42 @@ class LoadManifestTests(unittest.TestCase):
             },
         )
 
+    def test_v2_services_hostname_and_healthcheck_allowed(self):
+        raw = _minimal_v2(
+            services={
+                "minio": {
+                    "image": "minio/minio:latest",
+                    "hostname": "minio",
+                    "healthcheck": {
+                        "test": ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"],
+                        "interval": "30s",
+                        "timeout": "20s",
+                        "retries": 3,
+                    },
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.services["minio"]["hostname"], "minio")
+        self.assertEqual(view.services["minio"]["healthcheck"]["retries"], 3)
+        self.assertEqual(
+            view.services["minio"]["healthcheck"]["test"][0],
+            "CMD",
+        )
+
+    def test_v2_service_patches_hostname_and_healthcheck_allowed(self):
+        raw = _minimal_v2(
+            service_patches={
+                "odoo": {
+                    "hostname": "odoo-app",
+                    "healthcheck": {"disable": True},
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.service_patches["odoo"]["hostname"], "odoo-app")
+        self.assertEqual(view.service_patches["odoo"]["healthcheck"], {"disable": True})
+
     def test_v1_validate_accepts_minimal_flat_manifest(self):
         validate_manifest_v1(
             {

@@ -120,6 +120,12 @@ RU_MESSAGES: dict[str, str] = {
     "Compose service {NAME}.environment must be a list or mapping": (
         "environment сервиса compose {NAME} должен быть списком или mapping"
     ),
+    "Compose service {NAME}.healthcheck must be a mapping": (
+        "Поле healthcheck сервиса compose {NAME} должно быть mapping"
+    ),
+    "Compose service {NAME}.hostname must be a non-empty string": (
+        "Поле hostname сервиса compose {NAME} должно быть непустой строкой"
+    ),
     "Compose service {NAME}.{FIELD} must be a list": (
         "Поле {FIELD} сервиса compose {NAME} должно быть списком"
     ),

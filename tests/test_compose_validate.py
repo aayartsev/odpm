@@ -65,6 +65,33 @@ class ComposeValidateTests(unittest.TestCase):
             }
         )
 
+    def test_hostname_and_healthcheck_pass_when_valid(self):
+        validate_compose_document(
+            {
+                "services": {
+                    "minio": {
+                        "image": "minio/minio:latest",
+                        "hostname": "minio",
+                        "healthcheck": {
+                            "test": ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"],
+                            "interval": "30s",
+                            "retries": 3,
+                        },
+                    }
+                }
+            }
+        )
+
+    def test_invalid_hostname_or_healthcheck_raises(self):
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "hostname": ""}}}
+            )
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "healthcheck": "bad"}}}
+            )
+
     def test_validate_text_skips_header_comment(self):
         body = dump_document({"services": {"db": {"image": "postgres:16"}}})
         validate_compose_text(f"# generated\n\n{body}")

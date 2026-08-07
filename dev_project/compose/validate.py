@@ -115,6 +115,18 @@ def _validate_service(
         raise ConfigError(
             _("Compose service {NAME}.tty must be a boolean").format(NAME=name)
         )
+    hostname = spec.get("hostname")
+    if hostname is not None and (not isinstance(hostname, str) or not hostname.strip()):
+        raise ConfigError(
+            _("Compose service {NAME}.hostname must be a non-empty string").format(
+                NAME=name
+            )
+        )
+    healthcheck = spec.get("healthcheck")
+    if healthcheck is not None and not isinstance(healthcheck, dict):
+        raise ConfigError(
+            _("Compose service {NAME}.healthcheck must be a mapping").format(NAME=name)
+        )
     if isinstance(declared_networks, dict):
         networks = spec.get("networks")
         if isinstance(networks, list):

@@ -35,7 +35,7 @@ Reserved names in `services`: **`odoo`**, **`db`**, **`postgres`** → `ConfigEr
 
 ### Plugin `compose_services()`
 
-- Same `composeService` keys as manifest `services` (including `command` / `entrypoint`, `user`, `tty`).
+- Same `composeService` keys as manifest `services` (including `command` / `entrypoint`, `user`, `tty`, `hostname`, `healthcheck`).
 - Must not declare reserved built-in names (`odoo`, `db`, `postgres`).
 - Plugin vs manifest same name → plugin spec **replaces** manifest (unchanged `merge_services`).
 

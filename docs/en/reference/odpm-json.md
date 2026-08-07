@@ -67,7 +67,7 @@ Required v2 fields: `manifest_schema`, `requires_odpm`, `platform`, `python`, `d
 | `hooks.post_prepare` | Shell argv or plugin id after prepare |
 | `hooks.pre_up` | Shell argv or plugin id before `docker compose up` |
 | `service_sources` | Named git links for sidecar/build contexts (keys `[a-z][a-z0-9_]*`) |
-| `services.<name>` | Extra compose services: `image` required; optional `source` (service_sources name), `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `user`, `tty`, `command[]`, `entrypoint[]` |
+| `services.<name>` | Extra compose services: `image` required; optional `source` (service_sources name), `ports[]`, `environment`, `volumes[]`, `depends_on[]`, `restart`, `hostname`, `healthcheck`, `user`, `tty`, `command[]`, `entrypoint[]` |
 | `scenarios.developer` / `server` / `ci` | Per-scenario overlays for `odoo_conf`, `services`, `service_patches`, `service_sources`, `requirements`, `dependencies`, `hooks`, `secrets` (4.7); effective slice from `ODPM_SCENARIO` in `.env` |
 
 Mailpit example: [plugins.md](plugins.md).
@@ -221,7 +221,7 @@ In **whitelist fields** odpm expands environment variable references right after
 |-------|--------------|
 | `odoo_git_link` | yes |
 | `dependencies` | yes (each list element) |
-| `services.*` / `service_patches.*` (v2) | yes — `image`, `user`, `restart`, lists (`ports`, `volumes`, `command`, …), `environment` values |
+| `services.*` / `service_patches.*` (v2) | yes — `image`, `user`, `restart`, `hostname`, lists (`ports`, `volumes`, `command`, …), `environment` values, strings in `healthcheck.test` / intervals |
 | `odoo_conf.*` (v1/v2) | yes — all string values in every `odoo_conf` section (`options`, `redis_server`, …) |
 | `hooks.*` argv (v2) | yes — at hook **execution** (not during `odpm manifest validate`) |
 | `service_sources.*` (v2) | yes — git link value for each source name |
@@ -276,6 +276,8 @@ v2 sidecar with paths from `.env` and stack service hostnames:
 ```
 
 With `ODPM_COMPOSE_PREFIX=acme`, compose gets `DB_HOST=acme-db` and `ODOO_URL=http://acme-odoo:8069` (`depends_on: ["db"]` stays logical — prefix rewrites the list separately).
+
+Optional on sidecars and in `service_patches`: **`hostname`** (string) and **`healthcheck`** (`test` string or string array; `interval` / `timeout` / `retries` / `start_period` / `start_interval` / `disable`) — Compose-compatible; `${VAR}` / `${@service:}` / `${@secret:}` expand in `hostname` and `healthcheck` strings.
 
 See [`.env` variables](env-dotenv.md), [repository links](git-links.md).
 

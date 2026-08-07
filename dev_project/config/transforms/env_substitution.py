@@ -349,7 +349,7 @@ def _expand_field_value(
     return value
 
 
-_COMPOSE_SERVICE_STRING_SCALARS = frozenset({"image", "user", "restart"})
+_COMPOSE_SERVICE_STRING_SCALARS = frozenset({"image", "user", "restart", "hostname"})
 _COMPOSE_SERVICE_STRING_LISTS = frozenset({
     "ports",
     "volumes",
@@ -357,6 +357,12 @@ _COMPOSE_SERVICE_STRING_LISTS = frozenset({
     "networks",
     "command",
     "entrypoint",
+})
+_COMPOSE_HEALTHCHECK_STRING_SCALARS = frozenset({
+    "interval",
+    "timeout",
+    "start_period",
+    "start_interval",
 })
 
 
@@ -366,6 +372,54 @@ def merged_subprocess_environ(resolver: EnvResolver) -> dict[str, str]:
     for key, value in resolver.project_dotenv.items():
         merged.setdefault(key, value)
     return merged
+
+
+def _expand_healthcheck(
+    healthcheck: dict[str, Any],
+    *,
+    resolver: EnvResolver,
+    field_prefix: str,
+    allow_unresolved_source: bool,
+    allow_unresolved_service: bool,
+    allow_unresolved_secret: bool,
+) -> dict[str, Any]:
+    result = dict(healthcheck)
+    test = result.get("test")
+    if isinstance(test, str):
+        result["test"] = expand_env_string(
+            test,
+            resolver,
+            field_path=f"{field_prefix}.test",
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
+        )
+    elif isinstance(test, list):
+        result["test"] = [
+            expand_env_string(
+                item,
+                resolver,
+                field_path=f"{field_prefix}.test[]",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+            if isinstance(item, str)
+            else item
+            for item in test
+        ]
+    for key in _COMPOSE_HEALTHCHECK_STRING_SCALARS:
+        value = result.get(key)
+        if isinstance(value, str):
+            result[key] = expand_env_string(
+                value,
+                resolver,
+                field_path=f"{field_prefix}.{key}",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+    return result
 
 
 def _expand_compose_service_spec(
@@ -421,6 +475,16 @@ def _expand_compose_service_spec(
             else env_value
             for env_key, env_value in environment.items()
         }
+    healthcheck = result.get("healthcheck")
+    if isinstance(healthcheck, dict):
+        result["healthcheck"] = _expand_healthcheck(
+            healthcheck,
+            resolver=resolver,
+            field_prefix=f"{field_prefix}.healthcheck",
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
+        )
     result.pop("source", None)
     return result
 
