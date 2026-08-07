@@ -449,4 +449,8 @@ golden_path_remediate_database() {
     # odpm's -i flag would not forward module names to odoo-bin.
     odpm -d "${db_name}" --odoo-bin -i "${init_modules}" --stop-after-init
     docker compose down --remove-orphans 2>/dev/null || true
+    # Init bakes -i / --stop-after-init into docker-compose.yml; restore a long-running
+    # start command before golden-path `compose up` (otherwise Odoo exits after load).
+    echo "Golden-path: regenerating compose for long-running start (db=${db_name})..."
+    odpm -d "${db_name}" --skip-start --no-git-update
 }

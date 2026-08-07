@@ -247,6 +247,8 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("golden_path_log_short_time_gate", lib)
         self.assertIn("docker-compose.yml", lib)
         self.assertIn("file://", lib)
+        self.assertIn("regenerating compose for long-running start", lib)
+        self.assertIn('odpm -d "${db_name}" --skip-start --no-git-update', lib)
         self.assertNotIn("translate=boolean", lib)
         self.assertIn("alpine:3.20", lib)
         self.assertIn("golden_path_emit_schema_failure", lib)
