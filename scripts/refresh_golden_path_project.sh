@@ -65,6 +65,10 @@ log "ensure postgres up (service=${POSTGRES_SERVICE}) ..."
 golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 trap 'cd "${PROJECT}" && docker compose down --remove-orphans 2>/dev/null || true' EXIT
 
+if golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
+    golden_path_log_short_time_gate "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"
+fi
+
 if golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}" \
     && golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
     log "DB ${DB_NAME} ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"))."

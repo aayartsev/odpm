@@ -32,6 +32,8 @@ if ! golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}";
     exit 1
 fi
 
+golden_path_log_short_time_gate "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"
+
 if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
     golden_path_emit_schema_failure "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}"
     exit 1

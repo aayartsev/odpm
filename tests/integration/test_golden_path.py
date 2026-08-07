@@ -244,7 +244,57 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("golden_path_schema_compatible", lib)
         self.assertIn("golden_path_column_exists", lib)
         self.assertIn("golden_path_code_expects_short_time_format", lib)
+        self.assertIn("golden_path_log_short_time_gate", lib)
+        self.assertIn("docker-compose.yml", lib)
+        self.assertIn("file://", lib)
         self.assertNotIn("translate=boolean", lib)
         self.assertIn("alpine:3.20", lib)
         self.assertIn("golden_path_emit_schema_failure", lib)
         self.assertIn('--odoo-bin -i "${init_modules}"', lib)
+
+    def test_platform_dir_discovers_compose_bind_and_short_time_format(self) -> None:
+        import subprocess
+        import tempfile
+
+        root = Path(__file__).resolve().parents[2]
+        lib = root / "scripts" / "golden_path_project_lib.sh"
+        with tempfile.TemporaryDirectory(prefix="odpm-golden-platform-") as tmp:
+            project = Path(tmp)
+            platform = project / "odoo-src"
+            res_lang = platform / "odoo" / "addons" / "base" / "models" / "res_lang.py"
+            res_lang.parent.mkdir(parents=True)
+            res_lang.write_text(
+                "short_time_format = fields.Char()\n",
+                encoding="utf-8",
+            )
+            (project / "docker-compose.yml").write_text(
+                "services:\n"
+                "  odoo:\n"
+                "    image: odoo:dev\n"
+                f"    volumes:\n"
+                f"      - {platform}:/home/odoo/odoo:Z\n",
+                encoding="utf-8",
+            )
+            discovered = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    f'source "{lib}" && golden_path_platform_dir "{project}"',
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(discovered.returncode, 0, msg=discovered.stderr)
+            self.assertEqual(discovered.stdout.strip(), str(platform.resolve()))
+            expects = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    f'source "{lib}" && golden_path_code_expects_short_time_format "{project}"',
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(expects.returncode, 0, msg=expects.stderr)

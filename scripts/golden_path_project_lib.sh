@@ -116,25 +116,105 @@ golden_path_column_exists() {
          LIMIT 1" | grep -q 1
 }
 
+# Resolve mounted Odoo platform root (host path). Tries .env, process env,
+# manifest file:// platform links, then docker-compose bind mount sources.
 golden_path_platform_dir() {
     local project="${1:-}"
-    local from_env=""
+    [[ -n "${project}" ]] || return 1
+    python3 - "${project}" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
 
-    if [[ -n "${project}" ]]; then
-        from_env="$(golden_path_read_env "${project}" ODOO_PLATFORM_DIR "")"
-        if [[ -n "${from_env}" && -d "${from_env}" ]]; then
-            echo "${from_env}"
-            return 0
-        fi
-    fi
-    if [[ -n "${ODOO_PLATFORM_DIR:-}" && -d "${ODOO_PLATFORM_DIR}" ]]; then
-        echo "${ODOO_PLATFORM_DIR}"
-        return 0
-    fi
-    return 1
+project = Path(sys.argv[1])
+candidates: list[Path] = []
+
+
+def add(path: str | Path | None) -> None:
+    if not path:
+        return
+    text = str(path).strip().strip('"').strip("'")
+    if text.startswith("file://"):
+        text = text[len("file://") :]
+    # git link may be "file:///path branch"
+    text = text.split()[0] if text else ""
+    if not text:
+        return
+    p = Path(text).expanduser()
+    if not p.is_absolute():
+        p = (project / p).resolve()
+    else:
+        p = p.resolve()
+    if p not in candidates:
+        candidates.append(p)
+
+
+env_file = project / ".env"
+if env_file.is_file():
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        if line.startswith("ODOO_PLATFORM_DIR="):
+            add(line.split("=", 1)[1])
+        elif line.startswith("ODOO_PROJECTS_DIR="):
+            add(Path(line.split("=", 1)[1].strip().strip('"').strip("'")) / "odoo")
+
+import os
+
+add(os.environ.get("ODOO_PLATFORM_DIR"))
+if os.environ.get("ODOO_PROJECTS_DIR"):
+    add(Path(os.environ["ODOO_PROJECTS_DIR"]) / "odoo")
+
+for rel in ("odpm.json", "developing/odpm.json"):
+    manifest = project / rel
+    if not manifest.is_file():
+        continue
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        continue
+    add(data.get("odoo_git_link"))
+    platform = data.get("platform")
+    if isinstance(platform, dict):
+        add(platform.get("git"))
+
+compose = project / "docker-compose.yml"
+if compose.is_file():
+    text = compose.read_text(encoding="utf-8")
+    # Short syntax: - /host/path:/container/path
+    for match in re.finditer(
+        r"(?m)^\s*-\s*(?:\"([^\"]+)\"|'([^']+)'|([^:\s][^:]*)):\S+",
+        text,
+    ):
+        add(next(g for g in match.groups() if g))
+    # Long syntax source:
+    for match in re.finditer(
+        r"(?m)^\s*source:\s*(?:\"([^\"]+)\"|'([^']+)'|(\S+))\s*$",
+        text,
+    ):
+        add(next(g for g in match.groups() if g))
+
+res_lang_relpaths = (
+    "odoo/addons/base/models/res_lang.py",
+    "addons/base/models/res_lang.py",
+)
+
+for root in candidates:
+    if not root.is_dir():
+        continue
+    for rel in res_lang_relpaths:
+        if (root / rel).is_file():
+            print(root)
+            raise SystemExit(0)
+    # Volume may point directly at repo subdir already containing addons/
+    if (root / "base/models/res_lang.py").is_file():
+        print(root)
+        raise SystemExit(0)
+
+raise SystemExit(1)
+PY
 }
 
-# True when mounted Odoo source still defines res.lang.short_time_format
+# True when mounted Odoo source still defines/uses res.lang.short_time_format
 # (pre datetime-remake 19.0). Unknown/missing source → false (skip column gate).
 golden_path_code_expects_short_time_format() {
     local project="${1:-}"
@@ -142,9 +222,42 @@ golden_path_code_expects_short_time_format() {
 
     platform_dir="$(golden_path_platform_dir "${project}" 2>/dev/null || true)"
     [[ -n "${platform_dir}" ]] || return 1
-    res_lang="${platform_dir}/odoo/addons/base/models/res_lang.py"
-    [[ -f "${res_lang}" ]] || return 1
-    grep -Eq '(^|[[:space:]])short_time_format[[:space:]]*=' "${res_lang}"
+    for res_lang in \
+        "${platform_dir}/odoo/addons/base/models/res_lang.py" \
+        "${platform_dir}/addons/base/models/res_lang.py" \
+        "${platform_dir}/base/models/res_lang.py"
+    do
+        if [[ -f "${res_lang}" ]] && grep -q 'short_time_format' "${res_lang}"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Log whether code/DB short_time_format gate will apply (for CI diagnostics).
+golden_path_log_short_time_gate() {
+    local project="$1"
+    local postgres_service="$2"
+    local pguser="$3"
+    local db_name="$4"
+    local platform_dir=""
+    local expects="no"
+    local column="absent"
+
+    platform_dir="$(golden_path_platform_dir "${project}" 2>/dev/null || true)"
+    if [[ -z "${platform_dir}" ]]; then
+        echo "Golden-path: Odoo platform dir not found (ODOO_PLATFORM_DIR / compose binds / file://); short_time_format code gate skipped."
+    else
+        echo "Golden-path: Odoo platform dir=${platform_dir}"
+        if golden_path_code_expects_short_time_format "${project}"; then
+            expects="yes"
+        fi
+    fi
+    if golden_path_column_exists "${postgres_service}" "${pguser}" "${db_name}" \
+        res_lang short_time_format; then
+        column="present"
+    fi
+    echo "Golden-path: short_time_format code_expects=${expects} column=${column}"
 }
 
 golden_path_schema_status_line() {
@@ -192,6 +305,14 @@ golden_path_schema_compatible() {
     if golden_path_code_expects_short_time_format "${project}"; then
         golden_path_column_exists "${postgres_service}" "${pguser}" "${db_name}" \
             res_lang short_time_format || return 1
+    elif ! golden_path_platform_dir "${project}" >/dev/null 2>&1; then
+        # Cannot verify mounted Odoo source. Absent column + old code is the
+        # common CI failure mode; force remedi ate rather than skip the gate.
+        if ! golden_path_column_exists "${postgres_service}" "${pguser}" "${db_name}" \
+            res_lang short_time_format; then
+            echo "Golden-path: platform dir unknown and short_time_format absent; treating schema as incompatible." >&2
+            return 1
+        fi
     fi
     return 0
 }
