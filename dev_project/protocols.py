@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from . import constants
-
 
 @runtime_checkable
 class SystemCheckerProtocol(Protocol):
@@ -16,10 +14,6 @@ class SystemCheckerProtocol(Protocol):
     def check_docker_compose(self) -> None: ...
 
     def check_file_system(self) -> None: ...
-
-    def check_free_space_for_odoo_developing(
-        self, free_space_size: float = constants.FREE_SPACE_FOR_USAGE
-    ) -> None: ...
 
 
 @runtime_checkable

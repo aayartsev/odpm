@@ -28,7 +28,7 @@ A full pipeline with an image registry is **not required** — `docker compose u
 - Set **strong passwords** — see [security](../operations/security.md).
 - Terminate **HTTPS** at nginx; in `odoo.conf` set `proxy_mode` and `dbfilter` if needed.
 - Do not expose Odoo and PostgreSQL ports to the internet unless necessary.
-- Before a **non-interactive** first run, ensure platform sources are already on disk (or prepare the environment once from an interactive terminal).
+- To pin the platform version use `odoo_build_date` / `--odoo-build-date` (git checkout by date), not a separate archive download.
 
 ## Typical administrator commands
 

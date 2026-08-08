@@ -209,9 +209,6 @@ msgstr "Не изменяйте данный параметр, его значе
 msgid "Do not change, it will get from \"db_manager_password\" param from config.json file"
 msgstr "Не изменяйте данный параметр, его значение будет взято из параметра \"db_manager_password\" файла конфигурации config.json"
 
-msgid "Do you want to clone odoo? y/n\n"
-msgstr "Вы хотите клонировать odoo? y/n\n"
-
 msgid "Docker compose command is not configured; stack health was not probed"
 msgstr "Команда docker compose не настроена; состояние стека не проверялось"
 
@@ -391,9 +388,6 @@ msgstr "Снимок last_run для БД ещё не создан; baseline б�
 
 msgid "No manifest changes to apply."
 msgstr "Нет изменений манифеста для применения."
-
-msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
-msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
 
 msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
 msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) перед первым запуском."
@@ -710,9 +704,6 @@ msgstr "Вы не указали разрабатываемый проект. В
 msgid "You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"
 msgstr "Вам необходимо добавить пользователя {CURRENT_USER} в группу {LINUX_DOCKER_GROUPNAME}\n запустите следующую команду от имени root или с помощью sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER}\n Затем перезапустите ваш компьютер"
 
-msgid "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"
-msgstr "В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} свободного места"
-
 msgid "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
 msgstr "Вы выбрали следующий каталог для использования бэкапов odoo: {SELECTED_ODOO_BACKUPS_DIR}\n"
 
@@ -755,17 +746,11 @@ msgstr "Вы выбрали системную локаль по умолчан�
 msgid "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 msgstr "Вы выбрали следующую локаль для сообщений odpm: {SELECTED_LOCALE}\n"
 
-msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
-msgstr "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
-
 msgid "apply pinned commits from {SOURCE}"
 msgstr "применить закреплённые коммиты из {SOURCE}"
 
 msgid "base image identity mismatch"
 msgstr "несовпадение идентичности базового образа"
-
-msgid "bind_platform_link is not configured"
-msgstr "bind_platform_link не настроен"
 
 msgid "build CI image from prepared context"
 msgstr "собрать CI-образ из подготовленного контекста"

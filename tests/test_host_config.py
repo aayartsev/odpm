@@ -679,17 +679,12 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
 
     def test_bootstrap_context_wires_host_services(self):
         config = MagicMock()
-        bind_platform_link = MagicMock()
-        ctx = ConfigBootstrapContext(
-            config,
-            bind_platform_link=bind_platform_link,
-        )
+        ctx = ConfigBootstrapContext(config)
 
         self.assertIsInstance(ctx.paths, ConfigPaths)
         self.assertIsInstance(ctx.odoo_conf, OdooConfBuilder)
         self.assertIsInstance(ctx.git_repos, GitRepoCoordinator)
         self.assertIs(ctx.git_repos._paths, ctx.paths)
-        self.assertIs(ctx.git_repos._bind_platform_link, bind_platform_link)
 
 
 class ConfigBootstrapStateTests(unittest.TestCase):

@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
 from ..errors import ConfigError
-from ..translations import _
 from ..git import HandleOdooProjectLink
 from ..logging import get_module_logger
 
@@ -22,11 +20,9 @@ class GitRepoCoordinator:
         config: Config,
         *,
         paths: ConfigPaths,
-        bind_platform_link: Callable[[Config], None] | None = None,
     ) -> None:
         self.config = config
         self._paths = paths
-        self._bind_platform_link = bind_platform_link
 
     def handle_git_link(
         self,
@@ -81,13 +77,3 @@ class GitRepoCoordinator:
             self.config.odoo_build_date,
             str(self.config.odoo_version),
         )
-
-    def get_platform_sources(self) -> None:
-        if self._bind_platform_link is None:
-            raise ConfigError(_("bind_platform_link is not configured"))
-        self._bind_platform_link(self.config)
-        self.config.odoo_platform_project.build_project()
-        self.apply_odoo_build_date_to_platform()
-
-    def get_platform_sorces(self) -> None:
-        self.get_platform_sources()

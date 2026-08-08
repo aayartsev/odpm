@@ -6,9 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.project_env.environment import CreateProjectEnvironment
 from dev_project.project_env.links import ProjectLinks
-from dev_project.project_env.services import PlatformSourcesService
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -491,44 +489,6 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             ProjectLinks(env).update_links()
 
             self.assertFalse(os.path.lexists(stale_link))
-
-
-class PlatformSourcesServiceTests(unittest.TestCase):
-    @patch("dev_project.project_env.services.platform_sources.os.remove")
-    @patch("dev_project.project_env.services.platform_sources.os.replace")
-    @patch(
-        "dev_project.project_env.services.platform_sources.un_zip_file_to_directory"
-    )
-    @patch("dev_project.project_env.services.platform_sources.download_file")
-    @patch(
-        "dev_project.project_env.services.platform_sources.delete_files_in_directory"
-    )
-    def test_download_odoo_nightly_build_uses_parent_dir_not_chdir(
-        self,
-        _mock_delete,
-        _mock_download,
-        mock_unzip,
-        _mock_replace,
-        _mock_remove,
-    ):
-        config = MagicMock()
-        config.odoo_src_dir = "/tmp/odoo_projects/odoo"
-        config.odoo_version = "17.0"
-        config.odoo_build_date = "20240101"
-        checker = MagicMock()
-        env = CreateProjectEnvironment(config, system_checker=checker)
-
-        with patch(
-            "dev_project.project_env.services.platform_sources.os.chdir"
-        ) as mock_chdir:
-            PlatformSourcesService(env).download_odoo_nightly_build()
-
-        mock_chdir.assert_not_called()
-        mock_unzip.assert_called_once()
-        self.assertEqual(mock_unzip.call_args.args[0], "/tmp/odoo_projects")
-        checker.check_free_space_for_odoo_developing.assert_called_once_with(
-            free_space_size=2.0
-        )
 
 
 if __name__ == "__main__":

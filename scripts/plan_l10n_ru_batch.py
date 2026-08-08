@@ -105,7 +105,6 @@ PLAN_L10N_RU: dict[str, str] = {
         "применить закреплённые коммиты из {SOURCE}"
     ),
     "base image identity mismatch": "несовпадение идентичности базового образа",
-    "bind_platform_link is not configured": "bind_platform_link не настроен",
     "build CI image from prepared context": (
         "собрать CI-образ из подготовленного контекста"
     ),

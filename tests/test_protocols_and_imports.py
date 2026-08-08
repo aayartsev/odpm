@@ -19,14 +19,12 @@ class ProtocolTypingTests(unittest.TestCase):
         from dev_project.project_env.services import (
             BaseImageService,
             CiImageBuildService,
-            PlatformSourcesService,
             VscodeConfigurator,
         )
 
         for service in (
             BaseImageService,
             CiImageBuildService,
-            PlatformSourcesService,
             VscodeConfigurator,
         ):
             self.assertTrue(callable(service))

@@ -88,10 +88,7 @@ def init_context(
     config._project = ProjectSettingsState()
     config._docker = DockerLayoutState()
     config._addon_layout = AddonLayoutState()
-    config._bootstrap_ctx = ConfigBootstrapContext(
-        config,
-        bind_platform_link=bind_platform_link,
-    )
+    config._bootstrap_ctx = ConfigBootstrapContext(config)
     config._paths = config._bootstrap_ctx.paths
     config._odoo_conf = config._bootstrap_ctx.odoo_conf
     config._git_repos = config._bootstrap_ctx.git_repos

@@ -210,9 +210,6 @@ msgstr "Do not change this param, it is generating automatically"
 msgid "Do not change, it will get from \"db_manager_password\" param from config.json file"
 msgstr "Do not change, it will get from \"db_manager_password\" param from config.json file"
 
-msgid "Do you want to clone odoo? y/n\n"
-msgstr "Do you want to clone odoo? y/n\n"
-
 msgid "Docker compose command is not configured; stack health was not probed"
 msgstr "Docker compose command is not configured; stack health was not probed"
 
@@ -392,9 +389,6 @@ msgstr "No database last_run snapshot yet; baseline will be adopted automaticall
 
 msgid "No manifest changes to apply."
 msgstr "No manifest changes to apply."
-
-msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
-msgstr "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
 
 msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
 msgstr "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
@@ -711,9 +705,6 @@ msgstr "You do not set where developing project is situated. You can set it with
 msgid "You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"
 msgstr "You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"
 
-msgid "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"
-msgstr "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"
-
 msgid "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
 msgstr "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
 
@@ -756,17 +747,11 @@ msgstr "You selected the system default locale for odpm messages: {SELECTED_LOCA
 msgid "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 msgstr "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 
-msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
-msgstr "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
-
 msgid "apply pinned commits from {SOURCE}"
 msgstr "apply pinned commits from {SOURCE}"
 
 msgid "base image identity mismatch"
 msgstr "base image identity mismatch"
-
-msgid "bind_platform_link is not configured"
-msgstr "bind_platform_link is not configured"
 
 msgid "build CI image from prepared context"
 msgstr "build CI image from prepared context"

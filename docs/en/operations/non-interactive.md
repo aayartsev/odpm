@@ -19,16 +19,6 @@ Alternatively, set **at least one** variable from the list in the process enviro
 
 On `--init` without a ready `odpm.json` in the developing repository, specify **`--odoo-version`** or put `odoo_version` in the repository before running.
 
-## `server` scenario without platform sources
-
-If there is **no** directory with `odoo-bin` on disk yet, in interactive mode odpm may offer to download a nightly archive. **Without a TTY** you get an **immediate error**.
-
-Options:
-
-- pre-fill the platform directory (via `developer` scenario and git);
-- run preparation once from a normal terminal;
-- do not use `server` for the very first platform clone.
-
 ## Manifest with `${VAR}`
 
 If `odpm.json` or `user_settings.json` uses `${NAME}`, set values **before** running:

@@ -1,7 +1,6 @@
 import json
 import os
 import platform
-from pathlib import Path
 from typing import NamedTuple
 
 from . import constants
@@ -9,11 +8,9 @@ from .docker_capabilities import probe_compose_command_from_candidates
 from .translations import _
 from .config import Config
 from .errors import SubprocessError, SystemCheckError
-from .interactive import prompt_input, stdin_is_interactive
-from .inside_docker_app import utils
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
-from .project_env.services import BaseImageService, PlatformSourcesService
+from .project_env.services import BaseImageService
 from .protocols import SystemCheckerProtocol
 from .subprocess_runner import run_checked, run_logged, run_or_raise
 from .system_check_policy import SystemCheckPolicy
@@ -171,37 +168,17 @@ class SystemChecker(SystemCheckerProtocol):
         policy = self.config.policy
         if policy.is_ci():
             return
-        if policy.is_developer():
-            platform = getattr(self.config, "odoo_platform_project", None)
-            if (
-                platform
-                and getattr(platform, "link_type", None) == constants.GITLINK_TYPE_FILE
-            ):
-                return
-            if not self._platform_git_repo_ready():
-                message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step).').format(odoo_src_dir=self.config.odoo_src_dir)
-                _logger.warning(message)
+        if not (policy.is_developer() or policy.is_server()):
             return
-        if policy.scenario != constants.SERVER_SCENARIO:
+        platform = getattr(self.config, "odoo_platform_project", None)
+        if (
+            platform
+            and getattr(platform, "link_type", None) == constants.GITLINK_TYPE_FILE
+        ):
             return
-        odoo_bin = os.path.join(self.config.odoo_src_dir, "odoo-bin")
-        if os.path.exists(odoo_bin):
-            return
-        if not stdin_is_interactive():
-            message = _('Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare.').format(odoo_src_dir=self.config.odoo_src_dir)
-            _logger.error(message)
-            raise SystemCheckError(message)
-        clone_odoo = prompt_input(
-            _('Do you want to clone odoo? y/n\n')
-        )
-        if clone_odoo and clone_odoo.lower() == "y":
-            PlatformSourcesService(self.project_environment).download_odoo_nightly_build()
-            return
-        message = _('Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git').format(
-            odoo_src_dir=self.config.odoo_src_dir,
-        )
-        _logger.error(message)
-        raise SystemCheckError(message)
+        if not self._platform_git_repo_ready():
+            message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step).').format(odoo_src_dir=self.config.odoo_src_dir)
+            _logger.warning(message)
 
     def check_file_system(self) -> None:
         for dir_path in [
@@ -218,15 +195,3 @@ class SystemChecker(SystemCheckerProtocol):
                     _logger.error(message)
                     raise SystemCheckError(message) from err
         self._ensure_platform_sources()
-
-    def check_free_space_for_odoo_developing(
-        self, free_space_size: float = constants.FREE_SPACE_FOR_USAGE
-    ) -> None:
-        free_space = utils.get_free_space(Path.home())
-        if free_space < free_space_size:
-            message = _('You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory').format(
-                NECESSARY_FREE_SPACE=free_space_size,
-                DIR_FOR_FREE_SPACE=Path.home(),
-            )
-            _logger.error(message)
-            raise SystemCheckError(message)

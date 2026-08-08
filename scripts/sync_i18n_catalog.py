@@ -315,7 +315,6 @@ RU_MESSAGES: dict[str, str] = {
         'Не изменяйте данный параметр, его значение будет взято из параметра '
         '"db_manager_password" файла конфигурации config.json'
     ),
-    "Do you want to clone odoo? y/n\n": "Вы хотите клонировать odoo? y/n\n",
     "docker build failed with exit code {EXIT_CODE}": (
         "docker build завершился с кодом {EXIT_CODE}"
     ),
@@ -573,15 +572,6 @@ RU_MESSAGES: dict[str, str] = {
     "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
         "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
     ),
-    "Non-interactive mode cannot prompt to download Odoo platform sources for the "
-    "server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. "
-    "Pre-install platform sources, run odpm from an interactive terminal, or use "
-    "ODPM_SCENARIO=developer for git-based clone during prepare.": (
-        "В неинтерактивном режиме нельзя запросить загрузку исходников platform "
-        "для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. "
-        "Установите исходники заранее, запустите odpm в интерактивном терминале "
-        "или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
-    ),
     "Non-interactive mode requires an existing .env file in the project directory "
     "or under ~/.odpm/.env. Create it manually or set environment variables "
     "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
@@ -793,11 +783,6 @@ RU_MESSAGES: dict[str, str] = {
         "помощью sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER}\n "
         "Затем перезапустите ваш компьютер"
     ),
-    "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} "
-    "directory": (
-        "В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} "
-        "свободного места"
-    ),
     "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n": (
         "Вы выбрали системную локаль по умолчанию для сообщений odpm: {SELECTED_LOCALE}\n"
     ),
@@ -857,12 +842,6 @@ RU_MESSAGES: dict[str, str] = {
     "{SELECTED_DEBUGGER_PORT}\n": (
         "Вы выбрали следующий порт, который будет слушать Python Debugger: "
         "{SELECTED_DEBUGGER_PORT}\n"
-    ),
-    "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or "
-    "delete and clone its repo again: git clone https://github.com/odoo/odoo.git": (
-        "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git "
-        "репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или "
-        "клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
     ),
     "Attached to container output. Detailed technical logs below are in English.": (
         "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."

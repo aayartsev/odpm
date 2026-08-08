@@ -247,14 +247,6 @@ DEFAULT_SQL_QUERIES = []
 DEFAULT_USE_OCA_DEPENDENCIES = False
 DEFAULT_CREATE_MODULE_LINKS = False
 
-# YANDEX DISK LINKS
-YADISK_SHARING_LINK = "https://disk.yandex.ru/d/FbMn-ySeNYGAoQ"
-YADISK_API_ENDPOINT = (
-    "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
-)
-
-FREE_SPACE_FOR_USAGE = 2.0
-
 VENV_LOCK_KEYS = (
     "python_version",
     "distro_version",

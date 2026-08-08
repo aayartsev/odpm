@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Server scenario uses git clone for platform** — same as `developer`: prepare `git.materialize` clones the platform repo; removed legacy nightly zip download (`PlatformSourcesService`), free-space/Yandex Disk helpers, and `get_platform_sources`. Pin via `odoo_build_date` / `--odoo-build-date`. Docs: `docs/scenarios/server.md`, `docs/operations/non-interactive.md`.
 - **Golden-path CI gate ≤9 min** — `release-packages.yml` / `ci-docker.yml` job `timeout-minutes: 9`; refresh uses `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1` (remedi ate when schema incompatible: `base` 19.x + `web`, and `res_lang.short_time_format` only if mounted Odoo still defines the field); HTTP wait `ODPM_GOLDEN_PATH_TIMEOUT=60`. Install step: `sudo -n` fail-fast + `timeout 60` for `dpkg` (no `-E`: narrow sudoers has no SETENV); narrow NOPASSWD template `scripts/ci/github-actions-runner-sudoers.example`. Docs: `docs/contributing/ci.md`, ADR-006.
 - **New projects default `create_demo: false`** in generated `user_settings.json` (`DEFAULT_DB_CREATION_DATA_CREATE_DEMO`).
 - **Server scenario compose** — built-in `db` and `odoo` services get `restart: unless-stopped` so stacks survive host reboot (developer/ci unchanged).

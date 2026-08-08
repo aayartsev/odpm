@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from .artifacts import DeprecatedConfigHandler
@@ -24,14 +23,8 @@ def _rewrite_odpm_json_impl(config: Config, *, create_default) -> None:
 
 
 class ConfigBootstrapContext:
-    def __init__(
-        self,
-        config: Config,
-        *,
-        bind_platform_link: Callable[[Config], None] | None = None,
-    ) -> None:
+    def __init__(self, config: Config) -> None:
         self.config = config
-        self._bind_platform_link = bind_platform_link
         self._wire_services()
 
     def _wire_services(self) -> None:
@@ -51,7 +44,6 @@ class ConfigBootstrapContext:
         self.git_repos = GitRepoCoordinator(
             self.config,
             paths=self.paths,
-            bind_platform_link=self._bind_platform_link,
         )
 
     def rewrite_odpm_json(self) -> None:
