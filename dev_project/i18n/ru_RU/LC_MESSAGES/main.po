@@ -320,6 +320,9 @@ msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожида�
 msgid "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
 msgstr "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
 
+msgid "Kaniko --image-push in docker-run mode requires {PATH} (docker login credentials). Create it, or use ODPM_KANIKO_EXECUTOR_MODE=direct with registry credentials available to the executor."
+msgstr "Для Kaniko --image-push в режиме docker-run нужен файл {PATH} (учётные данные docker login). Создайте его или используйте ODPM_KANIKO_EXECUTOR_MODE=direct с credentials, доступными executor."
+
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Загрузить git lock из {SOURCE} и включить режим apply перед checkout"
 
@@ -617,6 +620,12 @@ msgstr "Чтобы использовать другой каталог данн
 msgid "Unexpected PostgreSQL connection error: {DETAIL}"
 msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
 
+msgid "Unknown CI image builder {BUILDER!r}; expected one of: {ALLOWED}"
+msgstr "Неизвестный бэкенд сборки CI-образа {BUILDER!r}; ожидается одно из: {ALLOWED}"
+
+msgid "Unknown Kaniko executor mode {MODE!r}; expected one of: {ALLOWED}"
+msgstr "Неизвестный режим Kaniko executor {MODE!r}; ожидается одно из: {ALLOWED}"
+
 msgid "Unknown ODPM_DEBUGGER_BACKEND=%r, using %s"
 msgstr "Неизвестный ODPM_DEBUGGER_BACKEND=%r, используется %s"
 
@@ -830,6 +839,9 @@ msgstr "docker build завершился с кодом {EXIT_CODE}"
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
+msgid "docker push failed with exit code {EXIT_CODE}"
+msgstr "docker push завершился с кодом {EXIT_CODE}"
+
 msgid "docker-compose.yml differs from preview"
 msgstr "docker-compose.yml отличается от preview"
 
@@ -874,6 +886,9 @@ msgstr "подставить пути service_sources в env resolver"
 
 msgid "invalid JSON in secrets file {PATH}: {DETAIL}"
 msgstr "некорректный JSON в файле secrets {PATH}: {DETAIL}"
+
+msgid "kaniko build failed with exit code {EXIT_CODE}"
+msgstr "сборка kaniko завершилась с кодом {EXIT_CODE}"
 
 msgid "load git lock from {SOURCE} before checkout"
 msgstr "загрузить git lock из {SOURCE} перед checkout"

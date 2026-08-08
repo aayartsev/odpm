@@ -1,5 +1,7 @@
 BUILD_IMAGE_PARAM = "--build-image"
 IMAGE_TAG_PARAM = "--image-tag"
+IMAGE_BUILDER_PARAM = "--image-builder"
+IMAGE_PUSH_PARAM = "--image-push"
 GET_DB_LIST_PARAM = "--get-dbs-list"
 START_PRECOMMIT_PARAM = "--start-precommit"
 SET_ADMIN_PASS_PARAM = "--set-admin-pass"

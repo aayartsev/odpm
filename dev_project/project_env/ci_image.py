@@ -13,10 +13,14 @@ from ..bake_venv import (
     write_ci_venv_install_spec,
 )
 from ..config.payload import write_runtime_config_to_path
-from ..errors import PipelineError
 from ..logging import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
-from ..subprocess_runner import run_logged
+from .image_build import (
+    ImageBuildSpec,
+    get_ci_image_build_backend,
+    resolve_ci_image_builder,
+    resolve_ci_image_push,
+)
 from .services.docker_base_image import BaseImageService
 from .types import MappedPath
 
@@ -245,33 +249,36 @@ class CiImageBuilder:
         return dockerfile_path
 
     def build_ci_image(self) -> None:
-        BaseImageService(self.env).ensure_base_image()
+        builder_name = resolve_ci_image_builder(self.config.arguments)
+        push = resolve_ci_image_push(self.config.arguments)
+        if builder_name == constants.CI_IMAGE_BUILDER_DOCKER:
+            BaseImageService(self.env).ensure_base_image()
+        else:
+            _logger.info(
+                "kaniko backend skips local ensure_base_image; "
+                "base image %s must be pullable from a registry",
+                self.config.odoo_image_name,
+            )
         self.prepare_ci_build_context()
         ci_dockerfile = self.generate_ci_dockerfile()
         context_dir = self.config.ci_build_context_dir
         _logger.info(
-            "build_ci_image: building %s from %s (base %s)",
+            "build_ci_image: building %s from %s (base %s, builder %s, push %s)",
             self.config.odoo_ci_image_name,
             ci_dockerfile,
             self.config.odoo_image_name,
+            builder_name,
+            push,
         )
-        returncode = run_logged(
-            [
-                "docker",
-                "build",
-                "-f",
-                ci_dockerfile,
-                "-t",
-                self.config.odoo_ci_image_name,
-                f"--platform=linux/{self.config.arch}",
-                context_dir,
-            ],
-            cwd=self.config.project_dir,
+        spec = ImageBuildSpec(
+            context_dir=context_dir,
+            dockerfile=ci_dockerfile,
+            tag=self.config.odoo_ci_image_name,
+            platform=f"linux/{self.config.arch}",
+            push=push,
+            project_dir=self.config.project_dir,
         )
-        if returncode != 0:
-            message = _('docker build failed with exit code {EXIT_CODE}').format(EXIT_CODE=returncode)
-            _logger.error(message)
-            raise PipelineError(message, exit_code=returncode)
+        get_ci_image_build_backend(builder_name).build(spec)
         _logger.info(
             "build_ci_image: finished %s", self.config.odoo_ci_image_name
         )

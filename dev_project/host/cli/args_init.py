@@ -25,6 +25,19 @@ def add_init_core_arguments(parser: argparse.ArgumentParser) -> None:
         type=str,
     )
 
+    parser.add_argument(
+        params.IMAGE_BUILDER_PARAM,
+        help="CI image build backend for --build-image: docker (default) or kaniko",
+        choices=["docker", "kaniko"],
+        type=str,
+    )
+
+    parser.add_argument(
+        params.IMAGE_PUSH_PARAM,
+        help="After --build-image, push the image (docker push / kaniko --destination)",
+        action="store_true",
+    )
+
 
 def add_platform_env_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(

@@ -51,6 +51,11 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_DEBUGGER_SUSPEND` | `1` / `y` — Odoo waits for the IDE after `settrace` (`pydevd_connect`) | `0` |
 | `GEVENT_PORT` | gevent websocket port | `8072` |
 | `ODPM_SCENARIO` | `developer`, `server`, or `ci` | `developer` |
+| `ODPM_CI_IMAGE_BUILDER` | `--build-image` backend: `docker` or `kaniko` (weaker than CLI `--image-builder`) | `docker` |
+| `ODPM_CI_IMAGE_PUSH` | `1` / `true` / `yes` — push after `--build-image` (same as `--image-push`) | off |
+| `ODPM_KANIKO_EXECUTOR_MODE` | `docker-run` or `direct` | `docker-run` |
+| `ODPM_KANIKO_EXECUTOR_IMAGE` | Executor image for `docker-run` mode | `gcr.io/kaniko-project/executor:v1.23.2` |
+| `ODPM_KANIKO_EXECUTOR_BIN` | Executor binary for `direct` mode | `executor` |
 | `ODPM_LOCALE` | odpm message language, e.g. `ru_RU` | from system | see [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | SSH key path for git (rarely needed) | empty |
 

@@ -18,6 +18,8 @@
 | План изменений `odpm plan` | да | да | да |
 | Обновление фиксации `--update-lock` | координатор | чтение | строго |
 | Сборка образа `--build-image` | **нет** | **нет** | **да** |
+| Бэкенд `--image-builder` / env `ODPM_CI_IMAGE_BUILDER` (`docker`, `kaniko`) | **нет** | **нет** | **да** |
+| Публикация `--image-push` / env `ODPM_CI_IMAGE_PUSH` | **нет** | **нет** | **да** |
 | Подготовка без git `--no-git-update` | да | да | да |
 
-Полный перечень параметров: [командная строка](cli.md).
+Полный перечень параметров: [командная строка](cli.md). Для `kaniko` см. [сценарий ci](../scenarios/ci.md) и [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md).

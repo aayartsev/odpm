@@ -38,3 +38,5 @@ ODPM_GOLDEN_PATH_PROJECT=/path ./scripts/run_golden_path_test.sh
 ```
 
 По умолчанию пропускаются в `unittest discover` (быстрый CI).
+
+`tests.integration.test_ci_image_build` проверяет бэкенд **`docker`**. Бэкенд **`kaniko`** (argv, `docker-run` / `direct`, fail-fast без docker config) покрыт unit-тестами `tests.test_ci_image_build_backends` — см. [ADR-016](adr-016-ci-image-build-backends.md).

@@ -308,19 +308,25 @@ class BaseImageServiceTests(unittest.TestCase):
 
 class CiImageBuildServiceTests(unittest.TestCase):
     def _service(self) -> CiImageBuildService:
+        from dev_project.host.cli.args import OdpmCliArgs
+
         config = MagicMock()
         config.project_dir = "/tmp/project"
         config.odoo_ci_image_name = "odoo-ci:test"
         config.odoo_image_name = "odoo-base:test"
         config.arch = "amd64"
         config.ci_build_context_dir = "/tmp/project/.odpm/ci-build-context"
+        config.arguments = OdpmCliArgs()
         env = MagicMock()
         env.config = config
         env.mapped_folders = []
         return CiImageBuildService(env)
 
     @patch("dev_project.project_env.ci_image.BaseImageService")
-    @patch("dev_project.project_env.ci_image.run_logged", return_value=2)
+    @patch(
+        "dev_project.project_env.image_build.docker_backend.run_logged",
+        return_value=2,
+    )
     @patch.object(CiImageBuilder, "generate_ci_dockerfile", return_value="/ctx/Dockerfile.ci")
     @patch.object(CiImageBuilder, "prepare_ci_build_context")
     def test_build_ci_image_raises_pipeline_error_on_failure(

@@ -318,6 +318,25 @@ RU_MESSAGES: dict[str, str] = {
     "docker build failed with exit code {EXIT_CODE}": (
         "docker build завершился с кодом {EXIT_CODE}"
     ),
+    "docker push failed with exit code {EXIT_CODE}": (
+        "docker push завершился с кодом {EXIT_CODE}"
+    ),
+    "kaniko build failed with exit code {EXIT_CODE}": (
+        "сборка kaniko завершилась с кодом {EXIT_CODE}"
+    ),
+    "Unknown CI image builder {BUILDER!r}; expected one of: {ALLOWED}": (
+        "Неизвестный бэкенд сборки CI-образа {BUILDER!r}; ожидается одно из: {ALLOWED}"
+    ),
+    "Unknown Kaniko executor mode {MODE!r}; expected one of: {ALLOWED}": (
+        "Неизвестный режим Kaniko executor {MODE!r}; ожидается одно из: {ALLOWED}"
+    ),
+    "Kaniko --image-push in docker-run mode requires {PATH} "
+    "(docker login credentials). Create it, or use ODPM_KANIKO_EXECUTOR_MODE=direct "
+    "with registry credentials available to the executor.": (
+        "Для Kaniko --image-push в режиме docker-run нужен файл {PATH} "
+        "(учётные данные docker login). Создайте его или используйте "
+        "ODPM_KANIKO_EXECUTOR_MODE=direct с credentials, доступными executor."
+    ),
     "docker compose up failed with exit code {EXIT_CODE}": (
         "docker compose up завершился с кодом {EXIT_CODE}"
     ),

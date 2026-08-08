@@ -48,6 +48,8 @@ odpm --secrets-file ~/new-secrets.json --skip-start
 | `--no-git-update` | Do not touch git; lock is **not read**; directories must already exist |
 | `--build-image` | Build image for **`ci`** scenario (error otherwise) |
 | `--image-tag TAG` | Docker image name and tag for `--build-image` |
+| `--image-builder {docker,kaniko}` | CI image build backend (default `docker`; overrides `ODPM_CI_IMAGE_BUILDER`) |
+| `--image-push` | After build, publish the image (`docker push` / kaniko `--destination`) |
 | `--version` | Show odpm version |
 
 ## Change plan (dry run)

@@ -46,6 +46,8 @@ odpm --secrets-file ~/new-secrets.json --skip-start
 | `--no-git-update` | Не трогать git; lock **не читается**; каталоги должны уже существовать |
 | `--build-image` | Собрать образ для сценария **`ci`** (иначе ошибка) |
 | `--image-tag МЕТКА` | Имя и тег образа Docker для `--build-image` |
+| `--image-builder {docker,kaniko}` | Бэкенд сборки CI-образа (по умолчанию `docker`; перекрывает `ODPM_CI_IMAGE_BUILDER`) |
+| `--image-push` | После сборки опубликовать образ (`docker push` / kaniko `--destination`) |
 | `--version` | Показать версию odpm |
 
 ## План изменений (пробный прогон)

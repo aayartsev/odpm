@@ -10,6 +10,7 @@
 
 ### Добавлено
 
+- **Бэкенды сборки CI-образа (4.7+)** — сменные `docker` (по умолчанию) и `kaniko` для `odpm --build-image`; CLI `--image-builder` / `--image-push` и env `ODPM_CI_IMAGE_BUILDER` / `ODPM_CI_IMAGE_PUSH` / настройки Kaniko executor; ADR-016. Тесты: `test_ci_image_build_backends`. Документация: `ci.md`, `cli.md`, `env-dotenv.md`.
 - **Manifest `odoo_conf`: доп. секции INI (4.7+)** — рядом с `options` можно объявлять секции модулей (`redis_server`, `s3_server`, …); schema + deep merge + `${@secret:}` / `${@service:}`. Reserved keys только в `options`. Тесты: `test_manifest_odoo_conf`, `test_odoo_conf_builder`. Документация: `odpm-json.md`, `odoo-conf.md`.
 - **`${@secret:<ключ>}` в manifest (4.7+)** — подстановка значений из `.odpm/secrets.json` в `services` / `service_patches` / hooks / `odoo_conf` (ключи с точкой); нужен файл секретов или `--secrets-file` (импорт до Config bootstrap); заглушки отклоняются; осознанный дубль в generated compose YAML для sidecar. Тесты: `test_env_substitution`, `test_secret_refs`, `test_odpm_pipeline`. Документация: `odpm-json.md`, `secrets.md`, `plugins.md`.
 - **`${@service:<имя>}` в compose-полях (4.7+)** — logical имена сервисов (`db`, `odoo`, sidecars) раскрываются в physical с учётом `ODPM_COMPOSE_PREFIX` / `POSTGRES_SERVICE_NAME` в whitelist `services` / `service_patches` (`environment`, `command`, …) и argv hooks; поправка ADR-012. Документация: `docs/reference/odpm-json.md`, `docs/reference/env-dotenv.md`. Тесты: `test_env_substitution`, `test_compose_service_prefix`, `test_compose_service_names`.
