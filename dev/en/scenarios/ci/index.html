@@ -2086,7 +2086,7 @@
 <tbody>
 <tr>
 <td><strong>Image</strong></td>
-<td>Created with <code>odpm --build-image</code> (available <strong>only</strong> in this scenario).</td>
+<td>Created with <code>odpm --build-image</code> (available <strong>only</strong> in this scenario). Backend: <code>docker</code> (default) or <code>kaniko</code> — see <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
 </tr>
 <tr>
 <td><strong>Sources</strong></td>
@@ -2112,20 +2112,24 @@
 <td><strong>Python warnings in logs</strong></td>
 <td>Same as <code>server</code>: <code>PYTHONWARNINGS</code> is not filtered — <code>DeprecationWarning</code> from docutils on Odoo startup remain in build and container output. Account for this in CI logs and image smoke tests.</td>
 </tr>
+<tr>
+<td><strong>Base image</strong></td>
+<td>Profile <strong>ci</strong> (slim Dockerfile). With <code>kaniko</code>, local <code>ensure_base_image</code> is <strong>skipped</strong> — the base tag must be pullable from a registry.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="typical-pipeline">Typical pipeline<a class="headerlink" href="#typical-pipeline" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>git push → build machine
   → ODPM_SCENARIO=ci
   → odpm --skip-start
-  → odpm --build-image [--image-tag registry/project:tag]
-  → publish image
+  → odpm --build-image [--image-tag registry/project:tag] [--image-builder docker|kaniko] [--image-push]
+  → publish image (or --image-push / kaniko tar artifact)
   → deploy (your tools)
 </code></pre></div>
 <h2 id="checklist">Checklist<a class="headerlink" href="#checklist" title="Permanent link">&para;</a></h2>
 <ol>
 <li>In git: <code>odpm.json</code> and committed <code>.odpm/deps.lock.json</code>.</li>
-<li>On the build machine: Docker, odpm, <code>.env</code> with <code>ODPM_SCENARIO=ci</code>.</li>
+<li>On the build machine: odpm, <code>.env</code> with <code>ODPM_SCENARIO=ci</code>; for <code>docker</code> — Docker daemon; for <code>kaniko</code> — executor (<code>docker-run</code> or <code>direct</code>) and a registry-pullable base.</li>
 <li>Before merge: <code>odpm plan --strict</code> — exit code 1 on unexpected changes.</li>
 <li>Verification: HTTP 200 on <code>/web</code> after <code>docker compose up</code>.</li>
 </ol>
@@ -2135,9 +2139,14 @@ odpm<span class="w"> </span>--skip-start
 <span class="c1"># optional: odpm --secrets-file /secure/ephemeral.json --skip-start</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_BAKE_SECRETS</span><span class="o">=</span><span class="m">1</span><span class="w">   </span><span class="c1"># bake module secrets into image when secrets.json exists</span>
 odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0
+odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-builder<span class="w"> </span>kaniko<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
+<span class="nv">ODPM_CI_IMAGE_BUILDER</span><span class="o">=</span>kaniko<span class="w"> </span><span class="nv">ODPM_KANIKO_EXECUTOR_MODE</span><span class="o">=</span>direct<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
+<p>Without <code>--image-push</code>, the <code>kaniko</code> backend writes a tar to <code>.odpm/ci-build-context/odpm-ci-image.tar</code>.</p>
+<p>In <code>docker-run</code> mode with <code>--image-push</code>, <code>~/.docker/config.json</code> is required (<code>docker login</code>); otherwise odpm fails before starting the executor. The default executor image is pinned (<code>gcr.io/kaniko-project/executor:v1.23.2</code>); override with <code>ODPM_KANIKO_EXECUTOR_IMAGE</code>. Opt-in Docker integration in CI covers the <code>docker</code> backend only; <code>kaniko</code> argv/<code>direct</code> paths are covered by unit tests.</p>
 <p>Non-interactive initialization:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODOO_PROJECTS_DIR</span><span class="o">=</span>/data/odoo_projects

@@ -2353,6 +2353,31 @@
 <td><code>developer</code></td>
 </tr>
 <tr>
+<td><code>ODPM_CI_IMAGE_BUILDER</code></td>
+<td>Бэкенд <code>--build-image</code>: <code>docker</code> или <code>kaniko</code> (слабее CLI <code>--image-builder</code>)</td>
+<td><code>docker</code></td>
+</tr>
+<tr>
+<td><code>ODPM_CI_IMAGE_PUSH</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — push после <code>--build-image</code> (как <code>--image-push</code>)</td>
+<td>выкл.</td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_MODE</code></td>
+<td><code>docker-run</code> или <code>direct</code></td>
+<td><code>docker-run</code></td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_IMAGE</code></td>
+<td>Образ executor для режима <code>docker-run</code></td>
+<td><code>gcr.io/kaniko-project/executor:v1.23.2</code></td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_BIN</code></td>
+<td>Бинарь executor для режима <code>direct</code></td>
+<td><code>executor</code></td>
+</tr>
+<tr>
 <td><code>ODPM_LOCALE</code></td>
 <td>Язык сообщений odpm, напр. <code>ru_RU</code></td>
 <td>берется из системы</td>

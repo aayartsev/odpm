@@ -2083,7 +2083,7 @@
 <tbody>
 <tr>
 <td><strong>Образ</strong></td>
-<td>Создаётся командой <code>odpm --build-image</code> (доступна <strong>только</strong> в этом сценарии).</td>
+<td>Создаётся командой <code>odpm --build-image</code> (доступна <strong>только</strong> в этом сценарии). Бэкенд: <code>docker</code> (по умолчанию) или <code>kaniko</code> — см. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
 </tr>
 <tr>
 <td><strong>Исходники</strong></td>
@@ -2107,7 +2107,7 @@
 </tr>
 <tr>
 <td><strong>Base image</strong></td>
-<td>Профиль <strong>ci</strong> (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег <code>odoo-…-ci</code>; пересборка при смене шаблона или <code>Dockerfile</code> — см. <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md">ADR-007</a>.</td>
+<td>Профиль <strong>ci</strong> (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег <code>odoo-…-ci</code>; пересборка при смене шаблона или <code>Dockerfile</code> — см. <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md">ADR-007</a>. Для бэкенда <code>kaniko</code> локальный ensure base <strong>не</strong> выполняется: тег base должен быть доступен из registry.</td>
 </tr>
 </tbody>
 </table>
@@ -2115,14 +2115,14 @@
 <div class="highlight"><pre><span></span><code>отправка в git → машина сборки
   → ODPM_SCENARIO=ci
   → odpm --skip-start
-  → odpm --build-image [--image-tag реестр/проект:метка]
-  → публикация образа
+  → odpm --build-image [--image-tag реестр/проект:метка] [--image-builder docker|kaniko] [--image-push]
+  → публикация образа (или --image-push / артефакт tar для kaniko)
   → развёртывание (ваши инструменты)
 </code></pre></div>
 <h2 id="_4">Чеклист<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ol>
 <li>В git: <code>odpm.json</code> и закоммиченный <code>.odpm/deps.lock.json</code>.</li>
-<li>На машине сборки: Docker, odpm, <code>.env</code> с <code>ODPM_SCENARIO=ci</code>.</li>
+<li>На машине сборки: odpm, <code>.env</code> с <code>ODPM_SCENARIO=ci</code>; для <code>docker</code> — Docker daemon; для <code>kaniko</code> — executor (<code>docker-run</code> или <code>direct</code>) и pullable base из registry.</li>
 <li>Перед слиянием: <code>odpm plan --strict</code> — код возврата 1 при неожиданных изменениях.</li>
 <li>Проверка: HTTP-ответ 200 на <code>/web</code> после <code>docker compose up</code>.</li>
 </ol>
@@ -2130,9 +2130,14 @@
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
 odpm<span class="w"> </span>--skip-start
 odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0
+odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-builder<span class="w"> </span>kaniko<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
+<span class="nv">ODPM_CI_IMAGE_BUILDER</span><span class="o">=</span>kaniko<span class="w"> </span><span class="nv">ODPM_KANIKO_EXECUTOR_MODE</span><span class="o">=</span>direct<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
+<p>Без <code>--image-push</code> бэкенд <code>kaniko</code> пишет tar в <code>.odpm/ci-build-context/odpm-ci-image.tar</code>.</p>
+<p>В режиме <code>docker-run</code> с <code>--image-push</code> нужен <code>~/.docker/config.json</code> (<code>docker login</code>); иначе odpm завершится с ошибкой до запуска executor. Образ executor по умолчанию закреплён (<code>gcr.io/kaniko-project/executor:v1.23.2</code>); перекрывается <code>ODPM_KANIKO_EXECUTOR_IMAGE</code>. Opt-in Docker integration в CI покрывает только бэкенд <code>docker</code>; argv/<code>direct</code> для <code>kaniko</code> — unit-тесты.</p>
 <p>Инициализация без диалогов:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODOO_PROJECTS_DIR</span><span class="o">=</span>/data/odoo_projects
