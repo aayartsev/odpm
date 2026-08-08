@@ -2101,7 +2101,7 @@
 <li>Set <strong>strong passwords</strong> — see <a href="../../operations/security/">security</a>.</li>
 <li>Terminate <strong>HTTPS</strong> at nginx; in <code>odoo.conf</code> set <code>proxy_mode</code> and <code>dbfilter</code> if needed.</li>
 <li>Do not expose Odoo and PostgreSQL ports to the internet unless necessary.</li>
-<li>Before a <strong>non-interactive</strong> first run, ensure platform sources are already on disk (or prepare the environment once from an interactive terminal).</li>
+<li>To pin the platform version use <code>odoo_build_date</code> / <code>--odoo-build-date</code> (git checkout by date), not a separate archive download.</li>
 </ul>
 <h2 id="typical-administrator-commands">Typical administrator commands<a class="headerlink" href="#typical-administrator-commands" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--skip-start
