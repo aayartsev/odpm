@@ -23,3 +23,5 @@
 | Подготовка без git `--no-git-update` | да | да | да |
 
 Полный перечень параметров: [командная строка](cli.md). Для `kaniko` см. [сценарий ci](../scenarios/ci.md) и [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md).
+
+С **4.7+** ускорение venv: общий download-кэш ([wheel-cache.md](wheel-cache.md)) и golden core ([golden-venv.md](golden-venv.md)) — для `developer` / `server`; в `ci` (baked) не используются.

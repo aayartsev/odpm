@@ -57,6 +57,9 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_KANIKO_EXECUTOR_IMAGE` | Executor image for `docker-run` mode | `gcr.io/kaniko-project/executor:v1.23.2` |
 | `ODPM_KANIKO_EXECUTOR_BIN` | Executor binary for `direct` mode | `executor` |
 | `ODPM_LOCALE` | odpm message language, e.g. `ru_RU` | from system | see [locale.md](locale.md) |
+| `ODPM_WHEEL_CACHE_ROOT` | Shared pip/uv download cache across projects | `~/.odpm/cache` | see [wheel-cache.md](wheel-cache.md) |
+| `ODPM_GOLDEN_VENV` | Reuse core `.venv` by `venv_lock_hash` (`0` to disable; injected into compose `odoo`) | on | see [golden-venv.md](golden-venv.md) |
+| `ODPM_GOLDEN_VENV_ROOT` | Host directory for golden templates (mounts) | `~/.odpm/venvs` | see [golden-venv.md](golden-venv.md) |
 | `PATH_TO_SSH_KEY` | SSH key path for git (rarely needed) | empty |
 
 Changing `POSTGRES_SERVICE_NAME`, `POSTGRES_PORT`, or `ODPM_COMPOSE_PREFIX` relative to the saved snapshot causes **database drift** — see [PostgreSQL state](database-state.md).

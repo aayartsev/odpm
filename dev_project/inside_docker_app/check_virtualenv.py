@@ -6,12 +6,19 @@ from ..bake_venv import (
     apply_venv_env,
     build_spec_from_config,
     detect_uv_info,
-    install_fresh,
+    install_core_fresh,
     run_pip_command,
     venv_python_path,
 )
 from ..config.payload import compute_extras_stamp
 from ..container_config import ContainerConfig
+from ..golden_venv import (
+    clone_golden_to_project,
+    golden_enabled,
+    golden_exists,
+    golden_path,
+    populate_golden_from_project,
+)
 from .exceptions import VenvError
 from ..logging import get_module_logger
 from .extras_sync import (
@@ -152,6 +159,7 @@ class VirtualenvChecker:
             command,
             cwd=self.docker_project_dir,
             venv_dir=self.docker_venv_dir,
+            python_version=self.python_version,
         )
 
     def _write_extras_lock_file(self) -> None:
@@ -164,13 +172,37 @@ class VirtualenvChecker:
     def recreate_uv_venv(self):
         delete_files_in_directory(self.docker_venv_dir)
         spec = build_spec_from_config(self.config)
-        install_fresh(
-            spec,
-            use_uv=self.use_uv,
-            lock_file_path=self.venv_lock_file_path,
-            lock_hash=self.venv_lock_hash,
-        )
-        self._write_extras_lock_file()
+        used_golden = False
+        if golden_enabled() and golden_exists(self.venv_lock_hash):
+            used_golden = clone_golden_to_project(
+                golden_path(self.venv_lock_hash),
+                self.docker_venv_dir,
+                python_version=self.python_version,
+                project_dir=self.docker_project_dir,
+                use_uv=self.use_uv,
+            )
+            if used_golden:
+                with open(self.venv_lock_file_path, "w", encoding="utf-8") as lock_file:
+                    lock_file.write(self.venv_lock_hash)
+                _logger.info(
+                    "Cloned golden core venv for lock hash %s", self.venv_lock_hash
+                )
+        if not used_golden:
+            install_core_fresh(
+                spec,
+                use_uv=self.use_uv,
+                lock_file_path=self.venv_lock_file_path,
+                lock_hash=self.venv_lock_hash,
+            )
+            if golden_enabled():
+                populate_golden_from_project(
+                    self.docker_venv_dir,
+                    self.venv_lock_hash,
+                    python_version=self.python_version,
+                    project_dir=self.docker_project_dir,
+                    use_uv=self.use_uv,
+                )
+        self.sync_extras_requirements()
 
     def sync_extras_requirements(self) -> None:
         """Install extras via pip -r; uninstall managed packages removed from config."""

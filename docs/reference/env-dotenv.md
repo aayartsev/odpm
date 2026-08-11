@@ -55,6 +55,9 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_KANIKO_EXECUTOR_IMAGE` | Образ executor для режима `docker-run` | `gcr.io/kaniko-project/executor:v1.23.2` |
 | `ODPM_KANIKO_EXECUTOR_BIN` | Бинарь executor для режима `direct` | `executor` |
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
+| `ODPM_WHEEL_CACHE_ROOT` | Общий download-кэш pip/uv между проектами | `~/.odpm/cache` | см. [wheel-cache.md](wheel-cache.md) |
+| `ODPM_GOLDEN_VENV` | Переиспользование ядра `.venv` по `venv_lock_hash` (`0` — выкл.; пробрасывается в compose `odoo`) | вкл. | см. [golden-venv.md](golden-venv.md) |
+| `ODPM_GOLDEN_VENV_ROOT` | Каталог golden-шаблонов на хосте (для mounts) | `~/.odpm/venvs` | см. [golden-venv.md](golden-venv.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
 
 Смена `POSTGRES_SERVICE_NAME`, `POSTGRES_PORT` или `ODPM_COMPOSE_PREFIX` относительно сохранённого снимка даёт **database drift** — см. [состояние PostgreSQL](database-state.md).

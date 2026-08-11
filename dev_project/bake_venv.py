@@ -22,11 +22,14 @@ from . import constants
 from .container_config import ContainerConfig
 from .inside_docker_app.exceptions import VenvError
 from .logging import get_module_logger
+from .wheel_cache import apply_wheel_cache_env
 
 
 _logger = get_module_logger(__name__)
 
-UV_PIP_INSTALL_OPTIONS = ("--link-mode=copy",)
+UV_PIP_LINK_MODE_HARDLINK = "--link-mode=hardlink"
+UV_PIP_LINK_MODE_COPY = "--link-mode=copy"
+UV_PIP_INSTALL_OPTIONS = (UV_PIP_LINK_MODE_HARDLINK,)
 
 
 def venv_python_path(venv_dir: str) -> str:
@@ -45,6 +48,7 @@ def apply_venv_env(venv_dir: str, *, python_version: str | None = None) -> str:
         )
         if lib_path not in sys.path:
             sys.path.insert(1, lib_path)
+        apply_wheel_cache_env(python_version=python_version)
     return python_path
 
 
@@ -217,15 +221,82 @@ def _make_pip_runner(spec: VenvInstallSpec, use_uv: bool) -> PipRunner:
     )
 
 
-def _run_subprocess(cmd: list[str], *, cwd: str) -> None:
-    result = subprocess.run(cmd, cwd=cwd, check=False)
-    if result.returncode != 0:
+def _run_subprocess(
+    cmd: list[str],
+    *,
+    cwd: str,
+    python_version: str | None = None,
+) -> None:
+    if python_version is not None:
+        apply_wheel_cache_env(python_version=python_version)
+    returncode, stderr = _run_subprocess_tee_stderr(cmd, cwd=cwd)
+    if returncode != 0 and UV_PIP_LINK_MODE_HARDLINK in cmd:
+        if _should_fallback_uv_link_mode(stderr):
+            retry_cmd = [
+                UV_PIP_LINK_MODE_COPY if part == UV_PIP_LINK_MODE_HARDLINK else part
+                for part in cmd
+            ]
+            _logger.info(
+                "uv hardlink install failed; retrying with --link-mode=copy"
+            )
+            returncode, stderr = _run_subprocess_tee_stderr(retry_cmd, cwd=cwd)
+            cmd = retry_cmd
+    if returncode != 0:
         rendered = " ".join(cmd)
-        _logger.error("Command failed (exit %s): %s", result.returncode, rendered)
-        raise VenvError(
-            f"Command failed (exit {result.returncode}): {rendered}",
-            exit_code=result.returncode,
+        detail = stderr.strip()
+        _logger.error(
+            "Command failed (exit %s): %s%s",
+            returncode,
+            rendered,
+            f"\n{detail}" if detail else "",
         )
+        raise VenvError(
+            f"Command failed (exit {returncode}): {rendered}",
+            exit_code=returncode,
+        )
+
+
+def _run_subprocess_tee_stderr(cmd: list[str], *, cwd: str) -> tuple[int, str]:
+    """Run *cmd*, stream stderr live, and return ``(returncode, stderr_text)``."""
+    process = subprocess.Popen(
+        cmd,
+        cwd=cwd,
+        env=os.environ,
+        stdout=None,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    assert process.stderr is not None
+    chunks: list[str] = []
+    try:
+        while True:
+            line = process.stderr.readline()
+            if line == "" and process.poll() is not None:
+                break
+            if line:
+                chunks.append(line)
+                sys.stderr.write(line)
+                sys.stderr.flush()
+    finally:
+        remainder = process.stderr.read()
+        if remainder:
+            chunks.append(remainder)
+            sys.stderr.write(remainder)
+            sys.stderr.flush()
+        process.wait()
+    return process.returncode or 0, "".join(chunks)
+
+
+def _should_fallback_uv_link_mode(output: str) -> bool:
+    text = output.lower()
+    markers = (
+        "exdev",
+        "cross-device",
+        "invalid cross-device link",
+        "cross device",
+        "cross-device link",
+    )
+    return any(marker in text for marker in markers)
 
 
 def run_pip_command(
@@ -233,16 +304,20 @@ def run_pip_command(
     *,
     cwd: str | None = None,
     venv_dir: str | None = None,
+    python_version: str | None = None,
 ) -> None:
     """Run a pip/uv argv list (or legacy shell-less string) for callers outside bake."""
     argv = shlex.split(command) if isinstance(command, str) else list(command)
     workdir = cwd if cwd is not None else os.getcwd()
     if venv_dir is not None:
-        apply_venv_env(venv_dir)
-    _run_subprocess(argv, cwd=workdir)
+        apply_venv_env(venv_dir, python_version=python_version)
+    elif python_version is not None:
+        apply_wheel_cache_env(python_version=python_version)
+    _run_subprocess(argv, cwd=workdir, python_version=python_version)
 
 
 def create_venv(spec: VenvInstallSpec, use_uv: bool) -> None:
+    apply_wheel_cache_env(python_version=spec.python_version)
     if not use_uv:
         env = venv.EnvBuilder(with_pip=True)
         env.create(spec.venv_dir)
@@ -251,6 +326,7 @@ def create_venv(spec: VenvInstallSpec, use_uv: bool) -> None:
         ["uv", "venv", spec.venv_dir, "--python", sys.executable],
         cwd=spec.project_dir,
         check=False,
+        env=os.environ,
     )
     if result.returncode != 0:
         message = f"uv venv failed (exit {result.returncode})"
@@ -300,15 +376,17 @@ def install_extra_packages(extra_packages: list[str], pip: PipRunner) -> None:
             pip.install(package)
 
 
-def install_fresh(
+def install_core_fresh(
     spec: VenvInstallSpec,
     *,
     use_uv: bool | None = None,
     lock_file_path: str | None = None,
     lock_hash: str | None = None,
 ) -> None:
+    """Create venv and install Odoo core requirements (no project extras)."""
     if use_uv is None:
         use_uv = detect_uv()
+    apply_wheel_cache_env(python_version=spec.python_version)
     pip = _make_pip_runner(spec, use_uv)
     create_venv(spec, use_uv)
     activate_venv(spec)
@@ -317,10 +395,29 @@ def install_fresh(
     install_odoo_requirement_packages(
         odoo_packages, pip, spec.odoo_requirements_path
     )
-    install_extra_packages(spec.extra_packages, pip)
     if lock_file_path and lock_hash is not None:
         with open(lock_file_path, "w") as lock_file:
             lock_file.write(lock_hash)
+
+
+def install_fresh(
+    spec: VenvInstallSpec,
+    *,
+    use_uv: bool | None = None,
+    lock_file_path: str | None = None,
+    lock_hash: str | None = None,
+) -> None:
+    """Full venv install: core + project extras (CI bake / legacy)."""
+    if use_uv is None:
+        use_uv = detect_uv()
+    install_core_fresh(
+        spec,
+        use_uv=use_uv,
+        lock_file_path=lock_file_path,
+        lock_hash=lock_hash,
+    )
+    pip = _make_pip_runner(spec, use_uv)
+    install_extra_packages(spec.extra_packages, pip)
 
 
 def build_spec_from_config(config: ContainerConfig) -> VenvInstallSpec:

@@ -1,10 +1,11 @@
 import os
 import tempfile
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.dependency_resolver import DependencyResolutionResult
+from dev_project.project_env.types import MappedPath
 from dev_project.project_env.volume_mapper import VolumeMapper
 
 
@@ -31,6 +32,9 @@ class VolumeMapperTests(unittest.TestCase):
         config.docker_dirs_with_addons = []
         config.pre_commit_map_files = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
+        config.python_version = "3.12"
+        config.policy = MagicMock()
+        config.policy.mount_runtime_config_from_host.return_value = False
         user_env = MagicMock()
         user_env.backups = "/tmp/backups"
         config.user_env = user_env
@@ -51,6 +55,58 @@ class VolumeMapperTests(unittest.TestCase):
         self.assertEqual(len(folders), 8)
         self.assertEqual(folders[-1].local, "/tmp/developing")
         self.assertEqual(folders[-1].docker, "/docker/developing")
+
+    def test_build_base_folders_adds_wheel_cache_when_host_mount_policy(self):
+        env = self._make_env()
+        env.config.policy.mount_runtime_config_from_host.return_value = True
+        env.user_env.project_dotenv_dict = MagicMock(
+            return_value={constants.ODPM_WHEEL_CACHE_ROOT_ENV: "/var/cache/odpm"}
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch(
+                "dev_project.project_env.volume_mapper.host_cache_mounts",
+                return_value=[
+                    MappedPath(local=f"{tmp}/uv", docker="/cache/odpm/uv"),
+                    MappedPath(
+                        local=f"{tmp}/wheels/3.12",
+                        docker="/cache/odpm/wheels/3.12",
+                    ),
+                ],
+            ) as mock_mounts:
+                with patch(
+                    "dev_project.project_env.volume_mapper.host_golden_mounts",
+                    return_value=[
+                        MappedPath(
+                            local=f"{tmp}/venvs",
+                            docker=constants.GOLDEN_VENV_CONTAINER_ROOT,
+                        )
+                    ],
+                ) as mock_golden:
+                    folders = VolumeMapper(env).build_base_folders()
+            mock_mounts.assert_called_once()
+            self.assertEqual(
+                mock_mounts.call_args.kwargs["python_version"], "3.12"
+            )
+            self.assertEqual(
+                mock_mounts.call_args.kwargs["env"][constants.ODPM_WHEEL_CACHE_ROOT_ENV],
+                "/var/cache/odpm",
+            )
+            mock_golden.assert_called_once()
+            self.assertEqual(
+                mock_golden.call_args.kwargs["env"][constants.ODPM_WHEEL_CACHE_ROOT_ENV],
+                "/var/cache/odpm",
+            )
+        docker_paths = {folder.docker for folder in folders}
+        self.assertIn("/cache/odpm/uv", docker_paths)
+        self.assertIn("/cache/odpm/wheels/3.12", docker_paths)
+        self.assertIn(constants.GOLDEN_VENV_CONTAINER_ROOT, docker_paths)
+
+    def test_build_base_folders_skips_wheel_cache_without_host_mount_policy(self):
+        env = self._make_env()
+        env.config.policy.mount_runtime_config_from_host.return_value = False
+        folders = VolumeMapper(env).build_base_folders()
+        docker_paths = {folder.docker for folder in folders}
+        self.assertNotIn("/cache/odpm/uv", docker_paths)
 
     def test_append_dependency_mounts_skips_materialize_when_requested(self):
         env = self._make_env()

@@ -273,7 +273,7 @@ flowchart TB
 - **Один** `bake_venv` / `install_fresh` (у вас уже так)
 - Lock hash = f(python, distro, odoo_version, requirements, venv_mode, arch)
 - CI image **immutable**; dev — **mutable venv** с быстрым incremental sync
-- ~~Optional: **uv** everywhere для скорости~~ — **есть (4.0+):** в шаблонах `debian_12_dockerfile` / `debian_13_dockerfile` в образ ставится `uv`; `bake_venv.detect_uv()` + `install_fresh` и `VirtualenvChecker` при наличии `uv` в PATH используют `uv venv` / `uv pip` (с `--link-mode=copy`), иначе stdlib `venv` + `python -m pip` — один кодовый путь для fresh-режима (первый старт / recreate) и CI bake (`bake_venv` CLI)
+- ~~Optional: **uv** everywhere для скорости~~ — **есть (4.0+):** в шаблонах `debian_12_dockerfile` / `debian_13_dockerfile` в образ ставится `uv`; `bake_venv.detect_uv()` + `install_fresh` и `VirtualenvChecker` при наличии `uv` в PATH используют `uv venv` / `uv pip` (с `--link-mode=hardlink`, fallback на `copy` при EXDEV), иначе stdlib `venv` + `python -m pip` — один кодовый путь для fresh-режима (первый старт / recreate) и CI bake (`bake_venv` CLI). С 4.7+ — shared wheel cache и golden core venv.
 
 ---
 

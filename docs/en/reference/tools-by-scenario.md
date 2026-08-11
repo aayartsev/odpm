@@ -25,3 +25,5 @@ A single odpm utility provides a **set of commands**; in different scenarios (`O
 | Prepare without git `--no-git-update` | yes | yes | yes |
 
 Full parameter list: [command line](cli.md). For `kaniko` see [ci scenario](../scenarios/ci.md) and [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md).
+
+From **4.7+**, venv speedups: shared download cache ([wheel-cache.md](wheel-cache.md)) and golden core ([golden-venv.md](golden-venv.md)) for `developer` / `server`; not used in `ci` (baked).

@@ -50,3 +50,7 @@ DEVELOPING_PROJECT_DIR=/home/dev/my_addons
 ## Символические ссылки (`create_module_links`)
 
 Упрощают навигацию и отладку в VS Code — [отдельная статья](../operations/vscode-debug.md).
+
+## Связанные настройки окружения
+
+Общий кэш загрузок pip/uv между проектами задаётся в `.env` (`ODPM_WHEEL_CACHE_ROOT`) — см. [wheel-cache.md](wheel-cache.md) и [env-dotenv.md](env-dotenv.md). Переиспользование ядра `.venv` — [golden-venv.md](golden-venv.md).

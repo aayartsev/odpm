@@ -8,7 +8,10 @@ from typing import TYPE_CHECKING
 from .. import constants
 from ..translations import _
 from ..dependency_resolver import DependencyResolutionResult
+from ..host.user_env_parse import process_env_with_dotenv
 from ..logging import get_module_logger
+from ..wheel_cache import host_cache_mounts
+from ..golden_venv import host_golden_mounts
 from .types import MappedPath
 
 if TYPE_CHECKING:
@@ -59,6 +62,18 @@ class VolumeMapper:
                 ),
             ),
         ]
+        if self.config.policy.mount_runtime_config_from_host():
+            dotenv = {}
+            if hasattr(self.user_env, "project_dotenv_dict"):
+                dotenv = self.user_env.project_dotenv_dict()
+            cache_env = process_env_with_dotenv(dotenv)
+            mapped_folders.extend(
+                host_cache_mounts(
+                    python_version=self.config.python_version,
+                    env=cache_env,
+                )
+            )
+            mapped_folders.extend(host_golden_mounts(env=cache_env))
         if self.config.developing_project.project_path:
             mapped_folders.append(
                 MappedPath(

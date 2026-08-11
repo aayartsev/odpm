@@ -184,6 +184,7 @@ def _make_compose_env(
     user_env.compose_network_logical = compose_network_logical
     user_env.compose_network_physical = compose_network_physical
     user_env.compose_network_external = compose_network_external
+    user_env.project_dotenv_dict = MagicMock(return_value={})
     config.user_env = user_env
     return CreateProjectEnvironment(config)
 
@@ -199,6 +200,15 @@ class BuildComposeDocumentPrefixTests(unittest.TestCase):
         self.assertIn("acme-postgres-data", document["volumes"])
         self.assertEqual(document["name"], "acme")
 
+    def test_build_compose_document_passes_golden_venv_disable(self):
+        os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
+        env = _make_compose_env(compose_prefix="")
+        env.user_env.project_dotenv_dict = MagicMock(
+            return_value={constants.ODPM_GOLDEN_VENV_ENV: "0"}
+        )
+        document = build_compose_document(env)
+        odoo_env = document["services"][LOGICAL_ODOO]["environment"]
+        self.assertIn(f"{constants.ODPM_GOLDEN_VENV_ENV}=0", odoo_env)
     def test_build_compose_document_prefix_with_manifest_sidecar(self):
         os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
         env = _make_compose_env(

@@ -221,13 +221,28 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
         config.program_dir = os.path.dirname(
             os.path.dirname(os.path.dirname(__file__))
         )
+        config.python_version = "3.12"
         env.config = config
+        env.user_env = MagicMock()
+        env.user_env.project_dotenv_dict = MagicMock(
+            return_value={constants.ODPM_WHEEL_CACHE_ROOT_ENV: "/var/cache/odpm"}
+        )
         builder = CiImageBuilder(env)
         builder.prepare_ci_build_context = MagicMock()
         builder.generate_ci_dockerfile = MagicMock(return_value="/tmp/ctx/Dockerfile.ci")
 
-        builder.build_ci_image()
+        with patch(
+            "dev_project.project_env.ci_image.apply_wheel_cache_env"
+        ) as mock_wheel:
+            with patch.dict(os.environ, {}, clear=False):
+                os.environ.pop(constants.ODPM_WHEEL_CACHE_ROOT_ENV, None)
+                builder.build_ci_image()
+                self.assertEqual(
+                    os.environ[constants.ODPM_WHEEL_CACHE_ROOT_ENV],
+                    "/var/cache/odpm",
+                )
 
+        mock_wheel.assert_called_once_with(python_version="3.12")
         mock_base_svc.return_value.ensure_base_image.assert_called_once()
         mock_get_backend.assert_called_once_with("docker")
         backend.build.assert_called_once()
@@ -252,6 +267,7 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
         config.ci_build_context_dir = "/tmp/ctx"
         config.arch = "arm64"
         config.project_dir = "/tmp/project"
+        config.python_version = "3.12"
         env.config = config
         builder = CiImageBuilder(env)
         builder.prepare_ci_build_context = MagicMock()

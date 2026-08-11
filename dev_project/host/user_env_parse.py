@@ -7,7 +7,7 @@ import platform
 from configparser import ConfigParser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TypedDict
+from typing import Mapping, TypedDict
 
 from .. import constants
 from ..debugger.constants import (
@@ -118,6 +118,17 @@ def load_layered_dotenv_dict(
         merged.update(load_dotenv_dict(home_path))
     if project_path_file is not None:
         merged.update(load_dotenv_dict(project_path_file))
+    return merged
+
+
+def process_env_with_dotenv(
+    dotenv: Mapping[str, str] | None = None,
+) -> dict[str, str]:
+    """Merge layered dotenv with process env; process values override dotenv."""
+    merged: dict[str, str] = {}
+    if dotenv:
+        merged.update({str(key): str(value) for key, value in dotenv.items()})
+    merged.update({str(key): str(value) for key, value in os.environ.items()})
     return merged
 
 

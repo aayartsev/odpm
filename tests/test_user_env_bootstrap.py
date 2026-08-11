@@ -14,6 +14,7 @@ from dev_project.host.user_env import CreateUserEnvironment
 from dev_project.host.user_env_parse import (
     has_noninteractive_env_configuration,
     load_layered_dotenv_dict,
+    process_env_with_dotenv,
 )
 from dev_project.project_dir_manager import ProjectDirManager
 from tests.cli_test_helpers import cli_args
@@ -108,6 +109,27 @@ class LayeredDotenvTests(unittest.TestCase):
                     config_home_dir=pd_manager.home_config_dir,
                 )
             self.assertEqual(merged["ODOO_PORT"], "8070")
+
+    def test_process_env_with_dotenv_process_overrides(self):
+        with patch.dict(
+            os.environ,
+            {constants.ODPM_WHEEL_CACHE_ROOT_ENV: "/from/process"},
+            clear=False,
+        ):
+            merged = process_env_with_dotenv(
+                {constants.ODPM_WHEEL_CACHE_ROOT_ENV: "/from/dotenv"}
+            )
+        self.assertEqual(
+            merged[constants.ODPM_WHEEL_CACHE_ROOT_ENV], "/from/process"
+        )
+
+    def test_process_env_with_dotenv_fills_from_dotenv(self):
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop(constants.ODPM_GOLDEN_VENV_ENV, None)
+            merged = process_env_with_dotenv(
+                {constants.ODPM_GOLDEN_VENV_ENV: "0"}
+            )
+        self.assertEqual(merged[constants.ODPM_GOLDEN_VENV_ENV], "0")
 
     def test_create_user_env_partial_project_with_full_home(self):
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:

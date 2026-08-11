@@ -48,6 +48,20 @@ def _config_str(config, attr: str, default: str) -> str:
     return default
 
 
+def _odoo_cache_golden_environment(user_env) -> list[str]:
+    """Pass golden enable/disable from layered dotenv into the odoo service."""
+    from ..host.user_env_parse import process_env_with_dotenv
+
+    dotenv: dict[str, str] = {}
+    if hasattr(user_env, "project_dotenv_dict"):
+        dotenv = user_env.project_dotenv_dict()
+    merged = process_env_with_dotenv(dotenv)
+    raw = merged.get(constants.ODPM_GOLDEN_VENV_ENV)
+    if raw is None or str(raw).strip() == "":
+        return []
+    return [f"{constants.ODPM_GOLDEN_VENV_ENV}={str(raw).strip()}"]
+
+
 def _compose_command(compose_service) -> list[str]:
     command = getattr(compose_service, "command", None)
     if not isinstance(command, list) or not command:
@@ -122,6 +136,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         odoo_environment.append(
             f"{constants.ODPM_SECRETS_PATH_ENV}={constants.ODPM_SECRETS_CONTAINER_PATH}"
         )
+    odoo_environment.extend(_odoo_cache_golden_environment(user_env))
 
     odoo_ports = [
         f"{_resolve_port(user_env, 'odoo_port', constants.ODOO_DEFAULT_PORT)}:{constants.ODOO_DOCKER_PORT}",

@@ -350,6 +350,129 @@ class ExtrasSyncIntegrationTests(unittest.TestCase):
                 ]
             )
 
+    @patch("dev_project.inside_docker_app.check_virtualenv.delete_files_in_directory")
+    @patch("dev_project.inside_docker_app.check_virtualenv.build_spec_from_config")
+    @patch("dev_project.inside_docker_app.check_virtualenv.install_core_fresh")
+    @patch("dev_project.inside_docker_app.check_virtualenv.golden_enabled", return_value=False)
+    def test_recreate_uses_core_then_sync_extras(
+        self, _mock_golden_enabled, mock_core, mock_build_spec, _mock_delete
+    ):
+        with tempfile.TemporaryDirectory() as venv_dir:
+            config = minimal_container_config(
+                docker_venv_dir=venv_dir,
+                venv_mode=constants.VENV_MODE_FRESH,
+                venv_lock_hash="hash-1",
+                requirements_txt=["debugpy==1.7.0"],
+            )
+            checker = VirtualenvChecker.__new__(VirtualenvChecker)
+            checker.config = config
+            checker.docker_venv_dir = venv_dir
+            checker.venv_lock_file_path = str(Path(venv_dir) / ".lock")
+            checker.venv_lock_hash = "hash-1"
+            checker.use_uv = False
+            checker.requirements_txt = config.requirements_txt
+            checker.extras_lock_file_path = str(
+                Path(venv_dir) / constants.VENV_EXTRAS_LOCK_BASENAME
+            )
+            checker.extras_requirements_path = str(
+                Path(venv_dir) / constants.VENV_EXTRAS_REQUIREMENTS_BASENAME
+            )
+            checker.docker_project_dir = config.docker_project_dir
+            checker.python_version = config.python_version
+            mock_build_spec.return_value = MagicMock()
+            checker.sync_extras_requirements = MagicMock()
+
+            checker.recreate_uv_venv()
+
+            mock_core.assert_called_once()
+            self.assertEqual(
+                mock_core.call_args.kwargs["lock_hash"], "hash-1"
+            )
+            checker.sync_extras_requirements.assert_called_once()
+
+    @patch("dev_project.inside_docker_app.check_virtualenv.delete_files_in_directory")
+    @patch("dev_project.inside_docker_app.check_virtualenv.populate_golden_from_project")
+    @patch("dev_project.inside_docker_app.check_virtualenv.clone_golden_to_project")
+    @patch("dev_project.inside_docker_app.check_virtualenv.golden_path", return_value="/golden/hash")
+    @patch("dev_project.inside_docker_app.check_virtualenv.golden_exists", return_value=True)
+    @patch("dev_project.inside_docker_app.check_virtualenv.golden_enabled", return_value=True)
+    @patch("dev_project.inside_docker_app.check_virtualenv.install_core_fresh")
+    def test_recreate_clones_golden_when_available(
+        self,
+        mock_core,
+        _mock_enabled,
+        _mock_exists,
+        _mock_path,
+        mock_clone,
+        mock_populate,
+        _mock_delete,
+    ):
+        mock_clone.return_value = True
+        with tempfile.TemporaryDirectory() as venv_dir:
+            config = minimal_container_config(
+                docker_venv_dir=venv_dir,
+                venv_mode=constants.VENV_MODE_FRESH,
+                venv_lock_hash="hash-g",
+            )
+            checker = VirtualenvChecker.__new__(VirtualenvChecker)
+            checker.config = config
+            checker.docker_venv_dir = venv_dir
+            checker.venv_lock_file_path = str(Path(venv_dir) / ".lock")
+            checker.venv_lock_hash = "hash-g"
+            checker.use_uv = True
+            checker.docker_project_dir = config.docker_project_dir
+            checker.python_version = config.python_version
+            checker.sync_extras_requirements = MagicMock()
+
+            checker.recreate_uv_venv()
+
+            mock_clone.assert_called_once()
+            mock_core.assert_not_called()
+            mock_populate.assert_not_called()
+            self.assertEqual(
+                Path(checker.venv_lock_file_path).read_text(encoding="utf-8"),
+                "hash-g",
+            )
+            checker.sync_extras_requirements.assert_called_once()
+
+    @patch("dev_project.inside_docker_app.check_virtualenv.delete_files_in_directory")
+    @patch("dev_project.inside_docker_app.check_virtualenv.build_spec_from_config")
+    @patch("dev_project.inside_docker_app.check_virtualenv.populate_golden_from_project")
+    @patch("dev_project.inside_docker_app.check_virtualenv.golden_exists", return_value=False)
+    @patch("dev_project.inside_docker_app.check_virtualenv.golden_enabled", return_value=True)
+    @patch("dev_project.inside_docker_app.check_virtualenv.install_core_fresh")
+    def test_recreate_populates_golden_after_core_install(
+        self,
+        mock_core,
+        _mock_enabled,
+        _mock_exists,
+        mock_populate,
+        mock_build_spec,
+        _mock_delete,
+    ):
+        with tempfile.TemporaryDirectory() as venv_dir:
+            config = minimal_container_config(
+                docker_venv_dir=venv_dir,
+                venv_mode=constants.VENV_MODE_FRESH,
+                venv_lock_hash="hash-new",
+            )
+            checker = VirtualenvChecker.__new__(VirtualenvChecker)
+            checker.config = config
+            checker.docker_venv_dir = venv_dir
+            checker.venv_lock_file_path = str(Path(venv_dir) / ".lock")
+            checker.venv_lock_hash = "hash-new"
+            checker.use_uv = False
+            checker.docker_project_dir = config.docker_project_dir
+            checker.python_version = config.python_version
+            mock_build_spec.return_value = MagicMock()
+            checker.sync_extras_requirements = MagicMock()
+
+            checker.recreate_uv_venv()
+
+            mock_core.assert_called_once()
+            mock_populate.assert_called_once()
+            checker.sync_extras_requirements.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

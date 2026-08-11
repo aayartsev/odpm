@@ -52,3 +52,7 @@ When `true`, basic git and Docker checks run. Does not disable compose validatio
 ## Symbolic links (`create_module_links`)
 
 Simplify navigation and debugging in VS Code — [dedicated article](../operations/vscode-debug.md).
+
+## Related environment settings
+
+Shared pip/uv download cache across projects is configured in `.env` (`ODPM_WHEEL_CACHE_ROOT`) — see [wheel-cache.md](wheel-cache.md) and [env-dotenv.md](env-dotenv.md). Core `.venv` reuse — [golden-venv.md](golden-venv.md).

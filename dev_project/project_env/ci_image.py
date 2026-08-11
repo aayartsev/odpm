@@ -15,6 +15,8 @@ from ..bake_venv import (
 from ..config.payload import write_runtime_config_to_path
 from ..logging import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
+from ..wheel_cache import apply_wheel_cache_env
+from ..host.user_env_parse import process_env_with_dotenv
 from .image_build import (
     ImageBuildSpec,
     get_ci_image_build_backend,
@@ -248,7 +250,25 @@ class CiImageBuilder:
             writer.write(content)
         return dockerfile_path
 
+    def _apply_host_wheel_cache_env(self) -> None:
+        """Seed process env from layered dotenv, then set PIP/UV cache dirs."""
+        dotenv: dict[str, str] = {}
+        user_env = getattr(self.env, "user_env", None)
+        if user_env is not None and hasattr(user_env, "project_dotenv_dict"):
+            dotenv = user_env.project_dotenv_dict()
+        merged = process_env_with_dotenv(dotenv)
+        for key in (
+            constants.ODPM_WHEEL_CACHE_ROOT_ENV,
+            constants.PIP_CACHE_DIR_ENV,
+            constants.UV_CACHE_DIR_ENV,
+        ):
+            value = (merged.get(key) or "").strip()
+            if value and not (os.environ.get(key) or "").strip():
+                os.environ[key] = value
+        apply_wheel_cache_env(python_version=self.config.python_version)
+
     def build_ci_image(self) -> None:
+        self._apply_host_wheel_cache_env()
         builder_name = resolve_ci_image_builder(self.config.arguments)
         push = resolve_ci_image_push(self.config.arguments)
         if builder_name == constants.CI_IMAGE_BUILDER_DOCKER:

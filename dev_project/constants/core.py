@@ -207,6 +207,27 @@ ODOO_VERSION_DEFAULT_ENV = {
 DEFAULT_LOCALE = "en_US"
 ODPM_LOCALE_ENV_KEY = "ODPM_LOCALE"
 
+# Shared pip/uv download cache across odpm projects (see wheel_cache.py).
+ODPM_WHEEL_CACHE_ROOT_ENV = "ODPM_WHEEL_CACHE_ROOT"
+PIP_CACHE_DIR_ENV = "PIP_CACHE_DIR"
+UV_CACHE_DIR_ENV = "UV_CACHE_DIR"
+DEFAULT_WHEEL_CACHE_DIRNAME = "cache"
+WHEEL_CACHE_UV_SUBDIR = "uv"
+WHEEL_CACHE_WHEELS_SUBDIR = "wheels"
+WHEEL_CACHE_CONTAINER_ROOT = "/cache/odpm"
+
+# Golden core venv store (see golden_venv.py).
+ODPM_GOLDEN_VENV_ENV = "ODPM_GOLDEN_VENV"
+ODPM_GOLDEN_VENV_ROOT_ENV = "ODPM_GOLDEN_VENV_ROOT"
+DEFAULT_GOLDEN_VENV_DIRNAME = "venvs"
+GOLDEN_VENV_CONTAINER_ROOT = "/cache/odpm/venvs"
+GOLDEN_VENV_DIR_NAME = ".venv"
+GOLDEN_META_BASENAME = "meta.json"
+GOLDEN_CORE_FREEZE_BASENAME = "core-requirements.freeze.txt"
+GOLDEN_POPULATE_LOCK_BASENAME = ".populate.lock"
+GOLDEN_LOCK_BASENAME = ".lock"
+GOLDEN_INCOMPLETE_BASENAME = ".incomplete"
+
 MODULE_FILES = ("__manifest__.py", "__openerp__.py", "__odoo__.py", "__terp__.py")
 
 ####
