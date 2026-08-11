@@ -2009,6 +2009,18 @@
 <td style="text-align: center;"><strong>да</strong></td>
 </tr>
 <tr>
+<td>Бэкенд <code>--image-builder</code> / env <code>ODPM_CI_IMAGE_BUILDER</code> (<code>docker</code>, <code>kaniko</code>)</td>
+<td style="text-align: center;"><strong>нет</strong></td>
+<td style="text-align: center;"><strong>нет</strong></td>
+<td style="text-align: center;"><strong>да</strong></td>
+</tr>
+<tr>
+<td>Публикация <code>--image-push</code> / env <code>ODPM_CI_IMAGE_PUSH</code></td>
+<td style="text-align: center;"><strong>нет</strong></td>
+<td style="text-align: center;"><strong>нет</strong></td>
+<td style="text-align: center;"><strong>да</strong></td>
+</tr>
+<tr>
 <td>Подготовка без git <code>--no-git-update</code></td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
@@ -2016,7 +2028,7 @@
 </tr>
 </tbody>
 </table>
-<p>Полный перечень параметров: <a href="../cli/">командная строка</a>.</p>
+<p>Полный перечень параметров: <a href="../cli/">командная строка</a>. Для <code>kaniko</code> см. <a href="../../scenarios/ci/">сценарий ci</a> и <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</p>
 
 
 

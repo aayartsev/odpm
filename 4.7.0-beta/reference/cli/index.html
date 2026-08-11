@@ -2276,6 +2276,14 @@ odpm<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.
 <td>Имя и тег образа Docker для <code>--build-image</code></td>
 </tr>
 <tr>
+<td><code>--image-builder {docker,kaniko}</code></td>
+<td>Бэкенд сборки CI-образа (по умолчанию <code>docker</code>; перекрывает <code>ODPM_CI_IMAGE_BUILDER</code>)</td>
+</tr>
+<tr>
+<td><code>--image-push</code></td>
+<td>После сборки опубликовать образ (<code>docker push</code> / kaniko <code>--destination</code>)</td>
+</tr>
+<tr>
 <td><code>--version</code></td>
 <td>Показать версию odpm</td>
 </tr>

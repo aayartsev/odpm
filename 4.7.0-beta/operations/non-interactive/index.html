@@ -1857,17 +1857,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#server" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Сценарий server без исходников платформы
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#manifest-var" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2021,17 +2010,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#server" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Сценарий server без исходников платформы
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#manifest-var" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2102,14 +2080,6 @@
 </ul>
 <h2 id="odpmjson">Инициализация и <code>odpm.json</code><a class="headerlink" href="#odpmjson" title="Permanent link">&para;</a></h2>
 <p>При <code>--init</code> без готового <code>odpm.json</code> в разрабатываемом репозитории укажите <strong><code>--odoo-version</code></strong> или положите <code>odoo_version</code> в репозиторий до запуска.</p>
-<h2 id="server">Сценарий <code>server</code> без исходников платформы<a class="headerlink" href="#server" title="Permanent link">&para;</a></h2>
-<p>Если на диске ещё <strong>нет</strong> каталога с <code>odoo-bin</code>, в интерактивном режиме odpm может предложить скачать nightly-архив. <strong>Без TTY</strong> будет <strong>немедленная ошибка</strong>.</p>
-<p>Варианты:</p>
-<ul>
-<li>заранее заполнить каталог platform (через сценарий <code>developer</code> и git);</li>
-<li>один раз выполнить подготовку из обычного терминала;</li>
-<li>не использовать <code>server</code> для самого первого клонирования platform.</li>
-</ul>
 <h2 id="manifest-var">Manifest с <code>${VAR}</code><a class="headerlink" href="#manifest-var" title="Permanent link">&para;</a></h2>
 <p>Если в <code>odpm.json</code> или <code>user_settings.json</code> используются <code>${ИМЯ}</code>, задайте значения <strong>до</strong> запуска:</p>
 <table>

@@ -2301,6 +2301,14 @@ odpm<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.
 <td>Docker image name and tag for <code>--build-image</code></td>
 </tr>
 <tr>
+<td><code>--image-builder {docker,kaniko}</code></td>
+<td>CI image build backend (default <code>docker</code>; overrides <code>ODPM_CI_IMAGE_BUILDER</code>)</td>
+</tr>
+<tr>
+<td><code>--image-push</code></td>
+<td>After build, publish the image (<code>docker push</code> / kaniko <code>--destination</code>)</td>
+</tr>
+<tr>
 <td><code>--version</code></td>
 <td>Show odpm version</td>
 </tr>

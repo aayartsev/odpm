@@ -2098,7 +2098,7 @@
 <li>Задайте <strong>надёжные пароли</strong> — см. <a href="../../operations/security/">безопасность</a>.</li>
 <li>Вынесите <strong>HTTPS</strong> на nginx; в <code>odoo.conf</code> укажите <code>proxy_mode</code> и при необходимости <code>dbfilter</code>.</li>
 <li>Не открывайте порты Odoo и PostgreSQL в интернет без необходимости.</li>
-<li>Перед <strong>неинтерактивным</strong> первым запуском убедитесь, что исходники платформы уже на диске (или один раз подготовьте окружение из интерактивного терминала).</li>
+<li>Для фиксации версии платформы используйте <code>odoo_build_date</code> / <code>--odoo-build-date</code> (git checkout по дате), а не отдельную загрузку архива.</li>
 </ul>
 <h2 id="_4">Типичные команды администратора<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--skip-start

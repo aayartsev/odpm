@@ -2356,6 +2356,31 @@
 <td><code>developer</code></td>
 </tr>
 <tr>
+<td><code>ODPM_CI_IMAGE_BUILDER</code></td>
+<td><code>--build-image</code> backend: <code>docker</code> or <code>kaniko</code> (weaker than CLI <code>--image-builder</code>)</td>
+<td><code>docker</code></td>
+</tr>
+<tr>
+<td><code>ODPM_CI_IMAGE_PUSH</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — push after <code>--build-image</code> (same as <code>--image-push</code>)</td>
+<td>off</td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_MODE</code></td>
+<td><code>docker-run</code> or <code>direct</code></td>
+<td><code>docker-run</code></td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_IMAGE</code></td>
+<td>Executor image for <code>docker-run</code> mode</td>
+<td><code>gcr.io/kaniko-project/executor:v1.23.2</code></td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_BIN</code></td>
+<td>Executor binary for <code>direct</code> mode</td>
+<td><code>executor</code></td>
+</tr>
+<tr>
 <td><code>ODPM_LOCALE</code></td>
 <td>odpm message language, e.g. <code>ru_RU</code></td>
 <td>from system</td>
