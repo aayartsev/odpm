@@ -57,7 +57,7 @@ Not used in 4.5.0 — integration jobs run on every PR to `4.5-dev`. Future opti
 |-----|----------------------|-------------|-------|
 | `compose-smoke` | 20 | `ODPM_COMPOSE_SMOKE_TIMEOUT=900` | T1 fast gate |
 | `http-smoke` | 25 | `ODPM_HTTP_SMOKE_TIMEOUT=600` | T2 Mailpit HTTP |
-| `golden-path` | 9 | `ODPM_GOLDEN_PATH_TIMEOUT=60` | T3 self-hosted; remedi ate only if schema incompatible |
+| `golden-path` | 9 | `ODPM_GOLDEN_PATH_TIMEOUT=60` | T3 self-hosted; remedi ate only if schema incompatible; accept baseline drift (`postgres_major` / `odpm_scenario` / `data_dir_empty_changed`) |
 | `fixture-golden-path` (weekly) | 45 | `ODPM_FIXTURE_GOLDEN_TIMEOUT=900` | I2 in-repo `/web` |
 
 ### I2 — extended matrix (weekly + PR steps)

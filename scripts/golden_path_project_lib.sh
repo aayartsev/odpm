@@ -2,6 +2,16 @@
 # Shared helpers for golden-path runner maintenance scripts.
 set -euo pipefail
 
+# Non-interactive CI has no TTY for database drift prompts. Accept baseline
+# kinds that long-lived golden-path projects hit after template/postgres bumps
+# or remedi ate (see docs/reference/database-state.md). Do not auto-accept
+# data_path / app_role_missing — those need an operator decision.
+GOLDEN_PATH_ODPM_ACCEPT_DRIFT=(
+    --accept-database-drift=postgres_major
+    --accept-database-drift=odpm_scenario
+    --accept-database-drift=data_dir_empty_changed
+)
+
 golden_path_repo_root() {
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}")" && pwd)"
@@ -447,10 +457,12 @@ golden_path_remediate_database() {
     echo "Golden-path: initializing Odoo database ${db_name} (modules=${init_modules})..."
     # Pass -i MODULES via --odoo-bin only: user_settings.init_modules may be empty and
     # odpm's -i flag would not forward module names to odoo-bin.
-    odpm -d "${db_name}" --odoo-bin -i "${init_modules}" --stop-after-init
+    odpm -d "${db_name}" --odoo-bin -i "${init_modules}" --stop-after-init \
+        "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
     docker compose down --remove-orphans 2>/dev/null || true
     # Init bakes -i / --stop-after-init into docker-compose.yml; restore a long-running
     # start command before golden-path `compose up` (otherwise Odoo exits after load).
     echo "Golden-path: regenerating compose for long-running start (db=${db_name})..."
-    odpm -d "${db_name}" --skip-start --no-git-update
+    odpm -d "${db_name}" --skip-start --no-git-update \
+        "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
 }

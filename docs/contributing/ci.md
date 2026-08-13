@@ -118,11 +118,11 @@ sudo -n /usr/bin/dpkg --version   # must print version without password
 На pre-release тегах (`v*-beta`, `v*-rc*`, `v*-alpha`) job **golden-path** в `release-packages.yml` (`timeout-minutes: 9`):
 
 1. проверяет **собранный .deb** в чистом `ubuntu:24.04` (Docker, без `sudo` на runner);
-2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`** (`odpm --skip-start`; remedi ate **только** при несовместимой схеме);
+2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`** (`odpm --skip-start`; remedi ate **только** при несовместимой схеме; non-interactive `--accept-database-drift` для `postgres_major` / `odpm_scenario` / `data_dir_empty_changed`);
 3. `scripts/preflight_golden_path_project.sh` — fail-fast, если схема всё ещё несовместима с Odoo 19;
 4. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT` (`ODPM_GOLDEN_PATH_TIMEOUT=60`).
 
-Remedi ate в gate ограничен несовместимой схемой (не wipe на каждом run). Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуются `ODPM_GOLDEN_PATH_ENABLED=true` и secret `ODPM_GOLDEN_PATH_PROJECT` (иначе workflow падает явно, без ложного зелёного).
+Remedi ate в gate ограничен несовместимой схемой (не wipe на каждом run). Без TTY refresh/remediate передаёт `--accept-database-drift` для baseline-видов выше (не `data_path` / `app_role_missing`). Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуются `ODPM_GOLDEN_PATH_ENABLED=true` и secret `ODPM_GOLDEN_PATH_PROJECT` (иначе workflow падает явно, без ложного зелёного).
 
 ## Branch protection
 

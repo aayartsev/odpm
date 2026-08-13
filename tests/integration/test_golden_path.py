@@ -234,10 +234,19 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("ODPM_GOLDEN_PATH_AUTO_REMEDIATE", refresh)
         self.assertIn("golden_path_remediate_database", refresh)
         self.assertIn("docker compose down", refresh)
-        self.assertIn("odpm --skip-start --no-git-update", refresh)
+        self.assertIn(
+            'odpm --skip-start --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
+            refresh,
+        )
         self.assertIn("[golden-path refresh", refresh)
         lib = (root / "scripts" / "golden_path_project_lib.sh").read_text(encoding="utf-8")
         self.assertIn("ODPM_GOLDEN_PATH_INIT_MODULES", lib)
+        self.assertIn("GOLDEN_PATH_ODPM_ACCEPT_DRIFT", lib)
+        self.assertIn("--accept-database-drift=postgres_major", lib)
+        self.assertIn("--accept-database-drift=odpm_scenario", lib)
+        self.assertIn("--accept-database-drift=data_dir_empty_changed", lib)
+        self.assertNotIn("--accept-database-drift=data_path", lib)
+        self.assertNotIn("--accept-database-drift=app_role_missing", lib)
         self.assertIn("golden_path_sql_drop_database", lib)
         self.assertIn("golden_path_wipe_postgres_data", lib)
         self.assertIn("ir_module_module", lib)
@@ -249,6 +258,7 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("file://", lib)
         self.assertIn("regenerating compose for long-running start", lib)
         self.assertIn('odpm -d "${db_name}" --skip-start --no-git-update', lib)
+        self.assertIn('"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"', lib)
         self.assertNotIn("translate=boolean", lib)
         self.assertIn("alpine:3.20", lib)
         self.assertIn("golden_path_emit_schema_failure", lib)

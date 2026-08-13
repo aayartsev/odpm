@@ -48,7 +48,7 @@ docker compose down --remove-orphans 2>/dev/null || true
 log "docker compose down done (${SECONDS}s elapsed)"
 
 log "odpm --skip-start --no-git-update ..."
-odpm --skip-start --no-git-update
+odpm --skip-start --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
 log "odpm --skip-start done (${SECONDS}s elapsed)"
 log "Golden-path project refreshed with $(odpm --version 2>&1 | head -1)"
 ODOO_MANIFEST_VERSION="$(golden_path_odoo_version_from_manifest "${PROJECT}" || true)"
