@@ -2165,7 +2165,7 @@
 </tr>
 <tr>
 <td><code>services.*</code> / <code>service_patches.*</code> (v2)</td>
-<td>да — <code>image</code>, <code>user</code>, <code>restart</code>, <code>hostname</code>, списки (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), значения <code>environment</code>, строки в <code>healthcheck.test</code> / интервалах</td>
+<td>да — <code>image</code>, <code>user</code>, <code>restart</code>, <code>hostname</code>, <code>pid</code>, списки (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), значения <code>environment</code>, строки в <code>healthcheck.test</code> / интервалах; <code>tty</code> / <code>privileged</code> без подстановки</td>
 </tr>
 <tr>
 <td><code>odoo_conf.*</code> (v1/v2)</td>
@@ -2218,7 +2218,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>При <code>ODPM_COMPOSE_PREFIX=acme</code> в compose попадут <code>DB_HOST=acme-db</code> и <code>ODOO_URL=http://acme-odoo:8069</code> (синтаксис <code>depends_on: ["db"]</code> по-прежнему logical — prefix переписывает список отдельно).</p>
-<p>Опционально на sidecar и в <code>service_patches</code>: <strong><code>hostname</code></strong> (строка) и <strong><code>healthcheck</code></strong> (<code>test</code> строка или массив строк; <code>interval</code> / <code>timeout</code> / <code>retries</code> / <code>start_period</code> / <code>start_interval</code> / <code>disable</code>) — как в Docker Compose; <code>${VAR}</code> / <code>${@service:}</code> / <code>${@secret:}</code> раскрываются в <code>hostname</code> и строках <code>healthcheck</code>.</p>
+<p>Опционально на sidecar и в <code>service_patches</code>: <strong><code>hostname</code></strong> (строка), <strong><code>healthcheck</code></strong> (<code>test</code> строка или массив строк; <code>interval</code> / <code>timeout</code> / <code>retries</code> / <code>start_period</code> / <code>start_interval</code> / <code>disable</code>), <strong><code>privileged</code></strong> (boolean) и <strong><code>pid</code></strong> (строка, напр. <code>host</code> или <code>service:&lt;name&gt;</code>) — как в Docker Compose; <code>${VAR}</code> / <code>${@service:}</code> / <code>${@secret:}</code> раскрываются в <code>hostname</code>, <code>pid</code> и строках <code>healthcheck</code>.</p>
 <p>См. <a href="../env-dotenv/">переменные <code>.env</code></a>, <a href="../git-links/">ссылки на репозитории</a>.</p>
 <h2 id="service_sources-git-sidecarbuild-47">Блок <code>service_sources</code> (git sidecar/build-контексты, 4.7+)<a class="headerlink" href="#service_sources-git-sidecarbuild-47" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект в <strong>manifest v2</strong> (и в <code>scenarios.*</code>) — именованные git-ссылки на внешние репозитории для sidecar-сервисов и <code>docker build</code> в hooks. Синтаксис ссылок — как у <a href="../git-links/"><code>dependencies</code></a> и <code>platform.git</code>.</p>
