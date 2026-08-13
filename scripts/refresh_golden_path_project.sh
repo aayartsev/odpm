@@ -61,8 +61,20 @@ if [[ "${AUTO_REMEDIATE}" == "0" || "${AUTO_REMEDIATE}" == "false" ]]; then
     exit 0
 fi
 
+if [[ -z "${ODOO_MANIFEST_VERSION}" || "${ODOO_MANIFEST_VERSION}" != 19* ]]; then
+    echo "::error::Golden-path expects odpm.json odoo_version 19.x; got '${ODOO_MANIFEST_VERSION:-missing}'." >&2
+    echo "Fix ODPM_GOLDEN_PATH_PROJECT (or its odpm.json) on the self-hosted runner." >&2
+    exit 1
+fi
+
 log "ensure postgres up (service=${POSTGRES_SERVICE}) ..."
-golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
+if ! golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"; then
+    # Accepting postgres_major updates last_run.json but does not migrate the data
+    # directory; an old PG_VERSION leaves the new image crash-looping.
+    log "Postgres not ready after refresh; wiping postgres volume and remediating..."
+    golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}" 1
+    golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
+fi
 trap 'cd "${PROJECT}" && docker compose down --remove-orphans 2>/dev/null || true' EXIT
 
 if golden_path_database_exists "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then

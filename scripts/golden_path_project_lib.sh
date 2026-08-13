@@ -68,6 +68,10 @@ golden_path_ensure_postgres_up() {
         sleep 1
     done
     echo "Postgres did not become ready in ${project}" >&2
+    echo "--- docker compose ps ---" >&2
+    docker compose ps -a >&2 || true
+    echo "--- docker compose logs ${postgres_service} (tail) ---" >&2
+    docker compose logs --no-color --tail=80 "${postgres_service}" >&2 || true
     return 1
 }
 

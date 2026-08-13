@@ -22,7 +22,7 @@
 
 ### Изменено
 
-- **Golden-path refresh принимает baseline DB drift в CI** — `refresh_golden_path_project.sh` / remedi ate передают `--accept-database-drift` для `postgres_major`, `odpm_scenario` и `data_dir_empty_changed` (без TTY); не для `data_path` / `app_role_missing`. Тесты: `test_golden_path`. Документация: `docs/contributing/ci.md`.
+- **Golden-path refresh принимает baseline DB drift в CI** — `refresh_golden_path_project.sh` / remedi ate передают `--accept-database-drift` для `postgres_major`, `odpm_scenario` и `data_dir_empty_changed` (без TTY); не для `data_path` / `app_role_missing`. Если Postgres не поднимается после major-bump — wipe volume + remedi ate; fail-fast при `odoo_version` не `19.x`. Тесты: `test_golden_path`. Документация: `docs/contributing/ci.md`.
 - **Сценарий server клонирует platform через git** — как `developer`: prepare `git.materialize`; убрана legacy-загрузка nightly zip (`PlatformSourcesService`), хелперы free-space/Yandex Disk и `get_platform_sources`. Фиксация версии — `odoo_build_date` / `--odoo-build-date`. Документация: `docs/scenarios/server.md`, `docs/operations/non-interactive.md`.
 - **Golden-path CI ≤9 мин** — job `timeout-minutes: 9` в `release-packages.yml` / `ci-docker.yml`; refresh с `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1` (remedi ate при несовместимой схеме: `base` 19.x + `web`, и `res_lang.short_time_format` только если смонтированный Odoo ещё объявляет поле); HTTP wait `ODPM_GOLDEN_PATH_TIMEOUT=60`. Установка `.deb`: `sudo -n` fail-fast + `timeout 60` (без `-E`: узкий sudoers без SETENV); шаблон узкого NOPASSWD `scripts/ci/github-actions-runner-sudoers.example`. Документация: `docs/contributing/ci.md`, ADR-006.
 - **Новые проекты:** в `user_settings.json` по умолчанию `create_demo: false`.

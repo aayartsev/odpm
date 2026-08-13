@@ -239,6 +239,9 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
             refresh,
         )
         self.assertIn("[golden-path refresh", refresh)
+        self.assertIn("expects odpm.json odoo_version 19.x", refresh)
+        self.assertIn("Postgres not ready after refresh; wiping postgres volume", refresh)
+        self.assertIn("golden_path_remediate_database", refresh)
         lib = (root / "scripts" / "golden_path_project_lib.sh").read_text(encoding="utf-8")
         self.assertIn("ODPM_GOLDEN_PATH_INIT_MODULES", lib)
         self.assertIn("GOLDEN_PATH_ODPM_ACCEPT_DRIFT", lib)
@@ -247,6 +250,7 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("--accept-database-drift=data_dir_empty_changed", lib)
         self.assertNotIn("--accept-database-drift=data_path", lib)
         self.assertNotIn("--accept-database-drift=app_role_missing", lib)
+        self.assertIn("docker compose logs --no-color --tail=80", lib)
         self.assertIn("golden_path_sql_drop_database", lib)
         self.assertIn("golden_path_wipe_postgres_data", lib)
         self.assertIn("ir_module_module", lib)

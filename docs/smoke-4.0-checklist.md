@@ -189,7 +189,7 @@ export ODPM_RUN_DOCKER_INTEGRATION=1
 |-------|----------|--------|------|
 | `test_compose_up_serves_web` | PASS; HTTP 200 on `/web` | | |
 
-Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=60` (default; CI job ≤9 min). Pre-release refresh remediates only when schema is incompatible (`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`); non-interactive refresh/remediate accepts baseline DB drift (`postgres_major`, `odpm_scenario`, `data_dir_empty_changed`).
+Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=60` (default; CI job ≤9 min). Pre-release refresh remediates only when schema is incompatible (`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`); non-interactive refresh/remediate accepts baseline DB drift (`postgres_major`, `odpm_scenario`, `data_dir_empty_changed`); if Postgres does not become ready after a major bump, wipe + remedi ate; fail-fast unless `odoo_version` is `19.x`.
 
 ---
 
