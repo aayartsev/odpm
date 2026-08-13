@@ -2445,7 +2445,7 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Для sidecar доступны также <strong><code>user</code></strong>, <strong><code>tty</code></strong>, <strong><code>hostname</code></strong>, <strong><code>healthcheck</code></strong> (как в <code>service_patches</code>). Для sidecar с <strong>git build-контекстом</strong> (рекомендуется, 4.7+) используйте <code>service_sources</code> и <code>${@source:...}</code>; для API-ключей sidecar — <code>${@secret:...}</code> из <code>.odpm/secrets.json</code>:</p>
+<p>Для sidecar доступны также <strong><code>user</code></strong>, <strong><code>tty</code></strong>, <strong><code>hostname</code></strong>, <strong><code>healthcheck</code></strong>, <strong><code>privileged</code></strong>, <strong><code>pid</code></strong> (как в <code>service_patches</code>). Для sidecar с <strong>git build-контекстом</strong> (рекомендуется, 4.7+) используйте <code>service_sources</code> и <code>${@source:...}</code>; для API-ключей sidecar — <code>${@secret:...}</code> из <code>.odpm/secrets.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
 <span class="p">},</span>

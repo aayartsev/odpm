@@ -2385,7 +2385,7 @@
 </tr>
 <tr>
 <td><code>services.&lt;name&gt;</code></td>
-<td>Extra compose services: <code>image</code> required; optional <code>source</code> (service_sources name), <code>ports[]</code>, <code>environment</code>, <code>volumes[]</code>, <code>depends_on[]</code>, <code>restart</code>, <code>hostname</code>, <code>healthcheck</code>, <code>user</code>, <code>tty</code>, <code>command[]</code>, <code>entrypoint[]</code></td>
+<td>Extra compose services: <code>image</code> required; optional <code>source</code> (service_sources name), <code>ports[]</code>, <code>environment</code>, <code>volumes[]</code>, <code>depends_on[]</code>, <code>restart</code>, <code>hostname</code>, <code>healthcheck</code>, <code>privileged</code>, <code>pid</code>, <code>user</code>, <code>tty</code>, <code>command[]</code>, <code>entrypoint[]</code></td>
 </tr>
 <tr>
 <td><code>scenarios.developer</code> / <code>server</code> / <code>ci</code></td>
@@ -2619,7 +2619,7 @@
 </tr>
 <tr>
 <td><code>services.*</code> / <code>service_patches.*</code> (v2)</td>
-<td>yes — <code>image</code>, <code>user</code>, <code>restart</code>, <code>hostname</code>, lists (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), <code>environment</code> values, strings in <code>healthcheck.test</code> / intervals</td>
+<td>yes — <code>image</code>, <code>user</code>, <code>restart</code>, <code>hostname</code>, <code>pid</code>, lists (<code>ports</code>, <code>volumes</code>, <code>command</code>, …), <code>environment</code> values, strings in <code>healthcheck.test</code> / intervals; <code>tty</code> / <code>privileged</code> are not string-expanded</td>
 </tr>
 <tr>
 <td><code>odoo_conf.*</code> (v1/v2)</td>
@@ -2672,7 +2672,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>With <code>ODPM_COMPOSE_PREFIX=acme</code>, compose gets <code>DB_HOST=acme-db</code> and <code>ODOO_URL=http://acme-odoo:8069</code> (<code>depends_on: ["db"]</code> stays logical — prefix rewrites the list separately).</p>
-<p>Optional on sidecars and in <code>service_patches</code>: <strong><code>hostname</code></strong> (string) and <strong><code>healthcheck</code></strong> (<code>test</code> string or string array; <code>interval</code> / <code>timeout</code> / <code>retries</code> / <code>start_period</code> / <code>start_interval</code> / <code>disable</code>) — Compose-compatible; <code>${VAR}</code> / <code>${@service:}</code> / <code>${@secret:}</code> expand in <code>hostname</code> and <code>healthcheck</code> strings.</p>
+<p>Optional on sidecars and in <code>service_patches</code>: <strong><code>hostname</code></strong> (string), <strong><code>healthcheck</code></strong> (<code>test</code> string or string array; <code>interval</code> / <code>timeout</code> / <code>retries</code> / <code>start_period</code> / <code>start_interval</code> / <code>disable</code>), <strong><code>privileged</code></strong> (boolean), and <strong><code>pid</code></strong> (string, e.g. <code>host</code> or <code>service:&lt;name&gt;</code>) — Compose-compatible; <code>${VAR}</code> / <code>${@service:}</code> / <code>${@secret:}</code> expand in <code>hostname</code>, <code>pid</code>, and <code>healthcheck</code> strings.</p>
 <p>See <a href="../env-dotenv/"><code>.env</code> variables</a>, <a href="../git-links/">repository links</a>.</p>
 <h2 id="service_sources-block-git-sidecarbuild-contexts-47"><code>service_sources</code> block (git sidecar/build contexts, 4.7+)<a class="headerlink" href="#service_sources-block-git-sidecarbuild-contexts-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object (and in <code>scenarios.*</code>) — named git links to external repositories for sidecar services and <code>docker build</code> hooks. Link syntax matches <a href="../git-links/"><code>dependencies</code></a> and <code>platform.git</code>.</p>
