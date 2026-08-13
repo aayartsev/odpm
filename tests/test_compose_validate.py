@@ -92,6 +92,29 @@ class ComposeValidateTests(unittest.TestCase):
                 {"services": {"odoo": {"image": "odoo:dev", "healthcheck": "bad"}}}
             )
 
+    def test_privileged_and_pid_pass_when_valid(self):
+        validate_compose_document(
+            {
+                "services": {
+                    "sysbox": {
+                        "image": "example/sys:latest",
+                        "privileged": True,
+                        "pid": "host",
+                    }
+                }
+            }
+        )
+
+    def test_invalid_privileged_or_pid_raises(self):
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "privileged": "yes"}}}
+            )
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "pid": ""}}}
+            )
+
     def test_validate_text_skips_header_comment(self):
         body = dump_document({"services": {"db": {"image": "postgres:16"}}})
         validate_compose_text(f"# generated\n\n{body}")

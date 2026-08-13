@@ -349,7 +349,9 @@ def _expand_field_value(
     return value
 
 
-_COMPOSE_SERVICE_STRING_SCALARS = frozenset({"image", "user", "restart", "hostname"})
+_COMPOSE_SERVICE_STRING_SCALARS = frozenset(
+    {"image", "user", "restart", "hostname", "pid"}
+)
 _COMPOSE_SERVICE_STRING_LISTS = frozenset({
     "ports",
     "volumes",

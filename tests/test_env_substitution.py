@@ -619,6 +619,38 @@ class ExpandComposeServiceMapTests(unittest.TestCase):
         self.assertEqual(expanded["minio"]["healthcheck"]["interval"], "30s")
         self.assertEqual(expanded["minio"]["healthcheck"]["retries"], 3)
 
+    def test_expands_pid_string(self):
+        from dev_project.compose.service_names import resolve_compose_naming
+
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name="db",
+        )
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={"PID_MODE": "host"},
+            compose_naming=naming,
+        )
+        services = {
+            "sysbox": {
+                "image": "example/sys:latest",
+                "privileged": True,
+                "pid": "${PID_MODE}",
+            },
+            "helper": {
+                "image": "busybox:latest",
+                "pid": "service:${@service:odoo}",
+            },
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["sysbox"]["pid"], "host")
+        self.assertTrue(expanded["sysbox"]["privileged"])
+        self.assertEqual(expanded["helper"]["pid"], "service:acme-odoo")
+
 
 class SecretRefExpansionTests(unittest.TestCase):
     def test_expands_dotted_secret_key(self):

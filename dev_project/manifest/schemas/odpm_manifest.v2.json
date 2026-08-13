@@ -264,7 +264,9 @@
           "items": { "type": "string" }
         },
         "user": { "type": "string", "minLength": 1 },
-        "tty": { "type": "boolean" }
+        "tty": { "type": "boolean" },
+        "privileged": { "type": "boolean" },
+        "pid": { "type": "string", "minLength": 1 }
       }
     },
     "composeServicePatch": {
@@ -307,7 +309,9 @@
           "items": { "type": "string" }
         },
         "user": { "type": "string", "minLength": 1 },
-        "tty": { "type": "boolean" }
+        "tty": { "type": "boolean" },
+        "privileged": { "type": "boolean" },
+        "pid": { "type": "string", "minLength": 1 }
       }
     },
     "composeHealthcheck": {

@@ -24,7 +24,7 @@
 |------|-------------|
 | `odoo_git_link` | да |
 | `dependencies` | да (каждый элемент списка) |
-| `services.*` / `service_patches.*` (v2) | да — `image`, `user`, `restart`, `hostname`, списки (`ports`, `volumes`, `command`, …), значения `environment`, строки в `healthcheck.test` / интервалах |
+| `services.*` / `service_patches.*` (v2) | да — `image`, `user`, `restart`, `hostname`, `pid`, списки (`ports`, `volumes`, `command`, …), значения `environment`, строки в `healthcheck.test` / интервалах; `tty` / `privileged` без подстановки |
 | `odoo_conf.*` (v1/v2) | да — все строковые значения во **всех** секциях `odoo_conf` (`options`, `redis_server`, …) |
 | `hooks.*` argv (v2) | да — при **выполнении** hook (не при `odpm manifest validate`) |
 | `service_sources.*` (v2) | да — значение git-ссылки для каждого имени |
@@ -80,7 +80,7 @@ GIT_HOST=git.company.example
 
 При `ODPM_COMPOSE_PREFIX=acme` в compose попадут `DB_HOST=acme-db` и `ODOO_URL=http://acme-odoo:8069` (синтаксис `depends_on: ["db"]` по-прежнему logical — prefix переписывает список отдельно).
 
-Опционально на sidecar и в `service_patches`: **`hostname`** (строка) и **`healthcheck`** (`test` строка или массив строк; `interval` / `timeout` / `retries` / `start_period` / `start_interval` / `disable`) — как в Docker Compose; `${VAR}` / `${@service:}` / `${@secret:}` раскрываются в `hostname` и строках `healthcheck`.
+Опционально на sidecar и в `service_patches`: **`hostname`** (строка), **`healthcheck`** (`test` строка или массив строк; `interval` / `timeout` / `retries` / `start_period` / `start_interval` / `disable`), **`privileged`** (boolean) и **`pid`** (строка, напр. `host` или `service:<name>`) — как в Docker Compose; `${VAR}` / `${@service:}` / `${@secret:}` раскрываются в `hostname`, `pid` и строках `healthcheck`.
 
 См. [переменные `.env`](env-dotenv.md), [ссылки на репозитории](git-links.md).
 

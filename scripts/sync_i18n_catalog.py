@@ -126,6 +126,12 @@ RU_MESSAGES: dict[str, str] = {
     "Compose service {NAME}.hostname must be a non-empty string": (
         "Поле hostname сервиса compose {NAME} должно быть непустой строкой"
     ),
+    "Compose service {NAME}.pid must be a non-empty string": (
+        "Поле pid сервиса compose {NAME} должно быть непустой строкой"
+    ),
+    "Compose service {NAME}.privileged must be a boolean": (
+        "Поле privileged сервиса compose {NAME} должно быть boolean"
+    ),
     "Compose service {NAME}.{FIELD} must be a list": (
         "Поле {FIELD} сервиса compose {NAME} должно быть списком"
     ),

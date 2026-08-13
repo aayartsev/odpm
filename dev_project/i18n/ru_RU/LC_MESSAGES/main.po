@@ -149,6 +149,12 @@ msgstr "Поле healthcheck сервиса compose {NAME} должно быть
 msgid "Compose service {NAME}.hostname must be a non-empty string"
 msgstr "Поле hostname сервиса compose {NAME} должно быть непустой строкой"
 
+msgid "Compose service {NAME}.pid must be a non-empty string"
+msgstr "Поле pid сервиса compose {NAME} должно быть непустой строкой"
+
+msgid "Compose service {NAME}.privileged must be a boolean"
+msgstr "Поле privileged сервиса compose {NAME} должно быть boolean"
+
 msgid "Compose service {NAME}.tty must be a boolean"
 msgstr "Поле tty сервиса compose {NAME} должно быть boolean"
 

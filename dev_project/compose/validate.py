@@ -120,6 +120,16 @@ def _validate_service_scalars(name: str, spec: dict[str, Any]) -> None:
         raise ConfigError(
             _("Compose service {NAME}.healthcheck must be a mapping").format(NAME=name)
         )
+    privileged = spec.get("privileged")
+    if privileged is not None and not isinstance(privileged, bool):
+        raise ConfigError(
+            _("Compose service {NAME}.privileged must be a boolean").format(NAME=name)
+        )
+    pid = spec.get("pid")
+    if pid is not None and (not isinstance(pid, str) or not pid.strip()):
+        raise ConfigError(
+            _("Compose service {NAME}.pid must be a non-empty string").format(NAME=name)
+        )
 
 
 def _validate_service_networks(

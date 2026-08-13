@@ -91,6 +91,19 @@ class ComposeFragmentsRenderTests(unittest.TestCase):
         self.assertIn("      interval: 30s", block)
         self.assertIn("      retries: 3", block)
 
+    def test_render_service_with_privileged_and_pid(self):
+        block = render_compose_services_block(
+            {
+                "sysbox": {
+                    "image": "example/sys:latest",
+                    "privileged": True,
+                    "pid": "host",
+                }
+            }
+        )
+        self.assertIn("    privileged: true", block)
+        self.assertIn("    pid: host", block)
+
 
 class ComposeFragmentsCollectTests(unittest.TestCase):
     def setUp(self) -> None:

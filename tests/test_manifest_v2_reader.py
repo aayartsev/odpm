@@ -258,6 +258,33 @@ class LoadManifestTests(unittest.TestCase):
         self.assertEqual(view.service_patches["odoo"]["hostname"], "odoo-app")
         self.assertEqual(view.service_patches["odoo"]["healthcheck"], {"disable": True})
 
+    def test_v2_services_privileged_and_pid_allowed(self):
+        raw = _minimal_v2(
+            services={
+                "sysbox": {
+                    "image": "example/sys:latest",
+                    "privileged": True,
+                    "pid": "host",
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.services["sysbox"]["privileged"], True)
+        self.assertEqual(view.services["sysbox"]["pid"], "host")
+
+    def test_v2_service_patches_privileged_and_pid_allowed(self):
+        raw = _minimal_v2(
+            service_patches={
+                "odoo": {
+                    "privileged": False,
+                    "pid": "service:db",
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.service_patches["odoo"]["privileged"], False)
+        self.assertEqual(view.service_patches["odoo"]["pid"], "service:db")
+
     def test_v1_validate_accepts_minimal_flat_manifest(self):
         validate_manifest_v1(
             {
