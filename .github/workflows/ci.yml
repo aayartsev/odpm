@@ -32,6 +32,10 @@ jobs:
 
       - uses: astral-sh/ruff-action@v4.0.0
         with:
+          # Pin explicitly: pyproject has no ruff dep, and resolving "latest"
+          # via astral-sh/versions can fail (fetch). Keep in sync with
+          # .pre-commit-config.yaml (ruff-pre-commit rev).
+          version: "0.11.13"
           args: check dev_project tests odpm.py
 
   i18n:

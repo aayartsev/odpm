@@ -267,6 +267,11 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("alpine:3.20", lib)
         self.assertIn("golden_path_emit_schema_failure", lib)
         self.assertIn('--odoo-bin -i "${init_modules}"', lib)
+        # Init command must put accept-drift before --odoo-bin (REMAINDER).
+        self.assertRegex(
+            lib,
+            r'odpm -d "\$\{db_name\}"\s+\\\s*"\$\{GOLDEN_PATH_ODPM_ACCEPT_DRIFT\[@\]\}"\s+\\\s*--odoo-bin',
+        )
 
     def test_platform_dir_discovers_compose_bind_and_short_time_format(self) -> None:
         import subprocess

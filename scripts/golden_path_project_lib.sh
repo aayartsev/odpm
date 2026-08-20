@@ -461,8 +461,11 @@ golden_path_remediate_database() {
     echo "Golden-path: initializing Odoo database ${db_name} (modules=${init_modules})..."
     # Pass -i MODULES via --odoo-bin only: user_settings.init_modules may be empty and
     # odpm's -i flag would not forward module names to odoo-bin.
-    odpm -d "${db_name}" --odoo-bin -i "${init_modules}" --stop-after-init \
-        "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
+    # Accept-drift flags MUST come before --odoo-bin (argparse REMAINDER), or Odoo
+    # sees --accept-database-drift and exits with "no such option".
+    odpm -d "${db_name}" \
+        "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}" \
+        --odoo-bin -i "${init_modules}" --stop-after-init
     docker compose down --remove-orphans 2>/dev/null || true
     # Init bakes -i / --stop-after-init into docker-compose.yml; restore a long-running
     # start command before golden-path `compose up` (otherwise Odoo exits after load).
