@@ -2357,7 +2357,7 @@
 </tr>
 <tr>
 <td><code>ODPM_CI_IMAGE_BUILDER</code></td>
-<td><code>--build-image</code> backend: <code>docker</code> or <code>kaniko</code> (weaker than CLI <code>--image-builder</code>)</td>
+<td><code>--build-image</code> backend: <code>docker</code> or <code>kaniko</code> (weaker than CLI <code>--image-builder</code>; read from layered <code>.env</code>, ADR-017)</td>
 <td><code>docker</code></td>
 </tr>
 <tr>
@@ -2367,7 +2367,7 @@
 </tr>
 <tr>
 <td><code>ODPM_KANIKO_EXECUTOR_MODE</code></td>
-<td><code>docker-run</code> or <code>direct</code></td>
+<td><code>docker-run</code> or <code>direct</code> (CI+kaniko wizard defaults to <code>direct</code>)</td>
 <td><code>docker-run</code></td>
 </tr>
 <tr>
@@ -2379,6 +2379,11 @@
 <td><code>ODPM_KANIKO_EXECUTOR_BIN</code></td>
 <td>Executor binary for <code>direct</code> mode</td>
 <td><code>executor</code></td>
+</tr>
+<tr>
+<td><code>ODPM_BASE_IMAGE_REGISTRY</code></td>
+<td>Registry prefix for the base image when using <code>kaniko</code> (required for daemonless base)</td>
+<td>empty</td>
 </tr>
 <tr>
 <td><code>ODPM_LOCALE</code></td>

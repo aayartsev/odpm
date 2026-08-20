@@ -2135,7 +2135,7 @@
 <h2 id="var-substitution-in-developing_project"><code>${VAR}</code> substitution in <code>developing_project</code><a class="headerlink" href="#var-substitution-in-developing_project" title="Permanent link">&para;</a></h2>
 <p>Field <strong><code>developing_project</code></strong> is the only one in <code>user_settings.json</code> where odpm expands <code>${NAME}</code> / <code>${NAME:-default}</code> when reading the file. Value source: <code>export</code> / CI → project <code>.env</code> → default in the string.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;developing_project&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file://${DEVELOPING_PROJECT_DIR}&quot;</span>
+<span class="w">  </span><span class="nt">"developing_project"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file://${DEVELOPING_PROJECT_DIR}"</span>
 <span class="p">}</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="na">DEVELOPING_PROJECT_DIR</span><span class="o">=</span><span class="s">/home/dev/my_addons</span>

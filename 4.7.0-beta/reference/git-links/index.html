@@ -2153,9 +2153,9 @@ git@github.com:org/odoo.git 19.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
 <p>Для <code>file://</code> в файле фиксации версий записывается <strong>отпечаток содержимого</strong> каталога, а не хеш git — для общей сборки надёжнее удалённый репозиторий.</p>
 <h2 id="var-manifest"><code>${VAR}</code> в ссылках manifest<a class="headerlink" href="#var-manifest" title="Permanent link">&para;</a></h2>
 <p>В <code>odpm.json</code> и в <code>developing_project</code> можно писать пути и хосты через переменные, чтобы <strong>один</strong> manifest в git подходил разным машинам:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;odoo_git_link&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file://${ODOO_PLATFORM_DIR}&quot;</span><span class="p">,</span>
-<span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;file://${OCA_WEB_PATH}&quot;</span><span class="p">],</span>
-<span class="nt">&quot;developing_project&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file://${DEVELOPING_PROJECT_DIR}&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"odoo_git_link"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file://${ODOO_PLATFORM_DIR}"</span><span class="p">,</span>
+<span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"file://${OCA_WEB_PATH}"</span><span class="p">],</span>
+<span class="nt">"developing_project"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file://${DEVELOPING_PROJECT_DIR}"</span>
 </code></pre></div>
 <p>Значения задают в project <code>.env</code> или в окружении процесса (CI). После раскрытия odpm работает с обычной ссылкой <code>file://</code> или git URL. Подробнее: <a href="../odpm-json/">odpm.json</a>, <a href="../env-dotenv/">переменные <code>.env</code></a>.</p>
 <h2 id="_3">Где указывать в конфигурации<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>

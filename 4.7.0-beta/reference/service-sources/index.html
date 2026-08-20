@@ -2148,27 +2148,27 @@
 <p>Репозитории из <code>service_sources</code> <strong>не</strong> попадают в <code>dependencies</code> и <strong>не</strong> добавляются в <code>addons_path</code>.</p>
 <h2 id="manifest">Пример manifest<a class="headerlink" href="#manifest" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.7.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
+<span class="w">  </span><span class="nt">"manifest_schema"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"requires_odpm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4.7.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"service_sources"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"autoparts_env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/org/autoparts-env.git 17.0"</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"armtek_test"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"root"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"tty"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"volumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"${@source:autoparts_env}/data:/data:Z"</span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="nt">"hooks"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"post_prepare"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">      </span><span class="p">[</span>
-<span class="w">        </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${@source:autoparts_env}/Dockerfile&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="s2">&quot;${@source:autoparts_env}&quot;</span>
+<span class="w">        </span><span class="s2">"docker"</span><span class="p">,</span><span class="w"> </span><span class="s2">"build"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"-f"</span><span class="p">,</span><span class="w"> </span><span class="s2">"${@source:autoparts_env}/Dockerfile"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"-t"</span><span class="p">,</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"${@source:autoparts_env}"</span>
 <span class="w">      </span><span class="p">]</span>
 <span class="w">    </span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
@@ -2195,11 +2195,11 @@
 <p>В <code>scenarios.*</code> блок <code>service_sources</code> merge <strong>replace-by-name</strong> (overlay перекрывает то же имя).</p>
 <h2 id="depslock">deps.lock<a class="headerlink" href="#depslock" title="Permanent link">&para;</a></h2>
 <p>В <code>.odpm/deps.lock.json</code> (schema v1):</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;commit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;…&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;branch&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;17.0&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"service_sources"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"autoparts_env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/org/autoparts-env"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"commit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"branch"</span><span class="p">:</span><span class="w"> </span><span class="s2">"17.0"</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
