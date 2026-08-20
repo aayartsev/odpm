@@ -1943,13 +1943,13 @@
 <td>Start <code>docker compose up</code></td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
-<td style="text-align: center;">yes</td>
+<td style="text-align: center;">via <code>docker compose</code> after <code>--skip-start</code> / <code>--build-image</code> (bare <code>odpm</code> in ci rejected, ADR-017)</td>
 </tr>
 <tr>
 <td>Database and modules <code>-d -i -u</code></td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
-<td style="text-align: center;">yes</td>
+<td style="text-align: center;">after <code>compose up</code> via <code>compose exec</code> (not bare <code>odpm</code>)</td>
 </tr>
 <tr>
 <td>Module tests <code>-t</code></td>

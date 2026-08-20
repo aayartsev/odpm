@@ -2437,41 +2437,41 @@
 <h2 id="declarative-service-mailpit">Declarative service (Mailpit)<a class="headerlink" href="#declarative-service-mailpit" title="Permanent link">&para;</a></h2>
 <p>Test SMTP with web UI on port <strong>8025</strong>. Add to nested manifest v2:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.6.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;mailpit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;axllent/mailpit&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;restart&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;unless-stopped&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ports&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;8025:8025&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;1025:1025&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="nt">"manifest_schema"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"requires_odpm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4.6.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"mailpit"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"axllent/mailpit"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"restart"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unless-stopped"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"ports"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"8025:8025"</span><span class="p">,</span><span class="w"> </span><span class="s2">"1025:1025"</span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Sidecars may set <strong><code>user</code></strong>, <strong><code>tty</code></strong>, <strong><code>hostname</code></strong>, <strong><code>healthcheck</code></strong>, <strong><code>privileged</code></strong>, and <strong><code>pid</code></strong> (same as <code>service_patches</code>). For <strong>git build contexts</strong> (recommended, 4.7+), use <code>service_sources</code> and <code>${@source:...}</code>; for sidecar API keys use <code>${@secret:...}</code> from <code>.odpm/secrets.json</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"service_sources"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"autoparts_env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/org/autoparts-env.git 17.0"</span>
 <span class="p">},</span>
-<span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;APILOGIN&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:partner_armtek.armtek.apilogin}&quot;</span>
+<span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"armtek_test"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"root"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"tty"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"volumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"${@source:autoparts_env}/data:/data:Z"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"environment"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"APILOGIN"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@secret:partner_armtek.armtek.apilogin}"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p><code>${@secret:...}</code> requires <code>.odpm/secrets.json</code> or <code>--secrets-file</code>; the value lands in generated compose YAML intentionally. See <a href="../../operations/secrets/">secrets.md</a>. See also <a href="../service-sources/">service-sources.md</a>. Legacy path from <code>.env</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"armtek_test"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"root"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"tty"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"volumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -2488,24 +2488,24 @@
 </code></pre></div>
 <p>See <a href="../env-dotenv/">env-dotenv.md</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md">ADR-014</a>.</p>
 <p>Sidecars may declare <code>networks</code> (logical names; with <code>ODPM_COMPOSE_PREFIX</code> odpm rewrites managed networks to physical names; external names stay as-is):</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;metrics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prom/prometheus&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;networks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;stack&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"metrics"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"prom/prometheus"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"networks"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"stack"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>If manifest uses <code>networks: ["stack"]</code>, <code>.env</code> must set <strong><code>ODPM_COMPOSE_NETWORK=stack</code></strong> (or omit <code>networks</code> — odpm attaches the sidecar automatically). <code>odpm manifest validate</code> logs a <strong>warning</strong> when logical <code>stack</code> does not match <code>.env</code>.</p>
 <p>Proxy-only sidecar with <code>${VAR}</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;networks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${PROXY_NETWORK}&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"networks"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"${PROXY_NETWORK}"</span><span class="p">]</span>
 </code></pre></div>
 <p>with <code>PROXY_NETWORK=proxy</code> and <code>ODPM_COMPOSE_NETWORK=proxy</code> in <code>.env</code>.</p>
 <h3 id="patch-built-in-services-service_patches-46">Patch built-in services (<code>service_patches</code>, 4.6+)<a class="headerlink" href="#patch-built-in-services-service_patches-46" title="Permanent link">&para;</a></h3>
 <p>Names <strong><code>odoo</code></strong>, <strong><code>db</code></strong>, <strong><code>postgres</code></strong> cannot appear in <code>services</code> — use patches only. Policy: <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-009-compose-service-patch.md">ADR-009</a>.</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_patches&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;odoo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;CUSTOM_METRIC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"service_patches"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"odoo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"environment"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"CUSTOM_METRIC"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
@@ -2513,36 +2513,36 @@
 <p><code>odpm plan</code> shows <code>compose.patch.odoo</code> (preview); patches apply at <code>compose.generate</code>.</p>
 <h3 id="command-entrypoint-for-sidecars-46"><code>command</code> / <code>entrypoint</code> for sidecars (4.6+)<a class="headerlink" href="#command-entrypoint-for-sidecars-46" title="Permanent link">&para;</a></h3>
 <p><strong>Exec form only</strong> (JSON string array) in <code>services.&lt;name&gt;</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;worker&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;busybox:latest&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;sh&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-c&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;sleep infinity&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"worker"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"busybox:latest"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"sh"</span><span class="p">,</span><span class="w"> </span><span class="s2">"-c"</span><span class="p">,</span><span class="w"> </span><span class="s2">"sleep infinity"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>The <code>odoo</code> start command stays owned by the generator; override via <code>service_patches.odoo.command</code> only when explicitly needed.</p>
 <h2 id="lifecycle-hooks-in-manifest">Lifecycle hooks in manifest<a class="headerlink" href="#lifecycle-hooks-in-manifest" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;post_clone&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;./scripts/after-clone.sh&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"hooks"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"post_clone"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">[</span><span class="s2">"./scripts/after-clone.sh"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;./scripts/notify.sh&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;prepare-done&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="s2">&quot;mycompany.odpm.hooks.warmup&quot;</span>
+<span class="w">  </span><span class="nt">"post_prepare"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">[</span><span class="s2">"./scripts/notify.sh"</span><span class="p">,</span><span class="w"> </span><span class="s2">"prepare-done"</span><span class="p">],</span>
+<span class="w">    </span><span class="s2">"mycompany.odpm.hooks.warmup"</span>
 <span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;pre_up&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;network&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;create&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;odpm-dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;||&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;true&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="nt">"pre_up"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">[</span><span class="s2">"docker"</span><span class="p">,</span><span class="w"> </span><span class="s2">"network"</span><span class="p">,</span><span class="w"> </span><span class="s2">"create"</span><span class="p">,</span><span class="w"> </span><span class="s2">"odpm-dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"||"</span><span class="p">,</span><span class="w"> </span><span class="s2">"true"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Each element is either <strong>argv</strong> (string array, runs in <code>project_dir</code> <strong>without a shell</strong>) or a <strong>plugin id</strong> (string) for the pluggy hook runner.</p>
 <p>Argv supports <strong><code>${VAR}</code></strong> / <strong><code>${VAR:-default}</code></strong>, <strong><code>${@source:&lt;name&gt;}</code></strong> (after <code>sources.materialize</code>), and <strong><code>${@secret:&lt;key&gt;}</code></strong> (from <code>.odpm/secrets.json</code>): expanded at hook execution. The subprocess receives <strong>merged env</strong> (process + missing keys from <code>.env</code>). Example sidecar image build:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span>
-<span class="w">    </span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${@source:autoparts_env}/Dockerfile&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;${@source:autoparts_env}&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"hooks"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"post_prepare"</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span>
+<span class="w">    </span><span class="s2">"docker"</span><span class="p">,</span><span class="w"> </span><span class="s2">"build"</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">"-f"</span><span class="p">,</span><span class="w"> </span><span class="s2">"${@source:autoparts_env}/Dockerfile"</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">"-t"</span><span class="p">,</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">"${@source:autoparts_env}"</span>
 <span class="w">  </span><span class="p">]]</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -2568,25 +2568,25 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">dev_project.extensions.reference.mailpit</span><span class="w"> </span><span class="kn">import</span> <span class="n">MAILPIT_SERVICE_SPEC</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MailpitFragment</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;mailpit&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">"mailpit"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">compose_services</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ExtensionHostContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;mailpit&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">MAILPIT_SERVICE_SPEC</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"mailpit"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">MAILPIT_SERVICE_SPEC</span><span class="p">)}</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_register</span><span class="p">():</span>
-    <span class="n">register_compose_fragment</span><span class="p">(</span><span class="s2">&quot;mailpit&quot;</span><span class="p">,</span> <span class="n">MailpitFragment</span><span class="p">())</span>
+    <span class="n">register_compose_fragment</span><span class="p">(</span><span class="s2">"mailpit"</span><span class="p">,</span> <span class="n">MailpitFragment</span><span class="p">())</span>
 </code></pre></div>
 <p>Register on package import or via entry point (see below).</p>
 <h3 id="patch-built-in-services-from-python-api-11">Patch built-in services from Python (API 1.1+)<a class="headerlink" href="#patch-built-in-services-from-python-api-11" title="Permanent link">&para;</a></h3>
 <p>Optional <code>compose_service_patches</code> on a compose fragment (same rules as manifest <code>service_patches</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compose_service_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ExtensionHostContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;odoo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;environment&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MY_FLAG&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"odoo"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"environment"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"MY_FLAG"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">}}}</span>
 </code></pre></div>
 <h3 id="nested-dependency-services-46">Nested dependency <code>services</code> (4.6+)<a class="headerlink" href="#nested-dependency-services-46" title="Permanent link">&para;</a></h3>
 <p>With <code>use_oca_dependencies</code>, v2 <code>services</code> / <code>service_patches</code> from dependency <code>odpm.json</code> files are inherited into host compose after <code>project.map_folders</code>. On name conflict the <strong>host manifest wins</strong>. See <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md">ADR-004</a>.</p>
 <h2 id="python-plugin-prepare-step">Python plugin: prepare step<a class="headerlink" href="#python-plugin-prepare-step" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.prepare_steps&quot;</span><span class="k">]</span>
-<span class="n">my_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_odpm_plugin.steps:plugin_factory&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">"odpm.prepare_steps"</span><span class="k">]</span>
+<span class="n">my_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"my_odpm_plugin.steps:plugin_factory"</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dev_project.prepare.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_plan_step</span>
@@ -2594,12 +2594,12 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">MyPrepareStep</span><span class="p">:</span>
-    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mycompany.custom.step&quot;</span>
-    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Custom prepare work&quot;</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"mycompany.custom.step"</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"Custom prepare work"</span>
     <span class="n">order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">PrepareContext</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">make_plan_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;always run&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">make_plan_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="s2">"run"</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"always run"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">PrepareContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
@@ -2609,11 +2609,11 @@
 </code></pre></div>
 <p><code>evaluate</code> must be <strong>side-effect free</strong> — <code>odpm plan</code> calls only evaluate.</p>
 <h2 id="python-plugin-lifecycle-hook-runner">Python plugin: lifecycle hook runner<a class="headerlink" href="#python-plugin-lifecycle-hook-runner" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.hooks&quot;</span><span class="k">]</span>
-<span class="n">warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_odpm_plugin.hooks:WarmupRunner&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">"odpm.hooks"</span><span class="k">]</span>
+<span class="n">warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"my_odpm_plugin.hooks:WarmupRunner"</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">WarmupRunner</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;mycompany.odpm.hooks.warmup&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">"mycompany.odpm.hooks.warmup"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">run_post_clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
@@ -2627,21 +2627,21 @@
 <p>Id in manifest (<code>"mycompany.odpm.hooks.warmup"</code>) must match runner <code>name</code>.</p>
 <h2 id="example-package-pyprojecttoml">Example package <code>pyproject.toml</code><a class="headerlink" href="#example-package-pyprojecttoml" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="k">[project]</span>
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;odpm-services-mailpit&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
-<span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;odpm&gt;=4.4&quot;</span><span class="p">]</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"odpm-services-mailpit"</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.1.0"</span>
+<span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"odpm&gt;=4.4"</span><span class="p">]</span>
 
-<span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.hooks&quot;</span><span class="k">]</span>
+<span class="k">[project.entry-points.</span><span class="s2">"odpm.hooks"</span><span class="k">]</span>
 <span class="c1"># optional lifecycle runners</span>
 
-<span class="k">[project.entry-points.</span><span class="s2">&quot;odpm.prepare_steps&quot;</span><span class="k">]</span>
+<span class="k">[project.entry-points.</span><span class="s2">"odpm.prepare_steps"</span><span class="k">]</span>
 <span class="c1"># optional prepare steps</span>
 </code></pre></div>
 <p>Install the package in the host venv (<code>pip install -e .</code>) next to odpm.</p>
 <h2 id="project-local-plugins-45">Project-local plugins (4.5+)<a class="headerlink" href="#project-local-plugins-45" title="Permanent link">&para;</a></h2>
 <p>Without a separate pip package, place modules under <strong><code>.odpm/plugins/</code></strong> in the project (this directory only; no <code>..</code> in module names). Optional allow-list in manifest v2:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;extensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;local&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mailpit_local&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"extensions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"local"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"mailpit_local"</span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Loads <code>project_dir/.odpm/plugins/mailpit_local.py</code>. Example fixture: <code>tests/fixtures/sample_plugin/</code>.</p>

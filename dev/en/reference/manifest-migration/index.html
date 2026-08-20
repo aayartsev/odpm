@@ -2207,44 +2207,44 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>migrate<span class="
 <h2 id="before-and-after-example">Before and after example<a class="headerlink" href="#before-and-after-example" title="Permanent link">&para;</a></h2>
 <p><strong>v1 flat (fragment):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;odpm_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;python_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3.12&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;distro_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debian&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;distro_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;12&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;postgres_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;16&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;odoo_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;19.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;odoo_git_link&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/odoo/odoo.git 19.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">  </span><span class="nt">&quot;requirements_txt&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">  </span><span class="nt">"odpm_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"python_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.12"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"distro_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"debian"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"distro_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"12"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"postgres_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"16"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"odoo_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"19.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"odoo_git_link"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/odoo/odoo.git 19.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"requirements_txt"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
 <span class="p">}</span>
 </code></pre></div>
 <p><strong>v2 nested (equivalent + extensions):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.6.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;platform&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;git&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/odoo/odoo.git 19.0&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;build_date&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;latest&quot;</span>
+<span class="w">  </span><span class="nt">"manifest_schema"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"requires_odpm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4.6.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"platform"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"git"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/odoo/odoo.git 19.0"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"build_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"latest"</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;python&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3.12&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;distro&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debian&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;12&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;postgres&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;16&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">  </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">  </span><span class="nt">&quot;developing&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;git&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file:///path/to/developing&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;mailpit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;axllent/mailpit&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;restart&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;unless-stopped&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ports&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;8025:8025&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;1025:1025&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="nt">"python"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.12"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"distro"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"debian"</span><span class="p">,</span><span class="w"> </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"12"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"postgres"</span><span class="p">:</span><span class="w"> </span><span class="s2">"16"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"requirements"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"developing"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"git"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file:///path/to/developing"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"mailpit"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"axllent/mailpit"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"restart"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unless-stopped"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"ports"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"8025:8025"</span><span class="p">,</span><span class="w"> </span><span class="s2">"1025:1025"</span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="s2">&quot;echo&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;prepare done&quot;</span><span class="p">]],</span>
-<span class="w">    </span><span class="nt">&quot;pre_up&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">  </span><span class="nt">"hooks"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"post_prepare"</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="s2">"echo"</span><span class="p">,</span><span class="w"> </span><span class="s2">"prepare done"</span><span class="p">]],</span>
+<span class="w">    </span><span class="nt">"pre_up"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;locks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;git&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">  </span><span class="nt">"locks"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"git"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>

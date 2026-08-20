@@ -2107,7 +2107,7 @@
 </tr>
 <tr>
 <td><strong>Base image</strong></td>
-<td>Профиль <strong>ci</strong> (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег <code>odoo-…-ci</code>; пересборка при смене шаблона или <code>Dockerfile</code> — см. <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md">ADR-007</a>. Для бэкенда <code>kaniko</code> локальный ensure base <strong>не</strong> выполняется: тег base должен быть доступен из registry.</td>
+<td>Профиль <strong>ci</strong> (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег <code>odoo-…-ci</code>; пересборка при смене шаблона или <code>Dockerfile</code> — см. <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md">ADR-007</a>. Для <code>kaniko</code> base собирается и <strong>пушится</strong> в <code>ODPM_BASE_IMAGE_REGISTRY</code> (ADR-019); final <code>FROM</code> использует registry ref. Existence для kaniko — local identity stamp (не probe registry); при stale registry удалите <code>.odpm/base_image_identity.json</code> и пересоберите.</td>
 </tr>
 </tbody>
 </table>
@@ -2127,15 +2127,28 @@
 <li>Проверка: HTTP-ответ 200 на <code>/web</code> после <code>docker compose up</code>.</li>
 </ol>
 <h2 id="_5">Примеры команд<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
+<div class="highlight"><pre><span></span><code><span class="c1"># ~/.odpm/.env (daemonless)</span>
+<span class="c1"># ODPM_SCENARIO=ci</span>
+<span class="c1"># ODOO_PROJECTS_DIR=/data/odoo_projects</span>
+<span class="c1"># ODPM_CI_IMAGE_BUILDER=kaniko</span>
+<span class="c1"># ODPM_KANIKO_EXECUTOR_MODE=direct</span>
+<span class="c1"># ODPM_BASE_IMAGE_REGISTRY=registry.example.com/odpm</span>
+<span class="c1"># ODPM_CI_IMAGE_PUSH=1</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
 odpm<span class="w"> </span>--skip-start
 odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0
 odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-builder<span class="w"> </span>kaniko<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 <span class="nv">ODPM_CI_IMAGE_BUILDER</span><span class="o">=</span>kaniko<span class="w"> </span><span class="nv">ODPM_KANIKO_EXECUTOR_MODE</span><span class="o">=</span>direct<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">ODPM_BASE_IMAGE_REGISTRY</span><span class="o">=</span>registry.example.com/odpm<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
+<span class="c1"># Module install after stack is up (bare odpm -d/-i is rejected in ci).</span>
+<span class="c1"># Service key is "odoo" unless ODPM_COMPOSE_PREFIX is set (then "{prefix}odoo"):</span>
+<span class="nv">ODOO_SVC</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_COMPOSE_PREFIX</span><span class="k">:-</span><span class="si">}</span><span class="s2">odoo"</span>
+docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span><span class="s2">"</span><span class="nv">$ODOO_SVC</span><span class="s2">"</span><span class="w"> </span>odoo-bin<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>base<span class="w"> </span>--stop-after-init
 </code></pre></div>
+<p>В сценарии <code>ci</code> bare <code>odpm</code> без <code>--skip-start</code> / <code>--build-image</code> (и без allowlist: <code>plan</code>, <code>manifest</code>, <code>database</code>, <code>--update-lock</code>, <code>--init</code>, …) завершается ошибкой — см. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>.</p>
 <p>Без <code>--image-push</code> бэкенд <code>kaniko</code> пишет tar в <code>.odpm/ci-build-context/odpm-ci-image.tar</code>.</p>
 <p>В режиме <code>docker-run</code> с <code>--image-push</code> нужен <code>~/.docker/config.json</code> (<code>docker login</code>); иначе odpm завершится с ошибкой до запуска executor. Образ executor по умолчанию закреплён (<code>gcr.io/kaniko-project/executor:v1.23.2</code>); перекрывается <code>ODPM_KANIKO_EXECUTOR_IMAGE</code>. Opt-in Docker integration в CI покрывает только бэкенд <code>docker</code>; argv/<code>direct</code> для <code>kaniko</code> — unit-тесты.</p>
 <p>Инициализация без диалогов:</p>

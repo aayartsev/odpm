@@ -2354,7 +2354,7 @@
 </tr>
 <tr>
 <td><code>ODPM_CI_IMAGE_BUILDER</code></td>
-<td>Бэкенд <code>--build-image</code>: <code>docker</code> или <code>kaniko</code> (слабее CLI <code>--image-builder</code>)</td>
+<td>Бэкенд <code>--build-image</code>: <code>docker</code> или <code>kaniko</code> (слабее CLI <code>--image-builder</code>; читается из layered <code>.env</code>, ADR-017)</td>
 <td><code>docker</code></td>
 </tr>
 <tr>
@@ -2364,7 +2364,7 @@
 </tr>
 <tr>
 <td><code>ODPM_KANIKO_EXECUTOR_MODE</code></td>
-<td><code>docker-run</code> или <code>direct</code></td>
+<td><code>docker-run</code> или <code>direct</code> (мастер для <code>ci</code>+kaniko предлагает <code>direct</code> по умолчанию)</td>
 <td><code>docker-run</code></td>
 </tr>
 <tr>
@@ -2376,6 +2376,11 @@
 <td><code>ODPM_KANIKO_EXECUTOR_BIN</code></td>
 <td>Бинарь executor для режима <code>direct</code></td>
 <td><code>executor</code></td>
+</tr>
+<tr>
+<td><code>ODPM_BASE_IMAGE_REGISTRY</code></td>
+<td>Prefикс registry для base image при <code>kaniko</code> (обязателен для daemonless base)</td>
+<td>пусто</td>
 </tr>
 <tr>
 <td><code>ODPM_LOCALE</code></td>

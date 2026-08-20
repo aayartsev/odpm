@@ -2548,17 +2548,17 @@
 <h2 id="debugpy_listen-vs-code-pycharm-attach-to-dap"><code>debugpy_listen</code> — VS Code / PyCharm Attach to DAP<a class="headerlink" href="#debugpy_listen-vs-code-pycharm-attach-to-dap" title="Permanent link">&para;</a></h2>
 <h3 id="profile-example">Profile (example)<a class="headerlink" href="#profile-example" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;debugger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;backend&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debugpy_listen&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;direction&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;attach&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;protocol&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debugpy&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5678</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Odoo: Remote Attach&quot;</span>
+<span class="w">    </span><span class="nt">"schema_version"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"debugger"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"backend"</span><span class="p">:</span><span class="w"> </span><span class="s2">"debugpy_listen"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"direction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"attach"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"debugpy"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">5678</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Odoo: Remote Attach"</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;path_mappings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;local&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/abs/path/on/host/odoo&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;remote&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/odoo/odoo&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="nt">"path_mappings"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/abs/path/on/host/odoo"</span><span class="p">,</span><span class="w"> </span><span class="nt">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/home/odoo/odoo"</span><span class="w"> </span><span class="p">}</span>
 <span class="w">    </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -2605,16 +2605,16 @@
 </ul>
 <h3 id="profile-example_1">Profile (example)<a class="headerlink" href="#profile-example_1" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;debugger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;backend&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pydevd_connect&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;direction&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;connect&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;protocol&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pydevd&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5678</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Odoo: Remote Attach&quot;</span>
+<span class="w">    </span><span class="nt">"schema_version"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"debugger"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"backend"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pydevd_connect"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"direction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"connect"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pydevd"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">5678</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Odoo: Remote Attach"</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;path_mappings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"path_mappings"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
 <p><code>host: localhost</code> in the profile is the address where the Debug Server <strong>listens on the host</strong> (for PyCharm XML). The container uses <code>connect_host</code> from <code>config.json</code> (usually <code>host.docker.internal</code>).</p>
@@ -2622,7 +2622,7 @@
 <p>For IDEs without an odpm generator, take host/port from <code>debug-profile.json</code> and add to the container-side process (after venv bootstrap):</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pydevd_pycharm</span>
 <span class="n">pydevd_pycharm</span><span class="o">.</span><span class="n">settrace</span><span class="p">(</span>
-    <span class="s2">&quot;&lt;connect_host&gt;&quot;</span><span class="p">,</span>
+    <span class="s2">"&lt;connect_host&gt;"</span><span class="p">,</span>
     <span class="n">port</span><span class="o">=&lt;</span><span class="n">port</span><span class="o">&gt;</span><span class="p">,</span>
     <span class="n">suspend</span><span class="o">=&lt;</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="o">&gt;</span><span class="p">,</span>
     <span class="n">stdout_to_server</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>

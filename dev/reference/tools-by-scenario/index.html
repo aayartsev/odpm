@@ -1940,13 +1940,13 @@
 <td>Запуск <code>docker compose up</code></td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
-<td style="text-align: center;">да</td>
+<td style="text-align: center;">через <code>docker compose</code> после <code>--skip-start</code> / <code>--build-image</code> (bare <code>odpm</code> в ci запрещён, ADR-017)</td>
 </tr>
 <tr>
 <td>База и модули <code>-d -i -u</code></td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
-<td style="text-align: center;">да</td>
+<td style="text-align: center;">после <code>compose up</code> через <code>compose exec</code> (не bare <code>odpm</code>)</td>
 </tr>
 <tr>
 <td>Тесты модулей <code>-t</code></td>

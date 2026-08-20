@@ -2132,7 +2132,7 @@
 <h2 id="var-developing_project">Подстановка <code>${VAR}</code> в <code>developing_project</code><a class="headerlink" href="#var-developing_project" title="Permanent link">&para;</a></h2>
 <p>Поле <strong><code>developing_project</code></strong> — единственное в <code>user_settings.json</code>, где odpm раскрывает <code>${ИМЯ}</code> / <code>${ИМЯ:-default}</code> при чтении файла. Источник значений: <code>export</code> / CI → project <code>.env</code> → default в строке.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;developing_project&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file://${DEVELOPING_PROJECT_DIR}&quot;</span>
+<span class="w">  </span><span class="nt">"developing_project"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file://${DEVELOPING_PROJECT_DIR}"</span>
 <span class="p">}</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="na">DEVELOPING_PROJECT_DIR</span><span class="o">=</span><span class="s">/home/dev/my_addons</span>

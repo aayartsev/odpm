@@ -2156,9 +2156,9 @@ git@github.com:org/odoo.git 19.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
 <p>For <code>file://</code>, the lock file stores a <strong>content fingerprint</strong> of the directory, not a git hash — a remote repository is more reliable for shared builds.</p>
 <h2 id="var-in-manifest-links"><code>${VAR}</code> in manifest links<a class="headerlink" href="#var-in-manifest-links" title="Permanent link">&para;</a></h2>
 <p>In <code>odpm.json</code> and in <code>developing_project</code> you can write paths and hosts via variables so <strong>one</strong> manifest in git fits different machines:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;odoo_git_link&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file://${ODOO_PLATFORM_DIR}&quot;</span><span class="p">,</span>
-<span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;file://${OCA_WEB_PATH}&quot;</span><span class="p">],</span>
-<span class="nt">&quot;developing_project&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file://${DEVELOPING_PROJECT_DIR}&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"odoo_git_link"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file://${ODOO_PLATFORM_DIR}"</span><span class="p">,</span>
+<span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"file://${OCA_WEB_PATH}"</span><span class="p">],</span>
+<span class="nt">"developing_project"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file://${DEVELOPING_PROJECT_DIR}"</span>
 </code></pre></div>
 <p>Values are set in the project <code>.env</code> or in the process environment (CI). After expansion odpm works with a normal <code>file://</code> or git URL. Details: <a href="../odpm-json/">odpm.json</a>, <a href="../env-dotenv/"><code>.env</code> variables</a>.</p>
 <h2 id="where-to-specify-in-configuration">Where to specify in configuration<a class="headerlink" href="#where-to-specify-in-configuration" title="Permanent link">&para;</a></h2>

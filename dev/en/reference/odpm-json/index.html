@@ -2417,9 +2417,9 @@
 </table>
 <p>Manifest values <strong>override</strong> same-named fields in <code>user_settings.json</code> → <code>db_creation_data</code>. Local database creation parameters (<code>create_demo</code>, admin login/password) remain in <a href="../user-settings/">user_settings.json</a>.</p>
 <p>Example (v1 flat or v2):</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;database&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;language&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ru_RU&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;country&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;RU&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"database"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"language"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ru_RU"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"country"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RU"</span>
 <span class="p">}</span>
 </code></pre></div>
 <h2 id="odoo_conf-block-odoo-option-overrides"><code>odoo_conf</code> block (Odoo option overrides)<a class="headerlink" href="#odoo_conf-block-odoo-option-overrides" title="Permanent link">&para;</a></h2>
@@ -2428,30 +2428,30 @@
 <li><strong><code>options</code></strong> — core Odoo section (<code>proxy_mode</code>, <code>workers</code>, …).</li>
 <li><strong>Other sections</strong> (<code>redis_server</code>, <code>s3_server</code>, …) — for modules/integrations; merged by section name like INI. Values are strings (JSON numbers/bools are stringified). <code>${VAR}</code>, <code>${@service:…}</code>, <code>${@secret:…}</code> work in values.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;proxy_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;dbfilter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^${PREVIEW_HOSTNAME}$&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;log_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"odoo_conf"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"options"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"proxy_mode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"True"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"dbfilter"</span><span class="p">:</span><span class="w"> </span><span class="s2">"^${PREVIEW_HOSTNAME}$"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"workers"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"log_level"</span><span class="p">:</span><span class="w"> </span><span class="s2">"debug"</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;redis_server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:redis}&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;6379&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:redis_password}&quot;</span>
+<span class="w">  </span><span class="nt">"redis_server"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@service:redis}"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6379"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"password"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@secret:redis_password}"</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;s3_server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;endpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:minio}:9000&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;secret_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@secret:minio_root_password}&quot;</span>
+<span class="w">  </span><span class="nt">"s3_server"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"endpoint"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@service:minio}:9000"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"secret_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@secret:minio_root_password}"</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p><code>odpm manifest validate</code> rejects keys managed by odpm <strong>in <code>options</code></strong>: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. See <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="secrets-block-required-local-secrets-47"><code>secrets</code> block (required local secrets, 4.7)<a class="headerlink" href="#secrets-block-required-local-secrets-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object (and in <code>scenarios.*</code>) declaring that the project needs <code>.odpm/secrets.json</code> before the stack starts:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;secrets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;keys&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;payment_provider.api_key&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;armtek.api_token&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"secrets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"keys"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"payment_provider.api_key"</span><span class="p">,</span><span class="w"> </span><span class="s2">"armtek.api_token"</span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
 <table>
@@ -2548,21 +2548,21 @@
 <p>Manifests with <code>scenarios</code> SHOULD set <strong><code>requires_odpm: "4.7.0"</code></strong>. v1 + <code>scenarios</code> → validate error. Details: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md">ADR-011</a>.</p>
 <p>Example — more workers on server, extra dev requirements:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;manifest_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;requires_odpm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.7.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;proxy_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;True&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;mailpit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;axllent/mailpit&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;depends_on&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"manifest_schema"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"requires_odpm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4.7.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"odoo_conf"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"options"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"proxy_mode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"True"</span><span class="p">,</span><span class="w"> </span><span class="nt">"workers"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"mailpit"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"axllent/mailpit"</span><span class="p">,</span><span class="w"> </span><span class="nt">"depends_on"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"db"</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;scenarios&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;server&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;odoo_conf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"server"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"odoo_conf"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"options"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"workers"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4"</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;developer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;requirements&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ipython&quot;</span><span class="p">],</span>
-<span class="w">      </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;https://github.com/my-org/test-fixtures.git 17.0&quot;</span><span class="p">],</span>
-<span class="w">      </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;post_prepare&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="s2">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;build&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-t&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span><span class="p">]]</span>
+<span class="w">    </span><span class="nt">"developer"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"requirements"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"ipython"</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"https://github.com/my-org/test-fixtures.git 17.0"</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">"hooks"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"post_prepare"</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="s2">"docker"</span><span class="p">,</span><span class="w"> </span><span class="s2">"build"</span><span class="p">,</span><span class="w"> </span><span class="s2">"-t"</span><span class="p">,</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span><span class="w"> </span><span class="s2">"."</span><span class="p">]]</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
@@ -2640,13 +2640,13 @@
 <p>Value source (strongest to weakest): <strong>process</strong> variables (<code>export</code>, CI secrets) → keys from <strong>project <code>.env</code></strong> → default in the manifest string. No separate enable flag is needed.</p>
 <p>Example for a team manifest in git and local paths on a developer machine:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;odoo_git_link&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;file://${ODOO_PLATFORM_DIR}&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="s2">&quot;file://${OCA_WEB_PATH}&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;https://${GIT_HOST}/company/extra.git 19.0&quot;</span>
+<span class="w">  </span><span class="nt">"odoo_git_link"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file://${ODOO_PLATFORM_DIR}"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="s2">"file://${OCA_WEB_PATH}"</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">"https://${GIT_HOST}/company/extra.git 19.0"</span>
 <span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://${GIT_HOST}/org/autoparts-env.git 17.0&quot;</span>
+<span class="w">  </span><span class="nt">"service_sources"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"autoparts_env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://${GIT_HOST}/org/autoparts-env.git 17.0"</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -2657,17 +2657,17 @@
 </code></pre></div>
 <p>Other fields (<code>odoo_version</code>, <code>python_version</code>, <code>requirements_txt</code>, …) have <strong>no</strong> substitution. Nested <code>odpm.json</code> in git dependencies supports the same fields — see <a href="../config-hierarchy/">configuration hierarchy</a>. <code>.odpm/deps.lock.json</code> stores <strong>expanded</strong> URLs and paths, not <code>${VAR}</code>.</p>
 <p>v2 sidecar with paths from <code>.env</code> and stack service hostnames:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;tty&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;depends_on&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;db&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;DB_HOST&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${@service:db}&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ODOO_URL&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://${@service:odoo}:8069&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"armtek_test"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"root"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"tty"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"depends_on"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"db"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"environment"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"DB_HOST"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@service:db}"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"ODOO_URL"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://${@service:odoo}:8069"</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"volumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"${DIGITAL_AUTOPARTS_ENV_DIR}/data:/data:Z"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -2699,14 +2699,14 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;service_sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;autoparts_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/org/autoparts-env.git 17.0&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"service_sources"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"autoparts_env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/org/autoparts-env.git 17.0"</span>
 <span class="p">},</span>
-<span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;armtek_test&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;autoparts_env:emulator&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;volumes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;${@source:autoparts_env}/data:/data:Z&quot;</span><span class="p">]</span>
+<span class="nt">"services"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"armtek_test"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="s2">"autoparts_env:emulator"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"volumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"${@source:autoparts_env}/data:/data:Z"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
