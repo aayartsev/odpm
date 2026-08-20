@@ -164,6 +164,7 @@ class OdpmPipeline:
                 if exit_code:
                     sys.exit(exit_code)
                 return
+            self._enforce_ci_explicit_mode()
             self.prepare_project_files()
             self._runtime().run_after_prepare()
         except OdpmError as exc:
@@ -171,6 +172,25 @@ class OdpmPipeline:
             if message:
                 _logger.error("%s", message)
             sys.exit(exc.exit_code)
+
+    def _enforce_ci_explicit_mode(self) -> None:
+        from .system_check_policy import cli_allows_ci_explicit_mode
+        from .translations import _
+
+        if self.config is None:
+            return
+        config = self.config
+        policy = getattr(config, "policy", None)
+        scenario = getattr(policy, "scenario", None) if policy is not None else None
+        if scenario != constants.CI_SCENARIO:
+            return
+        if cli_allows_ci_explicit_mode(self.cli_args):
+            return
+        message = _(
+            "In the ci scenario use --skip-start or --build-image "
+            "(bare odpm compose up is not allowed)."
+        )
+        raise ConfigError(message)
 
     def _config(self) -> Config:
         if self.config is None:

@@ -219,11 +219,17 @@ curl -sL -o /dev/null -w '%{http_code}\n' "http://127.0.0.1:${ODOO_PORT:-8069}/w
 ## 2E — CI scenario (optional)
 
 Requires `ODPM_SCENARIO=ci` and a project with CI layout / lock file as documented in README.
+Bare `odpm` without `--skip-start` / `--build-image` (or other ADR-017 allowlist flags) is rejected.
+For `kaniko`: set `ODPM_BASE_IMAGE_REGISTRY` (base always pushed); final push via `--image-push` / `ODPM_CI_IMAGE_PUSH`.
 
 ```bash
 export ODPM_SCENARIO=ci
 export ODPM_CI_PROJECT="$ODPM_PROJECT"   # optional: prepare project before build
 "$ODPM_REPO/scripts/verify_ci_scenario.sh"
+# After up, install modules with compose exec (not bare odpm -d/-i).
+# With ODPM_COMPOSE_PREFIX, use "{prefix}odoo" as the service name:
+# ODOO_SVC="${ODPM_COMPOSE_PREFIX:-}odoo"
+# docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 
 | Check | Expected | Result | Date |
@@ -231,6 +237,7 @@ export ODPM_CI_PROJECT="$ODPM_PROJECT"   # optional: prepare project before buil
 | CI image build | `odpm --build-image` succeeds | | |
 | Compose up | Stack starts without host Odoo bind-mounts | | |
 | HTTP | `/web` returns 200 on configured port | | |
+| CI guard | bare `odpm` in ci exits non-zero with `--skip-start` hint | | |
 
 ---
 

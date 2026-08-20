@@ -31,14 +31,31 @@ class ConfigPaths:
         version_label = str(self.config.odoo_version).replace(".", "-")
         return f"{self.config.platform_name}-{version_label}-ci:latest"
 
-    def apply_image_names(self) -> None:
-        docker = self.config.docker_layout
+    def local_base_image_name(self) -> str:
+        """Unprefixed local base image name (docker default tag target)."""
         profile = self.config.policy.base_image_profile
-        docker.odoo_image_name = (
+        return (
             f"odoo-{self.config.arch}-python-{self.config.python_version}-"
             f"{self.config.distro_name}-"
             f"{self.config.distro_version.replace('.', '')}-{profile}"
         )
+
+    def resolve_base_image_ref(self, *, registry: str | None = None) -> str:
+        """Return base image ref for build ``-t`` / Kaniko ``--destination`` / Dockerfile FROM.
+
+        Without *registry*: local name (docker backend).
+        With *registry*: ``{registry}/{local}:{tag}`` (kaniko always-push).
+        """
+        local = self.local_base_image_name()
+        if not registry:
+            return local
+        prefix = registry.strip().rstrip("/")
+        tag = constants.DEFAULT_BASE_IMAGE_TAG
+        return f"{prefix}/{local}:{tag}"
+
+    def apply_image_names(self) -> None:
+        docker = self.config.docker_layout
+        docker.odoo_image_name = self.local_base_image_name()
         docker.odoo_ci_image_name = self.get_odoo_ci_image_name()
         docker.ci_build_context_dir = os.path.join(
             self.config.project_dir, constants.CI_BUILD_CONTEXT_DIR

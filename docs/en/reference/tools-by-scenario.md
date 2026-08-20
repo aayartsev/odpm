@@ -8,8 +8,8 @@ A single odpm utility provides a **set of commands**; in different scenarios (`O
 |------|:---------:|:------:|:-----------:|
 | Initialization `odpm --init` | yes | yes | yes |
 | Prepare `odpm` / `--skip-start` | yes | yes | yes |
-| Start `docker compose up` | yes | yes | yes |
-| Database and modules `-d -i -u` | yes | yes | yes |
+| Start `docker compose up` | yes | yes | via `docker compose` after `--skip-start` / `--build-image` (bare `odpm` in ci rejected, ADR-017) |
+| Database and modules `-d -i -u` | yes | yes | after `compose up` via `compose exec` (not bare `odpm`) |
 | Module tests `-t` | yes | rarely | yes |
 | Database backup and restore | yes | yes | yes |
 | Admin password change, translations | yes | yes | as needed |

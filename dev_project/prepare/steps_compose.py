@@ -159,9 +159,17 @@ def exec_compose_service(ctx: PrepareContext) -> None:
 
 
 def exec_compose_generate(ctx: PrepareContext) -> None:
+    from .. import constants as _constants
     from ..docker_capabilities import ensure_config_docker_capabilities
+    from ..system_check_policy import SystemCheckPolicy
 
-    ensure_config_docker_capabilities(ctx.ports.bootstrap.config)
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
+    config = ctx.ports.bootstrap.config
+    if policy.skip_compose_cli_probe:
+        if not getattr(config, "docker_compose_command", None):
+            config.docker_compose_command = _constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+    else:
+        ensure_config_docker_capabilities(config)
     ctx.compose_generator.generate_docker_compose_file()
 
 
@@ -169,6 +177,9 @@ def exec_compose_validate(ctx: PrepareContext) -> None:
     import os
 
     from ..compose.validate import validate_compose_file
+    from ..system_check_policy import SystemCheckPolicy
 
-    ctx.system_checker.check_docker_compose()
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
+    if not policy.skip_compose_cli_probe:
+        ctx.system_checker.check_docker_compose()
     validate_compose_file(os.path.join(ctx.host_ctx.project_dir, "docker-compose.yml"))

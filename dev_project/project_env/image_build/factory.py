@@ -22,3 +22,6 @@ def get_ci_image_build_backend(name: str) -> ImageBuildBackend:
         ALLOWED=", ".join(constants.CI_IMAGE_BUILDERS),
     )
     raise PipelineError(message)
+
+
+get_image_build_backend = get_ci_image_build_backend

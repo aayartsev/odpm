@@ -63,6 +63,9 @@ msgstr "Applying git dependency lock from {PATH}"
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Attached to container output. Detailed technical logs below are in English."
 
+msgid "Base image registry is required when using the kaniko builder."
+msgstr "Base image registry is required when using the kaniko builder."
+
 msgid "Blocking database configuration drift detected; resolve before starting containers."
 msgstr "Blocking database configuration drift detected; resolve before starting containers."
 
@@ -80,6 +83,9 @@ msgstr "Build compose start command and write .odpm/runtime/config.json when sta
 
 msgid "Build docker volume mapping for Odoo, venv, and addons"
 msgstr "Build docker volume mapping for Odoo, venv, and addons"
+
+msgid "CI kaniko direct prepare-only; Docker daemon check skipped"
+msgstr "CI kaniko direct prepare-only; Docker daemon check skipped"
 
 msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgstr "Cannot connect to the Docker daemon. Is the docker daemon running?"
@@ -276,6 +282,9 @@ msgstr "Host port: {PORT}"
 msgid "If you want drop this file to default values, just delete it"
 msgstr "If you want drop this file to default values, just delete it"
 
+msgid "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
+msgstr "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
+
 msgid "Interactive input is not available in non-interactive mode."
 msgstr "Interactive input is not available in non-interactive mode."
 
@@ -287,6 +296,12 @@ msgstr "Invalid %s=%r, using system locale %s"
 
 msgid "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
 msgstr "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
+
+msgid "Invalid CI image builder choice %r, using %s"
+msgstr "Invalid CI image builder choice %r, using %s"
+
+msgid "Invalid Kaniko executor mode choice %r, using %s"
+msgstr "Invalid Kaniko executor mode choice %r, using %s"
 
 msgid "Invalid ODPM_IDE choice %r, using %s"
 msgstr "Invalid ODPM_IDE choice %r, using %s"
@@ -329,6 +344,12 @@ msgstr "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
 
 msgid "Kaniko --image-push in docker-run mode requires {PATH} (docker login credentials). Create it, or use ODPM_KANIKO_EXECUTOR_MODE=direct with registry credentials available to the executor."
 msgstr "Kaniko --image-push in docker-run mode requires {PATH} (docker login credentials). Create it, or use ODPM_KANIKO_EXECUTOR_MODE=direct with registry credentials available to the executor."
+
+msgid "Kaniko base image build requires {ENV} (registry prefix for a pullable base image)."
+msgstr "Kaniko base image build requires {ENV} (registry prefix for a pullable base image)."
+
+msgid "Kaniko docker-run mode requires a Docker daemon on the build host."
+msgstr "Kaniko docker-run mode requires a Docker daemon on the build host."
 
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Load git lock from {SOURCE} and enter apply mode before checkout"
@@ -399,8 +420,8 @@ msgstr "No database last_run snapshot yet; baseline will be adopted automaticall
 msgid "No manifest changes to apply."
 msgstr "No manifest changes to apply."
 
-msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
-msgstr "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the first run."
+msgstr "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the first run."
 
 msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
 msgstr "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
@@ -507,6 +528,9 @@ msgstr "Preparing your Odoo environment (dependencies, templates, compose files)
 msgid "Project files are ready."
 msgstr "Project files are ready."
 
+msgid "Push the final CI image after build? Answer y/yes or n/no (Enter for no):\n"
+msgstr "Push the final CI image after build? Answer y/yes or n/no (Enter for no):\n"
+
 msgid "PyCharm run configuration already present"
 msgstr "PyCharm run configuration already present"
 
@@ -549,8 +573,14 @@ msgstr "Secret {KEY} is not set in .odpm/secrets.json (required for manifest fie
 msgid "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
 msgstr "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
 
+msgid "Select CI image build backend (Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+msgstr "Select CI image build backend (Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+
 msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
 msgstr "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
+
+msgid "Select Kaniko executor mode (Enter for default {DEFAULT_MODE}). Note: docker-run still requires a Docker daemon:\n{OPTIONS}\n"
+msgstr "Select Kaniko executor mode (Enter for default {DEFAULT_MODE}). Note: docker-run still requires a Docker daemon:\n{OPTIONS}\n"
 
 msgid "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
 msgstr "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
@@ -569,6 +599,9 @@ msgstr "Set IDE host name for pydevd_connect (container connects to Debug Server
 
 msgid "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
+
+msgid "Set base image registry prefix for Kaniko (required, e.g. registry.example.com/odpm):\n"
+msgstr "Set base image registry prefix for Kaniko (required, e.g. registry.example.com/odpm):\n"
 
 msgid "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
@@ -744,8 +777,20 @@ msgstr "You select this port for which odoo will listen: {SELECTED_ODOO_PORT}\n"
 msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 msgstr "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 
+msgid "You selected CI image builder: {SELECTED_BUILDER}\n"
+msgstr "You selected CI image builder: {SELECTED_BUILDER}\n"
+
+msgid "You selected CI image push: {SELECTED_PUSH}\n"
+msgstr "You selected CI image push: {SELECTED_PUSH}\n"
+
 msgid "You selected IDE configuration: {SELECTED_IDE}\n"
 msgstr "You selected IDE configuration: {SELECTED_IDE}\n"
+
+msgid "You selected Kaniko executor mode: {SELECTED_MODE}\n"
+msgstr "You selected Kaniko executor mode: {SELECTED_MODE}\n"
+
+msgid "You selected base image registry: {SELECTED_REGISTRY}\n"
+msgstr "You selected base image registry: {SELECTED_REGISTRY}\n"
 
 msgid "You selected debugger backend: {SELECTED_BACKEND}\n"
 msgstr "You selected debugger backend: {SELECTED_BACKEND}\n"

@@ -62,6 +62,9 @@ msgstr "Применение git lock из {PATH}"
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
 
+msgid "Base image registry is required when using the kaniko builder."
+msgstr "Префикс registry для base image обязателен при использовании бэкенда kaniko."
+
 msgid "Blocking database configuration drift detected; resolve before starting containers."
 msgstr "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
 
@@ -79,6 +82,9 @@ msgstr "Собрать команду запуска compose и записать
 
 msgid "Build docker volume mapping for Odoo, venv, and addons"
 msgstr "Построить маппинг docker-томов для Odoo, venv и аддонов"
+
+msgid "CI kaniko direct prepare-only; Docker daemon check skipped"
+msgstr "CI kaniko direct prepare-only; проверка Docker daemon пропущена"
 
 msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgstr "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
@@ -275,6 +281,9 @@ msgstr "Порт на host: {PORT}"
 msgid "If you want drop this file to default values, just delete it"
 msgstr "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
 
+msgid "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
+msgstr "В сценарии ci используйте --skip-start или --build-image (обычный odpm compose up запрещён)."
+
 msgid "Interactive input is not available in non-interactive mode."
 msgstr "Интерактивный ввод недоступен в неинтерактивном режиме."
 
@@ -286,6 +295,12 @@ msgstr "Недопустимое значение %s=%r, используетс�
 
 msgid "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
 msgstr "Некорректный .odpm/deps.lock.json; шаг проверки lock исключён из плана"
+
+msgid "Invalid CI image builder choice %r, using %s"
+msgstr "Неверный выбор CI image builder %r, используется %s"
+
+msgid "Invalid Kaniko executor mode choice %r, using %s"
+msgstr "Неверный выбор режима Kaniko executor %r, используется %s"
 
 msgid "Invalid ODPM_IDE choice %r, using %s"
 msgstr "Недопустимое значение ODPM_IDE %r, используется %s"
@@ -328,6 +343,12 @@ msgstr "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
 
 msgid "Kaniko --image-push in docker-run mode requires {PATH} (docker login credentials). Create it, or use ODPM_KANIKO_EXECUTOR_MODE=direct with registry credentials available to the executor."
 msgstr "Для Kaniko --image-push в режиме docker-run нужен файл {PATH} (учётные данные docker login). Создайте его или используйте ODPM_KANIKO_EXECUTOR_MODE=direct с credentials, доступными executor."
+
+msgid "Kaniko base image build requires {ENV} (registry prefix for a pullable base image)."
+msgstr "Сборка base image через Kaniko требует {ENV} (префикс registry для pullable base image)."
+
+msgid "Kaniko docker-run mode requires a Docker daemon on the build host."
+msgstr "Режим Kaniko docker-run требует Docker daemon на машине сборки."
 
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Загрузить git lock из {SOURCE} и включить режим apply перед checkout"
@@ -398,8 +419,8 @@ msgstr "Снимок last_run для БД ещё не создан; baseline б�
 msgid "No manifest changes to apply."
 msgstr "Нет изменений манифеста для применения."
 
-msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
-msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) перед первым запуском."
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the first run."
+msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) перед первым запуском."
 
 msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
 msgstr "В неинтерактивном режиме требуется odoo_version в odpm.json разрабатываемого проекта или параметр --odoo-version в командной строке."
@@ -506,6 +527,9 @@ msgstr "Подготовка окружения Odoo (зависимости, ш
 msgid "Project files are ready."
 msgstr "Файлы проекта готовы."
 
+msgid "Push the final CI image after build? Answer y/yes or n/no (Enter for no):\n"
+msgstr "Пушить финальный CI-образ после сборки? Ответьте y/yes или n/no (Enter — нет):\n"
+
 msgid "PyCharm run configuration already present"
 msgstr "Конфигурация запуска PyCharm уже присутствует"
 
@@ -548,8 +572,14 @@ msgstr "Секрет {KEY} не задан в .odpm/secrets.json (нужен д�
 msgid "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
 msgstr "Секрет {KEY} всё ещё содержит значение-заглушку (нужен для поля manifest {FIELD})"
 
+msgid "Select CI image build backend (Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+msgstr "Выберите бэкенд сборки CI-образа (Enter — по умолчанию {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+
 msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
 msgstr "Выберите конфигурацию IDE для генерации (Enter — по умолчанию {DEFAULT_IDE}):\n{OPTIONS}\n"
+
+msgid "Select Kaniko executor mode (Enter for default {DEFAULT_MODE}). Note: docker-run still requires a Docker daemon:\n{OPTIONS}\n"
+msgstr "Выберите режим Kaniko executor (Enter — по умолчанию {DEFAULT_MODE}). Внимание: docker-run всё ещё требует Docker daemon:\n{OPTIONS}\n"
 
 msgid "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
 msgstr "Выберите backend отладчика для сценария developer (Enter — по умолчанию {DEFAULT_BACKEND}):\n{OPTIONS}\n"
@@ -568,6 +598,9 @@ msgstr "Укажите имя хоста IDE для pydevd_connect (контей
 
 msgid "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Укажите порт, который будет слушать сервер PostgreSQL. Можете оставить значение по умолчанию {DEFAULT_POSTGRES_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "Set base image registry prefix for Kaniko (required, e.g. registry.example.com/odpm):\n"
+msgstr "Укажите префикс registry для base image Kaniko (обязательно, напр. registry.example.com/odpm):\n"
 
 msgid "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Укажите порт, который будет слушать сервер Отладчик. Можете оставить значение по умолчанию {DEFAULT_DEBUGGER_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
@@ -743,8 +776,20 @@ msgstr "Вы выбрали следующий порт, который буде
 msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 msgstr "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
 
+msgid "You selected CI image builder: {SELECTED_BUILDER}\n"
+msgstr "Вы выбрали CI image builder: {SELECTED_BUILDER}\n"
+
+msgid "You selected CI image push: {SELECTED_PUSH}\n"
+msgstr "Вы выбрали push CI-образа: {SELECTED_PUSH}\n"
+
 msgid "You selected IDE configuration: {SELECTED_IDE}\n"
 msgstr "Вы выбрали конфигурацию IDE: {SELECTED_IDE}\n"
+
+msgid "You selected Kaniko executor mode: {SELECTED_MODE}\n"
+msgstr "Вы выбрали режим Kaniko executor: {SELECTED_MODE}\n"
+
+msgid "You selected base image registry: {SELECTED_REGISTRY}\n"
+msgstr "Вы выбрали registry для base image: {SELECTED_REGISTRY}\n"
 
 msgid "You selected debugger backend: {SELECTED_BACKEND}\n"
 msgstr "Вы выбрали backend отладчика: {SELECTED_BACKEND}\n"

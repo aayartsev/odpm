@@ -20,6 +20,14 @@ def evaluate_docker_engine_check(ctx: PrepareContext) -> PlanStep:
             False,
             plan_msg("check_system disabled; Docker check skipped"),
         )
+    if policy.skip_docker_daemon and policy.skip_ensure_base_local:
+        return make_plan_step(
+            "docker.engine.check",
+            description,
+            "skip",
+            False,
+            plan_msg("CI kaniko direct prepare-only; Docker daemon check skipped"),
+        )
     return make_plan_step(
         "docker.engine.check",
         description,

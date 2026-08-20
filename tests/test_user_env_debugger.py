@@ -66,7 +66,7 @@ class UserEnvDebuggerTests(unittest.TestCase):
 
         wizard_module = importlib.import_module("dev_project.host.user_env_wizard")
         user_env_module = importlib.import_module("dev_project.host.user_env")
-        mock_prompt = MagicMock(side_effect=["", "", "", "", "", "", "1", "", "", ""])
+        mock_prompt = MagicMock(side_effect=["1", "", "", "", "", "", "", "", "", ""])
         with patch.object(wizard_module, "_prompt_input", mock_prompt):
             user_env = user_env_module.CreateUserEnvironment.__new__(
                 user_env_module.CreateUserEnvironment
@@ -85,18 +85,18 @@ class UserEnvDebuggerTests(unittest.TestCase):
         user_env_module = importlib.import_module("dev_project.host.user_env")
         mock_prompt = MagicMock(
             side_effect=[
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
                 "1",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
                 "2",
                 "",
                 "",
                 "y",
-                "",
             ]
         )
         with patch.object(wizard_module, "_prompt_input", mock_prompt):

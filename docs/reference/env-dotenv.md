@@ -49,11 +49,12 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_DEBUGGER_SUSPEND` | `1` / `y` — Odoo ждёт IDE после `settrace` (`pydevd_connect`) | `0` |
 | `GEVENT_PORT` | Порт веб-сокетов gevent | `8072` |
 | `ODPM_SCENARIO` | `developer`, `server` или `ci` | `developer` |
-| `ODPM_CI_IMAGE_BUILDER` | Бэкенд `--build-image`: `docker` или `kaniko` (слабее CLI `--image-builder`) | `docker` |
+| `ODPM_CI_IMAGE_BUILDER` | Бэкенд `--build-image`: `docker` или `kaniko` (слабее CLI `--image-builder`; читается из layered `.env`, ADR-017) | `docker` |
 | `ODPM_CI_IMAGE_PUSH` | `1` / `true` / `yes` — push после `--build-image` (как `--image-push`) | выкл. |
-| `ODPM_KANIKO_EXECUTOR_MODE` | `docker-run` или `direct` | `docker-run` |
+| `ODPM_KANIKO_EXECUTOR_MODE` | `docker-run` или `direct` (мастер для `ci`+kaniko предлагает `direct` по умолчанию) | `docker-run` |
 | `ODPM_KANIKO_EXECUTOR_IMAGE` | Образ executor для режима `docker-run` | `gcr.io/kaniko-project/executor:v1.23.2` |
 | `ODPM_KANIKO_EXECUTOR_BIN` | Бинарь executor для режима `direct` | `executor` |
+| `ODPM_BASE_IMAGE_REGISTRY` | Prefикс registry для base image при `kaniko` (обязателен для daemonless base) | пусто |
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
 

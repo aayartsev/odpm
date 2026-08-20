@@ -24,7 +24,12 @@ def resolve_ci_image_builder(
 ) -> CiImageBuilderName:
     env = environ if environ is not None else os.environ
     cli = getattr(arguments, "image_builder", None) if arguments is not None else None
-    raw = (cli or env.get(constants.ODPM_CI_IMAGE_BUILDER_ENV, "") or "").strip().lower()
+    if not isinstance(cli, str):
+        cli = None
+    raw_env = env.get(constants.ODPM_CI_IMAGE_BUILDER_ENV, "")
+    if not isinstance(raw_env, str):
+        raw_env = ""
+    raw = (cli or raw_env or "").strip().lower()
     if not raw:
         return constants.CI_IMAGE_BUILDER_DOCKER
     if raw not in constants.CI_IMAGE_BUILDERS:
@@ -46,3 +51,14 @@ def resolve_ci_image_push(
     if arguments is not None and getattr(arguments, "image_push", False):
         return True
     return _truthy_env(env.get(constants.ODPM_CI_IMAGE_PUSH_ENV))
+
+
+def resolve_base_image_registry(
+    environ: Mapping[str, str] | None = None,
+) -> str:
+    """Return stripped ``ODPM_BASE_IMAGE_REGISTRY`` or empty string."""
+    env = environ if environ is not None else os.environ
+    raw = env.get(constants.ODPM_BASE_IMAGE_REGISTRY_ENV, "")
+    if not isinstance(raw, str):
+        return ""
+    return raw.strip().rstrip("/")

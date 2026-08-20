@@ -117,6 +117,9 @@ PLAN_L10N_RU: dict[str, str] = {
     "check_system disabled; Docker check skipped": (
         "check_system отключён; проверка Docker пропущена"
     ),
+    "CI kaniko direct prepare-only; Docker daemon check skipped": (
+        "CI kaniko direct prepare-only; проверка Docker daemon пропущена"
+    ),
     "checkout dependency repos": "переключить репозитории зависимостей",
     "clone or update git repos": "клонировать или обновить git-репозитории",
     "compose fragment {NAME} stale": "compose-фрагмент {NAME} устарел",

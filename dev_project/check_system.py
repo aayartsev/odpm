@@ -69,7 +69,8 @@ class SystemChecker(SystemCheckerProtocol):
         gids.append(grp.getgrgid(gid).gr_gid)
         return [grp.getgrgid(gid).gr_name for gid in gids]
 
-    def check_docker(self) -> None:
+    def check_docker_daemon(self) -> None:
+        """Probe Docker group membership and ``docker info`` (daemon reachability)."""
         if platform.system() == "Linux":
             groups = self.get_system_groups(constants.HOST_USER)
             if constants.LINUX_DOCKER_GROUPNAME not in groups:
@@ -86,7 +87,15 @@ class SystemChecker(SystemCheckerProtocol):
             error_message=message,
         )
 
+    def ensure_base_image(self) -> None:
         BaseImageService(self.project_environment).ensure_base_image()
+
+    def check_docker(self) -> None:
+        policy = SystemCheckPolicy.from_config(self.config)
+        if not policy.skip_docker_daemon:
+            self.check_docker_daemon()
+        if not policy.skip_ensure_base_local:
+            self.ensure_base_image()
 
     def check_running_containers(self) -> None:
         ports_to_check = [
@@ -181,10 +190,13 @@ class SystemChecker(SystemCheckerProtocol):
             _logger.warning(message)
 
     def check_file_system(self) -> None:
-        for dir_path in [
-            self.config.user_env.backups,
-            self.config.user_env.odoo_projects_dir,
-        ]:
+        policy = SystemCheckPolicy.from_config(self.config)
+        dirs = [self.config.user_env.odoo_projects_dir]
+        if not policy.relaxed_file_system:
+            dirs.insert(0, self.config.user_env.backups)
+        for dir_path in dirs:
+            if not dir_path:
+                continue
             if not os.path.exists(dir_path):
                 try:
                     os.makedirs(dir_path)

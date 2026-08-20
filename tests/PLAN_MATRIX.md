@@ -77,6 +77,11 @@ C1–C6 are covered by A1–A4, A14, B1–B5.
 - `database ensure-role`, live `database status` with postgres
 - `--build-image` exec, full `odpm --skip-start` materialize with network git clone
 - `compose.validate` exec (`check_docker_compose` + structural `validate_compose_file`)
+- Full kaniko build (manual): `ODPM_CI_IMAGE_BUILDER=kaniko` + `ODPM_KANIKO_EXECUTOR_MODE=direct` + `ODPM_BASE_IMAGE_REGISTRY` (ADR-017/019); unit coverage in `test_system_check_policy` / `test_ci_image_build_backends`
+
+## ADR-017 note
+
+For `ci` + `kaniko` + `direct` + `--skip-start`/`--build-image`, plan evaluate skips `docker.engine.check` daemon probe and compose CLI probe, but **`compose.validate` structural outcome stays `run`**.
 
 ## Running
 

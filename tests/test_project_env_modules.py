@@ -134,12 +134,22 @@ class ProjectTemplatesTests(unittest.TestCase):
 
 
 class BaseImageBuilderTests(unittest.TestCase):
-    def _builder(self) -> BaseImageBuilder:
+    def _builder(self, **dotenv) -> BaseImageBuilder:
+        from dev_project.host.cli.args import OdpmCliArgs
+        from dev_project.scenario_policy import ScenarioPolicy
+
         config = MagicMock()
         config.project_dir = "/tmp/project"
         config.dockerfile_path = "/tmp/project/Dockerfile"
-        config.odoo_image_name = "odoo-base:test"
+        config.odoo_image_name = "odoo-amd64-python-3.12-debian-120-ci"
         config.arch = "amd64"
+        config.python_version = "3.12"
+        config.distro_name = "debian"
+        config.distro_version = "12.0"
+        config.arguments = OdpmCliArgs()
+        config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        config.user_env = MagicMock()
+        config.user_env.project_dotenv_dict.return_value = dict(dotenv)
         env = MagicMock()
         env.config = config
         return BaseImageBuilder(env)
@@ -147,9 +157,10 @@ class BaseImageBuilderTests(unittest.TestCase):
     @patch("dev_project.project_env.base_image.run_or_raise")
     def test_base_image_exists_when_image_inspect_succeeds(self, mock_run_or_raise):
         mock_run_or_raise.return_value = MagicMock(stdout="", stderr="")
-        self.assertTrue(self._builder().base_image_exists())
+        builder = self._builder()
+        self.assertTrue(builder.base_image_exists())
         mock_run_or_raise.assert_called_once_with(
-            ["docker", "image", "inspect", "odoo-base:test"]
+            ["docker", "image", "inspect", builder.resolve_base_image_ref()]
         )
 
     @patch("dev_project.project_env.base_image.run_or_raise")
@@ -158,23 +169,56 @@ class BaseImageBuilderTests(unittest.TestCase):
 
         mock_run_or_raise.side_effect = SubprocessError(
             "missing",
-            argv=["docker", "image", "inspect", "odoo-base:test"],
+            argv=["docker", "image", "inspect", "x"],
             returncode=1,
         )
         self.assertFalse(self._builder().base_image_exists())
 
-    @patch("dev_project.project_env.base_image.run_logged", return_value=1)
-    def test_build_base_image_raises_pipeline_error_on_failure(self, mock_logged):
+    @patch("dev_project.project_env.base_image.get_ci_image_build_backend")
+    def test_build_base_image_raises_pipeline_error_on_failure(self, mock_factory):
+        backend = MagicMock()
+        backend.build.side_effect = PipelineError("fail", exit_code=1)
+        mock_factory.return_value = backend
         with self.assertRaises(PipelineError) as ctx:
             self._builder().build_base_image()
         self.assertEqual(ctx.exception.exit_code, 1)
 
-    @patch("dev_project.project_env.base_image.run_logged", return_value=0)
-    def test_build_base_image_uses_project_dir_as_cwd(self, mock_logged):
+    @patch("dev_project.project_env.base_image.get_ci_image_build_backend")
+    def test_build_base_image_uses_backend_docker(self, mock_factory):
+        backend = MagicMock()
+        mock_factory.return_value = backend
         builder = self._builder()
         builder.build_base_image()
-        mock_logged.assert_called_once()
-        self.assertEqual(mock_logged.call_args.kwargs["cwd"], builder.config.project_dir)
+        mock_factory.assert_called_once_with("docker")
+        spec = backend.build.call_args.args[0]
+        self.assertEqual(spec.tag, builder.resolve_base_image_ref())
+        self.assertFalse(spec.push)
+        self.assertEqual(spec.context_dir, "/tmp/project")
+
+    def test_kaniko_requires_registry(self):
+        builder = self._builder(
+            **{constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko"}
+        )
+        with self.assertRaises(PipelineError) as ctx:
+            builder.resolve_base_image_ref()
+        self.assertIn(constants.ODPM_BASE_IMAGE_REGISTRY_ENV, str(ctx.exception))
+
+    @patch("dev_project.project_env.base_image.get_ci_image_build_backend")
+    def test_kaniko_base_always_pushes(self, mock_factory):
+        backend = MagicMock()
+        mock_factory.return_value = backend
+        builder = self._builder(
+            **{
+                constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko",
+                constants.ODPM_BASE_IMAGE_REGISTRY_ENV: "registry.example.com/odpm",
+            }
+        )
+        builder.build_base_image()
+        mock_factory.assert_called_once_with("kaniko")
+        spec = backend.build.call_args.args[0]
+        self.assertTrue(spec.push)
+        self.assertTrue(spec.tag.startswith("registry.example.com/odpm/"))
+        self.assertTrue(spec.tag.endswith(":latest"))
 
     @patch("dev_project.project_env.base_image.write_base_image_identity")
     @patch.object(BaseImageBuilder, "build_base_image")

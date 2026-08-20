@@ -438,6 +438,43 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_exit.assert_called_once_with(0)
         mock_logger.error.assert_not_called()
 
+    @patch("dev_project.odpm_pipeline._logger")
+    @patch("dev_project.odpm_pipeline.sys.exit")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_ci_bare_odpm_rejected(
+        self, mock_setup, mock_prepare, mock_exit, mock_logger
+    ):
+        args = OdpmCliArgs()
+        pipeline = OdpmPipeline(args, "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        pipeline.project_environment = MagicMock()
+
+        pipeline.run()
+
+        mock_prepare.assert_not_called()
+        mock_exit.assert_called_once_with(1)
+        self.assertTrue(mock_logger.error.called)
+        self.assertIn("--skip-start", mock_logger.error.call_args[0][1])
+
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_ci_allows_update_lock(
+        self, mock_setup, mock_prepare, mock_runtime_cls
+    ):
+        args = OdpmCliArgs(update_lock=True)
+        pipeline = OdpmPipeline(args, "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        pipeline.project_environment = MagicMock()
+
+        pipeline.run()
+
+        mock_prepare.assert_called_once()
+        mock_runtime_cls.return_value.run_after_prepare.assert_called_once()
+
 
 class OdpmPipelineSetupTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.SystemChecker")

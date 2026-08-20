@@ -18,7 +18,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 | **Отладчик** | Нет. |
 | **Секреты модулей** | Mount `.odpm/secrets.json` с хоста **отключён**. Секреты приложения в CI-образ этим механизмом не попадают — см. [локальные секреты](../operations/secrets.md) (TD-FEAT-09). |
 | **Фиксация версий** | Строгая проверка `.odpm/deps.lock.json`; несовместимости версий во вложенных описаниях — **ошибка**. |
-| **Base image** | Профиль **ci** (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег `odoo-…-ci`; пересборка при смене шаблона или `Dockerfile` — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md). Для бэкенда `kaniko` локальный ensure base **не** выполняется: тег base должен быть доступен из registry. |
+| **Base image** | Профиль **ci** (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег `odoo-…-ci`; пересборка при смене шаблона или `Dockerfile` — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md). Для `kaniko` base собирается и **пушится** в `ODPM_BASE_IMAGE_REGISTRY` (ADR-019); final `FROM` использует registry ref. Existence для kaniko — local identity stamp (не probe registry); при stale registry удалите `.odpm/base_image_identity.json` и пересоберите. |
 
 ## Типичный конвейер
 
@@ -41,15 +41,29 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 ## Примеры команд
 
 ```bash
+# ~/.odpm/.env (daemonless)
+# ODPM_SCENARIO=ci
+# ODOO_PROJECTS_DIR=/data/odoo_projects
+# ODPM_CI_IMAGE_BUILDER=kaniko
+# ODPM_KANIKO_EXECUTOR_MODE=direct
+# ODPM_BASE_IMAGE_REGISTRY=registry.example.com/odpm
+# ODPM_CI_IMAGE_PUSH=1
+
 export ODPM_SCENARIO=ci
 odpm --skip-start
 odpm --build-image --image-tag myregistry/client-odoo:19.0
 odpm --build-image --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
 ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
+  ODPM_BASE_IMAGE_REGISTRY=registry.example.com/odpm \
   odpm --build-image --image-tag myregistry/client-odoo:19.0 --image-push
 docker compose up -d
-odpm -d test_db -i --odoo-bin --stop-after-init
+# Module install after stack is up (bare odpm -d/-i is rejected in ci).
+# Service key is "odoo" unless ODPM_COMPOSE_PREFIX is set (then "{prefix}odoo"):
+ODOO_SVC="${ODPM_COMPOSE_PREFIX:-}odoo"
+docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
+
+В сценарии `ci` bare `odpm` без `--skip-start` / `--build-image` (и без allowlist: `plan`, `manifest`, `database`, `--update-lock`, `--init`, …) завершается ошибкой — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md).
 
 Без `--image-push` бэкенд `kaniko` пишет tar в `.odpm/ci-build-context/odpm-ci-image.tar`.
 

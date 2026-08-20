@@ -400,6 +400,14 @@ RU_MESSAGES: dict[str, str] = {
     "Host port: {PORT}": (
         "Порт на host: {PORT}"
     ),
+    "Interactive input is not available in non-interactive mode.": (
+        "Интерактивный ввод недоступен в неинтерактивном режиме."
+    ),
+    "In the ci scenario use --skip-start or --build-image "
+    "(bare odpm compose up is not allowed).": (
+        "В сценарии ci используйте --skip-start или --build-image "
+        "(обычный odpm compose up запрещён)."
+    ),
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
     ),
@@ -600,13 +608,64 @@ RU_MESSAGES: dict[str, str] = {
     "Non-interactive mode requires an existing .env file in the project directory "
     "or under ~/.odpm/.env. Create it manually or set environment variables "
     "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, "
-    "ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run.": (
+    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
+    "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
+    "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the "
+    "first run.": (
         "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта "
         "или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения "
         "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, "
-        "ODPM_DEBUGGER_BACKEND, ODPM_IDE) перед первым запуском."
+        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
+        "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
+        "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) перед первым запуском."
+    ),
+    "Base image registry is required when using the kaniko builder.": (
+        "Префикс registry для base image обязателен при использовании бэкенда kaniko."
+    ),
+    "Invalid CI image builder choice %r, using %s": (
+        "Неверный выбор CI image builder %r, используется %s"
+    ),
+    "Invalid Kaniko executor mode choice %r, using %s": (
+        "Неверный выбор режима Kaniko executor %r, используется %s"
+    ),
+        "Kaniko base image build requires {ENV} "
+    "(registry prefix for a pullable base image).": (
+        "Сборка base image через Kaniko требует {ENV} "
+        "(префикс registry для pullable base image)."
+    ),
+    "Kaniko docker-run mode requires a Docker daemon on the build host.": (
+        "Режим Kaniko docker-run требует Docker daemon на машине сборки."
+    ),
+    "Push the final CI image after build? Answer y/yes or n/no (Enter for no):\n": (
+        "Пушить финальный CI-образ после сборки? Ответьте y/yes или n/no "
+        "(Enter — нет):\n"
+    ),
+    "Select CI image build backend "
+    "(Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n": (
+        "Выберите бэкенд сборки CI-образа "
+        "(Enter — по умолчанию {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+    ),
+    "Select Kaniko executor mode (Enter for default {DEFAULT_MODE}). "
+    "Note: docker-run still requires a Docker daemon:\n{OPTIONS}\n": (
+        "Выберите режим Kaniko executor (Enter — по умолчанию {DEFAULT_MODE}). "
+        "Внимание: docker-run всё ещё требует Docker daemon:\n{OPTIONS}\n"
+    ),
+    "Set base image registry prefix for Kaniko "
+    "(required, e.g. registry.example.com/odpm):\n": (
+        "Укажите префикс registry для base image Kaniko "
+        "(обязательно, напр. registry.example.com/odpm):\n"
+    ),
+    "You selected CI image builder: {SELECTED_BUILDER}\n": (
+        "Вы выбрали CI image builder: {SELECTED_BUILDER}\n"
+    ),
+    "You selected CI image push: {SELECTED_PUSH}\n": (
+        "Вы выбрали push CI-образа: {SELECTED_PUSH}\n"
+    ),
+    "You selected Kaniko executor mode: {SELECTED_MODE}\n": (
+        "Вы выбрали режим Kaniko executor: {SELECTED_MODE}\n"
+    ),
+    "You selected base image registry: {SELECTED_REGISTRY}\n": (
+        "Вы выбрали registry для base image: {SELECTED_REGISTRY}\n"
     ),
     "Non-interactive mode requires odoo_version in the developing project's "
     "odpm.json or pass --odoo-version on the command line.": (

@@ -21,7 +21,7 @@ odpm **does not replace** GitHub Actions, GitLab CI, or orchestrators — it pro
 | **Module secrets** | Host mount **disabled**. Optional bake into image: `ODPM_BAKE_SECRETS=1` with `--build-image` — see [local secrets](../operations/secrets.md), [ADR-002](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-002-ci-secrets-bake.md). |
 | **Version pinning** | Strict check of `.odpm/deps.lock.json`; version incompatibilities in nested manifests — **error**. |
 | **Python warnings in logs** | Same as `server`: `PYTHONWARNINGS` is not filtered — `DeprecationWarning` from docutils on Odoo startup remain in build and container output. Account for this in CI logs and image smoke tests. |
-| **Base image** | Profile **ci** (slim Dockerfile). With `kaniko`, local `ensure_base_image` is **skipped** — the base tag must be pullable from a registry. |
+| **Base image** | Profile **ci** (slim Dockerfile). With `kaniko`, base is built and **pushed** to `ODPM_BASE_IMAGE_REGISTRY` (ADR-019); final `FROM` uses that registry ref. Kaniko “exists” uses the local identity stamp (not a registry probe); if the registry image was deleted, remove `.odpm/base_image_identity.json` and rebuild. |
 
 ## Typical pipeline
 
@@ -37,7 +37,7 @@ git push → build machine
 ## Checklist
 
 1. In git: `odpm.json` and committed `.odpm/deps.lock.json`.
-2. On the build machine: odpm, `.env` with `ODPM_SCENARIO=ci`; for `docker` — Docker daemon; for `kaniko` — executor (`docker-run` or `direct`) and a registry-pullable base.
+2. On the build machine: odpm, `.env` with `ODPM_SCENARIO=ci`; for `docker` — Docker daemon; for `kaniko` — executor (`direct` recommended), `ODPM_BASE_IMAGE_REGISTRY`, and credentials for push/pull.
 3. Before merge: `odpm plan --strict` — exit code 1 on unexpected changes.
 4. Verification: HTTP 200 on `/web` after `docker compose up`.
 
@@ -51,10 +51,16 @@ export ODPM_BAKE_SECRETS=1   # bake module secrets into image when secrets.json 
 odpm --build-image --image-tag myregistry/client-odoo:19.0
 odpm --build-image --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
 ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
+  ODPM_BASE_IMAGE_REGISTRY=registry.example.com/odpm \
   odpm --build-image --image-tag myregistry/client-odoo:19.0 --image-push
 docker compose up -d
-odpm -d test_db -i --odoo-bin --stop-after-init
+# Module install after stack is up (bare odpm -d/-i is rejected in ci).
+# Service key is "odoo" unless ODPM_COMPOSE_PREFIX is set (then "{prefix}odoo"):
+ODOO_SVC="${ODPM_COMPOSE_PREFIX:-}odoo"
+docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
+
+In the `ci` scenario, bare `odpm` without `--skip-start` / `--build-image` (and without the allowlist: `plan`, `manifest`, `database`, `--update-lock`, `--init`, …) fails — see [ADR-017](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md).
 
 Without `--image-push`, the `kaniko` backend writes a tar to `.odpm/ci-build-context/odpm-ci-image.tar`.
 

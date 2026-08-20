@@ -53,6 +53,12 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_COMPOSE_PREFIX: str
     ODPM_COMPOSE_NETWORK: str
     ODPM_COMPOSE_NETWORK_EXTERNAL: str
+    ODPM_CI_IMAGE_BUILDER: str
+    ODPM_CI_IMAGE_PUSH: str
+    ODPM_KANIKO_EXECUTOR_MODE: str
+    ODPM_KANIKO_EXECUTOR_IMAGE: str
+    ODPM_KANIKO_EXECUTOR_BIN: str
+    ODPM_BASE_IMAGE_REGISTRY: str
 
 
 @dataclass(frozen=True)
@@ -167,9 +173,16 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         external_raw=env_dict.get(constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV),
         naming=naming,
     )
+    if raw_scenario == constants.CI_SCENARIO:
+        backups = env_dict.get(
+            "BACKUP_DIR",
+            os.path.join(str(Path.home()), "odoo_backups"),
+        )
+    else:
+        backups = env_dict["BACKUP_DIR"]
     return ParsedUserEnv(
         dotenv=dict(env_dict),
-        backups=env_dict["BACKUP_DIR"],
+        backups=backups,
         odoo_projects_dir=env_dict["ODOO_PROJECTS_DIR"],
         debugger_port=int(
             env_dict.get("DEBUGGER_PORT", str(constants.DEBUGGER_DEFAULT_PORT))
@@ -228,6 +241,10 @@ def has_noninteractive_env_configuration(pd_manager: ProjectDirManager) -> bool:
             constants.ODPM_LOCALE_ENV_KEY,
             constants.ODPM_COMPOSE_PREFIX_ENV,
             constants.ODPM_COMPOSE_NETWORK_ENV,
+            constants.ODPM_CI_IMAGE_BUILDER_ENV,
+            constants.ODPM_CI_IMAGE_PUSH_ENV,
+            constants.ODPM_KANIKO_EXECUTOR_MODE_ENV,
+            constants.ODPM_BASE_IMAGE_REGISTRY_ENV,
             ODPM_DEBUGGER_BACKEND_ENV,
             ODPM_IDE_ENV,
         )
@@ -307,4 +324,15 @@ def build_env_data_from_environ_or_defaults() -> EnvData:
     ).strip()
     if raw_network_external:
         env_data[constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV] = raw_network_external
+    for key in (
+        constants.ODPM_CI_IMAGE_BUILDER_ENV,
+        constants.ODPM_CI_IMAGE_PUSH_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_MODE_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_IMAGE_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_BIN_ENV,
+        constants.ODPM_BASE_IMAGE_REGISTRY_ENV,
+    ):
+        raw = os.environ.get(key, "").strip()
+        if raw:
+            env_data[key] = raw  # type: ignore[literal-type]
     return env_data

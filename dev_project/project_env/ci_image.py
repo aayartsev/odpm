@@ -21,6 +21,7 @@ from .image_build import (
     resolve_ci_image_builder,
     resolve_ci_image_push,
 )
+from .base_image import BaseImageBuilder
 from .services.docker_base_image import BaseImageService
 from .types import MappedPath
 
@@ -227,7 +228,7 @@ class CiImageBuilder:
         with open(template_path) as template_file:
             content = template_file.read()
         content = content.format(
-            BASE_IMAGE=self.config.odoo_image_name,
+            BASE_IMAGE=BaseImageBuilder(self.env).resolve_base_image_ref(),
             DOCKER_PROJECT_DIR=self.config.docker_project_dir,
             CONTAINER_USER=constants.CONTAINER_USER,
             CURRENT_USER=constants.CONTAINER_USER,
@@ -249,16 +250,13 @@ class CiImageBuilder:
         return dockerfile_path
 
     def build_ci_image(self) -> None:
-        builder_name = resolve_ci_image_builder(self.config.arguments)
-        push = resolve_ci_image_push(self.config.arguments)
-        if builder_name == constants.CI_IMAGE_BUILDER_DOCKER:
-            BaseImageService(self.env).ensure_base_image()
-        else:
-            _logger.info(
-                "kaniko backend skips local ensure_base_image; "
-                "base image %s must be pullable from a registry",
-                self.config.odoo_image_name,
-            )
+        from ..system_check_policy import environ_from_config
+
+        environ = environ_from_config(self.config)
+        builder_name = resolve_ci_image_builder(self.config.arguments, environ=environ)
+        push = resolve_ci_image_push(self.config.arguments, environ=environ)
+        base_ref = BaseImageBuilder(self.env).resolve_base_image_ref()
+        BaseImageService(self.env).ensure_base_image()
         self.prepare_ci_build_context()
         ci_dockerfile = self.generate_ci_dockerfile()
         context_dir = self.config.ci_build_context_dir
@@ -266,7 +264,7 @@ class CiImageBuilder:
             "build_ci_image: building %s from %s (base %s, builder %s, push %s)",
             self.config.odoo_ci_image_name,
             ci_dockerfile,
-            self.config.odoo_image_name,
+            base_ref,
             builder_name,
             push,
         )

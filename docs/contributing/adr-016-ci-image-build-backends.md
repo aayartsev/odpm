@@ -18,8 +18,8 @@ Accepted (4.7).
 4. **Push:** CLI `--image-push` или env `ODPM_CI_IMAGE_PUSH=1|true|yes`.
    - docker: `docker push <tag>` после build;
    - kaniko: `--destination=<tag>` при push; иначе `--no-push --tar-path=…/odpm-ci-image.tar`.
-5. **Kaniko и base image:** локальный `ensure_base_image()` для kaniko **не** вызывается; тег base (`odoo_image_name`) должен быть доступен Kaniko из registry.
-6. **Вне скоупа:** Buildah/podman, бэкенд сборки base image, генерация K8s Job YAML.
+5. **Kaniko и base image:** base собирается тем же `ImageBuildBackend`; при `kaniko` base **всегда** пушится в `ODPM_BASE_IMAGE_REGISTRY` (обязателен). См. [ADR-019](adr-019-kaniko-base-image-build.md).
+6. **Вне скоупа:** Buildah/podman, генерация K8s Job YAML, CLI `--build-base-image`.
 
 ### ImageBuildSpec
 

@@ -57,6 +57,17 @@ class ResolveCiImageBuilderTests(unittest.TestCase):
             "kaniko",
         )
 
+    def test_dotenv_dict_without_process_env(self):
+        """Layered dotenv mapping must drive resolve when passed explicitly."""
+        from dev_project.system_check_policy import merged_environ_for_resolve
+
+        dotenv = {constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko"}
+        environ = merged_environ_for_resolve(dotenv, process_environ={})
+        self.assertEqual(
+            resolve_ci_image_builder(OdpmCliArgs(), environ=environ),
+            "kaniko",
+        )
+
     def test_unknown_builder_raises(self):
         with self.assertRaises(PipelineError) as ctx:
             resolve_ci_image_builder(
@@ -203,13 +214,17 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
 
     @patch("dev_project.project_env.ci_image.get_ci_image_build_backend")
     @patch("dev_project.project_env.ci_image.BaseImageService")
+    @patch("dev_project.project_env.ci_image.BaseImageBuilder")
     def test_ci_image_builder_uses_docker_backend_and_ensures_base(
-        self, mock_base_svc, mock_get_backend
+        self, mock_base_builder_cls, mock_base_svc, mock_get_backend
     ):
         from dev_project.project_env.ci_image import CiImageBuilder
 
         backend = MagicMock()
         mock_get_backend.return_value = backend
+        mock_base_builder_cls.return_value.resolve_base_image_ref.return_value = (
+            "base:tag"
+        )
         env = MagicMock()
         config = MagicMock()
         config.arguments = OdpmCliArgs(image_builder="docker", image_push=False)
@@ -221,6 +236,8 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
         config.program_dir = os.path.dirname(
             os.path.dirname(os.path.dirname(__file__))
         )
+        config.user_env = MagicMock()
+        config.user_env.project_dotenv_dict.return_value = {}
         env.config = config
         builder = CiImageBuilder(env)
         builder.prepare_ci_build_context = MagicMock()
@@ -237,13 +254,17 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
 
     @patch("dev_project.project_env.ci_image.get_ci_image_build_backend")
     @patch("dev_project.project_env.ci_image.BaseImageService")
-    def test_ci_image_builder_kaniko_skips_ensure_base(
-        self, mock_base_svc, mock_get_backend
+    @patch("dev_project.project_env.ci_image.BaseImageBuilder")
+    def test_ci_image_builder_kaniko_ensures_base(
+        self, mock_base_builder_cls, mock_base_svc, mock_get_backend
     ):
         from dev_project.project_env.ci_image import CiImageBuilder
 
         backend = MagicMock()
         mock_get_backend.return_value = backend
+        mock_base_builder_cls.return_value.resolve_base_image_ref.return_value = (
+            "registry.example.com/odpm/base:latest"
+        )
         env = MagicMock()
         config = MagicMock()
         config.arguments = OdpmCliArgs(image_builder="kaniko", image_push=True)
@@ -252,6 +273,11 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
         config.ci_build_context_dir = "/tmp/ctx"
         config.arch = "arm64"
         config.project_dir = "/tmp/project"
+        config.user_env = MagicMock()
+        config.user_env.project_dotenv_dict.return_value = {
+            constants.ODPM_BASE_IMAGE_REGISTRY_ENV: "registry.example.com/odpm",
+            constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko",
+        }
         env.config = config
         builder = CiImageBuilder(env)
         builder.prepare_ci_build_context = MagicMock()
@@ -259,7 +285,7 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
 
         builder.build_ci_image()
 
-        mock_base_svc.return_value.ensure_base_image.assert_not_called()
+        mock_base_svc.return_value.ensure_base_image.assert_called_once()
         mock_get_backend.assert_called_once_with("kaniko")
         spec = backend.build.call_args.args[0]
         self.assertTrue(spec.push)
