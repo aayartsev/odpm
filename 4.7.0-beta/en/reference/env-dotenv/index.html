@@ -2381,6 +2381,21 @@
 <td><code>executor</code></td>
 </tr>
 <tr>
+<td><code>ODPM_KANIKO_EXECUTOR_WRAPPER</code></td>
+<td>Optional argv prefix for <code>direct</code> (wrapper script that runs executor as root); recommended on non-root CI</td>
+<td>empty</td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS</code></td>
+<td>Extra Kaniko executor flags (e.g. <code>--kaniko-dir=/tmp/kaniko</code>)</td>
+<td>empty</td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_SUDO</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — prepend <code>sudo -n</code> before executor in <code>direct</code> when wrapper unset; requires passwordless sudo</td>
+<td>off</td>
+</tr>
+<tr>
 <td><code>ODPM_BASE_IMAGE_REGISTRY</code></td>
 <td>Registry prefix for the base image when using <code>kaniko</code> (required for daemonless base)</td>
 <td>empty</td>
