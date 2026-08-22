@@ -2378,6 +2378,21 @@
 <td><code>executor</code></td>
 </tr>
 <tr>
+<td><code>ODPM_KANIKO_EXECUTOR_WRAPPER</code></td>
+<td>Опциональный префикс argv для <code>direct</code> (скрипт, запускающий executor от root); рекомендуется на non-root CI</td>
+<td>пусто</td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS</code></td>
+<td>Доп. флаги Kaniko executor (напр. <code>--kaniko-dir=/tmp/kaniko</code>)</td>
+<td>пусто</td>
+</tr>
+<tr>
+<td><code>ODPM_KANIKO_EXECUTOR_SUDO</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — prepend <code>sudo -n</code> перед executor в <code>direct</code>, если wrapper не задан; нужен passwordless sudo</td>
+<td>выкл.</td>
+</tr>
+<tr>
 <td><code>ODPM_BASE_IMAGE_REGISTRY</code></td>
 <td>Prefикс registry для base image при <code>kaniko</code> (обязателен для daemonless base)</td>
 <td>пусто</td>
