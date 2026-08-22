@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - **`${@secret:}` gate is scenario-aware** — bootstrap no longer scans other `scenarios.*` overlays; only the effective slice for active `ODPM_SCENARIO` (aligns with `secrets.required` / `load_manifest`). CI/server without refs in their slice do not need `.odpm/secrets.json` when refs live only under `developer`. Tests: `test_secret_refs`. Docs: `secrets.md`.
+- **Kaniko `direct` privilege launch** — `ODPM_KANIKO_EXECUTOR_WRAPPER`, `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS`, opt-in `ODPM_KANIKO_EXECUTOR_SUDO=1`; preflight when non-root without wrapper/sudo. ADR-016 amended. Tests: `test_ci_image_build_backends`.
 
 ## [4.7.0-beta] - 2026-06-23
 

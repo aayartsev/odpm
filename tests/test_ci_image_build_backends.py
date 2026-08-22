@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -181,6 +182,111 @@ class KanikoImageBuildBackendTests(unittest.TestCase):
                 "--destination=registry/app:19",
             ],
         )
+
+    def test_direct_mode_argv_with_wrapper_and_extra_flags(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wrapper = Path(tmp) / "run-kaniko.sh"
+            wrapper.write_text("#!/bin/sh\nexec \"$@\"\n", encoding="utf-8")
+            wrapper.chmod(0o755)
+            backend = KanikoImageBuildBackend(
+                environ={
+                    constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "direct",
+                    constants.ODPM_KANIKO_EXECUTOR_BIN_ENV: "/usr/local/bin/executor",
+                    constants.ODPM_KANIKO_EXECUTOR_WRAPPER_ENV: str(wrapper),
+                    constants.ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS_ENV: (
+                        "--kaniko-dir=/tmp/kaniko"
+                    ),
+                }
+            )
+            argv = backend.build_argv(_spec(push=True))
+            self.assertEqual(
+                argv[:4],
+                [
+                    str(wrapper),
+                    "/usr/local/bin/executor",
+                    "--kaniko-dir=/tmp/kaniko",
+                    "--dockerfile=/tmp/ctx/Dockerfile.ci",
+                ],
+            )
+
+    @patch.object(os, "geteuid", return_value=1000, create=True)
+    def test_direct_mode_argv_with_sudo_opt_in(self, _mock_geteuid):
+        backend = KanikoImageBuildBackend(
+            environ={
+                constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "direct",
+                constants.ODPM_KANIKO_EXECUTOR_BIN_ENV: "/usr/local/bin/executor",
+                constants.ODPM_KANIKO_EXECUTOR_SUDO_ENV: "1",
+            }
+        )
+        argv = backend.build_argv(_spec(push=True))
+        self.assertEqual(
+            argv[:3],
+            ["sudo", "-n", "/usr/local/bin/executor"],
+        )
+
+    @patch.object(os, "geteuid", return_value=1000, create=True)
+    def test_direct_wrapper_takes_precedence_over_sudo(self, _mock_geteuid):
+        with tempfile.TemporaryDirectory() as tmp:
+            wrapper = Path(tmp) / "run-kaniko.sh"
+            wrapper.write_text("#!/bin/sh\nexec \"$@\"\n", encoding="utf-8")
+            wrapper.chmod(0o755)
+            backend = KanikoImageBuildBackend(
+                environ={
+                    constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "direct",
+                    constants.ODPM_KANIKO_EXECUTOR_BIN_ENV: "/usr/local/bin/executor",
+                    constants.ODPM_KANIKO_EXECUTOR_WRAPPER_ENV: str(wrapper),
+                    constants.ODPM_KANIKO_EXECUTOR_SUDO_ENV: "1",
+                }
+            )
+            argv = backend.build_argv(_spec())
+            self.assertEqual(argv[0], str(wrapper))
+            self.assertNotIn("sudo", argv)
+
+    @patch.object(os, "geteuid", return_value=1000, create=True)
+    def test_validate_direct_launch_requires_wrapper_or_sudo(self, _mock_geteuid):
+        backend = KanikoImageBuildBackend(
+            environ={
+                constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "direct",
+            }
+        )
+        with self.assertRaises(PipelineError) as ctx:
+            backend.validate_direct_launch()
+        message = str(ctx.exception)
+        self.assertIn(constants.ODPM_KANIKO_EXECUTOR_WRAPPER_ENV, message)
+        self.assertIn(constants.ODPM_KANIKO_EXECUTOR_SUDO_ENV, message)
+
+    @patch.object(os, "geteuid", return_value=1000, create=True)
+    def test_build_direct_without_privilege_launch_raises_before_executor(
+        self, _mock_geteuid
+    ):
+        backend = KanikoImageBuildBackend(
+            environ={
+                constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "direct",
+            }
+        )
+        with self.assertRaises(PipelineError):
+            backend.build(_spec())
+
+    @patch("dev_project.project_env.image_build.kaniko_backend.subprocess.run")
+    @patch.object(os, "geteuid", return_value=1000, create=True)
+    def test_validate_direct_sudo_requires_passwordless(
+        self, _mock_geteuid, mock_run
+    ):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["sudo", "-n", "true"],
+            returncode=1,
+            stdout="",
+            stderr="",
+        )
+        backend = KanikoImageBuildBackend(
+            environ={
+                constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "direct",
+                constants.ODPM_KANIKO_EXECUTOR_SUDO_ENV: "true",
+            }
+        )
+        with self.assertRaises(PipelineError) as ctx:
+            backend.validate_direct_launch()
+        self.assertIn("passwordless sudo", str(ctx.exception))
 
     def test_unknown_mode_raises(self):
         backend = KanikoImageBuildBackend(

@@ -58,6 +58,9 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_KANIKO_EXECUTOR_MODE: str
     ODPM_KANIKO_EXECUTOR_IMAGE: str
     ODPM_KANIKO_EXECUTOR_BIN: str
+    ODPM_KANIKO_EXECUTOR_WRAPPER: str
+    ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS: str
+    ODPM_KANIKO_EXECUTOR_SUDO: str
     ODPM_BASE_IMAGE_REGISTRY: str
 
 
@@ -330,6 +333,9 @@ def build_env_data_from_environ_or_defaults() -> EnvData:
         constants.ODPM_KANIKO_EXECUTOR_MODE_ENV,
         constants.ODPM_KANIKO_EXECUTOR_IMAGE_ENV,
         constants.ODPM_KANIKO_EXECUTOR_BIN_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_WRAPPER_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_SUDO_ENV,
         constants.ODPM_BASE_IMAGE_REGISTRY_ENV,
     ):
         raw = os.environ.get(key, "").strip()

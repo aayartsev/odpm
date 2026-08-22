@@ -343,6 +343,33 @@ RU_MESSAGES: dict[str, str] = {
         "(учётные данные docker login). Создайте его или используйте "
         "ODPM_KANIKO_EXECUTOR_MODE=direct с credentials, доступными executor."
     ),
+    "Kaniko executor wrapper {PATH} is not a file; check {ENV}.": (
+        "Wrapper Kaniko executor {PATH} не является файлом; проверьте {ENV}."
+    ),
+    "Kaniko executor wrapper {PATH} is not executable; check {ENV}.": (
+        "Wrapper Kaniko executor {PATH} не исполняемый; проверьте {ENV}."
+    ),
+    "{ENV}=1 requires sudo on PATH for Kaniko direct mode.": (
+        "{ENV}=1 требует sudo в PATH для режима Kaniko direct."
+    ),
+    "Kaniko direct mode with {ENV}=1 requires passwordless sudo "
+    "(sudo -n true failed). Configure sudoers for the executor "
+    "binary or set {WRAPPER_ENV} instead.": (
+        "Режим Kaniko direct с {ENV}=1 требует passwordless sudo "
+        "(sudo -n true не прошёл). Настройте sudoers для бинаря executor "
+        "или задайте {WRAPPER_ENV}."
+    ),
+    "Kaniko direct mode requires a privileged executor launch while "
+    "odpm runs as a non-root user. Set {WRAPPER_ENV} to a script that "
+    "runs {BIN_ENV} as root (recommended), or set {SUDO_ENV}=1 with "
+    "passwordless sudo for the executor binary. odpm itself must not "
+    "run as root.": (
+        "Режим Kaniko direct требует привилегированного запуска executor, "
+        "пока odpm работает не от root. Задайте {WRAPPER_ENV} — скрипт, "
+        "запускающий {BIN_ENV} от root (рекомендуется), или {SUDO_ENV}=1 "
+        "с passwordless sudo для бинаря executor. Сам odpm не должен "
+        "работать от root."
+    ),
     "docker compose up failed with exit code {EXIT_CODE}": (
         "docker compose up завершился с кодом {EXIT_CODE}"
     ),

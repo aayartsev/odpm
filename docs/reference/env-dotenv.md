@@ -54,6 +54,9 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_KANIKO_EXECUTOR_MODE` | `docker-run` или `direct` (мастер для `ci`+kaniko предлагает `direct` по умолчанию) | `docker-run` |
 | `ODPM_KANIKO_EXECUTOR_IMAGE` | Образ executor для режима `docker-run` | `gcr.io/kaniko-project/executor:v1.23.2` |
 | `ODPM_KANIKO_EXECUTOR_BIN` | Бинарь executor для режима `direct` | `executor` |
+| `ODPM_KANIKO_EXECUTOR_WRAPPER` | Опциональный префикс argv для `direct` (скрипт, запускающий executor от root); рекомендуется на non-root CI | пусто |
+| `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS` | Доп. флаги Kaniko executor (напр. `--kaniko-dir=/tmp/kaniko`) | пусто |
+| `ODPM_KANIKO_EXECUTOR_SUDO` | `1` / `true` / `yes` — prepend `sudo -n` перед executor в `direct`, если wrapper не задан; нужен passwordless sudo | выкл. |
 | `ODPM_BASE_IMAGE_REGISTRY` | Prefикс registry для base image при `kaniko` (обязателен для daemonless base) | пусто |
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |

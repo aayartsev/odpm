@@ -34,6 +34,7 @@
 ### Исправлено
 
 - **Gate `${@secret:}` учитывает сценарий** — bootstrap не сканирует чужие `scenarios.*`; только effective slice активного `ODPM_SCENARIO` (как `secrets.required` / `load_manifest`). CI/server без refs в своём slice не требуют `.odpm/secrets.json`, если refs только в `developer`. Тесты: `test_secret_refs`. Документация: `secrets.md`.
+- **Kaniko `direct`: запуск executor с привилегиями** — `ODPM_KANIKO_EXECUTOR_WRAPPER`, `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS`, opt-in `ODPM_KANIKO_EXECUTOR_SUDO=1`; preflight при non-root без wrapper/sudo. ADR-016 дополнен. Тесты: `test_ci_image_build_backends`.
 
 ## [4.7.0-beta] - 2026-06-23
 

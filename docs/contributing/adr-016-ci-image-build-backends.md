@@ -32,10 +32,22 @@ Accepted (4.7).
 | `docker-run` (default) | `ODPM_KANIKO_EXECUTOR_MODE` unset/`docker-run` | `docker run --rm` образа `ODPM_KANIKO_EXECUTOR_IMAGE` |
 | `direct` | `direct` | бинарь `ODPM_KANIKO_EXECUTOR_BIN` (default `executor`) |
 
+### Privilege boundary (`direct`)
+
+odpm **не** запускается от root (`cli.py` guard). Kaniko executor в `direct` часто требует привилегий (chroot, runtime dir). odpm только **spawn**’ит executor; elevation — явная настройка окружения:
+
+| Env | Назначение |
+|-----|------------|
+| `ODPM_KANIKO_EXECUTOR_WRAPPER` | Префикс argv (скрипт или `sudo -n /path/to/wrapper.sh`); **рекомендуется** |
+| `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS` | Доп. флаги executor (напр. `--kaniko-dir=/tmp/kaniko`) |
+| `ODPM_KANIKO_EXECUTOR_SUDO=1` | Opt-in: prepend `sudo -n` перед бинарём, если wrapper не задан; нужен passwordless sudo |
+
+Preflight в `KanikoImageBuildBackend.validate_direct_launch()`: non-root + `direct` без wrapper/sudo → `PipelineError` с подсказкой до запуска executor.
+
 ## Consequences
 
 - Локальный и docker-based CI путь без изменений при default.
-- Daemonless CI может использовать `kaniko` + `direct` + registry credentials.
+- Daemonless CI может использовать `kaniko` + `direct` + registry credentials; для `direct` на non-root runner задайте `ODPM_KANIKO_EXECUTOR_WRAPPER` или `ODPM_KANIKO_EXECUTOR_SUDO=1` (см. privilege boundary выше).
 - В `docker-run` + `--image-push` без `~/.docker/config.json` — fail-fast до запуска executor.
 - Pin образа executor (`DEFAULT_KANIKO_EXECUTOR_IMAGE`) перекрывается `ODPM_KANIKO_EXECUTOR_IMAGE`.
 - Opt-in Docker integration (`test_ci_image_build`) покрывает только бэкенд `docker`; `kaniko` — unit-тесты argv/режимов (`test_ci_image_build_backends`).

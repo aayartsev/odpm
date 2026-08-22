@@ -347,8 +347,20 @@ msgstr "Для Kaniko --image-push в режиме docker-run нужен фай�
 msgid "Kaniko base image build requires {ENV} (registry prefix for a pullable base image)."
 msgstr "Сборка base image через Kaniko требует {ENV} (префикс registry для pullable base image)."
 
+msgid "Kaniko direct mode requires a privileged executor launch while odpm runs as a non-root user. Set {WRAPPER_ENV} to a script that runs {BIN_ENV} as root (recommended), or set {SUDO_ENV}=1 with passwordless sudo for the executor binary. odpm itself must not run as root."
+msgstr "Режим Kaniko direct требует привилегированного запуска executor, пока odpm работает не от root. Задайте {WRAPPER_ENV} — скрипт, запускающий {BIN_ENV} от root (рекомендуется), или {SUDO_ENV}=1 с passwordless sudo для бинаря executor. Сам odpm не должен работать от root."
+
+msgid "Kaniko direct mode with {ENV}=1 requires passwordless sudo (sudo -n true failed). Configure sudoers for the executor binary or set {WRAPPER_ENV} instead."
+msgstr "Режим Kaniko direct с {ENV}=1 требует passwordless sudo (sudo -n true не прошёл). Настройте sudoers для бинаря executor или задайте {WRAPPER_ENV}."
+
 msgid "Kaniko docker-run mode requires a Docker daemon on the build host."
 msgstr "Режим Kaniko docker-run требует Docker daemon на машине сборки."
+
+msgid "Kaniko executor wrapper {PATH} is not a file; check {ENV}."
+msgstr "Wrapper Kaniko executor {PATH} не является файлом; проверьте {ENV}."
+
+msgid "Kaniko executor wrapper {PATH} is not executable; check {ENV}."
+msgstr "Wrapper Kaniko executor {PATH} не исполняемый; проверьте {ENV}."
 
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Загрузить git lock из {SOURCE} и включить режим apply перед checkout"
@@ -1138,6 +1150,9 @@ msgstr "записать deps.lock.json из разрешённых коммит
 
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell-команда(ы)"
+
+msgid "{ENV}=1 requires sudo on PATH for Kaniko direct mode."
+msgstr "{ENV}=1 требует sudo в PATH для режима Kaniko direct."
 
 msgid "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})"
 msgstr "Задан {PREFIX_ENV}; {LEGACY_ENV}=%r игнорируется (сервис postgres будет {DB_NAME})"

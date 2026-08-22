@@ -66,6 +66,8 @@ Without `--image-push`, the `kaniko` backend writes a tar to `.odpm/ci-build-con
 
 In `docker-run` mode with `--image-push`, `~/.docker/config.json` is required (`docker login`); otherwise odpm fails before starting the executor. The default executor image is pinned (`gcr.io/kaniko-project/executor:v1.23.2`); override with `ODPM_KANIKO_EXECUTOR_IMAGE`. Opt-in Docker integration in CI covers the `docker` backend only; `kaniko` argv/`direct` paths are covered by unit tests.
 
+For **`direct`** on a **non-root** build user, odpm does not run as root but Kaniko executor often needs privileges. Set **`ODPM_KANIKO_EXECUTOR_WRAPPER`** to a script that launches the executor as root (recommended), or **`ODPM_KANIKO_EXECUTOR_SUDO=1`** with passwordless sudo for the executor binary. Optional **`ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS`** (e.g. `--kaniko-dir=/tmp/kaniko`) adjusts Kaniko runtime paths. See [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md).
+
 Non-interactive initialization:
 
 ```bash

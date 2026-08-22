@@ -69,6 +69,8 @@ docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 
 В режиме `docker-run` с `--image-push` нужен `~/.docker/config.json` (`docker login`); иначе odpm завершится с ошибкой до запуска executor. Образ executor по умолчанию закреплён (`gcr.io/kaniko-project/executor:v1.23.2`); перекрывается `ODPM_KANIKO_EXECUTOR_IMAGE`. Opt-in Docker integration в CI покрывает только бэкенд `docker`; argv/`direct` для `kaniko` — unit-тесты.
 
+Для **`direct`** под **non-root** пользователем сборки: odpm не работает от root, но Kaniko executor часто требует привилегий. Задайте **`ODPM_KANIKO_EXECUTOR_WRAPPER`** — скрипт, запускающий executor от root (рекомендуется), или **`ODPM_KANIKO_EXECUTOR_SUDO=1`** с passwordless sudo для бинаря executor. Опционально **`ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS`** (напр. `--kaniko-dir=/tmp/kaniko`) для путей runtime Kaniko. См. [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md).
+
 Инициализация без диалогов:
 
 ```bash

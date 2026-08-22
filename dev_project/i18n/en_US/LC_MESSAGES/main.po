@@ -348,8 +348,20 @@ msgstr "Kaniko --image-push in docker-run mode requires {PATH} (docker login cre
 msgid "Kaniko base image build requires {ENV} (registry prefix for a pullable base image)."
 msgstr "Kaniko base image build requires {ENV} (registry prefix for a pullable base image)."
 
+msgid "Kaniko direct mode requires a privileged executor launch while odpm runs as a non-root user. Set {WRAPPER_ENV} to a script that runs {BIN_ENV} as root (recommended), or set {SUDO_ENV}=1 with passwordless sudo for the executor binary. odpm itself must not run as root."
+msgstr "Kaniko direct mode requires a privileged executor launch while odpm runs as a non-root user. Set {WRAPPER_ENV} to a script that runs {BIN_ENV} as root (recommended), or set {SUDO_ENV}=1 with passwordless sudo for the executor binary. odpm itself must not run as root."
+
+msgid "Kaniko direct mode with {ENV}=1 requires passwordless sudo (sudo -n true failed). Configure sudoers for the executor binary or set {WRAPPER_ENV} instead."
+msgstr "Kaniko direct mode with {ENV}=1 requires passwordless sudo (sudo -n true failed). Configure sudoers for the executor binary or set {WRAPPER_ENV} instead."
+
 msgid "Kaniko docker-run mode requires a Docker daemon on the build host."
 msgstr "Kaniko docker-run mode requires a Docker daemon on the build host."
+
+msgid "Kaniko executor wrapper {PATH} is not a file; check {ENV}."
+msgstr "Kaniko executor wrapper {PATH} is not a file; check {ENV}."
+
+msgid "Kaniko executor wrapper {PATH} is not executable; check {ENV}."
+msgstr "Kaniko executor wrapper {PATH} is not executable; check {ENV}."
 
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Load git lock from {SOURCE} and enter apply mode before checkout"
@@ -1139,6 +1151,9 @@ msgstr "write deps.lock.json from resolved commits"
 
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell command(s)"
+
+msgid "{ENV}=1 requires sudo on PATH for Kaniko direct mode."
+msgstr "{ENV}=1 requires sudo on PATH for Kaniko direct mode."
 
 msgid "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})"
 msgstr "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})"
