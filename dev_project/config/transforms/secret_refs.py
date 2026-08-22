@@ -16,6 +16,35 @@ def load_secrets_map(project_dir: str) -> dict[str, str]:
     return dict(loaded) if loaded is not None else {}
 
 
+def manifest_trees_for_secret_ref_gate(
+    raw: dict[str, Any],
+    active_scenario: str,
+) -> list[Any]:
+    """Trees to scan for ``${@secret:}`` — effective slice of ``active_scenario``.
+
+    Does **not** walk other ``scenarios.*`` overlays. Aligns the bootstrap gate
+    with ``load_manifest(..., active_scenario=...)`` and scenario-aware
+    ``secrets.required``.
+    """
+    from ...manifest.scenario_overrides import (
+        manifest_uses_scenarios,
+        resolve_effective_manifest_slice,
+        top_level_slice,
+    )
+
+    if not manifest_uses_scenarios(raw):
+        slice_ = top_level_slice(raw)
+    else:
+        slice_ = resolve_effective_manifest_slice(raw, active_scenario)
+    return [
+        slice_.services,
+        slice_.service_patches,
+        slice_.hooks,
+        slice_.odoo_conf,
+        slice_.service_sources,
+    ]
+
+
 def ensure_secrets_available_for_refs(
     project_dir: str,
     *trees: Any,

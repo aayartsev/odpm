@@ -31,6 +31,10 @@
 - **Новые проекты:** в `user_settings.json` по умолчанию `create_demo: false`.
 - **Сценарий server:** в compose для `db` и `odoo` задаётся `restart: unless-stopped` (переживает перезагрузку хоста).
 
+### Исправлено
+
+- **Gate `${@secret:}` учитывает сценарий** — bootstrap не сканирует чужие `scenarios.*`; только effective slice активного `ODPM_SCENARIO` (как `secrets.required` / `load_manifest`). CI/server без refs в своём slice не требуют `.odpm/secrets.json`, если refs только в `developer`. Тесты: `test_secret_refs`. Документация: `secrets.md`.
+
 ## [4.7.0-beta] - 2026-06-23
 
 **Pre-release 4.7.0-beta** на ветке `4.7.0-dev`; stable-линия остаётся **4.6.0** (`LATEST_STABLE_RELEASE`). Scenario overlays в manifest, префикс compose-стека, layered `.env` на хосте, compose-сеть стека. Без breaking changes для flat v1 `odpm.json`; возможности 4.7 по-прежнему opt-in.

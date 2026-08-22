@@ -71,6 +71,7 @@ For **auxiliary** services (emulators, proxies), inject values from `.odpm/secre
 
 - Values **intentionally** appear in generated `docker-compose.yml` (not committed).
 - Requires an existing `.odpm/secrets.json` **or** `--secrets-file` on this run; otherwise `ConfigError`.
+- The `${@secret:}` bootstrap gate checks only the **effective manifest** for the active `ODPM_SCENARIO` (same slice as compose / `load_manifest`). Refs that exist only in other `scenarios.*` overlays are ignored. Example: `@secret` only under `scenarios.developer` does **not** require `.odpm/secrets.json` when `ODPM_SCENARIO=ci`.
 - For **Odoo modules**, keep reading `/run/odpm/secrets.json` in the container — do not put secrets in the `odoo` service `environment` when the file mount is enough.
 
 ## Quick start

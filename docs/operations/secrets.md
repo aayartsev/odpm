@@ -69,6 +69,7 @@ odpm предупредит на `odpm manifest validate` и `odpm plan`, а п�
 
 - Значения **осознанно** попадают в generated `docker-compose.yml` (файл не в git).
 - Нужен уже существующий `.odpm/secrets.json` **или** `--secrets-file` в этом запуске; иначе `ConfigError`.
+- Gate `${@secret:}` при bootstrap проверяет только **effective manifest** активного `ODPM_SCENARIO` (тот же slice, что compose / `load_manifest`). Ссылки только в других `scenarios.*` не учитываются. Пример: `@secret` только в `scenarios.developer` **не** требует `.odpm/secrets.json` при `ODPM_SCENARIO=ci`.
 - Для **Odoo-модулей** по-прежнему читайте `/run/odpm/secrets.json` в контейнере — не дублируйте секреты в `environment` сервиса `odoo`, если достаточно файлового mount.
 
 ## Быстрый старт

@@ -61,16 +61,15 @@ class OdpmJsonReader:
             raw = json.load(repo_odpm_json)
         from ...manifest.reader import load_manifest
         from ..transforms.env_substitution import with_secrets
-        from ..transforms.secret_refs import ensure_secrets_available_for_refs
+        from ..transforms.secret_refs import (
+            ensure_secrets_available_for_refs,
+            manifest_trees_for_secret_ref_gate,
+        )
 
+        active_scenario = self.config.user_env.odpm_scenario
         secrets_map = ensure_secrets_available_for_refs(
             self.config.project_dir,
-            raw.get("services"),
-            raw.get("service_patches"),
-            raw.get("hooks"),
-            raw.get("odoo_conf"),
-            raw.get("service_sources"),
-            raw.get("scenarios"),
+            *manifest_trees_for_secret_ref_gate(raw, active_scenario),
         )
         self.config._env_resolver = with_secrets(
             self.config.env_resolver,

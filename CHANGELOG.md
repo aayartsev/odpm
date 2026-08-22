@@ -31,6 +31,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **New projects default `create_demo: false`** in generated `user_settings.json` (`DEFAULT_DB_CREATION_DATA_CREATE_DEMO`).
 - **Server scenario compose** — built-in `db` and `odoo` services get `restart: unless-stopped` so stacks survive host reboot (developer/ci unchanged).
 
+### Fixed
+
+- **`${@secret:}` gate is scenario-aware** — bootstrap no longer scans other `scenarios.*` overlays; only the effective slice for active `ODPM_SCENARIO` (aligns with `secrets.required` / `load_manifest`). CI/server without refs in their slice do not need `.odpm/secrets.json` when refs live only under `developer`. Tests: `test_secret_refs`. Docs: `secrets.md`.
+
 ## [4.7.0-beta] - 2026-06-23
 
 **Pre-release 4.7.0-beta** on branch `4.7.0-dev`; stable line remains **4.6.0** (`LATEST_STABLE_RELEASE`). Scenario manifest overlays, compose stack prefix, layered host `.env`, and compose stack network. No breaking changes for v1 flat `odpm.json`; 4.7 features remain opt-in.
