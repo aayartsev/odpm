@@ -2256,7 +2256,11 @@
 </tr>
 <tr>
 <td><code>--secrets-file PATH</code></td>
-<td>Import JSON v1 into <code>.odpm/secrets.json</code> (on <code>--init</code> and any run). See <a href="../../operations/secrets/">local secrets</a>.</td>
+<td>Import JSON v1 into <code>.odpm/secrets.json</code> (on <code>--init</code> and any run). Implies the <code>file</code> provider. See <a href="../../operations/secrets/">local secrets</a>.</td>
+</tr>
+<tr>
+<td><code>--secrets-provider NAME</code></td>
+<td>Secrets provider for this run (<code>file</code>, <code>infisical</code>, or a plugin id). Overrides <code>ODPM_SECRETS_PROVIDER</code> and <code>secrets.provider.type</code>. <code>--secrets-file</code> forces <code>file</code>.</td>
 </tr>
 </tbody>
 </table>

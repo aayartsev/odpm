@@ -2410,6 +2410,31 @@
 <td>SSH key path for git (rarely needed)</td>
 <td>empty</td>
 </tr>
+<tr>
+<td><code>ODPM_SECRETS_PROVIDER</code></td>
+<td>Override secrets provider type (<code>file</code> / <code>infisical</code> / plugin id). Weaker than <code>--secrets-provider</code>; <code>--secrets-file</code> still forces <code>file</code>. The wizard <strong>does not</strong> prompt for this key.</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>INFISICAL_CLIENT_ID</code></td>
+<td>Universal Auth client id (<code>.env</code> / process env only)</td>
+<td>empty</td>
+</tr>
+<tr>
+<td><code>INFISICAL_CLIENT_SECRET</code></td>
+<td>Universal Auth client secret</td>
+<td>empty</td>
+</tr>
+<tr>
+<td><code>INFISICAL_HOST</code></td>
+<td>Override <code>secrets.provider.host</code> (self-hosted Infisical)</td>
+<td><code>https://app.infisical.com</code></td>
+</tr>
+<tr>
+<td><code>INFISICAL_ENVIRONMENT_SLUG</code></td>
+<td>Override <code>secrets.provider.environment_slug</code></td>
+<td>from manifest</td>
+</tr>
 </tbody>
 </table>
 <p>Changing <code>POSTGRES_SERVICE_NAME</code>, <code>POSTGRES_PORT</code>, or <code>ODPM_COMPOSE_PREFIX</code> relative to the saved snapshot causes <strong>database drift</strong> — see <a href="../database-state/">PostgreSQL state</a>.</p>
