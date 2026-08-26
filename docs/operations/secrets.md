@@ -13,7 +13,7 @@ odpm даёт отдельный контракт: вы храните знач�
 | Файл | В git | Кто пишет | Назначение |
 |------|-------|-----------|------------|
 | `.odpm/secrets.example.json` | да | odpm при init | шаблон ключей без реальных значений |
-| `.odpm/secrets.json` | нет | вы или `--secrets-file` | **source** — единственное место правки на хосте |
+| `.odpm/secrets.json` | нет | вы, `--secrets-file` или `secrets.fetch` (Infisical / плагин) | **source** — единственное место правки на хосте |
 | `.odpm/runtime/secrets.json` | нет | odpm (`secrets.materialize`) | **runtime** — монтируется в контейнер |
 
 При `odpm --init` копируется только **`secrets.example.json`**. Файл **`secrets.json`** создаётся вручную, копированием из example, или импортом через CLI.
@@ -49,7 +49,39 @@ odpm даёт отдельный контракт: вы храните знач�
 
 Ключи можно не дублировать — достаточно `"required": true`: odpm проверит **наличие** `.odpm/secrets.json`. Список ключей в сообщении об ошибке берётся из `secrets.example.json` только как подсказка. Для строгой проверки конкретных ключей укажите `keys` в manifest.
 
-odpm предупредит на `odpm manifest validate` и `odpm plan`, а при полном запуске (`odpm` без `--skip-start`) остановится **до** развёртывания базы и compose, если `.odpm/secrets.json` отсутствует или содержит заглушки. См. [поля `secrets`](../../reference/odpm-json.md#блок-secrets-обязательные-локальные-секреты-47).
+odpm предупредит на `odpm manifest validate` и `odpm plan`, а при полном запуске (`odpm` без `--skip-start`) остановится **до** развёртывания базы и compose, если `.odpm/secrets.json` отсутствует или содержит заглушки. См. [поля `secrets`](../reference/odpm-json.md#блок-secrets-обязательные-локальные-секреты-47).
+
+## Провайдеры источника (4.7+, ADR-021)
+
+Потребители не меняются: любой провайдер пишет `.odpm/secrets.json`, затем `secrets.materialize` и `${@secret:}`. Выбор type: `--secrets-provider` > `ODPM_SECRETS_PROVIDER` > `secrets.provider.type` > `file`. `--secrets-file` форсит `file`.
+
+| `type` | Откуда ключи | Credentials |
+|--------|--------------|-------------|
+| `file` | существующий `.odpm/secrets.json` или `--secrets-file` | нет |
+| `infisical` | Infisical Universal Auth (stdlib HTTP, без pip-пакетов) | `INFISICAL_CLIENT_ID` / `INFISICAL_CLIENT_SECRET` в `.env` |
+| entry point `odpm.secrets_providers` | сторонний плагин | по документации плагина |
+
+Fetch — **один снимок на процесс**. Prepare-шаг `secrets.fetch` стоит перед `secrets.materialize` и в сценарии `ci` **не** skip (bake нужен source на раннере). В `odpm plan` / логах — имя провайдера и число ключей, **без values**.
+
+### Infisical
+
+В `.env` (визард эти ключи **не** спрашивает):
+
+```ini
+ODPM_SECRETS_PROVIDER=infisical
+INFISICAL_CLIENT_ID=…
+INFISICAL_CLIENT_SECRET=…
+# INFISICAL_HOST=https://app.infisical.com
+# INFISICAL_ENVIRONMENT_SLUG=dev
+```
+
+В `odpm.json` — `secrets.provider` с ровно одним из `project_id` / `project_slug` и обязательным `environment_slug`. Overlay `scenarios.*.secrets.provider` **заменяет** весь объект. Затем:
+
+```bash
+odpm --skip-start
+```
+
+Нужен сетевой доступ к Infisical API; дополнительных pip-зависимостей нет.
 
 ## `${@secret:}` в manifest (sidecar / hooks)
 
@@ -68,7 +100,8 @@ odpm предупредит на `odpm manifest validate` и `odpm plan`, а п�
 ```
 
 - Значения **осознанно** попадают в generated `docker-compose.yml` (файл не в git).
-- Нужен уже существующий `.odpm/secrets.json` **или** `--secrets-file` в этом запуске; иначе `ConfigError`.
+- Нужен уже существующий `.odpm/secrets.json`, **`--secrets-file`**, или remote-провайдер (`infisical` / плагин) при `${@secret:}` в effective slice; иначе `ConfigError`.
+- **`--plan` + remote + `${@secret:}`** ходит в API и пишет `.odpm/secrets.json` на setup (иначе expand не соберётся). `--plan` без `${@secret:}` сеть на setup не трогает. Подробнее: [ADR-021](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-021-secrets-providers.md).
 - Gate `${@secret:}` при bootstrap проверяет только **effective manifest** активного `ODPM_SCENARIO` (тот же slice, что compose / `load_manifest`). Ссылки только в других `scenarios.*` не учитываются. Пример: `@secret` только в `scenarios.developer` **не** требует `.odpm/secrets.json` при `ODPM_SCENARIO=ci`.
 - Для **Odoo-модулей** по-прежнему читайте `/run/odpm/secrets.json` в контейнере — не дублируйте секреты в `environment` сервиса `odoo`, если достаточно файлового mount.
 
@@ -146,9 +179,10 @@ def load_odpm_secrets() -> dict[str, str]:
 
 ## Plan и materialize
 
+- Prepare-шаг **`secrets.fetch`** (перед `secrets.materialize`) пишет `.odpm/secrets.json` из провайдера. В `ci` шаг **не** skip.
 - Prepare-шаг **`secrets.materialize`** (перед `compose.service`) копирует source → runtime.
-- **`odpm plan`** показывает шаг как `update` / `noop` / `skip` (в CI — `skip`).
-- **`odpm plan --plan-show-diff`** для secrets — только **summary** (например «will materialize 3 secret keys»), **без значений**.
+- **`odpm plan`** показывает шаги как `update` / `noop` / `skip` (materialize в CI — `skip`; fetch в CI выполняется).
+- **`odpm plan --plan-show-diff`** для secrets — только **summary** (число ключей и имя провайдера), **без значений**.
 
 Пример:
 

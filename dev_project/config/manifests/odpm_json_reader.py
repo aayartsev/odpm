@@ -60,6 +60,7 @@ class OdpmJsonReader:
         with open(self.config.repo_odpm_json) as repo_odpm_json:
             raw = json.load(repo_odpm_json)
         from ...manifest.reader import load_manifest
+        from ...secrets_providers.fetch import ensure_secrets_source_for_config
         from ..transforms.env_substitution import with_secrets
         from ..transforms.secret_refs import (
             ensure_secrets_available_for_refs,
@@ -67,17 +68,19 @@ class OdpmJsonReader:
         )
 
         active_scenario = self.config.user_env.odpm_scenario
+        ensure_secrets_source_for_config(self.config, raw=raw, phase="early")
         secrets_map = ensure_secrets_available_for_refs(
             self.config.project_dir,
             *manifest_trees_for_secret_ref_gate(raw, active_scenario),
         )
-        self.config._env_resolver = with_secrets(
+        resolver = with_secrets(
             self.config.env_resolver,
             secrets_map,
         )
+        self.config._env_resolver = resolver
         view = load_manifest(
             raw,
-            env_resolver=self.config.env_resolver,
+            env_resolver=resolver,
             active_scenario=self.config.user_env.odpm_scenario,
         )
         self.config.bootstrap.manifest_view = view

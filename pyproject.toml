@@ -48,6 +48,8 @@ odpm = "dev_project.cli:main"
 
 [project.entry-points."odpm.hooks"]
 
+[project.entry-points."odpm.secrets_providers"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dev_project*"]

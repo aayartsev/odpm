@@ -18,7 +18,8 @@
 | `--distro-version ВЕР` | Версия дистрибутива (`11`, `12`, …) |
 | `--postgres-version ВЕР` | Версия PostgreSQL в compose |
 | `--requirements-txt ПАКЕТЫ` | Пакеты Python через запятую → запись в `odpm.json` |
-| `--secrets-file ПУТЬ` | Импорт JSON v1 в `.odpm/secrets.json` (при `--init` и на любом запуске). См. [локальные секреты](../operations/secrets.md). |
+| `--secrets-file ПУТЬ` | Импорт JSON v1 в `.odpm/secrets.json` (при `--init` и на любом запуске). Подразумевает провайдер `file`. См. [локальные секреты](../operations/secrets.md). |
+| `--secrets-provider ИМЯ` | Провайдер секретов на этот запуск (`file`, `infisical` или id плагина). Сильнее `ODPM_SECRETS_PROVIDER` и `secrets.provider.type`. `--secrets-file` выставляет `file`. |
 
 Пример:
 

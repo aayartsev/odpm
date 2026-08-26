@@ -76,6 +76,9 @@ def init_context(
     config.project_dir = config.pd_manager.project_path
     config.config_home_dir = config.pd_manager.home_config_dir
     config.user_env = user_env
+    from ..secrets_providers.session import session_for_config
+
+    session_for_config(config)
     from .transforms.env_substitution import with_secrets
     from .transforms.secret_refs import load_secrets_map
 

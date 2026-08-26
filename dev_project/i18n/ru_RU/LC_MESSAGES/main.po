@@ -245,6 +245,9 @@ msgstr "Не удалось прочитать вложенный {CONFIG_FILE_N
 msgid "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
 msgstr "Не удалось запустить сервис PostgreSQL {SERVICE} для принятия baseline."
 
+msgid "Fetch secrets via provider {NAME}"
+msgstr "Получить секреты через провайдер {NAME}"
+
 msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 msgstr "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"
 
@@ -283,6 +286,21 @@ msgstr "Если вы хотите сбросить настройки этог�
 
 msgid "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
 msgstr "В сценарии ci используйте --skip-start или --build-image (обычный odpm compose up запрещён)."
+
+msgid "Infisical HTTP {STATUS} for {PATH}"
+msgstr "Infisical HTTP {STATUS} для {PATH}"
+
+msgid "Infisical environment_slug is required"
+msgstr "Для Infisical обязателен environment_slug"
+
+msgid "Infisical request failed: {DETAIL}"
+msgstr "Запрос Infisical не удался: {DETAIL}"
+
+msgid "Infisical requires exactly one of project_id or project_slug"
+msgstr "Infisical требует ровно одно из полей project_id или project_slug"
+
+msgid "Infisical secrets missing after fetch: {KEYS}"
+msgstr "После fetch Infisical отсутствуют секреты: {KEYS}"
 
 msgid "Interactive input is not available in non-interactive mode."
 msgstr "Интерактивный ввод недоступен в неинтерактивном режиме."
@@ -412,6 +430,9 @@ msgstr "Материализовать compose-фрагменты из manifest 
 
 msgid "Materialized service source {NAME} at {PATH}"
 msgstr "Materialized источник service_sources {NAME} в {PATH}"
+
+msgid "Missing Infisical credentials: {KEYS}"
+msgstr "Отсутствуют учётные данные Infisical: {KEYS}"
 
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
@@ -692,6 +713,9 @@ msgstr "Неизвестный ODPM_SCENARIO=%r, используется %s"
 msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
 msgstr "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
 
+msgid "Unknown secrets provider: {NAME}"
+msgstr "Неизвестный провайдер секретов: {NAME}"
+
 msgid "Unknown {ENV}={VALUE!r}, using managed network"
 msgstr "Неизвестное значение {ENV}={VALUE!r}, используется managed network"
 
@@ -818,6 +842,9 @@ msgstr "Вы выбрали системную локаль по умолчан�
 msgid "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 msgstr "Вы выбрали следующую локаль для сообщений odpm: {SELECTED_LOCALE}\n"
 
+msgid "already fetched this run ({COUNT} keys)"
+msgstr "уже получены в этом запуске ({COUNT} ключей)"
+
 msgid "apply pinned commits from {SOURCE}"
 msgstr "применить закреплённые коммиты из {SOURCE}"
 
@@ -829,6 +856,9 @@ msgstr "собрать CI-образ из подготовленного кон�
 
 msgid "build compose service for compose.generate ({REASON})"
 msgstr "собрать compose service для compose.generate ({REASON})"
+
+msgid "cannot fetch secrets: project directory is not set"
+msgstr "нельзя получить секреты: каталог проекта не задан"
 
 msgid "cannot read secrets file {PATH}: {DETAIL}"
 msgstr "не удалось прочитать файл secrets {PATH}: {DETAIL}"
@@ -935,6 +965,9 @@ msgstr "шаблон dockerignore актуален"
 msgid "extensions.local must be a list of module names"
 msgstr "extensions.local должен быть списком имён модулей"
 
+msgid "file provider uses existing source"
+msgstr "файловый провайдер использует существующий source"
+
 msgid "first database run (no last_run snapshot yet)"
 msgstr "первый запуск БД (снимок last_run ещё не создан)"
 
@@ -943,6 +976,9 @@ msgstr "освободить порты odoo, debugger, postgres и gevent пе�
 
 msgid "git repos will be materialized"
 msgstr "git-репозитории будут материализованы"
+
+msgid "import --secrets-file"
+msgstr "импорт --secrets-file"
 
 msgid "inject service_sources paths into env resolver"
 msgstr "подставить пути service_sources в env resolver"
@@ -1049,6 +1085,9 @@ msgstr "обновить маппинг docker-томов"
 msgid "refresh project symlinks"
 msgstr "обновить симлинки проекта"
 
+msgid "remote provider configured"
+msgstr "настроен удалённый провайдер"
+
 msgid "remove stale runtime secrets"
 msgstr "удалить устаревшие runtime secrets"
 
@@ -1066,6 +1105,9 @@ msgstr "отсутствуют runtime secrets"
 
 msgid "secret value for {KEY} must be a string"
 msgstr "значение secret для {KEY} должно быть строкой"
+
+msgid "secrets already imported this run"
+msgstr "секреты уже импортированы в этом запуске"
 
 msgid "secrets file must be a JSON object"
 msgstr "файл secrets должен быть JSON-объектом"

@@ -176,6 +176,24 @@
         "required": { "type": "boolean" },
         "keys": {
           "$ref": "#/$defs/stringList"
+        },
+        "provider": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "type": "string", "minLength": 1 },
+            "host": { "type": "string" },
+            "project_id": { "type": "string" },
+            "project_slug": { "type": "string" },
+            "environment_slug": { "type": "string" },
+            "secret_path": { "type": "string" },
+            "recursive": { "type": "boolean" },
+            "key_map": {
+              "type": "object",
+              "additionalProperties": { "type": "string", "minLength": 1 }
+            }
+          }
         }
       }
     },

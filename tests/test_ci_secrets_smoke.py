@@ -21,9 +21,15 @@ from dev_project.project_env.secrets import (
     prepare_secrets_for_ci_bake,
     secrets_runtime_path,
     secrets_source_path,
+    write_secrets_source,
 )
 from dev_project.project_env.services import CiImageBuildService
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.secrets_providers.registry import (
+    clear_secrets_providers_for_tests,
+    register_secrets_provider,
+)
+from dev_project.secrets_providers.session import SecretsFetchSession
 from tests.fixtures.minimal_odpm_fixture import provision_minimal_odpm_project
 from tests.odpm_subprocess import run_odpm
 
@@ -115,7 +121,11 @@ class CiSecretsBakeTests(unittest.TestCase):
         config.docker_dirs_with_addons = []
         config.odoo_image_name = "odoo-base:test"
         config.user_env = MagicMock(odpm_scenario=constants.CI_SCENARIO)
+        config.user_env.project_dotenv_dict.return_value = {}
         config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        config.secrets_fetch_session = SecretsFetchSession()
+        config.bootstrap = MagicMock()
+        config.bootstrap.manifest_view = None
         env = CreateProjectEnvironment(config)
         env.mapped_folders = []
         return env
@@ -189,6 +199,39 @@ class CiSecretsBakeTests(unittest.TestCase):
             )
             self.assertFalse(baked_path.exists())
             self.assertNotIn(constants.ODPM_SECRETS_CONTAINER_PATH, dockerfile)
+
+    def test_bake_ensure_replaces_stale_source_and_reuses_session(self):
+        class _Counting:
+            name = "fake"
+
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def fetch(self, **_kwargs):
+                self.calls += 1
+                return {"payment.api_key": "from-provider"}
+
+        provider = _Counting()
+        register_secrets_provider(provider)
+        self.addCleanup(clear_secrets_providers_for_tests)
+        with tempfile.TemporaryDirectory() as project_dir:
+            write_secrets_source(project_dir, {"payment.api_key": "stale-yesterday"})
+            env = self._make_ci_env(project_dir)
+            env.config.arguments = OdpmCliArgs(secrets_provider="fake")
+            with patch.dict(os.environ, {constants.ODPM_BAKE_SECRETS_ENV: "1"}):
+                self.assertTrue(
+                    prepare_secrets_for_ci_bake(project_dir, env.config)
+                )
+                self.assertEqual(provider.calls, 1)
+                self.assertTrue(
+                    prepare_secrets_for_ci_bake(project_dir, env.config)
+                )
+            self.assertEqual(provider.calls, 1)
+            payload = json.loads(
+                Path(secrets_runtime_path(project_dir)).read_text(encoding="utf-8")
+            )
+            self.assertEqual(payload["secrets"]["payment.api_key"], "from-provider")
+            self.assertNotIn("stale-yesterday", json.dumps(payload))
 
     def _write_external_secrets(self, directory: str) -> str:
         path = os.path.join(directory, "incoming-secrets.json")

@@ -541,7 +541,7 @@ class OdpmPipelineSetupTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
     @patch("dev_project.odpm_pipeline.ProjectDirManager")
     @patch("dev_project.project_env.secrets.import_secrets_from_path")
-    def test_setup_imports_secrets_before_config(
+    def test_setup_passes_secrets_fetch_session_to_config(
         self,
         mock_import_secrets,
         mock_pd_manager_cls,
@@ -550,34 +550,24 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         _mock_project_env_cls,
         _mock_checker_cls,
     ):
-        call_order: list[str] = []
+        from dev_project.secrets_providers.session import SecretsFetchSession
+
         mock_pd = MagicMock()
         mock_pd.project_path = "/tmp/golden-project"
         pipeline_args = OdpmCliArgs(secrets_file="/tmp/incoming-secrets.json")
         mock_pd.arguments = pipeline_args
         mock_pd_manager_cls.return_value = mock_pd
-
-        def _import_side_effect(project_dir, external_path):
-            call_order.append("import")
-            self.assertEqual(project_dir, "/tmp/golden-project")
-            self.assertEqual(external_path, "/tmp/incoming-secrets.json")
-
-        def _config_side_effect(*_args, **_kwargs):
-            call_order.append("config")
-            return MagicMock(policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO))
-
-        mock_import_secrets.side_effect = _import_side_effect
-        mock_config_cls.side_effect = _config_side_effect
+        mock_config_cls.return_value = MagicMock(
+            policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        )
         mock_user_env_cls.return_value = MagicMock()
 
         pipeline = OdpmPipeline(pipeline_args, "/opt/odpm")
         pipeline.setup()
 
-        self.assertEqual(call_order, ["import", "config"])
-        mock_import_secrets.assert_called_once_with(
-            "/tmp/golden-project",
-            "/tmp/incoming-secrets.json",
-        )
+        kwargs = mock_config_cls.call_args.kwargs
+        self.assertIsInstance(kwargs["secrets_fetch_session"], SecretsFetchSession)
+        mock_import_secrets.assert_not_called()
 
 
 class OdpmPipelinePrepareTests(unittest.TestCase):

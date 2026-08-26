@@ -60,6 +60,11 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_BASE_IMAGE_REGISTRY` | Prefикс registry для base image при `kaniko` (обязателен для daemonless base) | пусто |
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
+| `ODPM_SECRETS_PROVIDER` | Override type провайдера секретов (`file` / `infisical` / id плагина). Слабее `--secrets-provider`; `--secrets-file` всё равно форсит `file`. Визард **не** спрашивает этот ключ. | `file` |
+| `INFISICAL_CLIENT_ID` | Universal Auth client id (только `.env` / process env) | пусто |
+| `INFISICAL_CLIENT_SECRET` | Universal Auth client secret | пусто |
+| `INFISICAL_HOST` | Override `secrets.provider.host` (self-hosted Infisical) | `https://app.infisical.com` |
+| `INFISICAL_ENVIRONMENT_SLUG` | Override `secrets.provider.environment_slug` | из manifest |
 
 Смена `POSTGRES_SERVICE_NAME`, `POSTGRES_PORT` или `ODPM_COMPOSE_PREFIX` относительно сохранённого снимка даёт **database drift** — см. [состояние PostgreSQL](database-state.md).
 

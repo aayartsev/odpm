@@ -15,7 +15,7 @@ odpm provides a separate contract: you store values in `.odpm/secrets.json` on t
 | File | In git | Who writes | Purpose |
 |------|--------|------------|---------|
 | `.odpm/secrets.example.json` | yes | odpm on init | key template without real values |
-| `.odpm/secrets.json` | no | you or `--secrets-file` | **source** — the only place to edit on the host |
+| `.odpm/secrets.json` | no | you, `--secrets-file`, or `secrets.fetch` (Infisical / plugin) | **source** — the only place to edit on the host |
 | `.odpm/runtime/secrets.json` | no | odpm (`secrets.materialize`) | **runtime** — mounted into the container |
 
 On `odpm --init`, only **`secrets.example.json`** is copied. **`secrets.json`** is created manually, by copying from the example, or via CLI import.
@@ -51,7 +51,39 @@ When modules **cannot run** without API keys, declare it in manifest v2:
 
 You may omit `keys` — with `"required": true` odpm checks **file presence** only. Key names in the error message may come from `secrets.example.json` as a hint. Use manifest `keys` for strict per-key validation.
 
-odpm warns on `odpm manifest validate` and `odpm plan`, and on a full run (`odpm` without `--skip-start`) stops **before** database deploy and compose when `.odpm/secrets.json` is missing or still contains placeholders. See [`secrets` fields](../../reference/odpm-json.md#secrets-block-required-local-secrets-47).
+odpm warns on `odpm manifest validate` and `odpm plan`, and on a full run (`odpm` without `--skip-start`) stops **before** database deploy and compose when `.odpm/secrets.json` is missing or still contains placeholders. See [`secrets` fields](../reference/odpm-json.md#secrets-block-required-local-secrets-47).
+
+## Source providers (4.7+, ADR-021)
+
+Consumers are unchanged: any provider writes `.odpm/secrets.json`, then `secrets.materialize` and `${@secret:}`. Type selection: `--secrets-provider` > `ODPM_SECRETS_PROVIDER` > `secrets.provider.type` > `file`. `--secrets-file` forces `file`.
+
+| `type` | Where keys come from | Credentials |
+|--------|----------------------|-------------|
+| `file` | existing `.odpm/secrets.json` or `--secrets-file` | none |
+| `infisical` | Infisical Universal Auth (stdlib HTTP, no extra pip packages) | `INFISICAL_CLIENT_ID` / `INFISICAL_CLIENT_SECRET` in `.env` |
+| entry point `odpm.secrets_providers` | third-party plugin | per plugin docs |
+
+Fetch is **one snapshot per process**. Prepare step `secrets.fetch` runs before `secrets.materialize` and is **not** skip in `ci` (bake needs the source on the runner). `odpm plan` / logs show the provider name and key count, **never values**.
+
+### Infisical
+
+In `.env` (the wizard **does not** ask for these keys):
+
+```ini
+ODPM_SECRETS_PROVIDER=infisical
+INFISICAL_CLIENT_ID=…
+INFISICAL_CLIENT_SECRET=…
+# INFISICAL_HOST=https://app.infisical.com
+# INFISICAL_ENVIRONMENT_SLUG=dev
+```
+
+In `odpm.json` set `secrets.provider` with exactly one of `project_id` / `project_slug` and a required `environment_slug`. Overlay `scenarios.*.secrets.provider` **replaces** the whole object. Then:
+
+```bash
+odpm --skip-start
+```
+
+Network access to the Infisical API is required; no extra pip dependencies.
 
 ## `${@secret:}` in the manifest (sidecars / hooks)
 
@@ -70,7 +102,8 @@ For **auxiliary** services (emulators, proxies), inject values from `.odpm/secre
 ```
 
 - Values **intentionally** appear in generated `docker-compose.yml` (not committed).
-- Requires an existing `.odpm/secrets.json` **or** `--secrets-file` on this run; otherwise `ConfigError`.
+- Requires an existing `.odpm/secrets.json`, **`--secrets-file`**, or a remote provider (`infisical` / plugin) when `${@secret:}` is in the effective slice; otherwise `ConfigError`.
+- **`--plan` + remote + `${@secret:}`** calls the API and writes `.odpm/secrets.json` during setup (otherwise expand cannot run). `--plan` without `${@secret:}` does not hit the network on setup. See [ADR-021](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-021-secrets-providers.md).
 - The `${@secret:}` bootstrap gate checks only the **effective manifest** for the active `ODPM_SCENARIO` (same slice as compose / `load_manifest`). Refs that exist only in other `scenarios.*` overlays are ignored. Example: `@secret` only under `scenarios.developer` does **not** require `.odpm/secrets.json` when `ODPM_SCENARIO=ci`.
 - For **Odoo modules**, keep reading `/run/odpm/secrets.json` in the container — do not put secrets in the `odoo` service `environment` when the file mount is enough.
 
@@ -148,9 +181,10 @@ Typical usage: write to `ir.config_parameter` on module install, or read on each
 
 ## Plan and materialize
 
+- Prepare step **`secrets.fetch`** (before `secrets.materialize`) writes `.odpm/secrets.json` from the provider. In `ci` the step is **not** skip.
 - Prepare step **`secrets.materialize`** (before `compose.service`) copies source → runtime.
-- **`odpm plan`** shows the step as `update` / `noop` / `skip` (in CI — `skip`).
-- **`odpm plan --plan-show-diff`** for secrets — **summary only** (e.g. “will materialize 3 secret keys”), **without values**.
+- **`odpm plan`** shows the steps as `update` / `noop` / `skip` (materialize in CI — `skip`; fetch in CI still runs).
+- **`odpm plan --plan-show-diff`** for secrets — **summary only** (key count and provider name), **without values**.
 
 Example:
 

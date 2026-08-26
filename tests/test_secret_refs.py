@@ -20,7 +20,7 @@ from dev_project.config.transforms.secret_refs import (
 )
 from dev_project.errors import ConfigError
 from dev_project.manifest.reader import load_manifest
-from dev_project.project_env.secrets import write_secrets_source
+from dev_project.project_env.secrets import read_secrets_source, write_secrets_source
 
 
 class SecretRefsGateTests(unittest.TestCase):
@@ -346,6 +346,83 @@ class SecretRefsGateTests(unittest.TestCase):
             command_index=0,
         )
         self.assertEqual(argv, ("echo", "login"))
+
+    def test_odpm_json_reader_early_fetches_remote_then_expands_secret(self):
+        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
+        from dev_project.host.cli.args import OdpmCliArgs
+        from dev_project.secrets_providers.registry import (
+            clear_secrets_providers_for_tests,
+            register_secrets_provider,
+        )
+        from dev_project.secrets_providers.session import SecretsFetchSession
+
+        class _Fake:
+            name = "fake"
+
+            def fetch(self, **_kwargs):
+                return {"partner_armtek.armtek.apilogin": "from-provider"}
+
+        register_secrets_provider(_Fake())
+        self.addCleanup(clear_secrets_providers_for_tests)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = {
+                **self._minimal_v2_platform(),
+                "secrets": {"provider": {"type": "fake"}},
+                "services": {
+                    "armtek": {
+                        "image": "x",
+                        "environment": {
+                            "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}",
+                        },
+                    }
+                },
+            }
+            config = self._reader_config(tmp, manifest, scenario="developer")
+            config.arguments = OdpmCliArgs(secrets_provider="fake")
+            config.secrets_fetch_session = SecretsFetchSession()
+            config.user_env.project_dotenv_dict.return_value = {}
+            reader = OdpmJsonReader(config, rewrite_odpm_json=lambda: None)
+            reader.get_odpm_settings()
+            self.assertEqual(
+                read_secrets_source(tmp)["partner_armtek.armtek.apilogin"],
+                "from-provider",
+            )
+            view = config.bootstrap.manifest_view
+            self.assertEqual(
+                view.services["armtek"]["environment"]["APILOGIN"],
+                "from-provider",
+            )
+            self.assertTrue(config.secrets_fetch_session.fetched)
+
+    def test_odpm_json_reader_plan_without_secret_refs_skips_network(self):
+        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
+        from dev_project.host.cli.args import OdpmCliArgs
+        from dev_project.secrets_providers.session import SecretsFetchSession
+
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = {
+                **self._minimal_v2_platform(),
+                "secrets": {
+                    "provider": {
+                        "type": "infisical",
+                        "project_id": "p",
+                        "environment_slug": "dev",
+                    }
+                },
+            }
+            config = self._reader_config(tmp, manifest, scenario="developer")
+            config.arguments = OdpmCliArgs(plan=True)
+            config.secrets_fetch_session = SecretsFetchSession()
+            config.user_env.project_dotenv_dict.return_value = {}
+            reader = OdpmJsonReader(config, rewrite_odpm_json=lambda: None)
+            with patch(
+                "dev_project.secrets_providers.infisical_client.urllib.request.urlopen"
+            ) as mock_urlopen:
+                reader.get_odpm_settings()
+            mock_urlopen.assert_not_called()
+            self.assertFalse(config.secrets_fetch_session.fetched)
+            self.assertIsNotNone(config.bootstrap.manifest_view)
 
 
 if __name__ == "__main__":

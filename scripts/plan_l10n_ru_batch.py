@@ -284,4 +284,18 @@ PLAN_L10N_RU: dict[str, str] = {
     "System checker is not attached to CreateProjectEnvironment": (
         "Системная проверка окружения не подключена к проекту."
     ),
+    "Fetch secrets via provider {NAME}": (
+        "Получить секреты через провайдер {NAME}"
+    ),
+    "already fetched this run ({COUNT} keys)": (
+        "уже получены в этом запуске ({COUNT} ключей)"
+    ),
+    "file provider uses existing source": (
+        "файловый провайдер использует существующий source"
+    ),
+    "import --secrets-file": "импорт --secrets-file",
+    "remote provider configured": "настроен удалённый провайдер",
+    "secrets already imported this run": (
+        "секреты уже импортированы в этом запуске"
+    ),
 }

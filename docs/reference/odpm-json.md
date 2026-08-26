@@ -157,6 +157,7 @@ GIT_HOST=git.company.example
 |------|------------|
 | `required` | `true` — для сценариев с host-mount секретов (`developer`, `server`) odpm проверяет наличие `.odpm/secrets.json` **до** `docker compose up` |
 | `keys` | Необязательный список ключей для **строгой** проверки содержимого; без `keys` достаточно существования файла (в сообщении об ошибке ключи из `secrets.example.json` — только подсказка) |
+| `provider` | Необязательный источник: `type` (`file` / `infisical` / id плагина) и поля Infisical (`host`, `project_id` **или** `project_slug`, `environment_slug`, `secret_path`, `recursive`, `key_map`). Overlay `scenarios.*.secrets.provider` **заменяет** весь объект, не мержит поля. См. [ADR-021](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-021-secrets-providers.md). |
 
 Проверки (без вывода значений):
 
@@ -164,7 +165,26 @@ GIT_HOST=git.company.example
 - **`odpm plan`** — warning в списке предупреждений;
 - **`odpm`** (без `--skip-start`) — ошибка до `pre_up` / compose, если файл отсутствует, ключи не заполнены или остались placeholder (`REPLACE_ME`).
 
-В сценарии **`ci`** host-mount отключён — проверка не выполняется; overlay может задать `"secrets": { "required": false }`. Подробнее: [secrets.md](../operations/secrets.md).
+Пример Infisical (credentials только в `.env` / process env):
+
+```json
+"secrets": {
+  "required": true,
+  "keys": ["payment_provider.api_key"],
+  "provider": {
+    "type": "infisical",
+    "host": "https://app.infisical.com",
+    "project_id": "…",
+    "environment_slug": "dev",
+    "secret_path": "/odoo",
+    "key_map": {
+      "PAYMENT_API_KEY": "payment_provider.api_key"
+    }
+  }
+}
+```
+
+В сценарии **`ci`** host-mount отключён — проверка `required` не выполняется; overlay может задать `"secrets": { "required": false }`. Подробнее: [secrets.md](../operations/secrets.md).
 
 ## Блок `scenarios` (overlays по `ODPM_SCENARIO`, 4.7)
 
@@ -186,7 +206,7 @@ GIT_HOST=git.company.example
 | `requirements` | concat + dedupe |
 | `dependencies` | concat + dedupe (git-репозитории) |
 | `hooks` | append по фазам (`post_clone`, `post_prepare`, `pre_up`); корень, затем overlay |
-| `secrets` | `required` — overlay переопределяет, если задан; `keys` — concat + dedupe для строгой проверки; без `keys` проверяется только наличие `.odpm/secrets.json` |
+| `secrets` | `required` — overlay переопределяет, если задан; `keys` — concat + dedupe для строгой проверки; `provider` — **полная замена** объекта (как `services` по имени), не merge полей |
 
 Manifest со `scenarios` рекомендуется с **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → ошибка validate. Подробнее: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 

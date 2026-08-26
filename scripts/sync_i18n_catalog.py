@@ -1000,6 +1000,30 @@ RU_MESSAGES: dict[str, str] = {
     "When Odoo is ready, open http://localhost:{ODOO_PORT}": (
         "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
     ),
+    "Infisical HTTP {STATUS} for {PATH}": (
+        "Infisical HTTP {STATUS} для {PATH}"
+    ),
+    "Infisical request failed: {DETAIL}": (
+        "Запрос Infisical не удался: {DETAIL}"
+    ),
+    "Infisical requires exactly one of project_id or project_slug": (
+        "Infisical требует ровно одно из полей project_id или project_slug"
+    ),
+    "Infisical environment_slug is required": (
+        "Для Infisical обязателен environment_slug"
+    ),
+    "Infisical secrets missing after fetch: {KEYS}": (
+        "После fetch Infisical отсутствуют секреты: {KEYS}"
+    ),
+    "Missing Infisical credentials: {KEYS}": (
+        "Отсутствуют учётные данные Infisical: {KEYS}"
+    ),
+    "Unknown secrets provider: {NAME}": (
+        "Неизвестный провайдер секретов: {NAME}"
+    ),
+    "cannot fetch secrets: project directory is not set": (
+        "нельзя получить секреты: каталог проекта не задан"
+    ),
 }
 
 RU_MESSAGES.update(PLAN_L10N_RU)

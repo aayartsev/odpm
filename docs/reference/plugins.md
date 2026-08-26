@@ -20,7 +20,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 |----------|-----------------|-------------------|
 | **Manifest `services`** | `odpm.json` v2 → `services` | Prepare `compose.fragments` + `odpm plan` → `compose.fragment.<name>` |
 | **Manifest `hooks`** | `odpm.json` v2 → `hooks` | `post_clone` после git materialize; `post_prepare` после prepare; `pre_up` перед compose up |
-| **Python entry points** | `pyproject.toml` пакета | Pluggy: `odpm.prepare_steps`, `odpm.hooks` |
+| **Python entry points** | `pyproject.toml` пакета | Pluggy: `odpm.prepare_steps`, `odpm.hooks`; секреты: `odpm.secrets_providers` |
 | **Project-local plugins** | `.odpm/plugins/*.py` или `extensions.local` | Импорт при bootstrap (только внутри `project_dir`) |
 
 Подробнее о полях v2: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).

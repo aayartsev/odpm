@@ -48,6 +48,8 @@ class Config(ConfigRuntimeFacadeMixin):
         arguments: OdpmCliArgs,
         program_dir: str,
         user_env: CreateUserEnvironment,
+        *,
+        secrets_fetch_session: object | None = None,
     ) -> None:
         """Bootstrap host configuration in ordered phases:
 
@@ -61,6 +63,9 @@ class Config(ConfigRuntimeFacadeMixin):
         Full git clone/update for the prepare phase runs later via
         :meth:`materialize_git_repos` (``OdpmPipeline.prepare_project_files``).
         """
+        from ..secrets_providers.session import SecretsFetchSession
+
+        self.secrets_fetch_session = secrets_fetch_session or SecretsFetchSession()
         bootstrap_config(self, pd_manager, arguments, program_dir, user_env)
 
     def _normalize_project_requirements(self, requirements_txt: list[str]) -> list[str]:

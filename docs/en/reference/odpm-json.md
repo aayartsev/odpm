@@ -138,6 +138,7 @@ Optional **manifest v2** object (and in `scenarios.*`) declaring that the projec
 |-------|---------|
 | `required` | when `true`, for scenarios with host secrets mount (`developer`, `server`) odpm checks that `.odpm/secrets.json` exists **before** `docker compose up` |
 | `keys` | optional list for **strict** content checks; without `keys`, file presence is enough (example key names in error text are hints only) |
+| `provider` | optional source: `type` (`file` / `infisical` / plugin id) and Infisical fields (`host`, `project_id` **or** `project_slug`, `environment_slug`, `secret_path`, `recursive`, `key_map`). Overlay `scenarios.*.secrets.provider` **replaces** the whole object (no field merge). See [ADR-021](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-021-secrets-providers.md). |
 
 Checks (never printing secret values):
 
@@ -145,7 +146,26 @@ Checks (never printing secret values):
 - **`odpm plan`** — warning in the plan warning list;
 - **`odpm`** (without `--skip-start`) — error before `pre_up` / compose when the file is missing, keys are missing, or placeholders remain (`REPLACE_ME`).
 
-In **`ci`** the host mount is disabled — checks are skipped; an overlay may set `"secrets": { "required": false }`. See [secrets.md](../operations/secrets.md).
+Infisical example (credentials only in `.env` / process env):
+
+```json
+"secrets": {
+  "required": true,
+  "keys": ["payment_provider.api_key"],
+  "provider": {
+    "type": "infisical",
+    "host": "https://app.infisical.com",
+    "project_id": "…",
+    "environment_slug": "dev",
+    "secret_path": "/odoo",
+    "key_map": {
+      "PAYMENT_API_KEY": "payment_provider.api_key"
+    }
+  }
+}
+```
+
+In **`ci`** the host mount is disabled — `required` checks are skipped; an overlay may set `"secrets": { "required": false }`. See [secrets.md](../operations/secrets.md).
 
 ## `scenarios` block (per `ODPM_SCENARIO` overlays, 4.7)
 
@@ -167,7 +187,7 @@ Merge rules:
 | `requirements` | concat + dedupe |
 | `dependencies` | concat + dedupe (git repo URLs) |
 | `hooks` | append per phase (`post_clone`, `post_prepare`, `pre_up`); base then overlay |
-| `secrets` | `required` — overlay overrides when set; `keys` — concat + dedupe for strict checks; without `keys`, only `.odpm/secrets.json` presence is required |
+| `secrets` | `required` — overlay overrides when set; `keys` — concat + dedupe for strict checks; `provider` — **full object replace** (like `services` by name), not a field merge |
 
 Manifests with `scenarios` SHOULD set **`requires_odpm: "4.7.0"`**. v1 + `scenarios` → validate error. Details: [ADR-011](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-011-scenario-manifest-overrides.md).
 

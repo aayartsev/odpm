@@ -15,7 +15,12 @@ from .steps_compose import (
     exec_compose_validate,
 )
 from .steps_database import evaluate_database_drift, exec_database_drift
-from .steps_secrets import evaluate_secrets_materialize, exec_secrets_materialize
+from .steps_secrets import (
+    evaluate_secrets_fetch,
+    evaluate_secrets_materialize,
+    exec_secrets_fetch,
+    exec_secrets_materialize,
+)
 from .steps_docker import (
     evaluate_docker_engine_check,
     evaluate_docker_ports_release,
@@ -115,6 +120,12 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "",
         evaluate_compose_fragments,
         exec_compose_fragments,
+    ),
+    PrepareStepDef(
+        "secrets.fetch",
+        "",
+        evaluate_secrets_fetch,
+        exec_secrets_fetch,
     ),
     PrepareStepDef(
         "secrets.materialize",

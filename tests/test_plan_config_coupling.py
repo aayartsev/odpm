@@ -41,6 +41,7 @@ DIFF_HELPERS = frozenset(
         "preview_docker_compose_content",
         "diff_docker_compose_text",
         "diff_secrets_materialize_summary",
+        "diff_secrets_fetch_summary",
     }
 )
 

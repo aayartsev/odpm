@@ -246,6 +246,9 @@ msgstr "Failed to read nested {CONFIG_FILE_NAME} at {MANIFEST_PATH}: {ERROR}"
 msgid "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
 msgstr "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
 
+msgid "Fetch secrets via provider {NAME}"
+msgstr "Fetch secrets via provider {NAME}"
+
 msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 msgstr "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 
@@ -284,6 +287,21 @@ msgstr "If you want drop this file to default values, just delete it"
 
 msgid "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
 msgstr "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
+
+msgid "Infisical HTTP {STATUS} for {PATH}"
+msgstr "Infisical HTTP {STATUS} for {PATH}"
+
+msgid "Infisical environment_slug is required"
+msgstr "Infisical environment_slug is required"
+
+msgid "Infisical request failed: {DETAIL}"
+msgstr "Infisical request failed: {DETAIL}"
+
+msgid "Infisical requires exactly one of project_id or project_slug"
+msgstr "Infisical requires exactly one of project_id or project_slug"
+
+msgid "Infisical secrets missing after fetch: {KEYS}"
+msgstr "Infisical secrets missing after fetch: {KEYS}"
 
 msgid "Interactive input is not available in non-interactive mode."
 msgstr "Interactive input is not available in non-interactive mode."
@@ -413,6 +431,9 @@ msgstr "Materialize manifest and plugin compose service fragments"
 
 msgid "Materialized service source {NAME} at {PATH}"
 msgstr "Materialized service source {NAME} at {PATH}"
+
+msgid "Missing Infisical credentials: {KEYS}"
+msgstr "Missing Infisical credentials: {KEYS}"
 
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
@@ -693,6 +714,9 @@ msgstr "Unknown ODPM_SCENARIO=%r, using %s"
 msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
 msgstr "Unknown manifest hook plugin id: {PLUGIN_ID}"
 
+msgid "Unknown secrets provider: {NAME}"
+msgstr "Unknown secrets provider: {NAME}"
+
 msgid "Unknown {ENV}={VALUE!r}, using managed network"
 msgstr "Unknown {ENV}={VALUE!r}, using managed network"
 
@@ -819,6 +843,9 @@ msgstr "You selected the system default locale for odpm messages: {SELECTED_LOCA
 msgid "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 msgstr "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 
+msgid "already fetched this run ({COUNT} keys)"
+msgstr "already fetched this run ({COUNT} keys)"
+
 msgid "apply pinned commits from {SOURCE}"
 msgstr "apply pinned commits from {SOURCE}"
 
@@ -830,6 +857,9 @@ msgstr "build CI image from prepared context"
 
 msgid "build compose service for compose.generate ({REASON})"
 msgstr "build compose service for compose.generate ({REASON})"
+
+msgid "cannot fetch secrets: project directory is not set"
+msgstr "cannot fetch secrets: project directory is not set"
 
 msgid "cannot read secrets file {PATH}: {DETAIL}"
 msgstr "cannot read secrets file {PATH}: {DETAIL}"
@@ -936,6 +966,9 @@ msgstr "dockerignore template up to date"
 msgid "extensions.local must be a list of module names"
 msgstr "extensions.local must be a list of module names"
 
+msgid "file provider uses existing source"
+msgstr "file provider uses existing source"
+
 msgid "first database run (no last_run snapshot yet)"
 msgstr "first database run (no last_run snapshot yet)"
 
@@ -944,6 +977,9 @@ msgstr "free odoo, debugger, postgres, and gevent ports before compose up"
 
 msgid "git repos will be materialized"
 msgstr "git repos will be materialized"
+
+msgid "import --secrets-file"
+msgstr "import --secrets-file"
 
 msgid "inject service_sources paths into env resolver"
 msgstr "inject service_sources paths into env resolver"
@@ -1050,6 +1086,9 @@ msgstr "refresh docker volume mapping"
 msgid "refresh project symlinks"
 msgstr "refresh project symlinks"
 
+msgid "remote provider configured"
+msgstr "remote provider configured"
+
 msgid "remove stale runtime secrets"
 msgstr "remove stale runtime secrets"
 
@@ -1067,6 +1106,9 @@ msgstr "runtime secrets missing"
 
 msgid "secret value for {KEY} must be a string"
 msgstr "secret value for {KEY} must be a string"
+
+msgid "secrets already imported this run"
+msgstr "secrets already imported this run"
 
 msgid "secrets file must be a JSON object"
 msgstr "secrets file must be a JSON object"

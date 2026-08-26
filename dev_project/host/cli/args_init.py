@@ -94,3 +94,9 @@ def add_platform_env_arguments(parser: argparse.ArgumentParser) -> None:
         help="""Import secrets from a JSON file into .odpm/secrets.json (schema v1). Works with --init and on any run.""",
         type=str,
     )
+
+    parser.add_argument(
+        params.SECRETS_PROVIDER_PARAM,
+        help="""Secrets provider for this run (file, infisical, or a third-party plugin id). Overrides ODPM_SECRETS_PROVIDER and secrets.provider.type. --secrets-file implies file.""",
+        type=str,
+    )

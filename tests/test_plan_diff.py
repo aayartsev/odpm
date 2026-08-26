@@ -260,7 +260,8 @@ class PlanDiffIntegrationTests(unittest.TestCase):
                 OdpmCliArgs(plan_show_diff=True, skip_start=True),
             )
             self.assertTrue(plan.diffs)
-            self.assertEqual(plan.diffs[0].path, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
+            paths = [item.path for item in plan.diffs]
+            self.assertIn(constants.ODPM_RUNTIME_CONFIG_REL_PATH, paths)
 
     def test_parse_args_accepts_plan_show_diff(self):
         args = parse_args_module.parse_args(["--plan", "--plan-show-diff"])

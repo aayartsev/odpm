@@ -131,7 +131,7 @@ class CiImageBuilder:
     def _write_ci_secrets_runtime(self, context_dir: str) -> bool:
         from .secrets import prepare_secrets_for_ci_bake, secrets_runtime_path
 
-        if not prepare_secrets_for_ci_bake(self.config.project_dir):
+        if not prepare_secrets_for_ci_bake(self.config.project_dir, self.config):
             return False
 
         source_path = secrets_runtime_path(self.config.project_dir)

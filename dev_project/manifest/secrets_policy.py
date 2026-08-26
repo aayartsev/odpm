@@ -25,11 +25,75 @@ def is_secret_placeholder(value: str) -> bool:
 
 
 @dataclass(frozen=True)
+class ManifestSecretsProviderConfig:
+    """Manifest ``secrets.provider`` object (type + Infisical fields)."""
+
+    type: str
+    host: str | None = None
+    project_id: str | None = None
+    project_slug: str | None = None
+    environment_slug: str | None = None
+    secret_path: str = "/"
+    recursive: bool = False
+    key_map: tuple[tuple[str, str], ...] = ()
+
+    def as_mapping(self) -> dict[str, Any]:
+        mapping: dict[str, Any] = {"type": self.type}
+        if self.host:
+            mapping["host"] = self.host
+        if self.project_id:
+            mapping["project_id"] = self.project_id
+        if self.project_slug:
+            mapping["project_slug"] = self.project_slug
+        if self.environment_slug:
+            mapping["environment_slug"] = self.environment_slug
+        mapping["secret_path"] = self.secret_path
+        mapping["recursive"] = self.recursive
+        if self.key_map:
+            mapping["key_map"] = {src: dest for src, dest in self.key_map}
+        return mapping
+
+
+def parse_secrets_provider(value: Any) -> ManifestSecretsProviderConfig | None:
+    if not isinstance(value, dict):
+        return None
+    type_name = str(value.get("type") or "").strip()
+    if not type_name:
+        return None
+    key_map_raw = value.get("key_map") or {}
+    key_map: list[tuple[str, str]] = []
+    if isinstance(key_map_raw, dict):
+        for source_key, dest_key in key_map_raw.items():
+            src = str(source_key).strip()
+            dest = str(dest_key).strip()
+            if src and dest:
+                key_map.append((src, dest))
+    secret_path = str(value.get("secret_path") or "/").strip() or "/"
+    return ManifestSecretsProviderConfig(
+        type=type_name,
+        host=str(value["host"]).strip() if value.get("host") else None,
+        project_id=str(value["project_id"]).strip() if value.get("project_id") else None,
+        project_slug=(
+            str(value["project_slug"]).strip() if value.get("project_slug") else None
+        ),
+        environment_slug=(
+            str(value["environment_slug"]).strip()
+            if value.get("environment_slug")
+            else None
+        ),
+        secret_path=secret_path,
+        recursive=bool(value.get("recursive", False)),
+        key_map=tuple(key_map),
+    )
+
+
+@dataclass(frozen=True)
 class ManifestSecretsSpec:
     """Effective secrets contract from manifest root + scenario overlay."""
 
     required: bool = False
     keys: tuple[str, ...] = ()
+    provider: ManifestSecretsProviderConfig | None = None
 
 
 def secrets_spec_from_raw(value: Any) -> ManifestSecretsSpec | None:
@@ -47,9 +111,10 @@ def secrets_spec_from_raw(value: Any) -> ManifestSecretsSpec | None:
                 cleaned.append(key)
         keys = tuple(cleaned)
     required = bool(value.get("required", False))
-    if not required and not keys:
+    provider = parse_secrets_provider(value.get("provider"))
+    if not required and not keys and provider is None:
         return None
-    return ManifestSecretsSpec(required=required, keys=keys)
+    return ManifestSecretsSpec(required=required, keys=keys, provider=provider)
 
 
 def merge_secrets_spec(base_raw: Any, overlay_raw: Any) -> ManifestSecretsSpec | None:
@@ -74,9 +139,22 @@ def merge_secrets_spec(base_raw: Any, overlay_raw: Any) -> ManifestSecretsSpec |
                 seen.add(key)
                 merged_keys.append(key)
 
-    if not required and not merged_keys:
+    if isinstance(overlay_raw, dict) and "provider" in overlay_raw:
+        provider = parse_secrets_provider(overlay_raw.get("provider"))
+    elif overlay is not None and overlay.provider is not None:
+        provider = overlay.provider
+    elif base is not None:
+        provider = base.provider
+    else:
+        provider = None
+
+    if not required and not merged_keys and provider is None:
         return None
-    return ManifestSecretsSpec(required=required, keys=tuple(merged_keys))
+    return ManifestSecretsSpec(
+        required=required,
+        keys=tuple(merged_keys),
+        provider=provider,
+    )
 
 
 def read_secrets_example_keys(project_dir: str) -> tuple[str, ...]:

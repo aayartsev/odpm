@@ -62,6 +62,11 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_BASE_IMAGE_REGISTRY` | Registry prefix for the base image when using `kaniko` (required for daemonless base) | empty |
 | `ODPM_LOCALE` | odpm message language, e.g. `ru_RU` | from system | see [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | SSH key path for git (rarely needed) | empty |
+| `ODPM_SECRETS_PROVIDER` | Override secrets provider type (`file` / `infisical` / plugin id). Weaker than `--secrets-provider`; `--secrets-file` still forces `file`. The wizard **does not** prompt for this key. | `file` |
+| `INFISICAL_CLIENT_ID` | Universal Auth client id (`.env` / process env only) | empty |
+| `INFISICAL_CLIENT_SECRET` | Universal Auth client secret | empty |
+| `INFISICAL_HOST` | Override `secrets.provider.host` (self-hosted Infisical) | `https://app.infisical.com` |
+| `INFISICAL_ENVIRONMENT_SLUG` | Override `secrets.provider.environment_slug` | from manifest |
 
 Changing `POSTGRES_SERVICE_NAME`, `POSTGRES_PORT`, or `ODPM_COMPOSE_PREFIX` relative to the saved snapshot causes **database drift** — see [PostgreSQL state](database-state.md).
 

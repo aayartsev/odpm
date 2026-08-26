@@ -43,6 +43,24 @@ class ManifestSecretsSchemaTests(unittest.TestCase):
         )
         validate_manifest_v2(raw)
 
+    def test_schema_accepts_secrets_provider(self):
+        raw = _minimal_v2(
+            secrets={
+                "required": True,
+                "keys": ["payment_provider.api_key"],
+                "provider": {
+                    "type": "infisical",
+                    "host": "https://app.infisical.com",
+                    "project_id": "proj",
+                    "environment_slug": "dev",
+                    "secret_path": "/odoo",
+                    "recursive": False,
+                    "key_map": {"PAYMENT_API_KEY": "payment_provider.api_key"},
+                },
+            },
+        )
+        validate_manifest_v2(raw)
+
 
 class ManifestSecretsMergeTests(unittest.TestCase):
     def test_merge_keys_dedupes_and_overlay_required_overrides(self):
@@ -83,6 +101,65 @@ class ManifestSecretsMergeTests(unittest.TestCase):
         assert ci.secrets is not None
         self.assertFalse(ci.secrets.required)
         self.assertEqual(ci.secrets.keys, ("api.key",))
+
+    def test_overlay_replaces_provider_object(self):
+        merged = merge_secrets_spec(
+            {
+                "required": True,
+                "keys": ["shared"],
+                "provider": {"type": "file", "host": "https://keep.example"},
+            },
+            {
+                "keys": ["dev.only"],
+                "provider": {
+                    "type": "infisical",
+                    "project_id": "proj",
+                    "environment_slug": "dev",
+                },
+            },
+        )
+        self.assertIsNotNone(merged)
+        assert merged is not None
+        self.assertEqual(merged.keys, ("shared", "dev.only"))
+        self.assertIsNotNone(merged.provider)
+        assert merged.provider is not None
+        self.assertEqual(merged.provider.type, "infisical")
+        self.assertEqual(merged.provider.project_id, "proj")
+        self.assertIsNone(merged.provider.host)
+
+    def test_overlay_without_provider_keeps_base(self):
+        merged = merge_secrets_spec(
+            {"provider": {"type": "infisical", "host": "https://a.example"}},
+            {"keys": ["x"]},
+        )
+        self.assertIsNotNone(merged)
+        assert merged is not None
+        self.assertEqual(merged.keys, ("x",))
+        self.assertEqual(merged.provider.type, "infisical")
+        self.assertEqual(merged.provider.host, "https://a.example")
+
+    def test_resolve_effective_slice_replaces_provider(self):
+        raw = _minimal_v2(
+            secrets={"provider": {"type": "file"}},
+            scenarios={
+                "ci": {
+                    "secrets": {
+                        "provider": {
+                            "type": "infisical",
+                            "project_slug": "acme",
+                            "environment_slug": "ci",
+                        }
+                    }
+                }
+            },
+        )
+        ci = resolve_effective_manifest_slice(raw, constants.CI_SCENARIO)
+        self.assertIsNotNone(ci.secrets)
+        assert ci.secrets is not None and ci.secrets.provider is not None
+        self.assertEqual(ci.secrets.provider.type, "infisical")
+        self.assertEqual(ci.secrets.provider.project_slug, "acme")
+        dev = resolve_effective_manifest_slice(raw, constants.DEVELOPER_SCENARIO)
+        self.assertEqual(dev.secrets.provider.type, "file")
 
 
 class ManifestSecretsRequirementTests(unittest.TestCase):

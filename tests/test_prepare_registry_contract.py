@@ -20,6 +20,7 @@ PREPARE_STEP_IDS = [
     "database.drift",
     "compose.template",
     "compose.fragments",
+    "secrets.fetch",
     "secrets.materialize",
     "compose.service",
     "compose.generate",

@@ -22,7 +22,7 @@ Breaking changes to pluggy protocols or manifest hooks require a major API bump.
 |-----------|-------------|--------------|
 | **Manifest `services`** | `odpm.json` v2 → `services` | Prepare `compose.fragments`; plan `compose.fragment.<name>` |
 | **Manifest `hooks`** | `odpm.json` v2 → `hooks` | `post_clone` after git materialize; `post_prepare` after prepare; `pre_up` before compose up |
-| **Python entry points** | package `pyproject.toml` | Pluggy: `odpm.prepare_steps`, `odpm.hooks` |
+| **Python entry points** | package `pyproject.toml` | Pluggy: `odpm.prepare_steps`, `odpm.hooks`; secrets: `odpm.secrets_providers` |
 | **Project-local plugins** | `.odpm/plugins/*.py` or `extensions.local` | Loaded at bootstrap (sandboxed to project dir) |
 
 v2 field details: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).

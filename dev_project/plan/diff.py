@@ -157,6 +157,30 @@ def diff_deps_lock_summary() -> PlanFileDiff:
     )
 
 
+def diff_secrets_fetch_summary(
+    plan: OdpmPlan, project_dir: str
+) -> PlanFileDiff | None:
+    step = next((item for item in plan.steps if item.id == "secrets.fetch"), None)
+    if step is None or not step.should_execute():
+        return None
+    key_count = secrets_source_key_count(project_dir)
+    provider = ""
+    if "{NAME}" not in (step.description or ""):
+        provider = step.description
+    summary = (
+        f"will fetch {key_count} secret keys via provider"
+        if key_count
+        else "will fetch secrets via provider"
+    )
+    if provider:
+        summary = f"{summary} ({provider})"
+    return PlanFileDiff(
+        path=constants.ODPM_SECRETS_SOURCE_REL_PATH,
+        unified_diff=None,
+        summary=summary,
+    )
+
+
 def diff_secrets_materialize_summary(project_dir: str) -> PlanFileDiff | None:
     needs_update, _reason = secrets_needs_update(project_dir)
     if not needs_update:
@@ -208,6 +232,10 @@ def build_plan_diffs(
         debug_profile_diff = diff_debug_profile(host_ctx, project_env)
         if debug_profile_diff is not None:
             diffs.append(debug_profile_diff)
+    if _step_would_change(plan, "secrets.fetch"):
+        fetch_diff = diff_secrets_fetch_summary(plan, host_ctx.project_dir)
+        if fetch_diff is not None:
+            diffs.append(fetch_diff)
     if _step_would_change(plan, "secrets.materialize"):
         secrets_diff = diff_secrets_materialize_summary(host_ctx.project_dir)
         if secrets_diff is not None:

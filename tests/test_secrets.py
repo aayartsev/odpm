@@ -102,6 +102,10 @@ class SecretsModuleTests(unittest.TestCase):
         args = parse_cli_args(["--secrets-file", "/tmp/secrets.json", "--skip-start"])
         self.assertEqual(args.secrets_file, "/tmp/secrets.json")
 
+    def test_cli_parses_secrets_provider_flag(self):
+        args = parse_cli_args(["--secrets-provider", "infisical", "--skip-start"])
+        self.assertEqual(args.secrets_provider, "infisical")
+
     def test_ensure_secrets_gitignore_adds_entry(self):
         with tempfile.TemporaryDirectory() as project_dir:
             ensure_secrets_gitignore(project_dir)

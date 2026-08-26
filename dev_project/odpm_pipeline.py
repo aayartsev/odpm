@@ -51,14 +51,16 @@ class OdpmPipeline:
             sync_templates=not for_plan,
         )
         self.cli_args = self.pd_manager.arguments
-        # Import before Config bootstrap so ${@secret:} expand can see .odpm/secrets.json.
-        self._import_secrets_if_requested()
+        from .secrets_providers.session import SecretsFetchSession
+
+        secrets_session = SecretsFetchSession()
         user_environment = CreateUserEnvironment(self.pd_manager)
         self.config = Config(
             self.pd_manager,
             self.cli_args,
             self.program_dir,
             user_environment,
+            secrets_fetch_session=secrets_session,
         )
         self.project_environment = CreateProjectEnvironment(self.config)
         self.system_checker = SystemChecker(self.config, self.project_environment)
@@ -76,18 +78,6 @@ class OdpmPipeline:
         if self.ports is None:
             raise RuntimeError("OdpmPipeline.setup() was not called")
         return self.ports
-
-    def _import_secrets_if_requested(self) -> None:
-        if not self.cli_args.secrets_file:
-            return
-        if self.pd_manager is None:
-            raise RuntimeError("ProjectDirManager must exist before secrets import")
-        from .project_env.secrets import import_secrets_from_path
-
-        import_secrets_from_path(
-            self.pd_manager.project_path,
-            self.cli_args.secrets_file,
-        )
 
     def prepare_project_files(self) -> None:
         host_summaries.log_prepare_started()
