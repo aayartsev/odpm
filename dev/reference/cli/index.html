@@ -2231,7 +2231,11 @@
 </tr>
 <tr>
 <td><code>--secrets-file ПУТЬ</code></td>
-<td>Импорт JSON v1 в <code>.odpm/secrets.json</code> (при <code>--init</code> и на любом запуске). См. <a href="../../operations/secrets/">локальные секреты</a>.</td>
+<td>Импорт JSON v1 в <code>.odpm/secrets.json</code> (при <code>--init</code> и на любом запуске). Подразумевает провайдер <code>file</code>. См. <a href="../../operations/secrets/">локальные секреты</a>.</td>
+</tr>
+<tr>
+<td><code>--secrets-provider ИМЯ</code></td>
+<td>Провайдер секретов на этот запуск (<code>file</code>, <code>infisical</code> или id плагина). Сильнее <code>ODPM_SECRETS_PROVIDER</code> и <code>secrets.provider.type</code>. <code>--secrets-file</code> выставляет <code>file</code>.</td>
 </tr>
 </tbody>
 </table>

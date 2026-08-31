@@ -2407,6 +2407,31 @@
 <td>Путь к ключу SSH для git (редко нужен)</td>
 <td>пусто</td>
 </tr>
+<tr>
+<td><code>ODPM_SECRETS_PROVIDER</code></td>
+<td>Override type провайдера секретов (<code>file</code> / <code>infisical</code> / id плагина). Слабее <code>--secrets-provider</code>; <code>--secrets-file</code> всё равно форсит <code>file</code>. Визард <strong>не</strong> спрашивает этот ключ.</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>INFISICAL_CLIENT_ID</code></td>
+<td>Universal Auth client id (только <code>.env</code> / process env)</td>
+<td>пусто</td>
+</tr>
+<tr>
+<td><code>INFISICAL_CLIENT_SECRET</code></td>
+<td>Universal Auth client secret</td>
+<td>пусто</td>
+</tr>
+<tr>
+<td><code>INFISICAL_HOST</code></td>
+<td>Override <code>secrets.provider.host</code> (self-hosted Infisical)</td>
+<td><code>https://app.infisical.com</code></td>
+</tr>
+<tr>
+<td><code>INFISICAL_ENVIRONMENT_SLUG</code></td>
+<td>Override <code>secrets.provider.environment_slug</code></td>
+<td>из manifest</td>
+</tr>
 </tbody>
 </table>
 <p>Смена <code>POSTGRES_SERVICE_NAME</code>, <code>POSTGRES_PORT</code> или <code>ODPM_COMPOSE_PREFIX</code> относительно сохранённого снимка даёт <strong>database drift</strong> — см. <a href="../database-state/">состояние PostgreSQL</a>.</p>

@@ -1546,6 +1546,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What odpm overwrites on prepare">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-layer-frozen-policy-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two-layer frozen policy (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2062,6 +2079,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="What odpm overwrites on prepare">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-layer-frozen-policy-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two-layer frozen policy (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2143,12 +2177,36 @@ odoo.conf on disk                     ← local defaults
 <ul>
 <li><strong><code>addons_path</code></strong> — full list of addon paths inside the container;</li>
 <li><strong><code>data_dir</code></strong> — Odoo data directory inside the container;</li>
-<li><strong><code>db_host</code></strong> — synced with the <strong>physical</strong> postgres service name from <code>.env</code> (<code>POSTGRES_SERVICE_NAME</code> or <code>{prefix}db</code> when <code>ODPM_COMPOSE_PREFIX</code> is set);</li>
+<li><strong><code>db_host</code></strong> — by default synced with the <strong>physical</strong> postgres service name from <code>.env</code> (<code>POSTGRES_SERVICE_NAME</code> or <code>{prefix}db</code> when <code>ODPM_COMPOSE_PREFIX</code> is set);</li>
 <li>database placeholders in the template — real values from runtime;</li>
 <li><strong><code>admin_passwd</code></strong> — in the container from <code>db_manager_password</code> (not from manifest).</li>
 </ul>
-<p>These and other reserved keys <strong>cannot</strong> appear in manifest <strong><code>odoo_conf</code></strong> — <code>odpm manifest validate</code> fails.</p>
-<p>If <code>db_host</code> on disk does not match the expected postgres service name from <code>.env</code>, step <strong><code>template.odoo_conf</code></strong> recreates the config; <code>odpm plan</code> shows drift <strong><code>db_host_mismatch</code></strong>. See <a href="../database-state/">PostgreSQL state</a>.</p>
+<h3 id="two-layer-frozen-policy-adr-022">Two-layer frozen policy (ADR-022)<a class="headerlink" href="#two-layer-frozen-policy-adr-022" title="Permanent link">&para;</a></h3>
+<p>Manifest <code>odoo_conf.options</code> uses a scenario-aware policy:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Keys</th>
+<th>Forbidden in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Global</strong></td>
+<td><code>addons_path</code>, <code>data_dir</code>, <code>admin_passwd</code>, <code>http_port</code></td>
+<td>every scenario</td>
+</tr>
+<tr>
+<td><strong>Scenario</strong></td>
+<td><code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code></td>
+<td><code>developer</code> and <code>server</code>; <strong>allowed</strong> in the effective <code>ci</code> slice</td>
+</tr>
+</tbody>
+</table>
+<p><code>odpm manifest validate</code> / <code>load_manifest</code> list the <strong>full</strong> frozen key set for the current scenario on violation. There is no separate override block and no <code>external</code> flag: any <code>db_*</code> in effective <code>ci</code> options is the derived runtime signal.</p>
+<p>When <code>scenarios.ci.odoo_conf.options</code> sets <code>db_*</code> (external DB), step <strong><code>template.odoo_conf</code></strong> does not regen for compose <code>db_host_mismatch</code>, and plan omits false <strong><code>db_host_mismatch</code></strong> drift. odpm does <strong>not</strong> remove the compose <code>db</code> service automatically. Host <code>ensure_app_role</code> / <code>odpm database</code> still target compose postgres. See <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md">ADR-022</a>.</p>
+<p>If on-disk <code>db_host</code> does not match the expected postgres service name <strong>and</strong> CI override is inactive, step <strong><code>template.odoo_conf</code></strong> recreates the config; <code>odpm plan</code> shows drift <strong><code>db_host_mismatch</code></strong>. See <a href="../database-state/">PostgreSQL state</a>.</p>
 <h2 id="when-the-file-is-recreated-entirely">When the file is recreated entirely<a class="headerlink" href="#when-the-file-is-recreated-entirely" title="Permanent link">&para;</a></h2>
 <p>If the file is missing, corrupted, or required database parameters are empty — odpm creates a template again.</p>
 <p>After changes affecting paths or addon composition: <code>odpm --skip-start</code> and restart containers.</p>

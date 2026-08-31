@@ -2446,7 +2446,29 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><code>odpm manifest validate</code> rejects keys managed by odpm <strong>in <code>options</code></strong>: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. See <a href="../odoo-conf/">odoo.conf</a>.</p>
+<p><code>odpm manifest validate</code> applies a <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md">two-layer frozen policy (ADR-022)</a> on <strong><code>options</code></strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Keys</th>
+<th>Scenarios</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Global</td>
+<td><code>addons_path</code>, <code>data_dir</code>, <code>admin_passwd</code>, <code>http_port</code></td>
+<td>forbidden everywhere</td>
+</tr>
+<tr>
+<td>Scenario</td>
+<td><code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code></td>
+<td>forbidden in <code>developer</code> / <code>server</code>; <strong>allowed</strong> in effective <code>ci</code></td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="secrets-block-required-local-secrets-47"><code>secrets</code> block (required local secrets, 4.7)<a class="headerlink" href="#secrets-block-required-local-secrets-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object (and in <code>scenarios.*</code>) declaring that the project needs <code>.odpm/secrets.json</code> before the stack starts:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">"secrets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2470,6 +2492,10 @@
 <td><code>keys</code></td>
 <td>optional list for <strong>strict</strong> content checks; without <code>keys</code>, file presence is enough (example key names in error text are hints only)</td>
 </tr>
+<tr>
+<td><code>provider</code></td>
+<td>optional source: <code>type</code> (<code>file</code> / <code>infisical</code> / plugin id) and Infisical fields (<code>host</code>, <code>project_id</code> <strong>or</strong> <code>project_slug</code>, <code>environment_slug</code>, <code>secret_path</code>, <code>recursive</code>, <code>key_map</code>). Overlay <code>scenarios.*.secrets.provider</code> <strong>replaces</strong> the whole object (no field merge). See <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-021-secrets-providers.md">ADR-021</a>.</td>
+</tr>
 </tbody>
 </table>
 <p>Checks (never printing secret values):</p>
@@ -2478,7 +2504,23 @@
 <li><strong><code>odpm plan</code></strong> — warning in the plan warning list;</li>
 <li><strong><code>odpm</code></strong> (without <code>--skip-start</code>) — error before <code>pre_up</code> / compose when the file is missing, keys are missing, or placeholders remain (<code>REPLACE_ME</code>).</li>
 </ul>
-<p>In <strong><code>ci</code></strong> the host mount is disabled — checks are skipped; an overlay may set <code>"secrets": { "required": false }</code>. See <a href="../../operations/secrets/">secrets.md</a>.</p>
+<p>Infisical example (credentials only in <code>.env</code> / process env):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">"secrets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"keys"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"payment_provider.api_key"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"provider"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"infisical"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.infisical.com"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"project_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"environment_slug"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"secret_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/odoo"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"key_map"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"PAYMENT_API_KEY"</span><span class="p">:</span><span class="w"> </span><span class="s2">"payment_provider.api_key"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>In <strong><code>ci</code></strong> the host mount is disabled — <code>required</code> checks are skipped; an overlay may set <code>"secrets": { "required": false }</code>. See <a href="../../operations/secrets/">secrets.md</a>.</p>
 <h2 id="scenarios-block-per-odpm_scenario-overlays-47"><code>scenarios</code> block (per <code>ODPM_SCENARIO</code> overlays, 4.7)<a class="headerlink" href="#scenarios-block-per-odpm_scenario-overlays-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object to override <code>odoo_conf</code>, <code>services</code>, <code>service_patches</code>, <code>service_sources</code>, <code>requirements</code>, <code>dependencies</code>, <code>hooks</code>, and <code>secrets</code> <strong>per scenario</strong> from project <code>.env</code> (<code>ODPM_SCENARIO</code>: <code>developer</code>, <code>server</code>, <code>ci</code>). One <code>odpm.json</code> in git — different effective settings on laptop, server, and CI without <code>${VAR}</code> workarounds.</p>
 <table>
@@ -2541,7 +2583,7 @@
 </tr>
 <tr>
 <td><code>secrets</code></td>
-<td><code>required</code> — overlay overrides when set; <code>keys</code> — concat + dedupe for strict checks; without <code>keys</code>, only <code>.odpm/secrets.json</code> presence is required</td>
+<td><code>required</code> — overlay overrides when set; <code>keys</code> — concat + dedupe for strict checks; <code>provider</code> — <strong>full object replace</strong> (like <code>services</code> by name), not a field merge</td>
 </tr>
 </tbody>
 </table>

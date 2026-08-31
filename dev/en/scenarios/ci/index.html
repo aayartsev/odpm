@@ -1123,6 +1123,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#external-postgresql-in-ci-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External PostgreSQL in ci (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2042,6 +2053,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#external-postgresql-in-ci-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External PostgreSQL in ci (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2150,6 +2172,24 @@ docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> 
 docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span><span class="s2">"</span><span class="nv">$ODOO_SVC</span><span class="s2">"</span><span class="w"> </span>odoo-bin<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>base<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <p>In the <code>ci</code> scenario, bare <code>odpm</code> without <code>--skip-start</code> / <code>--build-image</code> (and without the allowlist: <code>plan</code>, <code>manifest</code>, <code>database</code>, <code>--update-lock</code>, <code>--init</code>, …) fails — see <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>.</p>
+<h2 id="external-postgresql-in-ci-adr-022">External PostgreSQL in <code>ci</code> (ADR-022)<a class="headerlink" href="#external-postgresql-in-ci-adr-022" title="Permanent link">&para;</a></h2>
+<p>The effective <code>ci</code> slice may set <code>db_*</code> in <code>odoo_conf.options</code> (still forbidden in <code>developer</code> / <code>server</code>). Prefer <code>${@secret:…}</code> for credentials:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"ci"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"odoo_conf"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"options"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"db_host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10.241.2.102"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"db_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"db_user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@secret:pg_user}"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"db_password"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@secret:pg_user_password}"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"proxy_mode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"True"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"server_wide_modules"</span><span class="p">:</span><span class="w"> </span><span class="s2">"base,web,queue_job"</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Values reach <code>odoo_config_data</code> via the normal merge (disk → manifest). The compose <code>db</code> service is not removed; host-side <code>odpm database</code> / <code>ensure_app_role</code> still target compose postgres. See <a href="../../reference/odoo-conf/">odoo.conf</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md">ADR-022</a>.</p>
 <p>Without <code>--image-push</code>, the <code>kaniko</code> backend writes a tar to <code>.odpm/ci-build-context/odpm-ci-image.tar</code>.</p>
 <p>In <code>docker-run</code> mode with <code>--image-push</code>, <code>~/.docker/config.json</code> is required (<code>docker login</code>); otherwise odpm fails before starting the executor. The default executor image is pinned (<code>gcr.io/kaniko-project/executor:v1.23.2</code>); override with <code>ODPM_KANIKO_EXECUTOR_IMAGE</code>. Opt-in Docker integration in CI covers the <code>docker</code> backend only; <code>kaniko</code> argv/<code>direct</code> paths are covered by unit tests.</p>
 <p>For <strong><code>direct</code></strong> on a <strong>non-root</strong> build user, odpm does not run as root but Kaniko executor often needs privileges. Set <strong><code>ODPM_KANIKO_EXECUTOR_WRAPPER</code></strong> to a script that launches the executor as root (recommended), or <strong><code>ODPM_KANIKO_EXECUTOR_SUDO=1</code></strong> with passwordless sudo for the executor binary. Optional <strong><code>ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS</code></strong> (e.g. <code>--kaniko-dir=/tmp/kaniko</code>) adjusts Kaniko runtime paths. See <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</p>
