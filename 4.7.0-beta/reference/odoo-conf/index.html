@@ -1546,6 +1546,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Что odpm перезапишет при подготовке">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frozen-policy-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Двухслойная frozen policy (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2062,6 +2079,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Что odpm перезапишет при подготовке">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frozen-policy-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Двухслойная frozen policy (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2140,12 +2174,36 @@ odoo.conf на диске                    ← локальные значен
 <ul>
 <li><strong><code>addons_path</code></strong> — полный список путей к дополнениям внутри контейнера;</li>
 <li><strong><code>data_dir</code></strong> — каталог данных Odoo внутри контейнера;</li>
-<li><strong><code>db_host</code></strong> — синхронизируется с <strong>физическим</strong> именем postgres-сервиса из <code>.env</code> (<code>POSTGRES_SERVICE_NAME</code> или <code>{prefix}db</code> при <code>ODPM_COMPOSE_PREFIX</code>);</li>
+<li><strong><code>db_host</code></strong> — по умолчанию синхронизируется с <strong>физическим</strong> именем postgres-сервиса из <code>.env</code> (<code>POSTGRES_SERVICE_NAME</code> или <code>{prefix}db</code> при <code>ODPM_COMPOSE_PREFIX</code>);</li>
 <li>маркеры базы в шаблоне — реальные значения из runtime;</li>
 <li><strong><code>admin_passwd</code></strong> — в контейнере из <code>db_manager_password</code> (не из manifest).</li>
 </ul>
-<p>В manifest <strong><code>odoo_conf</code></strong> нельзя задавать эти и другие зарезервированные ключи — <code>odpm manifest validate</code> завершится ошибкой.</p>
-<p>Если <code>db_host</code> в файле на диске не совпадает с ожидаемым именем postgres-сервиса из <code>.env</code>, шаг <strong><code>template.odoo_conf</code></strong> пересоздаёт конфиг; в <code>odpm plan</code> появится drift <strong><code>db_host_mismatch</code></strong>. См. <a href="../database-state/">состояние PostgreSQL</a>.</p>
+<h3 id="frozen-policy-adr-022">Двухслойная frozen policy (ADR-022)<a class="headerlink" href="#frozen-policy-adr-022" title="Permanent link">&para;</a></h3>
+<p>В manifest <code>odoo_conf.options</code> действует сценарий-зависимая политика:</p>
+<table>
+<thead>
+<tr>
+<th>Слой</th>
+<th>Ключи</th>
+<th>Где запрещены</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Global</strong></td>
+<td><code>addons_path</code>, <code>data_dir</code>, <code>admin_passwd</code>, <code>http_port</code></td>
+<td>во всех сценариях</td>
+</tr>
+<tr>
+<td><strong>Scenario</strong></td>
+<td><code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code></td>
+<td>в <code>developer</code> и <code>server</code>; <strong>разрешены</strong> в effective slice <code>ci</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>odpm manifest validate</code> / <code>load_manifest</code> при нарушении показывают <strong>полный</strong> список ключей для текущего сценария. Отдельного блока и флага <code>external</code> нет: наличие любого <code>db_*</code> в effective <code>ci</code> — derived-сигнал для runtime.</p>
+<p>Если в <code>scenarios.ci.odoo_conf.options</code> заданы <code>db_*</code> (внешняя БД), шаг <strong><code>template.odoo_conf</code></strong> не regen из‑за <code>db_host_mismatch</code> с compose-сервисом, и plan не показывает ложный drift <strong><code>db_host_mismatch</code></strong>. Compose-сервис <code>db</code> odpm <strong>не</strong> удаляет автоматически. Host <code>ensure_app_role</code> / <code>odpm database</code> по-прежнему таргетируют compose postgres. См. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md">ADR-022</a>.</p>
+<p>Если <code>db_host</code> на диске не совпадает с ожидаемым именем postgres-сервиса <strong>и</strong> CI override не активен, шаг <strong><code>template.odoo_conf</code></strong> пересоздаёт конфиг; в <code>odpm plan</code> появится drift <strong><code>db_host_mismatch</code></strong>. См. <a href="../database-state/">состояние PostgreSQL</a>.</p>
 <h2 id="_4">Когда файл пересоздаётся целиком<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>Если файл отсутствует, повреждён или в нём не заполнены обязательные параметры базы — odpm создаст шаблон заново.</p>
 <p>После правок, влияющих на пути или состав дополнений: <code>odpm --skip-start</code> и перезапуск контейнеров.</p>

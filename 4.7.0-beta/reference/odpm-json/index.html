@@ -2282,7 +2282,29 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>На <code>odpm manifest validate</code> в <strong><code>options</code></strong> нельзя указывать ключи, которыми управляет odpm: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. Подробнее: <a href="../odoo-conf/">odoo.conf</a>.</p>
+<p>На <code>odpm manifest validate</code> в <strong><code>options</code></strong> действует <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md">двухслойная frozen policy (ADR-022)</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Слой</th>
+<th>Ключи</th>
+<th>Сценарии</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Global</td>
+<td><code>addons_path</code>, <code>data_dir</code>, <code>admin_passwd</code>, <code>http_port</code></td>
+<td>запрещены везде</td>
+</tr>
+<tr>
+<td>Scenario</td>
+<td><code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code></td>
+<td>запрещены в <code>developer</code> / <code>server</code>; <strong>разрешены</strong> в effective <code>ci</code></td>
+</tr>
+</tbody>
+</table>
+<p>Подробнее: <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="secrets-47">Блок <code>secrets</code> (обязательные локальные секреты, 4.7)<a class="headerlink" href="#secrets-47" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект в <strong>manifest v2</strong> (и в <code>scenarios.*</code>) — декларация, что проекту нужен <code>.odpm/secrets.json</code> до подъёма стека:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">"secrets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>

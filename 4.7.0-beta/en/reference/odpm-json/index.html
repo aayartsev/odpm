@@ -2446,7 +2446,29 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><code>odpm manifest validate</code> rejects keys managed by odpm <strong>in <code>options</code></strong>: <code>addons_path</code>, <code>data_dir</code>, <code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code>, <code>admin_passwd</code>, <code>http_port</code>. See <a href="../odoo-conf/">odoo.conf</a>.</p>
+<p><code>odpm manifest validate</code> applies a <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md">two-layer frozen policy (ADR-022)</a> on <strong><code>options</code></strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Keys</th>
+<th>Scenarios</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Global</td>
+<td><code>addons_path</code>, <code>data_dir</code>, <code>admin_passwd</code>, <code>http_port</code></td>
+<td>forbidden everywhere</td>
+</tr>
+<tr>
+<td>Scenario</td>
+<td><code>db_host</code>, <code>db_port</code>, <code>db_user</code>, <code>db_password</code></td>
+<td>forbidden in <code>developer</code> / <code>server</code>; <strong>allowed</strong> in effective <code>ci</code></td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="secrets-block-required-local-secrets-47"><code>secrets</code> block (required local secrets, 4.7)<a class="headerlink" href="#secrets-block-required-local-secrets-47" title="Permanent link">&para;</a></h2>
 <p>Optional <strong>manifest v2</strong> object (and in <code>scenarios.*</code>) declaring that the project needs <code>.odpm/secrets.json</code> before the stack starts:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">"secrets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>

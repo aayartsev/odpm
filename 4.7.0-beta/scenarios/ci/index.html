@@ -1123,6 +1123,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#postgresql-ci-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Внешняя PostgreSQL в ci (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2042,6 +2053,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#postgresql-ci-adr-022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Внешняя PostgreSQL в ci (ADR-022)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2149,6 +2171,24 @@ docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> 
 docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span><span class="s2">"</span><span class="nv">$ODOO_SVC</span><span class="s2">"</span><span class="w"> </span>odoo-bin<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>base<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <p>В сценарии <code>ci</code> bare <code>odpm</code> без <code>--skip-start</code> / <code>--build-image</code> (и без allowlist: <code>plan</code>, <code>manifest</code>, <code>database</code>, <code>--update-lock</code>, <code>--init</code>, …) завершается ошибкой — см. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>.</p>
+<h2 id="postgresql-ci-adr-022">Внешняя PostgreSQL в <code>ci</code> (ADR-022)<a class="headerlink" href="#postgresql-ci-adr-022" title="Permanent link">&para;</a></h2>
+<p>В effective slice <code>ci</code> можно задать <code>db_*</code> в <code>odoo_conf.options</code> (в <code>developer</code> / <code>server</code> эти ключи по-прежнему запрещены). Credentials лучше через <code>${@secret:…}</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"ci"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"odoo_conf"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"options"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"db_host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10.241.2.102"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"db_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"db_user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@secret:pg_user}"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"db_password"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${@secret:pg_user_password}"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"proxy_mode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"True"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"server_wide_modules"</span><span class="p">:</span><span class="w"> </span><span class="s2">"base,web,queue_job"</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Значения попадают в <code>odoo_config_data</code> через обычный merge (disk → manifest). Compose-сервис <code>db</code> не удаляется; host-side <code>odpm database</code> / <code>ensure_app_role</code> остаются привязаны к compose postgres. См. <a href="../../reference/odoo-conf/">odoo.conf</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md">ADR-022</a>.</p>
 <p>Без <code>--image-push</code> бэкенд <code>kaniko</code> пишет tar в <code>.odpm/ci-build-context/odpm-ci-image.tar</code>.</p>
 <p>В режиме <code>docker-run</code> с <code>--image-push</code> нужен <code>~/.docker/config.json</code> (<code>docker login</code>); иначе odpm завершится с ошибкой до запуска executor. Образ executor по умолчанию закреплён (<code>gcr.io/kaniko-project/executor:v1.23.2</code>); перекрывается <code>ODPM_KANIKO_EXECUTOR_IMAGE</code>. Opt-in Docker integration в CI покрывает только бэкенд <code>docker</code>; argv/<code>direct</code> для <code>kaniko</code> — unit-тесты.</p>
 <p>Для <strong><code>direct</code></strong> под <strong>non-root</strong> пользователем сборки: odpm не работает от root, но Kaniko executor часто требует привилегий. Задайте <strong><code>ODPM_KANIKO_EXECUTOR_WRAPPER</code></strong> — скрипт, запускающий executor от root (рекомендуется), или <strong><code>ODPM_KANIKO_EXECUTOR_SUDO=1</code></strong> с passwordless sudo для бинаря executor. Опционально <strong><code>ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS</code></strong> (напр. <code>--kaniko-dir=/tmp/kaniko</code>) для путей runtime Kaniko. См. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</p>
