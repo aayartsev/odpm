@@ -242,6 +242,18 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("expects odpm.json odoo_version 19.x", refresh)
         self.assertIn("Postgres not ready after refresh; wiping postgres volume", refresh)
         self.assertIn("golden_path_remediate_database", refresh)
+        # Re-resolve postgres service after odpm regenerates compose (db-dev → db).
+        self.assertIn("postgres compose service=", refresh)
+        self.assertIn(
+            'POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"',
+            refresh,
+        )
+        self.assertGreaterEqual(
+            refresh.count(
+                'POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"'
+            ),
+            4,
+        )
         lib = (root / "scripts" / "golden_path_project_lib.sh").read_text(encoding="utf-8")
         self.assertIn("ODPM_GOLDEN_PATH_INIT_MODULES", lib)
         self.assertIn("GOLDEN_PATH_ODPM_ACCEPT_DRIFT", lib)
@@ -263,6 +275,11 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("regenerating compose for long-running start", lib)
         self.assertIn('odpm -d "${db_name}" --skip-start --no-git-update', lib)
         self.assertIn('"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"', lib)
+        self.assertIn(
+            'postgres_service="$(golden_path_postgres_service "${project}" "${repo_root}")"',
+            lib,
+        )
+        self.assertIn("Callers must re-read via golden_path_postgres_service", lib)
         self.assertNotIn("translate=boolean", lib)
         self.assertIn("alpine:3.20", lib)
         self.assertIn("golden_path_emit_schema_failure", lib)

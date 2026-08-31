@@ -50,6 +50,9 @@ log "docker compose down done (${SECONDS}s elapsed)"
 log "odpm --skip-start --no-git-update ..."
 odpm --skip-start --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
 log "odpm --skip-start done (${SECONDS}s elapsed)"
+# odpm may rewrite docker-compose.yml (e.g. legacy POSTGRES_SERVICE_NAME=db-dev → db).
+POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"
+log "postgres compose service=${POSTGRES_SERVICE}"
 log "Golden-path project refreshed with $(odpm --version 2>&1 | head -1)"
 ODOO_MANIFEST_VERSION="$(golden_path_odoo_version_from_manifest "${PROJECT}" || true)"
 if [[ -n "${ODOO_MANIFEST_VERSION}" ]]; then
@@ -73,6 +76,7 @@ if ! golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER
     # directory; an old PG_VERSION leaves the new image crash-looping.
     log "Postgres not ready after refresh; wiping postgres volume and remediating..."
     golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}" 1
+    POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"
     golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 fi
 trap 'cd "${PROJECT}" && docker compose down --remove-orphans 2>/dev/null || true' EXIT
@@ -94,12 +98,14 @@ else
 fi
 
 golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}"
+POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"
 
-log "re-check schema after remedi ate ..."
+log "re-check schema after remedi ate (service=${POSTGRES_SERVICE}) ..."
 golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then
     log "DB ${DB_NAME} still not ready ($(golden_path_schema_status_line "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}")); wiping postgres volume and retrying..."
     golden_path_remediate_database "${PROJECT}" "${DB_NAME}" "${POSTGRES_SERVICE}" "${PGUSER}" 1
+    POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"
     golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"
 fi
 if ! golden_path_schema_compatible "${POSTGRES_SERVICE}" "${PGUSER}" "${DB_NAME}"; then

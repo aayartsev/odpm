@@ -35,6 +35,7 @@
 
 ### Исправлено
 
+- **Golden-path: устаревшее имя postgres-сервиса** — после `odpm`, который перегенерирует compose (например legacy `POSTGRES_SERVICE_NAME=db-dev` → дефолт `db`), refresh/remedi ate заново читают physical имя сервиса из `docker-compose.yml` перед следующим `docker compose up`/`exec`, чтобы не было `no such service: db-dev`. Тесты: `test_golden_path`. Документация: `docs/contributing/ci.md`.
 - **Gate `${@secret:}` учитывает сценарий** — bootstrap не сканирует чужие `scenarios.*`; только effective slice активного `ODPM_SCENARIO` (как `secrets.required` / `load_manifest`). CI/server без refs в своём slice не требуют `.odpm/secrets.json`, если refs только в `developer`. Тесты: `test_secret_refs`. Документация: `secrets.md`.
 - **Kaniko `direct`: запуск executor с привилегиями** — `ODPM_KANIKO_EXECUTOR_WRAPPER`, `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS`, opt-in `ODPM_KANIKO_EXECUTOR_SUDO=1`; preflight при non-root без wrapper/sudo. ADR-016 дополнен. Тесты: `test_ci_image_build_backends`.
 

@@ -74,6 +74,7 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 | HTTP 500, в odoo: `res.lang` / `_get_data` / `QWebException` на `/web/login` | Часто та же причина: БД или addons не соответствуют Odoo 19 на диске runner. Пересоздать `test_db` как в строке выше; затем `docker compose down` и повторить golden-path. |
 | Postgres did not become ready после accept `postgres_major` | Accept обновляет только `last_run.json`, не data dir. Старый `PG_VERSION` ломает новый image. Refresh с `AUTO_REMEDIATE=1` теперь wipe+remediate; вручную: wipe через alpine (см. выше) + `odpm -d test_db --skip-start --accept-database-drift=postgres_major`. |
 | `odpm.json odoo_version` не `19.x` в логе refresh | Secret `ODPM_GOLDEN_PATH_PROJECT` указывает не на Odoo 19 demo-проект. Gate требует `19.x`. |
+| `no such service: db-dev` после remedi ate / refresh | Имя postgres-сервиса в старом compose/`.env` (`POSTGRES_SERVICE_NAME=db-dev`) не совпадает с перегенерированным compose (дефолт `db`). Refresh перечитывает сервис из compose после каждого `odpm`; на runner всё равно выровняйте `.env` (`POSTGRES_SERVICE_NAME=db` или уберите переменную) и сделайте `odpm --skip-start --no-git-update`. |
 | После падения golden-path | `docker compose down` в каталоге проекта; смотреть artifact `golden-path-compose-logs`. HTTP wait: `ODPM_GOLDEN_PATH_TIMEOUT=60` внутри job `timeout-minutes: 9`. |
 
 **Минимальная проверка на runner**

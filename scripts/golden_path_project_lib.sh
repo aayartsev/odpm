@@ -34,6 +34,9 @@ golden_path_read_env() {
 }
 
 golden_path_postgres_service() {
+    # Resolve the physical postgres service key from on-disk docker-compose.yml.
+    # Re-call after every ``odpm`` that may regenerate compose (``POSTGRES_SERVICE_NAME``
+    # / default ``db`` / ``ODPM_COMPOSE_PREFIX`` can change the service name).
     local project="$1"
     local repo_root="$2"
     python3 - <<PY
@@ -441,11 +444,16 @@ golden_path_wipe_postgres_data() {
 golden_path_remediate_database() {
     local project="$1"
     local db_name="$2"
+    # Hint only: re-resolved from compose below (may be stale after a prior odpm regen).
     local postgres_service="$3"
     local pguser="$4"
     local wipe_volume="${5:-0}"
     local init_modules
+    local repo_root
     init_modules="$(golden_path_init_modules)"
+    repo_root="$(golden_path_repo_root)"
+    # Prefer on-disk compose after earlier refresh/odpm regenerations (e.g. db-dev → db).
+    postgres_service="$(golden_path_postgres_service "${project}" "${repo_root}")"
 
     cd "${project}"
     docker compose down --remove-orphans 2>/dev/null || true
@@ -472,4 +480,6 @@ golden_path_remediate_database() {
     echo "Golden-path: regenerating compose for long-running start (db=${db_name})..."
     odpm -d "${db_name}" --skip-start --no-git-update \
         "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
+    # Callers must re-read via golden_path_postgres_service before the next compose up:
+    # odpm may have renamed the postgres service again.
 }
