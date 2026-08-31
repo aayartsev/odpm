@@ -140,7 +140,14 @@ GIT_HOST=git.company.example
 }
 ```
 
-На `odpm manifest validate` в **`options`** нельзя указывать ключи, которыми управляет odpm: `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `admin_passwd`, `http_port`. Подробнее: [odoo.conf](odoo-conf.md).
+На `odpm manifest validate` в **`options`** действует [двухслойная frozen policy (ADR-022)](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md):
+
+| Слой | Ключи | Сценарии |
+|------|--------|----------|
+| Global | `addons_path`, `data_dir`, `admin_passwd`, `http_port` | запрещены везде |
+| Scenario | `db_host`, `db_port`, `db_user`, `db_password` | запрещены в `developer` / `server`; **разрешены** в effective `ci` |
+
+Подробнее: [odoo.conf](odoo-conf.md).
 
 ## Блок `secrets` (обязательные локальные секреты, 4.7)
 

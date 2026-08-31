@@ -74,7 +74,10 @@ def _run_manifest_validate(config: Config) -> int:
             raw,
             compose_network_logical=network_logical,
         )
-        validate_manifest_odoo_conf(raw)
+        validate_manifest_odoo_conf(
+            raw.get("odoo_conf") if isinstance(raw.get("odoo_conf"), dict) else None,
+            scenario=constants.DEFAULT_ODPM_SCENARIO,
+        )
     scenario = getattr(config.user_env, "odpm_scenario", None) or constants.DEFAULT_ODPM_SCENARIO
     secrets_spec = None
     if info.manifest_schema == constants.MANIFEST_SCHEMA_V2:

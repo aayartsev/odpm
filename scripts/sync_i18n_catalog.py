@@ -465,6 +465,12 @@ RU_MESSAGES: dict[str, str] = {
         'manifest v1 не поддерживает scenarios; выполните '
         '"odpm manifest migrate --write" для перехода на manifest v2.'
     ),
+    "manifest odoo_conf.options.{KEY} cannot be overridden in scenario \"{SCENARIO}\".\n\nKeys managed by odpm in this scenario:\n  {KEYS}\n\ndb_* overrides are allowed only in scenario \"ci\".": (
+        "manifest odoo_conf.options.{KEY} нельзя переопределять в сценарии \"{SCENARIO}\".\n\n"
+        "Ключи, которыми управляет odpm в этом сценарии:\n"
+        "  {KEYS}\n\n"
+        "Переопределения db_* разрешены только в сценарии \"ci\"."
+    ),
     "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically": (
         "manifest odoo_conf.options.{KEY} зарезервировано; odpm управляет этой опцией автоматически"
     ),

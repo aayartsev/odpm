@@ -73,9 +73,15 @@ def evaluate_template_odoo_conf(ctx: PrepareContext) -> PlanStep:
         odoo_conf_db_host_mismatch,
         odoo_conf_on_disk_needs_regeneration,
     )
+    from ..manifest.odoo_conf_policy import ci_manifest_db_override
 
     description = plan_msg("Regenerate project odoo.conf from .odpm template")
     expected_host = ctx.host_ctx.user_env.postgres_service_name
+    skip_db_host_check = ci_manifest_db_override(
+        ctx.manifest_view,
+        is_ci=ctx.host_ctx.policy.is_ci(),
+    )
+    expected_for_regen = None if skip_db_host_check else expected_host
     template_stale = project_template_needs_upgrade(
         ctx.host_ctx.project_dir,
         constants.PROJECT_ODOO_TEMPLATE_CONFIG_FILE_RELATIVE_PATH,
@@ -84,12 +90,15 @@ def evaluate_template_odoo_conf(ctx: PrepareContext) -> PlanStep:
     path_odoo_conf = ctx.host_ctx.docker_layout.path_odoo_conf
     conf_stale = odoo_conf_on_disk_needs_regeneration(
         path_odoo_conf,
-        expected_db_host=expected_host,
+        expected_db_host=expected_for_regen,
     )
     if template_stale or conf_stale:
         if template_stale:
             reason = plan_msg("odoo config template stale")
-        elif odoo_conf_db_host_mismatch(path_odoo_conf, expected_host):
+        elif (
+            not skip_db_host_check
+            and odoo_conf_db_host_mismatch(path_odoo_conf, expected_host)
+        ):
             reason = plan_msg(
                 "odoo.conf db_host out of sync with postgres service ({EXPECTED})",
                 EXPECTED=expected_host,

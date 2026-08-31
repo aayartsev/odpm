@@ -197,7 +197,10 @@ def load_manifest(
             source_raw=deepcopy(raw),
         )
 
-    validate_manifest_odoo_conf(raw)
+    validate_manifest_odoo_conf(
+        raw.get("odoo_conf") if isinstance(raw.get("odoo_conf"), dict) else None,
+        scenario=constants.DEFAULT_ODPM_SCENARIO,
+    )
     effective_v1 = slice_from_manifest_fields(
         odoo_conf=raw.get("odoo_conf"),
         requirements=raw.get("requirements_txt"),

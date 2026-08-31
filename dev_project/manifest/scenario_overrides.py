@@ -236,10 +236,14 @@ def _validate_hooks_fragment(hooks: dict[str, Any] | None) -> None:
         parse_hook_phase(hooks, phase)
 
 
-def _validate_odoo_conf_fragment(odoo_conf: dict[str, Any] | None) -> None:
+def _validate_odoo_conf_fragment(
+    odoo_conf: dict[str, Any] | None,
+    *,
+    scenario: str,
+) -> None:
     if odoo_conf is None:
         return
-    validate_manifest_odoo_conf({"odoo_conf": odoo_conf})
+    validate_manifest_odoo_conf(odoo_conf, scenario=scenario)
 
 
 def _validate_services_fragment(
@@ -261,9 +265,10 @@ def _validate_services_fragment(
 def _validate_effective_slice(
     effective: ScenarioManifestSlice,
     *,
+    scenario: str,
     compose_network_logical: str | None = None,
 ) -> None:
-    _validate_odoo_conf_fragment(effective.odoo_conf)
+    _validate_odoo_conf_fragment(effective.odoo_conf, scenario=scenario)
     _validate_hooks_fragment(effective.hooks)
     _validate_services_fragment(
         effective.services,
@@ -280,11 +285,12 @@ def _validate_declared_overlays(
     scenarios = raw.get("scenarios")
     if not isinstance(scenarios, dict):
         return
-    for overlay_raw in scenarios.values():
+    for scenario_name, overlay_raw in scenarios.items():
         if not isinstance(overlay_raw, dict):
             continue
         overlay = scenario_overlay_slice(overlay_raw)
-        _validate_odoo_conf_fragment(overlay.odoo_conf)
+        scenario = str(scenario_name)
+        _validate_odoo_conf_fragment(overlay.odoo_conf, scenario=scenario)
         _validate_hooks_fragment(overlay.hooks)
         _validate_services_fragment(
             overlay.services,
@@ -310,8 +316,12 @@ def validate_scenario_manifest(
     if raw.get("manifest_schema") != constants.MANIFEST_SCHEMA_V2:
         return
 
+    default_scenario = constants.DEFAULT_ODPM_SCENARIO
     if not manifest_uses_scenarios(raw):
-        _validate_odoo_conf_fragment(_optional_dict(raw.get("odoo_conf")))
+        _validate_odoo_conf_fragment(
+            _optional_dict(raw.get("odoo_conf")),
+            scenario=default_scenario,
+        )
         _validate_hooks_fragment(_optional_dict(raw.get("hooks")))
         _validate_services_fragment(
             _optional_dict(raw.get("services")),
@@ -320,7 +330,12 @@ def validate_scenario_manifest(
         )
         return
 
-    _validate_odoo_conf_fragment(_optional_dict(raw.get("odoo_conf")))
+    # Root fragment: only global frozen (db_* may live only in scenarios.ci).
+    # Scenario-aware checks run on overlays and effective slices below.
+    _validate_odoo_conf_fragment(
+        _optional_dict(raw.get("odoo_conf")),
+        scenario=constants.CI_SCENARIO,
+    )
     _validate_hooks_fragment(_optional_dict(raw.get("hooks")))
     _validate_services_fragment(
         _optional_dict(raw.get("services")),
@@ -335,5 +350,6 @@ def validate_scenario_manifest(
     for scenario in sorted(constants.ODPM_SCENARIO_VALUES):
         _validate_effective_slice(
             resolve_effective_manifest_slice(raw, scenario),
+            scenario=scenario,
             compose_network_logical=compose_network_logical,
         )

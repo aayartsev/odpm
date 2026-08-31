@@ -1004,6 +1004,9 @@ msgstr "manifest locks.git"
 msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 msgstr "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
 
+msgid "manifest odoo_conf.options.{KEY} cannot be overridden in scenario \"{SCENARIO}\".\n\nKeys managed by odpm in this scenario:\n  {KEYS}\n\ndb_* overrides are allowed only in scenario \"ci\"."
+msgstr "manifest odoo_conf.options.{KEY} нельзя переопределять в сценарии \"{SCENARIO}\".\n\nКлючи, которыми управляет odpm в этом сценарии:\n  {KEYS}\n\nПереопределения db_* разрешены только в сценарии \"ci\"."
+
 msgid "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically"
 msgstr "manifest odoo_conf.options.{KEY} зарезервировано; odpm управляет этой опцией автоматически"
 

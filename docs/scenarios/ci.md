@@ -65,6 +65,29 @@ docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 
 В сценарии `ci` bare `odpm` без `--skip-start` / `--build-image` (и без allowlist: `plan`, `manifest`, `database`, `--update-lock`, `--init`, …) завершается ошибкой — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md).
 
+## Внешняя PostgreSQL в `ci` (ADR-022)
+
+В effective slice `ci` можно задать `db_*` в `odoo_conf.options` (в `developer` / `server` эти ключи по-прежнему запрещены). Credentials лучше через `${@secret:…}`:
+
+```json
+"scenarios": {
+  "ci": {
+    "odoo_conf": {
+      "options": {
+        "db_host": "10.241.2.102",
+        "db_port": 5000,
+        "db_user": "${@secret:pg_user}",
+        "db_password": "${@secret:pg_user_password}",
+        "proxy_mode": "True",
+        "server_wide_modules": "base,web,queue_job"
+      }
+    }
+  }
+}
+```
+
+Значения попадают в `odoo_config_data` через обычный merge (disk → manifest). Compose-сервис `db` не удаляется; host-side `odpm database` / `ensure_app_role` остаются привязаны к compose postgres. См. [odoo.conf](../reference/odoo-conf.md), [ADR-022](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md).
+
 Без `--image-push` бэкенд `kaniko` пишет tar в `.odpm/ci-build-context/odpm-ci-image.tar`.
 
 В режиме `docker-run` с `--image-push` нужен `~/.docker/config.json` (`docker login`); иначе odpm завершится с ошибкой до запуска executor. Образ executor по умолчанию закреплён (`gcr.io/kaniko-project/executor:v1.23.2`); перекрывается `ODPM_KANIKO_EXECUTOR_IMAGE`. Opt-in Docker integration в CI покрывает только бэкенд `docker`; argv/`direct` для `kaniko` — unit-тесты.

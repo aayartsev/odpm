@@ -41,13 +41,24 @@ odoo.conf on disk                     ← local defaults
 
 - **`addons_path`** — full list of addon paths inside the container;
 - **`data_dir`** — Odoo data directory inside the container;
-- **`db_host`** — synced with the **physical** postgres service name from `.env` (`POSTGRES_SERVICE_NAME` or `{prefix}db` when `ODPM_COMPOSE_PREFIX` is set);
+- **`db_host`** — by default synced with the **physical** postgres service name from `.env` (`POSTGRES_SERVICE_NAME` or `{prefix}db` when `ODPM_COMPOSE_PREFIX` is set);
 - database placeholders in the template — real values from runtime;
 - **`admin_passwd`** — in the container from `db_manager_password` (not from manifest).
 
-These and other reserved keys **cannot** appear in manifest **`odoo_conf`** — `odpm manifest validate` fails.
+### Two-layer frozen policy (ADR-022)
 
-If `db_host` on disk does not match the expected postgres service name from `.env`, step **`template.odoo_conf`** recreates the config; `odpm plan` shows drift **`db_host_mismatch`**. See [PostgreSQL state](database-state.md).
+Manifest `odoo_conf.options` uses a scenario-aware policy:
+
+| Layer | Keys | Forbidden in |
+|-------|------|----------------|
+| **Global** | `addons_path`, `data_dir`, `admin_passwd`, `http_port` | every scenario |
+| **Scenario** | `db_host`, `db_port`, `db_user`, `db_password` | `developer` and `server`; **allowed** in the effective `ci` slice |
+
+`odpm manifest validate` / `load_manifest` list the **full** frozen key set for the current scenario on violation. There is no separate override block and no `external` flag: any `db_*` in effective `ci` options is the derived runtime signal.
+
+When `scenarios.ci.odoo_conf.options` sets `db_*` (external DB), step **`template.odoo_conf`** does not regen for compose `db_host_mismatch`, and plan omits false **`db_host_mismatch`** drift. odpm does **not** remove the compose `db` service automatically. Host `ensure_app_role` / `odpm database` still target compose postgres. See [ADR-022](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md).
+
+If on-disk `db_host` does not match the expected postgres service name **and** CI override is inactive, step **`template.odoo_conf`** recreates the config; `odpm plan` shows drift **`db_host_mismatch`**. See [PostgreSQL state](database-state.md).
 
 ## When the file is recreated entirely
 

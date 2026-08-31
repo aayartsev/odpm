@@ -346,7 +346,28 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
                     },
                 )
             )
-        self.assertIn("db_host", str(ctx.exception))
+        message = str(ctx.exception)
+        self.assertIn("db_host", message)
+        self.assertIn(constants.SERVER_SCENARIO, message)
+
+    def test_validate_accepts_ci_db_override_in_effective_slice(self):
+        validate_scenario_manifest(
+            _minimal_v2(
+                requires_odpm="4.6.0",
+                scenarios={
+                    "ci": {
+                        "odoo_conf": {
+                            "options": {
+                                "db_host": "10.241.2.102",
+                                "db_port": 5000,
+                                "db_user": "ci",
+                                "db_password": "secret",
+                            }
+                        }
+                    }
+                },
+            )
+        )
 
     def test_validate_rejects_reserved_service_name_in_scenario_overlay(self):
         with self.assertRaises(ConfigError) as ctx:
