@@ -18,7 +18,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 | **Отладчик** | Нет. |
 | **Секреты модулей** | Mount `.odpm/secrets.json` с хоста **отключён**. Секреты приложения в CI-образ этим механизмом не попадают — см. [локальные секреты](../operations/secrets.md) (TD-FEAT-09). |
 | **Фиксация версий** | Строгая проверка `.odpm/deps.lock.json`; несовместимости версий во вложенных описаниях — **ошибка**. |
-| **Base image** | По умолчанию профиль **ci** (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег `odoo-…-ci`; пересборка при смене шаблона или `Dockerfile` — см. [ADR-007](../contributing/adr-007-base-image-profiles.md). Override: `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci`. Для `kaniko` base собирается и **пушится** в `ODPM_BASE_IMAGE_REGISTRY` (ADR-019); final `FROM` использует registry ref. Existence для kaniko — local identity stamp (не probe registry); при stale registry удалите `.odpm/base_image_identity.json` и пересоберите. |
+| **Base image** | По умолчанию профиль **ci** (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег `odoo-…-ci`; пересборка при смене шаблона или `Dockerfile` — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md). Override: `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci`. Для `kaniko` base собирается и **пушится** в `ODPM_BASE_IMAGE_REGISTRY` (ADR-019); final `FROM` использует registry ref. Existence для kaniko — local identity stamp (не probe registry); при stale registry удалите `.odpm/base_image_identity.json` и пересоберите. |
 
 ## Типичный конвейер
 

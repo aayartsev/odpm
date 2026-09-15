@@ -58,7 +58,7 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS` | Доп. флаги Kaniko executor (напр. `--kaniko-dir=/tmp/kaniko`) | пусто |
 | `ODPM_KANIKO_EXECUTOR_SUDO` | `1` / `true` / `yes` — prepend `sudo -n` перед executor в `direct`, если wrapper не задан; нужен passwordless sudo | выкл. |
 | `ODPM_BASE_IMAGE_REGISTRY` | Prefикс registry для base image при `kaniko` (обязателен для daemonless base) | пусто |
-| `ODPM_BASE_IMAGE_PROFILE` | Override профиля base Dockerfile: `full`, `medium` или `ci` (слабее process env; невалидное значение → дефолт сценария). Не меняет остальную политику сценария — см. [ADR-007](../contributing/adr-007-base-image-profiles.md) | из `ODPM_SCENARIO` |
+| `ODPM_BASE_IMAGE_PROFILE` | Override профиля base Dockerfile: `full`, `medium` или `ci` (слабее process env; невалидное значение → дефолт сценария). Не меняет остальную политику сценария — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md) | из `ODPM_SCENARIO` |
 | `ODPM_LOCALE` | Язык сообщений odpm, напр. `ru_RU` | берется из системы | см. [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | Путь к ключу SSH для git (редко нужен) | пусто |
 | `ODPM_SECRETS_PROVIDER` | Override type провайдера секретов (`file` / `infisical` / id плагина). Слабее `--secrets-provider`; `--secrets-file` всё равно форсит `file`. Визард **не** спрашивает этот ключ. | `file` |
@@ -126,7 +126,7 @@ ODPM_SCENARIO=ci
 ODPM_BASE_IMAGE_PROFILE=medium
 ```
 
-Допустимо: `full`, `medium`, `ci`. Process env сильнее layered `.env`. См. [ADR-007](../contributing/adr-007-base-image-profiles.md).
+Допустимо: `full`, `medium`, `ci`. Process env сильнее layered `.env`. См. [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md).
 
 ## SSH и git
 
