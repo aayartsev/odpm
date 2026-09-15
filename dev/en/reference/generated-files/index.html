@@ -2058,6 +2058,14 @@
 <td><code>.run/Odoo Debug Server.run.xml</code></td>
 <td><code>odpm --skip-start</code> when <code>ODPM_IDE=pycharm</code> or <code>both</code> and <strong><code>pydevd_connect</code></strong> (PyCharm Debug Server, Pro)</td>
 </tr>
+<tr>
+<td><code>Dockerfile</code> (project root)</td>
+<td>from <code>.odpm/{distro}_{ver}_dockerfile_{profile}</code>; profile from <code>ODPM_SCENARIO</code> or override <code>ODPM_BASE_IMAGE_PROFILE</code> (ADR-007)</td>
+</tr>
+<tr>
+<td><code>.odpm/base_image_identity.json</code></td>
+<td>after a successful base image <code>docker build</code>; in <code>.odpm/.gitignore</code>; fields <code>base_image_profile</code>, <code>dockerfile_sha256</code> — see ADR-007</td>
+</tr>
 </tbody>
 </table>
 <p>When <code>ODPM_DEBUGGER_BACKEND</code> changes, odpm removes the obsolete odpm file from the pair above (user <code>.run/*.run.xml</code> files are untouched). See <a href="../../operations/vscode-debug/">IDE debugging</a>.</p>

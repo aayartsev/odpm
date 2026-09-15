@@ -2057,7 +2057,7 @@
 </tr>
 <tr>
 <td><code>Dockerfile</code> (корень проекта)</td>
-<td>из шаблона <code>.odpm/{distro}_{ver}_dockerfile_{profile}</code>; профиль зависит от <code>ODPM_SCENARIO</code></td>
+<td>из шаблона <code>.odpm/{distro}_{ver}_dockerfile_{profile}</code>; профиль — из <code>ODPM_SCENARIO</code> или override <code>ODPM_BASE_IMAGE_PROFILE</code> (ADR-007)</td>
 </tr>
 <tr>
 <td><code>.odpm/base_image_identity.json</code></td>
