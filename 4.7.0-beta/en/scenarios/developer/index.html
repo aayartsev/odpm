@@ -2108,6 +2108,10 @@
 <td><code>docker-compose</code> sets <code>PYTHONWARNINGS=ignore::DeprecationWarning:docutils</code> so that Odoo startup does not scare beginners with a long traceback from deprecated API in the <strong>docutils</strong> package (this is not an error in your code). In <code>server</code> and <code>ci</code> scenarios the filter is <strong>not</strong> enabled — warnings remain in the log and may signal docutils incompatibility with the Python version in the image.</td>
 </tr>
 <tr>
+<td><strong>Base image</strong></td>
+<td>Default profile <strong>full</strong> (browser/Xvfb/IDE stack). Override with <code>ODPM_BASE_IMAGE_PROFILE</code> = <code>full</code> / <code>medium</code> / <code>ci</code> — see <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a>.</td>
+</tr>
+<tr>
 <td><strong>CI image build</strong></td>
 <td>The <code>--build-image</code> command is <strong>unavailable</strong> (only in the <code>ci</code> scenario).</td>
 </tr>

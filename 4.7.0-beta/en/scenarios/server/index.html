@@ -2087,6 +2087,10 @@
 <td>Same as developer — mounted from the server disk.</td>
 </tr>
 <tr>
+<td><strong>Base image</strong></td>
+<td>Default profile <strong>medium</strong> (wkhtmltopdf + build deps, no browser/Xvfb/IDE). Override with <code>ODPM_BASE_IMAGE_PROFILE</code> = <code>full</code> / <code>medium</code> / <code>ci</code> — see <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a>.</td>
+</tr>
+<tr>
 <td><strong>Module secrets</strong></td>
 <td>Same as <code>developer</code>: <code>.odpm/secrets.json</code> is mounted at <code>/run/odpm/secrets.json</code> (read-only). Deliver the file to the server via <code>odpm --secrets-file</code> or copy; see <a href="../../operations/secrets/">local secrets</a>.</td>
 </tr>

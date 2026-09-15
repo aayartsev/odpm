@@ -1403,6 +1403,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#override-base-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Override профиля base image
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2148,6 +2159,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#override-base-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Override профиля base image
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2398,6 +2420,11 @@
 <td>пусто</td>
 </tr>
 <tr>
+<td><code>ODPM_BASE_IMAGE_PROFILE</code></td>
+<td>Override профиля base Dockerfile: <code>full</code>, <code>medium</code> или <code>ci</code> (слабее process env; невалидное значение → дефолт сценария). Не меняет остальную политику сценария — см. <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a></td>
+<td>из <code>ODPM_SCENARIO</code></td>
+</tr>
+<tr>
 <td><code>ODPM_LOCALE</code></td>
 <td>Язык сообщений odpm, напр. <code>ru_RU</code></td>
 <td>берется из системы</td>
@@ -2486,6 +2513,12 @@
 <span class="na">ODPM_SCENARIO</span><span class="o">=</span><span class="s">developer</span>
 <span class="na">ODPM_LOCALE</span><span class="o">=</span><span class="s">ru_RU</span>
 </code></pre></div>
+<h3 id="override-base-image">Override профиля base image<a class="headerlink" href="#override-base-image" title="Permanent link">&para;</a></h3>
+<p>Когда дефолт сценария не подходит (например в <code>ci</code> нужен wkhtmltopdf из <strong>medium</strong>), задайте профиль явно — wizard этот ключ не спрашивает:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODPM_SCENARIO</span><span class="o">=</span><span class="s">ci</span>
+<span class="na">ODPM_BASE_IMAGE_PROFILE</span><span class="o">=</span><span class="s">medium</span>
+</code></pre></div>
+<p>Допустимо: <code>full</code>, <code>medium</code>, <code>ci</code>. Process env сильнее layered <code>.env</code>. См. <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a>.</p>
 <h2 id="ssh-git">SSH и git<a class="headerlink" href="#ssh-git" title="Permanent link">&para;</a></h2>
 <p>Мастер настройки <strong>не спрашивает</strong> путь к SSH-ключу. Обычно достаточно настройки OpenSSH (<code>~/.ssh/config</code>, ssh-agent).</p>
 <p>Переменная <strong><code>PATH_TO_SSH_KEY</code></strong> нужна, если git не может использовать стандартный SSH (типично на изолированной машине сборки):</p>
