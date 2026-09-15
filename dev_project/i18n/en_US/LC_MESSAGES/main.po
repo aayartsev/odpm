@@ -354,6 +354,9 @@ msgstr "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEF
 msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
 msgstr "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
 
+msgid "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile"
+msgstr "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile"
+
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 
@@ -453,8 +456,8 @@ msgstr "No database last_run snapshot yet; baseline will be adopted automaticall
 msgid "No manifest changes to apply."
 msgstr "No manifest changes to apply."
 
-msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the first run."
-msgstr "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the first run."
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, ODPM_BASE_IMAGE_PROFILE) before the first run."
+msgstr "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, ODPM_BASE_IMAGE_PROFILE) before the first run."
 
 msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
 msgstr "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."

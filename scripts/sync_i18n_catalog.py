@@ -643,14 +643,20 @@ RU_MESSAGES: dict[str, str] = {
     "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
     "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
     "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
-    "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the "
+    "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, "
+    "ODPM_BASE_IMAGE_PROFILE) before the "
     "first run.": (
         "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта "
         "или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения "
         "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
         "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
         "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
-        "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) перед первым запуском."
+        "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, "
+        "ODPM_BASE_IMAGE_PROFILE) перед первым запуском."
+    ),
+    "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile": (
+        "Недопустимое {ENV}={VALUE!r} (допустимо: {ALLOWED}); "
+        "используется профиль по умолчанию для сценария"
     ),
     "Base image registry is required when using the kaniko builder.": (
         "Префикс registry для base image обязателен при использовании бэкенда kaniko."

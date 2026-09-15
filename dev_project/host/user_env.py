@@ -54,6 +54,7 @@ def _apply_parsed_user_env(target: CreateUserEnvironment, parsed: ParsedUserEnv)
     target.compose_network_logical = parsed.compose_network_logical
     target.compose_network_external = parsed.compose_network_external
     target.compose_network_physical = parsed.compose_network_physical
+    target.base_image_profile = parsed.base_image_profile
 
 
 class CreateUserEnvironment:
@@ -113,7 +114,8 @@ class CreateUserEnvironment:
                 "PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, "
                 "GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
                 "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
-                "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY) before the "
+                "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, "
+                "ODPM_BASE_IMAGE_PROFILE) before the "
                 "first run."
             )
             _logger.error(message)

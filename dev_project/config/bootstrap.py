@@ -86,7 +86,10 @@ def init_context(
         EnvResolver.from_user_env(user_env),
         load_secrets_map(config.project_dir),
     )
-    config.policy = ScenarioPolicy.from_scenario(config.user_env.odpm_scenario)
+    config.policy = ScenarioPolicy.from_scenario(
+        config.user_env.odpm_scenario,
+        base_image_profile=getattr(config.user_env, "base_image_profile", None),
+    )
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()
     config._docker = DockerLayoutState()

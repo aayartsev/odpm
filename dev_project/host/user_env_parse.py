@@ -25,6 +25,7 @@ from ..debugger.env_parsing import (
 from .postgres_service_name import parse_postgres_service_name
 from ..compose.network_names import resolve_compose_network
 from ..compose.service_names import resolve_compose_naming
+from ..dockerfile_profiles import BaseImageProfile, parse_base_image_profile
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..translations import _, parse_odpm_locale_setting
@@ -62,6 +63,7 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS: str
     ODPM_KANIKO_EXECUTOR_SUDO: str
     ODPM_BASE_IMAGE_REGISTRY: str
+    ODPM_BASE_IMAGE_PROFILE: str
 
 
 @dataclass(frozen=True)
@@ -88,6 +90,7 @@ class ParsedUserEnv:
     compose_network_logical: str | None
     compose_network_external: bool
     compose_network_physical: str | None
+    base_image_profile: BaseImageProfile | None
 
 
 def resolve_env_file_path(
@@ -183,6 +186,9 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         )
     else:
         backups = env_dict["BACKUP_DIR"]
+    raw_profile = os.environ.get(constants.ODPM_BASE_IMAGE_PROFILE_ENV)
+    if raw_profile is None or not str(raw_profile).strip():
+        raw_profile = env_dict.get(constants.ODPM_BASE_IMAGE_PROFILE_ENV)
     return ParsedUserEnv(
         dotenv=dict(env_dict),
         backups=backups,
@@ -218,6 +224,7 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         compose_network_logical=network.logical_name,
         compose_network_external=network.external,
         compose_network_physical=network.physical_name,
+        base_image_profile=parse_base_image_profile(raw_profile),
     )
 
 

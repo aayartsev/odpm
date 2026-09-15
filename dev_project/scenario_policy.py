@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Literal
 
 from . import constants
@@ -15,10 +15,13 @@ from .debugger.constants import (
     DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEFAULT_DEBUGGER_CONNECT_HOST,
 )
+from .dockerfile_profiles import (
+    BaseImageProfile,
+    resolve_base_image_profile,
+)
 from .ide_stubs import normalize_odoo_stubs_requirements
 
 VenvMode = Literal["fresh", "baked"]
-BaseImageProfile = Literal["full", "medium", "ci"]
 
 
 @dataclass(frozen=True)
@@ -45,13 +48,18 @@ class ScenarioPolicy:
             )
 
     @classmethod
-    def from_scenario(cls, scenario: str) -> ScenarioPolicy:
+    def from_scenario(
+        cls,
+        scenario: str,
+        *,
+        base_image_profile: BaseImageProfile | None = None,
+    ) -> ScenarioPolicy:
         normalized = scenario or constants.DEFAULT_ODPM_SCENARIO
         if normalized not in constants.ODPM_SCENARIO_VALUES:
             normalized = constants.DEFAULT_ODPM_SCENARIO
 
         if normalized == constants.CI_SCENARIO:
-            return cls(
+            policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_ci_image_name",
                 include_odoo_volumes=False,
@@ -67,8 +75,8 @@ class ScenarioPolicy:
                 uses_host_identity=False,
                 base_image_profile="ci",
             )
-        if normalized == constants.SERVER_SCENARIO:
-            return cls(
+        elif normalized == constants.SERVER_SCENARIO:
+            policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_image_name",
                 include_odoo_volumes=True,
@@ -84,22 +92,29 @@ class ScenarioPolicy:
                 uses_host_identity=True,
                 base_image_profile="medium",
             )
-        return cls(
-            scenario=constants.DEVELOPER_SCENARIO,
-            odoo_image_attr="odoo_image_name",
-            include_odoo_volumes=True,
-            include_debugger_port=True,
-            bind_postgres_localhost=False,
-            include_debugpy=True,
-            install_debugpy=True,
-            install_odoo_stubs=True,
-            apply_dev_mode=True,
-            skip_ide_config=False,
-            allow_build_image=False,
-            venv_mode=constants.VENV_MODE_FRESH,
-            uses_host_identity=True,
-            base_image_profile="full",
+        else:
+            policy = cls(
+                scenario=constants.DEVELOPER_SCENARIO,
+                odoo_image_attr="odoo_image_name",
+                include_odoo_volumes=True,
+                include_debugger_port=True,
+                bind_postgres_localhost=False,
+                include_debugpy=True,
+                install_debugpy=True,
+                install_odoo_stubs=True,
+                apply_dev_mode=True,
+                skip_ide_config=False,
+                allow_build_image=False,
+                venv_mode=constants.VENV_MODE_FRESH,
+                uses_host_identity=True,
+                base_image_profile="full",
+            )
+        effective = resolve_base_image_profile(
+            policy.scenario, override=base_image_profile
         )
+        if effective == policy.base_image_profile:
+            return policy
+        return replace(policy, base_image_profile=effective)
 
     @property
     def skip_vscode(self) -> bool:

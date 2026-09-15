@@ -60,6 +60,7 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS` | Extra Kaniko executor flags (e.g. `--kaniko-dir=/tmp/kaniko`) | empty |
 | `ODPM_KANIKO_EXECUTOR_SUDO` | `1` / `true` / `yes` — prepend `sudo -n` before executor in `direct` when wrapper unset; requires passwordless sudo | off |
 | `ODPM_BASE_IMAGE_REGISTRY` | Registry prefix for the base image when using `kaniko` (required for daemonless base) | empty |
+| `ODPM_BASE_IMAGE_PROFILE` | Override base Dockerfile profile: `full`, `medium`, or `ci` (process env wins; invalid → scenario default). Does not change other scenario policy — see [ADR-007](../../contributing/adr-007-base-image-profiles.md) | from `ODPM_SCENARIO` |
 | `ODPM_LOCALE` | odpm message language, e.g. `ru_RU` | from system | see [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | SSH key path for git (rarely needed) | empty |
 | `ODPM_SECRETS_PROVIDER` | Override secrets provider type (`file` / `infisical` / plugin id). Weaker than `--secrets-provider`; `--secrets-file` still forces `file`. The wizard **does not** prompt for this key. | `file` |
@@ -117,6 +118,17 @@ GEVENT_PORT=8072
 ODPM_SCENARIO=developer
 ODPM_LOCALE=ru_RU
 ```
+
+### Base image profile override
+
+When the scenario default is wrong (e.g. `ci` needs wkhtmltopdf from **medium**), set the profile explicitly — the wizard does not ask for this key:
+
+```ini
+ODPM_SCENARIO=ci
+ODPM_BASE_IMAGE_PROFILE=medium
+```
+
+Allowed: `full`, `medium`, `ci`. Process env wins over layered `.env`. See [ADR-007](../../contributing/adr-007-base-image-profiles.md).
 
 ## SSH and git
 

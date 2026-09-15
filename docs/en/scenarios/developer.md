@@ -18,6 +18,7 @@ The developer writes module code, debugs it in the editor, frequently restarts m
 | **Sources** | Platform directories, the project under development, and dependencies are mounted from the developer's computer. |
 | **Python environment** | "Recreatable" mode: when the version lock file changes, the environment may be rebuilt. |
 | **Python warnings in logs** | `docker-compose` sets `PYTHONWARNINGS=ignore::DeprecationWarning:docutils` so that Odoo startup does not scare beginners with a long traceback from deprecated API in the **docutils** package (this is not an error in your code). In `server` and `ci` scenarios the filter is **not** enabled — warnings remain in the log and may signal docutils incompatibility with the Python version in the image. |
+| **Base image** | Default profile **full** (browser/Xvfb/IDE stack). Override with `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci` — see [ADR-007](../../contributing/adr-007-base-image-profiles.md). |
 | **CI image build** | The `--build-image` command is **unavailable** (only in the `ci` scenario). |
 
 ## Odoo development mode (`dev_mode`)

@@ -21,7 +21,7 @@ odpm **does not replace** GitHub Actions, GitLab CI, or orchestrators — it pro
 | **Module secrets** | Host mount **disabled**. Optional bake into image: `ODPM_BAKE_SECRETS=1` with `--build-image` — see [local secrets](../operations/secrets.md), [ADR-002](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-002-ci-secrets-bake.md). |
 | **Version pinning** | Strict check of `.odpm/deps.lock.json`; version incompatibilities in nested manifests — **error**. |
 | **Python warnings in logs** | Same as `server`: `PYTHONWARNINGS` is not filtered — `DeprecationWarning` from docutils on Odoo startup remain in build and container output. Account for this in CI logs and image smoke tests. |
-| **Base image** | Profile **ci** (slim Dockerfile). With `kaniko`, base is built and **pushed** to `ODPM_BASE_IMAGE_REGISTRY` (ADR-019); final `FROM` uses that registry ref. Kaniko “exists” uses the local identity stamp (not a registry probe); if the registry image was deleted, remove `.odpm/base_image_identity.json` and rebuild. |
+| **Base image** | Default profile **ci** (slim Dockerfile). Override with `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci` — see [ADR-007](../../contributing/adr-007-base-image-profiles.md). With `kaniko`, base is built and **pushed** to `ODPM_BASE_IMAGE_REGISTRY` (ADR-019); final `FROM` uses that registry ref. Kaniko “exists” uses the local identity stamp (not a registry probe); if the registry image was deleted, remove `.odpm/base_image_identity.json` and rebuild. |
 
 ## Typical pipeline
 

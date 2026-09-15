@@ -5,7 +5,7 @@
 
 ## Context
 
-`ODPM_SCENARIO` (`developer` | `server` | `ci`) selects **built-in host policy** via `ScenarioPolicy` ([ADR-007](adr-007-base-image-profiles.md)): base image profile, debugpy, postgres bind address, `dev_mode`, runtime mounts, and similar. That policy is **code**, not manifest.
+`ODPM_SCENARIO` (`developer` | `server` | `ci`) selects **built-in host policy** via `ScenarioPolicy` ([ADR-007](adr-007-base-image-profiles.md)): base image profile (overridable via `ODPM_BASE_IMAGE_PROFILE`), debugpy, postgres bind address, `dev_mode`, runtime mounts, and similar. That policy is **code**, not manifest.
 
 Manifest v2 ([ADR-001](adr-001-extensions-and-manifest-v2.md)) exposes user-controlled stack fields at the top level:
 
