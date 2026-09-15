@@ -2129,7 +2129,7 @@
 </tr>
 <tr>
 <td><strong>Base image</strong></td>
-<td>По умолчанию профиль <strong>ci</strong> (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег <code>odoo-…-ci</code>; пересборка при смене шаблона или <code>Dockerfile</code> — см. <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a>. Override: <code>ODPM_BASE_IMAGE_PROFILE</code> = <code>full</code> / <code>medium</code> / <code>ci</code>. Для <code>kaniko</code> base собирается и <strong>пушится</strong> в <code>ODPM_BASE_IMAGE_REGISTRY</code> (ADR-019); final <code>FROM</code> использует registry ref. Existence для kaniko — local identity stamp (не probe registry); при stale registry удалите <code>.odpm/base_image_identity.json</code> и пересоберите.</td>
+<td>По умолчанию профиль <strong>ci</strong> (slim Dockerfile): без Chromium/Xvfb/IDE; отдельный тег <code>odoo-…-ci</code>; пересборка при смене шаблона или <code>Dockerfile</code> — см. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md">ADR-007</a>. Override: <code>ODPM_BASE_IMAGE_PROFILE</code> = <code>full</code> / <code>medium</code> / <code>ci</code>. Для <code>kaniko</code> base собирается и <strong>пушится</strong> в <code>ODPM_BASE_IMAGE_REGISTRY</code> (ADR-019); final <code>FROM</code> использует registry ref. Existence для kaniko — local identity stamp (не probe registry); при stale registry удалите <code>.odpm/base_image_identity.json</code> и пересоберите.</td>
 </tr>
 </tbody>
 </table>

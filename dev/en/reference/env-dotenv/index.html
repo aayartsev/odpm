@@ -2424,7 +2424,7 @@
 </tr>
 <tr>
 <td><code>ODPM_BASE_IMAGE_PROFILE</code></td>
-<td>Override base Dockerfile profile: <code>full</code>, <code>medium</code>, or <code>ci</code> (process env wins; invalid → scenario default). Does not change other scenario policy — see <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a></td>
+<td>Override base Dockerfile profile: <code>full</code>, <code>medium</code>, or <code>ci</code> (process env wins; invalid → scenario default). Does not change other scenario policy — see <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md">ADR-007</a></td>
 <td>from <code>ODPM_SCENARIO</code></td>
 </tr>
 <tr>
@@ -2521,7 +2521,7 @@
 <div class="highlight"><pre><span></span><code><span class="na">ODPM_SCENARIO</span><span class="o">=</span><span class="s">ci</span>
 <span class="na">ODPM_BASE_IMAGE_PROFILE</span><span class="o">=</span><span class="s">medium</span>
 </code></pre></div>
-<p>Allowed: <code>full</code>, <code>medium</code>, <code>ci</code>. Process env wins over layered <code>.env</code>. See <a href="../../contributing/adr-007-base-image-profiles/">ADR-007</a>.</p>
+<p>Allowed: <code>full</code>, <code>medium</code>, <code>ci</code>. Process env wins over layered <code>.env</code>. See <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md">ADR-007</a>.</p>
 <h2 id="ssh-and-git">SSH and git<a class="headerlink" href="#ssh-and-git" title="Permanent link">&para;</a></h2>
 <p>The setup wizard <strong>does not ask</strong> for an SSH key path. OpenSSH configuration (<code>~/.ssh/config</code>, ssh-agent) is usually enough.</p>
 <p>The <strong><code>PATH_TO_SSH_KEY</code></strong> variable is needed when git cannot use standard SSH (typical on an isolated build machine):</p>
