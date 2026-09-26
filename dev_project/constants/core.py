@@ -291,3 +291,8 @@ ODOO_VENV_IMPLICIT_PACKAGES = (
 # (no 3.14 upper bound). That sdist fails to build on 3.14 (_PyLong_AsByteArray).
 # Override until upstream adds a Resolute/3.14 gevent pin; 26.9.0 ships cp314 wheels.
 GEVENT_PACKAGE_FOR_PYTHON_314 = "gevent==26.9.0"
+
+# Odoo pins libsass==0.22.0; its setup.py fails on 3.14 (ast.Constant has no .s) before
+# any compile. 0.23.0 ships abi3 wheels on amd64 and a fixed sdist for arm64 (needs
+# build-essential in the Debian base image — already present in all profiles).
+LIBSASS_PACKAGE_FOR_PYTHON_314 = "libsass==0.23.0"

@@ -21,6 +21,7 @@ RUN groupadd --gid $USER_GID $USER_NAME \
     && mkdir -p /home/$USER_NAME/.vscode-server\
     && chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/.vscode-server
 
+# build-essential kept for arm64 Python sdists (e.g. libsass) when no manylinux aarch64 wheel exists
 # install dependecies
 RUN apt-get update && apt-get -y install libxml2-dev libxslt1-dev libldap2-dev\
         libsasl2-dev libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev\

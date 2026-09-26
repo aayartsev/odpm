@@ -17,7 +17,9 @@ from dev_project.bake_venv import (
     main,
     materialize_odoo_requirements_path,
     patch_odoo_requirements_gevent_line,
+    patch_odoo_requirements_libsass_line,
     resolve_gevent_requirement,
+    resolve_libsass_requirement,
     run_pip_command,
 )
 from dev_project import constants
@@ -252,6 +254,59 @@ class PatchOdooRequirementsGeventTests(unittest.TestCase):
                 text = Path(path).read_text(encoding="utf-8")
                 self.assertIn(constants.GEVENT_PACKAGE_FOR_PYTHON_314, text)
                 self.assertNotIn("gevent==24.11.1", text)
+                self.assertIn("Babel==2.17.0", text)
+            finally:
+                os.unlink(temp_path)
+
+
+class ResolveLibsassRequirementTests(unittest.TestCase):
+    def test_leaves_pin_unchanged_on_python_313(self):
+        self.assertEqual(
+            resolve_libsass_requirement("libsass==0.22.0", "3.13"),
+            "libsass==0.22.0",
+        )
+
+    def test_overrides_broken_pin_on_python_314(self):
+        self.assertEqual(
+            resolve_libsass_requirement("libsass==0.22.0", "3.14"),
+            constants.LIBSASS_PACKAGE_FOR_PYTHON_314,
+        )
+
+    def test_keeps_newer_pin_on_python_314(self):
+        self.assertEqual(
+            resolve_libsass_requirement("libsass==0.23.0", "3.14"),
+            "libsass==0.23.0",
+        )
+
+
+class PatchOdooRequirementsLibsassTests(unittest.TestCase):
+    def test_patches_plain_libsass_line(self):
+        line = "libsass==0.22.0\n"
+        patched = patch_odoo_requirements_libsass_line(line, "3.14")
+        self.assertEqual(patched, constants.LIBSASS_PACKAGE_FOR_PYTHON_314 + "\n")
+
+    def test_materialize_rewrites_gevent_and_libsass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "requirements.txt"
+            src.write_text(
+                "gevent==24.11.1 ; python_version >= '3.13'\n"
+                "libsass==0.22.0\n"
+                "Babel==2.17.0\n",
+                encoding="utf-8",
+            )
+            with patch(
+                "dev_project.bake_venv.evaluate_marker", return_value=True
+            ):
+                path, temp_path = materialize_odoo_requirements_path(
+                    str(src), "3.14"
+                )
+            self.assertIsNotNone(temp_path)
+            assert temp_path is not None
+            try:
+                text = Path(path).read_text(encoding="utf-8")
+                self.assertIn(constants.GEVENT_PACKAGE_FOR_PYTHON_314, text)
+                self.assertIn(constants.LIBSASS_PACKAGE_FOR_PYTHON_314, text)
+                self.assertNotIn("libsass==0.22.0", text)
                 self.assertIn("Babel==2.17.0", text)
             finally:
                 os.unlink(temp_path)

@@ -32,6 +32,7 @@ _logger = get_module_logger(__name__)
 
 UV_PIP_INSTALL_OPTIONS = ("--link-mode=copy",)
 _GEVENT_REQ_RE = re.compile(r"^gevent\s*(==|>=|<=|~=|!=|>|<)?\s*([^\s;]+)?", re.I)
+_LIBSASS_REQ_RE = re.compile(r"^libsass\s*(==|>=|<=|~=|!=|>|<)?\s*([^\s;]+)?", re.I)
 
 
 def venv_python_path(venv_dir: str) -> str:
@@ -161,8 +162,14 @@ def resolve_gevent_requirement(package: str, python_version: str) -> str:
     return constants.GEVENT_PACKAGE_FOR_PYTHON_314
 
 
-def patch_odoo_requirements_gevent_line(line: str, python_version: str) -> str:
-    """Rewrite a single requirements line when its gevent marker matches."""
+def _rewrite_requirement_package_line(
+    line: str,
+    *,
+    python_version: str,
+    package_prefix: str,
+    resolve,
+) -> str:
+    """Rewrite a requirements line for a named package when its marker matches."""
     if _python_version_tuple(python_version) < (3, 14):
         return line
     raw = line.rstrip("\n")
@@ -171,13 +178,13 @@ def patch_odoo_requirements_gevent_line(line: str, python_version: str) -> str:
         return line
     data = raw.split(";", 1)
     package_part = data[0].split("#")[0].strip()
-    if not package_part.lower().startswith("gevent"):
+    if not package_part.lower().startswith(package_prefix):
         return line
     if len(data) > 1:
         condition = data[1].split("#")[0].strip()
         if condition and not evaluate_marker(condition):
             return line
-    resolved = resolve_gevent_requirement(package_part, python_version)
+    resolved = resolve(package_part, python_version)
     if resolved == package_part:
         return line
     newline = "\n" if line.endswith("\n") else ""
@@ -190,6 +197,63 @@ def patch_odoo_requirements_gevent_line(line: str, python_version: str) -> str:
     return f"{resolved}{newline}"
 
 
+def patch_odoo_requirements_gevent_line(line: str, python_version: str) -> str:
+    """Rewrite a single requirements line when its gevent marker matches."""
+    return _rewrite_requirement_package_line(
+        line,
+        python_version=python_version,
+        package_prefix="gevent",
+        resolve=resolve_gevent_requirement,
+    )
+
+
+def _libsass_requirement_version(package: str) -> Version | None:
+    match = _LIBSASS_REQ_RE.match(package.strip())
+    if not match or not match.group(2):
+        return None
+    try:
+        return Version(match.group(2))
+    except InvalidVersion:
+        return None
+
+
+def resolve_libsass_requirement(package: str, python_version: str) -> str:
+    """Rewrite Odoo libsass pins that cannot build on Python 3.14+."""
+    stripped = package.strip()
+    if not stripped.lower().startswith("libsass"):
+        return package
+    if _python_version_tuple(python_version) < (3, 14):
+        return package
+    current = _libsass_requirement_version(stripped)
+    floor = _libsass_requirement_version(constants.LIBSASS_PACKAGE_FOR_PYTHON_314)
+    if current is not None and floor is not None and current >= floor:
+        return package
+    if stripped != constants.LIBSASS_PACKAGE_FOR_PYTHON_314:
+        _logger.warning(
+            "Overriding Odoo libsass pin %s -> %s for Python %s",
+            stripped,
+            constants.LIBSASS_PACKAGE_FOR_PYTHON_314,
+            python_version,
+        )
+    return constants.LIBSASS_PACKAGE_FOR_PYTHON_314
+
+
+def patch_odoo_requirements_libsass_line(line: str, python_version: str) -> str:
+    """Rewrite a single requirements line when its libsass marker matches."""
+    return _rewrite_requirement_package_line(
+        line,
+        python_version=python_version,
+        package_prefix="libsass",
+        resolve=resolve_libsass_requirement,
+    )
+
+
+def patch_odoo_requirements_python314_line(line: str, python_version: str) -> str:
+    """Apply all Python 3.14+ Odoo requirements pin rewrites to one line."""
+    line = patch_odoo_requirements_gevent_line(line, python_version)
+    return patch_odoo_requirements_libsass_line(line, python_version)
+
+
 def materialize_odoo_requirements_path(
     requirements_path: str, python_version: str
 ) -> tuple[str, str | None]:
@@ -199,7 +263,8 @@ def materialize_odoo_requirements_path(
     with open(requirements_path, encoding="utf-8") as reader:
         original = reader.readlines()
     patched = [
-        patch_odoo_requirements_gevent_line(line, python_version) for line in original
+        patch_odoo_requirements_python314_line(line, python_version)
+        for line in original
     ]
     if patched == original:
         return requirements_path, None
