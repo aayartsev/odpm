@@ -40,4 +40,10 @@ odpm -d prod_db --db-backup
 odpm -d prod_db -u
 ```
 
-For module updates from developing git history (MR / server), use `odpm modules diff` + conditional `-i`/`-u` + `record-applied` — see [deploy marker](../reference/deploy-marker.md).
+For module updates from git on **server**, prefer:
+
+```bash
+odpm run apply-modules-from-diff -d prod_db
+```
+
+See [recipes](../reference/recipes.md) and [deploy marker](../reference/deploy-marker.md).

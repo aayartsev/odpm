@@ -48,13 +48,15 @@ def cli_allows_ci_explicit_mode(arguments: OdpmCliArgs | None) -> bool:
         return True
     if arguments.init:
         return True
-    if arguments.command in {"plan", "database", "manifest", "modules"}:
+    if arguments.command in {"plan", "database", "manifest", "modules", "run"}:
         return True
     if arguments.database_subcommand is not None:
         return True
     if arguments.manifest_subcommand is not None:
         return True
     if arguments.modules_subcommand is not None:
+        return True
+    if arguments.run_recipe is not None or arguments.run_list:
         return True
     return False
 

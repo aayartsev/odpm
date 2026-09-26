@@ -90,6 +90,7 @@ Published site: **[English](https://aayartsev.github.io/odpm/en/)** (EN) Â· **[Ð
 | All command-line options | [cli.md](../reference/cli.md) |
 | PostgreSQL state, drift, legacy adoption | [database-state.md](reference/database-state.md) |
 | Module deploy marker (`modules diff`) | [deploy-marker.md](reference/deploy-marker.md) |
+| Recipes (`odpm run`) | [recipes.md](reference/recipes.md) |
 | `.env`, `odpm.json`, `odoo.conf` | [reference](../reference/config-hierarchy.md) |
 | Server security | [security.md](../operations/security.md) |
 | Migrating from 3.0 | [migration-3-to-4.md](../operations/migration-3-to-4.md) |

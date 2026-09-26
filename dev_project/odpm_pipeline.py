@@ -133,14 +133,20 @@ class OdpmPipeline:
                 is_manifest_mode,
                 is_modules_mode,
                 is_plan_mode,
+                is_run_mode,
             )
 
             for_plan = is_plan_mode(self.cli_args)
             for_database = is_database_mode(self.cli_args)
             for_manifest = is_manifest_mode(self.cli_args)
             for_modules = is_modules_mode(self.cli_args)
+            for_run = is_run_mode(self.cli_args)
             self.setup(
-                for_plan=for_plan or for_database or for_manifest or for_modules
+                for_plan=for_plan
+                or for_database
+                or for_manifest
+                or for_modules
+                or for_run
             )
 
             if for_plan:
@@ -166,6 +172,13 @@ class OdpmPipeline:
                 from .modules.commands import run_modules_command
 
                 exit_code = run_modules_command(self.cli_args, self._config())
+                if exit_code:
+                    sys.exit(exit_code)
+                return
+            if for_run:
+                from .recipes.commands import run_recipes_command
+
+                exit_code = run_recipes_command(self.cli_args, self._config())
                 if exit_code:
                     sys.exit(exit_code)
                 return

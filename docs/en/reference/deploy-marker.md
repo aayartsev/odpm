@@ -49,7 +49,19 @@ Priority when `--diff-base` is omitted:
 
 Repo: **developing** checkout with `.git` only. Deleted modules are ignored; rename → new path as init if the module did not exist at BASE.
 
-## Apply recipe (shell)
+## Apply recipe (prefer `odpm run`)
+
+On **server**:
+
+```bash
+odpm run apply-modules-from-diff -d prod_db
+# or with an explicit baseline on first deploy:
+odpm run apply-modules-from-diff -d prod_db --diff-base <sha|tag>
+```
+
+Details: [recipes](recipes.md).
+
+### Escape hatch (shell)
 
 Do **not** pass empty lists as `-i ""` / `-u ""` — the CLI rejects empty CSV.
 
@@ -69,8 +81,8 @@ A long-running `docker compose up` **without** `--stop-after-init` cannot drive 
 
 ## CI / MR
 
-Set the baseline via `--diff-base` or `CI_MERGE_REQUEST_DIFF_BASE_SHA` / `ODPM_DIFF_BASE`. The `modules` subcommand is on the CI allowlist (like `plan` / `database` / `manifest`).
+Set the baseline via `--diff-base` or `CI_MERGE_REQUEST_DIFF_BASE_SHA` / `ODPM_DIFF_BASE`. The `modules` subcommand is on the CI allowlist. End-to-end `odpm run apply-modules-from-diff` is not supported under the **ci** scenario — use `modules diff` in CI and apply on server.
 
-## Out of scope for v1
+## Out of scope
 
-No one-shot `--modules-from-git-diff` orchestrator and no generic `odpm run` / recipes framework — subcommands plus this documented shell recipe only.
+No fat `--modules-from-git-diff` flag on the normal CLI; orchestration is via [recipes](recipes.md) / the shell escape hatch.

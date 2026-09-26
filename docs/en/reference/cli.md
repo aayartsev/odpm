@@ -130,6 +130,18 @@ odpm modules record-applied
 
 Details and shell recipe: [deploy marker](deploy-marker.md).
 
+## `run` subcommand
+
+Named recipes (re-exec odpm steps):
+
+```bash
+odpm run --list
+odpm run apply-modules-from-diff -d prod_db
+odpm run apply-modules-from-diff -d prod_db --dry-run
+```
+
+Details: [recipes](recipes.md), [deploy marker](deploy-marker.md).
+
 ## Database and modules
 
 | Parameter | Description |

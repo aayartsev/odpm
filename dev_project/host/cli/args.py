@@ -64,6 +64,10 @@ class OdpmCliArgs:
     modules_subcommand: str | None = None
     modules_diff_base: str | None = None
     modules_diff_format: str = "text"
+    run_recipe: str | None = None
+    run_list: bool = False
+    run_dry_run: bool = False
+    run_diff_base: str | None = None
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:

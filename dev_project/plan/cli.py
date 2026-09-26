@@ -22,3 +22,7 @@ def is_manifest_mode(args: OdpmCliArgs) -> bool:
 
 def is_modules_mode(args: OdpmCliArgs) -> bool:
     return args.command == cli_params.MODULES_SUBCOMMAND
+
+
+def is_run_mode(args: OdpmCliArgs) -> bool:
+    return args.command == cli_params.RUN_SUBCOMMAND

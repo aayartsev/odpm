@@ -49,7 +49,19 @@ odpm modules record-applied
 
 Репозиторий: только **developing** checkout с `.git`. Удалённые модули игнорируются; rename → новый путь как init, если модуля не было на BASE.
 
-## Рецепт apply (shell)
+## Рецепт apply (предпочтительно `odpm run`)
+
+На **server**:
+
+```bash
+odpm run apply-modules-from-diff -d prod_db
+# или с явным baseline при первом деплое:
+odpm run apply-modules-from-diff -d prod_db --diff-base <sha|tag>
+```
+
+Подробнее: [рецепты](recipes.md).
+
+### Escape hatch (shell)
 
 Пустые списки **не** передавайте как `-i ""` / `-u ""` — CLI отвергает пустой CSV.
 
@@ -69,8 +81,8 @@ odpm modules record-applied
 
 ## CI / MR
 
-В pipeline задайте baseline через `--diff-base` или `CI_MERGE_REQUEST_DIFF_BASE_SHA` / `ODPM_DIFF_BASE`. Подкоманда `modules` входит в CI allowlist (как `plan` / `database` / `manifest`).
+В pipeline задайте baseline через `--diff-base` или `CI_MERGE_REQUEST_DIFF_BASE_SHA` / `ODPM_DIFF_BASE`. Подкоманда `modules` входит в CI allowlist. End-to-end `odpm run apply-modules-from-diff` в сценарии **ci** не поддерживается — в CI только `modules diff`, apply на server.
 
-## Вне scope v1
+## Вне scope
 
-Нет одноразового `--modules-from-git-diff` оркестратора и нет общего `odpm run` / recipes framework — только подкоманды и документированный shell-рецепт.
+Нет толстого флага `--modules-from-git-diff` на обычном CLI; оркестрация — через [рецепты](recipes.md) / shell escape hatch.

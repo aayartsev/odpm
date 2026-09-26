@@ -218,6 +218,83 @@ RU_MESSAGES: dict[str, str] = {
     "Recorded developing SHA {SHA} in {PATH}.": (
         "Записан developing SHA {SHA} в {PATH}."
     ),
+    "Could not load project recipes; listing builtins only.": (
+        "Не удалось загрузить проектные рецепты; показаны только builtins."
+    ),
+    'Recipe name required: use "odpm run RECIPE" or "odpm run --list".': (
+        'Укажите имя рецепта: "odpm run RECIPE" или "odpm run --list".'
+    ),
+    "Recipe {RECIPE} requires param {NAME}{HINT}.": (
+        "Рецепту {RECIPE} нужен параметр {NAME}{HINT}."
+    ),
+    "Recipe {RECIPE} step failed (exit {CODE}): {ARGV}": (
+        "Шаг рецепта {RECIPE} завершился с кодом {CODE}: {ARGV}"
+    ),
+    "Nested 'odpm run' is not allowed "
+    "(ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0).": (
+        "Вложенный 'odpm run' запрещён "
+        "(ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0)."
+    ),
+    "Recipe nesting exceeds maximum depth {MAX}.": (
+        "Вложенность рецептов превышает максимум {MAX}."
+    ),
+    "Recipe step argv must not be empty.": (
+        "argv шага рецепта не должен быть пустым."
+    ),
+    "Recipe steps must not invoke 'odpm run' (recursion forbidden).": (
+        "Шаги рецепта не должны вызывать 'odpm run' (рекурсия запрещена)."
+    ),
+    "Unknown recipe {NAME!r}. Known recipes: {KNOWN}.": (
+        "Неизвестный рецепт {NAME!r}. Известные: {KNOWN}."
+    ),
+    "Recipe YAML missing name: {PATH}": (
+        "В YAML рецепта нет name: {PATH}"
+    ),
+    "Recipe YAML root must be a mapping: {PATH}": (
+        "Корень YAML рецепта должен быть mapping: {PATH}"
+    ),
+    "Invalid recipe YAML in {PATH}: {ERROR}": (
+        "Некорректный YAML рецепта {PATH}: {ERROR}"
+    ),
+    "Recipe 'params' must be a mapping.": (
+        "Поле 'params' рецепта должно быть mapping."
+    ),
+    "Recipe param {NAME!r} must be a mapping.": (
+        "Параметр рецепта {NAME!r} должен быть mapping."
+    ),
+    "Recipe 'steps' must be a non-empty list.": (
+        "Поле 'steps' рецепта должно быть непустым списком."
+    ),
+    "Recipe step {INDEX} must be a mapping with key 'odpm'.": (
+        "Шаг рецепта {INDEX} должен быть mapping с ключом 'odpm'."
+    ),
+    "Recipe step {INDEX} 'odpm' must be a list of strings.": (
+        "Шаг рецепта {INDEX} 'odpm' должен быть списком строк."
+    ),
+    "Recipe substitution unknown param {NAME!r}.": (
+        "Подстановка рецепта: неизвестный param {NAME!r}."
+    ),
+    "Recipe substitution missing env {NAME!r}.": (
+        "Подстановка рецепта: нет env {NAME!r}."
+    ),
+    "modules diff produced no step result.": (
+        "modules diff не вернул результат шага."
+    ),
+    "modules diff step was skipped unexpectedly.": (
+        "Шаг modules diff был неожиданно пропущен."
+    ),
+    "modules diff JSON parse failed: {ERROR}": (
+        "Не удалось разобрать JSON modules diff: {ERROR}"
+    ),
+    "modules diff JSON must be an object.": (
+        "JSON modules diff должен быть объектом."
+    ),
+    "dry-run skip: {ARGV}": (
+        "dry-run skip: {ARGV}"
+    ),
+    "recipe step: {ARGV}": (
+        "шаг рецепта: {ARGV}"
+    ),
     "extensions.local must be a list of module names": (
         "extensions.local должен быть списком имён модулей"
     ),

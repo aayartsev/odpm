@@ -110,6 +110,18 @@ odpm modules record-applied
 
 Подробнее и shell-рецепт: [маркер деплоя](deploy-marker.md).
 
+## Подкоманда `run`
+
+Именованные рецепты (повторный вызов odpm):
+
+```bash
+odpm run --list
+odpm run apply-modules-from-diff -d prod_db
+odpm run apply-modules-from-diff -d prod_db --dry-run
+```
+
+Подробнее: [рецепты](recipes.md), [маркер деплоя](deploy-marker.md).
+
 ## База данных и модули
 
 | Параметр | Описание |

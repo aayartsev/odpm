@@ -11,6 +11,7 @@ from .args_database import register_database_subparser
 from .args_manifest import register_manifest_subparser
 from .args_modules import register_modules_subparser
 from .args_plan import register_plan_subparser
+from .args_run import register_run_subparser
 from .args_scaffold import register_scaffold_subparser
 
 
@@ -30,6 +31,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     register_database_subparser(command_subparsers, common_parser)
     register_manifest_subparser(command_subparsers, common_parser)
     register_modules_subparser(command_subparsers, common_parser)
+    register_run_subparser(command_subparsers, common_parser)
     register_scaffold_subparser(command_subparsers)
     return parser
 

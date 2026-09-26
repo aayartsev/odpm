@@ -197,6 +197,9 @@ msgstr "Запуск контейнеров пропущен (--skip-start)."
 msgid "Control+C pressed; stopping."
 msgstr "Нажато Control+C; остановка."
 
+msgid "Could not load project recipes; listing builtins only."
+msgstr "Не удалось загрузить проектные рецепты; показаны только builtins."
+
 msgid "Created PostgreSQL application role {ROLE}."
 msgstr "Создана роль приложения PostgreSQL {ROLE}."
 
@@ -374,6 +377,9 @@ msgstr "Недопустимый manifest hook {PHASE}: ожидается argv 
 msgid "Invalid manifest_schema value {VALUE!r}; expected an integer."
 msgstr "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
 
+msgid "Invalid recipe YAML in {PATH}: {ERROR}"
+msgstr "Некорректный YAML рецепта {PATH}: {ERROR}"
+
 msgid "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
 msgstr "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '-'; должно начинаться с буквы); префикс отключён"
 
@@ -460,6 +466,9 @@ msgstr "Materialized источник service_sources {NAME} в {PATH}"
 
 msgid "Missing Infisical credentials: {KEYS}"
 msgstr "Отсутствуют учётные данные Infisical: {KEYS}"
+
+msgid "Nested 'odpm run' is not allowed (ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0)."
+msgstr "Вложенный 'odpm run' запрещён (ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0)."
 
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
@@ -604,6 +613,51 @@ msgstr "Пушить финальный CI-образ после сборки? �
 
 msgid "PyCharm run configuration already present"
 msgstr "Конфигурация запуска PyCharm уже присутствует"
+
+msgid "Recipe 'params' must be a mapping."
+msgstr "Поле 'params' рецепта должно быть mapping."
+
+msgid "Recipe 'steps' must be a non-empty list."
+msgstr "Поле 'steps' рецепта должно быть непустым списком."
+
+msgid "Recipe YAML missing name: {PATH}"
+msgstr "В YAML рецепта нет name: {PATH}"
+
+msgid "Recipe YAML root must be a mapping: {PATH}"
+msgstr "Корень YAML рецепта должен быть mapping: {PATH}"
+
+msgid "Recipe name required: use \"odpm run RECIPE\" or \"odpm run --list\"."
+msgstr "Укажите имя рецепта: \"odpm run RECIPE\" или \"odpm run --list\"."
+
+msgid "Recipe nesting exceeds maximum depth {MAX}."
+msgstr "Вложенность рецептов превышает максимум {MAX}."
+
+msgid "Recipe param {NAME!r} must be a mapping."
+msgstr "Параметр рецепта {NAME!r} должен быть mapping."
+
+msgid "Recipe step argv must not be empty."
+msgstr "argv шага рецепта не должен быть пустым."
+
+msgid "Recipe step {INDEX} 'odpm' must be a list of strings."
+msgstr "Шаг рецепта {INDEX} 'odpm' должен быть списком строк."
+
+msgid "Recipe step {INDEX} must be a mapping with key 'odpm'."
+msgstr "Шаг рецепта {INDEX} должен быть mapping с ключом 'odpm'."
+
+msgid "Recipe steps must not invoke 'odpm run' (recursion forbidden)."
+msgstr "Шаги рецепта не должны вызывать 'odpm run' (рекурсия запрещена)."
+
+msgid "Recipe substitution missing env {NAME!r}."
+msgstr "Подстановка рецепта: нет env {NAME!r}."
+
+msgid "Recipe substitution unknown param {NAME!r}."
+msgstr "Подстановка рецепта: неизвестный param {NAME!r}."
+
+msgid "Recipe {RECIPE} requires param {NAME}{HINT}."
+msgstr "Рецепту {RECIPE} нужен параметр {NAME}{HINT}."
+
+msgid "Recipe {RECIPE} step failed (exit {CODE}): {ARGV}"
+msgstr "Шаг рецепта {RECIPE} завершился с кодом {CODE}: {ARGV}"
 
 msgid "Recorded database baseline snapshot at {PATH}."
 msgstr "Записан снимок baseline БД: {PATH}."
@@ -760,6 +814,9 @@ msgstr "Неизвестный ODPM_SCENARIO=%r, используется %s"
 
 msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
 msgstr "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
+
+msgid "Unknown recipe {NAME!r}. Known recipes: {KNOWN}."
+msgstr "Неизвестный рецепт {NAME!r}. Известные: {KNOWN}."
 
 msgid "Unknown secrets provider: {NAME}"
 msgstr "Неизвестный провайдер секретов: {NAME}"
@@ -1013,6 +1070,9 @@ msgstr "шаблон dockerignore устарел"
 msgid "dockerignore template up to date"
 msgstr "шаблон dockerignore актуален"
 
+msgid "dry-run skip: {ARGV}"
+msgstr "dry-run skip: {ARGV}"
+
 msgid "extensions.local must be a list of module names"
 msgstr "extensions.local должен быть списком имён модулей"
 
@@ -1088,6 +1148,18 @@ msgstr "manifest_schema 2 требует поле requires_odpm (минимал�
 msgid "materialize repos before writing deps.lock"
 msgstr "материализовать репозитории перед записью deps.lock"
 
+msgid "modules diff JSON must be an object."
+msgstr "JSON modules diff должен быть объектом."
+
+msgid "modules diff JSON parse failed: {ERROR}"
+msgstr "Не удалось разобрать JSON modules diff: {ERROR}"
+
+msgid "modules diff produced no step result."
+msgstr "modules diff не вернул результат шага."
+
+msgid "modules diff step was skipped unexpectedly."
+msgstr "Шаг modules diff был неожиданно пропущен."
+
 msgid "modules subcommand required: use \"odpm modules diff\" or \"odpm modules record-applied\"."
 msgstr "Укажите подкоманду modules: \"odpm modules diff\" или \"odpm modules record-applied\"."
 
@@ -1135,6 +1207,9 @@ msgstr "освобождение портов только в developer-сцен
 
 msgid "psycopg2 is required."
 msgstr "Требуется psycopg2."
+
+msgid "recipe step: {ARGV}"
+msgstr "шаг рецепта: {ARGV}"
 
 msgid "refresh VS Code launch and settings"
 msgstr "обновить launch и settings VS Code"
