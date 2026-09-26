@@ -345,6 +345,7 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         self.assertIn("3.14", constants.DEBUGPY)
         self.assertIn("3.14", constants.PYDEVD_PYCHARM)
         self.assertIn("3.14", constants.VENV_BOOTSTRAP_PACKAGES)
+        self.assertTrue(constants.GEVENT_PACKAGE_FOR_PYTHON_314.startswith("gevent=="))
         from dev_project.bake_venv import get_venv_bootstrap_packages
 
         packages = get_venv_bootstrap_packages("3.14")

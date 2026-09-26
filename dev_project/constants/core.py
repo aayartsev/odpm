@@ -286,3 +286,8 @@ VENV_EXTRAS_REQUIREMENTS_BASENAME = ".extras-requirements.txt"
 ODOO_VENV_IMPLICIT_PACKAGES = (
     "decorator",
 )
+
+# Odoo 20.0 requirements still select gevent==24.11.1 for python_version >= 3.13
+# (no 3.14 upper bound). That sdist fails to build on 3.14 (_PyLong_AsByteArray).
+# Override until upstream adds a Resolute/3.14 gevent pin; 26.9.0 ships cp314 wheels.
+GEVENT_PACKAGE_FOR_PYTHON_314 = "gevent==26.9.0"

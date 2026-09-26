@@ -13,9 +13,14 @@ from dev_project.bake_venv import (
     apply_venv_env,
     create_venv,
     install_fresh,
+    install_odoo_requirement_packages,
     main,
+    materialize_odoo_requirements_path,
+    patch_odoo_requirements_gevent_line,
+    resolve_gevent_requirement,
     run_pip_command,
 )
+from dev_project import constants
 from dev_project.inside_docker_app.exceptions import VenvError
 
 
@@ -63,7 +68,12 @@ class PipRunnerTests(unittest.TestCase):
         pip = PipRunner(base_cmd=["uv"], pip_extra_args=["--link-mode=copy"], cwd="/home/odoo")
         from dev_project.bake_venv import install_odoo_requirement_packages
 
-        install_odoo_requirement_packages(["wheel"], pip, "/home/odoo/requirements.txt")
+        install_odoo_requirement_packages(
+            ["wheel"],
+            pip,
+            "/home/odoo/requirements.txt",
+            python_version="3.12",
+        )
         mock_run.assert_called()
         install_calls = [call.args[0] for call in mock_run.call_args_list]
         self.assertTrue(
@@ -177,6 +187,108 @@ class BakeVenvMainTests(unittest.TestCase):
         with patch.object(bake_venv.sys, "exit") as mock_exit:
             main(["--config", "ci/venv_install.json"])
             mock_exit.assert_called_once_with(9)
+
+
+class ResolveGeventRequirementTests(unittest.TestCase):
+    def test_leaves_pin_unchanged_on_python_313(self):
+        self.assertEqual(
+            resolve_gevent_requirement("gevent==24.11.1", "3.13"),
+            "gevent==24.11.1",
+        )
+
+    def test_overrides_broken_pin_on_python_314(self):
+        self.assertEqual(
+            resolve_gevent_requirement("gevent==24.11.1", "3.14"),
+            constants.GEVENT_PACKAGE_FOR_PYTHON_314,
+        )
+
+    def test_keeps_newer_pin_on_python_314(self):
+        self.assertEqual(
+            resolve_gevent_requirement("gevent==26.9.0", "3.14"),
+            "gevent==26.9.0",
+        )
+
+
+class PatchOdooRequirementsGeventTests(unittest.TestCase):
+    def test_patches_matching_marker_line(self):
+        line = (
+            "gevent==24.11.1 ; sys_platform != 'win32' and python_version >= '3.13'\n"
+        )
+        with patch(
+            "dev_project.bake_venv.evaluate_marker", return_value=True
+        ):
+            patched = patch_odoo_requirements_gevent_line(line, "3.14")
+        self.assertTrue(
+            patched.startswith(constants.GEVENT_PACKAGE_FOR_PYTHON_314 + " ;")
+        )
+
+    def test_skips_non_matching_marker_line(self):
+        line = (
+            "gevent==24.2.1 ; sys_platform != 'win32' and python_version < '3.13'\n"
+        )
+        with patch(
+            "dev_project.bake_venv.evaluate_marker", return_value=False
+        ):
+            self.assertEqual(
+                patch_odoo_requirements_gevent_line(line, "3.14"), line
+            )
+
+    def test_materialize_writes_temp_file_when_patched(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "requirements.txt"
+            src.write_text(
+                "gevent==24.11.1 ; python_version >= '3.13'\nBabel==2.17.0\n",
+                encoding="utf-8",
+            )
+            with patch(
+                "dev_project.bake_venv.evaluate_marker", return_value=True
+            ):
+                path, temp_path = materialize_odoo_requirements_path(
+                    str(src), "3.14"
+                )
+            self.assertIsNotNone(temp_path)
+            assert temp_path is not None
+            try:
+                text = Path(path).read_text(encoding="utf-8")
+                self.assertIn(constants.GEVENT_PACKAGE_FOR_PYTHON_314, text)
+                self.assertNotIn("gevent==24.11.1", text)
+                self.assertIn("Babel==2.17.0", text)
+            finally:
+                os.unlink(temp_path)
+
+
+class InstallOdooRequirementGeventOverrideTests(unittest.TestCase):
+    @patch("dev_project.bake_venv._run_subprocess")
+    def test_install_uses_overridden_gevent_and_patched_requirements(self, mock_run):
+        pip = PipRunner(
+            base_cmd=["uv"], pip_extra_args=["--link-mode=copy"], cwd="/home/odoo"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "requirements.txt"
+            src.write_text(
+                "gevent==24.11.1 ; python_version >= '3.13'\n",
+                encoding="utf-8",
+            )
+            with patch(
+                "dev_project.bake_venv.evaluate_marker", return_value=True
+            ):
+                install_odoo_requirement_packages(
+                    ["gevent==24.11.1"],
+                    pip,
+                    str(src),
+                    python_version="3.14",
+                )
+        install_calls = [call.args[0] for call in mock_run.call_args_list]
+        gevent_cmds = [
+            cmd
+            for cmd in install_calls
+            if any(constants.GEVENT_PACKAGE_FOR_PYTHON_314 in part for part in cmd)
+        ]
+        self.assertTrue(gevent_cmds, msg=f"expected overridden gevent install: {install_calls}")
+        req_cmds = [cmd for cmd in install_calls if "-r" in cmd]
+        self.assertTrue(req_cmds)
+        req_path = req_cmds[0][req_cmds[0].index("-r") + 1]
+        self.assertNotEqual(req_path, str(src))
 
 
 if __name__ == "__main__":

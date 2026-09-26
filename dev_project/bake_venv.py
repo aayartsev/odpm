@@ -5,18 +5,22 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 import venv
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 try:
     from packaging.markers import Marker, default_environment
+    from packaging.version import InvalidVersion, Version
 except ImportError:
     from pip._vendor.packaging.markers import Marker, default_environment
+    from pip._vendor.packaging.version import InvalidVersion, Version
 
 from . import constants
 from .container_config import ContainerConfig
@@ -27,6 +31,7 @@ from .logging import get_module_logger
 _logger = get_module_logger(__name__)
 
 UV_PIP_INSTALL_OPTIONS = ("--link-mode=copy",)
+_GEVENT_REQ_RE = re.compile(r"^gevent\s*(==|>=|<=|~=|!=|>|<)?\s*([^\s;]+)?", re.I)
 
 
 def venv_python_path(venv_dir: str) -> str:
@@ -115,6 +120,98 @@ class PipRunner:
             "--no-build-isolation",
         ]
         _run_subprocess(cmd, cwd=self.cwd)
+
+
+def _python_version_tuple(python_version: str) -> tuple[int, int]:
+    parts = str(python_version).strip().split(".")
+    try:
+        return int(parts[0]), int(parts[1]) if len(parts) > 1 else 0
+    except (TypeError, ValueError, IndexError):
+        return 0, 0
+
+
+def _gevent_requirement_version(package: str) -> Version | None:
+    match = _GEVENT_REQ_RE.match(package.strip())
+    if not match or not match.group(2):
+        return None
+    try:
+        return Version(match.group(2))
+    except InvalidVersion:
+        return None
+
+
+def resolve_gevent_requirement(package: str, python_version: str) -> str:
+    """Rewrite Odoo gevent pins that cannot build on Python 3.14+."""
+    stripped = package.strip()
+    if not stripped.lower().startswith("gevent"):
+        return package
+    if _python_version_tuple(python_version) < (3, 14):
+        return package
+    current = _gevent_requirement_version(stripped)
+    floor = _gevent_requirement_version(constants.GEVENT_PACKAGE_FOR_PYTHON_314)
+    if current is not None and floor is not None and current >= floor:
+        return package
+    if stripped != constants.GEVENT_PACKAGE_FOR_PYTHON_314:
+        _logger.warning(
+            "Overriding Odoo gevent pin %s -> %s for Python %s",
+            stripped,
+            constants.GEVENT_PACKAGE_FOR_PYTHON_314,
+            python_version,
+        )
+    return constants.GEVENT_PACKAGE_FOR_PYTHON_314
+
+
+def patch_odoo_requirements_gevent_line(line: str, python_version: str) -> str:
+    """Rewrite a single requirements line when its gevent marker matches."""
+    if _python_version_tuple(python_version) < (3, 14):
+        return line
+    raw = line.rstrip("\n")
+    stripped = raw.strip()
+    if not stripped or stripped.startswith("#"):
+        return line
+    data = raw.split(";", 1)
+    package_part = data[0].split("#")[0].strip()
+    if not package_part.lower().startswith("gevent"):
+        return line
+    if len(data) > 1:
+        condition = data[1].split("#")[0].strip()
+        if condition and not evaluate_marker(condition):
+            return line
+    resolved = resolve_gevent_requirement(package_part, python_version)
+    if resolved == package_part:
+        return line
+    newline = "\n" if line.endswith("\n") else ""
+    marker_idx = raw.find(";")
+    if marker_idx >= 0:
+        prefix_end = marker_idx
+        while prefix_end > 0 and raw[prefix_end - 1].isspace():
+            prefix_end -= 1
+        return f"{resolved}{raw[prefix_end:]}{newline}"
+    return f"{resolved}{newline}"
+
+
+def materialize_odoo_requirements_path(
+    requirements_path: str, python_version: str
+) -> tuple[str, str | None]:
+    """Return (path_for_install, temp_path_to_delete_or_None)."""
+    if _python_version_tuple(python_version) < (3, 14):
+        return requirements_path, None
+    with open(requirements_path, encoding="utf-8") as reader:
+        original = reader.readlines()
+    patched = [
+        patch_odoo_requirements_gevent_line(line, python_version) for line in original
+    ]
+    if patched == original:
+        return requirements_path, None
+    handle = tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        suffix="-odoo-requirements.txt",
+        delete=False,
+    )
+    with handle:
+        handle.writelines(patched)
+    return handle.name, handle.name
 
 
 def get_venv_bootstrap_packages(python_version: str) -> list[str]:
@@ -284,11 +381,23 @@ def install_odoo_requirement_packages(
     packages: list[str],
     pip: PipRunner,
     requirements_path: str,
+    *,
+    python_version: str,
 ) -> None:
     for package in packages:
         if "gevent" in package:
-            pip.install_gevent(package)
-    pip.install_requirements(requirements_path)
+            pip.install_gevent(resolve_gevent_requirement(package, python_version))
+    install_path, temp_path = materialize_odoo_requirements_path(
+        requirements_path, python_version
+    )
+    try:
+        pip.install_requirements(install_path)
+    finally:
+        if temp_path:
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
     for package in constants.ODOO_VENV_IMPLICIT_PACKAGES:
         pip.install(package)
 
@@ -315,7 +424,10 @@ def install_fresh(
     odoo_packages = parse_odoo_requirements(spec.odoo_requirements_path)
     bootstrap_packages(spec, pip)
     install_odoo_requirement_packages(
-        odoo_packages, pip, spec.odoo_requirements_path
+        odoo_packages,
+        pip,
+        spec.odoo_requirements_path,
+        python_version=spec.python_version,
     )
     install_extra_packages(spec.extra_packages, pip)
     if lock_file_path and lock_hash is not None:
