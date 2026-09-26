@@ -44,8 +44,14 @@ Adoption runs **once**. While the file exists, only drift vs the saved snapshot 
 If `last_run.json` is missing (typical with an inherited PostgreSQL data directory), odpm before the full stack:
 
 1. Starts PostgreSQL if needed.
-2. Runs **`ensure_app_role`** — creates or updates the application role (default `odoo`), including single-user bootstrap when no admin login role exists.
+2. Runs **`ensure_app_role`**:
+   - role **`postgres`** — `LOGIN SUPERUSER` (odpm admin / compose `POSTGRES_USER`);
+   - role **`odoo`** — `LOGIN NOSUPERUSER CREATEDB` (Odoo session, `db_user`);
+   - extensions `unaccent` and `pg_trgm` on **`template1`** (new DBs inherit; existing DBs need a manual install if required);
+   - when no login admin exists — single-user bootstrap of both roles, then reconcile.
 3. Writes the current configuration as baseline.
+
+Admin and app share one password (`POSTGRES_ODOO_PASS`). Demoting `odoo` blocks `COPY … TO PROGRAM` from the application role; a leaked shared password still allows `-U postgres` — see [security](../operations/security.md).
 
 **Adoption does not:**
 

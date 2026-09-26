@@ -17,6 +17,7 @@ from ..debugger.user_env import (
 )
 from ..yaml import merge_services, merge_services_with_patches
 from ..docker_capabilities import cached_docker_capabilities
+from ..scenario_policy import format_published_port
 from .network_names import (
     attach_logical_compose_network,
     compose_network_from_user_env,
@@ -48,6 +49,15 @@ def _config_str(config, attr: str, default: str) -> str:
         return value
     return default
 
+
+def _bind_service_ports_localhost(services: dict[str, Any]) -> None:
+    for service in services.values():
+        if not isinstance(service, dict):
+            continue
+        ports = service.get("ports")
+        if not isinstance(ports, list):
+            continue
+        service["ports"] = [format_published_port(port) for port in ports]
 
 def _compose_command(compose_service) -> list[str]:
     command = getattr(compose_service, "command", None)
@@ -103,7 +113,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             "ports": [postgres_port_map],
             "environment": [
                 f"POSTGRES_PASSWORD={constants.POSTGRES_ODOO_PASS}",
-                f"POSTGRES_USER={constants.POSTGRES_ODOO_USER}",
+                f"POSTGRES_USER={constants.POSTGRES_ADMIN_USER}",
                 "POSTGRES_DB=postgres",
             ],
             "volumes": [
@@ -170,6 +180,8 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         merge_services(base_services, fragment_services),
         service_patches,
     )
+    if policy.bind_published_ports_localhost:
+        _bind_service_ports_localhost(services)
 
     document = {
         "services": services,

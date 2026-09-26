@@ -243,6 +243,57 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             self.assertIn("  mailpit:", content)
             self.assertIn("    image: axllent/mailpit", content)
 
+    def test_server_binds_sidecar_published_ports_localhost(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            self._copy_compose_template(project_dir)
+            policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.policy = policy
+            config.odoo_image_name = "odoo-base:dev"
+            config.compose_service = ComposeOdooService(
+                working_dir="/home/odoo",
+                include_runtime_config=policy.mount_runtime_config_from_host(),
+                include_runtime_secrets=False,
+                command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT],
+            )
+            config.compose_file_version = "3.8"
+            config.postgres_version = "16"
+            config.postgres_data_local_storage = "/tmp/postgres-data"
+            config.pd_manager = MagicMock()
+            config.bootstrap = MagicMock()
+            config.bootstrap.manifest_view = ManifestView(
+                manifest_schema=constants.MANIFEST_SCHEMA_V2,
+                requires_odpm="4.4",
+                services={
+                    "mailpit": {
+                        "image": "axllent/mailpit",
+                        "ports": ["8025:8025"],
+                    }
+                },
+                hooks=None,
+                locks=None,
+                raw_normalized={},
+                source_raw={},
+            )
+            config.repo_odpm_json = os.path.join(project_dir, "odpm.json")
+            user_env = MagicMock()
+            user_env.postgres_port = 15432
+            user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
+            user_env.debugger_port = 5678
+            user_env.debugger_backend = DEBUGGER_BACKEND_DEBUGPY_LISTEN
+            user_env.debugger_connect_host = DEFAULT_DEBUGGER_CONNECT_HOST
+            user_env.odoo_port = 8069
+            user_env.gevent_port = 8072
+            config.user_env = user_env
+            env = CreateProjectEnvironment(config)
+            env.mapped_folders = [
+                MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
+            ]
+            content = ComposeGenerator(env).render_docker_compose_content()
+            self.assertIn("127.0.0.1:8025:8025", content)
+            self.assertIn("127.0.0.1:8069:8069", content)
+
 
 class ComposeFragmentsPrepareStepTests(unittest.TestCase):
     def setUp(self) -> None:

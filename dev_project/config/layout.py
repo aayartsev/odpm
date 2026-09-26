@@ -24,9 +24,37 @@ if TYPE_CHECKING:
 _logger = get_module_logger(__name__)
 
 
+def validate_distro(config: Config) -> None:
+    """Fail fast when base-image distro is not supported (debian only)."""
+    from ..errors import ConfigError
+    from ..translations import _
+
+    distro_name = config.distro_name
+    distro_version = config.distro_version
+    versions = constants.DISTRO_INFO.get(distro_name)
+    if versions is None or distro_version not in versions:
+        supported = ", ".join(
+            f"{name}/{ver}"
+            for name, vers in sorted(constants.DISTRO_INFO.items())
+            for ver in sorted(vers)
+        )
+        raise ConfigError(
+            _(
+                "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; "
+                "only debian is supported ({SUPPORTED}). "
+                "Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version)."
+            ).format(
+                DISTRO_NAME=distro_name,
+                DISTRO_VERSION=distro_version,
+                SUPPORTED=supported,
+            )
+        )
+
+
 def apply_policy_and_layout(config: Config) -> None:
     from .bootstrap import normalize_project_requirements
 
+    validate_distro(config)
     original_requirements_txt = list(config.requirements_txt)
     normalized_requirements = normalize_project_requirements(
         config, config.requirements_txt

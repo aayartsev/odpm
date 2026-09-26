@@ -391,6 +391,9 @@ RU_MESSAGES: dict[str, str] = {
     "Failed to ensure PostgreSQL role {ROLE}.": (
         "Не удалось создать или обновить роль PostgreSQL {ROLE}."
     ),
+    "Failed to ensure PostgreSQL extensions on template1.": (
+        "Не удалось обеспечить расширения PostgreSQL на template1."
+    ),
     "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}": (
         "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в "
         "{DEPRECATED_FILE_NAME}"
@@ -861,6 +864,14 @@ RU_MESSAGES: dict[str, str] = {
     "supported versions: {SUPPORTED}.": (
         "Неподдерживаемая версия API расширений odpm {VERSION}{LABEL}; "
         "поддерживаемые версии: {SUPPORTED}."
+    ),
+    "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; "
+    "only debian is supported ({SUPPORTED}). "
+    "Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version).": (
+        "Неподдерживаемый дистрибутив базового образа {DISTRO_NAME}/{DISTRO_VERSION}; "
+        "поддерживается только debian ({SUPPORTED}). "
+        "Измените distro_name/distro_version в odpm.json "
+        "(или --distro-name/--distro-version)."
     ),
     "Unsupported manifest_schema {SCHEMA}.": (
         "Неподдерживаемый manifest_schema {SCHEMA}."

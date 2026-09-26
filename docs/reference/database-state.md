@@ -42,8 +42,14 @@ Adoption срабатывает **один раз**. Пока файл есть,
 Если в каталоге проекта ещё нет `last_run.json` (типично: унаследованный data dir PostgreSQL), перед полным стеком odpm:
 
 1. Поднимает сервис PostgreSQL (если не готов).
-2. Выполняет **`ensure_app_role`** — создаёт или обновляет роль приложения (`odoo` по умолчанию), в том числе через single-user bootstrap, если в кластере нет административной login-роли.
+2. Выполняет **`ensure_app_role`**:
+   - роль **`postgres`** — `LOGIN SUPERUSER` (admin odpm / compose `POSTGRES_USER`);
+   - роль **`odoo`** — `LOGIN NOSUPERUSER CREATEDB` (сессия Odoo, `db_user`);
+   - расширения `unaccent` и `pg_trgm` на **`template1`** (новые БД наследуют; уже созданные БД — вручную при необходимости);
+   - при отсутствии login-admin — single-user bootstrap обеих ролей, затем reconcile.
 3. Записывает текущую конфигурацию как baseline.
+
+Пароль admin и app — один секрет (`POSTGRES_ODOO_PASS`). Demote `odoo` закрывает `COPY … TO PROGRAM` от роли приложения; при утечке общего пароля доступ как `-U postgres` всё ещё возможен — см. [безопасность](../operations/security.md).
 
 **Adoption не делает:**
 

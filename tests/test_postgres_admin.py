@@ -26,8 +26,8 @@ def _postgres_config() -> MagicMock:
 
 
 class AdminRoleCandidatesTests(unittest.TestCase):
-    def test_prefers_app_role_then_legacy_postgres(self):
-        self.assertEqual(admin_role_candidates(), ("odoo", "postgres"))
+    def test_prefers_admin_role_then_app_role(self):
+        self.assertEqual(admin_role_candidates(), ("postgres", "odoo"))
 
 
 class ResolvePsqlAdminRoleTests(unittest.TestCase):
@@ -35,13 +35,13 @@ class ResolvePsqlAdminRoleTests(unittest.TestCase):
         return _postgres_config()
 
     @patch.object(postgres_admin, "psql_role_connects", side_effect=[False, True])
-    def test_returns_first_working_candidate(self, _mock_connect):
-        self.assertEqual(resolve_psql_admin_role(self._config()), "postgres")
+    def test_returns_app_role_when_admin_unavailable(self, _mock_connect):
+        self.assertEqual(resolve_psql_admin_role(self._config()), "odoo")
 
     @patch.object(postgres_admin, "psql_role_connects", return_value=True)
-    def test_returns_app_role_when_available(self, _mock_connect):
+    def test_returns_admin_role_when_available(self, _mock_connect):
         self.assertEqual(
-            resolve_psql_admin_role(self._config()), constants.POSTGRES_ODOO_USER
+            resolve_psql_admin_role(self._config()), constants.POSTGRES_ADMIN_USER
         )
 
     @patch.object(postgres_admin, "psql_role_connects", return_value=False)
@@ -116,10 +116,9 @@ class EnsureAppRoleAdminIntegrationTests(unittest.TestCase):
     ):
         mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
         config = _postgres_config()
-        with patch.object(ensure_role_mod, "psql_role_connects", return_value=True):
-            result = ensure_role_mod.ensure_app_role(config)
+        result = ensure_role_mod.ensure_app_role(config)
         mock_bootstrap.assert_called_once()
-        mock_psql.assert_not_called()
+        self.assertEqual(mock_psql.call_count, 2)
         self.assertEqual(result.outcome, "created")
 
 

@@ -144,14 +144,18 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
             self.assertIn("5678:5678", content)
             self.assertIn("15432:5432", content)
             self.assertNotIn("127.0.0.1:15432:5432", content)
+            self.assertIn("POSTGRES_USER=postgres", content)
             self.assertIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)
             self.assertIn("volumes:", content)
 
-    def test_server_compose_binds_postgres_localhost_without_debugger(self):
+    def test_server_compose_binds_all_published_ports_localhost_without_debugger(self):
         with tempfile.TemporaryDirectory() as project_dir:
             content = self._compose_content(project_dir, constants.SERVER_SCENARIO)
             self.assertIn("odoo-base:dev", content)
             self.assertIn("127.0.0.1:15432:5432", content)
+            self.assertIn("127.0.0.1:8069:8069", content)
+            self.assertIn("127.0.0.1:8072:8072", content)
+            self.assertIn("POSTGRES_USER=postgres", content)
             self.assertNotIn("5678:5678", content)
             self.assertNotIn(constants.PYTHONWARNINGS_ENV, content)
             self.assertIn("/tmp/local-addons:/home/odoo/extra-addons:Z", content)

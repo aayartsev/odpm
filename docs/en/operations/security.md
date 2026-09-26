@@ -32,7 +32,8 @@ Details: [local secrets](secrets.md).
 
 - Terminate **HTTPS** at a **reverse proxy** (nginx, Caddy, traefik, etc.).
 - Enable **`proxy_mode`** in `odoo.conf`; when publishing multiple databases on one host, configure **`dbfilter`**.
-- PostgreSQL in this scenario listens only on **127.0.0.1** on the machine — odpm configures port forwarding that way. Do not manually expose `5432` on all interfaces in compose.
+- PostgreSQL and **all** Compose published ports (Odoo, Gevent, sidecars) in the `server` scenario listen only on **127.0.0.1** — odpm configures binds that way. Do not widen them to `0.0.0.0` manually in compose.
+- The application PostgreSQL role (`odoo`) is **NOSUPERUSER**; the `postgres` SUPERUSER role is for odpm ensure-role. Admin and app share one password — a leak from `odoo.conf` still allows `-U postgres`; keep passwords out of git and restrict access to conf/compose.
 - **Firewall:** open SSH and HTTPS proxy from outside; Odoo ports (`8069`, `8072`) do not need to be visible from the internet if the proxy is on the same machine.
 - Do not use Odoo **development mode** (`dev_mode`) on an externally reachable instance; in `server` scenario it is ignored, but switching to `developer` on production for debugging is **not allowed**.
 - A debugger port on the server is **not needed**.

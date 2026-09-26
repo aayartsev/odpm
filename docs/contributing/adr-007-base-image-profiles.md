@@ -18,7 +18,7 @@ All scenarios previously shared one base Dockerfile template per distro (`debian
 | `ci` | **ci** | Minimal runtime + `bake_venv` deps; no browser/Xvfb/wkhtmltopdf/IDE |
 
 `ScenarioPolicy.base_image_profile` selects the program template  
-`{distro}_{ver}_dockerfile_{profile}` with fallback to legacy `{distro}_{ver}_dockerfile` when profile variants are absent (Ubuntu/Debian 11 until extended).
+`{distro}_{ver}_dockerfile_{profile}` with fallback to legacy `{distro}_{ver}_dockerfile` when profile variants are absent (Debian 11 until extended). Ubuntu base-image templates were removed; only `debian` is supported (`distro_name=ubuntu` → `ConfigError`).
 
 ### Explicit profile override (4.7.0-beta)
 
@@ -46,7 +46,7 @@ When the scenario default profile is wrong for a project (e.g. `ci` needs wkhtml
 
 ## Consequences
 
-- Debian 12/13 ship `*_full`, `*_medium`, `*_ci` templates in 4.5; other distros use legacy single template until follow-up.
+- Debian 12/13 ship `*_full`, `*_medium`, `*_ci` templates; Debian 11 may use a legacy single template. Other base-image distros are not supported.
 - First run after upgrade may rebuild base image once (expected).
 - `odpm plan` step `template.dockerfile` reports identity mismatch when profile or Dockerfile hash changes.
 - Changing `ODPM_BASE_IMAGE_PROFILE` rebuilds the base image (tag and identity include the profile).

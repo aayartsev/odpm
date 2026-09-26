@@ -66,6 +66,8 @@ CURRENT_PASSWORD = CONTAINER_PASSWORD
 # Legacy (<=17) PGDATA mount; prefer database.postgres_paths helpers for version-aware paths.
 POSTGRES_CONTAINER_DATA_DIR = "/var/lib/postgresql/data"
 POSTGRES_CONTAINER_OS_USER = "postgres"
+# Cluster bootstrap / odpm admin role (compose POSTGRES_USER on empty data dir).
+POSTGRES_ADMIN_USER = "postgres"
 POSTGRES_ODOO_USER = CONTAINER_USER
 POSTGRES_ODOO_PASS = CONTAINER_PASSWORD
 POSTGRES_ODOO_HOST = DATABASE_NAME_INSTANCE
@@ -152,10 +154,6 @@ DISTRO_INFO = {
         "11": "bullseye",
         "12": "bookworm",
         "13": "trixie",
-    },
-    "ubuntu": {
-        "22.04": "jammy",
-        "20.04": "focal",
     },
 }
 

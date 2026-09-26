@@ -15,8 +15,7 @@ A full pipeline with an image registry is **not required** — `docker compose u
 | Area | How it works |
 |------|--------------|
 | **Debugger** | Not installed and debug port is not published. For debugging, use a separate machine with the `developer` scenario. |
-| **PostgreSQL on host** | Listens only on `127.0.0.1` — cannot connect from other machines through this port mapping. |
-| **Odoo and Gevent** | Ports are more broadly available on the host; for internet access use a **reverse proxy** (nginx and similar) and a firewall. |
+| **Published ports** | All Compose ports (PostgreSQL, Odoo, Gevent, and sidecars) bind to **`127.0.0.1` only** on the host. External access goes through a **reverse proxy** on the same machine. |
 | **Odoo development mode** | The `dev_mode` field in `user_settings.json` is **ignored** (warning in the log). |
 | **Python warnings in logs** | The `PYTHONWARNINGS` variable is **not** set: on Odoo startup the log may show `DeprecationWarning` from **docutils** (often with traceback). This is noise from a dependency in the virtual environment, not a sign of broken project modules; if needed, update docutils in requirements or pin a compatible version. In the `developer` scenario odpm intentionally hides such messages. |
 | **Sources** | Same as developer — mounted from the server disk. |

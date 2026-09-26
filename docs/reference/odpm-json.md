@@ -5,7 +5,7 @@
 | Поле | Назначение |
 |------|------------|
 | `python_version` | Версия Python в контейнере, напр. `"3.10"` |
-| `distro_name` | Семейство Linux (сейчас поддерживается `"debian"`) |
+| `distro_name` | Семейство Linux базового Odoo-образа: только **`"debian"`** (`ubuntu` как base image не поддерживается — `ConfigError`) |
 | `distro_version` | Версия дистрибутива: `"11"`, `"12"`, `"bullseye"` |
 | `postgres_version` | Версия PostgreSQL в compose, напр. `"15"` |
 | `odoo_version` | Версия Odoo: `"19.0"`, `"18.0"` |

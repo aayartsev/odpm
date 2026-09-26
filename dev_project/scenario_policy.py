@@ -23,6 +23,27 @@ from .ide_stubs import normalize_odoo_stubs_requirements
 
 VenvMode = Literal["fresh", "baked"]
 
+_LOCALHOST_BIND = "127.0.0.1"
+
+
+def format_published_port(port_spec: str | dict) -> str | dict:
+    """Bind a Compose port publish to 127.0.0.1 when no host IP is set."""
+    if isinstance(port_spec, dict):
+        if port_spec.get("host_ip"):
+            return port_spec
+        return {**port_spec, "host_ip": _LOCALHOST_BIND}
+    if not isinstance(port_spec, str):
+        return port_spec
+    value = port_spec.strip()
+    if not value:
+        return value
+    if value.startswith("["):
+        return value
+    parts = value.split(":")
+    if len(parts) >= 3 and ("." in parts[0] or parts[0] == "localhost"):
+        return value
+    return f"{_LOCALHOST_BIND}:{value}"
+
 
 @dataclass(frozen=True)
 class ScenarioPolicy:
@@ -31,6 +52,7 @@ class ScenarioPolicy:
     include_odoo_volumes: bool
     include_debugger_port: bool
     bind_postgres_localhost: bool
+    bind_published_ports_localhost: bool
     include_debugpy: bool
     install_debugpy: bool
     install_odoo_stubs: bool
@@ -65,6 +87,7 @@ class ScenarioPolicy:
                 include_odoo_volumes=False,
                 include_debugger_port=False,
                 bind_postgres_localhost=True,
+                bind_published_ports_localhost=False,
                 include_debugpy=False,
                 install_debugpy=False,
                 install_odoo_stubs=False,
@@ -82,6 +105,7 @@ class ScenarioPolicy:
                 include_odoo_volumes=True,
                 include_debugger_port=False,
                 bind_postgres_localhost=True,
+                bind_published_ports_localhost=True,
                 include_debugpy=False,
                 install_debugpy=False,
                 install_odoo_stubs=False,
@@ -99,6 +123,7 @@ class ScenarioPolicy:
                 include_odoo_volumes=True,
                 include_debugger_port=True,
                 bind_postgres_localhost=False,
+                bind_published_ports_localhost=False,
                 include_debugpy=True,
                 install_debugpy=True,
                 install_odoo_stubs=True,
@@ -233,7 +258,7 @@ class ScenarioPolicy:
 
     def build_postgres_port_map(self, port_map: str) -> str:
         if self.bind_postgres_localhost:
-            return f"127.0.0.1:{port_map}"
+            return format_published_port(port_map)
         return port_map
 
     def build_pythonwarnings_env_line(self, *, indent: int = 6) -> str:

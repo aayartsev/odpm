@@ -236,6 +236,9 @@ msgstr "Ошибка при проверке порта PostgreSQL: {DETAIL}"
 msgid "Failed to bootstrap PostgreSQL application role {ROLE} in single-user mode."
 msgstr "Не удалось создать роль приложения PostgreSQL {ROLE} в single-user режиме."
 
+msgid "Failed to ensure PostgreSQL extensions on template1."
+msgstr "Не удалось обеспечить расширения PostgreSQL на template1."
+
 msgid "Failed to ensure PostgreSQL role {ROLE}."
 msgstr "Не удалось создать или обновить роль PostgreSQL {ROLE}."
 
@@ -721,6 +724,9 @@ msgstr "Неизвестный провайдер секретов: {NAME}"
 
 msgid "Unknown {ENV}={VALUE!r}, using managed network"
 msgstr "Неизвестное значение {ENV}={VALUE!r}, используется managed network"
+
+msgid "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; only debian is supported ({SUPPORTED}). Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version)."
+msgstr "Неподдерживаемый дистрибутив базового образа {DISTRO_NAME}/{DISTRO_VERSION}; поддерживается только debian ({SUPPORTED}). Измените distro_name/distro_version в odpm.json (или --distro-name/--distro-version)."
 
 msgid "Unsupported manifest_schema {SCHEMA}."
 msgstr "Неподдерживаемый manifest_schema {SCHEMA}."

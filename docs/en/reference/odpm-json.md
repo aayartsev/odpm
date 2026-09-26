@@ -18,7 +18,7 @@ Migration: **`odpm manifest migrate`** — see [manifest-migration.md](manifest-
 | Field | Purpose |
 |-------|---------|
 | `python_version` | Python version in the container, e.g. `"3.10"` |
-| `distro_name` | Linux family (currently `"debian"` is supported) |
+| `distro_name` | Linux family for the Odoo base image: **`"debian"` only** (`ubuntu` as base image is unsupported — `ConfigError`) |
 | `distro_version` | Distribution version: `"11"`, `"12"`, `"bullseye"` |
 | `postgres_version` | PostgreSQL version in compose, e.g. `"15"` |
 | `odoo_version` | Odoo version: `"19.0"`, `"18.0"` |

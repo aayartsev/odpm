@@ -56,6 +56,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.install_odoo_stubs)
         self.assertFalse(policy.apply_dev_mode)
         self.assertTrue(policy.bind_postgres_localhost)
+        self.assertFalse(policy.bind_published_ports_localhost)
         self.assertTrue(policy.allow_build_image)
         self.assertTrue(policy.skip_ide_config)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
@@ -91,6 +92,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.install_odoo_stubs)
         self.assertFalse(policy.apply_dev_mode)
         self.assertTrue(policy.bind_postgres_localhost)
+        self.assertTrue(policy.bind_published_ports_localhost)
         self.assertFalse(policy.allow_build_image)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
@@ -132,6 +134,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.install_odoo_stubs)
         self.assertTrue(policy.apply_dev_mode)
         self.assertFalse(policy.bind_postgres_localhost)
+        self.assertFalse(policy.bind_published_ports_localhost)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
         self.assertTrue(policy.allows_venv_recreate())
@@ -309,6 +312,25 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertEqual(
             policy.build_postgres_port_map("5432:5432"),
             "127.0.0.1:5432:5432",
+        )
+
+    def test_format_published_port(self):
+        from dev_project.scenario_policy import format_published_port
+
+        self.assertEqual(format_published_port("8069:8069"), "127.0.0.1:8069:8069")
+        self.assertEqual(
+            format_published_port("127.0.0.1:8069:8069"), "127.0.0.1:8069:8069"
+        )
+        self.assertEqual(format_published_port("8069"), "127.0.0.1:8069")
+        self.assertEqual(
+            format_published_port({"target": 8069, "published": 8069}),
+            {"target": 8069, "published": 8069, "host_ip": "127.0.0.1"},
+        )
+        self.assertEqual(
+            format_published_port(
+                {"target": 8069, "published": 8069, "host_ip": "10.0.0.1"}
+            ),
+            {"target": 8069, "published": 8069, "host_ip": "10.0.0.1"},
         )
 
     def test_compose_fragments_developer(self):

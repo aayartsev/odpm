@@ -53,11 +53,11 @@ class DockerfileProfileResolutionTests(unittest.TestCase):
         )
         self.assertEqual(name, "debian_12_dockerfile_full")
 
-    def test_resolve_legacy_distro_without_profiles(self):
+    def test_resolve_unknown_distro_returns_profiled_stem(self):
         name = resolve_dockerfile_template_name(
             PROGRAM_DIR, "ubuntu", "20.04", "ci"
         )
-        self.assertEqual(name, "ubuntu_2004_dockerfile")
+        self.assertEqual(name, "ubuntu_2004_dockerfile_ci")
 
     def test_ci_template_excludes_browser_stack(self):
         template = (
@@ -196,3 +196,24 @@ class ImageNameProfileSuffixTests(unittest.TestCase):
         config.platform_name = "odoo"
         ConfigPaths(config).apply_image_names()
         self.assertTrue(config.docker_layout.odoo_image_name.endswith("-medium"))
+
+
+class ValidateDistroTests(unittest.TestCase):
+    def test_debian_accepted(self):
+        from dev_project.config.layout import validate_distro
+
+        config = MagicMock()
+        config.distro_name = "debian"
+        config.distro_version = "12"
+        validate_distro(config)
+
+    def test_ubuntu_rejected(self):
+        from dev_project.config.layout import validate_distro
+        from dev_project.errors import ConfigError
+
+        config = MagicMock()
+        config.distro_name = "ubuntu"
+        config.distro_version = "22.04"
+        with self.assertRaises(ConfigError) as ctx:
+            validate_distro(config)
+        self.assertIn("debian", str(ctx.exception).lower())

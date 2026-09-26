@@ -24,7 +24,6 @@ if TYPE_CHECKING:
 
 _logger = get_module_logger(__name__)
 
-_LEGACY_POSTGRES_ROLE = "postgres"
 _PSQL_ADMIN_WAIT_TIMEOUT_SECONDS = 120
 _PSQL_ADMIN_POLL_SECONDS = 2
 
@@ -41,10 +40,12 @@ _MSG_ADMIN_ROLE_TIMEOUT = _(
 
 
 def admin_role_candidates() -> tuple[str, ...]:
+    """Prefer cluster admin role, then application role (legacy SUPERUSER app)."""
+    admin_role = constants.POSTGRES_ADMIN_USER
     app_role = constants.POSTGRES_ODOO_USER
-    if app_role == _LEGACY_POSTGRES_ROLE:
+    if app_role == admin_role:
         return (app_role,)
-    return (app_role, _LEGACY_POSTGRES_ROLE)
+    return (admin_role, app_role)
 
 
 def _exec_users() -> tuple[str | None, ...]:
