@@ -2374,7 +2374,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <p>See <a href="../env-dotenv/"><code>.env</code> variables</a>, <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="odoo-databases-backup-restore-drop">Odoo databases: backup, restore, drop<a class="headerlink" href="#odoo-databases-backup-restore-drop" title="Permanent link">&para;</a></h2>
 <p><strong><code>--db-drop</code></strong>, <strong><code>--db-restore</code></strong>, <strong><code>--db-backup</code></strong> operate on <strong>Odoo databases</strong> inside the cluster, not on <code>last_run.json</code>.</p>
-<p>On a legacy cluster a database may exist but be <strong>owned by another PostgreSQL user</strong>. Standard Odoo <code>exp_drop</code> then skips silently; odpm falls back to direct <code>DROP DATABASE</code> and fails clearly if the database remains.</p>
+<p>On a legacy cluster (Odoo before 20) a database may exist but be <strong>owned by another PostgreSQL user</strong>. Standard Odoo <code>exp_drop</code> then skips silently; odpm falls back to direct <code>DROP DATABASE</code> and fails clearly if the database remains. On <strong>Odoo 20+</strong> the checker calls <code>odoo.modules.db.drop</code> (there is no silent <code>exp_drop</code> skip).</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-drop<span class="w"> </span>--db-restore<span class="w"> </span>my_backup.zip<span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
 </code></pre></div>

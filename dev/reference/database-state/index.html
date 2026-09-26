@@ -2371,7 +2371,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <p>Подробнее: <a href="../env-dotenv/">переменные .env</a>, <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="odoo-backup-restore-drop">Odoo-базы: backup, restore, drop<a class="headerlink" href="#odoo-backup-restore-drop" title="Permanent link">&para;</a></h2>
 <p>Операции <strong><code>--db-drop</code></strong>, <strong><code>--db-restore</code></strong>, <strong><code>--db-backup</code></strong> работают на уровне <strong>Odoo-баз</strong> внутри кластера, а не на уровне <code>last_run.json</code>.</p>
-<p>На legacy-кластере база может существовать, но быть <strong>владельцем другого PostgreSQL-пользователя</strong>. Тогда стандартный Odoo <code>exp_drop</code> молча пропускает удаление; odpm выполняет прямой <code>DROP DATABASE</code> и выдаёт ошибку, если база осталась.</p>
+<p>На legacy-кластере (Odoo до 20) база может существовать, но быть <strong>владельцем другого PostgreSQL-пользователя</strong>. Тогда стандартный Odoo <code>exp_drop</code> молча пропускает удаление; odpm выполняет прямой <code>DROP DATABASE</code> и выдаёт ошибку, если база осталась. На <strong>Odoo 20+</strong> checker вызывает <code>odoo.modules.db.drop</code> (отдельного silent skip <code>exp_drop</code> нет).</p>
 <p>Пример полного цикла:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-drop<span class="w"> </span>--db-restore<span class="w"> </span>my_backup.zip<span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
 </code></pre></div>
