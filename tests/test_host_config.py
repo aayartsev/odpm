@@ -288,6 +288,68 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
 
         self.assertEqual(content["odoo_version"], "18.0")
+        self.assertEqual(content["python_version"], "3.12")
+        self.assertEqual(content["distro_name"], "debian")
+        self.assertEqual(content["distro_version"], "13")
+        self.assertEqual(content["postgres_version"], constants.DEFAULT_POSTGRES_VERSION)
+
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
+    def test_create_default_odpm_json_uses_odoo_20_map_defaults(self, _mock_tty):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.arguments = OdpmCliArgs(
+            odoo_version="20.0",
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+            odoo_git_link=None,
+            platform_name=None,
+        )
+        config._raw_odpm_json = {"odpm_version": constants.MANIFEST_V1_CONTRACT_LINE}
+
+        content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
+
+        self.assertEqual(content["odoo_version"], "20.0")
+        self.assertEqual(content["python_version"], "3.14")
+        self.assertEqual(content["distro_name"], "debian")
+        self.assertEqual(content["distro_version"], "13")
+        self.assertEqual(content["postgres_version"], "18")
+
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
+    def test_create_default_odpm_json_partial_manifest_uses_odoo_20_map(self, _mock_tty):
+        config = MagicMock()
+        config.config_json_content = {"odoo_version": "20.0"}
+        config.arguments = OdpmCliArgs(
+            odoo_version=None,
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+            odoo_git_link=None,
+            platform_name=None,
+        )
+        config._raw_odpm_json = {"odpm_version": constants.MANIFEST_V1_CONTRACT_LINE}
+
+        content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
+
+        self.assertEqual(content["odoo_version"], "20.0")
+        self.assertEqual(content["python_version"], "3.14")
+        self.assertEqual(content["distro_name"], "debian")
+        self.assertEqual(content["distro_version"], "13")
+        self.assertEqual(content["postgres_version"], "18")
+
+    def test_python_314_debugger_and_bootstrap_pins(self):
+        self.assertIn("3.14", constants.DEBUGPY)
+        self.assertIn("3.14", constants.PYDEVD_PYCHARM)
+        self.assertIn("3.14", constants.VENV_BOOTSTRAP_PACKAGES)
+        from dev_project.bake_venv import get_venv_bootstrap_packages
+
+        packages = get_venv_bootstrap_packages("3.14")
+        self.assertTrue(packages)
+        self.assertEqual(packages, constants.VENV_BOOTSTRAP_PACKAGES["3.14"])
 
 
 class DeprecatedConfigHandlerTests(unittest.TestCase):

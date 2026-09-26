@@ -28,7 +28,7 @@ from dev_project.logging import get_module_logger
 _logger = get_module_logger(__name__)
 
 # Odoo versions for testing
-ODOO_VERSIONS = ["19.0", "18.0", "17.0", "16.0", "15.0", "14.0", "13.0", "12.0", "11.0"]
+ODOO_VERSIONS = ["20.0", "19.0", "18.0", "17.0", "16.0", "15.0", "14.0", "13.0", "12.0", "11.0"]
 
 # Test paths
 TEST_BASE_DIR = Path("/tmp/odoo_test_projects")

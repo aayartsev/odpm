@@ -111,6 +111,7 @@ DEBUGPY = {
     "3.11": "debugpy==1.7.0",
     "3.12": "debugpy==1.7.0",
     "3.13": "debugpy==1.8.0",
+    "3.14": "debugpy==1.8.0",
 }
 
 # PyCharm Debug Server (pydevd_connect). Pin targets 2024.3; see ide-debug docs if IDE mismatches.
@@ -123,6 +124,7 @@ PYDEVD_PYCHARM = {
     "3.11": DEFAULT_PYDEVD_PYCHARM,
     "3.12": DEFAULT_PYDEVD_PYCHARM,
     "3.13": DEFAULT_PYDEVD_PYCHARM,
+    "3.14": DEFAULT_PYDEVD_PYCHARM,
 }
 
 DEFAULT_VENV_BOOTSTRAP = [
@@ -137,6 +139,7 @@ VENV_BOOTSTRAP_PACKAGES = {
     "3.11": ["cython<3.0", "setuptools==75.1.0", "wheel"],
     "3.12": ["cython<3.0", "setuptools==75.1.0", "wheel"],
     "3.13": ["cython<3.0", "setuptools==80", "wheel"],
+    "3.14": ["cython<3.0", "setuptools==80", "wheel"],
 }
 
 DEFAULT_POSTGRES_VERSION = "13"
@@ -156,8 +159,14 @@ DISTRO_INFO = {
 }
 
 # git rev-parse --abbrev-ref HEAD
-ODOO_LATEST_VERSION = "19.0"
+ODOO_LATEST_VERSION = "20.0"
 ODOO_VERSION_DEFAULT_ENV = {
+    "20.0": {
+        "python_version": "3.14",
+        "distro_name": DEFAULT_DISTRO_NAME,
+        "distro_version": "13",
+        "postgres_version": "18",
+    },
     "19.0": {
         "python_version": "3.12",
         "distro_name": DEFAULT_DISTRO_NAME,

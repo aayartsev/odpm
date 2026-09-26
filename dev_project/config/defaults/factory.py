@@ -23,10 +23,46 @@ if TYPE_CHECKING:
 
 _logger = get_module_logger(__name__)
 
+_ENV_FALLBACKS = {
+    "python_version": lambda: constants.DEFAULT_PYTHON_VERSION,
+    "distro_name": lambda: constants.DEFAULT_DISTRO_NAME,
+    "distro_version": lambda: constants.DEFAULT_DISTRO_VERSION,
+    "postgres_version": lambda: constants.DEFAULT_POSTGRES_VERSION,
+}
+
+
+def _env_default(odoo_version: str | None, key: str) -> str | None:
+    """Return map default for ``key`` when ``odoo_version`` is in the env map."""
+    if not odoo_version:
+        return None
+    env = constants.ODOO_VERSION_DEFAULT_ENV.get(odoo_version)
+    if not env:
+        return None
+    value = env.get(key)
+    return str(value) if value is not None else None
+
 
 class ConfigDefaultsFactory:
     def __init__(self, config: Config) -> None:
         self.config = config
+
+    def _resolve_env_field(
+        self,
+        key: str,
+        *,
+        json_source: dict[str, Any],
+        odoo_version: str,
+        cli_value: str | None,
+    ) -> str:
+        """Precedence: explicit JSON → CLI → version map → global DEFAULT_*."""
+        if key in json_source and json_source[key] is not None:
+            return str(json_source[key])
+        if cli_value:
+            return str(cli_value)
+        mapped = _env_default(odoo_version, key)
+        if mapped is not None:
+            return mapped
+        return str(_ENV_FALLBACKS[key]())
 
     def get_developing_project_link(self) -> str:
         config_json_dev_link = self.config.config_json_content.get("developing_project")
@@ -170,28 +206,38 @@ class ConfigDefaultsFactory:
 
     def create_default_odpm_json_content(self) -> OdpmJson:
         if self.config.config_json_content:
-            return OdpmJson(
-                python_version=self.config.config_json_content.get(
-                    "python_version",
-                    self.config.arguments.python_version or constants.DEFAULT_PYTHON_VERSION,
-                ),
-                distro_name=self.config.config_json_content.get(
-                    "distro_name",
-                    self.config.arguments.distro_name or constants.DEFAULT_DISTRO_NAME,
-                ),
-                distro_version=self.config.config_json_content.get(
-                    "distro_version",
-                    self.config.arguments.distro_version or constants.DEFAULT_DISTRO_VERSION,
-                ),
-                postgres_version=self.config.config_json_content.get(
-                    "postgres_version",
-                    self.config.arguments.postgres_version
-                    or constants.DEFAULT_POSTGRES_VERSION,
-                ),
-                odoo_version=self.config.config_json_content.get(
+            odoo_version = str(
+                self.config.config_json_content.get(
                     "odoo_version",
                     self.config.arguments.odoo_version or constants.ODOO_LATEST_VERSION,
+                )
+            )
+            return OdpmJson(
+                python_version=self._resolve_env_field(
+                    "python_version",
+                    json_source=self.config.config_json_content,
+                    odoo_version=odoo_version,
+                    cli_value=self.config.arguments.python_version,
                 ),
+                distro_name=self._resolve_env_field(
+                    "distro_name",
+                    json_source=self.config.config_json_content,
+                    odoo_version=odoo_version,
+                    cli_value=self.config.arguments.distro_name,
+                ),
+                distro_version=self._resolve_env_field(
+                    "distro_version",
+                    json_source=self.config.config_json_content,
+                    odoo_version=odoo_version,
+                    cli_value=self.config.arguments.distro_version,
+                ),
+                postgres_version=self._resolve_env_field(
+                    "postgres_version",
+                    json_source=self.config.config_json_content,
+                    odoo_version=odoo_version,
+                    cli_value=self.config.arguments.postgres_version,
+                ),
+                odoo_version=odoo_version,
                 dependencies=self.config.config_json_content.get("dependencies", []),
                 requirements_txt=self.config.config_json_content.get(
                     "requirements_txt", self.config.arguments.requirements_txt.split(",") or []
@@ -216,28 +262,29 @@ class ConfigDefaultsFactory:
 
         user_odoo_version = self._resolve_odoo_version_for_default_manifest()
         return OdpmJson(
-            python_version=self.config._raw_odpm_json.get(
+            python_version=self._resolve_env_field(
                 "python_version",
-                self.config.arguments.python_version
-                or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version][
-                    "python_version"
-                ],
+                json_source=self.config._raw_odpm_json,
+                odoo_version=user_odoo_version,
+                cli_value=self.config.arguments.python_version,
             ),
-            distro_version=self.config._raw_odpm_json.get(
+            distro_version=self._resolve_env_field(
                 "distro_version",
-                self.config.arguments.distro_version
-                or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version][
-                    "distro_version"
-                ],
+                json_source=self.config._raw_odpm_json,
+                odoo_version=user_odoo_version,
+                cli_value=self.config.arguments.distro_version,
             ),
-            distro_name=self.config._raw_odpm_json.get(
+            distro_name=self._resolve_env_field(
                 "distro_name",
-                self.config.arguments.distro_name
-                or constants.ODOO_VERSION_DEFAULT_ENV[user_odoo_version]["distro_name"],
+                json_source=self.config._raw_odpm_json,
+                odoo_version=user_odoo_version,
+                cli_value=self.config.arguments.distro_name,
             ),
-            postgres_version=self.config._raw_odpm_json.get(
+            postgres_version=self._resolve_env_field(
                 "postgres_version",
-                self.config.arguments.postgres_version or constants.DEFAULT_POSTGRES_VERSION,
+                json_source=self.config._raw_odpm_json,
+                odoo_version=user_odoo_version,
+                cli_value=self.config.arguments.postgres_version,
             ),
             odoo_version=user_odoo_version,
             dependencies=self.config._raw_odpm_json.get("dependencies", []),
