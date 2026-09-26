@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 from .. import constants
 from .paths import ensure_database_dir_gitignore, last_run_path
+from .postgres_paths import postgres_cluster_dir_on_host
 from .schema import (
     DATABASE_ENGINE_POSTGRES,
     DatabaseClusterFingerprint,
@@ -100,6 +101,7 @@ def read_odoo_conf_db_fingerprint(
 
 def collect_database_state(config: Config) -> DatabaseCurrentState:
     data_path = os.path.realpath(config.postgres_data_local_storage)
+    cluster_path = postgres_cluster_dir_on_host(data_path, config.postgres_version)
     user_env = config.user_env
     service_name = user_env.postgres_service_name
     compose_project_name = getattr(user_env, "compose_project_name", None)
@@ -131,8 +133,9 @@ def collect_database_state(config: Config) -> DatabaseCurrentState:
         ),
         odoo_conf=odoo_conf,
         cluster=DatabaseClusterFingerprint(
-            data_dir_nonempty=_data_dir_nonempty(data_path),
-            pg_major=_read_pg_major(data_path),
+            data_dir_nonempty=_data_dir_nonempty(cluster_path)
+            or _data_dir_nonempty(data_path),
+            pg_major=_read_pg_major(cluster_path),
             app_role=default_user,
             app_role_present=None,
         ),

@@ -358,7 +358,34 @@ SQL
 
 golden_path_postgres_data_dir() {
     local project="$1"
-    echo "${project}/data/postgresql/var/lib/postgresql/data"
+    # Bind root for the postgres volume (≤17: …/data; ≥18: …/postgresql).
+    python3 - "${project}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+version = "16"
+for rel in ("odpm.json", "developing/odpm.json"):
+    path = root / rel
+    if not path.is_file():
+        continue
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8")).get("postgres_version")
+    except (OSError, json.JSONDecodeError):
+        continue
+    if raw:
+        version = str(raw)
+        break
+try:
+    major = int(str(version).split(".", 1)[0])
+except ValueError:
+    major = 16
+if major >= 18:
+    print(root / "data/postgresql/var/lib/postgresql")
+else:
+    print(root / "data/postgresql/var/lib/postgresql/data")
+PY
 }
 
 golden_path_odoo_version_from_manifest() {

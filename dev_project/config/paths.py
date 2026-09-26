@@ -5,6 +5,7 @@ import pathlib
 from typing import TYPE_CHECKING
 
 from .. import constants
+from ..database.postgres_paths import postgres_local_storage_relpath
 
 if TYPE_CHECKING:
     from .config import Config
@@ -15,8 +16,9 @@ class ConfigPaths:
         self.config = config
 
     def get_postgres_data_local_storage_path(self) -> str:
+        rel = postgres_local_storage_relpath(self.config.postgres_version)
         postgres_data_local_storage_path = os.path.join(
-            self.config.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR
+            self.config.pd_manager.project_path, rel
         )
         if not os.path.exists(postgres_data_local_storage_path):
             pathlib.Path(postgres_data_local_storage_path).mkdir(

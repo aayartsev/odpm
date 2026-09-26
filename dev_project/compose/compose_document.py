@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from .. import constants
 from ..config.payload import runtime_config_path
 from ..database.paths import database_dir_path, ensure_database_dir_gitignore
+from ..database.postgres_paths import postgres_container_mount_path
 from ..debugger.constants import DEFAULT_DEBUGGER_CONNECT_HOST
 from ..debugger.user_env import (
     resolve_debugger_backend_id,
@@ -105,7 +106,10 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
                 f"POSTGRES_USER={constants.POSTGRES_ODOO_USER}",
                 "POSTGRES_DB=postgres",
             ],
-            "volumes": [f"{LOGICAL_POSTGRES_VOLUME}:/var/lib/postgresql/data"],
+            "volumes": [
+                f"{LOGICAL_POSTGRES_VOLUME}:"
+                f"{postgres_container_mount_path(_config_str(config, 'postgres_version', '16'))}"
+            ],
         }
     )
 

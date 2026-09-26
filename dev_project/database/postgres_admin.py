@@ -17,6 +17,7 @@ from .compose_exec import (
     compose_up_service_detached,
     postgres_service_name,
 )
+from .postgres_paths import postgres_pgdata_path
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -149,7 +150,7 @@ def bootstrap_app_role_single_user(config: Config, sql: str) -> None:
         service,
         "--single",
         "-D",
-        constants.POSTGRES_CONTAINER_DATA_DIR,
+        postgres_pgdata_path(config.postgres_version),
         "postgres",
         user=constants.POSTGRES_CONTAINER_OS_USER,
         entrypoint="postgres",
