@@ -1555,6 +1555,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#wait-postgresql-checker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wait PostgreSQL в checker (контейнер)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#adoption-legacy-" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2093,6 +2104,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#wait-postgresql-checker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wait PostgreSQL в checker (контейнер)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#adoption-legacy-" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2270,11 +2292,19 @@
 </tr>
 <tr>
 <td>Успешная проверка credentials в checker</td>
-<td><strong>Checker</strong> — после TCP и <code>psql</code> от имени <code>db_user</code></td>
+<td><strong>Checker</strong> — после TCP и <code>psql</code>/psycopg2 от имени <code>db_user</code></td>
 </tr>
 </tbody>
 </table>
 <p>Adoption срабатывает <strong>один раз</strong>. Пока файл есть, повторной «настройки» не будет — только drift относительно сохранённого снимка.</p>
+<h2 id="wait-postgresql-checker">Wait PostgreSQL в checker (контейнер)<a class="headerlink" href="#wait-postgresql-checker" title="Permanent link">&para;</a></h2>
+<p>Перед операциями Odoo checker:</p>
+<ol>
+<li>Ждёт TCP на <code>db_host:db_port</code>.</li>
+<li>Проверяет credentials к системной БД <strong><code>postgres</code></strong> (<code>SELECT 1</code>).</li>
+<li>Если задан CLI <strong><code>-d &lt;name&gt;</code></strong> (и имя не <code>postgres</code>) — дополнительно ждёт готовности этой БД (retry при crash recovery / «not yet accepting»). Если БД ещё нет — wait не падает; создание остаётся за <code>ensure_database_exists</code>.</li>
+</ol>
+<p><strong>Ограничения:</strong> без <code>-d</code> wait только к <code>postgres</code> (список БД / dbfilter не опрашиваются); timeout verify — 60s на шаг (долгий recovery → ошибка по timeout).</p>
 <h2 id="adoption-legacy-">Adoption legacy-проектов<a class="headerlink" href="#adoption-legacy-" title="Permanent link">&para;</a></h2>
 <p>Если в каталоге проекта ещё нет <code>last_run.json</code> (типично: унаследованный data dir PostgreSQL), перед полным стеком odpm:</p>
 <ol>

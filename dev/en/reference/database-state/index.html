@@ -1555,6 +1555,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#postgresql-wait-in-the-checker-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL wait in the checker (container)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-project-adoption" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2093,6 +2104,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#postgresql-wait-in-the-checker-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL wait in the checker (container)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-project-adoption" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2273,11 +2295,19 @@
 </tr>
 <tr>
 <td>Successful credential check in checker</td>
-<td><strong>Checker</strong> — after TCP and <code>psql</code> as <code>db_user</code></td>
+<td><strong>Checker</strong> — after TCP and <code>psql</code>/psycopg2 as <code>db_user</code></td>
 </tr>
 </tbody>
 </table>
 <p>Adoption runs <strong>once</strong>. While the file exists, only drift vs the saved snapshot is reported.</p>
+<h2 id="postgresql-wait-in-the-checker-container">PostgreSQL wait in the checker (container)<a class="headerlink" href="#postgresql-wait-in-the-checker-container" title="Permanent link">&para;</a></h2>
+<p>Before Odoo operations the checker:</p>
+<ol>
+<li>Waits for TCP on <code>db_host:db_port</code>.</li>
+<li>Verifies credentials against the system database <strong><code>postgres</code></strong> (<code>SELECT 1</code>).</li>
+<li>When CLI <strong><code>-d &lt;name&gt;</code></strong> is set (and the name is not <code>postgres</code>) — also waits until that database accepts connections (retries on crash recovery / “not yet accepting”). If the database does not exist yet, wait succeeds; creation stays with <code>ensure_database_exists</code>.</li>
+</ol>
+<p><strong>Limits:</strong> without <code>-d</code>, wait only targets <code>postgres</code> (db list / dbfilter are not probed); each verify step times out after 60s (long recovery fails on timeout).</p>
 <h2 id="legacy-project-adoption">Legacy project adoption<a class="headerlink" href="#legacy-project-adoption" title="Permanent link">&para;</a></h2>
 <p>If <code>last_run.json</code> is missing (typical with an inherited PostgreSQL data directory), odpm before the full stack:</p>
 <ol>
