@@ -1910,13 +1910,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apply-recipe-shell" class="md-nav__link">
+  <a href="#apply-recipe-prefer-odpm-run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Apply recipe (shell)
+        Apply recipe (prefer odpm run)
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Apply recipe (prefer odpm run)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#escape-hatch-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escape hatch (shell)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1932,10 +1949,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#out-of-scope-for-v1" class="md-nav__link">
+  <a href="#out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Out of scope for v1
+        Out of scope
       
     </span>
   </a>
@@ -2030,7 +2047,14 @@ odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
 </ol>
 <p><code>--diff-base @last-applied</code> forces the marker (error if missing). First deploy: pass an explicit <code>--diff-base &lt;sha|tag&gt;</code> (or env), apply modules, then <code>record-applied</code>.</p>
 <p>Repo: <strong>developing</strong> checkout with <code>.git</code> only. Deleted modules are ignored; rename → new path as init if the module did not exist at BASE.</p>
-<h2 id="apply-recipe-shell">Apply recipe (shell)<a class="headerlink" href="#apply-recipe-shell" title="Permanent link">&para;</a></h2>
+<h2 id="apply-recipe-prefer-odpm-run">Apply recipe (prefer <code>odpm run</code>)<a class="headerlink" href="#apply-recipe-prefer-odpm-run" title="Permanent link">&para;</a></h2>
+<p>On <strong>server</strong>:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
+<span class="c1"># or with an explicit baseline on first deploy:</span>
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--diff-base<span class="w"> </span>&lt;sha<span class="p">|</span>tag&gt;
+</code></pre></div>
+<p>Details: <a href="../recipes/">recipes</a>.</p>
+<h3 id="escape-hatch-shell">Escape hatch (shell)<a class="headerlink" href="#escape-hatch-shell" title="Permanent link">&para;</a></h3>
 <p>Do <strong>not</strong> pass empty lists as <code>-i ""</code> / <code>-u ""</code> — the CLI rejects empty CSV.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">eval</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell<span class="k">)</span><span class="s2">"</span>
 
@@ -2044,9 +2068,9 @@ odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
 </code></pre></div>
 <p>A long-running <code>docker compose up</code> <strong>without</strong> <code>--stop-after-init</code> cannot drive automatic marker updates: run <code>record-applied</code> only after a successful apply.</p>
 <h2 id="ci-mr">CI / MR<a class="headerlink" href="#ci-mr" title="Permanent link">&para;</a></h2>
-<p>Set the baseline via <code>--diff-base</code> or <code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> / <code>ODPM_DIFF_BASE</code>. The <code>modules</code> subcommand is on the CI allowlist (like <code>plan</code> / <code>database</code> / <code>manifest</code>).</p>
-<h2 id="out-of-scope-for-v1">Out of scope for v1<a class="headerlink" href="#out-of-scope-for-v1" title="Permanent link">&para;</a></h2>
-<p>No one-shot <code>--modules-from-git-diff</code> orchestrator and no generic <code>odpm run</code> / recipes framework — subcommands plus this documented shell recipe only.</p>
+<p>Set the baseline via <code>--diff-base</code> or <code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> / <code>ODPM_DIFF_BASE</code>. The <code>modules</code> subcommand is on the CI allowlist. End-to-end <code>odpm run apply-modules-from-diff</code> is not supported under the <strong>ci</strong> scenario — use <code>modules diff</code> in CI and apply on server.</p>
+<h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
+<p>No fat <code>--modules-from-git-diff</code> flag on the normal CLI; orchestration is via <a href="../recipes/">recipes</a> / the shell escape hatch.</p>
 
 
 

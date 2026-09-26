@@ -225,6 +225,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/project-layout/"/>
     </url>
     <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/recipes/</loc>
+        <lastmod>2026-09-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/recipes/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/recipes/"/>
+    </url>
+    <url>
         <loc>https://aayartsev.github.io/odpm/stable/dev/reference/service-sources/</loc>
         <lastmod>2026-09-26</lastmod>
         <changefreq>daily</changefreq>
@@ -510,6 +517,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/project-layout/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/project-layout/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/recipes/</loc>
+        <lastmod>2026-09-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/recipes/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/recipes/"/>
     </url>
     <url>
         <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/service-sources/</loc>

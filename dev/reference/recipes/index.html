@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/dev/reference/deploy-marker/">
+        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/dev/reference/recipes/">
       
       
       
@@ -18,7 +18,7 @@
         
           <link rel="alternate" href="./" hreflang="ru">
         
-          <link rel="alternate" href="../../en/reference/deploy-marker/" hreflang="en">
+          <link rel="alternate" href="../../en/reference/recipes/" hreflang="en">
         
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Маркер деплоя модулей - odpm</title>
+        <title>Рецепты (odpm run) - odpm</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
+        <a href="#odpm-run" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -129,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Маркер деплоя модулей
+              Рецепты (odpm run)
             
           </span>
         </div>
@@ -182,7 +182,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/reference/deploy-marker/" hreflang="en" class="md-select__link">
+            <a href="../../en/reference/recipes/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -1877,10 +1877,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Расположение
+        Команды
       
     </span>
   </a>
@@ -1888,10 +1888,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#discovery" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Подкоманды
+        Discovery
       
     </span>
   </a>
@@ -1899,33 +1899,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#baseline" class="md-nav__link">
+  <a href="#builtin-apply-modules-from-diff" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Baseline
+        Builtin: apply-modules-from-diff
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#apply-odpm-run" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Рецепт apply (предпочтительно odpm run)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Рецепт apply (предпочтительно odpm run)">
+    <nav class="md-nav" aria-label="Builtin: apply-modules-from-diff">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#escape-hatch-shell" class="md-nav__link">
+  <a href="#ci" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Escape hatch (shell)
+        CI
       
     </span>
   </a>
@@ -1938,10 +1927,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ci-mr" class="md-nav__link">
+  <a href="#yaml-v1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CI / MR
+        YAML-рецепты (v1)
       
     </span>
   </a>
@@ -1949,10 +1938,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Вне scope
+        Модель выполнения
       
     </span>
   </a>
@@ -1976,7 +1965,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/deploy-marker.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/recipes.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1984,93 +1973,71 @@
   
 
 
-<h1 id="_1">Маркер деплоя модулей<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>Файл <strong><code>.odpm/deploy/last_applied.json</code></strong> хранит SHA developing-репозитория, на котором последний раз успешно применили <code>-i</code>/<code>-u</code>. Это <strong>не</strong> часть <code>odpm.json</code> и не lock зависимостей.</p>
-<h2 id="_2">Расположение<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Путь</th>
-<th>Назначение</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>{project_dir}/.odpm/deploy/last_applied.json</code></td>
-<td>Маркер на <strong>хосте проекта odpm</strong> (каталог с <code>docker-compose.yml</code>), не обязательно корень git developing</td>
-</tr>
-<tr>
-<td><code>.odpm/.gitignore</code> → <code>deploy/</code></td>
-<td>Пишется при первом <code>record-applied</code> / использовании маркера</td>
-</tr>
-</tbody>
-</table>
-<p>Поля JSON:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"developing_sha"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abc123…"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"applied_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-09-27T10:00:00Z"</span>
-<span class="p">}</span>
-</code></pre></div>
-<p><code>db_name</code> в маркере нет: один SHA на инстанс проекта.</p>
-<h2 id="_3">Подкоманды<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>modules<span class="w"> </span>diff
-odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell
-odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>origin/main<span class="w"> </span>--format<span class="w"> </span>json
-odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
+<h1 id="odpm-run">Рецепты (<code>odpm run</code>)<a class="headerlink" href="#odpm-run" title="Permanent link">&para;</a></h1>
+<p>Слой <strong>рецептов</strong> собирает параметры из CLI/env и выполняет упорядоченные <strong>повторные вызовы odpm</strong> (subprocess), не мутируя флаги текущего запуска.</p>
+<p>Предназначение: сценарии вроде «посчитать модули → <code>-i</code>/<code>-u</code> → записать marker» на <strong>server</strong>. Hooks/plugins остаются in-process и не заменяют этот слой.</p>
+<h2 id="_1">Команды<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>--list
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--dry-run
 </code></pre></div>
 <table>
 <thead>
 <tr>
-<th>Команда</th>
+<th>Флаг</th>
 <th>Описание</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>modules diff</code></td>
-<td>Списки init/update по <code>git diff BASE...HEAD</code> в developing</td>
+<td><code>--list</code></td>
+<td>Список рецептов (builtin + <code>.odpm/recipes/*.yaml</code>)</td>
 </tr>
 <tr>
-<td><code>modules record-applied</code></td>
-<td>Записать HEAD developing в маркер (без compose)</td>
+<td><code>--dry-run</code></td>
+<td>Печать плана argv; для <code>apply-modules-from-diff</code> всё же выполняется <code>modules diff</code> (capture), apply/record не запускаются</td>
+</tr>
+<tr>
+<td><code>-d</code></td>
+<td>Имя БД (param <code>database</code>; иначе env <code>ODPM_RUN_DATABASE</code>)</td>
+</tr>
+<tr>
+<td><code>--diff-base</code></td>
+<td>Baseline для рецептов с <code>diff_base</code></td>
 </tr>
 </tbody>
 </table>
-<p>Форматы <code>--format</code>: <strong><code>text</code></strong> (по умолчанию), <strong><code>shell</code></strong> (<code>export ODPM_INIT_MODULES=…</code> / <code>ODPM_UPDATE_MODULES=…</code>), <strong><code>json</code></strong>. Списки идут в <strong>stdout</strong>; логи — в stderr/logger, чтобы <code>eval "$(…)"</code> оставался чистым.</p>
-<h2 id="baseline">Baseline<a class="headerlink" href="#baseline" title="Permanent link">&para;</a></h2>
-<p>Приоритет, если <code>--diff-base</code> не указан:</p>
+<h2 id="discovery">Discovery<a class="headerlink" href="#discovery" title="Permanent link">&para;</a></h2>
 <ol>
-<li><code>ODPM_DIFF_BASE</code></li>
-<li><code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> (GitLab MR)</li>
-<li>SHA из маркера, если файл есть</li>
-<li>иначе <strong>ошибка</strong> — без baseline списки не выдумываются</li>
+<li>Python builtins (пакет odpm), сейчас: <code>apply-modules-from-diff</code></li>
+<li>Проект: <code>{project_dir}/.odpm/recipes/&lt;name&gt;.yaml</code> — <strong>перекрывает</strong> builtin с тем же именем</li>
 </ol>
-<p><code>--diff-base @last-applied</code> принудительно читает маркер (ошибка, если файла нет). Первый деплой: передайте явный <code>--diff-base &lt;sha|tag&gt;</code> (или env), примените модули, затем <code>record-applied</code>.</p>
-<p>Репозиторий: только <strong>developing</strong> checkout с <code>.git</code>. Удалённые модули игнорируются; rename → новый путь как init, если модуля не было на BASE.</p>
-<h2 id="apply-odpm-run">Рецепт apply (предпочтительно <code>odpm run</code>)<a class="headerlink" href="#apply-odpm-run" title="Permanent link">&para;</a></h2>
-<p>На <strong>server</strong>:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
-<span class="c1"># или с явным baseline при первом деплое:</span>
-odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--diff-base<span class="w"> </span>&lt;sha<span class="p">|</span>tag&gt;
+<p>Не перекрывайте <code>apply-modules-from-diff</code> без необходимости.</p>
+<h2 id="builtin-apply-modules-from-diff">Builtin: <code>apply-modules-from-diff</code><a class="headerlink" href="#builtin-apply-modules-from-diff" title="Permanent link">&para;</a></h2>
+<p>Для <strong><code>ODPM_SCENARIO=server</code></strong> (и ручного запуска в developer).</p>
+<ol>
+<li><code>odpm modules diff [--diff-base] --format json</code></li>
+<li>Если есть init/update: <code>odpm -d … [-i …] [-u …] --odoo-bin --stop-after-init</code></li>
+<li><code>odpm modules record-applied</code> (в т.ч. когда оба списка пусты — сдвиг baseline)</li>
+</ol>
+<p>Пустые <code>-i</code>/<code>-u</code> не передаются. Долгоживущий compose без <code>--stop-after-init</code> этим рецептом не управляется.</p>
+<h3 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h3>
+<p>В <code>ODPM_SCENARIO=ci</code> end-to-end apply через <code>odpm run</code> <strong>не</strong> поддерживается (дочерний <code>odpm -d -i/-u</code> не в CI allowlist). В CI используйте <code>odpm modules diff</code>; apply выполняйте на server.</p>
+<h2 id="yaml-v1">YAML-рецепты (v1)<a class="headerlink" href="#yaml-v1" title="Permanent link">&para;</a></h2>
+<p>Линейные шаги без условий. Подстановки: <code>${param.name}</code>, <code>${env:VAR}</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example-backup</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Backup then skip-start</span>
+<span class="nt">params</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">database</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ODPM_RUN_DATABASE</span>
+<span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">odpm</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"-d"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"${param.database}"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"--db-backup"</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">odpm</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"--skip-start"</span><span class="p p-Indicator">]</span>
 </code></pre></div>
-<p>Подробнее: <a href="../recipes/">рецепты</a>.</p>
-<h3 id="escape-hatch-shell">Escape hatch (shell)<a class="headerlink" href="#escape-hatch-shell" title="Permanent link">&para;</a></h3>
-<p>Пустые списки <strong>не</strong> передавайте как <code>-i ""</code> / <code>-u ""</code> — CLI отвергает пустой CSV.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">eval</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell<span class="k">)</span><span class="s2">"</span>
-
-<span class="nv">args</span><span class="o">=(</span>-d<span class="w"> </span>prod_db<span class="o">)</span>
-<span class="o">[[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_INIT_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">args</span><span class="o">+=(</span>-i<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_INIT_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="o">)</span>
-<span class="o">[[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_UPDATE_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">args</span><span class="o">+=(</span>-u<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_UPDATE_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="o">)</span>
-odpm<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">args</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
-
-<span class="c1"># только после exit 0</span>
-odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
-</code></pre></div>
-<p>Долгоживущий <code>docker compose up</code> <strong>без</strong> <code>--stop-after-init</code> не подходит для автообновления маркера: маркер обновляйте вручную/<code>record-applied</code> после успешного apply.</p>
-<h2 id="ci-mr">CI / MR<a class="headerlink" href="#ci-mr" title="Permanent link">&para;</a></h2>
-<p>В pipeline задайте baseline через <code>--diff-base</code> или <code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> / <code>ODPM_DIFF_BASE</code>. Подкоманда <code>modules</code> входит в CI allowlist. End-to-end <code>odpm run apply-modules-from-diff</code> в сценарии <strong>ci</strong> не поддерживается — в CI только <code>modules diff</code>, apply на server.</p>
-<h2 id="scope">Вне scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
-<p>Нет толстого флага <code>--modules-from-git-diff</code> на обычном CLI; оркестрация — через <a href="../recipes/">рецепты</a> / shell escape hatch.</p>
+<p>Положите файл в <code>.odpm/recipes/example-backup.yaml</code>. Шаг не может начинаться с <code>run</code> (запрет рекурсии).</p>
+<h2 id="_2">Модель выполнения<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>Phased: <code>next_step(ctx)</code> → subprocess → результат в context → снова <code>next_step</code>. У шага: <code>capture</code> (для JSON) или live stream; fail-fast при ненулевом exit.</p>
 
 
 
