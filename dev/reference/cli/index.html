@@ -2375,12 +2375,12 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <td>Имя базы; при отсутствии — создание по <code>db_creation_data</code></td>
 </tr>
 <tr>
-<td><code>-i</code></td>
-<td>Установить модули из <code>init_modules</code></td>
+<td><code>-i [МОДУЛИ]</code></td>
+<td>Без значения — модули из <code>init_modules</code>; с CSV (напр. <code>sale,crm</code>) — список с CLI (приоритет над settings)</td>
 </tr>
 <tr>
-<td><code>-u</code></td>
-<td>Обновить модули из <code>update_modules</code></td>
+<td><code>-u [МОДУЛИ]</code></td>
+<td>Без значения — модули из <code>update_modules</code>; с CSV — список с CLI (приоритет над settings)</td>
 </tr>
 <tr>
 <td><code>-t</code>, <code>--test</code></td>
@@ -2397,6 +2397,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
 odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <h2 id="_6">Дата ночной сборки платформы<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
@@ -2456,7 +2457,7 @@ odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </
 </tr>
 <tr>
 <td><code>--export-po-files ЯЗЫК</code></td>
-<td>Экспорт pot/po для модулей из <code>update_modules</code></td>
+<td>Экспорт pot/po для модулей из <code>update_modules</code>, либо из <code>-u CSV</code>, если задан</td>
 </tr>
 <tr>
 <td><code>--set-admin-pass</code></td>

@@ -2429,12 +2429,12 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>validate
 <td>Database name; if missing — creation per <code>db_creation_data</code></td>
 </tr>
 <tr>
-<td><code>-i</code></td>
-<td>Install modules from <code>init_modules</code></td>
+<td><code>-i [MODULES]</code></td>
+<td>Without a value — modules from <code>init_modules</code>; with a CSV (e.g. <code>sale,crm</code>) — CLI list (overrides settings for this run)</td>
 </tr>
 <tr>
-<td><code>-u</code></td>
-<td>Update modules from <code>update_modules</code></td>
+<td><code>-u [MODULES]</code></td>
+<td>Without a value — modules from <code>update_modules</code>; with a CSV — CLI list (overrides settings for this run)</td>
 </tr>
 <tr>
 <td><code>-t</code>, <code>--test</code></td>
@@ -2451,6 +2451,7 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>validate
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
 odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <h2 id="platform-nightly-build-date">Platform nightly build date<a class="headerlink" href="#platform-nightly-build-date" title="Permanent link">&para;</a></h2>
@@ -2510,7 +2511,7 @@ odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </
 </tr>
 <tr>
 <td><code>--export-po-files LANG</code></td>
-<td>Export pot/po for modules from <code>update_modules</code></td>
+<td>Export pot/po for modules from <code>update_modules</code>, or from <code>-u CSV</code> when that form is used</td>
 </tr>
 <tr>
 <td><code>--set-admin-pass</code></td>
