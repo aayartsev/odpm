@@ -36,3 +36,5 @@ docker compose up -d
 odpm -d prod_db --db-backup
 odpm -d prod_db -u
 ```
+
+Для обновления модулей по git-диффу developing (MR / сервер) используйте `odpm modules diff` + условные `-i`/`-u` + `record-applied` — см. [маркер деплоя](../reference/deploy-marker.md).

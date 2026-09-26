@@ -249,8 +249,10 @@ class CiExplicitModeAllowlistTests(unittest.TestCase):
             OdpmCliArgs(command="plan"),
             OdpmCliArgs(command="database"),
             OdpmCliArgs(command="manifest"),
+            OdpmCliArgs(command="modules"),
             OdpmCliArgs(database_subcommand="status"),
             OdpmCliArgs(manifest_subcommand="validate"),
+            OdpmCliArgs(modules_subcommand="diff"),
         )
         for args in allowed:
             with self.subTest(args=args):

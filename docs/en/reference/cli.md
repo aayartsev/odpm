@@ -113,6 +113,23 @@ odpm manifest validate
 
 Migration moves `database` (from manifest or `user_settings`), `developing.git`, and `locks.git` (from `.odpm/deps.lock.json`). See [odpm.json](odpm-json.md#migration-v1--v2).
 
+## `modules` subcommand
+
+Init/update module lists from developing git history and the last-applied deploy marker:
+
+```bash
+odpm modules diff
+odpm modules diff --diff-base @last-applied --format shell
+odpm modules record-applied
+```
+
+| Command | Description |
+|---------|-------------|
+| `modules diff` | Init/update CSV from `BASE...HEAD`; `--diff-base`, `--format {text,shell,json}` |
+| `modules record-applied` | Write developing HEAD to `.odpm/deploy/last_applied.json` |
+
+Details and shell recipe: [deploy marker](deploy-marker.md).
+
 ## Database and modules
 
 | Parameter | Description |

@@ -93,6 +93,23 @@ odpm database ensure-role
 
 Подробнее: [состояние PostgreSQL и drift](database-state.md).
 
+## Подкоманда `modules`
+
+Списки модулей для `-i`/`-u` из git-истории developing и маркер последнего apply:
+
+```bash
+odpm modules diff
+odpm modules diff --diff-base @last-applied --format shell
+odpm modules record-applied
+```
+
+| Команда | Описание |
+|---------|----------|
+| `modules diff` | Init/update CSV с `BASE...HEAD`; `--diff-base`, `--format {text,shell,json}` |
+| `modules record-applied` | Записать HEAD developing в `.odpm/deploy/last_applied.json` |
+
+Подробнее и shell-рецепт: [маркер деплоя](deploy-marker.md).
+
 ## База данных и модули
 
 | Параметр | Описание |

@@ -10,6 +10,7 @@ Some files in the project directory are **created and updated by odpm**. Do not 
 | root `.dockerignore` | from `.odpm/dockerignore` template; reset template — delete `.odpm/dockerignore` and run odpm again |
 | `.odpm/runtime/config.json` | automatically; in project gitignore |
 | `.odpm/database/last_run.json` | on adoption and after successful checker; mounted in container; see [database-state.md](database-state.md) |
+| `.odpm/deploy/last_applied.json` | `odpm modules record-applied`; in `.odpm/.gitignore` (`deploy/`); see [deploy marker](deploy-marker.md) |
 | `.odpm/runtime/debug-profile.json` | automatically in `developer` scenario (`include_debugpy`); in gitignore |
 | `.odpm/secrets.example.json` | template on init; in git |
 | `.odpm/secrets.json` | manually or `--secrets-file`; in `.odpm/.gitignore` |

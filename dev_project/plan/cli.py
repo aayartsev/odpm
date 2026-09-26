@@ -18,3 +18,7 @@ def is_database_mode(args: OdpmCliArgs) -> bool:
 
 def is_manifest_mode(args: OdpmCliArgs) -> bool:
     return args.command == cli_params.MANIFEST_SUBCOMMAND
+
+
+def is_modules_mode(args: OdpmCliArgs) -> bool:
+    return args.command == cli_params.MODULES_SUBCOMMAND

@@ -216,6 +216,21 @@ msgstr "Database drift resolution aborted."
 msgid "Database status"
 msgstr "Database status"
 
+msgid "Deploy marker is missing developing_sha: {PATH}"
+msgstr "Deploy marker is missing developing_sha: {PATH}"
+
+msgid "Deploy marker must be a JSON object: {PATH}"
+msgstr "Deploy marker must be a JSON object: {PATH}"
+
+msgid "Deploy marker not found at {PATH}; pass --diff-base <sha|tag> for the first apply."
+msgstr "Deploy marker not found at {PATH}; pass --diff-base <sha|tag> for the first apply."
+
+msgid "Developing project is not a git repository: {PATH}"
+msgstr "Developing project is not a git repository: {PATH}"
+
+msgid "Developing project path is missing or not a directory; run a normal odpm prepare first."
+msgstr "Developing project path is missing or not a directory; run a normal odpm prepare first."
+
 msgid "Did you install git?"
 msgstr "Did you install git?"
 
@@ -287,6 +302,9 @@ msgstr "Git lock source: .odpm/deps.lock.json; run --update-lock after changing 
 
 msgid "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA in locks.git and run --update-lock to sync .odpm/deps.lock.json."
 msgstr "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA in locks.git and run --update-lock to sync .odpm/deps.lock.json."
+
+msgid "Git ref {REF!r} is not available in {PATH} (fetch the base commit if this is a shallow clone)."
+msgstr "Git ref {REF!r} is not available in {PATH} (fetch the base commit if this is a shallow clone)."
 
 msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
 msgstr "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
@@ -459,6 +477,9 @@ msgstr "No PostgreSQL admin role is available for service {SERVICE}."
 msgid "No database last_run snapshot yet; baseline will be adopted automatically on startup."
 msgstr "No database last_run snapshot yet; baseline will be adopted automatically on startup."
 
+msgid "No git diff baseline: set --diff-base, {ENV}, {CI_ENV}, or create {PATH} via odpm modules record-applied."
+msgstr "No git diff baseline: set --diff-base, {ENV}, {CI_ENV}, or create {PATH} via odpm modules record-applied."
+
 msgid "No manifest changes to apply."
 msgstr "No manifest changes to apply."
 
@@ -473,6 +494,9 @@ msgstr "ODPM scenario changed: {PREVIOUS} -> {CURRENT}."
 
 msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
 msgstr "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
+
+msgid "ODPM_DIFF_BASE=@last-applied but deploy marker is missing at {PATH}."
+msgstr "ODPM_DIFF_BASE=@last-applied but deploy marker is missing at {PATH}."
 
 msgid "Planned changes:"
 msgstr "Planned changes:"
@@ -570,6 +594,9 @@ msgstr "Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PAT
 msgid "Preparing your Odoo environment (dependencies, templates, compose files)..."
 msgstr "Preparing your Odoo environment (dependencies, templates, compose files)..."
 
+msgid "Project directory is not set."
+msgstr "Project directory is not set."
+
 msgid "Project files are ready."
 msgstr "Project files are ready."
 
@@ -581,6 +608,9 @@ msgstr "PyCharm run configuration already present"
 
 msgid "Recorded database baseline snapshot at {PATH}."
 msgstr "Recorded database baseline snapshot at {PATH}."
+
+msgid "Recorded developing SHA {SHA} in {PATH}."
+msgstr "Recorded developing SHA {SHA} in {PATH}."
 
 msgid "Refresh project symlinks for local codebase access"
 msgstr "Refresh project symlinks for local codebase access"
@@ -996,6 +1026,9 @@ msgstr "first database run (no last_run snapshot yet)"
 msgid "free odoo, debugger, postgres, and gevent ports before compose up"
 msgstr "free odoo, debugger, postgres, and gevent ports before compose up"
 
+msgid "git diff failed in {PATH}: {ERROR}"
+msgstr "git diff failed in {PATH}: {ERROR}"
+
 msgid "git repos will be materialized"
 msgstr "git repos will be materialized"
 
@@ -1055,6 +1088,9 @@ msgstr "manifest_schema 2 requires requires_odpm (minimum odpm manager version).
 
 msgid "materialize repos before writing deps.lock"
 msgstr "materialize repos before writing deps.lock"
+
+msgid "modules subcommand required: use \"odpm modules diff\" or \"odpm modules record-applied\"."
+msgstr "modules subcommand required: use \"odpm modules diff\" or \"odpm modules record-applied\"."
 
 msgid "no git lock source available"
 msgstr "no git lock source available"

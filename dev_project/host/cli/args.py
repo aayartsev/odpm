@@ -61,6 +61,9 @@ class OdpmCliArgs:
     accept_database_drift: tuple[str, ...] = ()
     manifest_subcommand: str | None = None
     manifest_migrate_write: bool = False
+    modules_subcommand: str | None = None
+    modules_diff_base: str | None = None
+    modules_diff_format: str = "text"
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:

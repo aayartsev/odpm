@@ -171,6 +171,53 @@ RU_MESSAGES: dict[str, str] = {
         "Разрешение дрейфа конфигурации БД отменено."
     ),
     "Did you install git?": "Вы установили git?",
+    "Deploy marker must be a JSON object: {PATH}": (
+        "Маркер деплоя должен быть JSON-объектом: {PATH}"
+    ),
+    "Deploy marker is missing developing_sha: {PATH}": (
+        "В маркере деплоя нет developing_sha: {PATH}"
+    ),
+    "Deploy marker not found at {PATH}; pass --diff-base <sha|tag> "
+    "for the first apply.": (
+        "Маркер деплоя не найден: {PATH}; передайте --diff-base <sha|tag> "
+        "для первого apply."
+    ),
+    "Developing project path is missing or not a directory; "
+    "run a normal odpm prepare first.": (
+        "Путь developing-проекта отсутствует или это не каталог; "
+        "сначала выполните обычный odpm prepare."
+    ),
+    "Developing project is not a git repository: {PATH}": (
+        "Developing-проект не является git-репозиторием: {PATH}"
+    ),
+    "Git ref {REF!r} is not available in {PATH} "
+    "(fetch the base commit if this is a shallow clone).": (
+        "Git-ссылка {REF!r} недоступна в {PATH} "
+        "(для shallow clone сначала fetch базового коммита)."
+    ),
+    "git diff failed in {PATH}: {ERROR}": (
+        "git diff завершился с ошибкой в {PATH}: {ERROR}"
+    ),
+    "No git diff baseline: set --diff-base, {ENV}, "
+    "{CI_ENV}, or create {PATH} via odpm modules record-applied.": (
+        "Нет baseline для git diff: задайте --diff-base, {ENV}, "
+        "{CI_ENV} или создайте {PATH} через odpm modules record-applied."
+    ),
+    "ODPM_DIFF_BASE=@last-applied but deploy marker is missing "
+    "at {PATH}.": (
+        "ODPM_DIFF_BASE=@last-applied, но маркер деплоя отсутствует: {PATH}."
+    ),
+    'modules subcommand required: use "odpm modules diff" or '
+    '"odpm modules record-applied".': (
+        'Укажите подкоманду modules: "odpm modules diff" или '
+        '"odpm modules record-applied".'
+    ),
+    "Project directory is not set.": (
+        "Каталог проекта не задан."
+    ),
+    "Recorded developing SHA {SHA} in {PATH}.": (
+        "Записан developing SHA {SHA} в {PATH}."
+    ),
     "extensions.local must be a list of module names": (
         "extensions.local должен быть списком имён модулей"
     ),
