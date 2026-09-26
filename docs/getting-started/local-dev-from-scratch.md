@@ -63,8 +63,8 @@ odpm -d test_db -i -u
 ```
 
 - `-d test_db` — имя базы; если базы нет, она создаётся с параметрами из `db_creation_data` в `user_settings.json`.
-- `-i` — установить модули из поля `init_modules`.
-- `-u` — обновить модули из поля `update_modules`.
+- `-i` — установить модули из поля `init_modules` (или передать список: `-i sale,crm`).
+- `-u` — обновить модули из поля `update_modules` (или `-u my_module`).
 
 Откройте `http://127.0.0.1:8069` — должно появиться окно входа в Odoo.
 

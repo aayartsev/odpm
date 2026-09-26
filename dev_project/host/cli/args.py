@@ -23,8 +23,8 @@ class OdpmCliArgs:
     db_restore: str | None = None
     db_backup: bool | str | None = None
     d: str | None = None
-    i: bool = False
-    u: bool = False
+    i: bool | str | None = None
+    u: bool | str | None = None
     test: bool = False
     branch: str | None = None
     screencasts: bool = False

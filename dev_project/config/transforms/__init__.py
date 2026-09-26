@@ -13,7 +13,12 @@ from .env_substitution import (
     merged_subprocess_environ,
     with_secrets,
 )
-from .modules import beautify_module_list
+from .modules import (
+    beautify_module_list,
+    modules_csv_for_odoo_flag,
+    modules_csv_for_update_list,
+    normalize_cli_module_csv,
+)
 
 __all__ = [
     "EnvResolver",
@@ -29,5 +34,8 @@ __all__ = [
     "expand_env_string",
     "inject_service_source_paths",
     "merged_subprocess_environ",
+    "modules_csv_for_odoo_flag",
+    "modules_csv_for_update_list",
+    "normalize_cli_module_csv",
     "with_secrets",
 ]

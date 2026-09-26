@@ -98,14 +98,15 @@ odpm database ensure-role
 | Параметр | Описание |
 |----------|----------|
 | `-d ИМЯ_БД` | Имя базы; при отсутствии — создание по `db_creation_data` |
-| `-i` | Установить модули из `init_modules` |
-| `-u` | Обновить модули из `update_modules` |
+| `-i [МОДУЛИ]` | Без значения — модули из `init_modules`; с CSV (напр. `sale,crm`) — список с CLI (приоритет над settings) |
+| `-u [МОДУЛИ]` | Без значения — модули из `update_modules`; с CSV — список с CLI (приоритет над settings) |
 | `-t`, `--test` | Запустить тесты модулей; нужны `-d` и обычно `-i` или `-u` |
 | `--screencasts` | С `-t`: сохранять видео при ошибках туров |
 | `--odoo-bin АРГУМЕНТЫ…` | Передать аргументы исполняемому файлу Odoo, напр. `--stop-after-init` |
 
 ```bash
 odpm -d test_db -i -u
+odpm -d test_db -i sale,crm -u my_module
 odpm -d test_db -i --odoo-bin --stop-after-init
 ```
 
@@ -129,7 +130,7 @@ odpm -d test_db -i --odoo-bin --stop-after-init
 | Параметр | Описание |
 |----------|----------|
 | `--translate ЯЗЫК` | Обновить переводы (напр. `ru_RU`) |
-| `--export-po-files ЯЗЫК` | Экспорт pot/po для модулей из `update_modules` |
+| `--export-po-files ЯЗЫК` | Экспорт pot/po для модулей из `update_modules`, либо из `-u CSV`, если задан |
 | `--set-admin-pass` | Логин/пароль admin из `db_default_admin_*`; нужен `-d` |
 
 ## Прочие инструменты разработчика

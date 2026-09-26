@@ -27,6 +27,9 @@ msgstr "--sync-manifest-locks requires --update-lock"
 msgid "--update-lock cannot be used together with --no-git-update"
 msgstr "--update-lock cannot be used together with --no-git-update"
 
+msgid "-i/-u module list must contain at least one module name (comma-separated, e.g. sale,crm)"
+msgstr "-i/-u module list must contain at least one module name (comma-separated, e.g. sale,crm)"
+
 msgid ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
 msgstr ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
 

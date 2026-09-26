@@ -7,8 +7,8 @@ The file describes **how to work** with an already defined stack (`odpm.json`): 
 | Field | Purpose |
 |-------|---------|
 | `developing_project` | Link to the developing repository or directory ([link formats](git-links.md)); supports `${VAR}` — see below |
-| `init_modules` | Modules to install with `-i` (comma-separated, no spaces) |
-| `update_modules` | Modules to update with `-u` |
+| `init_modules` | Modules to install with bare `-i` (comma-separated, no spaces); explicit `-i sale,crm` overrides for this run |
+| `update_modules` | Modules to update with bare `-u`; explicit `-u my_module` overrides for this run |
 | `db_creation_data` | Parameters for a **new** database on first `-d` |
 | `db_creation_data.db_lang` | *(deprecated)* Database language — prefer `database.language` in [odpm.json](odpm-json.md) |
 | `db_creation_data.db_country_code` | *(deprecated)* Country code — prefer `database.country` in [odpm.json](odpm-json.md) |

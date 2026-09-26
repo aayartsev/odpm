@@ -118,14 +118,15 @@ Migration moves `database` (from manifest or `user_settings`), `developing.git`,
 | Parameter | Description |
 |-----------|-------------|
 | `-d DB_NAME` | Database name; if missing — creation per `db_creation_data` |
-| `-i` | Install modules from `init_modules` |
-| `-u` | Update modules from `update_modules` |
+| `-i [MODULES]` | Without a value — modules from `init_modules`; with a CSV (e.g. `sale,crm`) — CLI list (overrides settings for this run) |
+| `-u [MODULES]` | Without a value — modules from `update_modules`; with a CSV — CLI list (overrides settings for this run) |
 | `-t`, `--test` | Run module tests; requires `-d` and usually `-i` or `-u` |
 | `--screencasts` | With `-t`: save video on tour failures |
 | `--odoo-bin ARGS…` | Pass arguments to the Odoo executable, e.g. `--stop-after-init` |
 
 ```bash
 odpm -d test_db -i -u
+odpm -d test_db -i sale,crm -u my_module
 odpm -d test_db -i --odoo-bin --stop-after-init
 ```
 
@@ -149,7 +150,7 @@ odpm -d test_db -i --odoo-bin --stop-after-init
 | Parameter | Description |
 |-----------|-------------|
 | `--translate LANG` | Update translations (e.g. `ru_RU`) |
-| `--export-po-files LANG` | Export pot/po for modules from `update_modules` |
+| `--export-po-files LANG` | Export pot/po for modules from `update_modules`, or from `-u CSV` when that form is used |
 | `--set-admin-pass` | Admin login/password from `db_default_admin_*`; requires `-d` |
 
 ## Other developer tools

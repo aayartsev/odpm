@@ -34,6 +34,11 @@ RU_MESSAGES: dict[str, str] = {
     "--update-lock cannot be used together with --no-git-update": (
         "Нельзя использовать --update-lock вместе с --no-git-update"
     ),
+    "-i/-u module list must contain at least one module name "
+    "(comma-separated, e.g. sale,crm)": (
+        "Список модулей для -i/-u должен содержать хотя бы одно имя модуля "
+        "(через запятую, например sale,crm)"
+    ),
     ' "config.json" is deprecated. Please read documentation': (
         ' Файл с параметрами "config.json" является устаревшим. '
         "Пожалуйста обратитесь к документации "

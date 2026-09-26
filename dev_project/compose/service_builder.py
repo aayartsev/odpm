@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .. import constants
 from ..config import Config
+from ..config.transforms import modules_csv_for_odoo_flag
 from ..dev_mode import effective_dev_mode
 from ..host.cli import params as cli_params
 from .start_command import ComposeOdooService, StartCommand
@@ -93,11 +94,17 @@ class ComposeServiceBuilder:
         if self.args.d:
             argv.extend([cli_params.D_PARAM, self.args.d])
 
-        if self.args.i and self.config.init_modules:
-            argv.extend([cli_params.I_PARAM, self.config.init_modules])
+        init_modules = modules_csv_for_odoo_flag(
+            self.args.i, self.config.init_modules
+        )
+        if init_modules:
+            argv.extend([cli_params.I_PARAM, init_modules])
 
-        if self.args.u and self.config.update_modules:
-            argv.extend([cli_params.U_PARAM, self.config.update_modules])
+        update_modules = modules_csv_for_odoo_flag(
+            self.args.u, self.config.update_modules
+        )
+        if update_modules:
+            argv.extend([cli_params.U_PARAM, update_modules])
 
         if self.args.test:
             argv.extend(["--test-enable", "--stop-after-init"])

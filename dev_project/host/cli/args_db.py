@@ -30,7 +30,7 @@ def add_db_arguments(parser: argparse.ArgumentParser) -> None:
 
     parser.add_argument(
         params.TRANSLATE_PARAM,
-        help="""Will update translation for selected language, for example ru_RU or eu_US for database from -d param and for modules form "update_modules" and "init_modules" from "user_settings.json" file """,
+        help="""Will update translation for selected language, for example ru_RU or eu_US for database from -d param and for modules selected by "-i" / "-u" (CLI lists or "init_modules" / "update_modules" from "user_settings.json") """,
         type=str,
     )
 
@@ -63,20 +63,26 @@ def add_db_arguments(parser: argparse.ArgumentParser) -> None:
 
     parser.add_argument(
         params.I_PARAM,
-        help="""The parameter indicates that the modules specified in the "init_modules" parameter of the "user_settings.json" configuration file should be initialized.""",
-        action="store_true",
+        help="""Install modules. Without a value, uses "init_modules" from "user_settings.json". With a comma-separated list (e.g. -i sale,crm), that list overrides settings for this run.""",
+        nargs="?",
+        default=None,
+        const=True,
+        type=str,
     )
 
     parser.add_argument(
         params.U_PARAM,
-        help="""The parameter indicates that the modules specified in the "update_modules" parameter of the "user_settings.json" configuration file should be updated.""",
-        action="store_true",
+        help="""Update modules. Without a value, uses "update_modules" from "user_settings.json". With a comma-separated list (e.g. -u my_module), that list overrides settings for this run.""",
+        nargs="?",
+        default=None,
+        const=True,
+        type=str,
     )
 
     parser.add_argument(
         params.T_PARAM,
         params.TEST_PARAM,
-        help="""Will run tests of modules specified in "init_modules" and "update_modules", works only when using parameters "-d", "-i", "-u". If the database is being created from scratch, tests of all installed modules will be run. This may take a long time.""",
+        help="""Will run tests for modules selected by "-i" / "-u" (CLI lists or "init_modules" / "update_modules" from "user_settings.json"). Works with "-d" and "-i"/"-u". If the database is being created from scratch, tests of all installed modules will be run. This may take a long time.""",
         action="store_true",
     )
 
@@ -105,7 +111,7 @@ def add_db_arguments(parser: argparse.ArgumentParser) -> None:
 
     parser.add_argument(
         params.EXPORT_PO_FILES,
-        help="""Will export pot and po file for selected language, for example ru_RU or eu_US for modules form "update_modules" from "user_settings.json" file """,
+        help="""Will export pot and po file for selected language, for example ru_RU or eu_US, for modules from "update_modules" in "user_settings.json", or from "-u MODULES" when that form is used """,
         type=str,
     )
 
