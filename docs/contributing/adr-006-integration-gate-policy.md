@@ -3,6 +3,8 @@
 **Status:** accepted (4.5-dev)  
 **Date:** 2026-06-22
 
+Related: unit local/CI parity and host quirks — [ADR-023](adr-023-local-unit-parity.md), runbook — [tests.md](tests.md).
+
 ## Context
 
 odpm 4.4 established a **fast** mandatory gate (`compose-smoke` on `ubuntu-latest`) and an **opt-in** full golden-path (`init` → `docker compose up` → HTTP 200 `/web`) on a self-hosted runner with secret `ODPM_GOLDEN_PATH_PROJECT`.

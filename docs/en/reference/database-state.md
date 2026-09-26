@@ -111,7 +111,7 @@ See [`.env` variables](env-dotenv.md), [odoo.conf](odoo-conf.md).
 
 **`--db-drop`**, **`--db-restore`**, **`--db-backup`** operate on **Odoo databases** inside the cluster, not on `last_run.json`.
 
-On a legacy cluster a database may exist but be **owned by another PostgreSQL user**. Standard Odoo `exp_drop` then skips silently; odpm falls back to direct `DROP DATABASE` and fails clearly if the database remains.
+On a legacy cluster (Odoo before 20) a database may exist but be **owned by another PostgreSQL user**. Standard Odoo `exp_drop` then skips silently; odpm falls back to direct `DROP DATABASE` and fails clearly if the database remains. On **Odoo 20+** the checker calls `odoo.modules.db.drop` (there is no silent `exp_drop` skip).
 
 Example:
 

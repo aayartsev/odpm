@@ -5,7 +5,7 @@
 | Статья | О чём |
 |--------|--------|
 | [Непрерывная интеграция репозитория](ci.md) | GitHub Actions, compose-smoke, golden-path |
-| [Тесты и статический анализ](tests.md) | Unit-тесты, ruff |
+| [Тесты и статический анализ](tests.md) | Unit-тесты, ruff; quirks macOS/sandbox — [ADR-023](adr-023-local-unit-parity.md) |
 | [Переводы интерфейса](i18n.md) | gettext, ru_RU/en_US, CI job **i18n**, [ADR-008](adr-008-i18n-host-container-policy.md) |
 | [Линии релизов и каналы](release-lines.md) | Git 4.3/4.4, stable/testing, mike, чеклист v4.4.2 |
 | [Сборка пакетов](packaging.md) | deb, rpm, wheel, CI merge/mike |

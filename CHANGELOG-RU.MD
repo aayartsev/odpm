@@ -39,6 +39,7 @@
 
 ### Исправлено
 
+- **API БД checker для Odoo 20** — `OdooDbOps` на major ≥ 20 использует `odoo.modules.db` (`exist` / `create` / `drop` / `list_dbs` / `dump` / `restore`); для более старых версий остаётся `odoo.service.db`. Пустой/`false` `db_country_code` → `None` для `create`. Bootstrap вызывает `parse_config(..., setup_logging=True)` на 20+, чтобы убрать DeprecationWarning. Тесты: `test_odoo_db_ops`. Документация: `database-state.md`.
 - **Golden-path: устаревшее имя postgres-сервиса** — после `odpm`, который перегенерирует compose (например legacy `POSTGRES_SERVICE_NAME=db-dev` → дефолт `db`), refresh/remedi ate заново читают physical имя сервиса из `docker-compose.yml` перед следующим `docker compose up`/`exec`, чтобы не было `no such service: db-dev`. Тесты: `test_golden_path`. Документация: `docs/contributing/ci.md`.
 - **Gate `${@secret:}` учитывает сценарий** — bootstrap не сканирует чужие `scenarios.*`; только effective slice активного `ODPM_SCENARIO` (как `secrets.required` / `load_manifest`). CI/server без refs в своём slice не требуют `.odpm/secrets.json`, если refs только в `developer`. Тесты: `test_secret_refs`. Документация: `secrets.md`.
 - **Kaniko `direct`: запуск executor с привилегиями** — `ODPM_KANIKO_EXECUTOR_WRAPPER`, `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS`, opt-in `ODPM_KANIKO_EXECUTOR_SUDO=1`; preflight при non-root без wrapper/sudo. ADR-016 дополнен. Тесты: `test_ci_image_build_backends`.

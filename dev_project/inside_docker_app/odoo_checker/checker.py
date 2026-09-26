@@ -54,6 +54,7 @@ class OdooChecker:
                     db_default_admin_login=config.db_creation_data.db_default_admin_login,
                     db_country_code=config.db_creation_data.db_country_code,
                 ),
+                int_odoo_version=runtime.int_odoo_version,
             ),
             admin_ops=OdooAdminOps(
                 runtime.odoo,

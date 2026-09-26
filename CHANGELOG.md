@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Odoo 20 checker database API** — `OdooDbOps` uses `odoo.modules.db` (`exist` / `create` / `drop` / `list_dbs` / `dump` / `restore`) when major ≥ 20; older majors keep `odoo.service.db`. Empty/`false` `db_country_code` maps to `None` for `create`. Bootstrap calls `parse_config(..., setup_logging=True)` on 20+ to avoid DeprecationWarning. Tests: `test_odoo_db_ops`. Docs: `database-state.md`.
 - **Golden-path refresh stale postgres service** — after `odpm` regenerates compose (e.g. legacy `POSTGRES_SERVICE_NAME=db-dev` → default `db`), refresh/remedi ate re-read the physical service name from `docker-compose.yml` before the next `docker compose up`/`exec`, avoiding `no such service: db-dev`. Tests: `test_golden_path`. Docs: `docs/contributing/ci.md`.
 - **`${@secret:}` gate is scenario-aware** — bootstrap no longer scans other `scenarios.*` overlays; only the effective slice for active `ODPM_SCENARIO` (aligns with `secrets.required` / `load_manifest`). CI/server without refs in their slice do not need `.odpm/secrets.json` when refs live only under `developer`. Tests: `test_secret_refs`. Docs: `secrets.md`.
 - **Kaniko `direct` privilege launch** — `ODPM_KANIKO_EXECUTOR_WRAPPER`, `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS`, opt-in `ODPM_KANIKO_EXECUTOR_SUDO=1`; preflight when non-root without wrapper/sudo. ADR-016 amended. Tests: `test_ci_image_build_backends`.

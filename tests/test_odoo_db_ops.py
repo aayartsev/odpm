@@ -8,7 +8,12 @@ from dev_project.inside_docker_app.exceptions import PostgresError
 from dev_project.inside_docker_app.odoo_checker.db_ops import (
     DbCreationParams,
     OdooDbOps,
+    normalize_country_code,
     sanitize_backup_basename,
+)
+from dev_project.inside_docker_app.odoo_checker.runtime import (
+    LoadedOdooRuntime,
+    apply_odoo_config,
 )
 
 
@@ -24,12 +29,18 @@ def _creation_params(**overrides) -> DbCreationParams:
     return DbCreationParams(**defaults)
 
 
-def _make_db_ops(*, odoo_dir: str = "/home/odoo/odoo") -> tuple[OdooDbOps, MagicMock]:
+def _make_db_ops(
+    *,
+    odoo_dir: str = "/home/odoo/odoo",
+    int_odoo_version: int = 19,
+    creation: DbCreationParams | None = None,
+) -> tuple[OdooDbOps, MagicMock]:
     odoo = MagicMock()
     ops = OdooDbOps(
         odoo,
         odoo_dir=odoo_dir,
-        creation=_creation_params(),
+        creation=creation or _creation_params(),
+        int_odoo_version=int_odoo_version,
     )
     return ops, odoo
 
@@ -40,6 +51,23 @@ class SanitizeBackupBasenameTests(unittest.TestCase):
             sanitize_backup_basename("demo-db 01:00"),
             "demo_db_01_00",
         )
+
+
+class NormalizeCountryCodeTests(unittest.TestCase):
+    def test_none_and_false(self):
+        self.assertIsNone(normalize_country_code(None))
+        self.assertIsNone(normalize_country_code(False))
+        self.assertIsNone(normalize_country_code(True))
+
+    def test_empty_and_false_string(self):
+        self.assertIsNone(normalize_country_code(""))
+        self.assertIsNone(normalize_country_code("  "))
+        self.assertIsNone(normalize_country_code("false"))
+        self.assertIsNone(normalize_country_code("False"))
+
+    def test_keeps_code(self):
+        self.assertEqual(normalize_country_code("US"), "US")
+        self.assertEqual(normalize_country_code("  ru  "), "ru")
 
 
 class OdooDbOpsTests(unittest.TestCase):
@@ -162,6 +190,162 @@ class OdooDbOpsTests(unittest.TestCase):
         ops.ensure_database_exists("demo")
 
         odoo.service.db.exp_create_database.assert_not_called()
+
+
+class OdooDbOpsV20Tests(unittest.TestCase):
+    def test_ensure_database_exists_uses_modules_db_create(self):
+        ops, odoo = _make_db_ops(int_odoo_version=20)
+        odoo.modules.db.exist.return_value = False
+
+        ops.ensure_database_exists("demo")
+
+        odoo.modules.db.create.assert_called_once_with(
+            "demo",
+            demo=True,
+            lang="en_US",
+            user_password="admin",
+            user_login="admin",
+            country_code="US",
+        )
+        odoo.service.db.exp_create_database.assert_not_called()
+
+    def test_ensure_database_exists_normalizes_empty_country_code(self):
+        ops, odoo = _make_db_ops(
+            int_odoo_version=20,
+            creation=_creation_params(db_country_code=""),
+        )
+        odoo.modules.db.exist.return_value = False
+
+        ops.ensure_database_exists("demo")
+
+        odoo.modules.db.create.assert_called_once_with(
+            "demo",
+            demo=True,
+            lang="en_US",
+            user_password="admin",
+            user_login="admin",
+            country_code=None,
+        )
+
+    def test_ensure_database_exists_normalizes_false_country_code(self):
+        ops, odoo = _make_db_ops(
+            int_odoo_version=20,
+            creation=_creation_params(db_country_code=False),
+        )
+        odoo.modules.db.exist.return_value = False
+
+        ops.ensure_database_exists("demo")
+
+        kwargs = odoo.modules.db.create.call_args.kwargs
+        self.assertIsNone(kwargs["country_code"])
+
+    def test_get_list_of_databases_uses_modules_db(self):
+        ops, odoo = _make_db_ops(int_odoo_version=20)
+        odoo.modules.db.list_dbs.return_value = ["alpha", "beta"]
+
+        result = ops.get_list_of_databases()
+
+        self.assertEqual(result, "alpha\nbeta")
+        odoo.modules.db.list_dbs.assert_called_once_with(force=True)
+        odoo.service.db.list_dbs.assert_not_called()
+
+    def test_backup_database_uses_modules_db_dump(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            odoo_dir = os.path.join(tmp_dir, "odoo")
+            os.makedirs(odoo_dir)
+            ops, odoo = _make_db_ops(odoo_dir=odoo_dir, int_odoo_version=20)
+
+            path = ops.backup_database("demo-db", "manual-backup")
+
+            expected = os.path.join(tmp_dir, "backups", "manual-backup")
+            self.assertEqual(path, expected)
+            odoo.modules.db.dump.assert_called_once_with(
+                "demo-db",
+                expected,
+                backup_format="zip",
+            )
+            odoo.service.db.dump_db.assert_not_called()
+
+    def test_restore_database_uses_modules_db(self):
+        ops, odoo = _make_db_ops(int_odoo_version=20)
+        ops.restore_database("demo", "archive.zip")
+        odoo.modules.db.restore.assert_called_once_with(
+            "demo",
+            os.path.join(ops.backup_dir, "archive.zip"),
+        )
+        odoo.service.db.restore_db.assert_not_called()
+
+    def test_drop_database_uses_modules_db_drop(self):
+        ops, odoo = _make_db_ops(int_odoo_version=20)
+        odoo.modules.db.exist.side_effect = [True, False]
+
+        with patch.object(OdooDbOps, "_force_drop_database") as mock_force:
+            ops.drop_database("demo", False)
+
+        odoo.modules.db.drop.assert_called_once_with("demo")
+        odoo.service.db.exp_drop.assert_not_called()
+        mock_force.assert_not_called()
+
+    def test_drop_database_wraps_modules_db_errors(self):
+        ops, odoo = _make_db_ops(int_odoo_version=20)
+        odoo.modules.db.exist.return_value = True
+        odoo.modules.db.drop.side_effect = RuntimeError("permission denied")
+
+        with self.assertRaises(PostgresError) as ctx:
+            ops.drop_database("demo", False)
+
+        self.assertIn("demo", str(ctx.exception))
+
+
+class ApplyOdooConfigLoggingTests(unittest.TestCase):
+    def test_parse_config_setup_logging_true_for_odoo_20(self):
+        odoo = MagicMock()
+        runtime = LoadedOdooRuntime(
+            odoo=odoo,
+            odoo_config_object={},
+            int_odoo_version=20,
+            odoo_version_info=(20, 0),
+            environment_manage=MagicMock(),
+        )
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            patch(
+                "dev_project.inside_docker_app.utils.write_odoo_config_data_to_file"
+            ),
+        ):
+            conf_path = os.path.join(tmp_dir, "odoo.conf")
+            apply_odoo_config(
+                runtime,
+                odoo_config_data={"options": {}},
+                docker_path_odoo_conf=conf_path,
+            )
+        odoo.tools.config.parse_config.assert_called_once_with(
+            ["-c", conf_path],
+            setup_logging=True,
+        )
+
+    def test_parse_config_one_arg_for_odoo_19(self):
+        odoo = MagicMock()
+        runtime = LoadedOdooRuntime(
+            odoo=odoo,
+            odoo_config_object={},
+            int_odoo_version=19,
+            odoo_version_info=(19, 0),
+            environment_manage=MagicMock(),
+        )
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            patch(
+                "dev_project.inside_docker_app.utils.write_odoo_config_data_to_file"
+            ),
+        ):
+            conf_path = os.path.join(tmp_dir, "odoo.conf")
+            apply_odoo_config(
+                runtime,
+                odoo_config_data={"options": {}},
+                docker_path_odoo_conf=conf_path,
+            )
+        odoo.tools.config.parse_config.assert_called_once_with(["-c", conf_path])
 
 
 if __name__ == "__main__":
