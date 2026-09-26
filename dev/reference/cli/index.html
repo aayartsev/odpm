@@ -1594,6 +1594,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подкоманда modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2087,6 +2098,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подкоманда modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2361,6 +2383,31 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </table>
 <p>Флаг <strong><code>--accept-database-drift=KIND</code></strong> (повторяемый) — принять drift без интерактивного prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
 <p>Подробнее: <a href="../database-state/">состояние PostgreSQL и drift</a>.</p>
+<h2 id="modules">Подкоманда <code>modules</code><a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
+<p>Списки модулей для <code>-i</code>/<code>-u</code> из git-истории developing и маркер последнего apply:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>modules<span class="w"> </span>diff
+odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell
+odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Команда</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modules diff</code></td>
+<td>Init/update CSV с <code>BASE...HEAD</code>; <code>--diff-base</code>, <code>--format {text,shell,json}</code></td>
+</tr>
+<tr>
+<td><code>modules record-applied</code></td>
+<td>Записать HEAD developing в <code>.odpm/deploy/last_applied.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>Подробнее и shell-рецепт: <a href="../deploy-marker/">маркер деплоя</a>.</p>
 <h2 id="_5">База данных и модули<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

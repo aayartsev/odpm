@@ -148,6 +148,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/database-state/"/>
     </url>
     <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/reference/deploy-marker/</loc>
+        <lastmod>2026-09-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/dev/reference/deploy-marker/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/deven/reference/deploy-marker/"/>
+    </url>
+    <url>
         <loc>https://aayartsev.github.io/odpm/stable/dev/reference/deps-lock/</loc>
         <lastmod>2026-09-26</lastmod>
         <changefreq>daily</changefreq>
@@ -426,6 +433,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/database-state/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/database-state/"/>
+    </url>
+    <url>
+        <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/deploy-marker/</loc>
+        <lastmod>2026-09-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/deploy-marker/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://aayartsev.github.io/odpm/stable/devreference/deploy-marker/"/>
     </url>
     <url>
         <loc>https://aayartsev.github.io/odpm/stable/dev/en/reference/deps-lock/</loc>

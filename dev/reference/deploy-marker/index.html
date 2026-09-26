@@ -1,44 +1,40 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="ru" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Odoo Developer Project Manager documentation">
+        <meta name="description" content="Документация Odoo Developer Project Manager">
       
       
       
-        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/dev/en/reference/cli/">
+        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/dev/reference/deploy-marker/">
       
       
-        <link rel="prev" href="../database-state/">
-      
-      
-        <link rel="next" href="../deps-lock/">
       
       
         
-          <link rel="alternate" href="../../../reference/cli/" hreflang="ru">
+          <link rel="alternate" href="./" hreflang="ru">
         
-          <link rel="alternate" href="./" hreflang="en">
+          <link rel="alternate" href="../../en/reference/deploy-marker/" hreflang="en">
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Command-line options - odpm</title>
+        <title>Маркер деплоя модулей - odpm</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -57,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,8 +78,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#command-line-parameters" class="md-skip">
-          Skip to content
+        <a href="#_1" class="md-skip">
+          Перейти к содержанию
         </a>
       
     </div>
@@ -112,8 +108,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../" title="odpm" class="md-header__button md-logo" aria-label="odpm" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../.." title="odpm" class="md-header__button md-logo" aria-label="odpm" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -133,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Command-line options
+              Маркер деплоя модулей
             
           </span>
         </div>
@@ -146,9 +142,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Тёмная тема"  type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+      <label class="md-header__button md-icon" title="Тёмная тема" for="__palette_1" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
@@ -156,9 +152,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Светлая тема"  type="radio" name="__palette" id="__palette_1">
     
-      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+      <label class="md-header__button md-icon" title="Светлая тема" for="__palette_0" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
@@ -173,20 +169,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Выберите язык">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../reference/cli/" hreflang="ru" class="md-select__link">
+            <a href="./" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="en" class="md-select__link">
+            <a href="../../en/reference/deploy-marker/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -207,16 +203,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Поиск">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -229,7 +225,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Инициализация поиска
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -241,7 +237,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/aayartsev/odpm" title="Перейти к репозиторию" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -262,7 +258,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -272,13 +268,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../" class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
     
   
-  Home
+  Главная
 
       </a>
     </li>
@@ -297,7 +293,7 @@
           
   
   
-  Getting started
+  С чего начать
 
         </a>
       </li>
@@ -317,7 +313,7 @@
           
   
   
-  Installing odpm
+  Установка odpm
 
         </a>
       </li>
@@ -337,7 +333,7 @@
           
   
   
-  Scenarios
+  Сценарии
 
         </a>
       </li>
@@ -349,17 +345,15 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../tools-by-scenario/" class="md-tabs__link">
           
   
   
-  Reference
+  Справочник
 
         </a>
       </li>
@@ -379,7 +373,7 @@
           
   
   
-  Operations
+  Эксплуатация
 
         </a>
       </li>
@@ -407,9 +401,9 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="odpm" class="md-nav__button md-logo" aria-label="odpm" data-md-component="logo">
+    <a href="../.." title="odpm" class="md-nav__button md-logo" aria-label="odpm" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -419,7 +413,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/aayartsev/odpm" title="Перейти к репозиторию" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -439,14 +433,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Home
+    Главная
   
 
     
@@ -491,7 +485,7 @@
   <span class="md-ellipsis">
     
   
-    Getting started
+    С чего начать
   
 
     
@@ -507,7 +501,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Getting started
+    С чего начать
   
 
           </label>
@@ -527,7 +521,7 @@
   <span class="md-ellipsis">
     
   
-    Which docs to read
+    Какую документацию читать
   
 
     
@@ -555,7 +549,7 @@
   <span class="md-ellipsis">
     
   
-    Why odpm
+    Зачем odpm
   
 
     
@@ -583,7 +577,7 @@
   <span class="md-ellipsis">
     
   
-    Beginner-friendly
+    Дружелюбность к новичкам
   
 
     
@@ -611,7 +605,7 @@
   <span class="md-ellipsis">
     
   
-    Local dev from scratch
+    Локальная разработка с нуля
   
 
     
@@ -639,7 +633,7 @@
   <span class="md-ellipsis">
     
   
-    Legacy project
+    Чужой или унаследованный проект
   
 
     
@@ -692,7 +686,7 @@
   <span class="md-ellipsis">
     
   
-    Installing odpm
+    Установка odpm
   
 
     
@@ -708,7 +702,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Installing odpm
+    Установка odpm
   
 
           </label>
@@ -728,7 +722,7 @@
   <span class="md-ellipsis">
     
   
-    All platforms
+    Все платформы
   
 
     
@@ -868,7 +862,7 @@
   <span class="md-ellipsis">
     
   
-    pip and source checkout
+    pip и копирование исходников
   
 
     
@@ -921,7 +915,7 @@
   <span class="md-ellipsis">
     
   
-    Scenarios
+    Сценарии
   
 
     
@@ -937,7 +931,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Scenarios
+    Сценарии
   
 
           </label>
@@ -1041,7 +1035,7 @@
   <span class="md-ellipsis">
     
   
-    Team coordinator
+    Координатор команды
   
 
     
@@ -1069,7 +1063,7 @@
   <span class="md-ellipsis">
     
   
-    Custom Odoo platform repo
+    Свой репозиторий платформы Odoo
   
 
     
@@ -1097,7 +1091,7 @@
   <span class="md-ellipsis">
     
   
-    Scaling
+    Масштабирование
   
 
     
@@ -1122,38 +1116,35 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    Reference
+    Справочник
   
 
     
@@ -1164,12 +1155,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Reference
+    Справочник
   
 
           </label>
@@ -1189,7 +1180,7 @@
   <span class="md-ellipsis">
     
   
-    Tools by scenario
+    Инструменты по сценариям
   
 
     
@@ -1217,7 +1208,7 @@
   <span class="md-ellipsis">
     
   
-    Config hierarchy
+    Иерархия конфигурации
   
 
     
@@ -1245,7 +1236,7 @@
   <span class="md-ellipsis">
     
   
-    odpm.json and user_settings.json
+    odpm.json и user_settings.json
   
 
     
@@ -1273,7 +1264,7 @@
   <span class="md-ellipsis">
     
   
-    .env variables
+    Переменные .env
   
 
     
@@ -1301,7 +1292,7 @@
   <span class="md-ellipsis">
     
   
-    Git repository links
+    Ссылки на репозитории
   
 
     
@@ -1385,7 +1376,7 @@
   <span class="md-ellipsis">
     
   
-    Manifest v1 to v2 migration
+    Миграция manifest v1→v2
   
 
     
@@ -1487,44 +1478,17 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Command-line options
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Command-line options
+    Параметры командной строки
   
 
     
@@ -1533,158 +1497,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#project-initialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project initialization
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#environment-prepare-and-image" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Environment prepare and image
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#change-plan-dry-run" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Change plan (dry run)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#database-subcommand" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        database subcommand
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#manifest-subcommand" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        manifest subcommand
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#modules-subcommand" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        modules subcommand
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#database-and-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Database and modules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#platform-nightly-build-date" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Platform nightly build date
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#database-maintenance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Database maintenance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#translations-and-administrator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Translations and administrator
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#other-developer-tools" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Other developer tools
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scaffold-subcommand" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        scaffold subcommand
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1732,7 +1544,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins and extensions
+    Плагины и расширения
   
 
     
@@ -1760,7 +1572,7 @@
   <span class="md-ellipsis">
     
   
-    Project directory layout
+    Структура каталога проекта
   
 
     
@@ -1788,7 +1600,7 @@
   <span class="md-ellipsis">
     
   
-    Generated files
+    Сгенерированные файлы
   
 
     
@@ -1816,7 +1628,7 @@
   <span class="md-ellipsis">
     
   
-    odpm message locale
+    Язык сообщений odpm
   
 
     
@@ -1869,7 +1681,7 @@
   <span class="md-ellipsis">
     
   
-    Operations
+    Эксплуатация
   
 
     
@@ -1885,7 +1697,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Operations
+    Эксплуатация
   
 
           </label>
@@ -1905,7 +1717,7 @@
   <span class="md-ellipsis">
     
   
-    IDE debugging
+    Отладка в IDE
   
 
     
@@ -1933,7 +1745,7 @@
   <span class="md-ellipsis">
     
   
-    Local secrets
+    Локальные секреты
   
 
     
@@ -1961,7 +1773,7 @@
   <span class="md-ellipsis">
     
   
-    Non-interactive mode
+    Запуск без диалогов
   
 
     
@@ -1989,7 +1801,7 @@
   <span class="md-ellipsis">
     
   
-    Security
+    Безопасность
   
 
     
@@ -2017,7 +1829,7 @@
   <span class="md-ellipsis">
     
   
-    Migrating from 3.0
+    Переход с версии 3.0
   
 
     
@@ -2051,7 +1863,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
   
   
   
@@ -2060,15 +1872,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Содержание
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#project-initialization" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project initialization
+        Расположение
       
     </span>
   </a>
@@ -2076,10 +1888,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment-prepare-and-image" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment prepare and image
+        Подкоманды
       
     </span>
   </a>
@@ -2087,10 +1899,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#change-plan-dry-run" class="md-nav__link">
+  <a href="#baseline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Change plan (dry run)
+        Baseline
       
     </span>
   </a>
@@ -2098,10 +1910,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#database-subcommand" class="md-nav__link">
+  <a href="#apply-shell" class="md-nav__link">
     <span class="md-ellipsis">
       
-        database subcommand
+        Рецепт apply (shell)
       
     </span>
   </a>
@@ -2109,10 +1921,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#manifest-subcommand" class="md-nav__link">
+  <a href="#ci-mr" class="md-nav__link">
     <span class="md-ellipsis">
       
-        manifest subcommand
+        CI / MR
       
     </span>
   </a>
@@ -2120,76 +1932,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#modules-subcommand" class="md-nav__link">
+  <a href="#scope-v1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        modules subcommand
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#database-and-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Database and modules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#platform-nightly-build-date" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Platform nightly build date
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#database-maintenance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Database maintenance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#translations-and-administrator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Translations and administrator
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#other-developer-tools" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Other developer tools
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scaffold-subcommand" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        scaffold subcommand
+        Вне scope v1
       
     </span>
   </a>
@@ -2213,7 +1959,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/cli.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/deploy-marker.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2221,394 +1967,86 @@
   
 
 
-<h1 id="command-line-parameters">Command-line parameters<a class="headerlink" href="#command-line-parameters" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p><strong>AI-translated</strong> from Russian.</p>
-</blockquote>
-<p>The <strong><code>odpm</code></strong> command (or <code>python3 …/odpm.py</code>) accepts parameters that set <strong>one-off</strong> behaviour: initialization, database work, image build, change plan. Full list with brief English hints: <code>odpm --help</code>.</p>
-<p>Below is a reference by group. Flag names are <strong>as in the program</strong> (Latin).</p>
-<h2 id="project-initialization">Project initialization<a class="headerlink" href="#project-initialization" title="Permanent link">&para;</a></h2>
+<h1 id="_1">Маркер деплоя модулей<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>Файл <strong><code>.odpm/deploy/last_applied.json</code></strong> хранит SHA developing-репозитория, на котором последний раз успешно применили <code>-i</code>/<code>-u</code>. Это <strong>не</strong> часть <code>odpm.json</code> и не lock зависимостей.</p>
+<h2 id="_2">Расположение<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Parameter</th>
-<th>Description</th>
+<th>Путь</th>
+<th>Назначение</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>--init LINK</code></td>
-<td>Make the current directory an odpm project. Link: HTTPS, <code>git@…</code>, <code>file:///…</code></td>
+<td><code>{project_dir}/.odpm/deploy/last_applied.json</code></td>
+<td>Маркер на <strong>хосте проекта odpm</strong> (каталог с <code>docker-compose.yml</code>), не обязательно корень git developing</td>
 </tr>
 <tr>
-<td><code>--branch NAME</code></td>
-<td>With <code>--init</code>: branch of the <strong>developing</strong> repository</td>
-</tr>
-<tr>
-<td><code>--odoo-version VER</code></td>
-<td>Odoo version (e.g. <code>19.0</code>) in <code>odpm.json</code></td>
-</tr>
-<tr>
-<td><code>--odoo-git-link LINK</code></td>
-<td><strong>Platform</strong> repository instead of official odoo/odoo</td>
-</tr>
-<tr>
-<td><code>--platform-name NAME</code></td>
-<td>Fork Python package name (default <code>odoo</code>)</td>
-</tr>
-<tr>
-<td><code>--python-version VER</code></td>
-<td>Python version in the image</td>
-</tr>
-<tr>
-<td><code>--distro-name NAME</code></td>
-<td>Linux distribution name (currently <code>debian</code>)</td>
-</tr>
-<tr>
-<td><code>--distro-version VER</code></td>
-<td>Distribution version (<code>11</code>, <code>12</code>, …)</td>
-</tr>
-<tr>
-<td><code>--postgres-version VER</code></td>
-<td>PostgreSQL version in compose</td>
-</tr>
-<tr>
-<td><code>--requirements-txt PACKAGES</code></td>
-<td>Python packages comma-separated → written to <code>odpm.json</code></td>
-</tr>
-<tr>
-<td><code>--secrets-file PATH</code></td>
-<td>Import JSON v1 into <code>.odpm/secrets.json</code> (on <code>--init</code> and any run; early bootstrap, before <code>${@secret:}</code> expand in <code>user_settings</code>). Implies the <code>file</code> provider. See <a href="../../operations/secrets/">local secrets</a>.</td>
-</tr>
-<tr>
-<td><code>--secrets-provider NAME</code></td>
-<td>Secrets provider for this run (<code>file</code>, <code>infisical</code>, or a plugin id). Overrides <code>ODPM_SECRETS_PROVIDER</code> and <code>secrets.provider.type</code>. <code>--secrets-file</code> forces <code>file</code>.</td>
-</tr>
-<tr>
-<td><code>--security-profile NAME</code></td>
-<td>Security profile (<code>convenience</code> / <code>hardened</code>). Overrides <code>ODPM_SECURITY_PROFILE</code>; else defaults from <code>ODPM_SCENARIO</code>. See <a href="../../operations/security/">security</a>.</td>
+<td><code>.odpm/.gitignore</code> → <code>deploy/</code></td>
+<td>Пишется при первом <code>record-applied</code> / использовании маркера</td>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/aayartsev/odoo_demo_project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--odoo-version<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span>--python-version<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>--distro-version<span class="w"> </span><span class="m">12</span>
+<p>Поля JSON:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"developing_sha"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abc123…"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"applied_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-09-27T10:00:00Z"</span>
+<span class="p">}</span>
 </code></pre></div>
-<p>Import secrets on deploy:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>file:///path/to/my_addons<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--secrets-file<span class="w"> </span>/secure/client-secrets.json
-
-<span class="c1"># key rotation on an existing project</span>
-odpm<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.json<span class="w"> </span>--skip-start
-</code></pre></div>
-<h2 id="environment-prepare-and-image">Environment prepare and image<a class="headerlink" href="#environment-prepare-and-image" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--skip-start</code></td>
-<td>Regenerate Docker files and compose <strong>without</strong> starting containers; with a lock — select revisions from the lock file</td>
-</tr>
-<tr>
-<td><code>--update-lock</code></td>
-<td>Write <code>.odpm/deps.lock.json</code> and exit</td>
-</tr>
-<tr>
-<td><code>--no-git-update</code></td>
-<td>Do not touch git; lock is <strong>not read</strong>; directories must already exist</td>
-</tr>
-<tr>
-<td><code>--build-image</code></td>
-<td>Build image for <strong><code>ci</code></strong> scenario (error otherwise)</td>
-</tr>
-<tr>
-<td><code>--image-tag TAG</code></td>
-<td>Docker image name and tag for <code>--build-image</code></td>
-</tr>
-<tr>
-<td><code>--image-builder {docker,kaniko}</code></td>
-<td>CI image build backend (default <code>docker</code>; overrides <code>ODPM_CI_IMAGE_BUILDER</code>)</td>
-</tr>
-<tr>
-<td><code>--image-push</code></td>
-<td>After build, publish the image (<code>docker push</code> / kaniko <code>--destination</code>)</td>
-</tr>
-<tr>
-<td><code>--version</code></td>
-<td>Show odpm version</td>
-</tr>
-</tbody>
-</table>
-<h2 id="change-plan-dry-run">Change plan (dry run)<a class="headerlink" href="#change-plan-dry-run" title="Permanent link">&para;</a></h2>
-<p>Shows which prepare steps would run <strong>without</strong> changing git, writing files, or <code>docker compose up</code>.</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-format<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--skip-start
-</code></pre></div>
-<p>Deprecated synonym: <code>--plan</code> (prefer <code>plan</code> subcommand).</p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--plan-format {table,json}</code></td>
-<td>Table to log or JSON to stdout</td>
-</tr>
-<tr>
-<td><code>--plan-strict</code></td>
-<td>Exit code 1 if a required step would change</td>
-</tr>
-<tr>
-<td><code>--plan-show-diff</code></td>
-<td>Show differences in runtime config, compose, dockerignore</td>
-</tr>
-<tr>
-<td><code>--plan-no-docker</code></td>
-<td>Do not query Docker for container state</td>
-</tr>
-</tbody>
-</table>
-<p>Among prepare steps there is <strong><code>database.drift</code></strong> — comparison of PostgreSQL configuration to the <code>last_run.json</code> snapshot. See <a href="../database-state/">PostgreSQL state</a>.</p>
-<h2 id="database-subcommand"><code>database</code> subcommand<a class="headerlink" href="#database-subcommand" title="Permanent link">&para;</a></h2>
-<p>Inspection and recovery of the <strong>PostgreSQL cluster</strong> (not to be confused with Odoo databases <code>-d</code>):</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>status
-odpm<span class="w"> </span>database<span class="w"> </span>status<span class="w"> </span>--format<span class="w"> </span>json
-odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>database status</code></td>
-<td>Fingerprints, drift, postgres container and application role checks</td>
-</tr>
-<tr>
-<td><code>database status --format json</code></td>
-<td>Same as JSON</td>
-</tr>
-<tr>
-<td><code>database ensure-role</code></td>
-<td>Create or update the application role in running PostgreSQL</td>
-</tr>
-</tbody>
-</table>
-<p>Flag <strong><code>--accept-database-drift=KIND</code></strong> (repeatable) — accept drift without an interactive prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
-<p>Details: <a href="../database-state/">PostgreSQL state and drift</a>.</p>
-<h2 id="manifest-subcommand"><code>manifest</code> subcommand<a class="headerlink" href="#manifest-subcommand" title="Permanent link">&para;</a></h2>
-<p>Migrate <code>odpm.json</code> between schema versions:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>manifest<span class="w"> </span>migrate
-odpm<span class="w"> </span>manifest<span class="w"> </span>migrate<span class="w"> </span>--write
-odpm<span class="w"> </span>manifest<span class="w"> </span>validate
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>manifest migrate</code></td>
-<td>Show unified diff of flat v1 → nested v2 transformation</td>
-</tr>
-<tr>
-<td><code>manifest migrate --write</code></td>
-<td>Write manifest v2 to the developing project repository</td>
-</tr>
-<tr>
-<td><code>manifest validate</code></td>
-<td>Validate <code>odpm.json</code> against JSON Schema (v1 flat or v2 nested) + compat-check</td>
-</tr>
-</tbody>
-</table>
-<p>Migration moves <code>database</code> (from manifest or <code>user_settings</code>), <code>developing.git</code>, and <code>locks.git</code> (from <code>.odpm/deps.lock.json</code>). See <a href="../odpm-json/#migration-v1--v2">odpm.json</a>.</p>
-<h2 id="modules-subcommand"><code>modules</code> subcommand<a class="headerlink" href="#modules-subcommand" title="Permanent link">&para;</a></h2>
-<p>Init/update module lists from developing git history and the last-applied deploy marker:</p>
+<p><code>db_name</code> в маркере нет: один SHA на инстанс проекта.</p>
+<h2 id="_3">Подкоманды<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>modules<span class="w"> </span>diff
 odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell
+odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>origin/main<span class="w"> </span>--format<span class="w"> </span>json
 odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
 </code></pre></div>
 <table>
 <thead>
 <tr>
-<th>Command</th>
-<th>Description</th>
+<th>Команда</th>
+<th>Описание</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>modules diff</code></td>
-<td>Init/update CSV from <code>BASE...HEAD</code>; <code>--diff-base</code>, <code>--format {text,shell,json}</code></td>
+<td>Списки init/update по <code>git diff BASE...HEAD</code> в developing</td>
 </tr>
 <tr>
 <td><code>modules record-applied</code></td>
-<td>Write developing HEAD to <code>.odpm/deploy/last_applied.json</code></td>
+<td>Записать HEAD developing в маркер (без compose)</td>
 </tr>
 </tbody>
 </table>
-<p>Details and shell recipe: <a href="../deploy-marker/">deploy marker</a>.</p>
-<h2 id="database-and-modules">Database and modules<a class="headerlink" href="#database-and-modules" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>-d DB_NAME</code></td>
-<td>Database name; if missing — creation per <code>db_creation_data</code></td>
-</tr>
-<tr>
-<td><code>-i [MODULES]</code></td>
-<td>Without a value — modules from <code>init_modules</code>; with a CSV (e.g. <code>sale,crm</code>) — CLI list (overrides settings for this run)</td>
-</tr>
-<tr>
-<td><code>-u [MODULES]</code></td>
-<td>Without a value — modules from <code>update_modules</code>; with a CSV — CLI list (overrides settings for this run)</td>
-</tr>
-<tr>
-<td><code>-t</code>, <code>--test</code></td>
-<td>Run module tests; requires <code>-d</code> and usually <code>-i</code> or <code>-u</code></td>
-</tr>
-<tr>
-<td><code>--screencasts</code></td>
-<td>With <code>-t</code>: save video on tour failures</td>
-</tr>
-<tr>
-<td><code>--odoo-bin ARGS…</code></td>
-<td>Pass arguments to the Odoo executable, e.g. <code>--stop-after-init</code></td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
+<p>Форматы <code>--format</code>: <strong><code>text</code></strong> (по умолчанию), <strong><code>shell</code></strong> (<code>export ODPM_INIT_MODULES=…</code> / <code>ODPM_UPDATE_MODULES=…</code>), <strong><code>json</code></strong>. Списки идут в <strong>stdout</strong>; логи — в stderr/logger, чтобы <code>eval "$(…)"</code> оставался чистым.</p>
+<h2 id="baseline">Baseline<a class="headerlink" href="#baseline" title="Permanent link">&para;</a></h2>
+<p>Приоритет, если <code>--diff-base</code> не указан:</p>
+<ol>
+<li><code>ODPM_DIFF_BASE</code></li>
+<li><code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> (GitLab MR)</li>
+<li>SHA из маркера, если файл есть</li>
+<li>иначе <strong>ошибка</strong> — без baseline списки не выдумываются</li>
+</ol>
+<p><code>--diff-base @last-applied</code> принудительно читает маркер (ошибка, если файла нет). Первый деплой: передайте явный <code>--diff-base &lt;sha|tag&gt;</code> (или env), примените модули, затем <code>record-applied</code>.</p>
+<p>Репозиторий: только <strong>developing</strong> checkout с <code>.git</code>. Удалённые модули игнорируются; rename → новый путь как init, если модуля не было на BASE.</p>
+<h2 id="apply-shell">Рецепт apply (shell)<a class="headerlink" href="#apply-shell" title="Permanent link">&para;</a></h2>
+<p>Пустые списки <strong>не</strong> передавайте как <code>-i ""</code> / <code>-u ""</code> — CLI отвергает пустой CSV.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">eval</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell<span class="k">)</span><span class="s2">"</span>
+
+<span class="nv">args</span><span class="o">=(</span>-d<span class="w"> </span>prod_db<span class="o">)</span>
+<span class="o">[[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_INIT_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">args</span><span class="o">+=(</span>-i<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_INIT_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="o">)</span>
+<span class="o">[[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_UPDATE_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">args</span><span class="o">+=(</span>-u<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_UPDATE_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="o">)</span>
+odpm<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">args</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
+
+<span class="c1"># только после exit 0</span>
+odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
 </code></pre></div>
-<h2 id="platform-nightly-build-date">Platform nightly build date<a class="headerlink" href="#platform-nightly-build-date" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--odoo-build-date DATE</code></td>
-<td><code>YYYYMMDD</code> or <code>YYYY-MM-DD</code>; overrides <code>odoo_build_date</code> in json</td>
-</tr>
-</tbody>
-</table>
-<h2 id="database-maintenance">Database maintenance<a class="headerlink" href="#database-maintenance" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--get-dbs-list</code></td>
-<td>List databases</td>
-</tr>
-<tr>
-<td><code>--db-backup [ARCHIVE]</code></td>
-<td>Backup database <code>-d</code> to <code>BACKUP_DIR</code></td>
-</tr>
-<tr>
-<td><code>--db-restore ARCHIVE</code></td>
-<td>Restore archive into database <code>-d</code></td>
-</tr>
-<tr>
-<td><code>--db-drop</code></td>
-<td>Drop Odoo database <code>-d</code>; with <code>-i</code>/<code>-u</code> — recreate and install modules. On a legacy cluster with another PostgreSQL owner odpm runs direct <code>DROP DATABASE</code></td>
-</tr>
-</tbody>
-</table>
-<h2 id="translations-and-administrator">Translations and administrator<a class="headerlink" href="#translations-and-administrator" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--translate LANG</code></td>
-<td>Update translations (e.g. <code>ru_RU</code>)</td>
-</tr>
-<tr>
-<td><code>--export-po-files LANG</code></td>
-<td>Export pot/po for modules from <code>update_modules</code>, or from <code>-u CSV</code> when that form is used</td>
-</tr>
-<tr>
-<td><code>--set-admin-pass</code></td>
-<td>Admin login/password from <code>db_default_admin_*</code>; requires <code>-d</code></td>
-</tr>
-</tbody>
-</table>
-<h2 id="other-developer-tools">Other developer tools<a class="headerlink" href="#other-developer-tools" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--start-precommit</code></td>
-<td>Run pre-commit in the developing project inside the container</td>
-</tr>
-<tr>
-<td><code>--sql-execute</code></td>
-<td>Run SQL from <code>sql_queries</code>; requires <code>-d</code></td>
-</tr>
-</tbody>
-</table>
-<h2 id="scaffold-subcommand"><code>scaffold</code> subcommand<a class="headerlink" href="#scaffold-subcommand" title="Permanent link">&para;</a></h2>
-<p>Create a new module skeleton (without other odpm flags):</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>scaffold<span class="w"> </span>module_name
-odpm<span class="w"> </span>scaffold<span class="w"> </span>module_name<span class="w"> </span>-t<span class="w"> </span>/path/to/templates
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>scaffold NAME</code></td>
-<td>Generate module from Jinja2 templates</td>
-</tr>
-<tr>
-<td><code>-t</code>, <code>--scaffold_template_name</code></td>
-<td>Custom template directory</td>
-</tr>
-</tbody>
-</table>
-<p>Git version pinning: <a href="../deps-lock/">deps.lock.json</a>.</p>
+<p>Долгоживущий <code>docker compose up</code> <strong>без</strong> <code>--stop-after-init</code> не подходит для автообновления маркера: маркер обновляйте вручную/<code>record-applied</code> после успешного apply.</p>
+<h2 id="ci-mr">CI / MR<a class="headerlink" href="#ci-mr" title="Permanent link">&para;</a></h2>
+<p>В pipeline задайте baseline через <code>--diff-base</code> или <code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> / <code>ODPM_DIFF_BASE</code>. Подкоманда <code>modules</code> входит в CI allowlist (как <code>plan</code> / <code>database</code> / <code>manifest</code>).</p>
+<h2 id="scope-v1">Вне scope v1<a class="headerlink" href="#scope-v1" title="Permanent link">&para;</a></h2>
+<p>Нет одноразового <code>--modules-from-git-diff</code> оркестратора и нет общего <code>odpm run</code> / recipes framework — только подкоманды и документированный shell-рецепт.</p>
 
 
 
@@ -2632,7 +2070,7 @@ odpm<span class="w"> </span>scaffold<span class="w"> </span>module_name<span cla
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Back to top
+  К началу
 </button>
         
       </main>
@@ -2664,10 +2102,10 @@ odpm<span class="w"> </span>scaffold<span class="w"> </span>module_name<span cla
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
