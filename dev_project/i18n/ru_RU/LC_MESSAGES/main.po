@@ -527,6 +527,9 @@ msgstr "Состояние инициализации каталога данн�
 msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
 msgstr "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}.\nВыберите: (a) отмена  (c) продолжить\n"
 
+msgid "PostgreSQL database {DBNAME} does not exist yet; credentials are valid against the cluster and the database may be created later."
+msgstr "База PostgreSQL {DBNAME} ещё не существует; учётные данные к кластеру верны, база может быть создана позже."
+
 msgid "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Порт PostgreSQL на host изменился: {PREVIOUS} -> {CURRENT}."
 

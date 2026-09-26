@@ -528,6 +528,9 @@ msgstr "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {C
 msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
 msgstr "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
 
+msgid "PostgreSQL database {DBNAME} does not exist yet; credentials are valid against the cluster and the database may be created later."
+msgstr "PostgreSQL database {DBNAME} does not exist yet; credentials are valid against the cluster and the database may be created later."
+
 msgid "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
 msgstr "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
 

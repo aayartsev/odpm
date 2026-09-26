@@ -44,6 +44,7 @@
 
 ### Исправлено
 
+- **Checker ждёт БД из `-d` после recovery Postgres** — после credentials к системной `postgres` дополнительно wait целевой БД CLI `-d` (retry при recovery / not-yet-accepting); отсутствующая БД не валит wait (`ensure_database_exists` создаст). Timeout 60s на шаг verify. Тесты: `test_postgres_waiter`, `test_database_checker_wait`. Документация: `database-state.md`.
 - **API БД checker для Odoo 20** — `OdooDbOps` на major ≥ 20 использует `odoo.modules.db` (`exist` / `create` / `drop` / `list_dbs` / `dump` / `restore`); для более старых версий остаётся `odoo.service.db`. Пустой/`false` `db_country_code` → `None` для `create`. Bootstrap вызывает `parse_config(..., setup_logging=True)` на 20+, чтобы убрать DeprecationWarning. Тесты: `test_odoo_db_ops`. Документация: `database-state.md`.
 - **Golden-path: устаревшее имя postgres-сервиса** — после `odpm`, который перегенерирует compose (например legacy `POSTGRES_SERVICE_NAME=db-dev` → дефолт `db`), refresh/remedi ate заново читают physical имя сервиса из `docker-compose.yml` перед следующим `docker compose up`/`exec`, чтобы не было `no such service: db-dev`. Тесты: `test_golden_path`. Документация: `docs/contributing/ci.md`.
 - **Gate `${@secret:}` учитывает сценарий** — bootstrap не сканирует чужие `scenarios.*`; только effective slice активного `ODPM_SCENARIO` (как `secrets.required` / `load_manifest`). CI/server без refs в своём slice не требуют `.odpm/secrets.json`, если refs только в `developer`. Тесты: `test_secret_refs`. Документация: `secrets.md`.

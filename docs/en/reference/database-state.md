@@ -35,9 +35,19 @@ The snapshot includes:
 | Event | Writer |
 |-------|--------|
 | First run without `last_run.json` | **Adoption** — before `compose up` (role + baseline) |
-| Successful credential check in checker | **Checker** — after TCP and `psql` as `db_user` |
+| Successful credential check in checker | **Checker** — after TCP and `psql`/psycopg2 as `db_user` |
 
 Adoption runs **once**. While the file exists, only drift vs the saved snapshot is reported.
+
+## PostgreSQL wait in the checker (container)
+
+Before Odoo operations the checker:
+
+1. Waits for TCP on `db_host:db_port`.
+2. Verifies credentials against the system database **`postgres`** (`SELECT 1`).
+3. When CLI **`-d <name>`** is set (and the name is not `postgres`) — also waits until that database accepts connections (retries on crash recovery / “not yet accepting”). If the database does not exist yet, wait succeeds; creation stays with `ensure_database_exists`.
+
+**Limits:** without `-d`, wait only targets `postgres` (db list / dbfilter are not probed); each verify step times out after 60s (long recovery fails on timeout).
 
 ## Legacy project adoption
 

@@ -19,6 +19,17 @@ _MSG_STILL_STARTING = _("PostgreSQL is still starting up")
 _MSG_CONNECTION_FAILED = _("PostgreSQL connection failed: {DETAIL}")
 _MSG_UNEXPECTED = _("Unexpected PostgreSQL connection error: {DETAIL}")
 _MSG_PSYCOPG2_REQUIRED = _("psycopg2 is required.")
+_MSG_DB_MISSING_ALLOW = _(
+    "PostgreSQL database {DBNAME} does not exist yet; "
+    "credentials are valid against the cluster and the database may be created later."
+)
+
+_TRANSIENT_SUBSTRINGS = (
+    "starting up",
+    "connection refused",
+    "in recovery mode",
+    "not yet accepting connections",
+)
 
 
 def _classify_operational_error(exc: Exception, *, user: str) -> str:
@@ -27,14 +38,19 @@ def _classify_operational_error(exc: Exception, *, user: str) -> str:
         return _MSG_ROLE_MISSING.format(USER=user)
     if "password authentication failed" in text:
         return _MSG_AUTH_FAILED.format(USER=user)
-    if "starting up" in text or "connection refused" in text:
+    if _is_transient_operational_error(exc):
         return _MSG_STILL_STARTING
     return _MSG_CONNECTION_FAILED.format(DETAIL=str(exc))
 
 
 def _is_transient_operational_error(exc: Exception) -> bool:
     text = str(exc).lower()
-    return "starting up" in text or "connection refused" in text
+    return any(part in text for part in _TRANSIENT_SUBSTRINGS)
+
+
+def _is_missing_database_error(exc: Exception) -> bool:
+    text = str(exc).lower()
+    return "database" in text and "does not exist" in text and "role" not in text
 
 
 class PostgresWaiter:
@@ -87,9 +103,15 @@ class PostgresWaiter:
             time.sleep(self.check_interval)
 
     def verify_postgres_credentials(
-        self, dbname: str, user: str, password: str, *, max_attempts: int | None = None
+        self,
+        dbname: str,
+        user: str,
+        password: str,
+        *,
+        max_attempts: int | None = None,
+        allow_missing: bool = False,
     ) -> None:
-        """Verify PostgreSQL credentials; retry transient startup errors."""
+        """Verify PostgreSQL credentials; retry transient startup/recovery errors."""
         try:
             import psycopg2
             from psycopg2 import OperationalError
@@ -139,6 +161,9 @@ class PostgresWaiter:
                 return
 
             except OperationalError as exc:
+                if allow_missing and _is_missing_database_error(exc):
+                    _logger.info(_MSG_DB_MISSING_ALLOW.format(DBNAME=dbname))
+                    return
                 if _is_transient_operational_error(exc):
                     _logger.warning(f"Database not ready yet: {exc}")
                 else:
@@ -155,7 +180,7 @@ class PostgresWaiter:
             time.sleep(delay)
 
     def wait_for_postgres_db(self, dbname, user, password, max_attempts=None):
-        """Backward-compatible alias for credential verification."""
+        """ Backward-compatible alias for credential verification."""
         self.verify_postgres_credentials(
             dbname,
             user,

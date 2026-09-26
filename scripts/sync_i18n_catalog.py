@@ -224,6 +224,11 @@ RU_MESSAGES: dict[str, str] = {
     "PostgreSQL credentials check timed out after {SECONDS}s for database {DBNAME}": (
         "Истекло время проверки учётных данных PostgreSQL ({SECONDS} с) для базы {DBNAME}"
     ),
+    "PostgreSQL database {DBNAME} does not exist yet; "
+    "credentials are valid against the cluster and the database may be created later.": (
+        "База PostgreSQL {DBNAME} ещё не существует; "
+        "учётные данные к кластеру верны, база может быть создана позже."
+    ),
     "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role.": (
         "PostgreSQL в {SERVICE} ещё не готов; дождитесь запуска перед созданием роли."
     ),

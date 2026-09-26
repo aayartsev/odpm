@@ -57,7 +57,9 @@ def checker_cli_flags(args_dict: dict) -> CheckerCliFlags:
     )
 
 
-def wait_for_postgres(config: ContainerConfig) -> None:
+def wait_for_postgres(
+    config: ContainerConfig, db_name: str | None = None
+) -> None:
     options = config.odoo_config_data["options"]
     postgres_waiter = PostgresWaiter(
         host=options["db_host"],
@@ -71,6 +73,13 @@ def wait_for_postgres(config: ContainerConfig) -> None:
         user=options["db_user"],
         password=options["db_password"],
     )
+    if db_name and db_name != "postgres":
+        postgres_waiter.verify_postgres_credentials(
+            dbname=db_name,
+            user=options["db_user"],
+            password=options["db_password"],
+            allow_missing=True,
+        )
     record_last_run_from_container(config)
 
 

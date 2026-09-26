@@ -33,9 +33,19 @@
 | Событие | Кто записывает |
 |---------|----------------|
 | Первый запуск без `last_run.json` | **Adoption** — до `compose up` (роль + baseline) |
-| Успешная проверка credentials в checker | **Checker** — после TCP и `psql` от имени `db_user` |
+| Успешная проверка credentials в checker | **Checker** — после TCP и `psql`/psycopg2 от имени `db_user` |
 
 Adoption срабатывает **один раз**. Пока файл есть, повторной «настройки» не будет — только drift относительно сохранённого снимка.
+
+## Wait PostgreSQL в checker (контейнер)
+
+Перед операциями Odoo checker:
+
+1. Ждёт TCP на `db_host:db_port`.
+2. Проверяет credentials к системной БД **`postgres`** (`SELECT 1`).
+3. Если задан CLI **`-d <name>`** (и имя не `postgres`) — дополнительно ждёт готовности этой БД (retry при crash recovery / «not yet accepting»). Если БД ещё нет — wait не падает; создание остаётся за `ensure_database_exists`.
+
+**Ограничения:** без `-d` wait только к `postgres` (список БД / dbfilter не опрашиваются); timeout verify — 60s на шаг (долгий recovery → ошибка по timeout).
 
 ## Adoption legacy-проектов
 
