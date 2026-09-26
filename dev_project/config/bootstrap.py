@@ -11,10 +11,12 @@ from ..host.runtime import HostRuntimeState
 from ..host.user_env import CreateUserEnvironment
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
+from ..security_profiles import parse_security_profile
 from .bootstrap_context import ConfigBootstrapContext
 from .bootstrap_phases import (
     bind_developing_link,
     bind_platform_link,
+    finalize_user_settings_after_secrets,
     load_project_settings,
     load_user_settings,
     normalize_project_requirements,
@@ -86,9 +88,15 @@ def init_context(
         EnvResolver.from_user_env(user_env),
         load_secrets_map(config.project_dir),
     )
+    security_override = parse_security_profile(
+        getattr(arguments, "security_profile", None)
+    )
+    if security_override is None:
+        security_override = getattr(user_env, "security_profile", None)
     config.policy = ScenarioPolicy.from_scenario(
         config.user_env.odpm_scenario,
         base_image_profile=getattr(config.user_env, "base_image_profile", None),
+        security_profile=security_override,
     )
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()

@@ -19,7 +19,7 @@ The file describes **how to work** with an already defined stack (`odpm.json`): 
 | `clean_git_repos` | Whether to reset local changes in platform and dependencies |
 | `check_system` | Docker and git checks for beginners (default `true`) |
 | `dev_mode` | Odoo development mode; `developer` scenario only |
-| `db_manager_password` | Odoo database manager password |
+| `db_manager_password` | Odoo database manager password (on `hardened` usually `${@secret:odpm.db_manager_password}`; see [security](../operations/security.md)) |
 | `sql_queries` | SQL list for `--sql-execute` |
 | `pre_commit_map_files` | Files for pre-commit when not on Linux |
 | `use_oca_dependencies` | Extended OCA and nested `odpm.json` resolution (default `false`) |

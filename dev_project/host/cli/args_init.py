@@ -100,3 +100,9 @@ def add_platform_env_arguments(parser: argparse.ArgumentParser) -> None:
         help="""Secrets provider for this run (file, infisical, or a third-party plugin id). Overrides ODPM_SECRETS_PROVIDER and secrets.provider.type. --secrets-file implies file.""",
         type=str,
     )
+
+    parser.add_argument(
+        params.SECURITY_PROFILE_PARAM,
+        help="""Security profile for this run (convenience or hardened). Overrides ODPM_SECURITY_PROFILE. Defaults from ODPM_SCENARIO (developer→convenience, server→hardened).""",
+        type=str,
+    )

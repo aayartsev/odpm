@@ -65,6 +65,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.is_ci())
         self.assertFalse(policy.is_developer())
         self.assertEqual(policy.base_image_profile, "ci")
+        self.assertEqual(policy.security_profile, "convenience")
+        self.assertFalse(policy.should_bootstrap_odoo_password_secrets())
 
     def test_ci_does_not_mount_runtime_config_from_host(self):
         policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
@@ -101,6 +103,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.is_developer())
         self.assertTrue(policy.is_server())
         self.assertEqual(policy.compose_service_restart_policy(), "unless-stopped")
+        self.assertEqual(policy.security_profile, "hardened")
+        self.assertTrue(policy.should_bootstrap_odoo_password_secrets())
 
     def test_compose_restart_policy_only_on_server(self):
         self.assertIsNone(
@@ -140,6 +144,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.allows_venv_recreate())
         self.assertFalse(policy.is_ci())
         self.assertTrue(policy.is_developer())
+        self.assertEqual(policy.security_profile, "convenience")
+        self.assertFalse(policy.should_bootstrap_odoo_password_secrets())
 
     def test_runtime_identity_developer_matches_host(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)

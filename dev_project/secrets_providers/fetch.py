@@ -42,11 +42,18 @@ def _cli_args(value: object) -> OdpmCliArgs | None:
     return value if isinstance(value, OdpmCliArgs) else None
 
 
-def _secret_refs_present(raw_manifest: Mapping[str, Any] | None, scenario: str) -> bool:
-    if not isinstance(raw_manifest, dict):
+def _secret_refs_present(
+    raw_manifest: Mapping[str, Any] | None,
+    scenario: str,
+    *extra_trees: Any,
+) -> bool:
+    if not isinstance(raw_manifest, dict) and not extra_trees:
         return False
     refs: set[str] = set()
-    for tree in manifest_trees_for_secret_ref_gate(dict(raw_manifest), scenario):
+    if isinstance(raw_manifest, dict):
+        for tree in manifest_trees_for_secret_ref_gate(dict(raw_manifest), scenario):
+            refs.update(collect_secret_refs_in_value(tree))
+    for tree in extra_trees:
         refs.update(collect_secret_refs_in_value(tree))
     return bool(refs)
 
@@ -73,10 +80,11 @@ def _should_fetch_early(
     arguments: OdpmCliArgs | None,
     raw_manifest: Mapping[str, Any] | None,
     scenario: str,
+    *extra_trees: Any,
 ) -> bool:
     if provider_name == constants.SECRETS_PROVIDER_FILE:
         return bool(arguments is not None and arguments.secrets_file)
-    return _secret_refs_present(raw_manifest, scenario)
+    return _secret_refs_present(raw_manifest, scenario, *extra_trees)
 
 
 def ensure_secrets_source(
@@ -88,6 +96,7 @@ def ensure_secrets_source(
     session: SecretsFetchSession,
     active_scenario: str,
     phase: FetchPhase = "prepare",
+    extra_ref_trees: tuple[Any, ...] = (),
 ) -> SecretsFetchResult:
     """Fetch once per process. Early may skip; prepare/bake fetch remotes if needed."""
     if session.fetched:
@@ -119,7 +128,11 @@ def ensure_secrets_source(
         )
 
     if phase == "early" and not _should_fetch_early(
-        provider_name, arguments, raw_manifest, active_scenario
+        provider_name,
+        arguments,
+        raw_manifest,
+        active_scenario,
+        *extra_ref_trees,
     ):
         return SecretsFetchResult(
             did_fetch=False,
@@ -159,6 +172,7 @@ def ensure_secrets_source_for_config(
     *,
     raw: Mapping[str, Any] | None,
     phase: FetchPhase,
+    extra_ref_trees: tuple[Any, ...] = (),
 ) -> SecretsFetchResult:
     """Adapter for Config / MagicMock bootstrap objects."""
     session = session_for_config(config)
@@ -182,4 +196,5 @@ def ensure_secrets_source_for_config(
         session=session,
         active_scenario=scenario,
         phase=phase,
+        extra_ref_trees=extra_ref_trees,
     )

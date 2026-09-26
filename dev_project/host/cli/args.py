@@ -42,6 +42,7 @@ class OdpmCliArgs:
     odoo_build_date: str | None = None
     secrets_file: str | None = None
     secrets_provider: str | None = None
+    security_profile: str | None = None
     plan: bool = False
     plan_no_docker: bool = False
     plan_show_diff: bool = False

@@ -55,6 +55,7 @@ def _apply_parsed_user_env(target: CreateUserEnvironment, parsed: ParsedUserEnv)
     target.compose_network_external = parsed.compose_network_external
     target.compose_network_physical = parsed.compose_network_physical
     target.base_image_profile = parsed.base_image_profile
+    target.security_profile = parsed.security_profile
 
 
 class CreateUserEnvironment:

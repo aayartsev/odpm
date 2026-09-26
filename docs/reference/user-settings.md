@@ -17,7 +17,7 @@
 | `clean_git_repos` | Сбрасывать ли локальные изменения в platform и зависимостях |
 | `check_system` | Проверки Docker и git для новичков (по умолчанию `true`) |
 | `dev_mode` | Режим разработки Odoo; только сценарий `developer` |
-| `db_manager_password` | Пароль менеджера баз Odoo |
+| `db_manager_password` | Пароль менеджера баз Odoo (на `hardened` — обычно `${@secret:odpm.db_manager_password}`; см. [безопасность](../operations/security.md)) |
 | `sql_queries` | Список SQL для `--sql-execute` |
 | `pre_commit_map_files` | Файлы для pre-commit при работе не на Linux |
 | `use_oca_dependencies` | Расширенный разбор OCA и вложенных `odpm.json` (по умолчанию `false`) |

@@ -65,7 +65,7 @@ def ensure_secrets_available_for_refs(
     if loaded is None:
         raise ConfigError(
             _(
-                "Manifest references secrets (@secret) but .odpm/secrets.json "
+                "Configuration references secrets (@secret) but .odpm/secrets.json "
                 "is missing; create it or pass --secrets-file "
                 "(required keys: {KEYS})"
             ).format(KEYS=", ".join(sorted(refs)))

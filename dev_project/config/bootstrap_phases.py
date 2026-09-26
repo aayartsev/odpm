@@ -11,6 +11,7 @@ from ..translations import _
 from ..dev_mode import effective_dev_mode, merge_autoreload_requirements
 from ..errors import ConfigError
 from ..logging import get_module_logger
+from .. import constants
 from .transforms import beautify_module_list
 from .state import project_settings_from_raw, user_settings_from_raw
 
@@ -21,16 +22,62 @@ _logger = get_module_logger(__name__)
 
 
 def load_user_settings(config: Config) -> None:
+    """Phase 1: create defaults if needed; expand only pre-manifest fields."""
+    from ..project_env.odoo_password_secrets import warn_hardened_plaintext_password_fields
+    from ..project_env.secrets import import_secrets_from_path, read_secrets_source
+    from ..secrets_providers.session import session_for_config
+
     ctx = config._bootstrap_ctx
+    arguments = getattr(config, "arguments", None)
+    if arguments is not None and getattr(arguments, "secrets_file", None):
+        import_secrets_from_path(config.project_dir, arguments.secrets_file)
+        session = session_for_config(config)
+        loaded = read_secrets_source(config.project_dir) or {}
+        session.fetched = True
+        session.provider_name = constants.SECRETS_PROVIDER_FILE
+        session.key_count = len(loaded)
+        config.bootstrap.secrets_file_imported_early = True
+        from .transforms.env_substitution import with_secrets
+        from .transforms.secret_refs import load_secrets_map
+
+        config._env_resolver = with_secrets(
+            config.env_resolver,
+            load_secrets_map(config.project_dir),
+        )
+
     ctx.deprecated.check_for_config()
     ctx.user_settings.get_user_settings_json()
-    ctx.user_settings.get_user_settings()
+    ctx.user_settings.get_user_settings_phase1()
+    warn_hardened_plaintext_password_fields(
+        config, config.bootstrap.raw_user_settings_disk
+    )
     config._user = user_settings_from_raw(
         config.bootstrap.raw_user_settings,
         beautify_module_list=beautify_module_list,
     )
     config.bootstrap.developing_project = config._user.developing_project
     config.bootstrap.user_loaded = True
+
+
+def finalize_user_settings_after_secrets(config: Config) -> None:
+    """Phase 2: deep-expand settings after secrets ensure + availability gate.
+
+    Preserves ``bootstrap.developing_project`` when it was already bound to a
+    project link object in ``bind_developing_link`` (must not reset to a raw str).
+    """
+    ctx = config._bootstrap_ctx
+    bound = config.bootstrap.developing_project
+    ctx.user_settings.get_user_settings_phase2()
+    config._user = user_settings_from_raw(
+        config.bootstrap.raw_user_settings,
+        beautify_module_list=beautify_module_list,
+    )
+    if bound and not isinstance(bound, str):
+        config.bootstrap.developing_project = bound
+        config._user.developing_project = bound
+    else:
+        config.bootstrap.developing_project = config._user.developing_project
+    _apply_manifest_database_to_user_settings(config)
 
 
 def bind_developing_link(config: Config) -> None:
@@ -71,7 +118,7 @@ def load_project_settings(config: Config) -> None:
         config.arguments,
         odoo_build_date=ctx.build_date.get_effective_odoo_build_date(),
     )
-    _apply_manifest_database_to_user_settings(config)
+    finalize_user_settings_after_secrets(config)
     config.bootstrap.project_loaded = True
 
 

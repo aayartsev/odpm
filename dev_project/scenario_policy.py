@@ -20,6 +20,11 @@ from .dockerfile_profiles import (
     resolve_base_image_profile,
 )
 from .ide_stubs import normalize_odoo_stubs_requirements
+from .security_profiles import (
+    SecurityProfile,
+    binds_for_security_profile,
+    resolve_security_profile,
+)
 
 VenvMode = Literal["fresh", "baked"]
 
@@ -62,6 +67,7 @@ class ScenarioPolicy:
     venv_mode: VenvMode
     uses_host_identity: bool
     base_image_profile: BaseImageProfile
+    security_profile: SecurityProfile
 
     def __post_init__(self) -> None:
         if self.include_debugpy and not self.install_debugpy:
@@ -75,12 +81,18 @@ class ScenarioPolicy:
         scenario: str,
         *,
         base_image_profile: BaseImageProfile | None = None,
+        security_profile: SecurityProfile | None = None,
     ) -> ScenarioPolicy:
         normalized = scenario or constants.DEFAULT_ODPM_SCENARIO
         if normalized not in constants.ODPM_SCENARIO_VALUES:
             normalized = constants.DEFAULT_ODPM_SCENARIO
 
+        effective_security = resolve_security_profile(
+            normalized, override=security_profile
+        )
+
         if normalized == constants.CI_SCENARIO:
+            # CI port topology stays scenario-owned (ignore profile binds).
             policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_ci_image_name",
@@ -97,15 +109,17 @@ class ScenarioPolicy:
                 venv_mode=constants.VENV_MODE_BAKED,
                 uses_host_identity=False,
                 base_image_profile="ci",
+                security_profile=effective_security,
             )
         elif normalized == constants.SERVER_SCENARIO:
+            pg_bind, pub_bind = binds_for_security_profile(effective_security)
             policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_image_name",
                 include_odoo_volumes=True,
                 include_debugger_port=False,
-                bind_postgres_localhost=True,
-                bind_published_ports_localhost=True,
+                bind_postgres_localhost=pg_bind,
+                bind_published_ports_localhost=pub_bind,
                 include_debugpy=False,
                 install_debugpy=False,
                 install_odoo_stubs=False,
@@ -115,15 +129,17 @@ class ScenarioPolicy:
                 venv_mode=constants.VENV_MODE_FRESH,
                 uses_host_identity=True,
                 base_image_profile="medium",
+                security_profile=effective_security,
             )
         else:
+            pg_bind, pub_bind = binds_for_security_profile(effective_security)
             policy = cls(
                 scenario=constants.DEVELOPER_SCENARIO,
                 odoo_image_attr="odoo_image_name",
                 include_odoo_volumes=True,
                 include_debugger_port=True,
-                bind_postgres_localhost=False,
-                bind_published_ports_localhost=False,
+                bind_postgres_localhost=pg_bind,
+                bind_published_ports_localhost=pub_bind,
                 include_debugpy=True,
                 install_debugpy=True,
                 install_odoo_stubs=True,
@@ -133,6 +149,7 @@ class ScenarioPolicy:
                 venv_mode=constants.VENV_MODE_FRESH,
                 uses_host_identity=True,
                 base_image_profile="full",
+                security_profile=effective_security,
             )
         effective = resolve_base_image_profile(
             policy.scenario, override=base_image_profile
@@ -140,6 +157,15 @@ class ScenarioPolicy:
         if effective == policy.base_image_profile:
             return policy
         return replace(policy, base_image_profile=effective)
+
+    def is_hardened(self) -> bool:
+        return self.security_profile == "hardened"
+
+    def should_bootstrap_odoo_password_secrets(self) -> bool:
+        """True when hardened file-provider bootstrap of Odoo password secrets applies."""
+        if self.is_ci():
+            return False
+        return self.is_hardened()
 
     @property
     def skip_vscode(self) -> bool:

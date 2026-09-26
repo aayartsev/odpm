@@ -184,15 +184,15 @@ def _resolve_secret_ref(
         if not resolver.secrets:
             raise ConfigError(
                 _(
-                    "Manifest references secrets (@secret) but "
+                    "Configuration references secrets (@secret) but "
                     ".odpm/secrets.json is missing; create it or pass "
-                    "--secrets-file (required for manifest field {FIELD})"
+                    "--secrets-file (required for field {FIELD})"
                 ).format(FIELD=field_path)
             )
         raise ConfigError(
             _(
                 "Secret {KEY} is not set in .odpm/secrets.json "
-                "(required for manifest field {FIELD})"
+                "(required for field {FIELD})"
             ).format(KEY=secret_key, FIELD=field_path)
         )
     secret_value = resolver.secrets[secret_key]
@@ -202,7 +202,7 @@ def _resolve_secret_ref(
         raise ConfigError(
             _(
                 "Secret {KEY} still has a placeholder value "
-                "(required for manifest field {FIELD})"
+                "(required for field {FIELD})"
             ).format(KEY=secret_key, FIELD=field_path)
         )
     return secret_value
@@ -312,6 +312,52 @@ def expand_env_in_json(
             field_path=field_name,
         )
     return expanded
+
+
+def expand_env_deep(
+    data: Any,
+    *,
+    resolver: EnvResolver,
+    field_path: str = "user_settings",
+    allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
+) -> Any:
+    """Deep-expand ``${VAR}`` / ``${@secret:}`` / … in all string leaves."""
+    if isinstance(data, str):
+        return expand_env_string(
+            data,
+            resolver,
+            field_path=field_path,
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
+        )
+    if isinstance(data, list):
+        return [
+            expand_env_deep(
+                item,
+                resolver=resolver,
+                field_path=f"{field_path}[]",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+            for item in data
+        ]
+    if isinstance(data, dict):
+        return {
+            key: expand_env_deep(
+                value,
+                resolver=resolver,
+                field_path=f"{field_path}.{key}" if field_path else str(key),
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+            for key, value in data.items()
+        }
+    return data
 
 
 def _expand_field_value(

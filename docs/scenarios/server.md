@@ -13,7 +13,8 @@
 | Область | Как устроено |
 |---------|--------------|
 | **Отладчик** | Не устанавливается и не публикуется порт отладки. Для отладки используйте отдельную машину со сценарием `developer`. |
-| **Published ports** | Все порты compose (PostgreSQL, Odoo, Gevent и sidecars) на хосте только на **`127.0.0.1`**. Доступ снаружи — через **обратный прокси** на той же машине. |
+| **Published ports** | По умолчанию профиль **`hardened`**: все порты compose на хосте только на **`127.0.0.1`**. Override: `ODPM_SECURITY_PROFILE` / `--security-profile`. Внешний доступ — через **обратный прокси**. |
+| **Пароли Odoo** | Дефолт **`hardened`**: random в `.odpm/secrets.json`, в `user_settings` — `${@secret:…}`. См. [безопасность](../operations/security.md). |
 | **Режим разработки Odoo** | Поле `dev_mode` в `user_settings.json` **игнорируется** (предупреждение в журнале). |
 | **Исходники** | Как у разработчика — подключены с диска сервера. |
 | **Base image** | По умолчанию профиль **medium**: wkhtmltopdf и build deps, без Chromium/Xvfb/IDE — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md). Override: `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci`. |

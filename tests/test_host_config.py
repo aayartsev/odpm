@@ -860,6 +860,32 @@ class BindDevelopingLinkTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             bind_developing_link(config)
 
+    def test_finalize_preserves_bound_developing_project_link(self):
+        from dev_project.config.bootstrap_phases import finalize_user_settings_after_secrets
+
+        config = Config.__new__(Config)
+        config._bootstrap = BootstrapState()
+        bound = MagicMock(project_path="/tmp/dev", project_data=MagicMock())
+        config.bootstrap.developing_project = bound
+        config.bootstrap.raw_user_settings = {
+            "developing_project": "file:///tmp/dev",
+            "db_manager_password": "1",
+        }
+        config.bootstrap.raw_user_settings_disk = dict(
+            config.bootstrap.raw_user_settings
+        )
+        config._user = UserSettingsState()
+        config._bootstrap_ctx = MagicMock()
+        config._bootstrap_ctx.user_settings.get_user_settings_phase2 = MagicMock()
+
+        with patch(
+            "dev_project.config.bootstrap_phases._apply_manifest_database_to_user_settings"
+        ):
+            finalize_user_settings_after_secrets(config)
+
+        self.assertIs(config.bootstrap.developing_project, bound)
+        self.assertIs(config._user.developing_project, bound)
+
 
 class BindPlatformLinkTests(unittest.TestCase):
     def test_bind_platform_link_sets_platform_project_and_src_dir(self):

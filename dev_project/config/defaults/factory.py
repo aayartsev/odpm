@@ -100,6 +100,25 @@ class ConfigDefaultsFactory:
         return block
 
     def create_default_user_setting_json_content(self) -> UserSettingsJson:
+        policy = getattr(self.config, "policy", None)
+        use_hardened_refs = bool(
+            policy is not None
+            and getattr(policy, "should_bootstrap_odoo_password_secrets", lambda: False)()
+        )
+        if use_hardened_refs:
+            from ...security_profiles import (
+                HARDENED_DB_DEFAULT_ADMIN_PASSWORD_REF,
+                HARDENED_DB_MANAGER_PASSWORD_REF,
+            )
+
+            default_manager = HARDENED_DB_MANAGER_PASSWORD_REF
+            default_admin_password = HARDENED_DB_DEFAULT_ADMIN_PASSWORD_REF
+        else:
+            default_manager = constants.DEFAULT_DB_MANAGER_PASSWORD
+            default_admin_password = (
+                constants.DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_PASSWORD
+            )
+
         user_settings_content = UserSettingsJson(
             init_modules=self.config.config_json_content.get(
                 "init_modules", constants.DEFAULT_INIT_MODULES
@@ -123,7 +142,7 @@ class ConfigDefaultsFactory:
                     "db_creation_data", {}
                 ).get(
                     "db_default_admin_password",
-                    constants.DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_PASSWORD,
+                    default_admin_password,
                 ),
             ),
             update_git_repos=self.config.config_json_content.get(
@@ -136,7 +155,7 @@ class ConfigDefaultsFactory:
                 "check_system", constants.DEFAULT_CHECK_SYSTEM
             ),
             db_manager_password=self.config.config_json_content.get(
-                "db_manager_password", constants.DEFAULT_DB_MANAGER_PASSWORD
+                "db_manager_password", default_manager
             ),
             dev_mode=self.config.config_json_content.get(
                 "dev_mode", constants.DEFAULT_DEV_MODE

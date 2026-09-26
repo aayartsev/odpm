@@ -612,21 +612,29 @@ RU_MESSAGES: dict[str, str] = {
         "Ссылка на compose-сервис {NAME} не может быть раскрыта "
         "(нужна для поля manifest {FIELD})"
     ),
-    "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for manifest field {FIELD})": (
-        "В manifest есть ссылки на секреты (@secret), но нет .odpm/secrets.json; "
-        "создайте файл или передайте --secrets-file (нужно для поля manifest {FIELD})"
+    "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for field {FIELD})": (
+        "В конфигурации есть ссылки на секреты (@secret), но нет .odpm/secrets.json; "
+        "создайте файл или передайте --secrets-file (нужно для поля {FIELD})"
     ),
-    "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})": (
-        "В manifest есть ссылки на секреты (@secret), но нет .odpm/secrets.json; "
+    "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})": (
+        "В конфигурации есть ссылки на секреты (@secret), но нет .odpm/secrets.json; "
         "создайте файл или передайте --secrets-file (нужные ключи: {KEYS})"
     ),
-    "Secret {KEY} is not set in .odpm/secrets.json (required for manifest field {FIELD})": (
+    "Secret {KEY} is not set in .odpm/secrets.json (required for field {FIELD})": (
         "Секрет {KEY} не задан в .odpm/secrets.json "
-        "(нужен для поля manifest {FIELD})"
+        "(нужен для поля {FIELD})"
     ),
-    "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})": (
+    "Secret {KEY} still has a placeholder value (required for field {FIELD})": (
         "Секрет {KEY} всё ещё содержит значение-заглушку "
-        "(нужен для поля manifest {FIELD})"
+        "(нужен для поля {FIELD})"
+    ),
+    "Security profile hardened: {FIELD} is missing or empty in user_settings.json; prefer ${{@secret:...}} (file not modified)": (
+        "Профиль безопасности hardened: поле {FIELD} отсутствует или пусто в "
+        "user_settings.json; предпочтительна ссылка ${{@secret:...}} (файл не изменён)"
+    ),
+    "Security profile hardened: {FIELD} in user_settings.json is not a ${{@secret:...}} reference (file not modified)": (
+        "Профиль безопасности hardened: поле {FIELD} в user_settings.json не является "
+        "ссылкой ${{@secret:...}} (файл не изменён)"
     ),
     "Service source {NAME} file:// path does not exist: {PATH}": (
         "Путь file:// источника service_sources {NAME} не существует: {PATH}"

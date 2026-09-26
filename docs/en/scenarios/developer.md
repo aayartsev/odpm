@@ -14,7 +14,7 @@ The developer writes module code, debugs it in the editor, frequently restarts m
 |------|--------------|
 | **Debugger** | `ODPM_DEBUGGER_BACKEND` mode: `debugpy_listen` (container listens, VS Code / PyCharm Attach) or `pydevd_connect` (PyCharm Debug Server). Port `DEBUGGER_PORT` — see [IDE debugging](../operations/vscode-debug.md). |
 | **Module secrets** | Optional: `.odpm/secrets.json` → mount `/run/odpm/secrets.json` — [local secrets](../operations/secrets.md). |
-| **PostgreSQL** | Database port is available on the host (not only on the loopback interface) — convenient for local utilities. Cluster state and drift: [database-state.md](../reference/database-state.md). |
+| **PostgreSQL** | Default profile **`convenience`**: database port available on the host (not loopback-only). For a prod-like layout: `ODPM_SECURITY_PROFILE=hardened`. Cluster state: [database-state.md](../reference/database-state.md). |
 | **Sources** | Platform directories, the project under development, and dependencies are mounted from the developer's computer. |
 | **Python environment** | "Recreatable" mode: when the version lock file changes, the environment may be rebuilt. |
 | **Python warnings in logs** | `docker-compose` sets `PYTHONWARNINGS=ignore::DeprecationWarning:docutils` so that Odoo startup does not scare beginners with a long traceback from deprecated API in the **docutils** package (this is not an error in your code). In `server` and `ci` scenarios the filter is **not** enabled — warnings remain in the log and may signal docutils incompatibility with the Python version in the image. |

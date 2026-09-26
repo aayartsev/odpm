@@ -183,6 +183,12 @@ msgstr "Compose stack is healthy; reusing existing containers without --force-re
 msgid "Configuration drift:"
 msgstr "Configuration drift:"
 
+msgid "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for field {FIELD})"
+msgstr "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for field {FIELD})"
+
+msgid "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
+msgstr "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
+
 msgid "Container start skipped (--skip-start)."
 msgstr "Container start skipped (--skip-start)."
 
@@ -414,12 +420,6 @@ msgstr "Manifest hook {PHASE} failed: {COMMAND}"
 msgid "Manifest is already manifest_schema 2."
 msgstr "Manifest is already manifest_schema 2."
 
-msgid "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for manifest field {FIELD})"
-msgstr "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for manifest field {FIELD})"
-
-msgid "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
-msgstr "Manifest references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
-
 msgid "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
 msgstr "Manifest requires odpm manager {REQUIRES} or newer; current manager is {ODPM_VERSION}."
 
@@ -609,11 +609,17 @@ msgstr "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy 
 msgid "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
 msgstr "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
 
-msgid "Secret {KEY} is not set in .odpm/secrets.json (required for manifest field {FIELD})"
-msgstr "Secret {KEY} is not set in .odpm/secrets.json (required for manifest field {FIELD})"
+msgid "Secret {KEY} is not set in .odpm/secrets.json (required for field {FIELD})"
+msgstr "Secret {KEY} is not set in .odpm/secrets.json (required for field {FIELD})"
 
-msgid "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
-msgstr "Secret {KEY} still has a placeholder value (required for manifest field {FIELD})"
+msgid "Secret {KEY} still has a placeholder value (required for field {FIELD})"
+msgstr "Secret {KEY} still has a placeholder value (required for field {FIELD})"
+
+msgid "Security profile hardened: {FIELD} in user_settings.json is not a ${{@secret:...}} reference (file not modified)"
+msgstr "Security profile hardened: {FIELD} in user_settings.json is not a ${{@secret:...}} reference (file not modified)"
+
+msgid "Security profile hardened: {FIELD} is missing or empty in user_settings.json; prefer ${{@secret:...}} (file not modified)"
+msgstr "Security profile hardened: {FIELD} is missing or empty in user_settings.json; prefer ${{@secret:...}} (file not modified)"
 
 msgid "Select CI image build backend (Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n"
 msgstr "Select CI image build backend (Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n"

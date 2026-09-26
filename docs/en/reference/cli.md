@@ -20,8 +20,9 @@ Below is a reference by group. Flag names are **as in the program** (Latin).
 | `--distro-version VER` | Distribution version (`11`, `12`, …) |
 | `--postgres-version VER` | PostgreSQL version in compose |
 | `--requirements-txt PACKAGES` | Python packages comma-separated → written to `odpm.json` |
-| `--secrets-file PATH` | Import JSON v1 into `.odpm/secrets.json` (on `--init` and any run). Implies the `file` provider. See [local secrets](../operations/secrets.md). |
+| `--secrets-file PATH` | Import JSON v1 into `.odpm/secrets.json` (on `--init` and any run; early bootstrap, before `${@secret:}` expand in `user_settings`). Implies the `file` provider. See [local secrets](../operations/secrets.md). |
 | `--secrets-provider NAME` | Secrets provider for this run (`file`, `infisical`, or a plugin id). Overrides `ODPM_SECRETS_PROVIDER` and `secrets.provider.type`. `--secrets-file` forces `file`. |
+| `--security-profile NAME` | Security profile (`convenience` / `hardened`). Overrides `ODPM_SECURITY_PROFILE`; else defaults from `ODPM_SCENARIO`. See [security](../operations/security.md). |
 
 Example:
 
