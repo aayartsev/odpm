@@ -2090,7 +2090,7 @@
 </tr>
 <tr>
 <td><strong>PostgreSQL</strong></td>
-<td>Порт базы доступен на хосте (не только с интерфейса loopback) — удобно для локальных утилит. Состояние кластера и drift: <a href="../../reference/database-state/">database-state.md</a>.</td>
+<td>По умолчанию профиль <strong><code>convenience</code></strong>: порт БД доступен на хосте (не только loopback). Для prod-подобной схемы: <code>ODPM_SECURITY_PROFILE=hardened</code>. Состояние кластера: <a href="../../reference/database-state/">database-state.md</a>.</td>
 </tr>
 <tr>
 <td><strong>Исходники</strong></td>

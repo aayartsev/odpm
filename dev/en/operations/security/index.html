@@ -1863,6 +1863,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#security-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security profiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#passwords-in-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1886,10 +1897,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#odoo-module-secrets-api-keys-integration-tokens" class="md-nav__link">
+  <a href="#module-secrets-api-keys-integration-tokens" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Odoo module secrets (API keys, integration tokens)
+        Module secrets (API keys, integration tokens)
       
     </span>
   </a>
@@ -1913,10 +1924,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#development-on-localhost" class="md-nav__link">
+  <a href="#local-development" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Development on localhost
+        Local development
       
     </span>
   </a>
@@ -1994,6 +2005,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#security-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security profiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#passwords-in-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2017,10 +2039,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#odoo-module-secrets-api-keys-integration-tokens" class="md-nav__link">
+  <a href="#module-secrets-api-keys-integration-tokens" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Odoo module secrets (API keys, integration tokens)
+        Module secrets (API keys, integration tokens)
       
     </span>
   </a>
@@ -2044,10 +2066,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#development-on-localhost" class="md-nav__link">
+  <a href="#local-development" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Development on localhost
+        Local development
       
     </span>
   </a>
@@ -2080,56 +2102,86 @@
 
 
 <h1 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p><strong>AI-translated</strong> from Russian.</p>
-</blockquote>
+<h2 id="security-profiles">Security profiles<a class="headerlink" href="#security-profiles" title="Permanent link">&para;</a></h2>
+<p>The <strong><code>ODPM_SECURITY_PROFILE</code></strong> / <strong><code>--security-profile</code></strong> axis sets posture (passwords and publish binds), separate from <code>ODPM_SCENARIO</code> (topology / workflow).</p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Scenario default</th>
+<th>New <code>user_settings</code> / secrets</th>
+<th>Published ports</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>convenience</code></td>
+<td><code>developer</code></td>
+<td>manager=<code>1</code>, admin user=<code>admin</code> (unchanged)</td>
+<td>no forced <code>127.0.0.1</code></td>
+</tr>
+<tr>
+<td><code>hardened</code></td>
+<td><code>server</code></td>
+<td>random in <code>.odpm/secrets.json</code>; settings use <code>${@secret:odpm.db_manager_password}</code> and <code>${@secret:odpm.db_default_admin_password}</code></td>
+<td>Postgres and all published → <code>127.0.0.1</code></td>
+</tr>
+</tbody>
+</table>
+<p>Override: CLI <code>--security-profile</code> wins over env <code>ODPM_SECURITY_PROFILE</code>, else scenario default.<br />
+<strong><code>ci</code></strong>: Odoo password secret bootstrap is <strong>off</strong>; port binds stay scenario-owned (postgres on localhost, not all published), even if override is <code>hardened</code>.</p>
+<p>Source of truth for Odoo passwords is <strong><code>user_settings.json</code> after expand</strong> (<code>${VAR}</code> / <code>${@secret:}</code> across the whole file). odpm <strong>never rewrites</strong> an existing settings file. On <code>hardened</code>, if password fields in raw settings are plaintext / empty / not <code>${@secret:…}</code> — WARNING (file unchanged).</p>
+<p>New hardened projects: if <code>.odpm/secrets.json</code> is missing, odpm creates <code>odpm.db_manager_password</code> and <code>odpm.db_default_admin_password</code> (<code>token_urlsafe</code>, <code>0600</code>).<br />
+An existing Odoo database does not pick up a new admin password automatically — use <code>--set-admin-pass</code> with <code>-d</code>.</p>
+<p>See ADR-023, <a href="../secrets/">local secrets</a>, <a href="../../reference/user-settings/">user-settings</a>.</p>
 <h2 id="passwords-in-configuration">Passwords in configuration<a class="headerlink" href="#passwords-in-configuration" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Parameter</th>
+<th>Setting</th>
 <th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>db_manager_password</code> in <code>user_settings.json</code></td>
-<td>Odoo <strong>database manager</strong> password</td>
+<td>Odoo <strong>database manager</strong> password (<code>admin_passwd</code>)</td>
 </tr>
 <tr>
 <td><code>db_default_admin_login</code> / <code>db_default_admin_password</code></td>
-<td><strong>Administrator</strong> account when creating a new database</td>
+<td><strong>Administrator</strong> account when creating a DB / <code>--set-admin-pass</code></td>
 </tr>
 <tr>
 <td>PostgreSQL credentials</td>
-<td>Injected into service configuration and compose</td>
+<td>Injected into service config and compose (shared <code>POSTGRES_ODOO_PASS</code> for now)</td>
 </tr>
 </tbody>
 </table>
-<p>On <strong>your own computer</strong> in development mode, default template values are acceptable — the database is not reachable from the internet.</p>
-<p>On a <strong>server</strong>, customer VM, or test stand on the organization network, set passwords <strong>explicitly</strong>: long and unique. Do not rely on “factory” values from the example.</p>
+<p>On a <strong>laptop</strong> (<code>convenience</code>), template defaults are fine. On a <strong>server</strong> (<code>hardened</code>), prefer secrets + refs.</p>
 <h2 id="secrets-and-git">Secrets and git<a class="headerlink" href="#secrets-and-git" title="Permanent link">&para;</a></h2>
-<p>Do not put passwords, access tokens, or private keys in a shared repository. The project <code>.env</code> is usually <strong>not committed</strong>. Keep the <code>user_settings.json</code> template in git without real secrets.</p>
-<h3 id="odoo-module-secrets-api-keys-integration-tokens">Odoo module secrets (API keys, integration tokens)<a class="headerlink" href="#odoo-module-secrets-api-keys-integration-tokens" title="Permanent link">&para;</a></h3>
-<p>For arbitrary <strong>module</strong> keys (not Odoo DB passwords), use <strong><code>.odpm/secrets.json</code></strong> — a file in <code>.odpm/.gitignore</code>, not in <code>odpm.json</code>. odpm mounts a normalized copy into the container as <code>/run/odpm/secrets.json</code> (<code>developer</code> and <code>server</code> scenarios).</p>
+<p>Do not commit passwords, API tokens, or private keys. Project <code>.env</code> is usually <strong>not</strong> committed. Prefer <code>user_settings.json</code> without real secrets in git (on hardened — <code>${@secret:…}</code> refs).</p>
+<h3 id="module-secrets-api-keys-integration-tokens">Module secrets (API keys, integration tokens)<a class="headerlink" href="#module-secrets-api-keys-integration-tokens" title="Permanent link">&para;</a></h3>
+<p>Use <strong><code>.odpm/secrets.json</code></strong> (gitignored). odpm mounts a normalized copy at <code>/run/odpm/secrets.json</code> (<code>developer</code> and <code>server</code>).</p>
 <ul>
-<li>Commit only <strong><code>.odpm/secrets.example.json</code></strong> to git with <code>REPLACE_ME</code> placeholders.</li>
-<li>After import, odpm sets <strong><code>0600</code></strong> permissions on the source.</li>
-<li>Do not log values from <code>/run/odpm/secrets.json</code> in Odoo and do not duplicate them in compose <code>environment:</code>.</li>
+<li>Commit only <strong><code>.odpm/secrets.example.json</code></strong> with <code>REPLACE_ME</code> stubs.</li>
+<li>After import, odpm sets source mode <strong><code>0600</code></strong>.</li>
+<li>Do not log <code>/run/odpm/secrets.json</code> values or duplicate them into compose <code>environment:</code>.</li>
 </ul>
 <p>Details: <a href="../secrets/">local secrets</a>.</p>
+<p><code>--secrets-file</code> imports JSON v1 into <code>.odpm/secrets.json</code> <strong>early in bootstrap</strong> (before full <code>user_settings</code> <code>${@secret:}</code> expand).</p>
 <h2 id="server-scenario-and-internet-exposure"><code>server</code> scenario and internet exposure<a class="headerlink" href="#server-scenario-and-internet-exposure" title="Permanent link">&para;</a></h2>
+<p>Default profile <strong><code>hardened</code></strong>: localhost-only ports, passwords via secrets.</p>
 <ul>
-<li>Terminate <strong>HTTPS</strong> at a <strong>reverse proxy</strong> (nginx, Caddy, traefik, etc.).</li>
-<li>Enable <strong><code>proxy_mode</code></strong> in <code>odoo.conf</code>; when publishing multiple databases on one host, configure <strong><code>dbfilter</code></strong>.</li>
-<li>PostgreSQL and <strong>all</strong> Compose published ports (Odoo, Gevent, sidecars) in the <code>server</code> scenario listen only on <strong>127.0.0.1</strong> — odpm configures binds that way. Do not widen them to <code>0.0.0.0</code> manually in compose.</li>
-<li>The application PostgreSQL role (<code>odoo</code>) is <strong>NOSUPERUSER</strong>; the <code>postgres</code> SUPERUSER role is for odpm ensure-role. Admin and app share one password — a leak from <code>odoo.conf</code> still allows <code>-U postgres</code>; keep passwords out of git and restrict access to conf/compose.</li>
-<li><strong>Firewall:</strong> open SSH and HTTPS proxy from outside; Odoo ports (<code>8069</code>, <code>8072</code>) do not need to be visible from the internet if the proxy is on the same machine.</li>
-<li>Do not use Odoo <strong>development mode</strong> (<code>dev_mode</code>) on an externally reachable instance; in <code>server</code> scenario it is ignored, but switching to <code>developer</code> on production for debugging is <strong>not allowed</strong>.</li>
-<li>A debugger port on the server is <strong>not needed</strong>.</li>
+<li>Terminate <strong>HTTPS</strong> at a <strong>reverse proxy</strong>.</li>
+<li>Enable <strong><code>proxy_mode</code></strong> in <code>odoo.conf</code>; use <strong><code>dbfilter</code></strong> when hosting multiple DBs.</li>
+<li>Do not widen published ports to <code>0.0.0.0</code> in compose by hand.</li>
+<li>App role <code>odoo</code> is <strong>NOSUPERUSER</strong>; admin role <code>postgres</code> is still required for ensure-role. Admin and app still share <code>POSTGRES_ODOO_PASS</code> today.</li>
+<li>Firewall: expose SSH and the HTTPS proxy only.</li>
+<li>Do not use <strong><code>dev_mode</code></strong> on an internet-facing instance; it is ignored in <code>server</code>.</li>
+<li>Debugger port is not needed on the server.</li>
 </ul>
-<h2 id="development-on-localhost">Development on localhost<a class="headerlink" href="#development-on-localhost" title="Permanent link">&para;</a></h2>
-<p>Default passwords are convenient for a quick start. Do not carry them to staging environments and do not expose a dev environment on a shared network without changing passwords and adding a proxy.</p>
+<h2 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h2>
+<p>Default profile <strong><code>convenience</code></strong>: simple passwords and open ports for local tools. To try a production-like layout: <code>ODPM_SECURITY_PROFILE=hardened</code> or <code>--security-profile hardened</code> without changing scenario.</p>
 
 
 

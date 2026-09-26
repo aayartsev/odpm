@@ -2065,7 +2065,11 @@
 </tr>
 <tr>
 <td><strong>Published ports</strong></td>
-<td>Все порты compose (PostgreSQL, Odoo, Gevent и sidecars) на хосте только на <strong><code>127.0.0.1</code></strong>. Доступ снаружи — через <strong>обратный прокси</strong> на той же машине.</td>
+<td>По умолчанию профиль <strong><code>hardened</code></strong>: все порты compose на хосте только на <strong><code>127.0.0.1</code></strong>. Override: <code>ODPM_SECURITY_PROFILE</code> / <code>--security-profile</code>. Внешний доступ — через <strong>обратный прокси</strong>.</td>
+</tr>
+<tr>
+<td><strong>Пароли Odoo</strong></td>
+<td>Дефолт <strong><code>hardened</code></strong>: random в <code>.odpm/secrets.json</code>, в <code>user_settings</code> — <code>${@secret:…}</code>. См. <a href="../../operations/security/">безопасность</a>.</td>
 </tr>
 <tr>
 <td><strong>Режим разработки Odoo</strong></td>

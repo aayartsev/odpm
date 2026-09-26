@@ -2068,7 +2068,11 @@
 </tr>
 <tr>
 <td><strong>Published ports</strong></td>
-<td>All Compose ports (PostgreSQL, Odoo, Gevent, and sidecars) bind to <strong><code>127.0.0.1</code> only</strong> on the host. External access goes through a <strong>reverse proxy</strong> on the same machine.</td>
+<td>Default profile <strong><code>hardened</code></strong>: all Compose ports bind to <strong><code>127.0.0.1</code> only</strong>. Override: <code>ODPM_SECURITY_PROFILE</code> / <code>--security-profile</code>. External access via a <strong>reverse proxy</strong>.</td>
+</tr>
+<tr>
+<td><strong>Odoo passwords</strong></td>
+<td>Default <strong><code>hardened</code></strong>: random in <code>.odpm/secrets.json</code>, <code>${@secret:…}</code> in <code>user_settings</code>. See <a href="../../operations/security/">security</a>.</td>
 </tr>
 <tr>
 <td><strong>Odoo development mode</strong></td>
