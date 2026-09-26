@@ -2122,7 +2122,8 @@
 <ul>
 <li>Terminate <strong>HTTPS</strong> at a <strong>reverse proxy</strong> (nginx, Caddy, traefik, etc.).</li>
 <li>Enable <strong><code>proxy_mode</code></strong> in <code>odoo.conf</code>; when publishing multiple databases on one host, configure <strong><code>dbfilter</code></strong>.</li>
-<li>PostgreSQL in this scenario listens only on <strong>127.0.0.1</strong> on the machine — odpm configures port forwarding that way. Do not manually expose <code>5432</code> on all interfaces in compose.</li>
+<li>PostgreSQL and <strong>all</strong> Compose published ports (Odoo, Gevent, sidecars) in the <code>server</code> scenario listen only on <strong>127.0.0.1</strong> — odpm configures binds that way. Do not widen them to <code>0.0.0.0</code> manually in compose.</li>
+<li>The application PostgreSQL role (<code>odoo</code>) is <strong>NOSUPERUSER</strong>; the <code>postgres</code> SUPERUSER role is for odpm ensure-role. Admin and app share one password — a leak from <code>odoo.conf</code> still allows <code>-U postgres</code>; keep passwords out of git and restrict access to conf/compose.</li>
 <li><strong>Firewall:</strong> open SSH and HTTPS proxy from outside; Odoo ports (<code>8069</code>, <code>8072</code>) do not need to be visible from the internet if the proxy is on the same machine.</li>
 <li>Do not use Odoo <strong>development mode</strong> (<code>dev_mode</code>) on an externally reachable instance; in <code>server</code> scenario it is ignored, but switching to <code>developer</code> on production for debugging is <strong>not allowed</strong>.</li>
 <li>A debugger port on the server is <strong>not needed</strong>.</li>

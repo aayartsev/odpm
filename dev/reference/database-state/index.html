@@ -2279,9 +2279,14 @@
 <p>Если в каталоге проекта ещё нет <code>last_run.json</code> (типично: унаследованный data dir PostgreSQL), перед полным стеком odpm:</p>
 <ol>
 <li>Поднимает сервис PostgreSQL (если не готов).</li>
-<li>Выполняет <strong><code>ensure_app_role</code></strong> — создаёт или обновляет роль приложения (<code>odoo</code> по умолчанию), в том числе через single-user bootstrap, если в кластере нет административной login-роли.</li>
+<li>Выполняет <strong><code>ensure_app_role</code></strong>:</li>
+<li>роль <strong><code>postgres</code></strong> — <code>LOGIN SUPERUSER</code> (admin odpm / compose <code>POSTGRES_USER</code>);</li>
+<li>роль <strong><code>odoo</code></strong> — <code>LOGIN NOSUPERUSER CREATEDB</code> (сессия Odoo, <code>db_user</code>);</li>
+<li>расширения <code>unaccent</code> и <code>pg_trgm</code> на <strong><code>template1</code></strong> (новые БД наследуют; уже созданные БД — вручную при необходимости);</li>
+<li>при отсутствии login-admin — single-user bootstrap обеих ролей, затем reconcile.</li>
 <li>Записывает текущую конфигурацию как baseline.</li>
 </ol>
+<p>Пароль admin и app — один секрет (<code>POSTGRES_ODOO_PASS</code>). Demote <code>odoo</code> закрывает <code>COPY … TO PROGRAM</code> от роли приложения; при утечке общего пароля доступ как <code>-U postgres</code> всё ещё возможен — см. <a href="../../operations/security/">безопасность</a>.</p>
 <p><strong>Adoption не делает:</strong></p>
 <ul>
 <li>смену владельца (owner) существующих Odoo-баз в PostgreSQL;</li>

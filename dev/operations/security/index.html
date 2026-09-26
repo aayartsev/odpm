@@ -2119,7 +2119,8 @@
 <ul>
 <li>Вынесите <strong>HTTPS</strong> на <strong>обратный прокси</strong> (nginx, Caddy, traefik и аналоги).</li>
 <li>В <code>odoo.conf</code> включите <strong><code>proxy_mode</code></strong>; при публикации нескольких баз на одном хосте настройте <strong><code>dbfilter</code></strong>.</li>
-<li>PostgreSQL в этом сценарии слушает только <strong>127.0.0.1</strong> на машине — odpm так настраивает проброс портов. Не расширяйте доступ к <code>5432</code> на все интерфейсы вручную в compose.</li>
+<li>PostgreSQL и <strong>все</strong> published ports compose (Odoo, Gevent, sidecars) в сценарии <code>server</code> слушают только <strong>127.0.0.1</strong> на машине — odpm так настраивает проброс. Не расширяйте доступ на <code>0.0.0.0</code> вручную в compose.</li>
+<li>Роль приложения PostgreSQL (<code>odoo</code>) — <strong>NOSUPERUSER</strong>; admin-роль <code>postgres</code> (SUPERUSER) нужна odpm для ensure-role. Пароль у admin и app общий — утечка из <code>odoo.conf</code> всё ещё даёт логин как <code>-U postgres</code>; храните пароли вне git и ограничивайте доступ к conf/compose.</li>
 <li><strong>Межсетевой экран:</strong> снаружи открывайте SSH и HTTPS прокси; порты Odoo (<code>8069</code>, <code>8072</code>) не обязаны быть видны из интернета, если прокси на той же машине.</li>
 <li><strong>Режим разработки Odoo</strong> (<code>dev_mode</code>) на доступном извне инстансе не используйте; в сценарии <code>server</code> он игнорируется, но переключаться на <code>developer</code> на production ради отладки <strong>нельзя</strong>.</li>
 <li>Порт отладчика на сервере <strong>не нужен</strong>.</li>

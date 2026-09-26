@@ -2064,12 +2064,8 @@
 <td>Не устанавливается и не публикуется порт отладки. Для отладки используйте отдельную машину со сценарием <code>developer</code>.</td>
 </tr>
 <tr>
-<td><strong>PostgreSQL на хосте</strong></td>
-<td>Слушает только <code>127.0.0.1</code> — с других машин через этот проброс не подключиться.</td>
-</tr>
-<tr>
-<td><strong>Odoo и Gevent</strong></td>
-<td>Порты на хосте доступны шире; для доступа из интернета — <strong>обратный прокси</strong> (nginx и аналоги) и межсетевой экран.</td>
+<td><strong>Published ports</strong></td>
+<td>Все порты compose (PostgreSQL, Odoo, Gevent и sidecars) на хосте только на <strong><code>127.0.0.1</code></strong>. Доступ снаружи — через <strong>обратный прокси</strong> на той же машине.</td>
 </tr>
 <tr>
 <td><strong>Режим разработки Odoo</strong></td>

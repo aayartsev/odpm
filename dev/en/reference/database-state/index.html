@@ -2282,9 +2282,14 @@
 <p>If <code>last_run.json</code> is missing (typical with an inherited PostgreSQL data directory), odpm before the full stack:</p>
 <ol>
 <li>Starts PostgreSQL if needed.</li>
-<li>Runs <strong><code>ensure_app_role</code></strong> — creates or updates the application role (default <code>odoo</code>), including single-user bootstrap when no admin login role exists.</li>
+<li>Runs <strong><code>ensure_app_role</code></strong>:</li>
+<li>role <strong><code>postgres</code></strong> — <code>LOGIN SUPERUSER</code> (odpm admin / compose <code>POSTGRES_USER</code>);</li>
+<li>role <strong><code>odoo</code></strong> — <code>LOGIN NOSUPERUSER CREATEDB</code> (Odoo session, <code>db_user</code>);</li>
+<li>extensions <code>unaccent</code> and <code>pg_trgm</code> on <strong><code>template1</code></strong> (new DBs inherit; existing DBs need a manual install if required);</li>
+<li>when no login admin exists — single-user bootstrap of both roles, then reconcile.</li>
 <li>Writes the current configuration as baseline.</li>
 </ol>
+<p>Admin and app share one password (<code>POSTGRES_ODOO_PASS</code>). Demoting <code>odoo</code> blocks <code>COPY … TO PROGRAM</code> from the application role; a leaked shared password still allows <code>-U postgres</code> — see <a href="../../operations/security/">security</a>.</p>
 <p><strong>Adoption does not:</strong></p>
 <ul>
 <li>reassign PostgreSQL owners of existing Odoo databases;</li>

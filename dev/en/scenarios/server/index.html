@@ -2067,12 +2067,8 @@
 <td>Not installed and debug port is not published. For debugging, use a separate machine with the <code>developer</code> scenario.</td>
 </tr>
 <tr>
-<td><strong>PostgreSQL on host</strong></td>
-<td>Listens only on <code>127.0.0.1</code> — cannot connect from other machines through this port mapping.</td>
-</tr>
-<tr>
-<td><strong>Odoo and Gevent</strong></td>
-<td>Ports are more broadly available on the host; for internet access use a <strong>reverse proxy</strong> (nginx and similar) and a firewall.</td>
+<td><strong>Published ports</strong></td>
+<td>All Compose ports (PostgreSQL, Odoo, Gevent, and sidecars) bind to <strong><code>127.0.0.1</code> only</strong> on the host. External access goes through a <strong>reverse proxy</strong> on the same machine.</td>
 </tr>
 <tr>
 <td><strong>Odoo development mode</strong></td>
