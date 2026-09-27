@@ -75,10 +75,10 @@ def read_nested_odpm_fragment(
         return None
 
     if resolver is not None:
-        from .config.transforms.env_substitution import (
+        from .config.transforms.env_substitution import (  # noqa: PLC0415  # optional
             ODPM_JSON_ENV_EXPAND_FIELDS,
             expand_env_in_json,
-        )
+        )  # noqa: PLC0415  # optional
 
         raw = expand_env_in_json(
             raw,
@@ -97,7 +97,7 @@ def read_nested_odpm_fragment(
     services: dict[str, Any] | None = None
     service_patches: dict[str, Any] | None = None
     try:
-        from .manifest.reader import load_manifest
+        from .manifest.reader import load_manifest  # noqa: PLC0415  # optional
 
         view = load_manifest(
             raw,

@@ -8,6 +8,7 @@ from dev_project.compose.runtime import (
     container_is_running_and_healthy,
     should_force_recreate_compose,
 )
+from dev_project.compose.runtime import compose_service_container_id
 
 
 class ContainerHealthTests(unittest.TestCase):
@@ -123,7 +124,6 @@ class ComposeCliArgvTests(unittest.TestCase):
 
     @patch("dev_project.compose.runtime._run_checked")
     def test_running_container_id_passes_project_flag(self, mock_run):
-        from dev_project.compose.runtime import compose_service_container_id
 
         mock_run.return_value = MagicMock(returncode=0, stdout="cid\n", stderr="")
         config = MagicMock()

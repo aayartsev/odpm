@@ -2,6 +2,7 @@ import platform
 import unittest
 
 from dev_project import constants
+import getpass
 
 
 class ContainerUserConstantsTests(unittest.TestCase):
@@ -17,7 +18,6 @@ class ContainerUserConstantsTests(unittest.TestCase):
 
     @unittest.skipUnless(platform.system() == "Linux", "host user detection is Linux-specific")
     def test_host_user_on_linux_differs_from_container_when_not_odoo(self):
-        import getpass
 
         login = getpass.getuser()
         if login == "odoo":

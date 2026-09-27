@@ -26,6 +26,11 @@ from dev_project.scenario_policy import ScenarioPolicy
 
 from tests.debug_profile_test_helpers import make_debugger_env_mock
 from tests.i18n_test_helpers import host_locale
+from dev_project.manifest.reader import ManifestView
+from tests.plan_smoke_helpers import seed_migrated_project_layout
+from dev_project.plan import OdpmPlan
+from dev_project.host.ports import PipelinePorts
+from dev_project.odpm_pipeline import OdpmPipeline
 
 
 class PlanPredicateTests(unittest.TestCase):
@@ -174,7 +179,6 @@ class OdpmPlannerTests(unittest.TestCase):
             )
 
     def test_plan_warns_manifest_unchanged_on_update_lock_for_v2(self):
-        from dev_project.manifest.reader import ManifestView
 
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
@@ -207,7 +211,6 @@ class OdpmPlannerTests(unittest.TestCase):
 
     def test_plan_shows_compose_noop_when_runtime_fresh_and_compose_present(self):
         with tempfile.TemporaryDirectory() as tmp:
-            from tests.plan_smoke_helpers import seed_migrated_project_layout
 
             seed_migrated_project_layout(Path(tmp))
             config = self._config(project_dir=tmp)
@@ -217,7 +220,6 @@ class OdpmPlannerTests(unittest.TestCase):
             self.assertEqual(self._step(plan, "compose.generate").outcome, "noop")
 
     def test_format_plan_renders_table(self):
-        from dev_project.plan import OdpmPlan
 
         text = format_plan(
             OdpmPlan(
@@ -310,7 +312,6 @@ class PrepareRegistryContractTests(unittest.TestCase):
 
     def test_fresh_runtime_config_marks_compose_service_noop(self):
         with tempfile.TemporaryDirectory() as tmp:
-            from tests.plan_smoke_helpers import seed_migrated_project_layout
 
             seed_migrated_project_layout(Path(tmp))
             ctx = self._ctx(OdpmCliArgs(), tmp)
@@ -380,7 +381,6 @@ PREPARE_STEP_IDS = [
 
 class ProjectMaterializerDryRunTests(unittest.TestCase):
     def test_dry_run_delegates_to_build_plan(self):
-        from dev_project.host.ports import PipelinePorts
 
         ports = MagicMock(spec=PipelinePorts)
         with patch("dev_project.project_materializer.build_plan") as mock_build_plan:
@@ -406,7 +406,6 @@ class OdpmPipelinePlanTests(unittest.TestCase):
         mock_planner,
         mock_format_plan,
     ):
-        from dev_project.odpm_pipeline import OdpmPipeline
 
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True), "/opt/odpm")
         pipeline.config = MagicMock()

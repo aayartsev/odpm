@@ -13,6 +13,11 @@ from dev_project.manifest.reader import (
     normalize_v2_to_flat,
 )
 from dev_project.manifest.schema import manifest_schema_v1, manifest_schema_v2, validate_manifest_v1
+import json
+import tempfile
+from unittest.mock import MagicMock
+from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
+import os
 
 
 def _minimal_v2(**overrides) -> dict:
@@ -397,15 +402,10 @@ class LoadManifestTests(unittest.TestCase):
 
 class OdpmJsonReaderIntegrationTests(unittest.TestCase):
     def test_get_odpm_settings_stores_manifest_view_and_normalized_flat(self):
-        import json
-        import tempfile
-        from unittest.mock import MagicMock
 
-        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
 
         with tempfile.TemporaryDirectory() as tmp:
             repo = f"{tmp}/developing/odpm.json"
-            import os
 
             os.makedirs(os.path.dirname(repo), exist_ok=True)
             with open(repo, "w", encoding="utf-8") as handle:

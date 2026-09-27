@@ -19,6 +19,8 @@ from ..translations import _, apply_locale_from_sources
 from . import user_env_parse as parse
 from . import user_env_wizard as wizard
 from .user_env_parse import EnvData, ParsedUserEnv
+from ..interactive import stdin_is_interactive
+
 
 _logger = get_module_logger(__name__)
 
@@ -26,7 +28,6 @@ __all__ = ["CreateUserEnvironment", "EnvData", "ParsedUserEnv"]
 
 
 def _stdin_is_interactive() -> bool:
-    from ..interactive import stdin_is_interactive
 
     return stdin_is_interactive()
 

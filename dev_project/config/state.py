@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from ..manifest.reader import ManifestView
 
 from .. import constants
+from ..compose.sidecar_gates import parse_sidecar_gates
 from ..git import HandleOdooProjectLink
 from ..manifest.v1_contract import resolve_v1_manifest_contract_line
 from .types import DbCreationData
@@ -22,8 +23,6 @@ def user_settings_from_raw(
     *,
     beautify_module_list: Callable[[Any], str],
 ) -> UserSettingsState:
-    from ..compose.sidecar_gates import parse_sidecar_gates
-
     if not isinstance(raw, dict):
         raw = {}
 

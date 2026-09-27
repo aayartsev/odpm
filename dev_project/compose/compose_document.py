@@ -32,6 +32,7 @@ from .service_names import (
 
 if TYPE_CHECKING:
     from ..project_env.environment import CreateProjectEnvironment
+from .sidecar_gates import apply_sidecar_gates, scrub_service_deps, sidecar_gates_from_user_settings
 
 
 def _resolve_port(user_env, attr: str, default: int) -> int:
@@ -75,8 +76,8 @@ def _compose_working_dir(compose_service) -> str:
 
 def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     """Assemble the full compose mapping (services + volumes)."""
-    from ..extensions.context import ExtensionHostContext
-    from .fragments import collect_compose_services, collect_service_patches
+    from ..extensions.context import ExtensionHostContext  # noqa: PLC0415  # cycle
+    from .fragments import collect_compose_services, collect_service_patches  # noqa: PLC0415  # cycle
 
     config = env.config
     policy = env.host_ctx.policy
@@ -172,11 +173,6 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         if debugger_connect_host.strip() == DEFAULT_DEBUGGER_CONNECT_HOST:
             odoo_service["extra_hosts"] = ["host.docker.internal:host-gateway"]
 
-    from .sidecar_gates import (
-        apply_sidecar_gates,
-        scrub_service_deps,
-        sidecar_gates_from_user_settings,
-    )
 
     ext = ExtensionHostContext.from_config(config)
     base_services = {LOGICAL_DB: postgres_service, LOGICAL_ODOO: odoo_service}

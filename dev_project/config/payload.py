@@ -14,13 +14,11 @@ if TYPE_CHECKING:
 
 
 def runtime_config_path(project_dir: str) -> str:
-    from .. import constants
 
     return os.path.join(project_dir, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
 
 
 def ensure_runtime_dir_gitignore(project_dir: str) -> None:
-    from .. import constants
 
     runtime_dir = os.path.join(project_dir, constants.ODPM_RUNTIME_DIR_REL_PATH)
     os.makedirs(runtime_dir, exist_ok=True)

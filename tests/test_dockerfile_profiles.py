@@ -17,6 +17,9 @@ from dev_project.dockerfile_profiles import (
 )
 from dev_project.host.user_env_parse import parse_dotenv_dict
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.config.layout import validate_distro
+from dev_project.errors import ConfigError
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROGRAM_DIR = str(PROJECT_ROOT)
@@ -200,7 +203,6 @@ class ImageNameProfileSuffixTests(unittest.TestCase):
 
 class ValidateDistroTests(unittest.TestCase):
     def test_debian_accepted(self):
-        from dev_project.config.layout import validate_distro
 
         config = MagicMock()
         config.distro_name = "debian"
@@ -208,8 +210,6 @@ class ValidateDistroTests(unittest.TestCase):
         validate_distro(config)
 
     def test_ubuntu_rejected(self):
-        from dev_project.config.layout import validate_distro
-        from dev_project.errors import ConfigError
 
         config = MagicMock()
         config.distro_name = "ubuntu"

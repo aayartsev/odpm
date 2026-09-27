@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from dev_project.git.service_sources import SERVICE_SOURCES_DIR
+from dev_project.config.odoo_conf import OdooConfBuilder
 
 
 class ServiceSourcesAddonsPathTests(unittest.TestCase):
@@ -16,7 +17,6 @@ class ServiceSourcesAddonsPathTests(unittest.TestCase):
             service_path = os.path.join(tmp, "odoo_projects", SERVICE_SOURCES_DIR, "autoparts_env")
             os.makedirs(service_path, exist_ok=True)
 
-            from dev_project.config.odoo_conf import OdooConfBuilder
 
             config = MagicMock()
             config.dependencies_projects = []

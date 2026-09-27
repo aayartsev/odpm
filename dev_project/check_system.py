@@ -14,6 +14,9 @@ from .project_env.services import BaseImageService
 from .protocols import SystemCheckerProtocol
 from .subprocess_runner import run_checked, run_logged, run_or_raise
 from .system_check_policy import SystemCheckPolicy
+import grp
+import pwd
+
 
 _logger = get_module_logger(__name__)
 
@@ -61,8 +64,6 @@ class SystemChecker(SystemCheckerProtocol):
         return result
 
     def get_system_groups(self, user: str) -> list:
-        import grp
-        import pwd
 
         gids = [g.gr_gid for g in grp.getgrall() if user in g.gr_mem]
         gid = pwd.getpwnam(user).pw_gid

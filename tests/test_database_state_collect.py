@@ -20,6 +20,7 @@ from dev_project.database import (
     save_last_run,
 )
 from dev_project.database.schema import DATABASE_LAST_RUN_SCHEMA_VERSION, DatabaseLastRun
+from dev_project.database.schema import DatabaseClusterFingerprint, DatabaseComposeFingerprint, DatabaseOdooConfFingerprint
 
 
 class ReadOdooConfDbFingerprintTests(unittest.TestCase):
@@ -141,11 +142,6 @@ class CollectDatabaseStateTests(unittest.TestCase):
 
 class DatabaseLastRunPersistenceTests(unittest.TestCase):
     def _snapshot(self, data_path: str) -> DatabaseLastRun:
-        from dev_project.database.schema import (
-            DatabaseClusterFingerprint,
-            DatabaseComposeFingerprint,
-            DatabaseOdooConfFingerprint,
-        )
 
         return DatabaseLastRun(
             schema_version=DATABASE_LAST_RUN_SCHEMA_VERSION,

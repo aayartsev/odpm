@@ -42,7 +42,7 @@ def _pydevd_connect_error_message(connect_host: str, port: int) -> str:
 
 def attach_pydevd_debugger(*, connect_host: str, port: int, suspend: bool) -> None:
     try:
-        import pydevd_pycharm
+        import pydevd_pycharm  # noqa: PLC0415  # optional
     except ImportError as exc:
         raise ContainerError(
             "pydevd-pycharm is not installed in the container venv"

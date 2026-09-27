@@ -5,10 +5,11 @@ from __future__ import annotations
 import os
 
 from .. import constants
-from ..plan import PlanStep
+from ..plan.core import PlanStep
 from ..plan.l10n import plan_msg
 from ..plan.secrets_preview import secrets_needs_update, secrets_source_key_count
 from ..project_env.secrets import materialize_secrets
+from ..secrets_providers.fetch import ensure_secrets_source_for_config
 from ..secrets_providers.resolve import resolve_secrets_provider_name
 from ..secrets_providers.session import session_for_config
 from .helpers import make_plan_step
@@ -82,8 +83,6 @@ def evaluate_secrets_fetch(ctx: PrepareContext) -> PlanStep:
 
 
 def exec_secrets_fetch(ctx: PrepareContext) -> None:
-    from ..secrets_providers.fetch import ensure_secrets_source_for_config
-
     raw = {}
     view = ctx.manifest_view
     if view is not None and getattr(view, "source_raw", None):

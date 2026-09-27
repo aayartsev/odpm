@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 from .. import constants
-from ..plan import (
+from ..config.odoo_conf import (
+    odoo_conf_db_host_mismatch,
+    odoo_conf_on_disk_needs_regeneration,
+)
+from ..manifest.odoo_conf_policy import ci_manifest_db_override
+from ..plan.core import (
     PlanStep,
     dockerfile_template_relative_host,
     project_template_needs_upgrade,
@@ -69,12 +74,6 @@ def evaluate_template_dockerignore(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_template_odoo_conf(ctx: PrepareContext) -> PlanStep:
-    from ..config.odoo_conf import (
-        odoo_conf_db_host_mismatch,
-        odoo_conf_on_disk_needs_regeneration,
-    )
-    from ..manifest.odoo_conf_policy import ci_manifest_db_override
-
     description = plan_msg("Regenerate project odoo.conf from .odpm template")
     expected_host = ctx.host_ctx.user_env.postgres_service_name
     skip_db_host_check = ci_manifest_db_override(

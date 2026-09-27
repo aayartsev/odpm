@@ -18,12 +18,15 @@ from ..debugger.constants import (
 )
 from ..logging import get_module_logger
 from ..translations import _, parse_odpm_locale_setting
+from ..interactive import prompt_input
+from ..translations import _locale_from_environment
+from ..debugger.env_parsing import parse_debugger_suspend
+
 
 _logger = get_module_logger(__name__)
 
 
 def _prompt_input(prompt: str) -> str:
-    from ..interactive import prompt_input
 
     return prompt_input(prompt)
 
@@ -201,7 +204,6 @@ def get_from_user_odpm_scenario() -> str:
 
 
 def get_from_user_odpm_locale() -> str:
-    from ..translations import _locale_from_environment
 
     system_locale = _locale_from_environment()
     user_locale = sys.modules[__name__]._prompt_input(
@@ -247,7 +249,7 @@ def get_from_user_debugger_connect_host() -> str:
     if not user_host:
         selected = default_host
     else:
-        from ..debugger.env_parsing import parse_debugger_connect_host
+        from ..debugger.env_parsing import parse_debugger_connect_host  # noqa: PLC0415  # optional
 
         selected = parse_debugger_connect_host(user_host)
     _logger.info(
@@ -259,7 +261,6 @@ def get_from_user_debugger_connect_host() -> str:
 
 
 def get_from_user_debugger_suspend() -> bool:
-    from ..debugger.env_parsing import parse_debugger_suspend
 
     choice = sys.modules[__name__]._prompt_input(
         _(

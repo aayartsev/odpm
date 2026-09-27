@@ -26,11 +26,11 @@ def manifest_trees_for_secret_ref_gate(
     with ``load_manifest(..., active_scenario=...)`` and scenario-aware
     ``secrets.required``.
     """
-    from ...manifest.scenario_overrides import (
+    from ...manifest.scenario_overrides import (  # noqa: PLC0415  # cycle
         manifest_uses_scenarios,
         resolve_effective_manifest_slice,
         top_level_slice,
-    )
+    )  # noqa: PLC0415  # cycle
 
     if not manifest_uses_scenarios(raw):
         slice_ = top_level_slice(raw)

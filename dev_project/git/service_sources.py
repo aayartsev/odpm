@@ -15,6 +15,9 @@ from .runner import GitRunner
 if TYPE_CHECKING:
     from ..config.config import Config
     from .deps_lock import LockEntry
+from ..config.transforms.env_substitution import inject_service_source_paths
+from ..manifest.reader import refresh_manifest_view_compose_expansion
+
 
 _logger = get_module_logger(__name__)
 
@@ -93,7 +96,7 @@ def materialize_one_service_source(
 
     project_link = config.handle_git_link(link, materialize=False)
     if lock_entry is not None and not link.startswith("file://"):
-        from .deps_lock import apply_lock_entry_to_link
+        from .deps_lock import apply_lock_entry_to_link  # noqa: PLC0415  # optional
 
         apply_lock_entry_to_link(project_link, lock_entry)
     git_dir = os.path.join(target, ".git")
@@ -226,8 +229,6 @@ def apply_materialized_service_sources(
     source_paths: dict[str, str],
 ) -> None:
     """Inject materialized paths into env resolver and re-expand compose fields."""
-    from ..config.transforms.env_substitution import inject_service_source_paths
-    from ..manifest.reader import refresh_manifest_view_compose_expansion
 
     config.bootstrap.service_source_paths = dict(source_paths)
     config._env_resolver = inject_service_source_paths(

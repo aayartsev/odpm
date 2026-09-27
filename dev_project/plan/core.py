@@ -16,6 +16,8 @@ from ..project_dir_manager import template_needs_upgrade
 if TYPE_CHECKING:
     from ..config import Config
     from .diff import PlanFileDiff
+from ..git.deps_lock import deps_lock_path
+
 
 PlanStepOutcome = Literal["run", "update", "noop", "skip"]
 
@@ -53,7 +55,6 @@ def update_lock_requested(arguments: OdpmCliArgs) -> bool:
 
 
 def deps_lock_file_exists(project_dir: str) -> bool:
-    from ..git.deps_lock import deps_lock_path
 
     return os.path.isfile(deps_lock_path(project_dir))
 

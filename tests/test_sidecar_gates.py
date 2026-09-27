@@ -37,6 +37,7 @@ from dev_project.debugger.constants import (
 from dev_project.scenario_policy import ScenarioPolicy
 
 from tests.test_compose_service_prefix import GOLDEN_POSTGRES_DATA, GOLDEN_PROJECT_DIR
+import tempfile
 
 
 class ParseSidecarGatesTests(unittest.TestCase):
@@ -241,7 +242,6 @@ class FragmentsSidecarGatesTests(unittest.TestCase):
         )
 
     def test_plan_and_materialize_skip_disabled(self) -> None:
-        import tempfile
 
         with tempfile.TemporaryDirectory() as project_dir:
             ctx = self._make_ctx(project_dir, sidecars={"mailpit": False})

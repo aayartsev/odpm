@@ -117,7 +117,7 @@ def ensure_config_docker_capabilities(
     if not isinstance(compose_command, str) or not compose_command.strip():
         return None
     if run_checked is None:
-        from .subprocess_runner import run_checked as default_run_checked
+        from .subprocess_runner import run_checked as default_run_checked  # noqa: PLC0415  # optional
 
         run_checked = default_run_checked
     probed = probe_docker_capabilities(compose_command, run_checked=run_checked)
@@ -146,7 +146,7 @@ def resolve_docker_capabilities(
     if cached is not None:
         return cached
     if run_checked is None:
-        from .subprocess_runner import run_checked as default_run_checked
+        from .subprocess_runner import run_checked as default_run_checked  # noqa: PLC0415  # optional
 
         run_checked = default_run_checked
     probed = probe_docker_capabilities(

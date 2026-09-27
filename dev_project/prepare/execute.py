@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from .. import constants
 from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
 from ..host.ports import PipelinePorts, ports_from_config
 from ..logging import get_module_logger
 from ..translations import _
-from ..plan import OdpmPlan, PlanStep, deps_lock_file_exists
+from ..plan.core import OdpmPlan, PlanStep, deps_lock_file_exists
 from ..plan.l10n import plan_msg
 from .helpers import skip_git, update_lock
 from .registry import get_prepare_steps
@@ -20,6 +21,21 @@ from ..project_env.links import ProjectLinks
 from ..project_env.templates import ProjectTemplates
 from ..protocols import SystemCheckerProtocol
 from .types import PrepareContext, PrepareStepDef
+from ..extensions.hooks import run_lifecycle_hooks
+from ..extensions.registry import ensure_project_extensions_loaded
+from ..plan.database_preview import collect_database_drift_warnings_for_host
+from ..plan.fragments_preview import expand_compose_fragment_plan_steps
+from ..plan.hooks_preview import (
+    build_manifest_hook_plan_steps,
+    insert_prepare_hook_steps,
+    insert_runtime_hook_steps,
+)
+from ..plan.locks_preview import collect_git_lock_warnings
+from ..plan.patches_preview import expand_compose_patch_plan_steps
+from ..plan.secrets_preview import (
+    collect_secrets_requirement_warnings,
+    secrets_gitignore_warning,
+)
 
 _logger = get_module_logger(__name__)
 
@@ -77,8 +93,6 @@ def make_prepare_context(
 
 
 def _manifest_schema_v2(manifest_view) -> bool:
-    from .. import constants
-
     return (
         manifest_view is not None
         and manifest_view.manifest_schema == constants.MANIFEST_SCHEMA_V2
@@ -126,12 +140,9 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
                     "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
                 )
             )
-    from ..plan.secrets_preview import secrets_gitignore_warning
-
     gitignore_warning = secrets_gitignore_warning(ctx.host_ctx.project_dir)
     if gitignore_warning:
         warnings.append(plan_msg(gitignore_warning))
-    from ..plan.secrets_preview import collect_secrets_requirement_warnings
 
     secrets_spec = (
         ctx.manifest_view.scenario_slice.secrets
@@ -145,8 +156,6 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
         scenario=ctx.host_ctx.policy.scenario,
     ):
         warnings.append(plan_msg(issue))
-    from ..plan.database_preview import collect_database_drift_warnings_for_host
-    from ..plan.locks_preview import collect_git_lock_warnings
 
     warnings.extend(
         collect_database_drift_warnings_for_host(
@@ -168,14 +177,6 @@ def collect_execute_step_ids(ctx: PrepareContext) -> tuple[str, ...]:
 
 
 def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
-    from ..extensions.registry import ensure_project_extensions_loaded
-    from ..plan.fragments_preview import expand_compose_fragment_plan_steps
-    from ..plan.patches_preview import expand_compose_patch_plan_steps
-    from ..plan.hooks_preview import (
-        build_manifest_hook_plan_steps,
-        insert_prepare_hook_steps,
-    )
-
     manifest_view = ctx.manifest_view
     ensure_project_extensions_loaded(
         ctx.host_ctx.project_dir,
@@ -221,10 +222,6 @@ def build_plan(
         PlanOnlySystemChecker(),  # type: ignore[arg-type]
     )
     prepare_plan = build_prepare_plan(ctx)
-    from ..plan.hooks_preview import (
-        build_manifest_hook_plan_steps,
-        insert_runtime_hook_steps,
-    )
 
     hook_steps = build_manifest_hook_plan_steps(ctx.extension_host())
     runtime_steps = list(build_runtime_plan_steps(ports.runtime, project_env))
@@ -248,8 +245,6 @@ def validate_prepare_context(ctx: PrepareContext) -> None:
 
 
 def execute_prepare(ctx: PrepareContext) -> None:
-    from ..extensions.registry import ensure_project_extensions_loaded
-
     validate_prepare_context(ctx)
     manifest_view = ctx.manifest_view
     ensure_project_extensions_loaded(
@@ -263,7 +258,6 @@ def execute_prepare(ctx: PrepareContext) -> None:
         outcome = step_def.evaluate(ctx)
         if outcome.should_execute():
             step_def.execute(ctx)
-    from ..extensions.hooks import run_lifecycle_hooks
 
     run_lifecycle_hooks(
         ctx.extension_host(),

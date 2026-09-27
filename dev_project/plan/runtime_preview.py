@@ -11,6 +11,8 @@ from ..inside_docker_app.exceptions import ConfigValidationError
 
 if TYPE_CHECKING:
     from ..config import Config
+from ..container_config import ContainerConfig
+
 
 PLAN_ONLY_ARGUMENT_KEYS = frozenset(
     {"plan", "plan_format", "plan_no_docker", "plan_show_diff", "plan_strict"},
@@ -44,7 +46,6 @@ def format_runtime_config_payload(payload: dict) -> str:
 
 
 def runtime_config_payload_from_config(config: Config) -> dict:
-    from ..container_config import ContainerConfig
 
     container = ContainerConfig.from_odpm_config(config)
     payload = container.to_dict()
@@ -87,14 +88,14 @@ def normalized_runtime_config_text_from_disk(
 
 
 def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
-    from .compose_preview import (
+    from .compose_preview import (  # noqa: PLC0415  # cycle
         prepare_runtime_config_for_compose_preview as prepare,
-    )
+    )  # noqa: PLC0415  # cycle
 
     return prepare(config)
 
 
 def preview_runtime_config_text(config: Config) -> str | None:
-    from .compose_preview import preview_runtime_config_text as preview
+    from .compose_preview import preview_runtime_config_text as preview  # noqa: PLC0415  # cycle
 
     return preview(config)

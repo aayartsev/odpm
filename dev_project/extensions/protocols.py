@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from .context import ExtensionHostContext
 
 if TYPE_CHECKING:
-    from ..plan import PlanStep
+    from ..plan.core import PlanStep
     from ..prepare.types import PrepareContext, PrepareStepDef
 
 

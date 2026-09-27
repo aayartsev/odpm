@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
-from ..plan import PlanStep
+from ..git.service_sources import (
+    apply_materialized_service_sources,
+    collect_service_source_paths,
+    ensure_service_sources_present,
+    materialize_service_sources,
+    service_sources_need_materialize_for_view,
+)
+from ..plan.core import PlanStep
 from ..plan.l10n import plan_msg
 from .helpers import make_plan_step, skip_git
 from .types import PrepareContext
 
 
 def evaluate_sources_materialize(ctx: PrepareContext) -> PlanStep:
-    from ..git.service_sources import service_sources_need_materialize_for_view
-
     description = plan_msg(
         "Clone or update manifest service_sources git repositories"
     )
@@ -66,13 +71,6 @@ def evaluate_sources_materialize(ctx: PrepareContext) -> PlanStep:
 
 
 def exec_sources_materialize(ctx: PrepareContext) -> None:
-    from ..git.service_sources import (
-        apply_materialized_service_sources,
-        collect_service_source_paths,
-        ensure_service_sources_present,
-        materialize_service_sources,
-    )
-
     view = ctx.manifest_view
     if view is None or not view.service_sources:
         return

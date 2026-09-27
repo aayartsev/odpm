@@ -106,10 +106,10 @@ class ConfigDefaultsFactory:
             and getattr(policy, "should_bootstrap_odoo_password_secrets", lambda: False)()
         )
         if use_hardened_refs:
-            from ...security_profiles import (
+            from ...security_profiles import (  # noqa: PLC0415  # optional
                 HARDENED_DB_DEFAULT_ADMIN_PASSWORD_REF,
                 HARDENED_DB_MANAGER_PASSWORD_REF,
-            )
+            )  # noqa: PLC0415  # optional
 
             default_manager = HARDENED_DB_MANAGER_PASSWORD_REF
             default_admin_password = HARDENED_DB_DEFAULT_ADMIN_PASSWORD_REF

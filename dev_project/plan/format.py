@@ -9,6 +9,8 @@ from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..translations import _
 from .core import OdpmPlan, PlanStep
+from .compose_runtime import compose_up_force_recreate_value
+
 
 PLAN_JSON_VERSION = 1
 
@@ -28,7 +30,6 @@ def compose_up_info_from_plan(
 ) -> dict[str, Any] | None:
     if not any(step.id == "compose.up" for step in plan.steps):
         return None
-    from .compose_runtime import compose_up_force_recreate_value
 
     return {"force_recreate": compose_up_force_recreate_value(host_ctx, args)}
 

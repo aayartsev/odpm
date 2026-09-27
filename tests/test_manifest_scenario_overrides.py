@@ -17,6 +17,7 @@ from dev_project.manifest.scenario_overrides import (
     validate_scenario_manifest,
 )
 from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.manifest.reader import load_manifest
 
 
 def _mailpit_service() -> dict:
@@ -451,7 +452,6 @@ class ScenarioOverridesValidateTests(unittest.TestCase):
 
 class ScenarioOverridesLoadWireTests(unittest.TestCase):
     def test_manifest_view_exposes_scenario_slice_after_load(self):
-        from dev_project.manifest.reader import load_manifest
 
         view = load_manifest(
             _minimal_v2(

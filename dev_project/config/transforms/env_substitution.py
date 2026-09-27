@@ -10,10 +10,13 @@ from typing import TYPE_CHECKING, Any
 
 from ...errors import ConfigError
 from ...translations import _
+from ...manifest.secrets_policy import is_secret_placeholder
+from ...manifest.service_sources import source_env_key
 
 if TYPE_CHECKING:
     from ...compose.service_names import ComposeNamingContext
     from ...host.user_env import CreateUserEnvironment
+
 
 ODPM_JSON_ENV_EXPAND_FIELDS = frozenset({
     "dependencies",
@@ -74,7 +77,7 @@ class EnvResolver:
         secrets: Mapping[str, str] | None = None,
     ) -> EnvResolver:
         if compose_naming is None:
-            from ...compose.service_names import compose_naming_from_user_env
+            from ...compose.service_names import compose_naming_from_user_env  # noqa: PLC0415  # optional
 
             compose_naming = compose_naming_from_user_env(user_env)
         return cls.from_sources(
@@ -132,7 +135,6 @@ def _resolve_source_ref(
     field_path: str,
     allow_unresolved: bool,
 ) -> str:
-    from ...manifest.service_sources import source_env_key
 
     resolved = resolver.resolve(source_env_key(source_name))
     if resolved is not None:
@@ -157,7 +159,7 @@ def _resolve_service_ref(
 ) -> str:
     naming = resolver.compose_naming
     if naming is not None:
-        from ...compose.service_names import map_logical_service_name
+        from ...compose.service_names import map_logical_service_name  # noqa: PLC0415  # optional
 
         return map_logical_service_name(service_name, naming)
     if allow_unresolved:
@@ -196,8 +198,6 @@ def _resolve_secret_ref(
             ).format(KEY=secret_key, FIELD=field_path)
         )
     secret_value = resolver.secrets[secret_key]
-    from ...manifest.secrets_policy import is_secret_placeholder
-
     if is_secret_placeholder(secret_value):
         raise ConfigError(
             _(
@@ -569,9 +569,6 @@ def inject_service_source_paths(
     resolver: EnvResolver,
     source_paths: Mapping[str, str],
 ) -> EnvResolver:
-    """Return resolver with ``ODPM_SOURCE_*`` keys set from materialized paths."""
-    from ...manifest.service_sources import source_env_key
-
     merged_environ = dict(resolver.process_environ)
     for name, path in source_paths.items():
         merged_environ[source_env_key(name)] = str(path)

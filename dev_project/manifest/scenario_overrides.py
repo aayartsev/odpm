@@ -7,7 +7,7 @@ from typing import Any
 
 from .. import constants
 from ..errors import ConfigError
-from ..extensions.hooks import LIFECYCLE_PHASES
+from ..extensions.hooks import LIFECYCLE_PHASES, parse_hook_phase
 from ..translations import _
 from ..yaml import merge_service_patch_maps, merge_services
 from .compose_policy import (
@@ -230,8 +230,6 @@ def resolve_effective_manifest_slice(
 def _validate_hooks_fragment(hooks: dict[str, Any] | None) -> None:
     if hooks is None:
         return
-    from ..extensions.hooks import LIFECYCLE_PHASES, parse_hook_phase
-
     for phase in LIFECYCLE_PHASES:
         parse_hook_phase(hooks, phase)
 

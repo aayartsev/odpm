@@ -319,8 +319,6 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         )
 
     def test_platform_dir_discovers_compose_bind_and_short_time_format(self) -> None:
-        import subprocess
-        import tempfile
 
         root = Path(__file__).resolve().parents[2]
         lib = root / "scripts" / "golden_path_project_lib.sh"

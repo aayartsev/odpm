@@ -6,8 +6,10 @@ from copy import deepcopy
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
+from .. import constants
 from ..manifest.compose_policy import validate_manifest_compose_services
 from ..dependency_resolver import NestedOdpmFragment
+from .reader import ManifestView
 
 if TYPE_CHECKING:
     from ..config.config import Config
@@ -27,7 +29,7 @@ def merge_nested_compose_fragments(
     fragments: list[NestedOdpmFragment],
 ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
     """Merge nested dependency compose fields (later fragments override earlier)."""
-    from ..yaml import merge_service_patch_maps, merge_services
+    from ..yaml import merge_service_patch_maps, merge_services  # noqa: PLC0415  # cycle
 
     nested_services: dict[str, dict[str, Any]] = {}
     nested_patches: dict[str, dict[str, Any]] = {}
@@ -57,7 +59,7 @@ def inherit_nested_compose_into_manifest(
     nested_services, nested_patches = merge_nested_compose_fragments(fragments)
     if not nested_services and not nested_patches:
         return
-    from ..yaml import merge_service_patch_maps, merge_services
+    from ..yaml import merge_service_patch_maps, merge_services  # noqa: PLC0415  # cycle
 
     view = config.bootstrap.manifest_view
     host_services = _dict_services(view.services if view is not None else None)
@@ -68,9 +70,6 @@ def inherit_nested_compose_into_manifest(
     merged_patches = merge_service_patch_maps(nested_patches, host_patches)
 
     if view is None:
-        from .. import constants
-        from .reader import ManifestView
-
         config.bootstrap.manifest_view = ManifestView(
             manifest_schema=constants.MANIFEST_SCHEMA_V2,
             requires_odpm=None,

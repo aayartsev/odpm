@@ -20,6 +20,9 @@ from dev_project.project_env.image_build import (
 )
 from dev_project.project_env.image_build.docker_backend import DockerImageBuildBackend
 from dev_project.project_env.image_build.kaniko_backend import KanikoImageBuildBackend
+from dev_project.system_check_policy import merged_environ_for_resolve
+from dev_project.project_env.ci_image import CiImageBuilder
+from dev_project.host.cli.parse_args import parse_cli_args
 
 
 def _spec(**kwargs) -> ImageBuildSpec:
@@ -60,7 +63,6 @@ class ResolveCiImageBuilderTests(unittest.TestCase):
 
     def test_dotenv_dict_without_process_env(self):
         """Layered dotenv mapping must drive resolve when passed explicitly."""
-        from dev_project.system_check_policy import merged_environ_for_resolve
 
         dotenv = {constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko"}
         environ = merged_environ_for_resolve(dotenv, process_environ={})
@@ -324,7 +326,6 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
     def test_ci_image_builder_uses_docker_backend_and_ensures_base(
         self, mock_base_builder_cls, mock_base_svc, mock_get_backend
     ):
-        from dev_project.project_env.ci_image import CiImageBuilder
 
         backend = MagicMock()
         mock_get_backend.return_value = backend
@@ -364,7 +365,6 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
     def test_ci_image_builder_kaniko_ensures_base(
         self, mock_base_builder_cls, mock_base_svc, mock_get_backend
     ):
-        from dev_project.project_env.ci_image import CiImageBuilder
 
         backend = MagicMock()
         mock_get_backend.return_value = backend
@@ -400,7 +400,6 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
 
 class CliImageBuilderFlagTests(unittest.TestCase):
     def test_parse_image_builder_and_push(self):
-        from dev_project.host.cli.parse_args import parse_cli_args
 
         args = parse_cli_args(
             ["--build-image", "--image-builder", "kaniko", "--image-push"]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..debugger.ide import ide_includes_pycharm, ide_includes_vscode
 from ..host.ports import RuntimePorts
-from ..plan import PlanStep
+from ..plan.core import PlanStep
 from ..plan.compose_preview import vscode_settings_up_to_date
 from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
 from ..plan.debug_profile_preview import debug_profile_needs_update

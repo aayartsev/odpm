@@ -14,7 +14,7 @@ __all__ = [
 
 def __getattr__(name: str):
     if name == "CiImageBuildService":
-        from .ci_image_build import CiImageBuildService
+        from .ci_image_build import CiImageBuildService  # noqa: PLC0415  # optional
 
         return CiImageBuildService
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

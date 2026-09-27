@@ -8,6 +8,9 @@ from pathlib import Path
 
 from ..errors import ConfigError
 from ..translations import _
+import jsonschema
+from jsonschema.exceptions import ValidationError
+
 
 _SCHEMAS_DIR = Path(__file__).resolve().parent / "schemas"
 
@@ -25,8 +28,6 @@ def manifest_schema_v2() -> dict:
 
 
 def _validate_against_schema(raw: dict, schema: dict, *, label: str) -> None:
-    import jsonschema
-    from jsonschema.exceptions import ValidationError
 
     try:
         jsonschema.validate(raw, schema)

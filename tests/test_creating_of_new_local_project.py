@@ -9,20 +9,16 @@ import logging
 import os
 import shutil
 import subprocess
-import sys
 import time
 from pathlib import Path
 
 from delete_images import remove_images_by_prefix_cli
+from dev_project.logging import get_module_logger
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 CLEAN_ALL_DATA = 0
 CLEAN_DOCKER_IMAGES = 0
-
-# Add project root to path for logger import
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-from dev_project.logging import get_module_logger
 
 # Initialize logger from project
 _logger = get_module_logger(__name__)

@@ -2,8 +2,20 @@
 
 from __future__ import annotations
 
+import os
+
 from .. import constants
-from ..plan import PlanStep, project_template_needs_upgrade
+from ..compose.fragments import (
+    compose_fragments_need_materialize,
+    materialize_compose_fragments,
+)
+from ..compose.sidecar_gates import (
+    collect_effective_compose_services,
+    sidecar_gates_from_user_settings,
+)
+from ..compose.validate import validate_compose_file
+from ..docker_capabilities import ensure_config_docker_capabilities
+from ..plan.core import PlanStep, project_template_needs_upgrade
 from ..plan.compose_preview import (
     compose_generate_needs_execute,
     compose_service_needs_update,
@@ -38,12 +50,6 @@ def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
-    from ..compose.fragments import compose_fragments_need_materialize
-    from ..compose.sidecar_gates import (
-        collect_effective_compose_services,
-        sidecar_gates_from_user_settings,
-    )
-
     description = plan_msg("Materialize manifest and plugin compose service fragments")
     gates = sidecar_gates_from_user_settings(ctx.host_ctx.user_settings)
     services = collect_effective_compose_services(ctx.extension_host(), gates)
@@ -149,12 +155,6 @@ def exec_compose_template(ctx: PrepareContext) -> None:
 
 
 def exec_compose_fragments(ctx: PrepareContext) -> None:
-    from ..compose.fragments import materialize_compose_fragments
-    from ..compose.sidecar_gates import (
-        collect_effective_compose_services,
-        sidecar_gates_from_user_settings,
-    )
-
     gates = sidecar_gates_from_user_settings(ctx.host_ctx.user_settings)
     services = collect_effective_compose_services(ctx.extension_host(), gates)
     materialize_compose_fragments(
@@ -169,26 +169,17 @@ def exec_compose_service(ctx: PrepareContext) -> None:
 
 
 def exec_compose_generate(ctx: PrepareContext) -> None:
-    from .. import constants as _constants
-    from ..docker_capabilities import ensure_config_docker_capabilities
-    from ..system_check_policy import SystemCheckPolicy
-
     policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
     config = ctx.ports.bootstrap.config
     if policy.skip_compose_cli_probe:
         if not getattr(config, "docker_compose_command", None):
-            config.docker_compose_command = _constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+            config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
     else:
         ensure_config_docker_capabilities(config)
     ctx.compose_generator.generate_docker_compose_file()
 
 
 def exec_compose_validate(ctx: PrepareContext) -> None:
-    import os
-
-    from ..compose.validate import validate_compose_file
-    from ..system_check_policy import SystemCheckPolicy
-
     policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
     if not policy.skip_compose_cli_probe:
         ctx.system_checker.check_docker_compose()

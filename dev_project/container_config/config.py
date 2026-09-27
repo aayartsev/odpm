@@ -167,8 +167,8 @@ class ContainerConfig:
 
     @classmethod
     def from_odpm_config(cls, config: Config) -> ContainerConfig:
-        from ..config.payload import compute_venv_lock_hash
-        from ..config.transforms.modules import modules_csv_for_update_list
+        from ..config.payload import compute_venv_lock_hash  # noqa: PLC0415  # cycle
+        from ..config.transforms.modules import modules_csv_for_update_list  # noqa: PLC0415  # cycle
 
         run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)
         debugger = cls._debugger_settings_from_host(config)

@@ -14,10 +14,11 @@ from .transforms import OdooBuildDateResolver
 
 if TYPE_CHECKING:
     from .config import Config
+from .manifests.odpm_json_writer import rewrite_odpm_json
+import sys
 
 
 def _rewrite_odpm_json_impl(config: Config, *, create_default) -> None:
-    from .manifests.odpm_json_writer import rewrite_odpm_json
 
     rewrite_odpm_json(config, create_default=create_default)
 
@@ -47,7 +48,6 @@ class ConfigBootstrapContext:
         )
 
     def rewrite_odpm_json(self) -> None:
-        import sys
 
         module = sys.modules[__name__]
         module._rewrite_odpm_json_impl(

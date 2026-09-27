@@ -238,7 +238,7 @@ def apply_compose_physical_names(
     network_ctx=None,
 ) -> dict[str, Any]:
     """Apply prefix rewrite, legacy postgres rename, and optional network rewrite."""
-    from .network_names import ComposeNetworkContext, apply_compose_network
+    from .network_names import ComposeNetworkContext, apply_compose_network  # noqa: PLC0415  # cycle
 
     apply_compose_prefix(document, ctx)
     _apply_legacy_postgres_service_rename(document, ctx)

@@ -26,6 +26,8 @@ from dev_project.project_env.secrets import write_secrets_source
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.errors import PipelineError
+from dev_project.manifest.reader import ManifestView
 
 
 class ManifestSecretsSchemaTests(unittest.TestCase):
@@ -312,11 +314,11 @@ class RuntimeCoordinatorSecretsGuardTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
-    @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
-    @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
-    @patch("dev_project.database.adopt.adopt_database_baseline")
+    @patch("dev_project.runtime_coordinator.run_lifecycle_hooks")
+    @patch("dev_project.runtime_coordinator.ensure_no_blocking_database_drift")
+    @patch("dev_project.runtime_coordinator.adopt_database_baseline")
     def test_run_after_prepare_fails_when_required_secrets_missing(
         self,
         _mock_adopt,
@@ -326,8 +328,6 @@ class RuntimeCoordinatorSecretsGuardTests(unittest.TestCase):
         _mock_base_image,
         _mock_force,
     ):
-        from dev_project.errors import PipelineError
-        from dev_project.manifest.reader import ManifestView
 
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()

@@ -15,14 +15,16 @@ from ..manifest.compose_policy import (
 
 if TYPE_CHECKING:
     from ..extensions.context import ExtensionHostContext
+from ..extensions.registry import iter_compose_fragments
+from ..yaml import merge_service_patch_maps
+from ..yaml import dump_document
+
 
 _COMPOSE_FRAGMENTS_GITIGNORE = "*\n!.gitignore\n"
 
 
 def collect_service_patches(ext: ExtensionHostContext) -> dict[str, dict[str, Any]]:
     """Return manifest and plugin ``service_patches`` for built-in compose services."""
-    from ..extensions.registry import iter_compose_fragments
-    from ..yaml import merge_service_patch_maps
 
     patches = ext.manifest_service_patches
     result: dict[str, dict[str, Any]] = {}
@@ -49,13 +51,11 @@ def collect_service_patches(ext: ExtensionHostContext) -> dict[str, dict[str, An
 
 
 def compose_fragments_dir(project_dir: str) -> str:
-    from .. import constants
 
     return os.path.join(project_dir, constants.COMPOSE_FRAGMENTS_DIR_REL_PATH)
 
 
 def compose_fragments_snapshot_path(project_dir: str) -> str:
-    from .. import constants
 
     return os.path.join(project_dir, constants.COMPOSE_FRAGMENTS_SNAPSHOT_REL_PATH)
 
@@ -74,7 +74,6 @@ def ensure_compose_fragments_gitignore(project_dir: str) -> None:
 
 def collect_compose_services(ext: ExtensionHostContext) -> dict[str, dict[str, Any]]:
     """Merge manifest ``services`` with registered compose fragment plugins."""
-    from ..extensions.registry import iter_compose_fragments
 
     services: dict[str, dict[str, Any]] = {}
     manifest_services = ext.manifest_services
@@ -167,7 +166,6 @@ def materialize_compose_fragments(
     odpm_scenario: str | None = None,
 ) -> None:
     """Write generated fragment YAML files and services snapshot under ``.odpm/compose/fragments``."""
-    from ..yaml import dump_document
 
     ensure_compose_fragments_gitignore(project_dir)
     fragments_dir = compose_fragments_dir(project_dir)
@@ -187,7 +185,6 @@ def render_compose_services_block(services: dict[str, dict[str, Any]]) -> str:
     """Render extra ``services:`` entries (2-space service indent) for template injection."""
     if not services:
         return ""
-    from ..yaml import dump_document
 
     lines: list[str] = []
     for name, spec in sorted(services.items()):

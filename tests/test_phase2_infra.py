@@ -149,7 +149,6 @@ class SystemCheckerExtraTests(unittest.TestCase):
     def test_check_running_containers_raises_when_docker_list_fails(
         self, mock_run_or_raise
     ):
-        from dev_project.errors import SubprocessError
 
         mock_run_or_raise.side_effect = SubprocessError(
             "docker down",

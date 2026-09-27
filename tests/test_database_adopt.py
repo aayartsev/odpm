@@ -18,6 +18,9 @@ from dev_project.database.adopt import (
 from dev_project.database.schema import DATABASE_LAST_RUN_SCHEMA_VERSION
 from dev_project.errors import OdpmError
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.database.state import save_last_run
+from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.runtime_coordinator import RuntimeCoordinator
 
 
 class NeedsDatabaseAdoptionTests(unittest.TestCase):
@@ -41,8 +44,6 @@ class NeedsDatabaseAdoptionTests(unittest.TestCase):
     def test_false_when_last_run_exists(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
-            from dev_project.database.adopt import build_adoption_last_run
-            from dev_project.database.state import save_last_run
 
             save_last_run(project_dir, build_adoption_last_run(config))
             self.assertFalse(needs_database_adoption(config))
@@ -121,7 +122,6 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
     def test_skips_when_last_run_exists(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
-            from dev_project.database.state import save_last_run
 
             save_last_run(project_dir, build_adoption_last_run(config))
             self.assertIsNone(adopt_database_baseline(config))
@@ -182,13 +182,11 @@ class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.configure_ide")
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.write_debug_profile")
-    @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
-    @patch("dev_project.database.adopt.adopt_database_baseline")
+    @patch("dev_project.runtime_coordinator.ensure_no_blocking_database_drift")
+    @patch("dev_project.runtime_coordinator.adopt_database_baseline")
     def test_run_after_prepare_adopts_before_compose(
         self, mock_adopt, mock_blocking, _mock_write, _mock_ide, _mock_run, _mock_base_image
     ):
-        from dev_project.host.cli.args import OdpmCliArgs
-        from dev_project.runtime_coordinator import RuntimeCoordinator
 
         config = MagicMock()
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)

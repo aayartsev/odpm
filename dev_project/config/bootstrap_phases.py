@@ -13,7 +13,12 @@ from ..errors import ConfigError
 from ..logging import get_module_logger
 from .. import constants
 from .transforms import beautify_module_list
+from .transforms.env_substitution import with_secrets
+from .transforms.secret_refs import load_secrets_map
 from .state import project_settings_from_raw, user_settings_from_raw
+from ..project_env.odoo_password_secrets import warn_hardened_plaintext_password_fields
+from ..project_env.secrets import import_secrets_from_path, read_secrets_source
+from ..secrets_providers.session import session_for_config
 
 if TYPE_CHECKING:
     from .config import Config
@@ -23,10 +28,6 @@ _logger = get_module_logger(__name__)
 
 def load_user_settings(config: Config) -> None:
     """Phase 1: create defaults if needed; expand only pre-manifest fields."""
-    from ..project_env.odoo_password_secrets import warn_hardened_plaintext_password_fields
-    from ..project_env.secrets import import_secrets_from_path, read_secrets_source
-    from ..secrets_providers.session import session_for_config
-
     ctx = config._bootstrap_ctx
     arguments = getattr(config, "arguments", None)
     if arguments is not None and getattr(arguments, "secrets_file", None):
@@ -37,9 +38,6 @@ def load_user_settings(config: Config) -> None:
         session.provider_name = constants.SECRETS_PROVIDER_FILE
         session.key_count = len(loaded)
         config.bootstrap.secrets_file_imported_early = True
-        from .transforms.env_substitution import with_secrets
-        from .transforms.secret_refs import load_secrets_map
-
         config._env_resolver = with_secrets(
             config.env_resolver,
             load_secrets_map(config.project_dir),
@@ -123,7 +121,7 @@ def load_project_settings(config: Config) -> None:
 
 
 def _apply_manifest_database_to_user_settings(config: Config) -> None:
-    from ..host.ports import BootstrapHandle
+    from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
 
     view = BootstrapHandle(config=config).manifest_view
     if view is None:

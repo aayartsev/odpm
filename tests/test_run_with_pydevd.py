@@ -16,6 +16,7 @@ from dev_project.inside_docker_app.exceptions import ContainerError
 from dev_project.inside_docker_app import run_with_pydevd
 
 from tests.container_config_helpers import minimal_container_config_dict
+import builtins
 
 
 class RunWithPydevdTests(unittest.TestCase):
@@ -80,7 +81,6 @@ class RunWithPydevdTests(unittest.TestCase):
         self.assertIn("host.docker.internal", mock_logger.info.call_args.args[1])
 
     def test_attach_pydevd_debugger_requires_package(self) -> None:
-        import builtins
 
         original_import = builtins.__import__
 

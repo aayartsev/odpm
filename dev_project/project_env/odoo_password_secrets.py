@@ -21,6 +21,8 @@ from ..security_profiles import ODOO_PASSWORD_SECRET_KEYS
 
 if TYPE_CHECKING:
     from ..config.config import Config
+from ..translations import _
+
 
 _logger = get_module_logger(__name__)
 
@@ -44,7 +46,6 @@ def raw_settings_references_password_secrets(raw: dict[str, Any]) -> set[str]:
 
 def warn_hardened_plaintext_password_fields(config: Config, raw: dict[str, Any]) -> None:
     """WARNING when hardened settings store passwords without ``${@secret:}`` (raw)."""
-    from ..translations import _
 
     policy = getattr(config, "policy", None)
     if policy is None or not policy.should_bootstrap_odoo_password_secrets():
@@ -103,7 +104,7 @@ def maybe_ensure_odoo_password_keys(
         raw_manifest = getattr(view, "source_raw", None) if view is not None else None
     manifest_type = None
     if isinstance(raw_manifest, dict):
-        from ..manifest.scenario_overrides import resolve_effective_manifest_slice
+        from ..manifest.scenario_overrides import resolve_effective_manifest_slice  # noqa: PLC0415  # optional
 
         slice_ = resolve_effective_manifest_slice(
             dict(raw_manifest),

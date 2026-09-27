@@ -17,6 +17,8 @@ from dev_project.extensions.specs import hookimpl
 from dev_project.plan import PlanStep
 from dev_project.prepare.helpers import make_plan_step
 from dev_project.prepare.types import PrepareContext
+from dev_project.extensions.registry import get_compose_fragment, get_hook_runner
+
 
 assert_extension_api_compatible(EXTENSION_API_VERSION, plugin_id="odpm.sample_plugin")
 
@@ -96,7 +98,6 @@ hooks_entry_point = SampleOdpmHooksEntryPoint()
 
 def register_sample_plugin() -> None:
     """Register sample plugin components (idempotent for repeated test loads)."""
-    from dev_project.extensions.registry import get_compose_fragment, get_hook_runner
 
     try:
         register_prepare_step(SamplePrepareStepPlugin())

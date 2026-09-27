@@ -20,14 +20,16 @@ from .state import DockerLayoutState, ProjectSettingsState
 
 if TYPE_CHECKING:
     from .config import Config
+from ..errors import ConfigError
+from ..translations import _
+from .bootstrap import normalize_project_requirements
+
 
 _logger = get_module_logger(__name__)
 
 
 def validate_distro(config: Config) -> None:
     """Fail fast when base-image distro is not supported (debian only)."""
-    from ..errors import ConfigError
-    from ..translations import _
 
     distro_name = config.distro_name
     distro_version = config.distro_version
@@ -52,7 +54,6 @@ def validate_distro(config: Config) -> None:
 
 
 def apply_policy_and_layout(config: Config) -> None:
-    from .bootstrap import normalize_project_requirements
 
     validate_distro(config)
     original_requirements_txt = list(config.requirements_txt)

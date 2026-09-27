@@ -21,8 +21,8 @@ class OdooChecker:
         wait_db = flags.db_name if isinstance(flags.db_name, str) and flags.db_name else None
         wait_for_postgres(config, db_name=wait_db)
 
-        from passlib.hash import pbkdf2_sha512  # type: ignore
-        import passlib  # type: ignore
+        from passlib.hash import pbkdf2_sha512  # type: ignore  # noqa: PLC0415  # optional
+        import passlib  # type: ignore  # noqa: PLC0415  # optional
 
         runtime = load_odoo_runtime(
             platform_name=config.platform_name,

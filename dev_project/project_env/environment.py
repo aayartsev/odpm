@@ -8,6 +8,7 @@ from ..compose.generator import ComposeGenerator
 from .links import ProjectLinks
 from .templates import ProjectTemplates
 from .types import MappedPath
+from ..plan.compose_preview import preview_compose_service, preview_runtime_config_text
 
 
 class CreateProjectEnvironment:
@@ -58,13 +59,9 @@ class CreateProjectEnvironment:
         return self._links
 
     def plan_preview_compose_service(self):
-        from ..plan.compose_preview import preview_compose_service
-
         return preview_compose_service(self.config)
 
     def plan_runtime_config_preview_text(self) -> str | None:
-        from ..plan.compose_preview import preview_runtime_config_text
-
         return preview_runtime_config_text(self.config)
 
     def runtime_preview_cache_config(self):

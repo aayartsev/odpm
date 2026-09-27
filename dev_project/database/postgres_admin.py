@@ -179,7 +179,7 @@ def _wait_for_postgres_ready(
     timeout_seconds: int = 120,
     poll_seconds: float = 2,
 ) -> None:
-    from .probe import probe_postgres_ready
+    from .probe import probe_postgres_ready  # noqa: PLC0415  # cycle
 
     service = postgres_service_name(config)
     deadline = time.monotonic() + timeout_seconds

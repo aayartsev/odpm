@@ -12,6 +12,8 @@ from . import constants
 if TYPE_CHECKING:
     from .config import Config
     from .host.cli.args import OdpmCliArgs
+from .host.cli.args import OdpmCliArgs
+from .project_env.image_build.resolve import resolve_ci_image_builder
 
 
 def _truthy_skip_start(arguments: OdpmCliArgs | None) -> bool:
@@ -150,8 +152,6 @@ class SystemCheckPolicy:
         arguments: OdpmCliArgs | None,
         environ: Mapping[str, str],
     ) -> SystemCheckPolicy:
-        from .host.cli.args import OdpmCliArgs
-        from .project_env.image_build.resolve import resolve_ci_image_builder
 
         builder = resolve_ci_image_builder(arguments, environ=environ)
         raw_mode = environ.get(constants.ODPM_KANIKO_EXECUTOR_MODE_ENV, "")

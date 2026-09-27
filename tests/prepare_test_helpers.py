@@ -14,7 +14,7 @@ _PREPARE_SERVICE_PATCH_TARGETS = (
     "dev_project.project_env.templates.ProjectTemplates.generate_dockerignore",
     "dev_project.project_env.templates.ProjectTemplates.generate_config_file",
     "dev_project.compose.generator.ComposeGenerator.generate_docker_compose_file",
-    "dev_project.compose.validate.validate_compose_file",
+    "dev_project.prepare.steps_compose.validate_compose_file",
     "dev_project.project_env.links.ProjectLinks.update_links",
     "dev_project.project_env.links.ProjectLinks.checkout_dependencies",
 )
@@ -35,7 +35,7 @@ def stub_prepare_service_executions():
         patch(target) for target in _PREPARE_SERVICE_PATCH_TARGETS
     ] + [
         patch(
-            "dev_project.docker_capabilities.ensure_config_docker_capabilities",
+            "dev_project.prepare.steps_compose.ensure_config_docker_capabilities",
             return_value=_STUB_DOCKER_CAPABILITIES,
         )
     ]

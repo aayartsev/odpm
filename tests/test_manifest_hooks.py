@@ -23,6 +23,8 @@ from dev_project.prepare.execute import execute_prepare
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.host.cli.args import OdpmCliArgs
 from tests.fixtures.compose.mailpit_fragment import MAILPIT_COMPOSE_FRAGMENT
+from dev_project.manifest.reader import load_manifest
+from tests.test_manifest_v2_reader import _minimal_v2
 
 
 class _RecordingHookRunner:
@@ -161,8 +163,6 @@ class RunLifecycleHooksTests(unittest.TestCase):
 
 class LoadManifestScenarioHooksTests(unittest.TestCase):
     def test_load_manifest_wires_scenario_overlay_hooks(self):
-        from dev_project.manifest.reader import load_manifest
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         raw = _minimal_v2(
             requires_odpm="4.6.0",
@@ -188,8 +188,6 @@ class LoadManifestScenarioHooksTests(unittest.TestCase):
 
     @patch("dev_project.extensions.hooks.run_or_raise")
     def test_run_lifecycle_hooks_uses_merged_scenario_overlay_hooks(self, mock_run):
-        from dev_project.manifest.reader import load_manifest
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         raw = _minimal_v2(
             requires_odpm="4.6.0",
@@ -231,7 +229,7 @@ class MailpitReferenceTests(unittest.TestCase):
 
 class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
     @patch("dev_project.prepare.execute.get_prepare_steps", return_value=())
-    @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
+    @patch("dev_project.prepare.execute.run_lifecycle_hooks")
     def test_execute_prepare_runs_post_prepare_hooks(
         self, mock_run_hooks, _mock_steps
     ):
@@ -256,11 +254,11 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
-    @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
-    @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
-    @patch("dev_project.database.adopt.adopt_database_baseline")
+    @patch("dev_project.runtime_coordinator.run_lifecycle_hooks")
+    @patch("dev_project.runtime_coordinator.ensure_no_blocking_database_drift")
+    @patch("dev_project.runtime_coordinator.adopt_database_baseline")
     def test_pre_up_runs_before_compose_up(
         self,
         _mock_adopt,

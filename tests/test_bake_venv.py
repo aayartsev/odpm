@@ -24,6 +24,7 @@ from dev_project.bake_venv import (
 )
 from dev_project import constants
 from dev_project.inside_docker_app.exceptions import VenvError
+from dev_project import bake_venv
 
 
 def _spec(**overrides) -> VenvInstallSpec:
@@ -68,7 +69,6 @@ class PipRunnerTests(unittest.TestCase):
     @patch("dev_project.bake_venv._run_subprocess")
     def test_install_odoo_requirement_packages_installs_implicit_packages(self, mock_run):
         pip = PipRunner(base_cmd=["uv"], pip_extra_args=["--link-mode=copy"], cwd="/home/odoo")
-        from dev_project.bake_venv import install_odoo_requirement_packages
 
         install_odoo_requirement_packages(
             ["wheel"],
@@ -181,7 +181,6 @@ class BakeVenvMainTests(unittest.TestCase):
     @patch("dev_project.bake_venv.install_fresh")
     @patch("dev_project.bake_venv.VenvInstallSpec.from_json_file")
     def test_main_exits_with_venv_error_code(self, mock_from_json, mock_install):
-        from dev_project import bake_venv
 
         mock_from_json.return_value = _spec()
         mock_install.side_effect = VenvError("pip failed", exit_code=9)

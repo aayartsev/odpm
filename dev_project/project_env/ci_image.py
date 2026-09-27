@@ -27,6 +27,9 @@ from .types import MappedPath
 
 if TYPE_CHECKING:
     from .environment import CreateProjectEnvironment
+from .secrets import prepare_secrets_for_ci_bake, secrets_runtime_path
+from ..system_check_policy import environ_from_config
+
 
 _logger = get_module_logger(__name__)
 
@@ -129,7 +132,6 @@ class CiImageBuilder:
         write_runtime_config_to_path(self.config, config_path)
 
     def _write_ci_secrets_runtime(self, context_dir: str) -> bool:
-        from .secrets import prepare_secrets_for_ci_bake, secrets_runtime_path
 
         if not prepare_secrets_for_ci_bake(self.config.project_dir, self.config):
             return False
@@ -250,7 +252,6 @@ class CiImageBuilder:
         return dockerfile_path
 
     def build_ci_image(self) -> None:
-        from ..system_check_policy import environ_from_config
 
         environ = environ_from_config(self.config)
         builder_name = resolve_ci_image_builder(self.config.arguments, environ=environ)

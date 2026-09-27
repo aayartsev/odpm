@@ -22,6 +22,12 @@ from dev_project.config.transforms.env_substitution import (
     with_secrets,
 )
 from dev_project.errors import ConfigError
+from dev_project.host.user_env import CreateUserEnvironment
+from tests.test_user_env_bootstrap import _home_env_path, _make_pd_manager, _write_minimal_env_file
+from dev_project.manifest.service_sources import source_env_key
+from dev_project.compose.service_names import resolve_compose_naming
+from dev_project.manifest.reader import load_manifest, refresh_manifest_view_compose_expansion
+from tests.test_manifest_v2_reader import _minimal_v2
 
 
 class EnvResolverTests(unittest.TestCase):
@@ -82,12 +88,6 @@ class EnvResolverTests(unittest.TestCase):
         )
 
     def test_from_user_env_sees_home_only_key_after_layered_merge(self):
-        from dev_project.host.user_env import CreateUserEnvironment
-        from tests.test_user_env_bootstrap import (
-            _home_env_path,
-            _make_pd_manager,
-            _write_minimal_env_file,
-        )
 
         with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
             _write_minimal_env_file(
@@ -220,16 +220,12 @@ class ExpandEnvStringTests(unittest.TestCase):
 
 class SourceEnvKeyTests(unittest.TestCase):
     def test_source_env_key_uppercases_name(self):
-        from dev_project.manifest.service_sources import source_env_key
 
         self.assertEqual(source_env_key("autoparts_env"), "ODPM_SOURCE_AUTOPARTS_ENV")
 
 
 class InjectServiceSourcePathsTests(unittest.TestCase):
     def test_inject_adds_odpm_source_keys(self):
-        from dev_project.config.transforms.env_substitution import (
-            inject_service_source_paths,
-        )
 
         base = EnvResolver.from_sources(process_environ={}, project_dotenv={})
         injected = inject_service_source_paths(
@@ -242,10 +238,6 @@ class InjectServiceSourcePathsTests(unittest.TestCase):
         )
 
     def test_inject_preserves_compose_naming(self):
-        from dev_project.compose.service_names import resolve_compose_naming
-        from dev_project.config.transforms.env_substitution import (
-            inject_service_source_paths,
-        )
 
         naming = resolve_compose_naming(
             compose_prefix_raw="acme",
@@ -269,7 +261,6 @@ class InjectServiceSourcePathsTests(unittest.TestCase):
 
 class ExpandServiceRefTests(unittest.TestCase):
     def _naming(self, *, prefix: str | None = "acme", legacy_db: str = "db"):
-        from dev_project.compose.service_names import resolve_compose_naming
 
         return resolve_compose_naming(
             compose_prefix_raw=prefix,
@@ -408,14 +399,6 @@ class ExpandServiceRefTests(unittest.TestCase):
 
 class RefreshManifestViewComposeExpansionTests(unittest.TestCase):
     def test_reexpands_services_after_source_materialize(self):
-        from dev_project.config.transforms.env_substitution import (
-            inject_service_source_paths,
-        )
-        from dev_project.manifest.reader import (
-            load_manifest,
-            refresh_manifest_view_compose_expansion,
-        )
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         view = load_manifest(
             _minimal_v2(
@@ -446,9 +429,6 @@ class RefreshManifestViewComposeExpansionTests(unittest.TestCase):
         )
 
     def test_load_manifest_expands_service_refs_when_naming_present(self):
-        from dev_project.compose.service_names import resolve_compose_naming
-        from dev_project.manifest.reader import load_manifest
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         naming = resolve_compose_naming(
             compose_prefix_raw="acme",
@@ -620,7 +600,6 @@ class ExpandComposeServiceMapTests(unittest.TestCase):
         self.assertEqual(expanded["minio"]["healthcheck"]["retries"], 3)
 
     def test_expands_pid_string(self):
-        from dev_project.compose.service_names import resolve_compose_naming
 
         naming = resolve_compose_naming(
             compose_prefix_raw="acme",

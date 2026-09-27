@@ -41,7 +41,7 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-Правила: `pyproject.toml` `[tool.ruff]`.
+Правила: `pyproject.toml` `[tool.ruff]`. Включены **E402** и **PLC0415** (импорты наверху модуля, PEP 8); отложенный импорт только с `# noqa: PLC0415  # cycle|optional` — см. `.cursor/rules/python-imports-top-level.mdc`.
 
 ## Docker integration (opt-in)
 

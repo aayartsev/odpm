@@ -17,7 +17,9 @@ from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
 from .host.ports import PipelinePorts
 from .project_materializer import ProjectMaterializer
-from .system_check_policy import SystemCheckPolicy
+from .secrets_providers.session import SecretsFetchSession
+from .system_check_policy import SystemCheckPolicy, cli_allows_ci_explicit_mode
+from .translations import _
 
 _logger = get_module_logger(__name__)
 
@@ -51,8 +53,6 @@ class OdpmPipeline:
             sync_templates=not for_plan,
         )
         self.cli_args = self.pd_manager.arguments
-        from .secrets_providers.session import SecretsFetchSession
-
         secrets_session = SecretsFetchSession()
         user_environment = CreateUserEnvironment(self.pd_manager)
         self.config = Config(
@@ -88,8 +88,11 @@ class OdpmPipeline:
         host_summaries.log_prepare_completed()
 
     def print_plan(self) -> int:
-        from .plan import OdpmPlanner, format_plan
-        from .plan.format import plan_has_required_changes, resolve_plan_format
+        from .plan import OdpmPlanner, format_plan  # noqa: PLC0415  # optional
+        from .plan.format import (  # noqa: PLC0415  # optional
+            plan_has_required_changes,
+            resolve_plan_format,
+        )
 
         ports = self._ports()
         plan = OdpmPlanner.build(
@@ -128,7 +131,7 @@ class OdpmPipeline:
 
     def run(self) -> None:
         try:
-            from .plan.cli import (
+            from .plan.cli import (  # noqa: PLC0415  # optional
                 is_database_mode,
                 is_manifest_mode,
                 is_modules_mode,
@@ -155,28 +158,28 @@ class OdpmPipeline:
                     sys.exit(exit_code)
                 return
             if for_database:
-                from .database.commands import run_database_command
+                from .database.commands import run_database_command  # noqa: PLC0415  # optional
 
                 exit_code = run_database_command(self.cli_args, self._config())
                 if exit_code:
                     sys.exit(exit_code)
                 return
             if for_manifest:
-                from .manifest.commands import run_manifest_command
+                from .manifest.commands import run_manifest_command  # noqa: PLC0415  # optional
 
                 exit_code = run_manifest_command(self.cli_args, self._config())
                 if exit_code:
                     sys.exit(exit_code)
                 return
             if for_modules:
-                from .modules.commands import run_modules_command
+                from .modules.commands import run_modules_command  # noqa: PLC0415  # optional
 
                 exit_code = run_modules_command(self.cli_args, self._config())
                 if exit_code:
                     sys.exit(exit_code)
                 return
             if for_run:
-                from .recipes.commands import run_recipes_command
+                from .recipes.commands import run_recipes_command  # noqa: PLC0415  # optional
 
                 exit_code = run_recipes_command(self.cli_args, self._config())
                 if exit_code:
@@ -192,9 +195,6 @@ class OdpmPipeline:
             sys.exit(exc.exit_code)
 
     def _enforce_ci_explicit_mode(self) -> None:
-        from .system_check_policy import cli_allows_ci_explicit_mode
-        from .translations import _
-
         if self.config is None:
             return
         config = self.config

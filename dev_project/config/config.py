@@ -16,6 +16,8 @@ from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
 from .bootstrap import bootstrap_config, normalize_project_requirements
+from ..secrets_providers.session import SecretsFetchSession
+from ..symlinks import ensure_developing_repo_symlinks, ensure_git_repo_symlink
 from .transforms.env_substitution import EnvResolver
 from .nested_compatibility import collect_nested_compatibility_issues
 from .payload import compute_extras_stamp, compute_venv_lock_hash, config_to_json
@@ -63,8 +65,6 @@ class Config(ConfigRuntimeFacadeMixin):
         Full git clone/update for the prepare phase runs later via
         :meth:`materialize_git_repos` (``OdpmPipeline.prepare_project_files``).
         """
-        from ..secrets_providers.session import SecretsFetchSession
-
         self.secrets_fetch_session = secrets_fetch_session or SecretsFetchSession()
         bootstrap_config(self, pd_manager, arguments, program_dir, user_env)
 
@@ -97,7 +97,7 @@ class Config(ConfigRuntimeFacadeMixin):
 
     @property
     def host_context(self) -> HostProjectContext:
-        from ..host.context import HostProjectContext
+        from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
         return HostProjectContext.from_config(self)
 
@@ -185,13 +185,9 @@ class Config(ConfigRuntimeFacadeMixin):
         *,
         scope: Literal["project", "dependency"] = "project",
     ) -> None:
-        from ..symlinks import ensure_git_repo_symlink
-
         ensure_git_repo_symlink(self, target_path, scope=scope)
 
     def ensure_developing_repo_symlinks(self) -> None:
-        from ..symlinks import ensure_developing_repo_symlinks
-
         ensure_developing_repo_symlinks(self)
 
 

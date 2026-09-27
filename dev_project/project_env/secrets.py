@@ -11,6 +11,8 @@ from .. import constants
 from ..errors import ConfigError
 from ..logging import get_module_logger
 from ..translations import _
+from ..config.payload import ensure_runtime_dir_gitignore
+
 
 _logger = get_module_logger(__name__)
 
@@ -104,7 +106,6 @@ def write_secrets_source(project_dir: str, secrets: dict[str, str]) -> str:
 
 
 def write_secrets_runtime(project_dir: str, secrets: dict[str, str]) -> str:
-    from ..config.payload import ensure_runtime_dir_gitignore
 
     path = secrets_runtime_path(project_dir)
     ensure_runtime_dir_gitignore(project_dir)
@@ -191,7 +192,7 @@ def prepare_secrets_for_ci_bake(project_dir: str, config: object | None = None) 
     if not bake_secrets_enabled():
         return False
     if config is not None:
-        from ..secrets_providers.fetch import ensure_secrets_source_for_config
+        from ..secrets_providers.fetch import ensure_secrets_source_for_config  # noqa: PLC0415  # optional
 
         raw: dict = {}
         bootstrap = getattr(config, "bootstrap", None)

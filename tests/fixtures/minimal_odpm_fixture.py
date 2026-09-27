@@ -171,7 +171,7 @@ def provision_minimal_odpm_project(
             shutil.copy(source, plugins_root / f"{plugin_name}.py")
 
     if locks_drift:
-        from tests.scenario_plan_matrix_helpers import seed_locks_drift
+        from tests.scenario_plan_matrix_helpers import seed_locks_drift  # noqa: PLC0415  # optional
 
         seed_locks_drift(project_dir, platform_uri=platform_uri)
     elif not manifest_v2_mailpit:

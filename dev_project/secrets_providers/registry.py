@@ -31,7 +31,7 @@ def _register_builtins() -> None:
     if constants.SECRETS_PROVIDER_FILE not in _PROVIDERS:
         register_secrets_provider(FileSecretsProvider())
     if constants.SECRETS_PROVIDER_INFISICAL not in _PROVIDERS:
-        from .infisical_provider import InfisicalSecretsProvider
+        from .infisical_provider import InfisicalSecretsProvider  # noqa: PLC0415  # optional
 
         register_secrets_provider(InfisicalSecretsProvider())
 
@@ -42,7 +42,7 @@ def _load_entry_points() -> None:
         return
     _ENTRY_POINTS_LOADED = True
     try:
-        from importlib.metadata import entry_points
+        from importlib.metadata import entry_points  # noqa: PLC0415  # optional
     except ImportError:
         return
     try:

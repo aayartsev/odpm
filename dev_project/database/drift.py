@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 from .schema import DatabaseCurrentState, DatabaseLastRun
+from ..manifest.odoo_conf_policy import ci_manifest_db_override
+from .state import collect_database_state, load_last_run
+
 
 DatabaseDriftKind = Literal[
     "first_run",
@@ -186,8 +189,6 @@ def database_drift_kinds(drifts: tuple[DatabaseDrift, ...]) -> frozenset[Databas
 
 def detect_database_drift_for_config(config) -> tuple[DatabaseCurrentState, tuple[DatabaseDrift, ...]]:
     """Collect current DB fingerprints and compare with on-disk last_run snapshot."""
-    from ..manifest.odoo_conf_policy import ci_manifest_db_override
-    from .state import collect_database_state, load_last_run
 
     current = collect_database_state(config)
     last_run = load_last_run(config.project_dir)

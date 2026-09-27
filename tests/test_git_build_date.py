@@ -11,15 +11,11 @@ For a real fork, run odpm with --odoo-build-date and check the log line
 
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest import mock
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from dev_project import constants
 from dev_project.git import HandleOdooProjectLink

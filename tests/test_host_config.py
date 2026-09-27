@@ -41,6 +41,9 @@ from dev_project.errors import ConfigError, PipelineError
 from dev_project.ide_stubs import odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.dependency_resolver import NestedOdpmFragment
+from dev_project.bake_venv import get_venv_bootstrap_packages
+import importlib
+from dev_project.config.bootstrap_phases import finalize_user_settings_after_secrets
 
 
 class ConfigTransformsTests(unittest.TestCase):
@@ -346,7 +349,6 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         self.assertIn("3.14", constants.PYDEVD_PYCHARM)
         self.assertIn("3.14", constants.VENV_BOOTSTRAP_PACKAGES)
         self.assertTrue(constants.GEVENT_PACKAGE_FOR_PYTHON_314.startswith("gevent=="))
-        from dev_project.bake_venv import get_venv_bootstrap_packages
 
         packages = get_venv_bootstrap_packages("3.14")
         self.assertTrue(packages)
@@ -722,7 +724,6 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
         self.assertIsInstance(ctx.odpm_json, OdpmJsonReader)
 
     def test_bootstrap_context_rewrite_odpm_json_delegates_to_writer(self):
-        import importlib
 
         bootstrap_context_module = importlib.import_module(
             "dev_project.config.bootstrap_context"
@@ -861,7 +862,6 @@ class BindDevelopingLinkTests(unittest.TestCase):
             bind_developing_link(config)
 
     def test_finalize_preserves_bound_developing_project_link(self):
-        from dev_project.config.bootstrap_phases import finalize_user_settings_after_secrets
 
         config = Config.__new__(Config)
         config._bootstrap = BootstrapState()

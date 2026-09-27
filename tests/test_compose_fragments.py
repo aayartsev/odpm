@@ -37,6 +37,11 @@ from dev_project.compose.generator import ComposeGenerator
 from dev_project.project_env.types import MappedPath
 from dev_project.debugger.constants import DEBUGGER_BACKEND_DEBUGPY_LISTEN, DEFAULT_DEBUGGER_CONNECT_HOST
 from dev_project.scenario_policy import ScenarioPolicy
+from dataclasses import replace
+from dev_project.prepare.execute import build_prepare_plan
+from dev_project.manifest.reader import load_manifest
+from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.compose.fragments import collect_service_patches
 
 
 class _MailpitFragment:
@@ -429,9 +434,7 @@ class ComposeServicePatchTests(unittest.TestCase):
             self.assertIn("    command:", content)
 
     def test_build_plan_includes_compose_patch_step(self):
-        from dataclasses import replace
 
-        from dev_project.prepare.execute import build_prepare_plan
 
         with tempfile.TemporaryDirectory() as project_dir:
             ctx = ComposeFragmentsPrepareStepTests()._make_ctx(
@@ -487,9 +490,6 @@ class ComposeFragmentsScenarioSliceTests(unittest.TestCase):
             )
 
     def test_collect_compose_services_uses_effective_scenario_slice(self):
-        from dev_project.extensions.context import ExtensionHostContext
-        from dev_project.manifest.reader import load_manifest
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         raw = _minimal_v2(
             requires_odpm="4.6.0",
@@ -526,10 +526,6 @@ class ComposeFragmentsScenarioSliceTests(unittest.TestCase):
         )
 
     def test_collect_service_patches_uses_effective_scenario_slice(self):
-        from dev_project.compose.fragments import collect_service_patches
-        from dev_project.extensions.context import ExtensionHostContext
-        from dev_project.manifest.reader import load_manifest
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         raw = _minimal_v2(
             requires_odpm="4.6.0",

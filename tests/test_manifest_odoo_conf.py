@@ -17,6 +17,7 @@ from dev_project.manifest.odoo_conf_policy import (
 )
 from dev_project.manifest.reader import ManifestView, load_manifest
 from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.compose.service_names import ComposeNamingContext
 
 
 class ManifestOdooConfPolicyTests(unittest.TestCase):
@@ -185,7 +186,6 @@ class ManifestOdooConfPolicyTests(unittest.TestCase):
         self.assertEqual(view.odoo_conf["s3_server"]["endpoint"], "minio:9000")
 
     def test_load_manifest_expands_secret_and_service_in_extra_sections(self):
-        from dev_project.compose.service_names import ComposeNamingContext
 
         resolver = EnvResolver.from_sources(
             process_environ={},

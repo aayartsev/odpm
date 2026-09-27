@@ -7,7 +7,11 @@ from typing import TYPE_CHECKING
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..host.ports import PipelinePorts, ports_from_config
+from ..prepare import build_plan
 from .core import OdpmPlan
+from .diff import build_plan_diffs
+from .format import format_plan as format_plan_output
+from .runtime_preview import clear_runtime_config_preview_cache
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -22,11 +26,6 @@ class OdpmPlanner:
         args: OdpmCliArgs | None = None,
         project_env: CreateProjectEnvironment | None = None,
     ) -> OdpmPlan:
-        from ..prepare import build_plan
-
-        from .diff import build_plan_diffs
-        from .runtime_preview import clear_runtime_config_preview_cache
-
         if isinstance(ports_or_config, PipelinePorts):
             ports = ports_or_config
         else:
@@ -53,6 +52,4 @@ def format_plan(
     args: OdpmCliArgs | None = None,
     host_ctx: HostProjectContext | None = None,
 ) -> str:
-    from .format import format_plan as format_plan_output
-
     return format_plan_output(plan, args, host_ctx)

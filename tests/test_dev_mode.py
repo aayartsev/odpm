@@ -20,6 +20,7 @@ from dev_project.dev_mode import (
     merge_autoreload_requirements,
 )
 from dev_project.scenario_policy import ScenarioPolicy
+from tests.integration.dev_mode_probe import dev_flag_from_compose_command, extract_odoo_compose_command
 
 
 class DevModeHelperTests(unittest.TestCase):
@@ -187,10 +188,6 @@ services:
 """
 
     def test_extract_odoo_compose_command(self):
-        from tests.integration.dev_mode_probe import (
-            dev_flag_from_compose_command,
-            extract_odoo_compose_command,
-        )
 
         command = extract_odoo_compose_command(self.SAMPLE_COMPOSE)
         self.assertEqual(
@@ -199,10 +196,6 @@ services:
         )
 
     def test_extract_odoo_compose_command_without_dev(self):
-        from tests.integration.dev_mode_probe import (
-            dev_flag_from_compose_command,
-            extract_odoo_compose_command,
-        )
 
         compose = self.SAMPLE_COMPOSE.replace("      - --dev\n      - reload,qweb\n", "")
         command = extract_odoo_compose_command(compose)

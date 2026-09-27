@@ -31,6 +31,11 @@ from tests.scenario_plan_matrix_helpers import (
     seed_v1_deps_lock,
     sync_idle_compose_state,
 )
+from dev_project.extensions.registry import reset_extension_registry_state
+from tests.fixtures.sample_plugin import sample_odpm_plugin
+from tests.test_compose_generator import ComposeGeneratorPolicyTests
+from dev_project.prepare.steps_compose import exec_compose_fragments
+
 
 SCENARIOS = tuple(constants.ODPM_SCENARIO_VALUES)
 
@@ -278,8 +283,6 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
         self.assertFalse(plan_has_step(server_plan, "hooks.post_prepare"))
 
     def test_a19_extension_prepare_step_in_plan_matrix(self) -> None:
-        from dev_project.extensions.registry import reset_extension_registry_state
-        from tests.fixtures.sample_plugin import sample_odpm_plugin
 
         reset_extension_registry_state()
         sample_odpm_plugin.register_sample_plugin()
@@ -658,7 +661,6 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
     """Registry rows C7 and A16 compose content markers."""
 
     def test_c7_compose_markers_by_scenario(self) -> None:
-        from tests.test_compose_generator import ComposeGeneratorPolicyTests
 
         helper = ComposeGeneratorPolicyTests()
         for scenario in SCENARIOS:
@@ -681,7 +683,6 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
                     self.assertIn("odoo-ci", content)
 
     def test_a16_mailpit_fragment_materialized(self) -> None:
-        from dev_project.prepare.steps_compose import exec_compose_fragments
 
         project_dir = self._provision(
             scenario=constants.DEVELOPER_SCENARIO,
@@ -703,7 +704,6 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
         self.assertIn("mailpit", fragment.read_text(encoding="utf-8"))
 
     def test_scenario_overlay_marks_compose_fragments_stale(self) -> None:
-        from dev_project.prepare.steps_compose import exec_compose_fragments
 
         project_dir = self._provision(
             scenario=constants.DEVELOPER_SCENARIO,

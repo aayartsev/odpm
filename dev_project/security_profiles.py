@@ -35,7 +35,7 @@ HARDENED_DB_DEFAULT_ADMIN_PASSWORD_REF = (
 
 
 def security_profile_for_scenario(scenario: str) -> SecurityProfile:
-    from . import policy_compose
+    from . import policy_compose  # noqa: PLC0415  # cycle
 
     return policy_compose.security_profile_for_scenario(scenario)
 
@@ -67,7 +67,7 @@ def resolve_security_profile(
     override: SecurityProfile | None = None,
 ) -> SecurityProfile:
     """Effective profile: explicit override wins over scenario default."""
-    from . import policy_compose
+    from . import policy_compose  # noqa: PLC0415  # cycle
 
     return policy_compose.resolve_security_profile(scenario, override=override)
 

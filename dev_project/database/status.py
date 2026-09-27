@@ -18,6 +18,7 @@ from .state import collect_database_state, load_last_run
 
 if TYPE_CHECKING:
     from ..config import Config
+from ..translations import _
 
 
 def enrich_database_state_with_probe(
@@ -79,7 +80,6 @@ def _format_bool(value: bool | None) -> str:
 
 
 def format_database_status_table(report: DatabaseStatusReport) -> str:
-    from ..translations import _
 
     lines = [
         _("Database status"),

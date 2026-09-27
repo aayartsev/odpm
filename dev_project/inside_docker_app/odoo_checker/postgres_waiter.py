@@ -113,8 +113,8 @@ class PostgresWaiter:
     ) -> None:
         """Verify PostgreSQL credentials; retry transient startup/recovery errors."""
         try:
-            import psycopg2
-            from psycopg2 import OperationalError
+            import psycopg2  # noqa: PLC0415  # optional
+            from psycopg2 import OperationalError  # noqa: PLC0415  # optional
         except ImportError as exc:
             message = _MSG_PSYCOPG2_REQUIRED
             _logger.error(message)

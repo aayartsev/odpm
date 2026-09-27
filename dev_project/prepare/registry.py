@@ -60,6 +60,7 @@ from .steps_template import (
     exec_template_odoo_conf,
 )
 from .types import PrepareStepDef
+from ..extensions.registry import get_prepare_steps as merge_extension_prepare_steps
 
 BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     PrepareStepDef("git.lock_load", "", evaluate_git_lock_load, exec_lock_load),
@@ -166,8 +167,6 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
 
 def get_prepare_steps() -> tuple[PrepareStepDef, ...]:
     """Built-in prepare steps plus pluggy/entry-point extensions."""
-    from ..extensions.registry import get_prepare_steps as merge_extension_prepare_steps
-
     return merge_extension_prepare_steps(BUILTIN_PREPARE_STEPS)
 
 

@@ -8,11 +8,11 @@ from ..config.transforms import modules_csv_for_odoo_flag
 from ..dev_mode import effective_dev_mode
 from ..host.cli import params as cli_params
 from .start_command import ComposeOdooService, StartCommand
+from ..config.payload import write_runtime_config
 
 
 def persist_runtime_config(config: Config) -> None:
     """Write ``.odpm/runtime/config.json`` (patchable seam for unit tests)."""
-    from ..config.payload import write_runtime_config
 
     write_runtime_config(config)
 
@@ -33,7 +33,7 @@ class ComposeServiceBuilder:
         if compose_service.include_runtime_config:
             persist_runtime_config(self.config)
         if self.policy.mount_runtime_secrets_from_host():
-            from ..project_env.secrets import materialize_secrets
+            from ..project_env.secrets import materialize_secrets  # noqa: PLC0415  # optional
 
             compose_service.include_runtime_secrets = materialize_secrets(
                 self.config.project_dir

@@ -24,6 +24,8 @@ from dev_project.debugger import is_debugpy_requirement
 from dev_project.ide_stubs import is_odoo_stubs_requirement, odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.container_config_helpers import apply_odpm_config_database_fields
+from dev_project.scenario_policy import format_published_port
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
@@ -321,7 +323,6 @@ class ScenarioPolicyTests(unittest.TestCase):
         )
 
     def test_format_published_port(self):
-        from dev_project.scenario_policy import format_published_port
 
         self.assertEqual(format_published_port("8069:8069"), "127.0.0.1:8069:8069")
         self.assertEqual(

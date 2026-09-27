@@ -7,6 +7,7 @@ from dev_project.config.config import Config
 from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.errors import ConfigError
 from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
+from dev_project.config.bootstrap_context import ConfigBootstrapContext
 
 
 class GitRepoCoordinatorHandleLinkTests(unittest.TestCase):
@@ -110,7 +111,6 @@ class GitRepoCoordinatorEnsurePresentTests(unittest.TestCase):
 class ConfigGitRepoDelegationTests(unittest.TestCase):
     @patch("dev_project.config.git_repos.HandleOdooProjectLink")
     def test_config_handle_git_link_uses_context_coordinator(self, mock_link_cls):
-        from dev_project.config.bootstrap_context import ConfigBootstrapContext
 
         mock_link = MagicMock()
         mock_link_cls.return_value = mock_link

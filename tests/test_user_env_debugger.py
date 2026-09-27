@@ -21,6 +21,7 @@ from dev_project.debugger.constants import (
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.user_env import CreateUserEnvironment
 from dev_project.project_dir_manager import ProjectDirManager
+import importlib
 
 
 def _program_dir() -> str:
@@ -62,7 +63,6 @@ class UserEnvDebuggerTests(unittest.TestCase):
             self.assertEqual(user_env.odpm_ide, DEFAULT_ODPM_IDE)
 
     def test_interactive_env_includes_debugger_keys(self) -> None:
-        import importlib
 
         wizard_module = importlib.import_module("dev_project.host.user_env_wizard")
         user_env_module = importlib.import_module("dev_project.host.user_env")
@@ -79,7 +79,6 @@ class UserEnvDebuggerTests(unittest.TestCase):
             self.assertEqual(env_data[ODPM_IDE_ENV], DEFAULT_ODPM_IDE)
 
     def test_interactive_pydevd_connect_prompts_connect_host_and_suspend(self) -> None:
-        import importlib
 
         wizard_module = importlib.import_module("dev_project.host.user_env_wizard")
         user_env_module = importlib.import_module("dev_project.host.user_env")

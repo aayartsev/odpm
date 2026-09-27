@@ -14,6 +14,8 @@ from dev_project.host.user_env import CreateUserEnvironment
 from dev_project.project_dir_manager import ProjectDirManager
 from dev_project.translations import _, resolve_effective_locale, update_locale
 from tests.cli_test_helpers import cli_args
+import importlib
+from contextlib import ExitStack
 
 
 def _program_dir() -> str:
@@ -245,8 +247,6 @@ class NonInteractiveLocaleEnvTests(unittest.TestCase):
 
 class InteractiveLocaleWizardTests(unittest.TestCase):
     def test_interactive_env_file_includes_locale(self) -> None:
-        import importlib
-        from contextlib import ExitStack
 
         user_env_module = importlib.import_module("dev_project.host.user_env")
         cls = user_env_module.CreateUserEnvironment

@@ -16,6 +16,7 @@ from dev_project.extensions.reference.mailpit import (
 from dev_project.manifest.reader import load_manifest
 from tests.fixtures.compose.mailpit_fragment import MAILPIT_COMPOSE_FRAGMENT
 from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.prepare.registry import BUILTIN_PREPARE_STEPS
 
 
 def _load_contract_modules() -> unittest.TestSuite:
@@ -71,7 +72,6 @@ class ManifestExtensionContractTests(unittest.TestCase):
         self.assertEqual(block, MAILPIT_COMPOSE_FRAGMENT)
 
     def test_prepare_step_count_includes_compose_fragments(self):
-        from dev_project.prepare.registry import BUILTIN_PREPARE_STEPS
 
         step_ids = [step.id for step in BUILTIN_PREPARE_STEPS]
         self.assertIn("compose.fragments", step_ids)

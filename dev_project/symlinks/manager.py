@@ -27,7 +27,7 @@ class SymlinkManager:
         if self._host_ctx_override is not None:
             return self._host_ctx_override
         if self._host_ctx_cached is None:
-            from ..host.context import HostProjectContext
+            from ..host.context import HostProjectContext  # noqa: PLC0415  # optional
 
             self._host_ctx_cached = HostProjectContext.from_config(self.config)
         return self._host_ctx_cached

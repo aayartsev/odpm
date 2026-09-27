@@ -7,15 +7,28 @@ import sys
 from typing import TYPE_CHECKING
 
 from . import host_summaries
-from .translations import _
-from .host.context import HostProjectContext
-from .compose.runtime import should_force_recreate_compose_for_host
-from .errors import ConfigError, PipelineError
-from .host.cli.args import OdpmCliArgs
-from .logging import get_module_logger
+from .compose.runtime import (
+    compose_project_cli_args,
+    should_force_recreate_compose_for_host,
+)
+from .database.adopt import adopt_database_baseline
+from .database.resolve import ensure_no_blocking_database_drift
 from .debugger.ide import ide_includes_pycharm, ide_includes_vscode
-from .project_env.services import PycharmConfigurator, VscodeConfigurator
+from .errors import ConfigError, PipelineError
+from .extensions.context import ExtensionHostContext
+from .extensions.hooks import run_lifecycle_hooks
+from .host.cli.args import OdpmCliArgs
+from .host.context import HostProjectContext
+from .logging import get_module_logger
+from .manifest.secrets_policy import ensure_secrets_requirements_met
+from .project_env.debug_profile import write_debug_profile
+from .project_env.services import (
+    BaseImageService,
+    PycharmConfigurator,
+    VscodeConfigurator,
+)
 from .subprocess_runner import run_logged
+from .translations import _
 
 if TYPE_CHECKING:
     from .config import Config
@@ -47,7 +60,8 @@ class RuntimeCoordinator:
             message = _('--build-image is only allowed when ODPM_SCENARIO=ci in .env')
             _logger.error(message)
             raise PipelineError(message, exit_code=1)
-        from .project_env.services import CiImageBuildService
+
+        from .project_env.services import CiImageBuildService  # noqa: PLC0415  # optional
 
         CiImageBuildService(self.project_env).build_ci_image()
         return True
@@ -55,8 +69,6 @@ class RuntimeCoordinator:
     def write_debug_profile(self) -> None:
         if not self.host_ctx.policy.include_debugpy:
             return
-        from .project_env.debug_profile import write_debug_profile
-
         write_debug_profile(self.project_env)
 
     def configure_ide(self) -> None:
@@ -79,8 +91,6 @@ class RuntimeCoordinator:
         if force_recreate is None:
             force_recreate = should_force_recreate_compose_for_host(self.host_ctx)
         argv = shlex.split(self.host_ctx.docker_compose_command)
-        from .compose.runtime import compose_project_cli_args
-
         argv.extend(compose_project_cli_args(self.host_ctx.user_env))
         argv += ["up"]
         if self.config.no_log_prefix:
@@ -93,8 +103,6 @@ class RuntimeCoordinator:
         return argv
 
     def start_containers(self) -> None:
-        from .project_env.services import BaseImageService
-
         BaseImageService(self.project_env).ensure_base_image()
         host_summaries.log_starting_containers(
             odoo_port=self.host_ctx.user_env.odoo_port,
@@ -119,12 +127,8 @@ class RuntimeCoordinator:
         if self.cli_args.skip_start:
             host_summaries.log_skip_start()
             return
-        from .database.adopt import adopt_database_baseline
-        from .database.resolve import ensure_no_blocking_database_drift
-
         adopt_database_baseline(self.config)
         ensure_no_blocking_database_drift(self.config, self.cli_args)
-        from .manifest.secrets_policy import ensure_secrets_requirements_met
 
         manifest_view = self.config.bootstrap.manifest_view
         secrets_spec = (
@@ -142,8 +146,6 @@ class RuntimeCoordinator:
         except ConfigError as exc:
             _logger.error(str(exc))
             raise PipelineError(str(exc), exit_code=1) from exc
-        from .extensions.hooks import run_lifecycle_hooks
-        from .extensions.context import ExtensionHostContext
 
         run_lifecycle_hooks(
             ExtensionHostContext.from_config(self.config),

@@ -12,6 +12,9 @@ from ..prepare.types import PrepareStepDef
 from .protocols import ComposeFragmentPlugin, HookRunner, PrepareStepPlugin
 from .loader import validate_pluggy_manager_plugins
 from .specs import OdpmExtensionSpecs, PROJECT_NAME, hookimpl, hookspec
+from .local import reset_local_plugins_state
+from .local import load_project_local_plugins, local_allow_list_from_manifest
+
 
 __all__ = [
     "PrepareStepRegistration",
@@ -77,7 +80,6 @@ def clear_registered_prepare_steps() -> None:
 def reset_extension_registry_state() -> None:
     """Reset manual steps and pluggy plugins (tests only)."""
     global _ENTRY_POINTS_LOADED, _HOOK_ENTRY_POINTS_LOADED
-    from .local import reset_local_plugins_state
 
     clear_registered_prepare_steps()
     _COMPOSE_FRAGMENTS.clear()
@@ -95,7 +97,6 @@ def ensure_project_extensions_loaded(
     manifest_extensions: object | None = None,
 ) -> None:
     """Load setuptools entry points and project-local plugins once per project."""
-    from .local import load_project_local_plugins, local_allow_list_from_manifest
 
     load_hook_runners()
     _ensure_entry_points_loaded()

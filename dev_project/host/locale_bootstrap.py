@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .. import constants
 from ..translations import apply_locale_from_sources
+from .user_env_parse import load_layered_dotenv_dict
 
 
 def read_odpm_locale_from_env_file(path: str) -> str | None:
@@ -24,7 +25,6 @@ def read_odpm_locale_from_layered_dotenv(
     *, project_path: str, config_home_dir: str
 ) -> str | None:
     """Return ``ODPM_LOCALE`` from merged home + project ``.env`` (project wins)."""
-    from .user_env_parse import load_layered_dotenv_dict
 
     merged = load_layered_dotenv_dict(
         project_path=project_path,

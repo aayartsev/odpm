@@ -64,7 +64,7 @@ def _provider_type_and_config(
 ) -> tuple[str | None, dict[str, Any], tuple[str, ...]]:
     if not isinstance(raw_manifest, dict):
         return None, {}, ()
-    from ..manifest.scenario_overrides import resolve_effective_manifest_slice
+    from ..manifest.scenario_overrides import resolve_effective_manifest_slice  # noqa: PLC0415  # cycle
 
     slice_ = resolve_effective_manifest_slice(dict(raw_manifest), scenario)
     spec = slice_.secrets

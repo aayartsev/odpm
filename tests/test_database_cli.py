@@ -17,6 +17,8 @@ from dev_project.database.status import DatabaseStatusReport, collect_database_s
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.plan.cli import is_database_mode
+from dev_project.database.commands import run_database_command
+from dev_project.database.ensure_role import EnsureRoleResult
 
 
 def _static_state() -> DatabaseCurrentState:
@@ -108,7 +110,6 @@ class DatabaseStatusCollectTests(unittest.TestCase):
 class DatabaseCommandHandlerTests(unittest.TestCase):
     @patch("dev_project.database.commands.collect_database_status")
     def test_status_table_logs_report(self, mock_collect):
-        from dev_project.database.commands import run_database_command
 
         mock_collect.return_value = DatabaseStatusReport(
             current=_static_state(),
@@ -132,7 +133,6 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
 
     @patch("dev_project.database.commands.collect_database_status")
     def test_status_json_prints_payload(self, mock_collect):
-        from dev_project.database.commands import run_database_command
 
         mock_collect.return_value = DatabaseStatusReport(
             current=_static_state(),
@@ -160,8 +160,6 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
 
     @patch("dev_project.database.commands.ensure_app_role")
     def test_ensure_role_command(self, mock_ensure):
-        from dev_project.database.commands import run_database_command
-        from dev_project.database.ensure_role import EnsureRoleResult
 
         mock_ensure.return_value = EnsureRoleResult(outcome="created", role="odoo")
         config = MagicMock()

@@ -164,7 +164,7 @@ def save_current_database_baseline(
     assume_app_role_present: bool = False,
 ) -> str:
     """Persist current configuration fingerprints as the database baseline."""
-    from .status import collect_database_status
+    from .status import collect_database_status  # noqa: PLC0415  # cycle
 
     report = collect_database_status(config)
     current = report.current

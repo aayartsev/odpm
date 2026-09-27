@@ -1,13 +1,10 @@
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
+from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.dependency_resolver import (
     DependencyDiscovery,
     NestedOdpmFragment,
@@ -17,8 +14,8 @@ from dev_project.dependency_resolver import (
     resolve_dependencies,
     resolve_dependency_urls,
 )
-from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.errors import ConfigError
+from dev_project.project_env import CreateProjectEnvironment
 
 
 class ParseOcaDependenciesLineTests(unittest.TestCase):
@@ -378,7 +375,6 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
     """Host-layer _resolve_dependencies() with real oca_dependencies.txt on disk."""
 
     def _make_env(self, config):
-        from dev_project.project_env import CreateProjectEnvironment
 
         env = CreateProjectEnvironment(config)
         env._links.checkout_project = MagicMock()

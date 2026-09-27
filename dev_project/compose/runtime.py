@@ -12,6 +12,8 @@ from .service_names import LOGICAL_ODOO
 if TYPE_CHECKING:
     from ..config import Config
     from ..host.context import HostProjectContext
+from ..subprocess_runner import run_checked
+
 
 # Logical default; physical name comes from ``user_env.odoo_service_name`` (4.7 B2).
 COMPOSE_ODOO_SERVICE = LOGICAL_ODOO
@@ -47,7 +49,6 @@ COMPOSE_STACK_SERVICES = (COMPOSE_ODOO_SERVICE, constants.DEFAULT_POSTGRES_SERVI
 
 
 def _run_checked(*args, **kwargs):
-    from ..subprocess_runner import run_checked
 
     return run_checked(*args, **kwargs)
 
@@ -59,7 +60,7 @@ def _compose_base_argv_for_host(host_ctx: HostProjectContext) -> list[str]:
 
 
 def _compose_base_argv(config: Config) -> list[str]:
-    from ..host.context import HostProjectContext
+    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     return _compose_base_argv_for_host(HostProjectContext.from_config(config))
 
@@ -90,7 +91,7 @@ def _running_container_id_for_host(
 def _running_container_id(
     config: Config, service: str
 ) -> str | None:
-    from ..host.context import HostProjectContext
+    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     return _running_container_id_for_host(HostProjectContext.from_config(config), service)
 
@@ -128,7 +129,7 @@ def compose_stack_is_healthy_for_host(host_ctx: HostProjectContext) -> bool:
 
 def compose_stack_is_healthy(config: Config) -> bool:
     """True when odoo and postgres compose services are up (and healthy if probed)."""
-    from ..host.context import HostProjectContext
+    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     return compose_stack_is_healthy_for_host(HostProjectContext.from_config(config))
 
@@ -140,6 +141,6 @@ def should_force_recreate_compose_for_host(host_ctx: HostProjectContext) -> bool
 
 def should_force_recreate_compose(config: Config) -> bool:
     """Recreate only when the stack is missing or not healthy."""
-    from ..host.context import HostProjectContext
+    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     return should_force_recreate_compose_for_host(HostProjectContext.from_config(config))

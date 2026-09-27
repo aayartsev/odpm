@@ -24,7 +24,7 @@ def _resolve_odoo_conf_dict(
     if not isinstance(odoo_conf, dict):
         return None
     if env_resolver is not None:
-        from ..config.transforms.env_substitution import expand_env_in_odoo_conf
+        from ..config.transforms.env_substitution import expand_env_in_odoo_conf  # noqa: PLC0415  # optional
 
         expanded = expand_env_in_odoo_conf(dict(odoo_conf), resolver=env_resolver)
         return dict(expanded) if isinstance(expanded, dict) else None
@@ -115,11 +115,11 @@ def load_manifest(
     active_scenario: str | None = None,
 ) -> ManifestView:
     """Validate, detect schema, and return a normalized :class:`ManifestView`."""
-    from .scenario_overrides import (
+    from .scenario_overrides import (  # noqa: PLC0415  # cycle
         resolve_effective_manifest_slice,
         slice_from_manifest_fields,
         validate_scenario_manifest,
-    )
+    )  # noqa: PLC0415  # cycle
 
     if not isinstance(raw, dict):
         raise TypeError("manifest root must be a JSON object")
@@ -150,10 +150,10 @@ def load_manifest(
         locks = raw.get("locks")
         extensions = raw.get("extensions")
         if env_resolver is not None:
-            from ..config.transforms.env_substitution import (
+            from ..config.transforms.env_substitution import (  # noqa: PLC0415  # optional
                 expand_env_in_compose_service_map,
                 expand_env_in_service_sources,
-            )
+            )  # noqa: PLC0415  # optional
 
             service_sources = expand_env_in_service_sources(
                 dict(service_sources) if isinstance(service_sources, dict) else None,
@@ -225,7 +225,7 @@ def refresh_manifest_view_compose_expansion(
     env_resolver: EnvResolver,
 ) -> ManifestView:
     """Re-expand ``services`` / ``service_patches`` after service source materialize."""
-    from ..config.transforms.env_substitution import expand_env_in_compose_service_map
+    from ..config.transforms.env_substitution import expand_env_in_compose_service_map  # noqa: PLC0415  # cycle
 
     if view.manifest_schema != constants.MANIFEST_SCHEMA_V2:
         return view

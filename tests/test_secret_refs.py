@@ -21,6 +21,14 @@ from dev_project.config.transforms.secret_refs import (
 from dev_project.errors import ConfigError
 from dev_project.manifest.reader import load_manifest
 from dev_project.project_env.secrets import read_secrets_source, write_secrets_source
+from dev_project.config.bootstrap import init_context
+from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
+from dev_project.config.transforms.env_substitution import collect_secret_refs_in_value
+from dev_project.config.transforms.env_substitution import inject_service_source_paths
+from dev_project.extensions.hooks import _expand_hook_argv
+from dev_project.secrets_providers.registry import clear_secrets_providers_for_tests, register_secrets_provider
+from dev_project.secrets_providers.session import SecretsFetchSession
 
 
 class SecretRefsGateTests(unittest.TestCase):
@@ -99,8 +107,6 @@ class SecretRefsGateTests(unittest.TestCase):
         )
 
     def test_bootstrap_init_context_attaches_secrets(self):
-        from dev_project.config.bootstrap import init_context
-        from dev_project.host.cli.args import OdpmCliArgs
 
         with tempfile.TemporaryDirectory() as tmp:
             write_secrets_source(tmp, {"api.key": "secret-value"})
@@ -136,7 +142,6 @@ class SecretRefsGateTests(unittest.TestCase):
             )
 
     def test_odpm_json_reader_gates_missing_secrets_file(self):
-        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
 
         with tempfile.TemporaryDirectory() as tmp:
             developing = Path(tmp) / "developing"
@@ -237,9 +242,6 @@ class SecretRefsGateTests(unittest.TestCase):
         }
         ci_trees = manifest_trees_for_secret_ref_gate(raw, "ci")
         refs_ci: set[str] = set()
-        from dev_project.config.transforms.env_substitution import (
-            collect_secret_refs_in_value,
-        )
 
         for tree in ci_trees:
             refs_ci.update(collect_secret_refs_in_value(tree))
@@ -252,7 +254,6 @@ class SecretRefsGateTests(unittest.TestCase):
         self.assertEqual(refs_dev, {"redis_password"})
 
     def test_odpm_json_reader_ci_ignores_developer_secret_refs(self):
-        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
 
         with tempfile.TemporaryDirectory() as tmp:
             manifest = {
@@ -283,7 +284,6 @@ class SecretRefsGateTests(unittest.TestCase):
             self.assertIsNotNone(config.bootstrap.manifest_view)
 
     def test_odpm_json_reader_developer_still_requires_secrets_for_overlay_refs(self):
-        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
 
         with tempfile.TemporaryDirectory() as tmp:
             manifest = {
@@ -306,9 +306,6 @@ class SecretRefsGateTests(unittest.TestCase):
             self.assertIn("redis_password", str(ctx.exception))
 
     def test_inject_preserves_secrets_for_compose_reexpand(self):
-        from dev_project.config.transforms.env_substitution import (
-            inject_service_source_paths,
-        )
 
         resolver = with_secrets(
             EnvResolver.from_sources(process_environ={}, project_dotenv={}),
@@ -332,7 +329,6 @@ class SecretRefsGateTests(unittest.TestCase):
         self.assertEqual(expanded["armtek"]["volumes"], ["/tmp/src/data:/data"])
 
     def test_hook_argv_expands_secret(self):
-        from dev_project.extensions.hooks import _expand_hook_argv
 
         resolver = EnvResolver.from_sources(
             process_environ={},
@@ -348,13 +344,6 @@ class SecretRefsGateTests(unittest.TestCase):
         self.assertEqual(argv, ("echo", "login"))
 
     def test_odpm_json_reader_early_fetches_remote_then_expands_secret(self):
-        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
-        from dev_project.host.cli.args import OdpmCliArgs
-        from dev_project.secrets_providers.registry import (
-            clear_secrets_providers_for_tests,
-            register_secrets_provider,
-        )
-        from dev_project.secrets_providers.session import SecretsFetchSession
 
         class _Fake:
             name = "fake"
@@ -396,9 +385,6 @@ class SecretRefsGateTests(unittest.TestCase):
             self.assertTrue(config.secrets_fetch_session.fetched)
 
     def test_odpm_json_reader_plan_without_secret_refs_skips_network(self):
-        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
-        from dev_project.host.cli.args import OdpmCliArgs
-        from dev_project.secrets_providers.session import SecretsFetchSession
 
         with tempfile.TemporaryDirectory() as tmp:
             manifest = {

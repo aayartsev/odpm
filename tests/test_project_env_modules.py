@@ -18,6 +18,7 @@ from dev_project.project_env.services import (
 )
 from dev_project.project_dir_manager import ProjectDirManager
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.errors import SubprocessError
 
 
 class ProjectTemplatesTests(unittest.TestCase):
@@ -135,8 +136,6 @@ class ProjectTemplatesTests(unittest.TestCase):
 
 class BaseImageBuilderTests(unittest.TestCase):
     def _builder(self, **dotenv) -> BaseImageBuilder:
-        from dev_project.host.cli.args import OdpmCliArgs
-        from dev_project.scenario_policy import ScenarioPolicy
 
         config = MagicMock()
         config.project_dir = "/tmp/project"
@@ -165,7 +164,6 @@ class BaseImageBuilderTests(unittest.TestCase):
 
     @patch("dev_project.project_env.base_image.run_or_raise")
     def test_base_image_exists_returns_false_when_inspect_fails(self, mock_run_or_raise):
-        from dev_project.errors import SubprocessError
 
         mock_run_or_raise.side_effect = SubprocessError(
             "missing",
@@ -352,7 +350,6 @@ class BaseImageServiceTests(unittest.TestCase):
 
 class CiImageBuildServiceTests(unittest.TestCase):
     def _service(self) -> CiImageBuildService:
-        from dev_project.host.cli.args import OdpmCliArgs
 
         config = MagicMock()
         config.project_dir = "/tmp/project"

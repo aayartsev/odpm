@@ -17,6 +17,7 @@ from dev_project.compose.service_names import (
 )
 from dev_project.host.user_env import CreateUserEnvironment
 from tests.test_noninteractive_init import _make_pd_manager
+from dev_project.config.transforms.env_substitution import EnvResolver, expand_env_string
 
 
 class ComposePrefixParseTests(unittest.TestCase):
@@ -103,10 +104,6 @@ class ComposePrefixUserEnvTests(unittest.TestCase):
             self.assertEqual(user_env.postgres_service_name, "acme-db")
             self.assertEqual(user_env.odoo_service_name, "acme-odoo")
             self.assertEqual(user_env.postgres_volume_name, "acme-postgres-data")
-            from dev_project.config.transforms.env_substitution import (
-                EnvResolver,
-                expand_env_string,
-            )
 
             resolver = EnvResolver.from_user_env(user_env, process_environ={})
             self.assertEqual(

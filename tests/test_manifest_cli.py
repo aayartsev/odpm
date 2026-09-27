@@ -12,6 +12,8 @@ from dev_project.errors import ConfigError
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.manifest.commands import run_manifest_command
 from dev_project.plan.cli import is_manifest_mode
+import os
+from tests.test_manifest_v2_reader import _minimal_v2
 
 
 class ManifestCliArgsTests(unittest.TestCase):
@@ -38,7 +40,6 @@ class ManifestValidateCommandTests(unittest.TestCase):
     def test_validate_v1_manifest_ok(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest_path = f"{tmp}/developing/odpm.json"
-            import os
 
             os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
             v1 = {
@@ -57,11 +58,9 @@ class ManifestValidateCommandTests(unittest.TestCase):
             self.assertEqual(code, 0)
 
     def test_validate_v2_manifest_ok(self):
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         with tempfile.TemporaryDirectory() as tmp:
             manifest_path = f"{tmp}/developing/odpm.json"
-            import os
 
             os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
             with open(manifest_path, "w", encoding="utf-8") as handle:
@@ -75,11 +74,9 @@ class ManifestValidateCommandTests(unittest.TestCase):
             self.assertEqual(code, 0)
 
     def test_validate_rejects_invalid_v2_service(self):
-        from tests.test_manifest_v2_reader import _minimal_v2
 
         with tempfile.TemporaryDirectory() as tmp:
             manifest_path = f"{tmp}/developing/odpm.json"
-            import os
 
             os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
             broken = _minimal_v2(services={"bad": {"ports": ["1:1"]}})
@@ -98,7 +95,6 @@ class ManifestMigrateCommandTests(unittest.TestCase):
     def test_migrate_prints_diff_without_write(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest_path = f"{tmp}/developing/odpm.json"
-            import os
 
             os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
             v1 = {
@@ -135,7 +131,6 @@ class ManifestMigrateCommandTests(unittest.TestCase):
     def test_migrate_write_updates_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest_path = f"{tmp}/developing/odpm.json"
-            import os
 
             os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
             v1 = {

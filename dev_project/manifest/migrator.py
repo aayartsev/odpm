@@ -90,7 +90,7 @@ def format_manifest_migration_diff(
     after: dict[str, Any],
 ) -> str:
     """Return unified diff between two manifest JSON documents."""
-    from ..plan.diff import _make_unified_diff
+    from ..plan.diff import _make_unified_diff  # noqa: PLC0415  # cycle
 
     old_text = json.dumps(before, indent=4, ensure_ascii=False) + "\n"
     new_text = json.dumps(after, indent=4, ensure_ascii=False) + "\n"

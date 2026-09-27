@@ -7,7 +7,7 @@ from ..compose.sidecar_gates import (
     collect_effective_compose_services,
     sidecar_gates_from_user_settings,
 )
-from ..plan import PlanStep
+from .core import PlanStep
 from ..prepare.helpers import make_plan_step
 from ..prepare.types import PrepareContext
 from .l10n import plan_msg

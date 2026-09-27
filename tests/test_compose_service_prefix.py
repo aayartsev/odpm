@@ -30,6 +30,7 @@ from dev_project.scenario_policy import ScenarioPolicy
 
 
 from tests.fixtures.compose.golden_scenario_env import GOLDEN_POSTGRES_DATA, GOLDEN_PROJECT_DIR
+from dev_project.config.transforms.env_substitution import EnvResolver, expand_env_in_compose_service_map
 
 
 def _prefix_ctx(prefix: str = "acme") -> ComposeNamingContext:
@@ -215,10 +216,6 @@ class BuildComposeDocumentPrefixTests(unittest.TestCase):
         self.assertEqual(document["services"]["mailpit"]["depends_on"], ["acme-db"])
 
     def test_build_compose_document_expands_service_refs_with_prefix(self):
-        from dev_project.config.transforms.env_substitution import (
-            EnvResolver,
-            expand_env_in_compose_service_map,
-        )
 
         os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
         naming = resolve_compose_naming(
@@ -253,10 +250,6 @@ class BuildComposeDocumentPrefixTests(unittest.TestCase):
         self.assertEqual(worker["environment"]["ODOO_URL"], "http://acme-odoo:8069")
 
     def test_build_compose_document_expands_service_refs_without_prefix(self):
-        from dev_project.config.transforms.env_substitution import (
-            EnvResolver,
-            expand_env_in_compose_service_map,
-        )
 
         os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
         naming = resolve_compose_naming(
@@ -286,10 +279,6 @@ class BuildComposeDocumentPrefixTests(unittest.TestCase):
         )
 
     def test_build_compose_document_expands_service_refs_legacy_postgres_name(self):
-        from dev_project.config.transforms.env_substitution import (
-            EnvResolver,
-            expand_env_in_compose_service_map,
-        )
 
         os.makedirs(GOLDEN_PROJECT_DIR, exist_ok=True)
         naming = resolve_compose_naming(

@@ -18,6 +18,15 @@ from dev_project.manifest.locks import (
     resolve_lock_source,
 )
 from dev_project.manifest.reader import ManifestView
+from dev_project.translations import update_locale
+import tempfile
+from dev_project.git.deps_lock import save_deps_lock
+import json
+import os
+from dev_project.manifest.locks import write_manifest_git_locks_from_deps_lock
+from dev_project.manifest.schema import validate_manifest_v2
+from unittest.mock import patch
+from dev_project.host.cli.parse_args import parse_cli_args
 
 
 class GitLocksMapTests(unittest.TestCase):
@@ -112,19 +121,15 @@ class CompareManifestDepsLocksTests(unittest.TestCase):
 
 class DepsLockManagerDivergenceWarningTests(unittest.TestCase):
     def setUp(self) -> None:
-        from dev_project.translations import update_locale
 
         update_locale("en_US")
 
     def tearDown(self) -> None:
-        from dev_project.translations import update_locale
 
         update_locale("en_US")
 
     def test_verify_warns_when_manifest_and_deps_lock_differ(self):
-        import tempfile
 
-        from dev_project.git.deps_lock import save_deps_lock
 
         with tempfile.TemporaryDirectory() as tmp:
             config = MagicMock()
@@ -199,12 +204,10 @@ class DepsLockManagerManifestSourceTests(unittest.TestCase):
 
 class DepsLockManagerApplyModeLogTests(unittest.TestCase):
     def setUp(self) -> None:
-        from dev_project.translations import update_locale
 
         update_locale("en_US")
 
     def tearDown(self) -> None:
-        from dev_project.translations import update_locale
 
         update_locale("en_US")
 
@@ -234,9 +237,7 @@ class DepsLockManagerApplyModeLogTests(unittest.TestCase):
         self.assertNotIn("Applying git dependency lock from /tmp", output)
 
     def test_enter_apply_mode_logs_deps_file_path(self):
-        import tempfile
 
-        from dev_project.git.deps_lock import save_deps_lock
 
         with tempfile.TemporaryDirectory() as tmp:
             config = MagicMock()
@@ -266,12 +267,7 @@ class DepsLockManagerApplyModeLogTests(unittest.TestCase):
 
 class WriteManifestGitLocksTests(unittest.TestCase):
     def test_writes_locks_git_on_v2_manifest(self):
-        import json
-        import os
-        import tempfile
 
-        from dev_project.manifest.locks import write_manifest_git_locks_from_deps_lock
-        from dev_project.manifest.schema import validate_manifest_v2
 
         lock = DepsLock(
             platform=LockEntry(
@@ -318,11 +314,7 @@ class WriteManifestGitLocksTests(unittest.TestCase):
             )
 
     def test_skips_v1_flat_manifest(self):
-        import json
-        import os
-        import tempfile
 
-        from dev_project.manifest.locks import write_manifest_git_locks_from_deps_lock
 
         lock = DepsLock(
             platform=LockEntry(
@@ -348,10 +340,6 @@ class WriteManifestGitLocksTests(unittest.TestCase):
 
 class SyncManifestLocksCollectTests(unittest.TestCase):
     def test_collect_and_save_syncs_manifest_when_flag_set(self):
-        import json
-        import os
-        import tempfile
-        from unittest.mock import MagicMock, patch
 
         lock = DepsLock(
             platform=LockEntry(
@@ -409,8 +397,6 @@ class SyncManifestLocksCollectTests(unittest.TestCase):
             )
 
     def test_collect_logs_manifest_unchanged_without_sync_flag(self):
-        import tempfile
-        from unittest.mock import MagicMock, patch
 
         with tempfile.TemporaryDirectory() as tmp:
             config = MagicMock()
@@ -451,7 +437,6 @@ class SyncManifestLocksCollectTests(unittest.TestCase):
 
 class SyncManifestLocksCliTests(unittest.TestCase):
     def test_parse_sync_manifest_locks_with_update_lock(self):
-        from dev_project.host.cli.parse_args import parse_cli_args
 
         cli_args = parse_cli_args(
             ["--update-lock", "--sync-manifest-locks", "--skip-start"]

@@ -21,6 +21,7 @@ from dev_project.git.service_sources import (
 from dev_project.manifest.reader import load_manifest
 from dev_project.prepare.registry import BUILTIN_PREPARE_STEPS
 from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.config.config import Config
 
 
 class ServiceSourcesMaterializeTests(unittest.TestCase):
@@ -105,7 +106,6 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
             self.assertFalse(service_sources_need_materialize(config))
 
     def test_apply_injects_resolver_and_reexpands_services(self):
-        from dev_project.config.config import Config
 
         view = load_manifest(
             _minimal_v2(

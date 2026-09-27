@@ -12,10 +12,18 @@ from ... import constants
 from ..transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
     expand_env_in_json,
+    with_secrets,
 )
+from ..transforms.secret_refs import (
+    ensure_secrets_available_for_refs,
+    manifest_trees_for_secret_ref_gate,
+)
+from ...project_env.odoo_password_secrets import maybe_ensure_odoo_password_keys
+from ...secrets_providers.fetch import ensure_secrets_source_for_config
 
 if TYPE_CHECKING:
     from ..config import Config
+from ...manifest.reader import load_manifest
 
 
 class OdpmJsonReader:
@@ -59,15 +67,6 @@ class OdpmJsonReader:
             self._rewrite_odpm_json()
         with open(self.config.repo_odpm_json) as repo_odpm_json:
             raw = json.load(repo_odpm_json)
-        from ...manifest.reader import load_manifest
-        from ...project_env.odoo_password_secrets import maybe_ensure_odoo_password_keys
-        from ...secrets_providers.fetch import ensure_secrets_source_for_config
-        from ..transforms.env_substitution import with_secrets
-        from ..transforms.secret_refs import (
-            ensure_secrets_available_for_refs,
-            manifest_trees_for_secret_ref_gate,
-        )
-
         active_scenario = self.config.user_env.odpm_scenario
         settings_disk: dict[str, Any] = getattr(
             self.config.bootstrap, "raw_user_settings_disk", None

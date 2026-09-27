@@ -21,7 +21,9 @@ from .bootstrap_phases import (
     normalize_project_requirements,
 )
 from .layout import apply_policy_and_layout
-from .transforms.env_substitution import EnvResolver
+from .transforms.env_substitution import EnvResolver, with_secrets
+from .transforms.secret_refs import load_secrets_map
+from ..secrets_providers.session import session_for_config
 from .state import (
     AddonLayoutState,
     BootstrapState,
@@ -77,12 +79,7 @@ def init_context(
     config.project_dir = config.pd_manager.project_path
     config.config_home_dir = config.pd_manager.home_config_dir
     config.user_env = user_env
-    from ..secrets_providers.session import session_for_config
-
     session_for_config(config)
-    from .transforms.env_substitution import with_secrets
-    from .transforms.secret_refs import load_secrets_map
-
     config._env_resolver = with_secrets(
         EnvResolver.from_user_env(user_env),
         load_secrets_map(config.project_dir),

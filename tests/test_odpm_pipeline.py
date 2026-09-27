@@ -12,6 +12,8 @@ from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.prepare_test_helpers import stub_prepare_service_executions
+from dev_project.compose.service_builder import ComposeServiceBuilder
+from dev_project.secrets_providers.session import SecretsFetchSession
 
 
 class RuntimeCoordinatorPolicyTests(unittest.TestCase):
@@ -69,14 +71,14 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         mock_vscode_cls.return_value.update_vscode_debugger_launcher.assert_called_once()
         mock_vscode_cls.return_value.generate_vscode_settings_json.assert_called_once()
 
-    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_write_debug_profile_skipped_without_debugpy(self, mock_write):
         coordinator = self._coordinator()
         coordinator.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         coordinator.write_debug_profile()
         mock_write.assert_not_called()
 
-    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_write_debug_profile_runs_for_developer_policy(self, mock_write):
         coordinator = self._coordinator()
         coordinator.config.policy = ScenarioPolicy.from_scenario(
@@ -87,7 +89,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
 
     @patch("dev_project.runtime_coordinator.PycharmConfigurator")
     @patch("dev_project.runtime_coordinator.VscodeConfigurator")
-    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_run_after_prepare_writes_debug_profile_before_vscode(
         self, mock_write, mock_vscode_cls, mock_pycharm_cls
     ):
@@ -170,7 +172,6 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         config.generate_odoo_conf_docker_data = MagicMock()
         config.db_creation_data = {}
 
-        from dev_project.compose.service_builder import ComposeServiceBuilder
 
         with patch("dev_project.compose.service_builder.persist_runtime_config"):
             builder = ComposeServiceBuilder(config)
@@ -243,7 +244,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     def test_start_containers_uses_subprocess(self, mock_base_image, _mock_should):
         config = MagicMock()
         config.project_dir = "/tmp/project"
@@ -262,7 +263,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     def test_start_containers_raises_pipeline_error_on_compose_failure(
         self, _mock_base_image, _mock_should
     ):
@@ -286,7 +287,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     def test_start_containers_skips_host_compose_summary_for_developer(
         self, _mock_base_image, _mock_should
     ):
@@ -550,7 +551,6 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         _mock_project_env_cls,
         _mock_checker_cls,
     ):
-        from dev_project.secrets_providers.session import SecretsFetchSession
 
         mock_pd = MagicMock()
         mock_pd.project_path = "/tmp/golden-project"

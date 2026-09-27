@@ -22,6 +22,7 @@ from dev_project.manifest.service_sources import (
     normalize_service_sources,
 )
 from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.manifest.scenario_overrides import validate_scenario_manifest
 
 
 class ServiceSourcesNormalizeTests(unittest.TestCase):
@@ -133,7 +134,6 @@ class ServiceSourcesSchemaTests(unittest.TestCase):
             validate_manifest_v2(raw)
 
     def test_unknown_service_source_reference_raises(self):
-        from dev_project.manifest.scenario_overrides import validate_scenario_manifest
 
         raw = _minimal_v2(
             services={
@@ -147,7 +147,6 @@ class ServiceSourcesSchemaTests(unittest.TestCase):
             validate_scenario_manifest(raw)
 
     def test_service_source_reference_validates_when_declared(self):
-        from dev_project.manifest.scenario_overrides import validate_scenario_manifest
 
         raw = _minimal_v2(
             service_sources={

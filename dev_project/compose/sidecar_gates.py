@@ -90,7 +90,7 @@ def collect_effective_compose_services(
     gates: dict[str, bool],
 ) -> dict[str, Any]:
     """Manifest/plugin sidecars after local gates (plan / fragment materialize)."""
-    from .fragments import collect_compose_services
+    from .fragments import collect_compose_services  # noqa: PLC0415  # cycle
 
     services = collect_compose_services(ext)
     kept, _dropped = apply_sidecar_gates(services, gates)

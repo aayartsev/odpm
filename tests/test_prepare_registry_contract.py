@@ -3,6 +3,8 @@
 import unittest
 
 from dev_project.prepare import BUILTIN_PREPARE_STEPS, PREPARE_STEPS, get_prepare_steps
+import dev_project.prepare as prepare_pkg
+
 
 PREPARE_STEP_IDS = [
     "git.lock_load",
@@ -34,7 +36,6 @@ PREPARE_STEP_IDS = [
 
 class PrepareRegistryContractTests(unittest.TestCase):
     def test_prepare_package_imports_without_cycle(self):
-        import dev_project.prepare as prepare_pkg
 
         self.assertTrue(hasattr(prepare_pkg, "PREPARE_STEPS"))
         self.assertTrue(callable(prepare_pkg.execute_prepare))
