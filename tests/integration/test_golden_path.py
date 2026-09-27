@@ -49,12 +49,13 @@ def golden_path_maintenance_hint(*, odoo_logs: str, db_logs: str) -> str:
         )
     if "ModuleNotFoundError" in odoo_logs and "No module named" in odoo_logs:
         hints.append(
-            "Container venv is missing an Odoo pip dependency (e.g. h11 after "
-            "Odoo requirements.txt changed). Run "
-            "`scripts/refresh_golden_path_project.sh` or full "
-            "`scripts/run_golden_path_test.sh` so odpm recomputes "
-            "venv_lock_hash and rebuilds the venv; bare `compose up` / "
-            "unittest alone is not enough."
+            "Container venv is missing an Odoo pip dependency. Usually the "
+            "platform checkout no longer matches odpm.json odoo_version "
+            "(or requirements.txt changed). Run "
+            "`scripts/refresh_golden_path_project.sh` (without "
+            "ODPM_GOLDEN_PATH_NO_GIT_UPDATE) so odpm checks out odoo_version "
+            "and rebuilds the venv; bare `compose up` / unittest alone is "
+            "not enough."
         )
     if not hints:
         return ""
@@ -227,12 +228,14 @@ class GoldenPathMaintenanceHintTests(unittest.TestCase):
 
     def test_hint_for_missing_odoo_pip_dependency(self) -> None:
         hint = golden_path_maintenance_hint(
-            odoo_logs="ModuleNotFoundError: No module named 'h11'",
+            odoo_logs="ModuleNotFoundError: No module named 'some_pkg'",
             db_logs="",
         )
-        self.assertIn("venv_lock_hash", hint)
         self.assertIn("refresh_golden_path_project.sh", hint)
-        self.assertIn("h11", hint)
+        self.assertIn("odoo_version", hint)
+        self.assertIn("venv", hint)
+        self.assertIn("ODPM_GOLDEN_PATH_NO_GIT_UPDATE", hint)
+        self.assertNotIn("some_pkg", hint)
 
 
 class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
@@ -252,7 +255,14 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("ODPM_GOLDEN_PATH_AUTO_REMEDIATE", refresh)
         self.assertIn("golden_path_remediate_database", refresh)
         self.assertIn("docker compose down", refresh)
+        self.assertIn("ODPM_GOLDEN_PATH_NO_GIT_UPDATE", refresh)
+        self.assertIn('odpm --skip-start "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}"', refresh)
         self.assertIn(
+            '"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
+            refresh,
+        )
+        # Default path must allow git checkout (platform → odoo_version).
+        self.assertNotIn(
             'odpm --skip-start --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
             refresh,
         )

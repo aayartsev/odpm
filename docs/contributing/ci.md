@@ -59,17 +59,19 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 
 ### Обслуживание golden-path проекта (self-hosted)
 
-Проект в `ODPM_GOLDEN_PATH_PROJECT` — **долгоживущее окружение** на runner. Job **не** делает полный `odpm init` с нуля: перед HTTP-тестом CI (и локальный `scripts/run_golden_path_test.sh`) гоняют `scripts/refresh_golden_path_project.sh` → `odpm --skip-start --no-git-update` (пересчёт `venv_lock_hash` / runtime / compose), затем `preflight_golden_path_project.sh`, и только потом unittest делает `docker compose up` + HTTP 200 на `/web`. Новый `.deb` из pre-release тега ставится отдельным шагом; checkout Odoo и data volume остаются на диске runner.
+Проект в `ODPM_GOLDEN_PATH_PROJECT` — **долгоживущее окружение** на runner. Job **не** делает полный `odpm init` с нуля: перед HTTP-тестом CI (и локальный `scripts/run_golden_path_test.sh`) гоняют `scripts/refresh_golden_path_project.sh` → **`odpm --skip-start`** (с git materialize/checkout по `odoo_version`, пересчёт `venv_lock_hash` / runtime / compose), затем `preflight_golden_path_project.sh`, и только потом unittest делает `docker compose up` + HTTP 200 на `/web`. Новый `.deb` из pre-release тега ставится отдельным шагом; data volume остаётся на диске runner.
 
-Пропуск refresh локально (если проект уже освежён): `ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ./scripts/run_golden_path_test.sh`.
+Пропуск refresh локально (если проект уже освежён): `ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ./scripts/run_golden_path_test.sh`.  
+Офлайн / без git на runner: `ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1` (как раньше `--no-git-update`; не чинит drift ветки платформы на `master`).
 
 **Когда обновлять проект вручную**
 
 | Событие | Действие |
 |---------|----------|
-| `git pull` в каталоге Odoo (`requirements.txt` изменился) | Достаточно полного `./scripts/run_golden_path_test.sh` (внутри refresh → `odpm --skip-start`) или вручную `odpm --plan` / `odpm --skip-start` → ожидается `venv_lock_hash changed` и пересборка venv при следующем `compose up`. С 4.6 хеш `odoo/requirements.txt` входит в `venv_lock_hash`. Один только unittest / `compose up` **не** пересчитает хеш. |
+| `git pull` / drift платформы на `master` при `odoo_version` 19.x | Полный `./scripts/run_golden_path_test.sh` или refresh **без** `ODPM_GOLDEN_PATH_NO_GIT_UPDATE` — odpm сделает checkout на `19.0` и пересоберёт venv. Один только unittest / `compose up` **не** переключит ветку. |
+| `git pull` в каталоге Odoo (`requirements.txt` изменился) | То же: refresh → `odpm --skip-start` → ожидается `venv_lock_hash changed` и пересборка venv при следующем `compose up`. |
 | Смена `python_version` / distro / `odoo_version` в `odpm.json` | То же: `odpm` пересоберёт runtime и venv. |
-| Ошибка в логах odoo: `ModuleNotFoundError` (например `decorator`, `h11`) | Обычно устаревший venv после изменения Odoo `requirements.txt`. Запустите refresh / `run_golden_path_test.sh`. С 4.6 odpm ставит `decorator` как implicit-пакет при сборке venv. Если ошибка остаётся — удалить `.venv` и `.lock`, перезапустить `odpm`. |
+| Ошибка в логах odoo: `ModuleNotFoundError: No module named '…'` | Checkout платформы не совпал с `odoo_version` и/или venv устарел после смены `requirements.txt`. Refresh **без** `ODPM_GOLDEN_PATH_NO_GIT_UPDATE`; при необходимости удалить `.venv` / `.lock` и снова `odpm --skip-start`. |
 | HTTP 500 на `/web`, в логах `invalid manifest` / `Invalid version` (модуль проекта, напр. `first_module`) | Исправить `version` в `__manifest__.py` кастомного аддона под правила Odoo 19 (`19.0.1.0`, не `19.0.1.0.0`). Это содержимое `ODPM_GOLDEN_PATH_PROJECT`, не odpm. |
 | HTTP 500, в postgres: `translate IS TRUE must be type boolean` / в odoo: `res_lang.short_time_format does not exist` | Несовпадение кода/БД. На Odoo 19 колонка `short_time_format` **удалена** (datetime remake) — отсутствие после свежего init нормально. Ошибка `column … does not exist` при SELECT значит: **на диске старый checkout Odoo**, который ещё объявляет поле, а БД уже от нового дерева. Предпочтительно: `git pull` Odoo 19.0 после remake. Иначе remedi ate БД под текущий код: `ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 … refresh_golden_path_project.sh`. Preflight / remedi ate: **`base` 19.x + `web`**; колонка `short_time_format` обязательна, если смонтированный `res_lang.py` ещё содержит поле (платформа ищется через `ODOO_PLATFORM_DIR`, `file://` в manifest и bind-volume в `docker-compose.yml`). Если платформу найти нельзя, а колонки нет — remedi ate всё равно. После `-i … --stop-after-init` remedi ate снова пишет compose без этого флага (`odpm -d … --skip-start`), иначе `compose up` сразу гасит Odoo. Wipe volume — через `docker run … alpine`. |
 | Connection refused на `/web`, в odoo: `Initiating shutdown` сразу после `Registry loaded` | Обычно в `docker-compose.yml` остался `--stop-after-init` после remedi ate/init. Перегенерировать: `odpm -d test_db --skip-start --no-git-update`, затем `docker compose down` и повторить golden-path. |
@@ -88,7 +90,7 @@ ODPM_GOLDEN_PATH_PROJECT="$PROJECT" ./scripts/run_golden_path_test.sh
 # Или по шагам:
 cd "$PROJECT"
 docker compose down
-odpm --plan    # при изменении Odoo/requirements — шаг UPDATE compose.service (venv)
+odpm --plan    # platform checkout + venv_lock_hash
 odpm --skip-start
 ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ODPM_GOLDEN_PATH_PROJECT="$PROJECT" \
   ./scripts/run_golden_path_test.sh
@@ -97,7 +99,7 @@ ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ODPM_GOLDEN_PATH_PROJECT="$PROJECT" \
 **Проверка venv внутри контейнера** (после `compose up`):
 
 ```bash
-docker compose exec odoo python3 -c "import decorator, passlib, lxml, h11"
+docker compose exec odoo python3 -c "import decorator, passlib, lxml"
 ```
 
 Label PR `run-docker`: добавить label, **перезапустить** workflow CI Docker.

@@ -47,8 +47,18 @@ log "docker compose down --remove-orphans ..."
 docker compose down --remove-orphans 2>/dev/null || true
 log "docker compose down done (${SECONDS}s elapsed)"
 
-log "odpm --skip-start --no-git-update ..."
-odpm --skip-start --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
+# Allow git materialize/checkout so platform follows odpm.json odoo_version.
+# --no-git-update left a drifted checkout (wrong branch/requirements) and
+# broke /web with ModuleNotFoundError. Opt out offline with
+# ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1.
+GOLDEN_PATH_ODPM_GIT_FLAGS=()
+if [[ "${ODPM_GOLDEN_PATH_NO_GIT_UPDATE:-0}" == "1" ]]; then
+    GOLDEN_PATH_ODPM_GIT_FLAGS+=(--no-git-update)
+    log "ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1; skipping git materialize/checkout"
+fi
+
+log "odpm --skip-start ${GOLDEN_PATH_ODPM_GIT_FLAGS[*]:-} ..."
+odpm --skip-start "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}" "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
 log "odpm --skip-start done (${SECONDS}s elapsed)"
 # odpm may rewrite docker-compose.yml (e.g. legacy POSTGRES_SERVICE_NAME=db-dev → db).
 POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"
