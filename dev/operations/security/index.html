@@ -2128,12 +2128,12 @@
 </tr>
 </tbody>
 </table>
-<p>Override: CLI <code>--security-profile</code> сильнее env <code>ODPM_SECURITY_PROFILE</code>, иначе дефолт от сценария.<br />
+<p>Override: CLI <code>--security-profile</code> сильнее env <code>ODPM_SECURITY_PROFILE</code>, иначе дефолт от сценария (таблица дефолтов и conflict rules — в <code>policy_compose</code>, ADR-024).<br />
 Сценарий <strong><code>ci</code></strong>: bootstrap Odoo-паролей в secrets <strong>не</strong> выполняется; bind портов остаётся scenario-owned (postgres на localhost, без bind всех published), даже если override = <code>hardened</code>.</p>
 <p>Точка правды для паролей Odoo — <strong><code>user_settings.json</code> после expand</strong> (<code>${VAR}</code> / <code>${@secret:}</code> по всему файлу). Существующий settings odpm <strong>не переписывает</strong>. На <code>hardened</code>, если парольные поля в raw — plaintext / пусто / без <code>${@secret:}</code> — WARNING (файл не меняется).</p>
 <p>Новые hardened-проекты: при отсутствии <code>.odpm/secrets.json</code> odpm создаёт ключи <code>odpm.db_manager_password</code> и <code>odpm.db_default_admin_password</code> (<code>token_urlsafe</code>, <code>0600</code>).<br />
 Уже созданная Odoo-БД сама не получает новый admin-пароль — используйте <code>--set-admin-pass</code> с <code>-d</code>.</p>
-<p>См. ADR-023, <a href="../secrets/">локальные секреты</a>, <a href="../../reference/user-settings/">user-settings</a>.</p>
+<p>См. ADR-023, ADR-024, <a href="../secrets/">локальные секреты</a>, <a href="../../reference/user-settings/">user-settings</a>.</p>
 <h2 id="_3">Пароли в конфигурации<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
