@@ -107,6 +107,9 @@ class ConfigPaths:
         docker.dependencies_dir = os.path.join(
             self.config.project_dir, constants.DEPENDENCIES_DIR
         )
+        docker.service_sources_dir = os.path.join(
+            self.config.project_dir, constants.SERVICE_SOURCES_DIR
+        )
         docker.odoo_tests_dir = os.path.join(
             self.config.project_dir, "data/odoo", "tmp/odoo_tests"
         )

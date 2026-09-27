@@ -20,8 +20,18 @@ from dev_project.git.service_sources import (
 )
 from dev_project.manifest.reader import load_manifest
 from dev_project.prepare.registry import BUILTIN_PREPARE_STEPS
+from dev_project.prepare.steps_sources import (
+    evaluate_sources_materialize,
+    exec_sources_materialize,
+)
 from tests.test_manifest_v2_reader import _minimal_v2
 from dev_project.config.config import Config
+from dev_project import constants
+from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.context import HostProjectContext
+from dev_project.host.ports import ports_from_config
+from dev_project.prepare.types import PrepareContext
+from dev_project.scenario_policy import ScenarioPolicy
 
 
 class ServiceSourcesMaterializeTests(unittest.TestCase):
@@ -129,10 +139,16 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
         )
         type(config).env_resolver = property(lambda self: self._env_resolver)
 
-        apply_materialized_service_sources(
-            config,
-            {"autoparts_env": "/opt/autoparts-env"},
-        )
+        with mock.patch(
+            "dev_project.git.service_sources.SymlinkManager"
+        ) as manager_cls:
+            apply_materialized_service_sources(
+                config,
+                {"autoparts_env": "/opt/autoparts-env"},
+            )
+            manager_cls.return_value.sync_service_source_project_links.assert_called_once_with(
+                {"autoparts_env": "/opt/autoparts-env"},
+            )
 
         self.assertEqual(
             config.bootstrap.service_source_paths,
@@ -175,6 +191,57 @@ class ServiceSourcesPrepareStepTests(unittest.TestCase):
         hooks_index = ids.index("hooks.post_clone")
         self.assertEqual(sources_index, git_index + 1)
         self.assertEqual(hooks_index, sources_index + 1)
+
+    def _make_ctx(self, project_dir: str, *, service_sources: dict | None) -> PrepareContext:
+        config = mock.MagicMock()
+        config.project_dir = project_dir
+        config.service_sources_dir = os.path.join(project_dir, constants.SERVICE_SOURCES_DIR)
+        config.symlinks_sources = []
+        config.repo_odpm_json = os.path.join(project_dir, "odpm.json")
+        config.bootstrap = mock.MagicMock()
+        if service_sources is None:
+            config.bootstrap.manifest_view = None
+        else:
+            config.bootstrap.manifest_view = load_manifest(
+                _minimal_v2(service_sources=service_sources),
+            )
+        config.user_env = mock.MagicMock()
+        config.user_env.odoo_projects_dir = os.path.join(project_dir, "odoo_projects")
+        config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        host_ctx = HostProjectContext.from_config(config)
+        ports = ports_from_config(config, mock.MagicMock(), OdpmCliArgs())
+        return PrepareContext(
+            ports=ports,
+            project_env=mock.MagicMock(),
+            templates=mock.MagicMock(),
+            compose_generator=mock.MagicMock(),
+            links=mock.MagicMock(),
+            system_checker=mock.MagicMock(),
+            args=mock.MagicMock(),
+            host_ctx=host_ctx,
+        )
+
+    def test_evaluate_empty_sources_is_run_not_noop(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            ctx = self._make_ctx(project_dir, service_sources=None)
+            step = evaluate_sources_materialize(ctx)
+            self.assertEqual(step.outcome, "run")
+            self.assertTrue(step.should_execute())
+
+    def test_exec_empty_sources_removes_stale_project_links(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            link_dir = os.path.join(project_dir, constants.SERVICE_SOURCES_DIR)
+            os.makedirs(link_dir)
+            stale_target = os.path.join(project_dir, "old-clone")
+            os.makedirs(stale_target)
+            stale_link = os.path.join(link_dir, "autoparts_env")
+            os.symlink(stale_target, stale_link)
+
+            ctx = self._make_ctx(project_dir, service_sources={})
+            exec_sources_materialize(ctx)
+
+            self.assertFalse(os.path.lexists(stale_link))
+            self.assertTrue(os.path.isdir(link_dir))
 
 
 if __name__ == "__main__":

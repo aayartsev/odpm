@@ -1169,9 +1169,6 @@ msgstr "источник git lock недоступен"
 msgid "no secrets source"
 msgstr "нет источника secrets"
 
-msgid "no service_sources declared"
-msgstr "service_sources не объявлены"
-
 msgid "no {PHASE} hooks configured"
 msgstr "hooks {PHASE} не настроены"
 
@@ -1297,6 +1294,9 @@ msgstr "запуск compose-стека с --force-recreate (стек отсут
 
 msgid "start compose stack without --force-recreate (stack healthy)"
 msgstr "запуск compose-стека без --force-recreate (стек здоров)"
+
+msgid "sync project service-sources links"
+msgstr "синхронизировать ссылки project/service-sources"
 
 msgid "unable to preview debug profile"
 msgstr "не удалось построить preview debug profile"

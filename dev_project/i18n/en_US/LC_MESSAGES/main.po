@@ -1170,9 +1170,6 @@ msgstr "no git lock source available"
 msgid "no secrets source"
 msgstr "no secrets source"
 
-msgid "no service_sources declared"
-msgstr "no service_sources declared"
-
 msgid "no {PHASE} hooks configured"
 msgstr "no {PHASE} hooks configured"
 
@@ -1298,6 +1295,9 @@ msgstr "start compose stack with --force-recreate (stack missing or unhealthy)"
 
 msgid "start compose stack without --force-recreate (stack healthy)"
 msgstr "start compose stack without --force-recreate (stack healthy)"
+
+msgid "sync project service-sources links"
+msgstr "sync project service-sources links"
 
 msgid "unable to preview debug profile"
 msgstr "unable to preview debug profile"

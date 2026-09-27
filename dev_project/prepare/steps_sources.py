@@ -11,6 +11,7 @@ from ..git.service_sources import (
 )
 from ..plan.core import PlanStep
 from ..plan.l10n import plan_msg
+from ..symlinks.manager import SymlinkManager
 from .helpers import make_plan_step, skip_git
 from .types import PrepareContext
 
@@ -24,9 +25,9 @@ def evaluate_sources_materialize(ctx: PrepareContext) -> PlanStep:
         return make_plan_step(
             "sources.materialize",
             description,
-            "noop",
+            "run",
             True,
-            plan_msg("no service_sources declared"),
+            plan_msg("sync project service-sources links"),
         )
 
     odoo_projects_dir = ctx.host_ctx.user_env.odoo_projects_dir
@@ -72,10 +73,11 @@ def evaluate_sources_materialize(ctx: PrepareContext) -> PlanStep:
 
 def exec_sources_materialize(ctx: PrepareContext) -> None:
     view = ctx.manifest_view
+    config = ctx.ports.bootstrap.config
     if view is None or not view.service_sources:
+        SymlinkManager(config).sync_service_source_project_links({})
         return
 
-    config = ctx.ports.bootstrap.config
     lock_entries: dict = {}
     if ctx.lock_manager is not None:
         lock_entries = ctx.lock_manager.lock_entries_for_service_sources()

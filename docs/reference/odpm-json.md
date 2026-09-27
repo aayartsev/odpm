@@ -111,7 +111,7 @@ GIT_HOST=git.company.example
 
 Правила merge в `scenarios.*`: **`service_sources` — replace-by-name** (overlay перекрывает то же имя, остальные записи сохраняются).
 
-Репозитории из `service_sources` **не** попадают в `dependencies` / `addons_path`. Шаг prepare **`sources.materialize`** (после `git.materialize`) клонирует их в `${ODOO_PROJECTS_DIR}/service-sources/<name>` и подставляет путь через `${@source:<name>}`. Пины коммитов — в `.odpm/deps.lock.json` → `service_sources.<name>` (см. `odpm --update-lock`). Подробнее: [service-sources.md](service-sources.md).
+Репозитории из `service_sources` **не** попадают в `dependencies` / `addons_path`. Шаг prepare **`sources.materialize`** (после `git.materialize`) клонирует их в `${ODOO_PROJECTS_DIR}/service-sources/<name>`, подставляет путь через `${@source:<name>}` и создаёт проектные ссылки `<project>/service-sources/<name>`. Пины коммитов — в `.odpm/deps.lock.json` → `service_sources.<name>` (см. `odpm --update-lock`). Подробнее: [service-sources.md](service-sources.md).
 
 ## Блок `odoo_conf` (переопределения Odoo)
 

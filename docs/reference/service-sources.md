@@ -56,8 +56,9 @@ Prepare-шаг **`sources.materialize`** (после `git.materialize`, до `ho
 1. Клонирует git-источники в **`${ODOO_PROJECTS_DIR}/service-sources/<name>`**
 2. Для `file://` — использует указанный каталог (clone не выполняется)
 3. Записывает пути в `ODPM_SOURCE_*` и **пере-expand** `services` / `service_patches` перед compose
+4. Создаёт/обновляет в каталоге odpm-проекта **`<project>/service-sources/<name>`** — symlink на клон (или путь `file://`) для навигации в IDE; не путать с каталогом клонов под `ODOO_PROJECTS_DIR`
 
-При `--no-git-update` odpm только проверяет, что каталоги уже существуют.
+При `--no-git-update` odpm только проверяет, что каталоги уже существуют, и синхронизирует проектные ссылки.
 
 ## Подстановка `${@source:...}`
 

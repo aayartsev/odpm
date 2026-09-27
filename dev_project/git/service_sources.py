@@ -6,9 +6,11 @@ import os
 import shutil
 from typing import TYPE_CHECKING
 
+from .. import constants
 from ..errors import ConfigError, GitError
 from ..logging import get_module_logger
 from ..subprocess_runner import run_logged
+from ..symlinks.manager import SymlinkManager
 from ..translations import _
 from .runner import GitRunner
 
@@ -21,7 +23,7 @@ from ..manifest.reader import refresh_manifest_view_compose_expansion
 
 _logger = get_module_logger(__name__)
 
-SERVICE_SOURCES_DIR = "service-sources"
+SERVICE_SOURCES_DIR = constants.SERVICE_SOURCES_DIR
 
 
 def service_source_target_dir(config: Config, name: str) -> str:
@@ -241,3 +243,4 @@ def apply_materialized_service_sources(
             view,
             env_resolver=config.env_resolver,
         )
+    SymlinkManager(config).sync_service_source_project_links(source_paths)

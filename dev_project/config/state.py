@@ -252,6 +252,7 @@ class DockerLayoutState:
     venv_dir: str = ""
     dir_for_odoo_container_home: str = ""
     dependencies_dir: str = ""
+    service_sources_dir: str = ""
     odoo_tests_dir: str = ""
     compose_file_version: str = constants.DOCKER_COMPOSE_DEFAULT_FILE_VERSION
     docker_compose_command: str = constants.DEFAULT_DOCKER_COMPOSE_COMMAND

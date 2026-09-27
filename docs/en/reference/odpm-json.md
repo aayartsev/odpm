@@ -335,7 +335,7 @@ Example:
 
 Merge in `scenarios.*`: **`service_sources` — replace-by-name** (overlay overrides the same name; other entries are kept).
 
-Repositories from `service_sources` are **not** added to `dependencies` / `addons_path`. Prepare step **`sources.materialize`** (after `git.materialize`) clones them under `${ODOO_PROJECTS_DIR}/service-sources/<name>` and exposes the path via `${@source:<name>}`. Commit pins live in `.odpm/deps.lock.json` → `service_sources.<name>` (see `odpm --update-lock`). Details: [service-sources.md](service-sources.md).
+Repositories from `service_sources` are **not** added to `dependencies` / `addons_path`. Prepare step **`sources.materialize`** (after `git.materialize`) clones them under `${ODOO_PROJECTS_DIR}/service-sources/<name>`, exposes the path via `${@source:<name>}`, and creates project links at `<project>/service-sources/<name>`. Commit pins live in `.odpm/deps.lock.json` → `service_sources.<name>` (see `odpm --update-lock`). Details: [service-sources.md](service-sources.md).
 
 ## Verified combinations
 

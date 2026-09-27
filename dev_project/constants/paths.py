@@ -85,6 +85,7 @@ DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
 LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]
 
 DEPENDENCIES_DIR = "dependencies"
+SERVICE_SOURCES_DIR = "service-sources"
 # Legacy (<=17) host bind; prefer database.postgres_paths.postgres_local_storage_relpath.
 POSTGRES_LOCAL_STORAGE_DIR = "data/postgresql/var/lib/postgresql/data"
 

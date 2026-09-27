@@ -162,7 +162,9 @@ PLAN_L10N_RU: dict[str, str] = {
         "материализовать репозитории перед записью deps.lock"
     ),
     "no git lock source available": "источник git lock недоступен",
-    "no service_sources declared": "service_sources не объявлены",
+    "sync project service-sources links": (
+        "синхронизировать ссылки project/service-sources"
+    ),
     "no {PHASE} hooks configured": "hooks {PHASE} не настроены",
     "odoo config template stale": "шаблон конфигурации Odoo устарел",
     "odoo.conf and template up to date": "odoo.conf и шаблон актуальны",

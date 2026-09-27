@@ -58,8 +58,9 @@ Prepare step **`sources.materialize`** (after `git.materialize`, before `hooks.p
 1. Clones git sources under **`${ODOO_PROJECTS_DIR}/service-sources/<name>`**
 2. For `file://` — uses the given directory (no clone)
 3. Writes paths to `ODPM_SOURCE_*` and **re-expands** `services` / `service_patches` before compose
+4. Creates/updates **`<project>/service-sources/<name>`** in the odpm project directory — a symlink to the clone (or `file://` path) for IDE navigation; do not confuse with the clone tree under `ODOO_PROJECTS_DIR`
 
-With `--no-git-update`, odpm only verifies that directories already exist.
+With `--no-git-update`, odpm only verifies that directories already exist and syncs the project links.
 
 ## `${@source:...}` substitution
 

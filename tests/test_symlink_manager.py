@@ -139,6 +139,78 @@ class SymlinkManagerTests(unittest.TestCase):
             self.assertTrue(os.path.islink(kept_link))
             self.assertFalse(os.path.lexists(stale_link))
 
+    def test_sync_service_source_project_links_creates_named_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory() as project_dir:
+            target_a = os.path.join(project_dir, "clones", "repo-a")
+            target_b = os.path.join(project_dir, "clones", "other-name")
+            os.makedirs(target_a)
+            os.makedirs(target_b)
+
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.service_sources_dir = os.path.join(project_dir, "service-sources")
+            config.symlinks_sources = []
+
+            _symlink_manager(config).sync_service_source_project_links(
+                {"autoparts_env": target_a, "local_env": target_b}
+            )
+
+            link_a = os.path.join(project_dir, "service-sources", "autoparts_env")
+            link_b = os.path.join(project_dir, "service-sources", "local_env")
+            self.assertTrue(os.path.islink(link_a))
+            self.assertTrue(os.path.islink(link_b))
+            self.assertEqual(os.readlink(link_a), target_a)
+            self.assertEqual(os.readlink(link_b), target_b)
+
+    def test_sync_service_source_project_links_retargets_and_removes_stale(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as project_dir:
+            old_target = os.path.join(project_dir, "clones", "old")
+            new_target = os.path.join(project_dir, "clones", "new")
+            keep_target = os.path.join(project_dir, "clones", "keep")
+            os.makedirs(old_target)
+            os.makedirs(new_target)
+            os.makedirs(keep_target)
+            link_dir = os.path.join(project_dir, "service-sources")
+            os.makedirs(link_dir)
+            os.symlink(old_target, os.path.join(link_dir, "autoparts_env"))
+            os.symlink(keep_target, os.path.join(link_dir, "keep_env"))
+            os.symlink(old_target, os.path.join(link_dir, "gone"))
+
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.service_sources_dir = link_dir
+            config.symlinks_sources = []
+
+            _symlink_manager(config).sync_service_source_project_links(
+                {"autoparts_env": new_target, "keep_env": keep_target}
+            )
+
+            self.assertEqual(
+                os.readlink(os.path.join(link_dir, "autoparts_env")),
+                new_target,
+            )
+            self.assertEqual(
+                os.readlink(os.path.join(link_dir, "keep_env")),
+                keep_target,
+            )
+            self.assertFalse(os.path.lexists(os.path.join(link_dir, "gone")))
+
+    def test_sync_service_source_project_links_empty_map_without_dir_is_noop(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as project_dir:
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.service_sources_dir = os.path.join(project_dir, "service-sources")
+            config.symlinks_sources = []
+
+            _symlink_manager(config).sync_service_source_project_links({})
+            self.assertFalse(
+                os.path.exists(os.path.join(project_dir, "service-sources"))
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
