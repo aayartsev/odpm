@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **Локальный golden-path** — `scripts/run_golden_path_test.sh` как в CI: сначала `refresh_golden_path_project.sh` (`odpm --skip-start`) и preflight, затем HTTP-unittest, чтобы смена Odoo `requirements.txt` (например `h11`) пересобирала venv; пропуск — `ODPM_GOLDEN_PATH_SKIP_REFRESH=1`. Hint для `ModuleNotFoundError`. Документация: `ci.md`.
 - **Policy compose (ADR-024)** — дефолты scenario→security и conflict rules (`effective_binds`, password bootstrap) в `policy_compose.PRESETS`; публичная фабрика по-прежнему `ScenarioPolicy.from_scenario`; в `security_profiles` — parsers/binds и lazy forwarders. Тесты: `test_policy_compose`. Документация: ADR-024, `security.md`, References ADR-023.
 
 ### Добавлено

@@ -47,6 +47,15 @@ def golden_path_maintenance_hint(*, odoo_logs: str, db_logs: str) -> str:
             "Odoo web templates expect Odoo 19+ ORM but the database or addons "
             "are inconsistent — usually fixed by the same DB recreate as above."
         )
+    if "ModuleNotFoundError" in odoo_logs and "No module named" in odoo_logs:
+        hints.append(
+            "Container venv is missing an Odoo pip dependency (e.g. h11 after "
+            "Odoo requirements.txt changed). Run "
+            "`scripts/refresh_golden_path_project.sh` or full "
+            "`scripts/run_golden_path_test.sh` so odpm recomputes "
+            "venv_lock_hash and rebuilds the venv; bare `compose up` / "
+            "unittest alone is not enough."
+        )
     if not hints:
         return ""
     return (
@@ -215,6 +224,15 @@ class GoldenPathMaintenanceHintTests(unittest.TestCase):
             golden_path_maintenance_hint(odoo_logs="ok", db_logs="ok"),
             "",
         )
+
+    def test_hint_for_missing_odoo_pip_dependency(self) -> None:
+        hint = golden_path_maintenance_hint(
+            odoo_logs="ModuleNotFoundError: No module named 'h11'",
+            db_logs="",
+        )
+        self.assertIn("venv_lock_hash", hint)
+        self.assertIn("refresh_golden_path_project.sh", hint)
+        self.assertIn("h11", hint)
 
 
 class GoldenPathMaintenanceScriptsTests(unittest.TestCase):

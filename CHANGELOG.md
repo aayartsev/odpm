@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Golden-path local runner** — `scripts/run_golden_path_test.sh` mirrors CI: `refresh_golden_path_project.sh` (`odpm --skip-start`) and preflight before the HTTP unittest, so Odoo `requirements.txt` changes (e.g. `h11`) rebuild the venv; skip with `ODPM_GOLDEN_PATH_SKIP_REFRESH=1`. Maintenance hint for `ModuleNotFoundError`. Docs: `ci.md`.
 - **Policy compose (ADR-024)** — scenario→security defaults and conflict rules (`effective_binds`, password bootstrap) live in `policy_compose.PRESETS`; `ScenarioPolicy.from_scenario` remains the public factory; `security_profiles` keeps parsers/binds helpers with lazy forwarders. Tests: `test_policy_compose`. Docs: ADR-024, `security.md`, ADR-023 References.
 
 ### Added

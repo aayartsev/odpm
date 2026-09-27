@@ -52,9 +52,10 @@ ODPM_COMPOSE_SMOKE_MAILPIT=1 ./scripts/run_compose_smoke_mailpit_test.sh
 ./scripts/run_http_smoke_test.sh
 ODPM_RUN_DOCKER_INTEGRATION=1 python3 -m unittest tests.integration.test_ci_image_build -v
 ODPM_GOLDEN_PATH_PROJECT=/path ./scripts/run_golden_path_test.sh
+# already refreshed: ODPM_GOLDEN_PATH_SKIP_REFRESH=1 …/run_golden_path_test.sh
 ```
 
-По умолчанию пропускаются в `unittest discover` (быстрый CI unit).
+По умолчанию пропускаются в `unittest discover` (быстрый CI unit). `run_golden_path_test.sh` перед HTTP-тестом вызывает refresh (`odpm --skip-start`) и preflight — как job в `ci-docker.yml`.
 
 `tests.integration.test_ci_image_build` проверяет бэкенд **`docker`**. Бэкенд **`kaniko`** (argv, `docker-run` / `direct`, fail-fast без docker config) покрыт unit-тестами `tests.test_ci_image_build_backends` — см. [ADR-016](adr-016-ci-image-build-backends.md).
 
