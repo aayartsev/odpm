@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..compose import runtime as compose_runtime
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from .l10n import plan_msg
@@ -25,6 +26,11 @@ def compose_up_would_run(args: OdpmCliArgs, host_ctx: HostProjectContext) -> boo
     return True
 
 
+def probe_should_force_recreate(host_ctx: HostProjectContext) -> bool:
+    """Plan-layer seam for compose health; unit tests patch this name."""
+    return compose_runtime.should_force_recreate_compose_for_host(host_ctx)
+
+
 def compose_up_force_recreate_value(
     host_ctx: HostProjectContext, args: OdpmCliArgs
 ) -> bool | None:
@@ -34,9 +40,7 @@ def compose_up_force_recreate_value(
     compose_cmd = host_ctx.docker_compose_command
     if not isinstance(compose_cmd, str) or not compose_cmd.strip():
         return None
-    from ..compose.runtime import should_force_recreate_compose_for_host
-
-    return should_force_recreate_compose_for_host(host_ctx)
+    return probe_should_force_recreate(host_ctx)
 
 
 def evaluate_compose_up_plan(
@@ -61,9 +65,7 @@ def evaluate_compose_up_plan(
                 ),
             ),
         )
-    from ..compose.runtime import should_force_recreate_compose_for_host
-
-    if should_force_recreate_compose_for_host(host_ctx):
+    if probe_should_force_recreate(host_ctx):
         return (
             plan_msg(
                 "start compose stack with --force-recreate (stack missing or unhealthy)"

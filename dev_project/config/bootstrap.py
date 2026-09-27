@@ -16,7 +16,6 @@ from .bootstrap_context import ConfigBootstrapContext
 from .bootstrap_phases import (
     bind_developing_link,
     bind_platform_link,
-    finalize_user_settings_after_secrets,
     load_project_settings,
     load_user_settings,
     normalize_project_requirements,

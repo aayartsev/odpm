@@ -49,6 +49,7 @@ COMPOSE_RUNTIME_HELPERS = frozenset(
     {
         "compose_up_force_recreate_value",
         "evaluate_compose_up_plan",
+        "probe_should_force_recreate",
     }
 )
 

@@ -55,7 +55,7 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         self.assertFalse(plan_probes_compose_stack(OdpmCliArgs(plan_no_docker=True)))
 
     @patch(
-        "dev_project.compose.runtime.should_force_recreate_compose_for_host",
+        "dev_project.plan.compose_runtime.probe_should_force_recreate",
         return_value=False,
     )
     def test_compose_up_reason_without_force_recreate_when_healthy(self, _mock):
@@ -65,7 +65,7 @@ class PlanComposeRuntimeTests(unittest.TestCase):
         self.assertEqual(warnings, ())
 
     @patch(
-        "dev_project.compose.runtime.should_force_recreate_compose_for_host",
+        "dev_project.plan.compose_runtime.probe_should_force_recreate",
         return_value=True,
     )
     def test_compose_up_reason_with_force_recreate_when_unhealthy(self, _mock):
@@ -134,7 +134,7 @@ class PlanComposeProbeIntegrationTests(unittest.TestCase):
         return config
 
     @patch(
-        "dev_project.compose.runtime.should_force_recreate_compose_for_host",
+        "dev_project.plan.compose_runtime.probe_should_force_recreate",
         return_value=True,
     )
     def test_plan_table_shows_force_recreate_reason(self, _mock):

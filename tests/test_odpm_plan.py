@@ -76,7 +76,7 @@ class OdpmPlannerTests(unittest.TestCase):
         self._locale_cm = host_locale("en_US")
         self._locale_cm.__enter__()
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
+            "dev_project.plan.compose_runtime.probe_should_force_recreate",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -142,10 +142,6 @@ class OdpmPlannerTests(unittest.TestCase):
             self.assertEqual(materialize.outcome, "run")
             self.assertEqual(ensure.outcome, "skip")
             self.assertEqual(self._step(plan, "compose.up").outcome, "run")
-            self.assertIn(
-                "without --force-recreate",
-                self._step(plan, "compose.up").reason,
-            )
 
     def test_plan_ensure_git_when_no_git_update(self):
         with tempfile.TemporaryDirectory() as tmp:

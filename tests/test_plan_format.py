@@ -143,7 +143,7 @@ class PlanJsonFormatTests(unittest.TestCase):
 class PlanStrictPipelineTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
+            "dev_project.plan.compose_runtime.probe_should_force_recreate",
             return_value=False,
         )
         self._recreate_patcher.start()
