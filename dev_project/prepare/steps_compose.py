@@ -38,10 +38,15 @@ def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
-    from ..compose.fragments import collect_compose_services, compose_fragments_need_materialize
+    from ..compose.fragments import compose_fragments_need_materialize
+    from ..compose.sidecar_gates import (
+        collect_effective_compose_services,
+        sidecar_gates_from_user_settings,
+    )
 
     description = plan_msg("Materialize manifest and plugin compose service fragments")
-    services = collect_compose_services(ctx.extension_host())
+    gates = sidecar_gates_from_user_settings(ctx.host_ctx.user_settings)
+    services = collect_effective_compose_services(ctx.extension_host(), gates)
     odpm_scenario = ctx.host_ctx.user_env.odpm_scenario
     if compose_fragments_need_materialize(
         ctx.host_ctx.project_dir,
@@ -144,9 +149,14 @@ def exec_compose_template(ctx: PrepareContext) -> None:
 
 
 def exec_compose_fragments(ctx: PrepareContext) -> None:
-    from ..compose.fragments import collect_compose_services, materialize_compose_fragments
+    from ..compose.fragments import materialize_compose_fragments
+    from ..compose.sidecar_gates import (
+        collect_effective_compose_services,
+        sidecar_gates_from_user_settings,
+    )
 
-    services = collect_compose_services(ctx.extension_host())
+    gates = sidecar_gates_from_user_settings(ctx.host_ctx.user_settings)
+    services = collect_effective_compose_services(ctx.extension_host(), gates)
     materialize_compose_fragments(
         ctx.host_ctx.project_dir,
         services,

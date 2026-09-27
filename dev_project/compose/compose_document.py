@@ -172,6 +172,12 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         if debugger_connect_host.strip() == DEFAULT_DEBUGGER_CONNECT_HOST:
             odoo_service["extra_hosts"] = ["host.docker.internal:host-gateway"]
 
+    from .sidecar_gates import (
+        apply_sidecar_gates,
+        scrub_service_deps,
+        sidecar_gates_from_user_settings,
+    )
+
     ext = ExtensionHostContext.from_config(config)
     base_services = {LOGICAL_DB: postgres_service, LOGICAL_ODOO: odoo_service}
     fragment_services = collect_compose_services(ext)
@@ -180,6 +186,9 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         merge_services(base_services, fragment_services),
         service_patches,
     )
+    gates = sidecar_gates_from_user_settings(env.host_ctx.user_settings)
+    services, dropped = apply_sidecar_gates(services, gates)
+    scrub_service_deps(services, dropped)
     if policy.bind_published_ports_localhost:
         _bind_service_ports_localhost(services)
 

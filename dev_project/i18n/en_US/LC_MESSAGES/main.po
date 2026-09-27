@@ -1305,6 +1305,18 @@ msgstr "unable to preview debug profile"
 msgid "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
 msgstr "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
 
+msgid "user_settings.json sidecars cannot include built-in service {NAME}"
+msgstr "user_settings.json sidecars cannot include built-in service {NAME}"
+
+msgid "user_settings.json sidecars must be an object of service name to boolean"
+msgstr "user_settings.json sidecars must be an object of service name to boolean"
+
+msgid "user_settings.json sidecars refers to unknown compose service {NAME}"
+msgstr "user_settings.json sidecars refers to unknown compose service {NAME}"
+
+msgid "user_settings.json sidecars.{NAME} must be a boolean (true or false)"
+msgstr "user_settings.json sidecars.{NAME} must be a boolean (true or false)"
+
 msgid "validate docker-compose.yml"
 msgstr "validate docker-compose.yml"
 

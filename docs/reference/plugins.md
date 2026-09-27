@@ -43,6 +43,8 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 }
 ```
 
+Локально отключить sidecar без правки shared `odpm.json`: `user_settings.json` → `"sidecars": { "mailpit": false }` ([user-settings](user-settings.md), [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md)).
+
 Для sidecar доступны также **`user`**, **`tty`**, **`hostname`**, **`healthcheck`**, **`privileged`**, **`pid`** (как в `service_patches`). Для sidecar с **git build-контекстом** (рекомендуется, 4.7+) используйте `service_sources` и `${@source:...}`; для API-ключей sidecar — `${@secret:...}` из `.odpm/secrets.json`:
 
 ```json

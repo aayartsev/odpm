@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from ..compose.fragments import collect_compose_services, compose_fragments_need_materialize
+from ..compose.fragments import compose_fragments_need_materialize
+from ..compose.sidecar_gates import (
+    collect_effective_compose_services,
+    sidecar_gates_from_user_settings,
+)
 from ..plan import PlanStep
 from ..prepare.helpers import make_plan_step
 from ..prepare.types import PrepareContext
@@ -12,7 +16,8 @@ from .l10n import plan_msg
 def build_compose_fragment_service_plan_steps(
     ctx: PrepareContext,
 ) -> tuple[PlanStep, ...]:
-    services = collect_compose_services(ctx.extension_host())
+    gates = sidecar_gates_from_user_settings(ctx.host_ctx.user_settings)
+    services = collect_effective_compose_services(ctx.extension_host(), gates)
     odpm_scenario = ctx.host_ctx.user_env.odpm_scenario
     steps: list[PlanStep] = []
     for name in sorted(services):

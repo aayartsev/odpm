@@ -1040,6 +1040,18 @@ RU_MESSAGES: dict[str, str] = {
     "Updated PostgreSQL application role {ROLE}.": (
         "Обновлена роль приложения PostgreSQL {ROLE}."
     ),
+    "user_settings.json sidecars cannot include built-in service {NAME}": (
+        "user_settings.json sidecars не может включать встроенный сервис {NAME}"
+    ),
+    "user_settings.json sidecars must be an object of service name to boolean": (
+        "user_settings.json sidecars должен быть объектом «имя сервиса → boolean»"
+    ),
+    "user_settings.json sidecars refers to unknown compose service {NAME}": (
+        "user_settings.json sidecars ссылается на неизвестный compose-сервис {NAME}"
+    ),
+    "user_settings.json sidecars.{NAME} must be a boolean (true or false)": (
+        "user_settings.json sidecars.{NAME} должен быть boolean (true или false)"
+    ),
     "You do not set where developing project is situated. You can set it with --init "
     "command. Example: '--init file:///home/user/projects/your_directory_for_project' or "
     "directly form git repo --init "

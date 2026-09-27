@@ -22,6 +22,11 @@ def user_settings_from_raw(
     *,
     beautify_module_list: Callable[[Any], str],
 ) -> UserSettingsState:
+    from ..compose.sidecar_gates import parse_sidecar_gates
+
+    if not isinstance(raw, dict):
+        raw = {}
+
     return UserSettingsState(
         init_modules=beautify_module_list(raw.get("init_modules")),
         update_modules=beautify_module_list(raw.get("update_modules")),
@@ -46,6 +51,7 @@ def user_settings_from_raw(
         create_module_links=raw.get(
             "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
         ),
+        sidecars=parse_sidecar_gates(raw.get("sidecars")),
     )
 
 
@@ -193,6 +199,7 @@ class UserSettingsState:
     sql_queries: list = field(default_factory=lambda: list(constants.DEFAULT_SQL_QUERIES))
     use_oca_dependencies: bool = constants.DEFAULT_USE_OCA_DEPENDENCIES
     create_module_links: bool = constants.DEFAULT_CREATE_MODULE_LINKS
+    sidecars: dict[str, bool] = field(default_factory=dict)
 
 
 @dataclass

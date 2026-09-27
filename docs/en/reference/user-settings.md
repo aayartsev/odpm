@@ -24,6 +24,7 @@ The file describes **how to work** with an already defined stack (`odpm.json`): 
 | `pre_commit_map_files` | Files for pre-commit when not on Linux |
 | `use_oca_dependencies` | Extended OCA and nested `odpm.json` resolution (default `false`) |
 | `create_module_links` | Symbolic links for the editor (default `false`) |
+| `sidecars` | Local compose-sidecar toggles: name → `true`/`false`. `false` drops the service from plan, fragments, and `docker-compose.yml`; missing key or `true` keeps it. Cannot list `db`/`odoo`. After change — `odpm --skip-start`. See below |
 
 ## `${VAR}` substitution in `developing_project`
 
@@ -52,3 +53,22 @@ When `true`, basic git and Docker checks run. Does not disable compose validatio
 ## Symbolic links (`create_module_links`)
 
 Simplify navigation and debugging in VS Code — [dedicated article](../operations/vscode-debug.md).
+
+## Local sidecars (`sidecars`)
+
+Map of **logical** compose service names from the manifest/plugins (not `service_sources`, not `db`/`odoo`):
+
+```json
+{
+  "sidecars": {
+    "mailpit": false,
+    "redis": true
+  }
+}
+```
+
+- `false` — service is omitted from `odpm plan` fragment steps, `.odpm/compose/fragments/`, and `docker-compose.yml`.
+- missing key or `true` — service stays.
+- JSON booleans only; strings like `"false"` are an error.
+- Personal `false` values in a committed `user_settings.json` can surprise the team/CI — coordinate or keep the override local.
+- After a change: `odpm --skip-start` (same as after changing `dev_mode`). Details: [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md).

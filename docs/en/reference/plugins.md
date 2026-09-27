@@ -45,6 +45,8 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 }
 ```
 
+Disable a sidecar locally without editing shared `odpm.json`: `user_settings.json` → `"sidecars": { "mailpit": false }` ([user-settings](user-settings.md), [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md)).
+
 Sidecars may set **`user`**, **`tty`**, **`hostname`**, **`healthcheck`**, **`privileged`**, and **`pid`** (same as `service_patches`). For **git build contexts** (recommended, 4.7+), use `service_sources` and `${@source:...}`; for sidecar API keys use `${@secret:...}` from `.odpm/secrets.json`:
 
 ```json

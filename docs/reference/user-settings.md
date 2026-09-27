@@ -22,6 +22,7 @@
 | `pre_commit_map_files` | Файлы для pre-commit при работе не на Linux |
 | `use_oca_dependencies` | Расширенный разбор OCA и вложенных `odpm.json` (по умолчанию `false`) |
 | `create_module_links` | Символические ссылки для редактора (по умолчанию `false`) |
+| `sidecars` | Локальные переключатели compose-sidecar: имя → `true`/`false`. `false` исключает сервис из plan, fragments и `docker-compose.yml`; отсутствие ключа или `true` — оставить. Нельзя указывать `db`/`odoo`. После смены — `odpm --skip-start`. См. ниже |
 
 ## Подстановка `${VAR}` в `developing_project`
 
@@ -50,3 +51,22 @@ DEVELOPING_PROJECT_DIR=/home/dev/my_addons
 ## Символические ссылки (`create_module_links`)
 
 Упрощают навигацию и отладку в VS Code — [отдельная статья](../operations/vscode-debug.md).
+
+## Локальные sidecars (`sidecars`)
+
+Карта **логических** имён compose-сервисов из manifest/`plugins` (не `service_sources` и не `db`/`odoo`):
+
+```json
+{
+  "sidecars": {
+    "mailpit": false,
+    "redis": true
+  }
+}
+```
+
+- `false` — сервис не попадает в `odpm plan` fragment steps, `.odpm/compose/fragments/` и `docker-compose.yml`.
+- отсутствие ключа или `true` — сервис остаётся.
+- Только JSON boolean; строки вроде `"false"` — ошибка.
+- Личные `false` в закоммиченном `user_settings.json` могут удивить команду/CI — согласовывайте или держите override локально.
+- После изменения: `odpm --skip-start` (как после смены `dev_mode`). Подробнее: [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md).
