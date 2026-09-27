@@ -1605,6 +1605,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#modules-subcommand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        modules subcommand
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-subcommand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run subcommand
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#database-and-modules" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2109,6 +2131,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#modules-subcommand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        modules subcommand
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-subcommand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run subcommand
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#database-and-modules" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2256,11 +2300,15 @@
 </tr>
 <tr>
 <td><code>--secrets-file PATH</code></td>
-<td>Import JSON v1 into <code>.odpm/secrets.json</code> (on <code>--init</code> and any run). Implies the <code>file</code> provider. See <a href="../../operations/secrets/">local secrets</a>.</td>
+<td>Import JSON v1 into <code>.odpm/secrets.json</code> (on <code>--init</code> and any run; early bootstrap, before <code>${@secret:}</code> expand in <code>user_settings</code>). Implies the <code>file</code> provider. See <a href="../../operations/secrets/">local secrets</a>.</td>
 </tr>
 <tr>
 <td><code>--secrets-provider NAME</code></td>
 <td>Secrets provider for this run (<code>file</code>, <code>infisical</code>, or a plugin id). Overrides <code>ODPM_SECRETS_PROVIDER</code> and <code>secrets.provider.type</code>. <code>--secrets-file</code> forces <code>file</code>.</td>
+</tr>
+<tr>
+<td><code>--security-profile NAME</code></td>
+<td>Security profile (<code>convenience</code> / <code>hardened</code>). Overrides <code>ODPM_SECURITY_PROFILE</code>; else defaults from <code>ODPM_SCENARIO</code>. See <a href="../../operations/security/">security</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -2411,6 +2459,38 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>validate
 </tbody>
 </table>
 <p>Migration moves <code>database</code> (from manifest or <code>user_settings</code>), <code>developing.git</code>, and <code>locks.git</code> (from <code>.odpm/deps.lock.json</code>). See <a href="../odpm-json/#migration-v1--v2">odpm.json</a>.</p>
+<h2 id="modules-subcommand"><code>modules</code> subcommand<a class="headerlink" href="#modules-subcommand" title="Permanent link">&para;</a></h2>
+<p>Init/update module lists from developing git history and the last-applied deploy marker:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>modules<span class="w"> </span>diff
+odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell
+odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modules diff</code></td>
+<td>Init/update CSV from <code>BASE...HEAD</code>; <code>--diff-base</code>, <code>--format {text,shell,json}</code></td>
+</tr>
+<tr>
+<td><code>modules record-applied</code></td>
+<td>Write developing HEAD to <code>.odpm/deploy/last_applied.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>Details and shell recipe: <a href="../deploy-marker/">deploy marker</a>.</p>
+<h2 id="run-subcommand"><code>run</code> subcommand<a class="headerlink" href="#run-subcommand" title="Permanent link">&para;</a></h2>
+<p>Named recipes (re-exec odpm steps):</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>--list
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--dry-run
+</code></pre></div>
+<p>Details: <a href="../recipes/">recipes</a>, <a href="../deploy-marker/">deploy marker</a>.</p>
 <h2 id="database-and-modules">Database and modules<a class="headerlink" href="#database-and-modules" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2425,12 +2505,12 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>validate
 <td>Database name; if missing — creation per <code>db_creation_data</code></td>
 </tr>
 <tr>
-<td><code>-i</code></td>
-<td>Install modules from <code>init_modules</code></td>
+<td><code>-i [MODULES]</code></td>
+<td>Without a value — modules from <code>init_modules</code>; with a CSV (e.g. <code>sale,crm</code>) — CLI list (overrides settings for this run)</td>
 </tr>
 <tr>
-<td><code>-u</code></td>
-<td>Update modules from <code>update_modules</code></td>
+<td><code>-u [MODULES]</code></td>
+<td>Without a value — modules from <code>update_modules</code>; with a CSV — CLI list (overrides settings for this run)</td>
 </tr>
 <tr>
 <td><code>-t</code>, <code>--test</code></td>
@@ -2447,6 +2527,7 @@ odpm<span class="w"> </span>manifest<span class="w"> </span>validate
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
 odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <h2 id="platform-nightly-build-date">Platform nightly build date<a class="headerlink" href="#platform-nightly-build-date" title="Permanent link">&para;</a></h2>
@@ -2506,7 +2587,7 @@ odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </
 </tr>
 <tr>
 <td><code>--export-po-files LANG</code></td>
-<td>Export pot/po for modules from <code>update_modules</code></td>
+<td>Export pot/po for modules from <code>update_modules</code>, or from <code>-u CSV</code> when that form is used</td>
 </tr>
 <tr>
 <td><code>--set-admin-pass</code></td>

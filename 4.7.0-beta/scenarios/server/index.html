@@ -2064,12 +2064,12 @@
 <td>Не устанавливается и не публикуется порт отладки. Для отладки используйте отдельную машину со сценарием <code>developer</code>.</td>
 </tr>
 <tr>
-<td><strong>PostgreSQL на хосте</strong></td>
-<td>Слушает только <code>127.0.0.1</code> — с других машин через этот проброс не подключиться.</td>
+<td><strong>Published ports</strong></td>
+<td>По умолчанию профиль <strong><code>hardened</code></strong>: все порты compose на хосте только на <strong><code>127.0.0.1</code></strong>. Override: <code>ODPM_SECURITY_PROFILE</code> / <code>--security-profile</code>. Внешний доступ — через <strong>обратный прокси</strong>.</td>
 </tr>
 <tr>
-<td><strong>Odoo и Gevent</strong></td>
-<td>Порты на хосте доступны шире; для доступа из интернета — <strong>обратный прокси</strong> (nginx и аналоги) и межсетевой экран.</td>
+<td><strong>Пароли Odoo</strong></td>
+<td>Дефолт <strong><code>hardened</code></strong>: random в <code>.odpm/secrets.json</code>, в <code>user_settings</code> — <code>${@secret:…}</code>. См. <a href="../../operations/security/">безопасность</a>.</td>
 </tr>
 <tr>
 <td><strong>Режим разработки Odoo</strong></td>
@@ -2106,6 +2106,10 @@ docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> 
 odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--db-backup
 odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>-u
 </code></pre></div>
+<p>Для обновления модулей по git-диффу на <strong>server</strong> предпочтительно:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
+</code></pre></div>
+<p>См. <a href="../../reference/recipes/">рецепты</a> и <a href="../../reference/deploy-marker/">маркер деплоя</a>.</p>
 
 
 

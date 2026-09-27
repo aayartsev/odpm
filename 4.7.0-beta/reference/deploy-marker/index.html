@@ -1,44 +1,40 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="ru" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Odoo Developer Project Manager documentation">
+        <meta name="description" content="Документация Odoo Developer Project Manager">
       
       
       
-        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/4.7.0-beta/en/operations/security/">
+        <link rel="canonical" href="https://aayartsev.github.io/odpm/stable/4.7.0-beta/reference/deploy-marker/">
       
       
-        <link rel="prev" href="../non-interactive/">
-      
-      
-        <link rel="next" href="../migration-3-to-4/">
       
       
         
-          <link rel="alternate" href="../../../operations/security/" hreflang="ru">
+          <link rel="alternate" href="./" hreflang="ru">
         
-          <link rel="alternate" href="./" hreflang="en">
+          <link rel="alternate" href="../../en/reference/deploy-marker/" hreflang="en">
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Security - odpm</title>
+        <title>Маркер деплоя модулей - odpm</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -57,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,8 +78,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#security" class="md-skip">
-          Skip to content
+        <a href="#_1" class="md-skip">
+          Перейти к содержанию
         </a>
       
     </div>
@@ -112,8 +108,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../" title="odpm" class="md-header__button md-logo" aria-label="odpm" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../.." title="odpm" class="md-header__button md-logo" aria-label="odpm" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -133,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Security
+              Маркер деплоя модулей
             
           </span>
         </div>
@@ -146,9 +142,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Тёмная тема"  type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+      <label class="md-header__button md-icon" title="Тёмная тема" for="__palette_1" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
@@ -156,9 +152,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Светлая тема"  type="radio" name="__palette" id="__palette_1">
     
-      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+      <label class="md-header__button md-icon" title="Светлая тема" for="__palette_0" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
@@ -173,20 +169,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Выберите язык">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../operations/security/" hreflang="ru" class="md-select__link">
+            <a href="./" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="en" class="md-select__link">
+            <a href="../../en/reference/deploy-marker/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -207,16 +203,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Поиск">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -229,7 +225,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Инициализация поиска
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -241,7 +237,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/aayartsev/odpm" title="Перейти к репозиторию" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -262,7 +258,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -272,13 +268,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../" class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
     
   
-  Home
+  Главная
 
       </a>
     </li>
@@ -297,7 +293,7 @@
           
   
   
-  Getting started
+  С чего начать
 
         </a>
       </li>
@@ -317,7 +313,7 @@
           
   
   
-  Installing odpm
+  Установка odpm
 
         </a>
       </li>
@@ -337,7 +333,7 @@
           
   
   
-  Scenarios
+  Сценарии
 
         </a>
       </li>
@@ -353,11 +349,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/tools-by-scenario/" class="md-tabs__link">
+        <a href="../tools-by-scenario/" class="md-tabs__link">
           
   
   
-  Reference
+  Справочник
 
         </a>
       </li>
@@ -369,17 +365,15 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../vscode-debug/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../operations/vscode-debug/" class="md-tabs__link">
           
   
   
-  Operations
+  Эксплуатация
 
         </a>
       </li>
@@ -407,9 +401,9 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="odpm" class="md-nav__button md-logo" aria-label="odpm" data-md-component="logo">
+    <a href="../.." title="odpm" class="md-nav__button md-logo" aria-label="odpm" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -419,7 +413,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/aayartsev/odpm" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/aayartsev/odpm" title="Перейти к репозиторию" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -439,14 +433,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Home
+    Главная
   
 
     
@@ -491,7 +485,7 @@
   <span class="md-ellipsis">
     
   
-    Getting started
+    С чего начать
   
 
     
@@ -507,7 +501,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Getting started
+    С чего начать
   
 
           </label>
@@ -527,7 +521,7 @@
   <span class="md-ellipsis">
     
   
-    Which docs to read
+    Какую документацию читать
   
 
     
@@ -555,7 +549,7 @@
   <span class="md-ellipsis">
     
   
-    Why odpm
+    Зачем odpm
   
 
     
@@ -583,7 +577,7 @@
   <span class="md-ellipsis">
     
   
-    Beginner-friendly
+    Дружелюбность к новичкам
   
 
     
@@ -611,7 +605,7 @@
   <span class="md-ellipsis">
     
   
-    Local dev from scratch
+    Локальная разработка с нуля
   
 
     
@@ -639,7 +633,7 @@
   <span class="md-ellipsis">
     
   
-    Legacy project
+    Чужой или унаследованный проект
   
 
     
@@ -692,7 +686,7 @@
   <span class="md-ellipsis">
     
   
-    Installing odpm
+    Установка odpm
   
 
     
@@ -708,7 +702,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Installing odpm
+    Установка odpm
   
 
           </label>
@@ -728,7 +722,7 @@
   <span class="md-ellipsis">
     
   
-    All platforms
+    Все платформы
   
 
     
@@ -868,7 +862,7 @@
   <span class="md-ellipsis">
     
   
-    pip and source checkout
+    pip и копирование исходников
   
 
     
@@ -921,7 +915,7 @@
   <span class="md-ellipsis">
     
   
-    Scenarios
+    Сценарии
   
 
     
@@ -937,7 +931,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Scenarios
+    Сценарии
   
 
           </label>
@@ -1041,7 +1035,7 @@
   <span class="md-ellipsis">
     
   
-    Team coordinator
+    Координатор команды
   
 
     
@@ -1069,7 +1063,7 @@
   <span class="md-ellipsis">
     
   
-    Custom Odoo platform repo
+    Свой репозиторий платформы Odoo
   
 
     
@@ -1097,7 +1091,7 @@
   <span class="md-ellipsis">
     
   
-    Scaling
+    Масштабирование
   
 
     
@@ -1150,7 +1144,7 @@
   <span class="md-ellipsis">
     
   
-    Reference
+    Справочник
   
 
     
@@ -1166,7 +1160,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Reference
+    Справочник
   
 
           </label>
@@ -1179,14 +1173,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/tools-by-scenario/" class="md-nav__link">
+      <a href="../tools-by-scenario/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Tools by scenario
+    Инструменты по сценариям
   
 
     
@@ -1207,14 +1201,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/config-hierarchy/" class="md-nav__link">
+      <a href="../config-hierarchy/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Config hierarchy
+    Иерархия конфигурации
   
 
     
@@ -1235,14 +1229,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/config-split/" class="md-nav__link">
+      <a href="../config-split/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    odpm.json and user_settings.json
+    odpm.json и user_settings.json
   
 
     
@@ -1263,14 +1257,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/env-dotenv/" class="md-nav__link">
+      <a href="../env-dotenv/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    .env variables
+    Переменные .env
   
 
     
@@ -1291,14 +1285,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/git-links/" class="md-nav__link">
+      <a href="../git-links/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Git repository links
+    Ссылки на репозитории
   
 
     
@@ -1319,7 +1313,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/service-sources/" class="md-nav__link">
+      <a href="../service-sources/" class="md-nav__link">
         
   
   
@@ -1347,7 +1341,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/odpm-json/" class="md-nav__link">
+      <a href="../odpm-json/" class="md-nav__link">
         
   
   
@@ -1375,14 +1369,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/manifest-migration/" class="md-nav__link">
+      <a href="../manifest-migration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Manifest v1 to v2 migration
+    Миграция manifest v1→v2
   
 
     
@@ -1403,7 +1397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/user-settings/" class="md-nav__link">
+      <a href="../user-settings/" class="md-nav__link">
         
   
   
@@ -1431,7 +1425,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/odoo-conf/" class="md-nav__link">
+      <a href="../odoo-conf/" class="md-nav__link">
         
   
   
@@ -1459,7 +1453,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/database-state/" class="md-nav__link">
+      <a href="../database-state/" class="md-nav__link">
         
   
   
@@ -1487,14 +1481,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/cli/" class="md-nav__link">
+      <a href="../cli/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Command-line options
+    Параметры командной строки
   
 
     
@@ -1515,7 +1509,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/deps-lock/" class="md-nav__link">
+      <a href="../deps-lock/" class="md-nav__link">
         
   
   
@@ -1543,14 +1537,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/plugins/" class="md-nav__link">
+      <a href="../plugins/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Plugins and extensions
+    Плагины и расширения
   
 
     
@@ -1571,14 +1565,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/project-layout/" class="md-nav__link">
+      <a href="../project-layout/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Project directory layout
+    Структура каталога проекта
   
 
     
@@ -1599,14 +1593,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/generated-files/" class="md-nav__link">
+      <a href="../generated-files/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Generated files
+    Сгенерированные файлы
   
 
     
@@ -1627,14 +1621,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/locale/" class="md-nav__link">
+      <a href="../locale/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    odpm message locale
+    Язык сообщений odpm
   
 
     
@@ -1659,38 +1653,35 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    Operations
+    Эксплуатация
   
 
     
@@ -1701,12 +1692,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Operations
+    Эксплуатация
   
 
           </label>
@@ -1719,14 +1710,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../vscode-debug/" class="md-nav__link">
+      <a href="../../operations/vscode-debug/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    IDE debugging
+    Отладка в IDE
   
 
     
@@ -1747,14 +1738,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../secrets/" class="md-nav__link">
+      <a href="../../operations/secrets/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Local secrets
+    Локальные секреты
   
 
     
@@ -1775,14 +1766,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../non-interactive/" class="md-nav__link">
+      <a href="../../operations/non-interactive/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Non-interactive mode
+    Запуск без диалогов
   
 
     
@@ -1791,153 +1782,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Security
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Security
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#security-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Security profiles
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#passwords-in-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Passwords in configuration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#secrets-and-git" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Secrets and git
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Secrets and git">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#module-secrets-api-keys-integration-tokens" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Module secrets (API keys, integration tokens)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#server-scenario-and-internet-exposure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        server scenario and internet exposure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#local-development" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Local development
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1950,14 +1794,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../migration-3-to-4/" class="md-nav__link">
+      <a href="../../operations/security/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Migrating from 3.0
+    Безопасность
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/migration-3-to-4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Переход с версии 3.0
   
 
     
@@ -1991,7 +1863,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
   
   
   
@@ -2000,15 +1872,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Содержание
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#security-profiles" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Security profiles
+        Расположение
       
     </span>
   </a>
@@ -2016,10 +1888,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#passwords-in-configuration" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Passwords in configuration
+        Подкоманды
       
     </span>
   </a>
@@ -2027,22 +1899,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#secrets-and-git" class="md-nav__link">
+  <a href="#baseline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Secrets and git
+        Baseline
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Secrets and git">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apply-odpm-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Рецепт apply (предпочтительно odpm run)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Рецепт apply (предпочтительно odpm run)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#module-secrets-api-keys-integration-tokens" class="md-nav__link">
+  <a href="#escape-hatch-shell" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Module secrets (API keys, integration tokens)
+        Escape hatch (shell)
       
     </span>
   </a>
@@ -2055,10 +1938,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#server-scenario-and-internet-exposure" class="md-nav__link">
+  <a href="#ci-mr" class="md-nav__link">
     <span class="md-ellipsis">
       
-        server scenario and internet exposure
+        CI / MR
       
     </span>
   </a>
@@ -2066,10 +1949,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#local-development" class="md-nav__link">
+  <a href="#scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Local development
+        Вне scope
       
     </span>
   </a>
@@ -2093,7 +1976,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/operations/security.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/deploy-marker.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2101,87 +1984,93 @@
   
 
 
-<h1 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h1>
-<h2 id="security-profiles">Security profiles<a class="headerlink" href="#security-profiles" title="Permanent link">&para;</a></h2>
-<p>The <strong><code>ODPM_SECURITY_PROFILE</code></strong> / <strong><code>--security-profile</code></strong> axis sets posture (passwords and publish binds), separate from <code>ODPM_SCENARIO</code> (topology / workflow).</p>
+<h1 id="_1">Маркер деплоя модулей<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>Файл <strong><code>.odpm/deploy/last_applied.json</code></strong> хранит SHA developing-репозитория, на котором последний раз успешно применили <code>-i</code>/<code>-u</code>. Это <strong>не</strong> часть <code>odpm.json</code> и не lock зависимостей.</p>
+<h2 id="_2">Расположение<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Profile</th>
-<th>Scenario default</th>
-<th>New <code>user_settings</code> / secrets</th>
-<th>Published ports</th>
+<th>Путь</th>
+<th>Назначение</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>convenience</code></td>
-<td><code>developer</code></td>
-<td>manager=<code>1</code>, admin user=<code>admin</code> (unchanged)</td>
-<td>no forced <code>127.0.0.1</code></td>
+<td><code>{project_dir}/.odpm/deploy/last_applied.json</code></td>
+<td>Маркер на <strong>хосте проекта odpm</strong> (каталог с <code>docker-compose.yml</code>), не обязательно корень git developing</td>
 </tr>
 <tr>
-<td><code>hardened</code></td>
-<td><code>server</code></td>
-<td>random in <code>.odpm/secrets.json</code>; settings use <code>${@secret:odpm.db_manager_password}</code> and <code>${@secret:odpm.db_default_admin_password}</code></td>
-<td>Postgres and all published → <code>127.0.0.1</code></td>
+<td><code>.odpm/.gitignore</code> → <code>deploy/</code></td>
+<td>Пишется при первом <code>record-applied</code> / использовании маркера</td>
 </tr>
 </tbody>
 </table>
-<p>Override: CLI <code>--security-profile</code> wins over env <code>ODPM_SECURITY_PROFILE</code>, else scenario default.<br />
-<strong><code>ci</code></strong>: Odoo password secret bootstrap is <strong>off</strong>; port binds stay scenario-owned (postgres on localhost, not all published), even if override is <code>hardened</code>.</p>
-<p>Source of truth for Odoo passwords is <strong><code>user_settings.json</code> after expand</strong> (<code>${VAR}</code> / <code>${@secret:}</code> across the whole file). odpm <strong>never rewrites</strong> an existing settings file. On <code>hardened</code>, if password fields in raw settings are plaintext / empty / not <code>${@secret:…}</code> — WARNING (file unchanged).</p>
-<p>New hardened projects: if <code>.odpm/secrets.json</code> is missing, odpm creates <code>odpm.db_manager_password</code> and <code>odpm.db_default_admin_password</code> (<code>token_urlsafe</code>, <code>0600</code>).<br />
-An existing Odoo database does not pick up a new admin password automatically — use <code>--set-admin-pass</code> with <code>-d</code>.</p>
-<p>See ADR-023, <a href="../secrets/">local secrets</a>, <a href="../../reference/user-settings/">user-settings</a>.</p>
-<h2 id="passwords-in-configuration">Passwords in configuration<a class="headerlink" href="#passwords-in-configuration" title="Permanent link">&para;</a></h2>
+<p>Поля JSON:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"developing_sha"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abc123…"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"applied_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-09-27T10:00:00Z"</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>db_name</code> в маркере нет: один SHA на инстанс проекта.</p>
+<h2 id="_3">Подкоманды<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>modules<span class="w"> </span>diff
+odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell
+odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>origin/main<span class="w"> </span>--format<span class="w"> </span>json
+odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
+</code></pre></div>
 <table>
 <thead>
 <tr>
-<th>Setting</th>
-<th>Purpose</th>
+<th>Команда</th>
+<th>Описание</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>db_manager_password</code> in <code>user_settings.json</code></td>
-<td>Odoo <strong>database manager</strong> password (<code>admin_passwd</code>)</td>
+<td><code>modules diff</code></td>
+<td>Списки init/update по <code>git diff BASE...HEAD</code> в developing</td>
 </tr>
 <tr>
-<td><code>db_default_admin_login</code> / <code>db_default_admin_password</code></td>
-<td><strong>Administrator</strong> account when creating a DB / <code>--set-admin-pass</code></td>
-</tr>
-<tr>
-<td>PostgreSQL credentials</td>
-<td>Injected into service config and compose (shared <code>POSTGRES_ODOO_PASS</code> for now)</td>
+<td><code>modules record-applied</code></td>
+<td>Записать HEAD developing в маркер (без compose)</td>
 </tr>
 </tbody>
 </table>
-<p>On a <strong>laptop</strong> (<code>convenience</code>), template defaults are fine. On a <strong>server</strong> (<code>hardened</code>), prefer secrets + refs.</p>
-<h2 id="secrets-and-git">Secrets and git<a class="headerlink" href="#secrets-and-git" title="Permanent link">&para;</a></h2>
-<p>Do not commit passwords, API tokens, or private keys. Project <code>.env</code> is usually <strong>not</strong> committed. Prefer <code>user_settings.json</code> without real secrets in git (on hardened — <code>${@secret:…}</code> refs).</p>
-<h3 id="module-secrets-api-keys-integration-tokens">Module secrets (API keys, integration tokens)<a class="headerlink" href="#module-secrets-api-keys-integration-tokens" title="Permanent link">&para;</a></h3>
-<p>Use <strong><code>.odpm/secrets.json</code></strong> (gitignored). odpm mounts a normalized copy at <code>/run/odpm/secrets.json</code> (<code>developer</code> and <code>server</code>).</p>
-<ul>
-<li>Commit only <strong><code>.odpm/secrets.example.json</code></strong> with <code>REPLACE_ME</code> stubs.</li>
-<li>After import, odpm sets source mode <strong><code>0600</code></strong>.</li>
-<li>Do not log <code>/run/odpm/secrets.json</code> values or duplicate them into compose <code>environment:</code>.</li>
-</ul>
-<p>Details: <a href="../secrets/">local secrets</a>.</p>
-<p><code>--secrets-file</code> imports JSON v1 into <code>.odpm/secrets.json</code> <strong>early in bootstrap</strong> (before full <code>user_settings</code> <code>${@secret:}</code> expand).</p>
-<h2 id="server-scenario-and-internet-exposure"><code>server</code> scenario and internet exposure<a class="headerlink" href="#server-scenario-and-internet-exposure" title="Permanent link">&para;</a></h2>
-<p>Default profile <strong><code>hardened</code></strong>: localhost-only ports, passwords via secrets.</p>
-<ul>
-<li>Terminate <strong>HTTPS</strong> at a <strong>reverse proxy</strong>.</li>
-<li>Enable <strong><code>proxy_mode</code></strong> in <code>odoo.conf</code>; use <strong><code>dbfilter</code></strong> when hosting multiple DBs.</li>
-<li>Do not widen published ports to <code>0.0.0.0</code> in compose by hand.</li>
-<li>App role <code>odoo</code> is <strong>NOSUPERUSER</strong>; admin role <code>postgres</code> is still required for ensure-role. Admin and app still share <code>POSTGRES_ODOO_PASS</code> today.</li>
-<li>Firewall: expose SSH and the HTTPS proxy only.</li>
-<li>Do not use <strong><code>dev_mode</code></strong> on an internet-facing instance; it is ignored in <code>server</code>.</li>
-<li>Debugger port is not needed on the server.</li>
-</ul>
-<h2 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h2>
-<p>Default profile <strong><code>convenience</code></strong>: simple passwords and open ports for local tools. To try a production-like layout: <code>ODPM_SECURITY_PROFILE=hardened</code> or <code>--security-profile hardened</code> without changing scenario.</p>
+<p>Форматы <code>--format</code>: <strong><code>text</code></strong> (по умолчанию), <strong><code>shell</code></strong> (<code>export ODPM_INIT_MODULES=…</code> / <code>ODPM_UPDATE_MODULES=…</code>), <strong><code>json</code></strong>. Списки идут в <strong>stdout</strong>; логи — в stderr/logger, чтобы <code>eval "$(…)"</code> оставался чистым.</p>
+<h2 id="baseline">Baseline<a class="headerlink" href="#baseline" title="Permanent link">&para;</a></h2>
+<p>Приоритет, если <code>--diff-base</code> не указан:</p>
+<ol>
+<li><code>ODPM_DIFF_BASE</code></li>
+<li><code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> (GitLab MR)</li>
+<li>SHA из маркера, если файл есть</li>
+<li>иначе <strong>ошибка</strong> — без baseline списки не выдумываются</li>
+</ol>
+<p><code>--diff-base @last-applied</code> принудительно читает маркер (ошибка, если файла нет). Первый деплой: передайте явный <code>--diff-base &lt;sha|tag&gt;</code> (или env), примените модули, затем <code>record-applied</code>.</p>
+<p>Репозиторий: только <strong>developing</strong> checkout с <code>.git</code>. Удалённые модули игнорируются; rename → новый путь как init, если модуля не было на BASE.</p>
+<h2 id="apply-odpm-run">Рецепт apply (предпочтительно <code>odpm run</code>)<a class="headerlink" href="#apply-odpm-run" title="Permanent link">&para;</a></h2>
+<p>На <strong>server</strong>:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
+<span class="c1"># или с явным baseline при первом деплое:</span>
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--diff-base<span class="w"> </span>&lt;sha<span class="p">|</span>tag&gt;
+</code></pre></div>
+<p>Подробнее: <a href="../recipes/">рецепты</a>.</p>
+<h3 id="escape-hatch-shell">Escape hatch (shell)<a class="headerlink" href="#escape-hatch-shell" title="Permanent link">&para;</a></h3>
+<p>Пустые списки <strong>не</strong> передавайте как <code>-i ""</code> / <code>-u ""</code> — CLI отвергает пустой CSV.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">eval</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell<span class="k">)</span><span class="s2">"</span>
+
+<span class="nv">args</span><span class="o">=(</span>-d<span class="w"> </span>prod_db<span class="o">)</span>
+<span class="o">[[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_INIT_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">args</span><span class="o">+=(</span>-i<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_INIT_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="o">)</span>
+<span class="o">[[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_UPDATE_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">args</span><span class="o">+=(</span>-u<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_UPDATE_MODULES</span><span class="si">}</span><span class="s2">"</span><span class="o">)</span>
+odpm<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">args</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
+
+<span class="c1"># только после exit 0</span>
+odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
+</code></pre></div>
+<p>Долгоживущий <code>docker compose up</code> <strong>без</strong> <code>--stop-after-init</code> не подходит для автообновления маркера: маркер обновляйте вручную/<code>record-applied</code> после успешного apply.</p>
+<h2 id="ci-mr">CI / MR<a class="headerlink" href="#ci-mr" title="Permanent link">&para;</a></h2>
+<p>В pipeline задайте baseline через <code>--diff-base</code> или <code>CI_MERGE_REQUEST_DIFF_BASE_SHA</code> / <code>ODPM_DIFF_BASE</code>. Подкоманда <code>modules</code> входит в CI allowlist. End-to-end <code>odpm run apply-modules-from-diff</code> в сценарии <strong>ci</strong> не поддерживается — в CI только <code>modules diff</code>, apply на server.</p>
+<h2 id="scope">Вне scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<p>Нет толстого флага <code>--modules-from-git-diff</code> на обычном CLI; оркестрация — через <a href="../recipes/">рецепты</a> / shell escape hatch.</p>
 
 
 
@@ -2205,7 +2094,7 @@ An existing Odoo database does not pick up a new admin password automatically �
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Back to top
+  К началу
 </button>
         
       </main>
@@ -2237,10 +2126,10 @@ An existing Odoo database does not pick up a new admin password automatically �
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

@@ -2067,12 +2067,12 @@
 <td>Not installed and debug port is not published. For debugging, use a separate machine with the <code>developer</code> scenario.</td>
 </tr>
 <tr>
-<td><strong>PostgreSQL on host</strong></td>
-<td>Listens only on <code>127.0.0.1</code> — cannot connect from other machines through this port mapping.</td>
+<td><strong>Published ports</strong></td>
+<td>Default profile <strong><code>hardened</code></strong>: all Compose ports bind to <strong><code>127.0.0.1</code> only</strong>. Override: <code>ODPM_SECURITY_PROFILE</code> / <code>--security-profile</code>. External access via a <strong>reverse proxy</strong>.</td>
 </tr>
 <tr>
-<td><strong>Odoo and Gevent</strong></td>
-<td>Ports are more broadly available on the host; for internet access use a <strong>reverse proxy</strong> (nginx and similar) and a firewall.</td>
+<td><strong>Odoo passwords</strong></td>
+<td>Default <strong><code>hardened</code></strong>: random in <code>.odpm/secrets.json</code>, <code>${@secret:…}</code> in <code>user_settings</code>. See <a href="../../operations/security/">security</a>.</td>
 </tr>
 <tr>
 <td><strong>Odoo development mode</strong></td>
@@ -2113,6 +2113,10 @@ docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> 
 odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--db-backup
 odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>-u
 </code></pre></div>
+<p>For module updates from git on <strong>server</strong>, prefer:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
+</code></pre></div>
+<p>See <a href="../../reference/recipes/">recipes</a> and <a href="../../reference/deploy-marker/">deploy marker</a>.</p>
 
 
 

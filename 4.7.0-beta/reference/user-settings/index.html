@@ -2061,11 +2061,11 @@
 </tr>
 <tr>
 <td><code>init_modules</code></td>
-<td>Модули для установки при <code>-i</code> (через запятую, без пробелов)</td>
+<td>Модули для установки при голом <code>-i</code> (через запятую, без пробелов); явный <code>-i sale,crm</code> перекрывает для этого запуска</td>
 </tr>
 <tr>
 <td><code>update_modules</code></td>
-<td>Модули для обновления при <code>-u</code></td>
+<td>Модули для обновления при голом <code>-u</code>; явный <code>-u my_module</code> перекрывает для этого запуска</td>
 </tr>
 <tr>
 <td><code>db_creation_data</code></td>
@@ -2109,7 +2109,7 @@
 </tr>
 <tr>
 <td><code>db_manager_password</code></td>
-<td>Пароль менеджера баз Odoo</td>
+<td>Пароль менеджера баз Odoo (на <code>hardened</code> — обычно <code>${@secret:odpm.db_manager_password}</code>; см. <a href="../../operations/security/">безопасность</a>)</td>
 </tr>
 <tr>
 <td><code>sql_queries</code></td>

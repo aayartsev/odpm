@@ -1555,6 +1555,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#postgresql-wait-in-the-checker-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL wait in the checker (container)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-project-adoption" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2093,6 +2104,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#postgresql-wait-in-the-checker-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL wait in the checker (container)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-project-adoption" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2273,18 +2295,31 @@
 </tr>
 <tr>
 <td>Successful credential check in checker</td>
-<td><strong>Checker</strong> — after TCP and <code>psql</code> as <code>db_user</code></td>
+<td><strong>Checker</strong> — after TCP and <code>psql</code>/psycopg2 as <code>db_user</code></td>
 </tr>
 </tbody>
 </table>
 <p>Adoption runs <strong>once</strong>. While the file exists, only drift vs the saved snapshot is reported.</p>
+<h2 id="postgresql-wait-in-the-checker-container">PostgreSQL wait in the checker (container)<a class="headerlink" href="#postgresql-wait-in-the-checker-container" title="Permanent link">&para;</a></h2>
+<p>Before Odoo operations the checker:</p>
+<ol>
+<li>Waits for TCP on <code>db_host:db_port</code>.</li>
+<li>Verifies credentials against the system database <strong><code>postgres</code></strong> (<code>SELECT 1</code>).</li>
+<li>When CLI <strong><code>-d &lt;name&gt;</code></strong> is set (and the name is not <code>postgres</code>) — also waits until that database accepts connections (retries on crash recovery / “not yet accepting”). If the database does not exist yet, wait succeeds; creation stays with <code>ensure_database_exists</code>.</li>
+</ol>
+<p><strong>Limits:</strong> without <code>-d</code>, wait only targets <code>postgres</code> (db list / dbfilter are not probed); each verify step times out after 60s (long recovery fails on timeout).</p>
 <h2 id="legacy-project-adoption">Legacy project adoption<a class="headerlink" href="#legacy-project-adoption" title="Permanent link">&para;</a></h2>
 <p>If <code>last_run.json</code> is missing (typical with an inherited PostgreSQL data directory), odpm before the full stack:</p>
 <ol>
 <li>Starts PostgreSQL if needed.</li>
-<li>Runs <strong><code>ensure_app_role</code></strong> — creates or updates the application role (default <code>odoo</code>), including single-user bootstrap when no admin login role exists.</li>
+<li>Runs <strong><code>ensure_app_role</code></strong>:</li>
+<li>role <strong><code>postgres</code></strong> — <code>LOGIN SUPERUSER</code> (odpm admin / compose <code>POSTGRES_USER</code>);</li>
+<li>role <strong><code>odoo</code></strong> — <code>LOGIN NOSUPERUSER CREATEDB</code> (Odoo session, <code>db_user</code>);</li>
+<li>extensions <code>unaccent</code> and <code>pg_trgm</code> on <strong><code>template1</code></strong> (new DBs inherit; existing DBs need a manual install if required);</li>
+<li>when no login admin exists — single-user bootstrap of both roles, then reconcile.</li>
 <li>Writes the current configuration as baseline.</li>
 </ol>
+<p>Admin and app share one password (<code>POSTGRES_ODOO_PASS</code>). Demoting <code>odoo</code> blocks <code>COPY … TO PROGRAM</code> from the application role; a leaked shared password still allows <code>-U postgres</code> — see <a href="../../operations/security/">security</a>.</p>
 <p><strong>Adoption does not:</strong></p>
 <ul>
 <li>reassign PostgreSQL owners of existing Odoo databases;</li>
@@ -2374,7 +2409,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <p>See <a href="../env-dotenv/"><code>.env</code> variables</a>, <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="odoo-databases-backup-restore-drop">Odoo databases: backup, restore, drop<a class="headerlink" href="#odoo-databases-backup-restore-drop" title="Permanent link">&para;</a></h2>
 <p><strong><code>--db-drop</code></strong>, <strong><code>--db-restore</code></strong>, <strong><code>--db-backup</code></strong> operate on <strong>Odoo databases</strong> inside the cluster, not on <code>last_run.json</code>.</p>
-<p>On a legacy cluster a database may exist but be <strong>owned by another PostgreSQL user</strong>. Standard Odoo <code>exp_drop</code> then skips silently; odpm falls back to direct <code>DROP DATABASE</code> and fails clearly if the database remains.</p>
+<p>On a legacy cluster (Odoo before 20) a database may exist but be <strong>owned by another PostgreSQL user</strong>. Standard Odoo <code>exp_drop</code> then skips silently; odpm falls back to direct <code>DROP DATABASE</code> and fails clearly if the database remains. On <strong>Odoo 20+</strong> the checker calls <code>odoo.modules.db.drop</code> (there is no silent <code>exp_drop</code> skip).</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-drop<span class="w"> </span>--db-restore<span class="w"> </span>my_backup.zip<span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
 </code></pre></div>

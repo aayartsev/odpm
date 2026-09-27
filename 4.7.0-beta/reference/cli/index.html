@@ -1594,6 +1594,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подкоманда modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подкоманда run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2087,6 +2109,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подкоманда modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подкоманда run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2231,11 +2275,15 @@
 </tr>
 <tr>
 <td><code>--secrets-file ПУТЬ</code></td>
-<td>Импорт JSON v1 в <code>.odpm/secrets.json</code> (при <code>--init</code> и на любом запуске). Подразумевает провайдер <code>file</code>. См. <a href="../../operations/secrets/">локальные секреты</a>.</td>
+<td>Импорт JSON v1 в <code>.odpm/secrets.json</code> (при <code>--init</code> и на любом запуске; early bootstrap, до expand <code>${@secret:}</code> в <code>user_settings</code>). Подразумевает провайдер <code>file</code>. См. <a href="../../operations/secrets/">локальные секреты</a>.</td>
 </tr>
 <tr>
 <td><code>--secrets-provider ИМЯ</code></td>
 <td>Провайдер секретов на этот запуск (<code>file</code>, <code>infisical</code> или id плагина). Сильнее <code>ODPM_SECRETS_PROVIDER</code> и <code>secrets.provider.type</code>. <code>--secrets-file</code> выставляет <code>file</code>.</td>
+</tr>
+<tr>
+<td><code>--security-profile ИМЯ</code></td>
+<td>Профиль безопасности (<code>convenience</code> / <code>hardened</code>). Сильнее <code>ODPM_SECURITY_PROFILE</code>; иначе дефолт от <code>ODPM_SCENARIO</code>. См. <a href="../../operations/security/">безопасность</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -2357,6 +2405,38 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </table>
 <p>Флаг <strong><code>--accept-database-drift=KIND</code></strong> (повторяемый) — принять drift без интерактивного prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
 <p>Подробнее: <a href="../database-state/">состояние PostgreSQL и drift</a>.</p>
+<h2 id="modules">Подкоманда <code>modules</code><a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
+<p>Списки модулей для <code>-i</code>/<code>-u</code> из git-истории developing и маркер последнего apply:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>modules<span class="w"> </span>diff
+odpm<span class="w"> </span>modules<span class="w"> </span>diff<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--format<span class="w"> </span>shell
+odpm<span class="w"> </span>modules<span class="w"> </span>record-applied
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Команда</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modules diff</code></td>
+<td>Init/update CSV с <code>BASE...HEAD</code>; <code>--diff-base</code>, <code>--format {text,shell,json}</code></td>
+</tr>
+<tr>
+<td><code>modules record-applied</code></td>
+<td>Записать HEAD developing в <code>.odpm/deploy/last_applied.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>Подробнее и shell-рецепт: <a href="../deploy-marker/">маркер деплоя</a>.</p>
+<h2 id="run">Подкоманда <code>run</code><a class="headerlink" href="#run" title="Permanent link">&para;</a></h2>
+<p>Именованные рецепты (повторный вызов odpm):</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>--list
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
+odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--dry-run
+</code></pre></div>
+<p>Подробнее: <a href="../recipes/">рецепты</a>, <a href="../deploy-marker/">маркер деплоя</a>.</p>
 <h2 id="_5">База данных и модули<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2371,12 +2451,12 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <td>Имя базы; при отсутствии — создание по <code>db_creation_data</code></td>
 </tr>
 <tr>
-<td><code>-i</code></td>
-<td>Установить модули из <code>init_modules</code></td>
+<td><code>-i [МОДУЛИ]</code></td>
+<td>Без значения — модули из <code>init_modules</code>; с CSV (напр. <code>sale,crm</code>) — список с CLI (приоритет над settings)</td>
 </tr>
 <tr>
-<td><code>-u</code></td>
-<td>Обновить модули из <code>update_modules</code></td>
+<td><code>-u [МОДУЛИ]</code></td>
+<td>Без значения — модули из <code>update_modules</code>; с CSV — список с CLI (приоритет над settings)</td>
 </tr>
 <tr>
 <td><code>-t</code>, <code>--test</code></td>
@@ -2393,6 +2473,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
 odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <h2 id="_6">Дата ночной сборки платформы<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
@@ -2452,7 +2533,7 @@ odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </
 </tr>
 <tr>
 <td><code>--export-po-files ЯЗЫК</code></td>
-<td>Экспорт pot/po для модулей из <code>update_modules</code></td>
+<td>Экспорт pot/po для модулей из <code>update_modules</code>, либо из <code>-u CSV</code>, если задан</td>
 </tr>
 <tr>
 <td><code>--set-admin-pass</code></td>
