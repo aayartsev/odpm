@@ -2181,8 +2181,9 @@
 <li>Клонирует git-источники в <strong><code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code></strong></li>
 <li>Для <code>file://</code> — использует указанный каталог (clone не выполняется)</li>
 <li>Записывает пути в <code>ODPM_SOURCE_*</code> и <strong>пере-expand</strong> <code>services</code> / <code>service_patches</code> перед compose</li>
+<li>Создаёт/обновляет в каталоге odpm-проекта <strong><code>&lt;project&gt;/service-sources/&lt;name&gt;</code></strong> — symlink на клон (или путь <code>file://</code>) для навигации в IDE; не путать с каталогом клонов под <code>ODOO_PROJECTS_DIR</code></li>
 </ol>
-<p>При <code>--no-git-update</code> odpm только проверяет, что каталоги уже существуют.</p>
+<p>При <code>--no-git-update</code> odpm только проверяет, что каталоги уже существуют, и синхронизирует проектные ссылки.</p>
 <h2 id="source">Подстановка <code>${@source:...}</code><a class="headerlink" href="#source" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Синтаксис: <strong><code>${@source:&lt;name&gt;}</code></strong> → env-ключ <strong><code>ODPM_SOURCE_&lt;NAME&gt;</code></strong> (имя в upper case)</li>

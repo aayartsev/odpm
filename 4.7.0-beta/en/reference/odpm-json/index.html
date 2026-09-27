@@ -2753,7 +2753,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>Merge in <code>scenarios.*</code>: <strong><code>service_sources</code> — replace-by-name</strong> (overlay overrides the same name; other entries are kept).</p>
-<p>Repositories from <code>service_sources</code> are <strong>not</strong> added to <code>dependencies</code> / <code>addons_path</code>. Prepare step <strong><code>sources.materialize</code></strong> (after <code>git.materialize</code>) clones them under <code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code> and exposes the path via <code>${@source:&lt;name&gt;}</code>. Commit pins live in <code>.odpm/deps.lock.json</code> → <code>service_sources.&lt;name&gt;</code> (see <code>odpm --update-lock</code>). Details: <a href="../service-sources/">service-sources.md</a>.</p>
+<p>Repositories from <code>service_sources</code> are <strong>not</strong> added to <code>dependencies</code> / <code>addons_path</code>. Prepare step <strong><code>sources.materialize</code></strong> (after <code>git.materialize</code>) clones them under <code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code>, exposes the path via <code>${@source:&lt;name&gt;}</code>, and creates project links at <code>&lt;project&gt;/service-sources/&lt;name&gt;</code>. Commit pins live in <code>.odpm/deps.lock.json</code> → <code>service_sources.&lt;name&gt;</code> (see <code>odpm --update-lock</code>). Details: <a href="../service-sources/">service-sources.md</a>.</p>
 <h2 id="verified-combinations">Verified combinations<a class="headerlink" href="#verified-combinations" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Debian 11:</strong> Python 3.7, 3.10 — Odoo 11–16.</li>
