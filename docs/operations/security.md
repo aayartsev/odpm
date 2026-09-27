@@ -9,7 +9,7 @@
 | `convenience` | `developer` | manager=`1`, admin user=`admin` (как раньше) | без принудительного `127.0.0.1` |
 | `hardened` | `server` | random в `.odpm/secrets.json`; в settings — `${@secret:odpm.db_manager_password}` и `${@secret:odpm.db_default_admin_password}` | Postgres и все published → `127.0.0.1` |
 
-Override: CLI `--security-profile` сильнее env `ODPM_SECURITY_PROFILE`, иначе дефолт от сценария.  
+Override: CLI `--security-profile` сильнее env `ODPM_SECURITY_PROFILE`, иначе дефолт от сценария (таблица дефолтов и conflict rules — в `policy_compose`, ADR-024).  
 Сценарий **`ci`**: bootstrap Odoo-паролей в secrets **не** выполняется; bind портов остаётся scenario-owned (postgres на localhost, без bind всех published), даже если override = `hardened`.
 
 Точка правды для паролей Odoo — **`user_settings.json` после expand** (`${VAR}` / `${@secret:}` по всему файлу). Существующий settings odpm **не переписывает**. На `hardened`, если парольные поля в raw — plaintext / пусто / без `${@secret:}` — WARNING (файл не меняется).
@@ -17,7 +17,7 @@ Override: CLI `--security-profile` сильнее env `ODPM_SECURITY_PROFILE`, �
 Новые hardened-проекты: при отсутствии `.odpm/secrets.json` odpm создаёт ключи `odpm.db_manager_password` и `odpm.db_default_admin_password` (`token_urlsafe`, `0600`).  
 Уже созданная Odoo-БД сама не получает новый admin-пароль — используйте `--set-admin-pass` с `-d`.
 
-См. ADR-023, [локальные секреты](secrets.md), [user-settings](../reference/user-settings.md).
+См. ADR-023, ADR-024, [локальные секреты](secrets.md), [user-settings](../reference/user-settings.md).
 
 ## Пароли в конфигурации
 

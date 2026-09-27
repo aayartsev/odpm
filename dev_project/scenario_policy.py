@@ -20,11 +20,12 @@ from .dockerfile_profiles import (
     resolve_base_image_profile,
 )
 from .ide_stubs import normalize_odoo_stubs_requirements
-from .security_profiles import (
-    SecurityProfile,
-    binds_for_security_profile,
+from .policy_compose import (
+    effective_binds,
+    password_bootstrap_enabled,
     resolve_security_profile,
 )
+from .security_profiles import SecurityProfile
 
 VenvMode = Literal["fresh", "baked"]
 
@@ -90,16 +91,16 @@ class ScenarioPolicy:
         effective_security = resolve_security_profile(
             normalized, override=security_profile
         )
+        pg_bind, pub_bind = effective_binds(normalized, effective_security)
 
         if normalized == constants.CI_SCENARIO:
-            # CI port topology stays scenario-owned (ignore profile binds).
             policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_ci_image_name",
                 include_odoo_volumes=False,
                 include_debugger_port=False,
-                bind_postgres_localhost=True,
-                bind_published_ports_localhost=False,
+                bind_postgres_localhost=pg_bind,
+                bind_published_ports_localhost=pub_bind,
                 include_debugpy=False,
                 install_debugpy=False,
                 install_odoo_stubs=False,
@@ -112,7 +113,6 @@ class ScenarioPolicy:
                 security_profile=effective_security,
             )
         elif normalized == constants.SERVER_SCENARIO:
-            pg_bind, pub_bind = binds_for_security_profile(effective_security)
             policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_image_name",
@@ -132,7 +132,6 @@ class ScenarioPolicy:
                 security_profile=effective_security,
             )
         else:
-            pg_bind, pub_bind = binds_for_security_profile(effective_security)
             policy = cls(
                 scenario=constants.DEVELOPER_SCENARIO,
                 odoo_image_attr="odoo_image_name",
@@ -163,9 +162,7 @@ class ScenarioPolicy:
 
     def should_bootstrap_odoo_password_secrets(self) -> bool:
         """True when hardened file-provider bootstrap of Odoo password secrets applies."""
-        if self.is_ci():
-            return False
-        return self.is_hardened()
+        return password_bootstrap_enabled(self.scenario, self.security_profile)
 
     @property
     def skip_vscode(self) -> bool:

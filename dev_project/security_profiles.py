@@ -33,15 +33,11 @@ HARDENED_DB_DEFAULT_ADMIN_PASSWORD_REF = (
     f"${{@secret:{ODPM_SECRET_KEY_DB_DEFAULT_ADMIN_PASSWORD}}}"
 )
 
-_PROFILE_BY_SCENARIO: dict[str, SecurityProfile] = {
-    constants.DEVELOPER_SCENARIO: SECURITY_PROFILE_CONVENIENCE,
-    constants.SERVER_SCENARIO: SECURITY_PROFILE_HARDENED,
-    constants.CI_SCENARIO: SECURITY_PROFILE_CONVENIENCE,
-}
-
 
 def security_profile_for_scenario(scenario: str) -> SecurityProfile:
-    return _PROFILE_BY_SCENARIO.get(scenario, SECURITY_PROFILE_CONVENIENCE)
+    from . import policy_compose
+
+    return policy_compose.security_profile_for_scenario(scenario)
 
 
 def parse_security_profile(raw: str | None) -> SecurityProfile | None:
@@ -71,9 +67,9 @@ def resolve_security_profile(
     override: SecurityProfile | None = None,
 ) -> SecurityProfile:
     """Effective profile: explicit override wins over scenario default."""
-    if override is not None:
-        return override
-    return security_profile_for_scenario(scenario)
+    from . import policy_compose
+
+    return policy_compose.resolve_security_profile(scenario, override=override)
 
 
 def binds_for_security_profile(

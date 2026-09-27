@@ -30,5 +30,6 @@ Add a **security profile** axis on `ScenarioPolicy`:
 
 ## References
 
-- Implementation: `dev_project/security_profiles.py`, `ScenarioPolicy.security_profile`
+- Implementation: `dev_project/policy_compose.py` (`PRESETS` + conflict rules), `dev_project/security_profiles.py`, `ScenarioPolicy.security_profile`
+- Compose axis ownership: [ADR-024](adr-024-policy-compose.md)
 - Docs: `docs/operations/security.md`

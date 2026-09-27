@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Policy compose (ADR-024)** — scenario→security defaults and conflict rules (`effective_binds`, password bootstrap) live in `policy_compose.PRESETS`; `ScenarioPolicy.from_scenario` remains the public factory; `security_profiles` keeps parsers/binds helpers with lazy forwarders. Tests: `test_policy_compose`. Docs: ADR-024, `security.md`, ADR-023 References.
+
 ### Added
 
 - **Recipes (`odpm run`)** — phased host recipes re-exec odpm as subprocesses; YAML linear recipes under `.odpm/recipes/`; builtin `apply-modules-from-diff` for server (diff → conditional `-i`/`-u` → `record-applied`). CI allowlist includes `run`; end-to-end apply via `run` is not supported under `ci`. Tests: `test_recipes`. Docs: `recipes.md`, `deploy-marker.md`, `cli.md`, `server.md`.

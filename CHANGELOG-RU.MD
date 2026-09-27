@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+### Изменено
+
+- **Policy compose (ADR-024)** — дефолты scenario→security и conflict rules (`effective_binds`, password bootstrap) в `policy_compose.PRESETS`; публичная фабрика по-прежнему `ScenarioPolicy.from_scenario`; в `security_profiles` — parsers/binds и lazy forwarders. Тесты: `test_policy_compose`. Документация: ADR-024, `security.md`, References ADR-023.
+
 ### Добавлено
 
 - **Рецепты (`odpm run`)** — phased host-рецепты с re-exec odpm; линейные YAML в `.odpm/recipes/`; builtin `apply-modules-from-diff` для server (diff → условные `-i`/`-u` → `record-applied`). `run` в CI allowlist; end-to-end apply через `run` в сценарии `ci` не поддерживается. Тесты: `test_recipes`. Документация: `recipes.md`, `deploy-marker.md`, `cli.md`, `server.md`.
