@@ -1509,6 +1509,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#sidecars-sidecars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Локальные sidecars (sidecars)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2020,6 +2031,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#sidecars-sidecars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Локальные sidecars (sidecars)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2127,6 +2149,10 @@
 <td><code>create_module_links</code></td>
 <td>Символические ссылки для редактора (по умолчанию <code>false</code>)</td>
 </tr>
+<tr>
+<td><code>sidecars</code></td>
+<td>Локальные переключатели compose-sidecar: имя → <code>true</code>/<code>false</code>. <code>false</code> исключает сервис из plan, fragments и <code>docker-compose.yml</code>; отсутствие ключа или <code>true</code> — оставить. Нельзя указывать <code>db</code>/<code>odoo</code>. После смены — <code>odpm --skip-start</code>. См. ниже</td>
+</tr>
 </tbody>
 </table>
 <h2 id="var-developing_project">Подстановка <code>${VAR}</code> в <code>developing_project</code><a class="headerlink" href="#var-developing_project" title="Permanent link">&para;</a></h2>
@@ -2144,6 +2170,22 @@
 <p>При <code>true</code> выполняются базовые проверки git и Docker. Не отключает валидацию compose. Освобождение занятых портов в режиме разработчика — отдельная логика.</p>
 <h2 id="create_module_links">Символические ссылки (<code>create_module_links</code>)<a class="headerlink" href="#create_module_links" title="Permanent link">&para;</a></h2>
 <p>Упрощают навигацию и отладку в VS Code — <a href="../../operations/vscode-debug/">отдельная статья</a>.</p>
+<h2 id="sidecars-sidecars">Локальные sidecars (<code>sidecars</code>)<a class="headerlink" href="#sidecars-sidecars" title="Permanent link">&para;</a></h2>
+<p>Карта <strong>логических</strong> имён compose-сервисов из manifest/<code>plugins</code> (не <code>service_sources</code> и не <code>db</code>/<code>odoo</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"sidecars"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"mailpit"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"redis"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><code>false</code> — сервис не попадает в <code>odpm plan</code> fragment steps, <code>.odpm/compose/fragments/</code> и <code>docker-compose.yml</code>.</li>
+<li>отсутствие ключа или <code>true</code> — сервис остаётся.</li>
+<li>Только JSON boolean; строки вроде <code>"false"</code> — ошибка.</li>
+<li>Личные <code>false</code> в закоммиченном <code>user_settings.json</code> могут удивить команду/CI — согласовывайте или держите override локально.</li>
+<li>После изменения: <code>odpm --skip-start</code> (как после смены <code>dev_mode</code>). Подробнее: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md">ADR-025</a>.</li>
+</ul>
 
 
 

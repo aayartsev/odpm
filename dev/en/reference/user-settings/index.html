@@ -1509,6 +1509,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#local-sidecars-sidecars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local sidecars (sidecars)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2020,6 +2031,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#local-sidecars-sidecars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local sidecars (sidecars)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2130,6 +2152,10 @@
 <td><code>create_module_links</code></td>
 <td>Symbolic links for the editor (default <code>false</code>)</td>
 </tr>
+<tr>
+<td><code>sidecars</code></td>
+<td>Local compose-sidecar toggles: name → <code>true</code>/<code>false</code>. <code>false</code> drops the service from plan, fragments, and <code>docker-compose.yml</code>; missing key or <code>true</code> keeps it. Cannot list <code>db</code>/<code>odoo</code>. After change — <code>odpm --skip-start</code>. See below</td>
+</tr>
 </tbody>
 </table>
 <h2 id="var-substitution-in-developing_project"><code>${VAR}</code> substitution in <code>developing_project</code><a class="headerlink" href="#var-substitution-in-developing_project" title="Permanent link">&para;</a></h2>
@@ -2147,6 +2173,22 @@
 <p>When <code>true</code>, basic git and Docker checks run. Does not disable compose validation. Freeing occupied ports in developer mode is separate logic.</p>
 <h2 id="symbolic-links-create_module_links">Symbolic links (<code>create_module_links</code>)<a class="headerlink" href="#symbolic-links-create_module_links" title="Permanent link">&para;</a></h2>
 <p>Simplify navigation and debugging in VS Code — <a href="../../operations/vscode-debug/">dedicated article</a>.</p>
+<h2 id="local-sidecars-sidecars">Local sidecars (<code>sidecars</code>)<a class="headerlink" href="#local-sidecars-sidecars" title="Permanent link">&para;</a></h2>
+<p>Map of <strong>logical</strong> compose service names from the manifest/plugins (not <code>service_sources</code>, not <code>db</code>/<code>odoo</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"sidecars"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"mailpit"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"redis"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><code>false</code> — service is omitted from <code>odpm plan</code> fragment steps, <code>.odpm/compose/fragments/</code>, and <code>docker-compose.yml</code>.</li>
+<li>missing key or <code>true</code> — service stays.</li>
+<li>JSON booleans only; strings like <code>"false"</code> are an error.</li>
+<li>Personal <code>false</code> values in a committed <code>user_settings.json</code> can surprise the team/CI — coordinate or keep the override local.</li>
+<li>After a change: <code>odpm --skip-start</code> (same as after changing <code>dev_mode</code>). Details: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md">ADR-025</a>.</li>
+</ul>
 
 
 

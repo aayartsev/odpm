@@ -2045,9 +2045,10 @@
 <li><strong>new database</strong> parameters — language and country in <strong><code>odpm.json</code></strong> (<code>database</code>); demo data and admin credentials in <code>user_settings.json</code>;</li>
 <li>whether to update git repositories on every run;</li>
 <li>Odoo development mode (<code>dev_mode</code>) — only in the <code>developer</code> scenario;</li>
+<li>local compose-sidecar toggles (<code>sidecars</code>) — which sidecars to run on this machine;</li>
 <li>database manager passwords and other operational parameters.</li>
 </ul>
-<p><strong>Who edits:</strong> the developer on their machine; the repository may contain a template without secrets.</p>
+<p><strong>Who edits:</strong> the developer on their machine; the repository may contain a template without secrets. Be careful committing <code>sidecars: {…: false}</code> — that is a personal override.</p>
 <p>The file is <strong>created automatically</strong> from defaults if missing.</p>
 <h2 id="rule-of-thumb">Rule of thumb<a class="headerlink" href="#rule-of-thumb" title="Permanent link">&para;</a></h2>
 <table>
@@ -2073,6 +2074,10 @@
 <tr>
 <td>“Create demo data and which admin password on this machine?”</td>
 <td><code>user_settings.json</code></td>
+</tr>
+<tr>
+<td>“Which sidecars not to start locally?”</td>
+<td><code>user_settings.json</code> → <code>sidecars</code></td>
 </tr>
 </tbody>
 </table>

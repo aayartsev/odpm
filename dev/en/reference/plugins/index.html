@@ -2448,6 +2448,7 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>Disable a sidecar locally without editing shared <code>odpm.json</code>: <code>user_settings.json</code> → <code>"sidecars": { "mailpit": false }</code> (<a href="../user-settings/">user-settings</a>, <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md">ADR-025</a>).</p>
 <p>Sidecars may set <strong><code>user</code></strong>, <strong><code>tty</code></strong>, <strong><code>hostname</code></strong>, <strong><code>healthcheck</code></strong>, <strong><code>privileged</code></strong>, and <strong><code>pid</code></strong> (same as <code>service_patches</code>). For <strong>git build contexts</strong> (recommended, 4.7+), use <code>service_sources</code> and <code>${@source:...}</code>; for sidecar API keys use <code>${@secret:...}</code> from <code>.odpm/secrets.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">"service_sources"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">"autoparts_env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/org/autoparts-env.git 17.0"</span>
