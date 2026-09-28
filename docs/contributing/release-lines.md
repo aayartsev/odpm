@@ -11,18 +11,18 @@
 | **4.3.x** | `4.3.0`, тег `v4.3.0` | **заморожена** | Последний stable до 4.4; только критичные security-fix по решению maintainer (cherry-pick → patch tag). Новые фичи не добавляем. |
 | **4.4.x** | `4.4-dev` | **заморожена** (patch only) | Линия 4.4; stable **v4.4.3** |
 | **4.5.x** | `4.5-dev` | **заморожена** (patch only) | Линия 4.5; stable **v4.5.0**; архив: `v4.5.0-beta` |
-| **4.6.x** | `4.6.0-dev` | **stable** | Debt closure D1–D5 **RELEASED** stable **v4.6.0**; архив: `v4.6.0-beta` |
-| **4.7.x** | `4.7.0-dev` | **активная** | Scenario overlays (ADR-011), compose prefix (ADR-012), layered `.env` (ADR-013); pre-release на ветке |
+| **4.6.x** | `4.6.0-dev` | **заморожена** (patch only) | Линия 4.6; stable **v4.6.0**; архив: `v4.6.0-beta` |
+| **4.7.x** | `4.7.0` / `4.7.0-dev` | **stable** | Scenario overlays, compose prefix/network, layered `.env`, secrets, Odoo 20; stable **v4.7.0**; архив: `v4.7.0-beta` |
 | Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
 
-**Правило:** изменения 4.7 merge в `4.7.0-dev`. Линии 4.4 (`4.4-dev`), 4.5 (`4.5-dev`) и 4.6 (`4.6.0-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
+**Правило:** patch/security 4.7 — в `4.7.0` (или обратнопорт на `4.7.0-dev` по решению maintainer). Линии 4.4 (`4.4-dev`), 4.5 (`4.5-dev`) и 4.6 (`4.6.0-dev`) — только patch/security. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
 
 ### Константы в `scenarios.py`
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.7.0-dev` | `4.7.0-beta` |
-| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.6.0` |
+| `RELEASE_VERSION` | Каждый релиз / pre-release | `4.7.0` |
+| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.7.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
 
@@ -187,11 +187,11 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
    - [x] `RELEASE_VERSION = "4.7.0-beta"`; `LATEST_STABLE_RELEASE = "4.6.0"`
    - [x] Закрыть `[Unreleased]` в CHANGELOG → `[4.7.0-beta]`
    - [x] `debian/changelog`, `packaging/odpm.spec`, `.github/release-notes/4.7.0-beta.md`
-   - [ ] `git tag v4.7.0-beta` && push → `release-packages`, mike `4.7.0-beta`
+   - [x] `git tag v4.7.0-beta` && push → `release-packages`, mike `4.7.0-beta`
 4. **Release commit (stable, после smoke)**
-   - [ ] `RELEASE_VERSION = "4.7.0"`; `LATEST_STABLE_RELEASE = "4.7.0"`
-   - [ ] Закрыть beta в CHANGELOG → добавить `[4.7.0]`
-   - [ ] `debian/changelog`, `packaging/odpm.spec`, install hub → stable **4.7.0**
+   - [x] `RELEASE_VERSION = "4.7.0"`; `LATEST_STABLE_RELEASE = "4.7.0"`
+   - [x] Закрыть Unreleased в CHANGELOG → добавить `[4.7.0]`
+   - [x] `debian/changelog`, `packaging/odpm.spec`, install hub → stable **4.7.0**
    - [ ] `git tag v4.7.0` && push → `release-packages`, mike `4.7.0` + alias **stable**
 
 ## Чеклист: stable **v4.4.2** (архив, после smoke beta)

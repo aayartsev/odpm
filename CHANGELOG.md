@@ -8,15 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.7.0] - 2026-09-28
+
+**Stable release 4.7.0** on branch `4.7.0`; supersedes **4.6.0** as `LATEST_STABLE_RELEASE`. Scenario overlays, compose prefix/network, layered `.env`, secrets/Infisical, Odoo 20, CI kaniko, recipes, and related ops tooling. Pre-release **4.7.0-beta** verified packaging and docs channels. No breaking changes for v1 flat `odpm.json`; 4.7 features remain opt-in.
+
 ### Changed
 
+- **Release gate (R7 / 4.7.0)** — `RELEASE_VERSION` → `4.7.0`; `LATEST_STABLE_RELEASE` → `4.7.0`; deb/rpm packaging synced; install docs and mike `stable` alias target **4.7.0**.
 - **Golden-path local runner** — `scripts/run_golden_path_test.sh` mirrors CI: `refresh_golden_path_project.sh` (`odpm --skip-start`, with git materialize/checkout so platform follows `odoo_version`) and preflight before the HTTP unittest, so a drifted `master` checkout is pinned back to 19.0 and `requirements.txt` changes rebuild the venv; skip refresh with `ODPM_GOLDEN_PATH_SKIP_REFRESH=1`, skip git with `ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1`. Maintenance hint for `ModuleNotFoundError` / branch drift. Docs: `ci.md`.
 - **Policy compose (ADR-024)** — scenario→security defaults and conflict rules (`effective_binds`, password bootstrap) live in `policy_compose.PRESETS`; `ScenarioPolicy.from_scenario` remains the public factory; `security_profiles` keeps parsers/binds helpers with lazy forwarders. Tests: `test_policy_compose`. Docs: ADR-024, `security.md`, ADR-023 References.
 
 ### Added
 
 - **Local sidecar gates (`user_settings.sidecars`)** — map of logical compose sidecar name → boolean; `false` drops the service from plan fragments, `.odpm/compose/fragments/`, and `docker-compose.yml` (after `service_patches`); missing/`true` keeps it. Strict JSON booleans; `db`/`odoo` forbidden. ADR-025. Tests: `test_sidecar_gates`, compose document/fragments. Docs: `user-settings.md`, `config-split.md`, `plugins.md`.
- phased host recipes re-exec odpm as subprocesses; YAML linear recipes under `.odpm/recipes/`; builtin `apply-modules-from-diff` for server (diff → conditional `-i`/`-u` → `record-applied`). CI allowlist includes `run`; end-to-end apply via `run` is not supported under `ci`. Tests: `test_recipes`. Docs: `recipes.md`, `deploy-marker.md`, `cli.md`, `server.md`.
+- **Host recipes (`odpm run`)** — phased host recipes re-exec odpm as subprocesses; YAML linear recipes under `.odpm/recipes/`; builtin `apply-modules-from-diff` for server (diff → conditional `-i`/`-u` → `record-applied`). CI allowlist includes `run`; end-to-end apply via `run` is not supported under `ci`. Tests: `test_recipes`. Docs: `recipes.md`, `deploy-marker.md`, `cli.md`, `server.md`.
 - **Modules from git diff + deploy marker** — `odpm modules diff` / `record-applied`; baseline `--diff-base` > `ODPM_DIFF_BASE` > `CI_MERGE_REQUEST_DIFF_BASE_SHA` > `.odpm/deploy/last_applied.json`; formats text/shell/json; CI allowlist includes `modules`. Tests: `test_module_diff`. Docs: `deploy-marker.md`, `cli.md`, `server.md`, `generated-files.md`.
 - **CLI module lists for `-i` / `-u`** — optional comma-separated module CSV on `-i`/`-u` overrides `init_modules` / `update_modules` for that run; bare flags still read `user_settings.json`. `--export-po-files` uses settings unless `-u CSV` is given. Empty CLI lists raise `ConfigError`. Tests: `test_host_cli_args`, `test_cli_module_lists`. Docs: `cli.md`, `user-settings.md`, `local-dev-from-scratch.md`.
 - **Security profiles (ADR-023)** — `convenience` / `hardened` on `ScenarioPolicy` (`ODPM_SECURITY_PROFILE` / `--security-profile`; defaults from scenario). Hardened bootstraps `odpm.db_manager_password` + `odpm.db_default_admin_password` into `.odpm/secrets.json` when writing new settings refs; deep-expand `${@secret:}` / `${VAR}` across `user_settings.json` (two-phase bootstrap for Infisical); WARNING on raw plaintext password fields (no rewrite). Publish binds for developer/server come from the profile; `ci` keeps scenario-owned binds and never password-bootstraps. Tests: `test_security_profiles`, `test_scenario_policy`. Docs: `security.md`, ADR-023, `cli.md`, scenario pages.

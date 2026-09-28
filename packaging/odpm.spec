@@ -4,7 +4,7 @@
 
 %global srcname odpm
 %global version 4.7.0
-%global release beta
+%global release 1
 
 Name:           %{srcname}
 Version:        %{version}
@@ -60,6 +60,8 @@ Host CLI uses PyPI or distribution Python packages for validation and plugins.
 %{python3_sitelib}/odpm-*.dist-info/
 
 %changelog
+* Mon Sep 28 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.7.0-1
+- Stable release 4.7.0 (see CHANGELOG.md and .github/release-notes/4.7.0.md).
 * Mon Jun 23 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.7.0-beta
 - Pre-release 4.7.0-beta on 4.7.0-dev (scenario overlays, compose prefix, layered .env, compose network; see CHANGELOG.md).
 * Mon Jun 23 2026 odpm maintainers <odpm-maintainers@noreply.github.com> - 4.6.0-beta

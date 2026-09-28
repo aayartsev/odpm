@@ -20,7 +20,7 @@ sudo rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep
 
 ### Stable (recommended for production)
 
-Suite **`stable`** — currently odpm **4.6.0**:
+Suite **`stable`** — currently odpm **4.7.0**:
 
 ```bash
 sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
@@ -29,28 +29,14 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
 sudo dnf makecache
 sudo dnf install odpm
 odpm --version
-# expected: odpm version: 4.6.0
-```
-
-### Pre-release (4.7.0-beta)
-
-For early adopters of the **4.7** line. Use **`stable`** above in production. Beta packages are only in YUM **`testing`** and on [TestPyPI](https://test.pypi.org/project/odpm/). Docs: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/fedora-rpm/).
-
-```bash
-sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-testing.repo \
-  -o /etc/yum.repos.d/odpm-testing.repo
-
-sudo dnf makecache
-sudo dnf install odpm
-odpm --version
-# expected: odpm version: 4.7.0-beta
+# expected: odpm version: 4.7.0
 ```
 
 ### Pre-release (archived)
 
-Archived beta guides: [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
+Archived beta guides: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/fedora-rpm/) · [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
 
-The YUM **`testing`** suite also contains the current **4.7.0-beta** packages and archived pre-releases (`https://aayartsev.github.io/odpm/yum/odpm-testing.repo`).
+The YUM **`testing`** suite contains archived pre-releases (including **4.7.0-beta**) (`https://aayartsev.github.io/odpm/yum/odpm-testing.repo`).
 
 > If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
 >
@@ -71,7 +57,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.6.0` (stable), `v4.7.0-beta` (testing), `v4.6.0-beta` (archived testing), `v4.5.0` (archived stable), `v4.5.0-beta` (archived testing), `v4.4.3` (archived stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.7.0` (stable), `v4.7.0-beta` (archived testing), `v4.6.0` (archived stable), `v4.6.0-beta` (archived testing), `v4.5.0` (archived stable), `v4.5.0-beta` (archived testing), `v4.4.3` (archived stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
 
 ```bash
 ./scripts/build_rpm.sh

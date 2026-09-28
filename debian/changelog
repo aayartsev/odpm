@@ -1,3 +1,11 @@
+odpm (4.7.0-1) unstable; urgency=medium
+
+  * Stable release 4.7.0 on branch 4.7.0 (scenario overlays, compose
+    prefix/network, layered .env, secrets/Infisical, Odoo 20, recipes; see
+    CHANGELOG.md and .github/release-notes/4.7.0.md).
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Mon, 28 Sep 2026 12:00:00 +0000
+
 odpm (4.7.0~beta-1) unstable; urgency=medium
 
   * Pre-release 4.7.0-beta on branch 4.7.0-dev (scenario manifest overlays,

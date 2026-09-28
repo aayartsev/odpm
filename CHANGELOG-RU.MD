@@ -8,15 +8,20 @@
 
 ## [Unreleased]
 
+## [4.7.0] - 2026-09-28
+
+**Стабильный релиз 4.7.0** на ветке `4.7.0`; сменяет **4.6.0** как `LATEST_STABLE_RELEASE`. Scenario overlays, compose prefix/network, layered `.env`, секреты/Infisical, Odoo 20, CI kaniko, recipes и связанный ops-инструментарий. Pre-release **4.7.0-beta** проверил packaging и docs-каналы. Без breaking changes для flat v1 `odpm.json`; возможности 4.7 остаются opt-in.
+
 ### Изменено
 
+- **Release gate (R7 / 4.7.0)** — `RELEASE_VERSION` → `4.7.0`; `LATEST_STABLE_RELEASE` → `4.7.0`; deb/rpm packaging синхронизированы; install docs и mike alias `stable` → **4.7.0**.
 - **Локальный golden-path** — `scripts/run_golden_path_test.sh` как в CI: сначала `refresh_golden_path_project.sh` (`odpm --skip-start` с git materialize/checkout под `odoo_version`) и preflight, затем HTTP-unittest — уводит платформу с `master` обратно на 19.0 и пересобирает venv при смене `requirements.txt`; пропуск refresh — `ODPM_GOLDEN_PATH_SKIP_REFRESH=1`, пропуск git — `ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1`. Hint для `ModuleNotFoundError` / drift ветки. Документация: `ci.md`.
 - **Policy compose (ADR-024)** — дефолты scenario→security и conflict rules (`effective_binds`, password bootstrap) в `policy_compose.PRESETS`; публичная фабрика по-прежнему `ScenarioPolicy.from_scenario`; в `security_profiles` — parsers/binds и lazy forwarders. Тесты: `test_policy_compose`. Документация: ADR-024, `security.md`, References ADR-023.
 
 ### Добавлено
 
 - **Локальные sidecar gates (`user_settings.sidecars`)** — карта логическое имя compose-sidecar → boolean; `false` убирает сервис из plan fragments, `.odpm/compose/fragments/` и `docker-compose.yml` (после `service_patches`); отсутствие/`true` — оставить. Strict JSON boolean; `db`/`odoo` запрещены. ADR-025. Тесты: `test_sidecar_gates`, compose document/fragments. Документация: `user-settings.md`, `config-split.md`, `plugins.md`.
- phased host-рецепты с re-exec odpm; линейные YAML в `.odpm/recipes/`; builtin `apply-modules-from-diff` для server (diff → условные `-i`/`-u` → `record-applied`). `run` в CI allowlist; end-to-end apply через `run` в сценарии `ci` не поддерживается. Тесты: `test_recipes`. Документация: `recipes.md`, `deploy-marker.md`, `cli.md`, `server.md`.
+- **Host-рецепты (`odpm run`)** — phased host-рецепты с re-exec odpm; линейные YAML в `.odpm/recipes/`; builtin `apply-modules-from-diff` для server (diff → условные `-i`/`-u` → `record-applied`). `run` в CI allowlist; end-to-end apply через `run` в сценарии `ci` не поддерживается. Тесты: `test_recipes`. Документация: `recipes.md`, `deploy-marker.md`, `cli.md`, `server.md`.
 - **Модули из git diff + маркер деплоя** — `odpm modules diff` / `record-applied`; baseline `--diff-base` > `ODPM_DIFF_BASE` > `CI_MERGE_REQUEST_DIFF_BASE_SHA` > `.odpm/deploy/last_applied.json`; форматы text/shell/json; `modules` в CI allowlist. Тесты: `test_module_diff`. Документация: `deploy-marker.md`, `cli.md`, `server.md`, `generated-files.md`.
 - **Списки модулей в CLI для `-i` / `-u`** — необязательный CSV модулей после `-i`/`-u` перекрывает `init_modules` / `update_modules` на этот запуск; голые флаги по-прежнему читают `user_settings.json`. `--export-po-files` берёт settings, если не передан `-u CSV`. Пустой CLI-список — `ConfigError`. Тесты: `test_host_cli_args`, `test_cli_module_lists`. Документация: `cli.md`, `user-settings.md`, `local-dev-from-scratch.md`.
 - **Профили безопасности (ADR-023)** — `convenience` / `hardened` в `ScenarioPolicy` (`ODPM_SECURITY_PROFILE` / `--security-profile`; дефолты от сценария). Hardened bootstrap ключей `odpm.db_manager_password` + `odpm.db_default_admin_password` в `.odpm/secrets.json` при новых settings со ссылками; deep-expand `${@secret:}` / `${VAR}` по всему `user_settings.json` (двухфазный bootstrap для Infisical); WARNING на plaintext парольные поля в raw (без rewrite). Publish binds для developer/server от профиля; `ci` сохраняет scenario-owned binds и не делает password bootstrap. Тесты: `test_security_profiles`, `test_scenario_policy`. Документация: `security.md`, ADR-023, `cli.md`, scenario pages.
