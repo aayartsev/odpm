@@ -2192,7 +2192,7 @@
 <p>Open the folder in <strong>Visual Studio Code</strong> (File → Open Folder). The integrated terminal is convenient for odpm commands.</p>
 <p><strong>Important:</strong> do not run <code>odpm</code> inside a host Python venv. Use system <code>python3</code> or the <code>odpm</code> package command; Odoo’s isolated Python env is created <strong>inside the container</strong>.</p>
 <h2 id="init-from-a-git-repository">Init from a git repository<a class="headerlink" href="#init-from-a-git-repository" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">20</span>.0
 </code></pre></div>
 <p><code>--branch</code> is the <strong>developing</strong> repository branch. If omitted, the git server’s default branch is used.</p>
 <h2 id="init-from-a-local-directory">Init from a local directory<a class="headerlink" href="#init-from-a-local-directory" title="Permanent link">&para;</a></h2>
@@ -2205,7 +2205,7 @@
 <ol>
 <li>Runs the setup wizard and saves answers to <code>.env</code> (backup dir, git clone dir, ports, <strong>scenario</strong> <code>developer</code> / <code>server</code> / <code>ci</code>).</li>
 <li>When deploying from scratch, asks for Odoo version if missing from the developing project’s <code>odpm.json</code>.</li>
-<li>Clones the Odoo <strong>platform</strong> repo (can take <strong>40+ minutes</strong> — be patient).</li>
+<li>Clones the Odoo <strong>platform</strong> repo (can take <strong>10+ minutes</strong> — be patient).</li>
 <li>Clones the developing project or links the local path you gave.</li>
 <li>Generates <code>Dockerfile</code> for the chosen Linux distro and Python version.</li>
 <li>Copies the template to <code>.odpm/dockerignore</code> and creates the root <code>.dockerignore</code> for image builds.</li>

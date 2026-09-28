@@ -650,10 +650,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#odoo-is-installed-ready-to-develop" class="md-nav__link">
+  <a href="#odoo-is-installed-and-ready-to-develop-are-far-apart" class="md-nav__link">
     <span class="md-ellipsis">
       
-        “Odoo is installed” ≠ “ready to develop”
+        “Odoo is installed” and “ready to develop” are far apart
       
     </span>
   </a>
@@ -2010,10 +2010,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#odoo-is-installed-ready-to-develop" class="md-nav__link">
+  <a href="#odoo-is-installed-and-ready-to-develop-are-far-apart" class="md-nav__link">
     <span class="md-ellipsis">
       
-        “Odoo is installed” ≠ “ready to develop”
+        “Odoo is installed” and “ready to develop” are far apart
       
     </span>
   </a>
@@ -2091,13 +2091,13 @@
 
 <h1 id="beginner-friendly-guide">Beginner-friendly guide<a class="headerlink" href="#beginner-friendly-guide" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>AI-translated</strong> from Russian. See <a href="../why-odpm/">Why odpm</a> for the full picture of pain points, team roles, and alternatives. Below is a short on-ramp: what to install and where to start.</p>
+<p><strong>AI-translated</strong> from Russian. Arguments for why the project exists, team roles, and alternatives — in <a href="../why-odpm/">Why odpm</a>. Below is a quick on-ramp for beginners: what to install and where to start.</p>
 </blockquote>
 <h2 id="why-odpm-exists">Why odpm exists<a class="headerlink" href="#why-odpm-exists" title="Permanent link">&para;</a></h2>
 <p><strong>odpm</strong> was created to <strong>lower the very high barrier</strong> to Odoo development. The goal is not “install Odoo one more time”, but to give you a <strong>ready workspace</strong>: open a folder in your editor, write a module, run an update — paths, dependencies, and services are already aligned.</p>
-<p>If you are just starting, follow <a href="../local-dev-from-scratch/">Local dev from scratch</a> with your own repository or your team’s (it must include <code>odpm.json</code>).</p>
-<h2 id="odoo-is-installed-ready-to-develop">“Odoo is installed” ≠ “ready to develop”<a class="headerlink" href="#odoo-is-installed-ready-to-develop" title="Permanent link">&para;</a></h2>
-<p>On Debian you can install a system package; on Fedora an <code>.rpm</code>; you can follow a long wiki. The service <strong>will start</strong> and the login page will open. That creates the illusion that “everything is ready”.</p>
+<p>If you are just starting, follow <a href="../local-dev-from-scratch/">Local dev from scratch</a>, or start with your own repository or your team’s (it must already include <code>odpm.json</code>).</p>
+<h2 id="odoo-is-installed-and-ready-to-develop-are-far-apart">“Odoo is installed” and “ready to develop” are far apart<a class="headerlink" href="#odoo-is-installed-and-ready-to-develop-are-far-apart" title="Permanent link">&para;</a></h2>
+<p>To simply run Odoo on Debian you can install a system package; on Fedora an <code>.rpm</code>; on Windows an <code>exe</code> for a given version; or you can follow a long online guide. The service <strong>will start</strong> and the login page will open. It looks like “everything is ready”.</p>
 <p>A <strong>developer</strong> needs something else: a <strong>single workspace</strong> where all of this is available at once:</p>
 <table>
 <thead>
@@ -2113,15 +2113,15 @@
 </tr>
 <tr>
 <td><strong>All environment settings in one logical place</strong></td>
-<td>Settings scattered across systemd, Python venv, compose, env vars</td>
+<td>So every part of the Odoo platform is at hand and manageable: a Python venv for your pip packages, docker-compose, environment variables, and so on</td>
 </tr>
 <tr>
 <td><strong>System and Python packages</strong></td>
-<td>Some via apt, some via pip — unclear versions and sources</td>
+<td>Some libraries needed to build Python dependencies go on the host system, some via pip — unclear versions and sources</td>
 </tr>
 <tr>
 <td><strong>Odoo configuration file</strong></td>
-<td><code>addons_path</code>, data directory, DB manager — wired by hand</td>
+<td><code>addons_path</code> and data directory are wired by hand</td>
 </tr>
 <tr>
 <td><strong>Odoo platform source</strong></td>
@@ -2133,33 +2133,34 @@
 </tr>
 <tr>
 <td><strong>Consistent addon paths</strong></td>
-<td>One missing path → “module not found” with no clear cause</td>
+<td>One missing path in the config → “module not found” with no clear cause</td>
 </tr>
 <tr>
 <td><strong>Your codebase next to dependencies</strong></td>
-<td>Otherwise you edit “foreign” trees or fight IDE paths</td>
+<td>Solid work needs access to “foreign” trees, and that code must be reachable for debugging — IDE path confusion often starts here</td>
 </tr>
 </tbody>
 </table>
 <p>You <strong>can</strong> assemble this manually with packages and scattered guides, but you get repeated manual setup on every Odoo version or machine change — not a <strong>developer tool</strong>.</p>
 <h2 id="second-layer-docker-so-everyone-has-the-same-stack">Second layer: Docker “so everyone has the same stack”<a class="headerlink" href="#second-layer-docker-so-everyone-has-the-same-stack" title="Permanent link">&para;</a></h2>
-<p>When a team runs Odoo <strong>in a container</strong> for parity across Ubuntu, macOS, and Windows, the problem <strong>does not shrink</strong> — it <strong>doubles</strong>:</p>
+<p>When a team runs Odoo <strong>in a container</strong> so Linux, macOS, and Windows share one runtime, the problem <strong>does not shrink</strong> — it <strong>doubles</strong>:</p>
 <ul>
 <li>different paths on disk vs inside the container;</li>
 <li>correct <strong>bind mounts</strong> for platform, project, and each dependency;</li>
 <li><strong>UID/GID</strong> so files do not break between host and container;</li>
 <li>Odoo <code>addons_path</code> must match what the process <strong>inside</strong> the container sees;</li>
-<li>ports, PostgreSQL, and optionally the debugger configured separately.</li>
+<li>network ports, PostgreSQL, and optionally the debugger configured separately;</li>
+<li>sometimes you must install your own pip libraries in the container and still tell teammates about them.</li>
 </ul>
-<p>Typical mistakes: forgotten mount, wrong path, dependency missing from <code>addons_path</code>, venv rebuilt in the wrong place. Beginners rarely know <strong>which layer</strong> failed — host, Docker, Odoo, or dependencies.</p>
-<p><strong>odpm is the layer that assembles the whole:</strong> one project directory on disk, stack described in <strong><code>odpm.json</code></strong>, odpm clones repos, generates <code>docker-compose</code>, Odoo config, volume mappings, and <strong>commands</strong> for DB backup, module install/update, admin password, and VS Code debugging.</p>
+<p>Typical mistakes: forgotten mount, wrong path, dependency missing from <code>addons_path</code>, venv rebuilt in the wrong place. Not only beginners but experienced developers often cannot tell <strong>which layer</strong> failed — host, Docker, Odoo, or which dependency.</p>
+<p><strong>odpm is the layer that assembles everything into one whole:</strong> one project directory on disk, stack described in <strong><code>odpm.json</code></strong>, odpm clones repos, generates <code>docker-compose</code>, Odoo config, volume mappings, and <strong>commands</strong> for restoring a database from an archive, module install, admin password change, and IDE debugging.</p>
 <h2 id="what-you-need-on-your-computer">What you need on your computer<a class="headerlink" href="#what-you-need-on-your-computer" title="Permanent link">&para;</a></h2>
 <p>On the <strong>host</strong> you only need:</p>
 <ul>
-<li><a href="https://www.docker.com/products/docker-desktop/">Docker</a> — Docker Desktop on Windows and macOS;</li>
+<li><a href="https://www.docker.com/products/docker-desktop/">Docker</a> — Docker Desktop on Windows and macOS; on Linux prefer the native Docker service so it runs without an extra virtualization layer;</li>
 <li><a href="https://git-scm.com/">git</a>;</li>
 <li><strong>odpm</strong> installed — see <a href="../../install/">installation</a>;</li>
-<li>for debugging — <a href="https://code.visualstudio.com/">Visual Studio Code</a>.</li>
+<li>for development and debugging — <a href="https://code.visualstudio.com/">Visual Studio Code</a>.</li>
 </ul>
 <p>The Odoo Python project and its venv live <strong>in the container</strong>. Do <strong>not</strong> wrap <code>odpm</code> in a host venv — that only adds friction.</p>
 <h2 id="first-steps">First steps<a class="headerlink" href="#first-steps" title="Permanent link">&para;</a></h2>
@@ -2171,7 +2172,7 @@
 <p>On <code>odpm --init</code>, the <strong>setup wizard</strong> asks for Odoo version, usage scenario, backup and clone directories. Press Enter on unknown answers for sensible defaults.</p>
 <h2 id="in-short">In short<a class="headerlink" href="#in-short" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p>Packaged Odoo <strong>runs</strong>, but does <strong>not</strong> give you a dev workspace. Platform and addon sources, paths, Python env, config, and Docker parity are separate, heavy work. <strong>odpm</strong> folds that into <strong>one project contour</strong> from <code>odpm.json</code> so you start with <strong>your code</strong>, not manual stack assembly.</p>
+<p>Packaged Odoo <strong>runs</strong>, but does <strong>not</strong> give you a ready workspace. Platform and addon sources, paths, Python env, config, and Docker parity are separate, heavy work. <strong>odpm</strong> folds that into <strong>one project contour</strong> from <code>odpm.json</code> so you start with <strong>your code</strong>, not manual stack assembly.</p>
 </blockquote>
 
 
