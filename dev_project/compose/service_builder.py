@@ -4,14 +4,15 @@ from __future__ import annotations
 
 from .. import constants
 from ..config import Config
+from ..config.transforms import modules_csv_for_odoo_flag
 from ..dev_mode import effective_dev_mode
 from ..host.cli import params as cli_params
 from .start_command import ComposeOdooService, StartCommand
+from ..config.payload import write_runtime_config
 
 
 def persist_runtime_config(config: Config) -> None:
     """Write ``.odpm/runtime/config.json`` (patchable seam for unit tests)."""
-    from ..config.payload import write_runtime_config
 
     write_runtime_config(config)
 
@@ -32,7 +33,7 @@ class ComposeServiceBuilder:
         if compose_service.include_runtime_config:
             persist_runtime_config(self.config)
         if self.policy.mount_runtime_secrets_from_host():
-            from ..project_env.secrets import materialize_secrets
+            from ..project_env.secrets import materialize_secrets  # noqa: PLC0415  # optional
 
             compose_service.include_runtime_secrets = materialize_secrets(
                 self.config.project_dir
@@ -93,11 +94,17 @@ class ComposeServiceBuilder:
         if self.args.d:
             argv.extend([cli_params.D_PARAM, self.args.d])
 
-        if self.args.i and self.config.init_modules:
-            argv.extend([cli_params.I_PARAM, self.config.init_modules])
+        init_modules = modules_csv_for_odoo_flag(
+            self.args.i, self.config.init_modules
+        )
+        if init_modules:
+            argv.extend([cli_params.I_PARAM, init_modules])
 
-        if self.args.u and self.config.update_modules:
-            argv.extend([cli_params.U_PARAM, self.config.update_modules])
+        update_modules = modules_csv_for_odoo_flag(
+            self.args.u, self.config.update_modules
+        )
+        if update_modules:
+            argv.extend([cli_params.U_PARAM, update_modules])
 
         if self.args.test:
             argv.extend(["--test-enable", "--stop-after-init"])

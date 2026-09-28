@@ -12,9 +12,10 @@
 |---------|--------------|
 | **Отладчик** | Режим `ODPM_DEBUGGER_BACKEND`: `debugpy_listen` (контейнер слушает, VS Code / PyCharm Attach) или `pydevd_connect` (PyCharm Debug Server). Порт `DEBUGGER_PORT` — см. [отладка в IDE](../operations/vscode-debug.md). |
 | **Секреты модулей** | Опционально: `.odpm/secrets.json` → mount `/run/odpm/secrets.json` — [локальные секреты](../operations/secrets.md). |
-| **PostgreSQL** | Порт базы доступен на хосте (не только с интерфейса loopback) — удобно для локальных утилит. Состояние кластера и drift: [database-state.md](../reference/database-state.md). |
+| **PostgreSQL** | По умолчанию профиль **`convenience`**: порт БД доступен на хосте (не только loopback). Для prod-подобной схемы: `ODPM_SECURITY_PROFILE=hardened`. Состояние кластера: [database-state.md](../reference/database-state.md). |
 | **Исходники** | Каталоги платформы, разрабатываемого проекта и зависимостей подключены с компьютера разработчика. |
 | **Окружение Python** | Режим «пересоздаваемый»: при изменении файла фиксации версий окружение может быть пересобрано. |
+| **Base image** | По умолчанию профиль **full** (browser/Xvfb/IDE stack). Override: `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci` — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md). |
 | **Сборка CI-образа** | Команда `--build-image` **недоступна** (только сценарий `ci`). |
 
 ## Режим разработки Odoo (`dev_mode`)

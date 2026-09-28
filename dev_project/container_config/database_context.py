@@ -5,9 +5,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from ..database.schema import (
+    DATABASE_ENGINE_POSTGRES,
+    DatabaseClusterFingerprint,
+    DatabaseComposeFingerprint,
+    DatabaseCurrentState,
+    DatabaseLastRun,
+    DatabaseOdooConfFingerprint,
+)
+from ..database.state import collect_database_state
+
 if TYPE_CHECKING:
     from ..config import Config
-    from ..database.schema import DatabaseCurrentState, DatabaseLastRun
 
 
 @dataclass(frozen=True)
@@ -57,8 +66,6 @@ class DatabaseContainerContext:
 
     @classmethod
     def from_host_config(cls, config: Config) -> DatabaseContainerContext:
-        from ..database.state import collect_database_state
-
         state = collect_database_state(config)
         return cls(
             service_name=state.compose.service_name,
@@ -76,14 +83,6 @@ class DatabaseContainerContext:
     def to_current_state(
         self, odpm_scenario: str, *, app_role_present: bool
     ) -> DatabaseCurrentState:
-        from ..database.schema import (
-            DATABASE_ENGINE_POSTGRES,
-            DatabaseClusterFingerprint,
-            DatabaseComposeFingerprint,
-            DatabaseCurrentState,
-            DatabaseOdooConfFingerprint,
-        )
-
         return DatabaseCurrentState(
             odpm_scenario=odpm_scenario,
             engine=DATABASE_ENGINE_POSTGRES,

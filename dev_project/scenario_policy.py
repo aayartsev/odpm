@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Literal
 
 from . import constants
@@ -15,10 +15,40 @@ from .debugger.constants import (
     DEBUGGER_BACKEND_PYDEVD_CONNECT,
     DEFAULT_DEBUGGER_CONNECT_HOST,
 )
+from .dockerfile_profiles import (
+    BaseImageProfile,
+    resolve_base_image_profile,
+)
 from .ide_stubs import normalize_odoo_stubs_requirements
+from .policy_compose import (
+    effective_binds,
+    password_bootstrap_enabled,
+    resolve_security_profile,
+)
+from .security_profiles import SecurityProfile
 
 VenvMode = Literal["fresh", "baked"]
-BaseImageProfile = Literal["full", "medium", "ci"]
+
+_LOCALHOST_BIND = "127.0.0.1"
+
+
+def format_published_port(port_spec: str | dict) -> str | dict:
+    """Bind a Compose port publish to 127.0.0.1 when no host IP is set."""
+    if isinstance(port_spec, dict):
+        if port_spec.get("host_ip"):
+            return port_spec
+        return {**port_spec, "host_ip": _LOCALHOST_BIND}
+    if not isinstance(port_spec, str):
+        return port_spec
+    value = port_spec.strip()
+    if not value:
+        return value
+    if value.startswith("["):
+        return value
+    parts = value.split(":")
+    if len(parts) >= 3 and ("." in parts[0] or parts[0] == "localhost"):
+        return value
+    return f"{_LOCALHOST_BIND}:{value}"
 
 
 @dataclass(frozen=True)
@@ -28,6 +58,7 @@ class ScenarioPolicy:
     include_odoo_volumes: bool
     include_debugger_port: bool
     bind_postgres_localhost: bool
+    bind_published_ports_localhost: bool
     include_debugpy: bool
     install_debugpy: bool
     install_odoo_stubs: bool
@@ -37,6 +68,7 @@ class ScenarioPolicy:
     venv_mode: VenvMode
     uses_host_identity: bool
     base_image_profile: BaseImageProfile
+    security_profile: SecurityProfile
 
     def __post_init__(self) -> None:
         if self.include_debugpy and not self.install_debugpy:
@@ -45,18 +77,30 @@ class ScenarioPolicy:
             )
 
     @classmethod
-    def from_scenario(cls, scenario: str) -> ScenarioPolicy:
+    def from_scenario(
+        cls,
+        scenario: str,
+        *,
+        base_image_profile: BaseImageProfile | None = None,
+        security_profile: SecurityProfile | None = None,
+    ) -> ScenarioPolicy:
         normalized = scenario or constants.DEFAULT_ODPM_SCENARIO
         if normalized not in constants.ODPM_SCENARIO_VALUES:
             normalized = constants.DEFAULT_ODPM_SCENARIO
 
+        effective_security = resolve_security_profile(
+            normalized, override=security_profile
+        )
+        pg_bind, pub_bind = effective_binds(normalized, effective_security)
+
         if normalized == constants.CI_SCENARIO:
-            return cls(
+            policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_ci_image_name",
                 include_odoo_volumes=False,
                 include_debugger_port=False,
-                bind_postgres_localhost=True,
+                bind_postgres_localhost=pg_bind,
+                bind_published_ports_localhost=pub_bind,
                 include_debugpy=False,
                 install_debugpy=False,
                 install_odoo_stubs=False,
@@ -66,14 +110,16 @@ class ScenarioPolicy:
                 venv_mode=constants.VENV_MODE_BAKED,
                 uses_host_identity=False,
                 base_image_profile="ci",
+                security_profile=effective_security,
             )
-        if normalized == constants.SERVER_SCENARIO:
-            return cls(
+        elif normalized == constants.SERVER_SCENARIO:
+            policy = cls(
                 scenario=normalized,
                 odoo_image_attr="odoo_image_name",
                 include_odoo_volumes=True,
                 include_debugger_port=False,
-                bind_postgres_localhost=True,
+                bind_postgres_localhost=pg_bind,
+                bind_published_ports_localhost=pub_bind,
                 include_debugpy=False,
                 install_debugpy=False,
                 install_odoo_stubs=False,
@@ -83,23 +129,40 @@ class ScenarioPolicy:
                 venv_mode=constants.VENV_MODE_FRESH,
                 uses_host_identity=True,
                 base_image_profile="medium",
+                security_profile=effective_security,
             )
-        return cls(
-            scenario=constants.DEVELOPER_SCENARIO,
-            odoo_image_attr="odoo_image_name",
-            include_odoo_volumes=True,
-            include_debugger_port=True,
-            bind_postgres_localhost=False,
-            include_debugpy=True,
-            install_debugpy=True,
-            install_odoo_stubs=True,
-            apply_dev_mode=True,
-            skip_ide_config=False,
-            allow_build_image=False,
-            venv_mode=constants.VENV_MODE_FRESH,
-            uses_host_identity=True,
-            base_image_profile="full",
+        else:
+            policy = cls(
+                scenario=constants.DEVELOPER_SCENARIO,
+                odoo_image_attr="odoo_image_name",
+                include_odoo_volumes=True,
+                include_debugger_port=True,
+                bind_postgres_localhost=pg_bind,
+                bind_published_ports_localhost=pub_bind,
+                include_debugpy=True,
+                install_debugpy=True,
+                install_odoo_stubs=True,
+                apply_dev_mode=True,
+                skip_ide_config=False,
+                allow_build_image=False,
+                venv_mode=constants.VENV_MODE_FRESH,
+                uses_host_identity=True,
+                base_image_profile="full",
+                security_profile=effective_security,
+            )
+        effective = resolve_base_image_profile(
+            policy.scenario, override=base_image_profile
         )
+        if effective == policy.base_image_profile:
+            return policy
+        return replace(policy, base_image_profile=effective)
+
+    def is_hardened(self) -> bool:
+        return self.security_profile == "hardened"
+
+    def should_bootstrap_odoo_password_secrets(self) -> bool:
+        """True when hardened file-provider bootstrap of Odoo password secrets applies."""
+        return password_bootstrap_enabled(self.scenario, self.security_profile)
 
     @property
     def skip_vscode(self) -> bool:
@@ -118,6 +181,15 @@ class ScenarioPolicy:
 
     def is_developer(self) -> bool:
         return self.scenario == constants.DEVELOPER_SCENARIO
+
+    def is_server(self) -> bool:
+        return self.scenario == constants.SERVER_SCENARIO
+
+    def compose_service_restart_policy(self) -> str | None:
+        """Docker restart policy for built-in db/odoo services (server: survive host reboot)."""
+        if self.is_server():
+            return "unless-stopped"
+        return None
 
     def report_compose_failure_on_host(self) -> bool:
         """Whether to emit a host summary when ``docker compose up`` exits non-zero."""
@@ -209,7 +281,7 @@ class ScenarioPolicy:
 
     def build_postgres_port_map(self, port_map: str) -> str:
         if self.bind_postgres_localhost:
-            return f"127.0.0.1:{port_map}"
+            return format_published_port(port_map)
         return port_map
 
     def build_pythonwarnings_env_line(self, *, indent: int = 6) -> str:

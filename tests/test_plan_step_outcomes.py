@@ -26,6 +26,7 @@ from dev_project.prepare.steps_compose import (
     evaluate_compose_service,
 )
 from dev_project.scenario_policy import ScenarioPolicy
+from tests.plan_smoke_helpers import seed_migrated_project_layout
 
 
 class PlanComposePreviewTests(unittest.TestCase):
@@ -99,7 +100,6 @@ class PlanComposePreviewTests(unittest.TestCase):
     def test_compose_service_noop_when_runtime_hash_matches(self):
         with tempfile.TemporaryDirectory() as tmp:
             runtime_dir = tmp + "/" + constants.ODPM_RUNTIME_DIR_REL_PATH
-            from pathlib import Path
 
             Path(runtime_dir).mkdir(parents=True)
             Path(runtime_dir, "config.json").write_text(
@@ -118,7 +118,6 @@ class PlanComposePreviewTests(unittest.TestCase):
 
     def test_vscode_settings_noop_when_files_exist(self):
         with tempfile.TemporaryDirectory() as tmp:
-            from pathlib import Path
 
             vscode_dir = Path(tmp) / ".vscode"
             vscode_dir.mkdir()
@@ -151,7 +150,6 @@ class ComposeGenerateOutcomeTests(unittest.TestCase):
 class ComposeServiceGenerateAlignmentTests(unittest.TestCase):
     def test_compose_service_runs_when_generate_needs_missing_file(self):
         with tempfile.TemporaryDirectory() as tmp:
-            from tests.plan_smoke_helpers import seed_migrated_project_layout
 
             seed_migrated_project_layout(Path(tmp), include_root_compose=False)
             config = MagicMock()

@@ -65,8 +65,8 @@ odpm -d test_db -i -u
 ```
 
 - `-d test_db` — database name; created with `db_creation_data` from `user_settings.json` if missing.
-- `-i` — install modules from `init_modules`.
-- `-u` — update modules from `update_modules`.
+- `-i` — install modules from `init_modules` (or pass a list: `-i sale,crm`).
+- `-u` — update modules from `update_modules` (or `-u my_module`).
 
 Open `http://127.0.0.1:8069` — Odoo login should appear.
 

@@ -15,6 +15,7 @@ from tests.integration.dev_mode_reload_probe import (
     resolve_developing_project_local_path,
     resolve_probe_python_file,
 )
+from tests.integration.dev_mode_reload_probe import run_autoreload_probe
 
 
 class DevModeReloadProbeTests(unittest.TestCase):
@@ -106,7 +107,6 @@ services:
         mock_wait,
         mock_logs,
     ):
-        from tests.integration.dev_mode_reload_probe import run_autoreload_probe
 
         mock_logs.return_value = "INFO AutoReload watcher running with inotify"
         mock_append.return_value = "# original\n"

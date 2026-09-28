@@ -12,6 +12,7 @@ from dev_project.git import HandleOdooProjectLink
 from dev_project.git.deps_lock import DepsLock, LockEntry, save_deps_lock
 from dev_project.git.deps_lock_manager import DepsLockManager
 from dev_project.scenario_policy import ScenarioPolicy
+from unittest.mock import MagicMock
 
 
 def _init_git_repo(path: str, *, content: str = "v1") -> str:
@@ -65,7 +66,6 @@ def _git_link_at(
 
 
 def _config_stub(project_dir: str, scenario: str, **kwargs):
-    from unittest.mock import MagicMock
 
     config = MagicMock()
     config.project_dir = project_dir

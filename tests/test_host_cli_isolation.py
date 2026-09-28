@@ -143,12 +143,20 @@ class HostCliIsolationTests(unittest.TestCase):
         yaml_modules = tuple(
             name for name in sys.modules if name.startswith("dev_project.yaml")
         )
+        host_only_modules = (
+            "jsonschema",
+            "dev_project.config.config",
+            "dev_project.manifest.schema",
+            "dev_project.host.context",
+        )
         preserved = {
             name: sys.modules.pop(name)
             for name in list(sys.modules)
             if name.startswith(purge_prefixes)
             or name in ruamel_modules
             or name in yaml_modules
+            or name == "jsonschema"
+            or name.startswith("jsonschema.")
         }
         try:
             importlib.import_module("dev_project.config.payload")
@@ -163,6 +171,15 @@ class HostCliIsolationTests(unittest.TestCase):
                 )
             self.assertNotIn("ruamel", sys.modules)
             self.assertNotIn("dev_project.yaml", sys.modules)
+            for name in host_only_modules:
+                self.assertNotIn(
+                    name,
+                    sys.modules,
+                    msg=(
+                        f"{name} must not load when importing config.payload "
+                        "(container venv has no host-only deps like jsonschema)"
+                    ),
+                )
         finally:
             sys.modules.update(preserved)
 

@@ -16,6 +16,7 @@ _LIST_FIELDS = frozenset(
         "ports",
         "volumes",
         "depends_on",
+        "networks",
         "extra_hosts",
     }
 )
@@ -28,8 +29,11 @@ def validate_compose_document(document: dict[str, Any]) -> None:
     services = document.get("services")
     if not isinstance(services, dict) or not services:
         raise ConfigError(_("Generated compose document must include services"))
+    networks = document.get("networks")
+    if networks is not None and not isinstance(networks, dict):
+        raise ConfigError(_("Generated compose networks must be a mapping when present"))
     for name, spec in services.items():
-        _validate_service(str(name), spec)
+        _validate_service(str(name), spec, declared_networks=networks)
     volumes = document.get("volumes")
     if volumes is not None and not isinstance(volumes, dict):
         raise ConfigError(_("Generated compose volumes must be a mapping when present"))
@@ -61,16 +65,7 @@ def validate_compose_file(path: str) -> None:
     validate_compose_text(text)
 
 
-def _validate_service(name: str, spec: object) -> None:
-    if not isinstance(spec, dict):
-        raise ConfigError(
-            _("Compose service {NAME} must be a mapping").format(NAME=name)
-        )
-    image = spec.get("image")
-    if not isinstance(image, str) or not image.strip():
-        raise ConfigError(
-            _("Compose service {NAME} must define a non-empty image").format(NAME=name)
-        )
+def _validate_service_list_fields(name: str, spec: dict[str, Any]) -> None:
     for field_name in _LIST_FIELDS:
         value = spec.get(field_name)
         if value is None:
@@ -81,8 +76,12 @@ def _validate_service(name: str, spec: object) -> None:
                     NAME=name, FIELD=field_name
                 )
             )
-    environment = spec.get("environment")
-    if environment is not None and not isinstance(environment, (list, dict)):
+
+
+def _validate_service_environment(name: str, environment: object) -> None:
+    if environment is None:
+        return
+    if not isinstance(environment, (list, dict)):
         raise ConfigError(
             _("Compose service {NAME}.environment must be a list or mapping").format(
                 NAME=name
@@ -96,6 +95,9 @@ def _validate_service(name: str, spec: object) -> None:
                         "Compose service {NAME}.environment list entries must be strings"
                     ).format(NAME=name)
                 )
+
+
+def _validate_service_scalars(name: str, spec: dict[str, Any]) -> None:
     user = spec.get("user")
     if user is not None and (not isinstance(user, str) or not user.strip()):
         raise ConfigError(
@@ -106,3 +108,66 @@ def _validate_service(name: str, spec: object) -> None:
         raise ConfigError(
             _("Compose service {NAME}.tty must be a boolean").format(NAME=name)
         )
+    hostname = spec.get("hostname")
+    if hostname is not None and (not isinstance(hostname, str) or not hostname.strip()):
+        raise ConfigError(
+            _("Compose service {NAME}.hostname must be a non-empty string").format(
+                NAME=name
+            )
+        )
+    healthcheck = spec.get("healthcheck")
+    if healthcheck is not None and not isinstance(healthcheck, dict):
+        raise ConfigError(
+            _("Compose service {NAME}.healthcheck must be a mapping").format(NAME=name)
+        )
+    privileged = spec.get("privileged")
+    if privileged is not None and not isinstance(privileged, bool):
+        raise ConfigError(
+            _("Compose service {NAME}.privileged must be a boolean").format(NAME=name)
+        )
+    pid = spec.get("pid")
+    if pid is not None and (not isinstance(pid, str) or not pid.strip()):
+        raise ConfigError(
+            _("Compose service {NAME}.pid must be a non-empty string").format(NAME=name)
+        )
+
+
+def _validate_service_networks(
+    name: str,
+    spec: dict[str, Any],
+    *,
+    declared_networks: dict[str, Any] | None,
+) -> None:
+    if not isinstance(declared_networks, dict):
+        return
+    networks = spec.get("networks")
+    if not isinstance(networks, list):
+        return
+    for entry in networks:
+        if isinstance(entry, str) and entry not in declared_networks:
+            raise ConfigError(
+                _("Compose service {NAME} references undeclared network {NET}").format(
+                    NAME=name, NET=entry
+                )
+            )
+
+
+def _validate_service(
+    name: str,
+    spec: object,
+    *,
+    declared_networks: dict[str, Any] | None,
+) -> None:
+    if not isinstance(spec, dict):
+        raise ConfigError(
+            _("Compose service {NAME} must be a mapping").format(NAME=name)
+        )
+    image = spec.get("image")
+    if not isinstance(image, str) or not image.strip():
+        raise ConfigError(
+            _("Compose service {NAME} must define a non-empty image").format(NAME=name)
+        )
+    _validate_service_list_fields(name, spec)
+    _validate_service_environment(name, spec.get("environment"))
+    _validate_service_scalars(name, spec)
+    _validate_service_networks(name, spec, declared_networks=declared_networks)

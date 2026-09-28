@@ -13,6 +13,11 @@ from dev_project.manifest.reader import (
     normalize_v2_to_flat,
 )
 from dev_project.manifest.schema import manifest_schema_v1, manifest_schema_v2, validate_manifest_v1
+import json
+import tempfile
+from unittest.mock import MagicMock
+from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
+import os
 
 
 def _minimal_v2(**overrides) -> dict:
@@ -56,6 +61,23 @@ class NormalizeV2Tests(unittest.TestCase):
         self.assertEqual(flat["odoo_version"], "19.0")
         self.assertEqual(flat["dependencies"], ["https://github.com/OCA/web.git 19.0"])
         self.assertEqual(flat["requirements_txt"], ["requests==2.31.0"])
+
+    def test_normalize_accepts_effective_dependencies_override(self):
+        raw = _minimal_v2(dependencies=["https://github.com/OCA/web.git 19.0"])
+        flat = normalize_v2_to_flat(
+            raw,
+            dependencies=[
+                "https://github.com/OCA/web.git 19.0",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+        self.assertEqual(
+            flat["dependencies"],
+            [
+                "https://github.com/OCA/web.git 19.0",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
 
     def test_explicit_odoo_version_overrides_git_branch(self):
         flat = normalize_v2_to_flat(_minimal_v2(odoo_version="18.0"))
@@ -205,6 +227,69 @@ class LoadManifestTests(unittest.TestCase):
             },
         )
 
+    def test_v2_services_hostname_and_healthcheck_allowed(self):
+        raw = _minimal_v2(
+            services={
+                "minio": {
+                    "image": "minio/minio:latest",
+                    "hostname": "minio",
+                    "healthcheck": {
+                        "test": ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"],
+                        "interval": "30s",
+                        "timeout": "20s",
+                        "retries": 3,
+                    },
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.services["minio"]["hostname"], "minio")
+        self.assertEqual(view.services["minio"]["healthcheck"]["retries"], 3)
+        self.assertEqual(
+            view.services["minio"]["healthcheck"]["test"][0],
+            "CMD",
+        )
+
+    def test_v2_service_patches_hostname_and_healthcheck_allowed(self):
+        raw = _minimal_v2(
+            service_patches={
+                "odoo": {
+                    "hostname": "odoo-app",
+                    "healthcheck": {"disable": True},
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.service_patches["odoo"]["hostname"], "odoo-app")
+        self.assertEqual(view.service_patches["odoo"]["healthcheck"], {"disable": True})
+
+    def test_v2_services_privileged_and_pid_allowed(self):
+        raw = _minimal_v2(
+            services={
+                "sysbox": {
+                    "image": "example/sys:latest",
+                    "privileged": True,
+                    "pid": "host",
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.services["sysbox"]["privileged"], True)
+        self.assertEqual(view.services["sysbox"]["pid"], "host")
+
+    def test_v2_service_patches_privileged_and_pid_allowed(self):
+        raw = _minimal_v2(
+            service_patches={
+                "odoo": {
+                    "privileged": False,
+                    "pid": "service:db",
+                }
+            }
+        )
+        view = load_manifest(raw)
+        self.assertEqual(view.service_patches["odoo"]["privileged"], False)
+        self.assertEqual(view.service_patches["odoo"]["pid"], "service:db")
+
     def test_v1_validate_accepts_minimal_flat_manifest(self):
         validate_manifest_v1(
             {
@@ -217,18 +302,110 @@ class LoadManifestTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             load_manifest({"odpm_version": "2.0"})
 
+    def test_v2_scenario_overlay_wires_effective_odoo_conf_and_requirements(self):
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            requirements=["requests==2.31.0"],
+            odoo_conf={"options": {"proxy_mode": "True", "workers": "0"}},
+            scenarios={
+                "server": {
+                    "requirements": ["gunicorn"],
+                    "odoo_conf": {"options": {"workers": "4"}},
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(dev.raw_normalized["requirements_txt"], ["requests==2.31.0"])
+        self.assertEqual(
+            server.raw_normalized["requirements_txt"],
+            ["requests==2.31.0", "gunicorn"],
+        )
+        self.assertEqual(dev.odoo_conf, {"options": {"proxy_mode": "True", "workers": "0"}})
+        self.assertEqual(
+            server.odoo_conf,
+            {"options": {"proxy_mode": "True", "workers": "4"}},
+        )
+        self.assertIsNotNone(server.scenario_slice)
+        self.assertEqual(server.scenario_slice.requirements, ["requests==2.31.0", "gunicorn"])
+
+    def test_v2_load_wires_effective_services_and_patches(self):
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            services={"mailpit": {"image": "axllent/mailpit:base"}},
+            service_patches={"odoo": {"user": "1000:1000"}},
+            scenarios={
+                "server": {
+                    "services": {
+                        "mailpit": {"image": "axllent/mailpit:server"},
+                    },
+                    "service_patches": {
+                        "odoo": {"user": "0:0"},
+                    },
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(dev.services["mailpit"]["image"], "axllent/mailpit:base")
+        self.assertEqual(dev.service_patches["odoo"]["user"], "1000:1000")
+        self.assertEqual(server.services["mailpit"]["image"], "axllent/mailpit:server")
+        self.assertEqual(server.service_patches["odoo"]["user"], "0:0")
+
+    def test_v2_scenario_overlay_wires_effective_hooks_and_dependencies(self):
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            dependencies=["https://github.com/OCA/web"],
+            hooks={"pre_up": [["echo", "shared"]]},
+            scenarios={
+                "developer": {
+                    "dependencies": ["https://github.com/my-org/fixtures.git 17.0"],
+                    "hooks": {
+                        "post_prepare": [["docker", "build", "-t", "img:tag", "."]],
+                    },
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(
+            dev.raw_normalized["dependencies"],
+            [
+                "https://github.com/OCA/web",
+                "https://github.com/my-org/fixtures.git 17.0",
+            ],
+        )
+        self.assertEqual(server.raw_normalized["dependencies"], ["https://github.com/OCA/web"])
+        self.assertEqual(
+            dev.hooks,
+            {
+                "pre_up": [["echo", "shared"]],
+                "post_prepare": [["docker", "build", "-t", "img:tag", "."]],
+            },
+        )
+        self.assertEqual(server.hooks, {"pre_up": [["echo", "shared"]]})
+
+    def test_v2_load_rejects_reserved_odoo_conf_in_scenario_overlay(self):
+        with self.assertRaises(ConfigError):
+            load_manifest(
+                _minimal_v2(
+                    requires_odpm="4.6.0",
+                    scenarios={
+                        "server": {
+                            "odoo_conf": {"options": {"db_host": "evil"}},
+                        }
+                    },
+                ),
+                active_scenario=constants.SERVER_SCENARIO,
+            )
+
 
 class OdpmJsonReaderIntegrationTests(unittest.TestCase):
     def test_get_odpm_settings_stores_manifest_view_and_normalized_flat(self):
-        import json
-        import tempfile
-        from unittest.mock import MagicMock
 
-        from dev_project.config.manifests.odpm_json_reader import OdpmJsonReader
 
         with tempfile.TemporaryDirectory() as tmp:
             repo = f"{tmp}/developing/odpm.json"
-            import os
 
             os.makedirs(os.path.dirname(repo), exist_ok=True)
             with open(repo, "w", encoding="utf-8") as handle:
@@ -240,6 +417,8 @@ class OdpmJsonReaderIntegrationTests(unittest.TestCase):
             config.bootstrap = MagicMock()
             config.env_resolver = MagicMock()
             config.env_resolver.resolve.return_value = None
+            config.user_env = MagicMock()
+            config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
 
             OdpmJsonReader(config, rewrite_odpm_json=MagicMock()).get_odpm_settings()
 

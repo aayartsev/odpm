@@ -11,6 +11,7 @@ from ..host.runtime import HostRuntimeState
 from ..host.user_env import CreateUserEnvironment
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
+from ..security_profiles import parse_security_profile
 from .bootstrap_context import ConfigBootstrapContext
 from .bootstrap_phases import (
     bind_developing_link,
@@ -20,7 +21,9 @@ from .bootstrap_phases import (
     normalize_project_requirements,
 )
 from .layout import apply_policy_and_layout
-from .transforms.env_substitution import EnvResolver
+from .transforms.env_substitution import EnvResolver, with_secrets
+from .transforms.secret_refs import load_secrets_map
+from ..secrets_providers.session import session_for_config
 from .state import (
     AddonLayoutState,
     BootstrapState,
@@ -76,16 +79,26 @@ def init_context(
     config.project_dir = config.pd_manager.project_path
     config.config_home_dir = config.pd_manager.home_config_dir
     config.user_env = user_env
-    config._env_resolver = EnvResolver.from_user_env(user_env)
-    config.policy = ScenarioPolicy.from_scenario(config.user_env.odpm_scenario)
+    session_for_config(config)
+    config._env_resolver = with_secrets(
+        EnvResolver.from_user_env(user_env),
+        load_secrets_map(config.project_dir),
+    )
+    security_override = parse_security_profile(
+        getattr(arguments, "security_profile", None)
+    )
+    if security_override is None:
+        security_override = getattr(user_env, "security_profile", None)
+    config.policy = ScenarioPolicy.from_scenario(
+        config.user_env.odpm_scenario,
+        base_image_profile=getattr(config.user_env, "base_image_profile", None),
+        security_profile=security_override,
+    )
     config._user = UserSettingsState()
     config._project = ProjectSettingsState()
     config._docker = DockerLayoutState()
     config._addon_layout = AddonLayoutState()
-    config._bootstrap_ctx = ConfigBootstrapContext(
-        config,
-        bind_platform_link=bind_platform_link,
-    )
+    config._bootstrap_ctx = ConfigBootstrapContext(config)
     config._paths = config._bootstrap_ctx.paths
     config._odoo_conf = config._bootstrap_ctx.odoo_conf
     config._git_repos = config._bootstrap_ctx.git_repos

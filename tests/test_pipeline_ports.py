@@ -17,6 +17,8 @@ from dev_project.host.ports import (
     ports_from_config,
 )
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.manifest.reader import ManifestView
+from dev_project.git.deps_lock_manager import DepsLockManager
 
 
 class PipelinePortsTests(unittest.TestCase):
@@ -49,7 +51,6 @@ class PipelinePortsTests(unittest.TestCase):
         self.assertIsInstance(ports.compose.project_env, CreateProjectEnvironment)
 
     def test_bootstrap_handle_exposes_manifest_read_model(self):
-        from dev_project.manifest.reader import ManifestView
 
         config = MagicMock()
         view = ManifestView(
@@ -79,7 +80,6 @@ class PipelinePortsTests(unittest.TestCase):
         self.assertIs(bootstrap.git_repos, config._git_repos)
         self.assertEqual(bootstrap.compute_venv_lock_hash(), "abc123")
         lock_manager = bootstrap.new_lock_manager()
-        from dev_project.git.deps_lock_manager import DepsLockManager
 
         self.assertIsInstance(lock_manager, DepsLockManager)
 

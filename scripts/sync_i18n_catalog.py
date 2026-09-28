@@ -34,6 +34,11 @@ RU_MESSAGES: dict[str, str] = {
     "--update-lock cannot be used together with --no-git-update": (
         "Нельзя использовать --update-lock вместе с --no-git-update"
     ),
+    "-i/-u module list must contain at least one module name "
+    "(comma-separated, e.g. sale,crm)": (
+        "Список модулей для -i/-u должен содержать хотя бы одно имя модуля "
+        "(через запятую, например sale,crm)"
+    ),
     ' "config.json" is deprecated. Please read documentation': (
         ' Файл с параметрами "config.json" является устаревшим. '
         "Пожалуйста обратитесь к документации "
@@ -111,11 +116,26 @@ RU_MESSAGES: dict[str, str] = {
     "Compose service {NAME} must define a non-empty image": (
         "Сервис compose {NAME} должен содержать непустой image"
     ),
+    "Compose service {NAME} references undeclared network {NET}": (
+        "Сервис compose {NAME} ссылается на необъявленную сеть {NET}"
+    ),
     "Compose service {NAME}.environment list entries must be strings": (
         "Элементы списка environment сервиса compose {NAME} должны быть строками"
     ),
     "Compose service {NAME}.environment must be a list or mapping": (
         "environment сервиса compose {NAME} должен быть списком или mapping"
+    ),
+    "Compose service {NAME}.healthcheck must be a mapping": (
+        "Поле healthcheck сервиса compose {NAME} должно быть mapping"
+    ),
+    "Compose service {NAME}.hostname must be a non-empty string": (
+        "Поле hostname сервиса compose {NAME} должно быть непустой строкой"
+    ),
+    "Compose service {NAME}.pid must be a non-empty string": (
+        "Поле pid сервиса compose {NAME} должно быть непустой строкой"
+    ),
+    "Compose service {NAME}.privileged must be a boolean": (
+        "Поле privileged сервиса compose {NAME} должно быть boolean"
     ),
     "Compose service {NAME}.{FIELD} must be a list": (
         "Поле {FIELD} сервиса compose {NAME} должно быть списком"
@@ -151,6 +171,130 @@ RU_MESSAGES: dict[str, str] = {
         "Разрешение дрейфа конфигурации БД отменено."
     ),
     "Did you install git?": "Вы установили git?",
+    "Deploy marker must be a JSON object: {PATH}": (
+        "Маркер деплоя должен быть JSON-объектом: {PATH}"
+    ),
+    "Deploy marker is missing developing_sha: {PATH}": (
+        "В маркере деплоя нет developing_sha: {PATH}"
+    ),
+    "Deploy marker not found at {PATH}; pass --diff-base <sha|tag> "
+    "for the first apply.": (
+        "Маркер деплоя не найден: {PATH}; передайте --diff-base <sha|tag> "
+        "для первого apply."
+    ),
+    "Developing project path is missing or not a directory; "
+    "run a normal odpm prepare first.": (
+        "Путь developing-проекта отсутствует или это не каталог; "
+        "сначала выполните обычный odpm prepare."
+    ),
+    "Developing project is not a git repository: {PATH}": (
+        "Developing-проект не является git-репозиторием: {PATH}"
+    ),
+    "Git ref {REF!r} is not available in {PATH} "
+    "(fetch the base commit if this is a shallow clone).": (
+        "Git-ссылка {REF!r} недоступна в {PATH} "
+        "(для shallow clone сначала fetch базового коммита)."
+    ),
+    "git diff failed in {PATH}: {ERROR}": (
+        "git diff завершился с ошибкой в {PATH}: {ERROR}"
+    ),
+    "No git diff baseline: set --diff-base, {ENV}, "
+    "{CI_ENV}, or create {PATH} via odpm modules record-applied.": (
+        "Нет baseline для git diff: задайте --diff-base, {ENV}, "
+        "{CI_ENV} или создайте {PATH} через odpm modules record-applied."
+    ),
+    "ODPM_DIFF_BASE=@last-applied but deploy marker is missing "
+    "at {PATH}.": (
+        "ODPM_DIFF_BASE=@last-applied, но маркер деплоя отсутствует: {PATH}."
+    ),
+    'modules subcommand required: use "odpm modules diff" or '
+    '"odpm modules record-applied".': (
+        'Укажите подкоманду modules: "odpm modules diff" или '
+        '"odpm modules record-applied".'
+    ),
+    "Project directory is not set.": (
+        "Каталог проекта не задан."
+    ),
+    "Recorded developing SHA {SHA} in {PATH}.": (
+        "Записан developing SHA {SHA} в {PATH}."
+    ),
+    "Could not load project recipes; listing builtins only.": (
+        "Не удалось загрузить проектные рецепты; показаны только builtins."
+    ),
+    'Recipe name required: use "odpm run RECIPE" or "odpm run --list".': (
+        'Укажите имя рецепта: "odpm run RECIPE" или "odpm run --list".'
+    ),
+    "Recipe {RECIPE} requires param {NAME}{HINT}.": (
+        "Рецепту {RECIPE} нужен параметр {NAME}{HINT}."
+    ),
+    "Recipe {RECIPE} step failed (exit {CODE}): {ARGV}": (
+        "Шаг рецепта {RECIPE} завершился с кодом {CODE}: {ARGV}"
+    ),
+    "Nested 'odpm run' is not allowed "
+    "(ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0).": (
+        "Вложенный 'odpm run' запрещён "
+        "(ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0)."
+    ),
+    "Recipe nesting exceeds maximum depth {MAX}.": (
+        "Вложенность рецептов превышает максимум {MAX}."
+    ),
+    "Recipe step argv must not be empty.": (
+        "argv шага рецепта не должен быть пустым."
+    ),
+    "Recipe steps must not invoke 'odpm run' (recursion forbidden).": (
+        "Шаги рецепта не должны вызывать 'odpm run' (рекурсия запрещена)."
+    ),
+    "Unknown recipe {NAME!r}. Known recipes: {KNOWN}.": (
+        "Неизвестный рецепт {NAME!r}. Известные: {KNOWN}."
+    ),
+    "Recipe YAML missing name: {PATH}": (
+        "В YAML рецепта нет name: {PATH}"
+    ),
+    "Recipe YAML root must be a mapping: {PATH}": (
+        "Корень YAML рецепта должен быть mapping: {PATH}"
+    ),
+    "Invalid recipe YAML in {PATH}: {ERROR}": (
+        "Некорректный YAML рецепта {PATH}: {ERROR}"
+    ),
+    "Recipe 'params' must be a mapping.": (
+        "Поле 'params' рецепта должно быть mapping."
+    ),
+    "Recipe param {NAME!r} must be a mapping.": (
+        "Параметр рецепта {NAME!r} должен быть mapping."
+    ),
+    "Recipe 'steps' must be a non-empty list.": (
+        "Поле 'steps' рецепта должно быть непустым списком."
+    ),
+    "Recipe step {INDEX} must be a mapping with key 'odpm'.": (
+        "Шаг рецепта {INDEX} должен быть mapping с ключом 'odpm'."
+    ),
+    "Recipe step {INDEX} 'odpm' must be a list of strings.": (
+        "Шаг рецепта {INDEX} 'odpm' должен быть списком строк."
+    ),
+    "Recipe substitution unknown param {NAME!r}.": (
+        "Подстановка рецепта: неизвестный param {NAME!r}."
+    ),
+    "Recipe substitution missing env {NAME!r}.": (
+        "Подстановка рецепта: нет env {NAME!r}."
+    ),
+    "modules diff produced no step result.": (
+        "modules diff не вернул результат шага."
+    ),
+    "modules diff step was skipped unexpectedly.": (
+        "Шаг modules diff был неожиданно пропущен."
+    ),
+    "modules diff JSON parse failed: {ERROR}": (
+        "Не удалось разобрать JSON modules diff: {ERROR}"
+    ),
+    "modules diff JSON must be an object.": (
+        "JSON modules diff должен быть объектом."
+    ),
+    "dry-run skip: {ARGV}": (
+        "dry-run skip: {ARGV}"
+    ),
+    "recipe step: {ARGV}": (
+        "шаг рецепта: {ARGV}"
+    ),
     "extensions.local must be a list of module names": (
         "extensions.local должен быть списком имён модулей"
     ),
@@ -208,6 +352,11 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "PostgreSQL credentials check timed out after {SECONDS}s for database {DBNAME}": (
         "Истекло время проверки учётных данных PostgreSQL ({SECONDS} с) для базы {DBNAME}"
+    ),
+    "PostgreSQL database {DBNAME} does not exist yet; "
+    "credentials are valid against the cluster and the database may be created later.": (
+        "База PostgreSQL {DBNAME} ещё не существует; "
+        "учётные данные к кластеру верны, база может быть создана позже."
     ),
     "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role.": (
         "PostgreSQL в {SERVICE} ещё не готов; дождитесь запуска перед созданием роли."
@@ -306,9 +455,54 @@ RU_MESSAGES: dict[str, str] = {
         'Не изменяйте данный параметр, его значение будет взято из параметра '
         '"db_manager_password" файла конфигурации config.json'
     ),
-    "Do you want to clone odoo? y/n\n": "Вы хотите клонировать odoo? y/n\n",
     "docker build failed with exit code {EXIT_CODE}": (
         "docker build завершился с кодом {EXIT_CODE}"
+    ),
+    "docker push failed with exit code {EXIT_CODE}": (
+        "docker push завершился с кодом {EXIT_CODE}"
+    ),
+    "kaniko build failed with exit code {EXIT_CODE}": (
+        "сборка kaniko завершилась с кодом {EXIT_CODE}"
+    ),
+    "Unknown CI image builder {BUILDER!r}; expected one of: {ALLOWED}": (
+        "Неизвестный бэкенд сборки CI-образа {BUILDER!r}; ожидается одно из: {ALLOWED}"
+    ),
+    "Unknown Kaniko executor mode {MODE!r}; expected one of: {ALLOWED}": (
+        "Неизвестный режим Kaniko executor {MODE!r}; ожидается одно из: {ALLOWED}"
+    ),
+    "Kaniko --image-push in docker-run mode requires {PATH} "
+    "(docker login credentials). Create it, or use ODPM_KANIKO_EXECUTOR_MODE=direct "
+    "with registry credentials available to the executor.": (
+        "Для Kaniko --image-push в режиме docker-run нужен файл {PATH} "
+        "(учётные данные docker login). Создайте его или используйте "
+        "ODPM_KANIKO_EXECUTOR_MODE=direct с credentials, доступными executor."
+    ),
+    "Kaniko executor wrapper {PATH} is not a file; check {ENV}.": (
+        "Wrapper Kaniko executor {PATH} не является файлом; проверьте {ENV}."
+    ),
+    "Kaniko executor wrapper {PATH} is not executable; check {ENV}.": (
+        "Wrapper Kaniko executor {PATH} не исполняемый; проверьте {ENV}."
+    ),
+    "{ENV}=1 requires sudo on PATH for Kaniko direct mode.": (
+        "{ENV}=1 требует sudo в PATH для режима Kaniko direct."
+    ),
+    "Kaniko direct mode with {ENV}=1 requires passwordless sudo "
+    "(sudo -n true failed). Configure sudoers for the executor "
+    "binary or set {WRAPPER_ENV} instead.": (
+        "Режим Kaniko direct с {ENV}=1 требует passwordless sudo "
+        "(sudo -n true не прошёл). Настройте sudoers для бинаря executor "
+        "или задайте {WRAPPER_ENV}."
+    ),
+    "Kaniko direct mode requires a privileged executor launch while "
+    "odpm runs as a non-root user. Set {WRAPPER_ENV} to a script that "
+    "runs {BIN_ENV} as root (recommended), or set {SUDO_ENV}=1 with "
+    "passwordless sudo for the executor binary. odpm itself must not "
+    "run as root.": (
+        "Режим Kaniko direct требует привилегированного запуска executor, "
+        "пока odpm работает не от root. Задайте {WRAPPER_ENV} — скрипт, "
+        "запускающий {BIN_ENV} от root (рекомендуется), или {SUDO_ENV}=1 "
+        "с passwordless sudo для бинаря executor. Сам odpm не должен "
+        "работать от root."
     ),
     "docker compose up failed with exit code {EXIT_CODE}": (
         "docker compose up завершился с кодом {EXIT_CODE}"
@@ -330,6 +524,9 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Failed to ensure PostgreSQL role {ROLE}.": (
         "Не удалось создать или обновить роль PostgreSQL {ROLE}."
+    ),
+    "Failed to ensure PostgreSQL extensions on template1.": (
+        "Не удалось обеспечить расширения PostgreSQL на template1."
     ),
     "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}": (
         "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в "
@@ -358,11 +555,22 @@ RU_MESSAGES: dict[str, str] = {
     "Generated compose document root must be a mapping": (
         "Корень сгенерированного compose-документа должен быть mapping"
     ),
+    "Generated compose networks must be a mapping when present": (
+        "Секция networks сгенерированного compose должна быть mapping, если присутствует"
+    ),
     "Generated compose volumes must be a mapping when present": (
         "Секция volumes сгенерированного compose должна быть mapping, если присутствует"
     ),
     "Host port: {PORT}": (
         "Порт на host: {PORT}"
+    ),
+    "Interactive input is not available in non-interactive mode.": (
+        "Интерактивный ввод недоступен в неинтерактивном режиме."
+    ),
+    "In the ci scenario use --skip-start or --build-image "
+    "(bare odpm compose up is not allowed).": (
+        "В сценарии ci используйте --skip-start или --build-image "
+        "(обычный odpm compose up запрещён)."
     ),
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
@@ -379,11 +587,48 @@ RU_MESSAGES: dict[str, str] = {
     "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services": (
         "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
     ),
+    "manifest services.{NAME}.source must be a non-empty name.": (
+        "manifest services.{NAME}.source должно быть непустым именем."
+    ),
+    "manifest services.{NAME}.source references unknown service_sources entry {SOURCE!r}": (
+        "manifest services.{NAME}.source ссылается на неизвестный service_sources {SOURCE!r}"
+    ),
+    "manifest services.{SVC}.networks references logical network {NET!r}; "
+    "set {ENV}={NET} in .env or remove explicit networks": (
+        "manifest services.{SVC}.networks ссылается на логическую сеть {NET!r}; "
+        "задайте {ENV}={NET} в .env или уберите явные networks"
+    ),
+    'manifest v1 does not support scenarios; run "odpm manifest migrate --write" to upgrade to manifest v2.': (
+        'manifest v1 не поддерживает scenarios; выполните '
+        '"odpm manifest migrate --write" для перехода на manifest v2.'
+    ),
+    "manifest odoo_conf.options.{KEY} cannot be overridden in scenario \"{SCENARIO}\".\n\nKeys managed by odpm in this scenario:\n  {KEYS}\n\ndb_* overrides are allowed only in scenario \"ci\".": (
+        "manifest odoo_conf.options.{KEY} нельзя переопределять в сценарии \"{SCENARIO}\".\n\n"
+        "Ключи, которыми управляет odpm в этом сценарии:\n"
+        "  {KEYS}\n\n"
+        "Переопределения db_* разрешены только в сценарии \"ci\"."
+    ),
     "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically": (
         "manifest odoo_conf.options.{KEY} зарезервировано; odpm управляет этой опцией автоматически"
     ),
     "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead": (
         "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"
+    ),
+    "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled": (
+        "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '-'; "
+        "должно начинаться с буквы); префикс отключён"
+    ),
+    "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})": (
+        "Задан {PREFIX_ENV}; {LEGACY_ENV}=%r игнорируется "
+        "(сервис postgres будет {DB_NAME})"
+    ),
+    "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}": (
+        "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '_' или '-'); "
+        "используется {DEFAULT}"
+    ),
+    "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled": (
+        "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; "
+        "должно начинаться с буквы); compose network отключена"
     ),
     "Invalid %s=%r, falling back to system locale": (
         "Недопустимое значение %s=%r, используется системная локаль"
@@ -462,28 +707,149 @@ RU_MESSAGES: dict[str, str] = {
     "manifest locks.git vs deps.lock.json differ: {DETAIL}": (
         "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
     ),
+    ".odpm/secrets.json has placeholder values for keys: {KEYS}": (
+        "В .odpm/secrets.json для ключей указаны заглушки: {KEYS}"
+    ),
+    ".odpm/secrets.json is missing required keys: {KEYS}": (
+        "В .odpm/secrets.json отсутствуют обязательные ключи: {KEYS}"
+    ),
+    "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; "
+    "copy from .odpm/secrets.example.json or pass --secrets-file": (
+        "Для сценария {SCENARIO} нужен .odpm/secrets.json с ключами: {KEYS}; "
+        "скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+    ),
+    "Scenario {SCENARIO} requires .odpm/secrets.json; "
+    "copy from .odpm/secrets.example.json or pass --secrets-file": (
+        "Для сценария {SCENARIO} нужен .odpm/secrets.json; "
+        "скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+    ),
+    "service_sources key {NAME!r} is invalid; "
+    "use lowercase letters, digits, and underscores "
+    "(must start with a letter).": (
+        "Ключ service_sources {NAME!r} недопустим; "
+        "используйте строчные буквы, цифры и подчёркивания "
+        "(имя должно начинаться с буквы)."
+    ),
+    "service_sources.{NAME} must be a non-empty git link.": (
+        "service_sources.{NAME} должно быть непустой git-ссылкой."
+    ),
+    "Service source {NAME} is not materialized (required for manifest field {FIELD})": (
+        "Источник service_sources {NAME} ещё не materialized "
+        "(нужен для поля manifest {FIELD})"
+    ),
+    "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})": (
+        "Ссылка на compose-сервис {NAME} не может быть раскрыта "
+        "(нужна для поля manifest {FIELD})"
+    ),
+    "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for field {FIELD})": (
+        "В конфигурации есть ссылки на секреты (@secret), но нет .odpm/secrets.json; "
+        "создайте файл или передайте --secrets-file (нужно для поля {FIELD})"
+    ),
+    "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})": (
+        "В конфигурации есть ссылки на секреты (@secret), но нет .odpm/secrets.json; "
+        "создайте файл или передайте --secrets-file (нужные ключи: {KEYS})"
+    ),
+    "Secret {KEY} is not set in .odpm/secrets.json (required for field {FIELD})": (
+        "Секрет {KEY} не задан в .odpm/secrets.json "
+        "(нужен для поля {FIELD})"
+    ),
+    "Secret {KEY} still has a placeholder value (required for field {FIELD})": (
+        "Секрет {KEY} всё ещё содержит значение-заглушку "
+        "(нужен для поля {FIELD})"
+    ),
+    "Security profile hardened: {FIELD} is missing or empty in user_settings.json; prefer ${{@secret:...}} (file not modified)": (
+        "Профиль безопасности hardened: поле {FIELD} отсутствует или пусто в "
+        "user_settings.json; предпочтительна ссылка ${{@secret:...}} (файл не изменён)"
+    ),
+    "Security profile hardened: {FIELD} in user_settings.json is not a ${{@secret:...}} reference (file not modified)": (
+        "Профиль безопасности hardened: поле {FIELD} в user_settings.json не является "
+        "ссылкой ${{@secret:...}} (файл не изменён)"
+    ),
+    "Service source {NAME} file:// path does not exist: {PATH}": (
+        "Путь file:// источника service_sources {NAME} не существует: {PATH}"
+    ),
+    "Service source {NAME} materialize failed: {PATH}": (
+        "Не удалось materialize источник service_sources {NAME}: {PATH}"
+    ),
+    "Materialized service source {NAME} at {PATH}": (
+        "Materialized источник service_sources {NAME} в {PATH}"
+    ),
+    "--no-git-update requires existing service_sources directories: {PATHS}": (
+        "--no-git-update требует существующие каталоги service_sources: {PATHS}"
+    ),
+    "service_sources file:// link must be a non-empty path.": (
+        "Ссылка service_sources file:// должна быть непустым путём."
+    ),
     "manifest_schema 2 requires requires_odpm (minimum odpm manager version).": (
         "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
-    ),
-    "Non-interactive mode cannot prompt to download Odoo platform sources for the "
-    "server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. "
-    "Pre-install platform sources, run odpm from an interactive terminal, or use "
-    "ODPM_SCENARIO=developer for git-based clone during prepare.": (
-        "В неинтерактивном режиме нельзя запросить загрузку исходников platform "
-        "для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. "
-        "Установите исходники заранее, запустите odpm в интерактивном терминале "
-        "или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
     ),
     "Non-interactive mode requires an existing .env file in the project directory "
     "or under ~/.odpm/.env. Create it manually or set environment variables "
     "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, "
-    "ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run.": (
+    "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
+    "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
+    "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, "
+    "ODPM_BASE_IMAGE_PROFILE) before the "
+    "first run.": (
         "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта "
         "или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения "
         "(BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, "
-        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, "
-        "ODPM_DEBUGGER_BACKEND, ODPM_IDE) перед первым запуском."
+        "DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
+        "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
+        "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, "
+        "ODPM_BASE_IMAGE_PROFILE) перед первым запуском."
+    ),
+    "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile": (
+        "Недопустимое {ENV}={VALUE!r} (допустимо: {ALLOWED}); "
+        "используется профиль по умолчанию для сценария"
+    ),
+    "Base image registry is required when using the kaniko builder.": (
+        "Префикс registry для base image обязателен при использовании бэкенда kaniko."
+    ),
+    "Invalid CI image builder choice %r, using %s": (
+        "Неверный выбор CI image builder %r, используется %s"
+    ),
+    "Invalid Kaniko executor mode choice %r, using %s": (
+        "Неверный выбор режима Kaniko executor %r, используется %s"
+    ),
+        "Kaniko base image build requires {ENV} "
+    "(registry prefix for a pullable base image).": (
+        "Сборка base image через Kaniko требует {ENV} "
+        "(префикс registry для pullable base image)."
+    ),
+    "Kaniko docker-run mode requires a Docker daemon on the build host.": (
+        "Режим Kaniko docker-run требует Docker daemon на машине сборки."
+    ),
+    "Push the final CI image after build? Answer y/yes or n/no (Enter for no):\n": (
+        "Пушить финальный CI-образ после сборки? Ответьте y/yes или n/no "
+        "(Enter — нет):\n"
+    ),
+    "Select CI image build backend "
+    "(Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n": (
+        "Выберите бэкенд сборки CI-образа "
+        "(Enter — по умолчанию {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+    ),
+    "Select Kaniko executor mode (Enter for default {DEFAULT_MODE}). "
+    "Note: docker-run still requires a Docker daemon:\n{OPTIONS}\n": (
+        "Выберите режим Kaniko executor (Enter — по умолчанию {DEFAULT_MODE}). "
+        "Внимание: docker-run всё ещё требует Docker daemon:\n{OPTIONS}\n"
+    ),
+    "Set base image registry prefix for Kaniko "
+    "(required, e.g. registry.example.com/odpm):\n": (
+        "Укажите префикс registry для base image Kaniko "
+        "(обязательно, напр. registry.example.com/odpm):\n"
+    ),
+    "You selected CI image builder: {SELECTED_BUILDER}\n": (
+        "Вы выбрали CI image builder: {SELECTED_BUILDER}\n"
+    ),
+    "You selected CI image push: {SELECTED_PUSH}\n": (
+        "Вы выбрали push CI-образа: {SELECTED_PUSH}\n"
+    ),
+    "You selected Kaniko executor mode: {SELECTED_MODE}\n": (
+        "Вы выбрали режим Kaniko executor: {SELECTED_MODE}\n"
+    ),
+    "You selected base image registry: {SELECTED_REGISTRY}\n": (
+        "Вы выбрали registry для base image: {SELECTED_REGISTRY}\n"
     ),
     "Non-interactive mode requires odoo_version in the developing project's "
     "odpm.json or pass --odoo-version on the command line.": (
@@ -641,6 +1007,14 @@ RU_MESSAGES: dict[str, str] = {
         "Неподдерживаемая версия API расширений odpm {VERSION}{LABEL}; "
         "поддерживаемые версии: {SUPPORTED}."
     ),
+    "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; "
+    "only debian is supported ({SUPPORTED}). "
+    "Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version).": (
+        "Неподдерживаемый дистрибутив базового образа {DISTRO_NAME}/{DISTRO_VERSION}; "
+        "поддерживается только debian ({SUPPORTED}). "
+        "Измените distro_name/distro_version в odpm.json "
+        "(или --distro-name/--distro-version)."
+    ),
     "Unsupported manifest_schema {SCHEMA}.": (
         "Неподдерживаемый manifest_schema {SCHEMA}."
     ),
@@ -652,6 +1026,9 @@ RU_MESSAGES: dict[str, str] = {
     "Unknown ODPM_SCENARIO=%r, using %s": (
         "Неизвестный ODPM_SCENARIO=%r, используется %s"
     ),
+    "Unknown {ENV}={VALUE!r}, using managed network": (
+        "Неизвестное значение {ENV}={VALUE!r}, используется managed network"
+    ),
     "Unknown manifest hook plugin id: {PLUGIN_ID}": (
         "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
     ),
@@ -662,6 +1039,18 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "Updated PostgreSQL application role {ROLE}.": (
         "Обновлена роль приложения PostgreSQL {ROLE}."
+    ),
+    "user_settings.json sidecars cannot include built-in service {NAME}": (
+        "user_settings.json sidecars не может включать встроенный сервис {NAME}"
+    ),
+    "user_settings.json sidecars must be an object of service name to boolean": (
+        "user_settings.json sidecars должен быть объектом «имя сервиса → boolean»"
+    ),
+    "user_settings.json sidecars refers to unknown compose service {NAME}": (
+        "user_settings.json sidecars ссылается на неизвестный compose-сервис {NAME}"
+    ),
+    "user_settings.json sidecars.{NAME} must be a boolean (true or false)": (
+        "user_settings.json sidecars.{NAME} должен быть boolean (true или false)"
     ),
     "You do not set where developing project is situated. You can set it with --init "
     "command. Example: '--init file:///home/user/projects/your_directory_for_project' or "
@@ -681,11 +1070,6 @@ RU_MESSAGES: dict[str, str] = {
         "{LINUX_DOCKER_GROUPNAME}\n запустите следующую команду от имени root или с "
         "помощью sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER}\n "
         "Затем перезапустите ваш компьютер"
-    ),
-    "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} "
-    "directory": (
-        "В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} "
-        "свободного места"
     ),
     "You selected the system default locale for odpm messages: {SELECTED_LOCALE}\n": (
         "Вы выбрали системную локаль по умолчанию для сообщений odpm: {SELECTED_LOCALE}\n"
@@ -747,12 +1131,6 @@ RU_MESSAGES: dict[str, str] = {
         "Вы выбрали следующий порт, который будет слушать Python Debugger: "
         "{SELECTED_DEBUGGER_PORT}\n"
     ),
-    "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or "
-    "delete and clone its repo again: git clone https://github.com/odoo/odoo.git": (
-        "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git "
-        "репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или "
-        "клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
-    ),
     "Attached to container output. Detailed technical logs below are in English.": (
         "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
     ),
@@ -798,6 +1176,30 @@ RU_MESSAGES: dict[str, str] = {
     ),
     "When Odoo is ready, open http://localhost:{ODOO_PORT}": (
         "Когда Odoo будет готов, откройте http://localhost:{ODOO_PORT}"
+    ),
+    "Infisical HTTP {STATUS} for {PATH}": (
+        "Infisical HTTP {STATUS} для {PATH}"
+    ),
+    "Infisical request failed: {DETAIL}": (
+        "Запрос Infisical не удался: {DETAIL}"
+    ),
+    "Infisical requires exactly one of project_id or project_slug": (
+        "Infisical требует ровно одно из полей project_id или project_slug"
+    ),
+    "Infisical environment_slug is required": (
+        "Для Infisical обязателен environment_slug"
+    ),
+    "Infisical secrets missing after fetch: {KEYS}": (
+        "После fetch Infisical отсутствуют секреты: {KEYS}"
+    ),
+    "Missing Infisical credentials: {KEYS}": (
+        "Отсутствуют учётные данные Infisical: {KEYS}"
+    ),
+    "Unknown secrets provider: {NAME}": (
+        "Неизвестный провайдер секретов: {NAME}"
+    ),
+    "cannot fetch secrets: project directory is not set": (
+        "нельзя получить секреты: каталог проекта не задан"
     ),
 }
 

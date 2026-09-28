@@ -24,6 +24,7 @@ from dev_project.project_env.debug_profile import write_debug_profile
 from dev_project.scenario_policy import ScenarioPolicy
 
 from tests.debug_profile_test_helpers import make_debugger_env_mock
+from dev_project.project_env.types import MappedPath
 
 
 class PlanDebugProfilePreviewTests(unittest.TestCase):
@@ -36,7 +37,6 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
     def _project_env(self, project_dir: str) -> MagicMock:
         odoo_src = os.path.join(project_dir, "sources", "odoo")
         os.makedirs(odoo_src, exist_ok=True)
-        from dev_project.project_env.types import MappedPath
 
         return make_debugger_env_mock(
             project_dir=project_dir,

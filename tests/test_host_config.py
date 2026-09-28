@@ -41,6 +41,9 @@ from dev_project.errors import ConfigError, PipelineError
 from dev_project.ide_stubs import odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.dependency_resolver import NestedOdpmFragment
+from dev_project.bake_venv import get_venv_bootstrap_packages
+import importlib
+from dev_project.config.bootstrap_phases import finalize_user_settings_after_secrets
 
 
 class ConfigTransformsTests(unittest.TestCase):
@@ -252,6 +255,13 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         content = ConfigDefaultsFactory(config).create_default_user_setting_json_content()
         self.assertTrue(content["check_system"])
 
+    def test_create_default_user_settings_create_demo_false_by_default(self):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.pd_manager = MagicMock(init=".", project_path="/tmp/project")
+        content = ConfigDefaultsFactory(config).create_default_user_setting_json_content()
+        self.assertFalse(content["db_creation_data"]["create_demo"])
+
     @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
     def test_create_default_odpm_json_raises_without_odoo_version(self, _mock_tty):
         config = MagicMock()
@@ -281,6 +291,68 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
 
         self.assertEqual(content["odoo_version"], "18.0")
+        self.assertEqual(content["python_version"], "3.12")
+        self.assertEqual(content["distro_name"], "debian")
+        self.assertEqual(content["distro_version"], "13")
+        self.assertEqual(content["postgres_version"], constants.DEFAULT_POSTGRES_VERSION)
+
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
+    def test_create_default_odpm_json_uses_odoo_20_map_defaults(self, _mock_tty):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.arguments = OdpmCliArgs(
+            odoo_version="20.0",
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+            odoo_git_link=None,
+            platform_name=None,
+        )
+        config._raw_odpm_json = {"odpm_version": constants.MANIFEST_V1_CONTRACT_LINE}
+
+        content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
+
+        self.assertEqual(content["odoo_version"], "20.0")
+        self.assertEqual(content["python_version"], "3.14")
+        self.assertEqual(content["distro_name"], "debian")
+        self.assertEqual(content["distro_version"], "13")
+        self.assertEqual(content["postgres_version"], "18")
+
+    @patch("dev_project.config.defaults.factory.stdin_is_interactive", return_value=False)
+    def test_create_default_odpm_json_partial_manifest_uses_odoo_20_map(self, _mock_tty):
+        config = MagicMock()
+        config.config_json_content = {"odoo_version": "20.0"}
+        config.arguments = OdpmCliArgs(
+            odoo_version=None,
+            python_version=None,
+            distro_name=None,
+            distro_version=None,
+            postgres_version=None,
+            requirements_txt="",
+            odoo_git_link=None,
+            platform_name=None,
+        )
+        config._raw_odpm_json = {"odpm_version": constants.MANIFEST_V1_CONTRACT_LINE}
+
+        content = ConfigDefaultsFactory(config).create_default_odpm_json_content()
+
+        self.assertEqual(content["odoo_version"], "20.0")
+        self.assertEqual(content["python_version"], "3.14")
+        self.assertEqual(content["distro_name"], "debian")
+        self.assertEqual(content["distro_version"], "13")
+        self.assertEqual(content["postgres_version"], "18")
+
+    def test_python_314_debugger_and_bootstrap_pins(self):
+        self.assertIn("3.14", constants.DEBUGPY)
+        self.assertIn("3.14", constants.PYDEVD_PYCHARM)
+        self.assertIn("3.14", constants.VENV_BOOTSTRAP_PACKAGES)
+        self.assertTrue(constants.GEVENT_PACKAGE_FOR_PYTHON_314.startswith("gevent=="))
+
+        packages = get_venv_bootstrap_packages("3.14")
+        self.assertTrue(packages)
+        self.assertEqual(packages, constants.VENV_BOOTSTRAP_PACKAGES["3.14"])
 
 
 class DeprecatedConfigHandlerTests(unittest.TestCase):
@@ -652,7 +724,6 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
         self.assertIsInstance(ctx.odpm_json, OdpmJsonReader)
 
     def test_bootstrap_context_rewrite_odpm_json_delegates_to_writer(self):
-        import importlib
 
         bootstrap_context_module = importlib.import_module(
             "dev_project.config.bootstrap_context"
@@ -672,17 +743,12 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
 
     def test_bootstrap_context_wires_host_services(self):
         config = MagicMock()
-        bind_platform_link = MagicMock()
-        ctx = ConfigBootstrapContext(
-            config,
-            bind_platform_link=bind_platform_link,
-        )
+        ctx = ConfigBootstrapContext(config)
 
         self.assertIsInstance(ctx.paths, ConfigPaths)
         self.assertIsInstance(ctx.odoo_conf, OdooConfBuilder)
         self.assertIsInstance(ctx.git_repos, GitRepoCoordinator)
         self.assertIs(ctx.git_repos._paths, ctx.paths)
-        self.assertIs(ctx.git_repos._bind_platform_link, bind_platform_link)
 
 
 class ConfigBootstrapStateTests(unittest.TestCase):
@@ -794,6 +860,31 @@ class BindDevelopingLinkTests(unittest.TestCase):
 
         with self.assertRaises(ConfigError):
             bind_developing_link(config)
+
+    def test_finalize_preserves_bound_developing_project_link(self):
+
+        config = Config.__new__(Config)
+        config._bootstrap = BootstrapState()
+        bound = MagicMock(project_path="/tmp/dev", project_data=MagicMock())
+        config.bootstrap.developing_project = bound
+        config.bootstrap.raw_user_settings = {
+            "developing_project": "file:///tmp/dev",
+            "db_manager_password": "1",
+        }
+        config.bootstrap.raw_user_settings_disk = dict(
+            config.bootstrap.raw_user_settings
+        )
+        config._user = UserSettingsState()
+        config._bootstrap_ctx = MagicMock()
+        config._bootstrap_ctx.user_settings.get_user_settings_phase2 = MagicMock()
+
+        with patch(
+            "dev_project.config.bootstrap_phases._apply_manifest_database_to_user_settings"
+        ):
+            finalize_user_settings_after_secrets(config)
+
+        self.assertIs(config.bootstrap.developing_project, bound)
+        self.assertIs(config._user.developing_project, bound)
 
 
 class BindPlatformLinkTests(unittest.TestCase):

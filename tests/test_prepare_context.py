@@ -8,6 +8,11 @@ from dev_project.prepare import make_prepare_context
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.links import ProjectLinks
 from dev_project.project_env.templates import ProjectTemplates
+from dev_project.prepare.steps_template import exec_template_dockerfile
+from dev_project.prepare.steps_project import exec_map_folders
+from dev_project.docker_capabilities import DockerCapabilities
+from dev_project.prepare.steps_compose import exec_compose_generate
+from dev_project.prepare.steps_git import exec_git_materialize
 
 
 class PrepareContextServiceInjectionTests(unittest.TestCase):
@@ -65,7 +70,6 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
 class PrepareStepServiceExecutionTests(unittest.TestCase):
     @patch("dev_project.project_env.templates.ProjectTemplates.generate_dockerfile")
     def test_exec_template_dockerfile_uses_ctx_templates(self, mock_generate):
-        from dev_project.prepare.steps_template import exec_template_dockerfile
 
         config = MagicMock()
         ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
@@ -74,7 +78,6 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
 
     @patch("dev_project.project_env.links.ProjectLinks.map_folders")
     def test_exec_map_folders_uses_ctx_links(self, mock_map_folders):
-        from dev_project.prepare.steps_project import exec_map_folders
 
         ctx = make_prepare_context(MagicMock(), MagicMock(), MagicMock(), OdpmCliArgs())
         exec_map_folders(ctx)
@@ -84,8 +87,6 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
         "dev_project.compose.generator.ComposeGenerator.generate_docker_compose_file"
     )
     def test_exec_compose_generate_uses_ctx_compose_generator(self, mock_generate):
-        from dev_project.docker_capabilities import DockerCapabilities
-        from dev_project.prepare.steps_compose import exec_compose_generate
 
         config = MagicMock()
         config.docker_capabilities = DockerCapabilities(
@@ -100,7 +101,6 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
         mock_generate.assert_called_once()
 
     def test_exec_git_materialize_calls_materialize_git_repos_once(self):
-        from dev_project.prepare.steps_git import exec_git_materialize
 
         config = MagicMock()
         git_repos = MagicMock()

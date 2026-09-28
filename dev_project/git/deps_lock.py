@@ -70,6 +70,7 @@ class DepsLock:
     platform: LockEntry | None = None
     developing: LockEntry | None = None
     dependencies: list[LockEntry] = field(default_factory=list)
+    service_sources: dict[str, LockEntry] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         if not self.platform:
@@ -82,6 +83,11 @@ class DepsLock:
         }
         if self.developing is not None:
             payload["developing"] = self.developing.to_dict()
+        if self.service_sources:
+            payload["service_sources"] = {
+                name: self.service_sources[name].to_dict()
+                for name in sorted(self.service_sources)
+            }
         return payload
 
     @classmethod
@@ -101,6 +107,12 @@ class DepsLock:
             if isinstance(developing_raw, dict)
             else None
         )
+        service_sources_raw = data.get("service_sources", {})
+        service_sources: dict[str, LockEntry] = {}
+        if isinstance(service_sources_raw, dict):
+            for name, raw_entry in service_sources_raw.items():
+                if isinstance(raw_entry, dict):
+                    service_sources[str(name)] = LockEntry.from_dict(raw_entry)
         return cls(
             schema_version=version,
             generated_at=str(data.get("generated_at", "")),
@@ -111,6 +123,7 @@ class DepsLock:
                 for item in dependencies_raw
                 if isinstance(item, dict)
             ],
+            service_sources=service_sources,
         )
 
 
@@ -251,6 +264,10 @@ def entry_for_url(lock: DepsLock, url: str) -> LockEntry | None:
         if canonical_repo_url(entry.url) == normalized:
             return entry
     return None
+
+
+def entry_for_service_source(lock: DepsLock, name: str) -> LockEntry | None:
+    return lock.service_sources.get(name)
 
 
 def apply_lock_entry_to_link(link, entry: LockEntry) -> None:

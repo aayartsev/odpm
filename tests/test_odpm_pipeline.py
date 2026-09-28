@@ -12,6 +12,8 @@ from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.prepare_test_helpers import stub_prepare_service_executions
+from dev_project.compose.service_builder import ComposeServiceBuilder
+from dev_project.secrets_providers.session import SecretsFetchSession
 
 
 class RuntimeCoordinatorPolicyTests(unittest.TestCase):
@@ -69,14 +71,14 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         mock_vscode_cls.return_value.update_vscode_debugger_launcher.assert_called_once()
         mock_vscode_cls.return_value.generate_vscode_settings_json.assert_called_once()
 
-    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_write_debug_profile_skipped_without_debugpy(self, mock_write):
         coordinator = self._coordinator()
         coordinator.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         coordinator.write_debug_profile()
         mock_write.assert_not_called()
 
-    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_write_debug_profile_runs_for_developer_policy(self, mock_write):
         coordinator = self._coordinator()
         coordinator.config.policy = ScenarioPolicy.from_scenario(
@@ -87,7 +89,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
 
     @patch("dev_project.runtime_coordinator.PycharmConfigurator")
     @patch("dev_project.runtime_coordinator.VscodeConfigurator")
-    @patch("dev_project.project_env.debug_profile.write_debug_profile")
+    @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_run_after_prepare_writes_debug_profile_before_vscode(
         self, mock_write, mock_vscode_cls, mock_pycharm_cls
     ):
@@ -170,7 +172,6 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         config.generate_odoo_conf_docker_data = MagicMock()
         config.db_creation_data = {}
 
-        from dev_project.compose.service_builder import ComposeServiceBuilder
 
         with patch("dev_project.compose.service_builder.persist_runtime_config"):
             builder = ComposeServiceBuilder(config)
@@ -243,7 +244,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     def test_start_containers_uses_subprocess(self, mock_base_image, _mock_should):
         config = MagicMock()
         config.project_dir = "/tmp/project"
@@ -262,7 +263,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     def test_start_containers_raises_pipeline_error_on_compose_failure(
         self, _mock_base_image, _mock_should
     ):
@@ -286,7 +287,7 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.project_env.services.BaseImageService")
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     def test_start_containers_skips_host_compose_summary_for_developer(
         self, _mock_base_image, _mock_should
     ):
@@ -438,6 +439,43 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_exit.assert_called_once_with(0)
         mock_logger.error.assert_not_called()
 
+    @patch("dev_project.odpm_pipeline._logger")
+    @patch("dev_project.odpm_pipeline.sys.exit")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_ci_bare_odpm_rejected(
+        self, mock_setup, mock_prepare, mock_exit, mock_logger
+    ):
+        args = OdpmCliArgs()
+        pipeline = OdpmPipeline(args, "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        pipeline.project_environment = MagicMock()
+
+        pipeline.run()
+
+        mock_prepare.assert_not_called()
+        mock_exit.assert_called_once_with(1)
+        self.assertTrue(mock_logger.error.called)
+        self.assertIn("--skip-start", mock_logger.error.call_args[0][1])
+
+    @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")
+    @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
+    def test_run_ci_allows_update_lock(
+        self, mock_setup, mock_prepare, mock_runtime_cls
+    ):
+        args = OdpmCliArgs(update_lock=True)
+        pipeline = OdpmPipeline(args, "/opt/odpm")
+        pipeline.config = MagicMock()
+        pipeline.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        pipeline.project_environment = MagicMock()
+
+        pipeline.run()
+
+        mock_prepare.assert_called_once()
+        mock_runtime_cls.return_value.run_after_prepare.assert_called_once()
+
 
 class OdpmPipelineSetupTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.SystemChecker")
@@ -498,6 +536,39 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         self.assertIs(pipeline.cli_args, normalized)
         self.assertIs(mock_config_cls.call_args[0][1], normalized)
 
+    @patch("dev_project.odpm_pipeline.SystemChecker")
+    @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
+    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
+    @patch("dev_project.odpm_pipeline.ProjectDirManager")
+    @patch("dev_project.project_env.secrets.import_secrets_from_path")
+    def test_setup_passes_secrets_fetch_session_to_config(
+        self,
+        mock_import_secrets,
+        mock_pd_manager_cls,
+        mock_user_env_cls,
+        mock_config_cls,
+        _mock_project_env_cls,
+        _mock_checker_cls,
+    ):
+
+        mock_pd = MagicMock()
+        mock_pd.project_path = "/tmp/golden-project"
+        pipeline_args = OdpmCliArgs(secrets_file="/tmp/incoming-secrets.json")
+        mock_pd.arguments = pipeline_args
+        mock_pd_manager_cls.return_value = mock_pd
+        mock_config_cls.return_value = MagicMock(
+            policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
+        )
+        mock_user_env_cls.return_value = MagicMock()
+
+        pipeline = OdpmPipeline(pipeline_args, "/opt/odpm")
+        pipeline.setup()
+
+        kwargs = mock_config_cls.call_args.kwargs
+        self.assertIsInstance(kwargs["secrets_fetch_session"], SecretsFetchSession)
+        mock_import_secrets.assert_not_called()
+
 
 class OdpmPipelinePrepareTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.ProjectMaterializer")
@@ -522,6 +593,7 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         args = OdpmCliArgs(build_image=False, skip_start=True, **args_overrides)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
+        pipeline.config.docker_compose_command = "docker compose"
         pipeline.config.arguments = args
         pipeline.project_environment = MagicMock()
         pipeline.system_checker = MagicMock()

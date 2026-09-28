@@ -25,6 +25,19 @@ def add_init_core_arguments(parser: argparse.ArgumentParser) -> None:
         type=str,
     )
 
+    parser.add_argument(
+        params.IMAGE_BUILDER_PARAM,
+        help="CI image build backend for --build-image: docker (default) or kaniko",
+        choices=["docker", "kaniko"],
+        type=str,
+    )
+
+    parser.add_argument(
+        params.IMAGE_PUSH_PARAM,
+        help="After --build-image, push the image (docker push / kaniko --destination)",
+        action="store_true",
+    )
+
 
 def add_platform_env_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
@@ -79,5 +92,17 @@ def add_platform_env_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         params.SECRETS_FILE_PARAM,
         help="""Import secrets from a JSON file into .odpm/secrets.json (schema v1). Works with --init and on any run.""",
+        type=str,
+    )
+
+    parser.add_argument(
+        params.SECRETS_PROVIDER_PARAM,
+        help="""Secrets provider for this run (file, infisical, or a third-party plugin id). Overrides ODPM_SECRETS_PROVIDER and secrets.provider.type. --secrets-file implies file.""",
+        type=str,
+    )
+
+    parser.add_argument(
+        params.SECURITY_PROFILE_PARAM,
+        help="""Security profile for this run (convenience or hardened). Overrides ODPM_SECURITY_PROFILE. Defaults from ODPM_SCENARIO (developer→convenience, server→hardened).""",
         type=str,
     )

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..extensions.hooks import LifecyclePhase, parse_hook_phase, run_lifecycle_hooks
-from ..plan import PlanStep
+from ..plan.core import PlanStep
 from ..plan.l10n import plan_msg
 from .helpers import make_plan_step
 from .types import PrepareContext

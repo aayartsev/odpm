@@ -13,6 +13,14 @@ DEPS_LOCK_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "deps.lock.json")
 BASE_IMAGE_IDENTITY_REL_PATH = os.path.join(
     PROJECT_SERVICE_DIRECTORY, "base_image_identity.json"
 )
+ODPM_DEPLOY_DIR_REL_PATH = os.path.join(PROJECT_SERVICE_DIRECTORY, "deploy")
+ODPM_DEPLOY_LAST_APPLIED_REL_PATH = os.path.join(
+    ODPM_DEPLOY_DIR_REL_PATH, "last_applied.json"
+)
+DEPLOY_GITIGNORE_ENTRY = "deploy/"
+LAST_APPLIED_SENTINEL = "@last-applied"
+ODPM_DIFF_BASE_ENV = "ODPM_DIFF_BASE"
+CI_MERGE_REQUEST_DIFF_BASE_SHA_ENV = "CI_MERGE_REQUEST_DIFF_BASE_SHA"
 
 DOCKERIGNORE = ".dockerignore"
 DOCKERIGNORE_TEMPLATE = "dockerignore"
@@ -77,6 +85,8 @@ DEFAULT_DOCKER_COMPOSE_COMMAND = "docker compose"
 LIST_OF_DOCKER_COMPOSE_COMMANDS = [DEFAULT_DOCKER_COMPOSE_COMMAND, "docker-compose"]
 
 DEPENDENCIES_DIR = "dependencies"
+SERVICE_SOURCES_DIR = "service-sources"
+# Legacy (<=17) host bind; prefer database.postgres_paths.postgres_local_storage_relpath.
 POSTGRES_LOCAL_STORAGE_DIR = "data/postgresql/var/lib/postgresql/data"
 
 DEPRECATED_WORDS = [

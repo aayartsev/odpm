@@ -23,7 +23,11 @@ class DocsVersioningTests(unittest.TestCase):
         self.assertRegex(reqs, r"(?m)^mike>=")
 
     def test_mike_scripts_exist_and_executable(self):
-        for name in ("mike_pages_deploy.sh", "mike_pages_finalize.sh"):
+        for name in (
+            "mike_pages_deploy.sh",
+            "mike_pages_finalize.sh",
+            "pages_artifact_from_gh_pages.sh",
+        ):
             script = PROJECT_ROOT / "scripts" / name
             self.assertTrue(script.is_file(), msg=name)
             self.assertTrue(script.stat().st_mode & 0o111, msg=name)

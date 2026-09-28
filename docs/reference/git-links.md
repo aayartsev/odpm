@@ -1,6 +1,6 @@
 # Ссылки на репозитории и локальные каталоги
 
-Такие ссылки используются в поле **`developing_project`**, в списке **`dependencies`**, в **`odoo_git_link`** и в параметре **`--init`**.
+Такие ссылки используются в поле **`developing_project`**, в списке **`dependencies`**, в **`odoo_git_link`**, в **`service_sources`** (manifest v2) и в параметре **`--init`**.
 
 ## Три способа указать источник кода
 
@@ -55,6 +55,7 @@ git@github.com:org/odoo.git 19.0 a1b2c3d4e5f6789abcdef0123456789abcdef012
 - **Разрабатываемый проект:** `--init <ссылка>` или `developing_project` в `user_settings.json`.
 - **Платформа Odoo:** `odoo_git_link` в `odpm.json` или `--odoo-git-link` при инициализации.
 - **Зависимости:** массив `dependencies` в `odpm.json`.
+- **Sidecar / build-контексты (v2):** объект `service_sources` в `odpm.json` — см. [service-sources.md](service-sources.md).
 
 ## Практические советы
 

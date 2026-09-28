@@ -19,6 +19,7 @@ from .types import DebuggerPathRecord
 
 if TYPE_CHECKING:
     from .environment import CreateProjectEnvironment
+from ..config.payload import ensure_runtime_dir_gitignore
 
 
 def _normalize_local_path(path: str) -> str:
@@ -38,7 +39,6 @@ def write_debug_profile_to_path(env: CreateProjectEnvironment, path: str) -> str
 
 
 def write_debug_profile(env: CreateProjectEnvironment) -> str:
-    from ..config.payload import ensure_runtime_dir_gitignore
 
     project_dir = env.config.project_dir
     ensure_runtime_dir_gitignore(project_dir)

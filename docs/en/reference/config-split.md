@@ -24,9 +24,10 @@ Describes **how to work with this stack right now**:
 - **new database** parameters — language and country in **`odpm.json`** (`database`); demo data and admin credentials in `user_settings.json`;
 - whether to update git repositories on every run;
 - Odoo development mode (`dev_mode`) — only in the `developer` scenario;
+- local compose-sidecar toggles (`sidecars`) — which sidecars to run on this machine;
 - database manager passwords and other operational parameters.
 
-**Who edits:** the developer on their machine; the repository may contain a template without secrets.
+**Who edits:** the developer on their machine; the repository may contain a template without secrets. Be careful committing `sidecars: {…: false}` — that is a personal override.
 
 The file is **created automatically** from defaults if missing.
 
@@ -38,5 +39,6 @@ The file is **created automatically** from defaults if missing.
 | “Which language and country for a new project database?” | `odpm.json` → `database` |
 | “Which modules to install or update today?” | `user_settings.json` |
 | “Create demo data and which admin password on this machine?” | `user_settings.json` |
+| “Which sidecars not to start locally?” | `user_settings.json` → `sidecars` |
 
 Field details: [odpm.json](odpm-json.md), [user_settings.json](user-settings.md).

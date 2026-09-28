@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def odoo_conf_from_manifest(view: ManifestView | None) -> dict[str, dict[str, str]] | None:
-    """Return manifest odoo_conf sections or None when absent."""
+    """Return effective manifest ``odoo_conf`` sections or None when absent."""
     if view is None or view.odoo_conf is None:
         return None
     return _normalize_odoo_conf_sections(view.odoo_conf)

@@ -11,16 +11,17 @@
 | **4.3.x** | `4.3.0`, тег `v4.3.0` | **заморожена** | Последний stable до 4.4; только критичные security-fix по решению maintainer (cherry-pick → patch tag). Новые фичи не добавляем. |
 | **4.4.x** | `4.4-dev` | **заморожена** (patch only) | Линия 4.4; stable **v4.4.3** |
 | **4.5.x** | `4.5-dev` | **заморожена** (patch only) | Линия 4.5; stable **v4.5.0**; архив: `v4.5.0-beta` |
-| **4.6.x** | `4.6.0-dev` | **активная** | Debt closure D1–D5 **RELEASED** stable **v4.6.0**; архив: `v4.6.0-beta` |
+| **4.6.x** | `4.6.0-dev` | **stable** | Debt closure D1–D5 **RELEASED** stable **v4.6.0**; архив: `v4.6.0-beta` |
+| **4.7.x** | `4.7.0-dev` | **активная** | Scenario overlays (ADR-011), compose prefix (ADR-012), layered `.env` (ADR-013); pre-release на ветке |
 | Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
 
-**Правило:** изменения 4.6 merge в `4.6.0-dev`. Линии 4.4 (`4.4-dev`) и 4.5 (`4.5-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
+**Правило:** изменения 4.7 merge в `4.7.0-dev`. Линии 4.4 (`4.4-dev`), 4.5 (`4.5-dev`) и 4.6 (`4.6.0-dev`) — только patch/security по решению maintainer. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
 
 ### Константы в `scenarios.py`
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.6.0-dev` | `4.6.0` (stable) |
+| `RELEASE_VERSION` | Каждый релиз / pre-release на `4.7.0-dev` | `4.7.0-beta` |
 | `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.6.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
@@ -66,7 +67,7 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 | `4.3.0` | `4.3` | Bootstrap или ручной deploy | Линия 4.3.x |
 | `4.6.0-beta` | — | Pre-release tag → mike deploy | Early adopters, debt closure D1–D5 |
 | `4.5.0-beta`, … | — | Pre-release tag (без alias stable) | Архив early adopters |
-| `dev` | — | Push `4.6.0-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
+| `dev` | — | Push `4.7.0-dev` ([docs.yml](../../.github/workflows/docs.yml)) | Разработчики odpm |
 
 `site_url` в `mkdocs.yml`: `/stable/`. Пользовательский hub: [documentation-versions](../getting-started/documentation-versions.md).
 
@@ -74,14 +75,14 @@ One-shot bootstrap (если на Pages ещё нет `stable` или mike-ве�
 
 ### Verify Pages после deploy (OPS-01 / OPS-02)
 
-После `deploy-pages` CI вызывает `scripts/verify_pages_deploy.sh` (с retry на CDN lag):
+После `deploy-pages` отдельный job **`verify-pages`** вызывает `scripts/verify_pages_deploy.sh` (с retry на CDN lag). Verify **не** в том же job, что `deploy-pages`: иначе падение verify помечает deployment failed и CDN откатывается на предыдущий успешный deploy (типично `dev` без нового релиза).
 
 | Workflow | Проверка |
 |----------|----------|
-| [docs.yml](../../.github/workflows/docs.yml) | `--version dev` → `/versions.json`, `/dev/install/linux-deb/` |
-| [release-packages.yml](../../.github/workflows/release-packages.yml) `publish-pages` | pre-release: `/{VERSION}/install/`; stable: `stable` + `/{VERSION}/install/`; pre-release также APT `testing` |
+| [docs.yml](../../.github/workflows/docs.yml) | job `verify-pages`: `--version dev` → `/versions.json`, `/dev/install/linux-deb/` |
+| [release-packages.yml](../../.github/workflows/release-packages.yml) | job `verify-pages`: pre-release: `/{VERSION}/install/`; stable: `stable` + `/{VERSION}/install/`; pre-release также APT `testing` |
 
-Если push в `4.6.0-dev` и тег `v*` на одном коммите, **docs.yml** больше не деплоит Pages (release выигрывает). Если CDN отстаёт от ветки `gh-pages` (docs/apt 404 при успешном CI), вручную: workflow **[Redeploy Pages](../../.github/workflows/redeploy-pages.yml)** (`workflow_dispatch`, `verify_version=4.6.0-beta`).
+Если push в `4.7.0-dev` и тег `v*` на одном коммите, **docs.yml** больше не деплоит Pages (release выигрывает). Если CDN отстаёт от ветки `gh-pages` (docs/apt 404 при успешном `publish-pages`), вручную: workflow **[Redeploy Pages](../../.github/workflows/redeploy-pages.yml)** (`workflow_dispatch`, `verify_version=4.7.0-beta`).
 
 Ручная проверка после релиза (если CDN отстаёт):
 
@@ -161,6 +162,37 @@ curl -fsSL https://aayartsev.github.io/odpm/apt/dists/stable/Release | head
    - [ ] `pip install odpm` → `4.6.0`
 7. **Runner ops**
    - [ ] `ODPM_GOLDEN_PATH_PROJECT`: `first_module` version `19.0.1.0`; odpm на runner → stable deb
+
+## Чеклист: линия **4.7.0-dev** (features A+B+C+D, pre-release)
+
+Выполнять на `4.7.0-dev` после merge треков scenario overlays, compose prefix, layered `.env` и compose network.
+
+1. **Код и тесты**
+   - [x] ADR-011 / ADR-012 / ADR-013 accepted; schema `scenarios`; `ODPM_COMPOSE_PREFIX`; `load_layered_dotenv_dict`
+   - [x] ADR-014 accepted (compose stack network contract)
+   - [x] `ODPM_COMPOSE_NETWORK` / `network_names.py` parse + `test_compose_network` (track D1)
+   - [x] compose document generation + `apply_compose_network` + validate (track D2)
+   - [x] sidecar `stack` network warning in manifest validate; plugins.md proxy (track D3)
+   - [x] extended tests T10 + env-dotenv CHANGELOG (track D4–D5)
+   - [x] Unit: scenario + compose prefix + `test_user_env_bootstrap`, `test_odpm_locale_env`, `test_env_substitution`
+   - [x] Plan matrix: `test_scenario_overlay_marks_compose_fragments_stale`
+   - [x] `ci.yml`, `ci-docker.yml`, `docs.yml` → `4.7.0-dev`
+2. **Документация (pre-release)**
+   - [x] `docs/reference/odpm-json.md` — блок `scenarios`
+   - [x] `docs/reference/env-dotenv.md`, `config-hierarchy.md`, `database-state.md`, `odoo-conf.md`
+   - [x] `CHANGELOG.md` `[Unreleased]` / `.github/release-notes/4.7.0.md` (A+B+C+D)
+   - [x] `docs/reference/env-dotenv.md`, `locale.md` — `ODPM_COMPOSE_NETWORK`, layered `ODPM_LOCALE`
+   - [x] `docs/getting-started/legacy-project.md` — compose network + prefix, layered `.env`
+3. **Release commit (beta)**
+   - [x] `RELEASE_VERSION = "4.7.0-beta"`; `LATEST_STABLE_RELEASE = "4.6.0"`
+   - [x] Закрыть `[Unreleased]` в CHANGELOG → `[4.7.0-beta]`
+   - [x] `debian/changelog`, `packaging/odpm.spec`, `.github/release-notes/4.7.0-beta.md`
+   - [ ] `git tag v4.7.0-beta` && push → `release-packages`, mike `4.7.0-beta`
+4. **Release commit (stable, после smoke)**
+   - [ ] `RELEASE_VERSION = "4.7.0"`; `LATEST_STABLE_RELEASE = "4.7.0"`
+   - [ ] Закрыть beta в CHANGELOG → добавить `[4.7.0]`
+   - [ ] `debian/changelog`, `packaging/odpm.spec`, install hub → stable **4.7.0**
+   - [ ] `git tag v4.7.0` && push → `release-packages`, mike `4.7.0` + alias **stable**
 
 ## Чеклист: stable **v4.4.2** (архив, после smoke beta)
 

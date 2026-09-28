@@ -20,6 +20,8 @@ from dev_project.plan.format import (
 from dev_project.host.ports import ports_from_config
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
+from dev_project.plan.diff import PlanFileDiff
+from dev_project.odpm_pipeline import OdpmPipeline
 
 
 class PlanFormatHelperTests(unittest.TestCase):
@@ -47,7 +49,6 @@ class PlanFormatHelperTests(unittest.TestCase):
 
 class PlanJsonFormatTests(unittest.TestCase):
     def _plan(self) -> OdpmPlan:
-        from dev_project.plan.diff import PlanFileDiff
 
         return OdpmPlan(
             steps=(
@@ -85,7 +86,7 @@ class PlanJsonFormatTests(unittest.TestCase):
         )
 
     @patch(
-        "dev_project.plan.compose_runtime.compose_up_force_recreate_value",
+        "dev_project.plan.format.compose_up_force_recreate_value",
         return_value=False,
     )
     def test_plan_to_dict_includes_version_steps_warnings_compose_up_and_diffs(
@@ -101,7 +102,7 @@ class PlanJsonFormatTests(unittest.TestCase):
         self.assertEqual(len(payload["diffs"]), 1)
 
     @patch(
-        "dev_project.plan.compose_runtime.compose_up_force_recreate_value",
+        "dev_project.plan.format.compose_up_force_recreate_value",
         return_value=None,
     )
     def test_plan_to_dict_omits_compose_up_when_step_missing(self, _mock_force):
@@ -110,7 +111,7 @@ class PlanJsonFormatTests(unittest.TestCase):
         self.assertNotIn("compose_up", payload)
 
     @patch(
-        "dev_project.plan.compose_runtime.compose_up_force_recreate_value",
+        "dev_project.plan.format.compose_up_force_recreate_value",
         return_value=False,
     )
     def test_format_plan_json_is_valid_json(self, _mock_force):
@@ -129,7 +130,7 @@ class PlanJsonFormatTests(unittest.TestCase):
         self.assertIn("git.materialize", text)
 
     @patch(
-        "dev_project.plan.compose_runtime.compose_up_force_recreate_value",
+        "dev_project.plan.format.compose_up_force_recreate_value",
         return_value=True,
     )
     def test_format_plan_json_mode(self, _mock_force):
@@ -143,7 +144,7 @@ class PlanJsonFormatTests(unittest.TestCase):
 class PlanStrictPipelineTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
+            "dev_project.plan.compose_runtime.probe_should_force_recreate",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -165,7 +166,6 @@ class PlanStrictPipelineTests(unittest.TestCase):
 
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     def test_plan_strict_exits_one_when_required_changes_exist(self, _mock_setup):
-        from dev_project.odpm_pipeline import OdpmPipeline
 
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp))
@@ -189,7 +189,6 @@ class PlanStrictPipelineTests(unittest.TestCase):
     def test_plan_strict_exits_zero_when_no_required_changes(
         self, _mock_required, _mock_setup
     ):
-        from dev_project.odpm_pipeline import OdpmPipeline
 
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True, plan_strict=True), "/opt/odpm")
         pipeline.config = MagicMock()

@@ -13,19 +13,20 @@
 | Область | Как устроено |
 |---------|--------------|
 | **Отладчик** | Не устанавливается и не публикуется порт отладки. Для отладки используйте отдельную машину со сценарием `developer`. |
-| **PostgreSQL на хосте** | Слушает только `127.0.0.1` — с других машин через этот проброс не подключиться. |
-| **Odoo и Gevent** | Порты на хосте доступны шире; для доступа из интернета — **обратный прокси** (nginx и аналоги) и межсетевой экран. |
+| **Published ports** | По умолчанию профиль **`hardened`**: все порты compose на хосте только на **`127.0.0.1`**. Override: `ODPM_SECURITY_PROFILE` / `--security-profile`. Внешний доступ — через **обратный прокси**. |
+| **Пароли Odoo** | Дефолт **`hardened`**: random в `.odpm/secrets.json`, в `user_settings` — `${@secret:…}`. См. [безопасность](../operations/security.md). |
 | **Режим разработки Odoo** | Поле `dev_mode` в `user_settings.json` **игнорируется** (предупреждение в журнале). |
 | **Исходники** | Как у разработчика — подключены с диска сервера. |
-| **Base image** | Профиль **medium**: wkhtmltopdf и build deps, без Chromium/Xvfb/IDE — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-007-base-image-profiles.md). |
+| **Base image** | По умолчанию профиль **medium**: wkhtmltopdf и build deps, без Chromium/Xvfb/IDE — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md). Override: `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci`. |
 | **Секреты модулей** | Как в `developer`: `.odpm/secrets.json` монтируется в `/run/odpm/secrets.json` (read-only). Доставка файла на сервер — `odpm --secrets-file` или копирование; см. [локальные секреты](../operations/secrets.md). |
+| **Docker Compose** | Сервисы `db` и `odoo` получают `restart: unless-stopped` — после перезагрузки хоста контейнеры поднимаются сами (при `docker compose up -d`). |
 
 ## Рекомендации по безопасности
 
 - Задайте **надёжные пароли** — см. [безопасность](../operations/security.md).
 - Вынесите **HTTPS** на nginx; в `odoo.conf` укажите `proxy_mode` и при необходимости `dbfilter`.
 - Не открывайте порты Odoo и PostgreSQL в интернет без необходимости.
-- Перед **неинтерактивным** первым запуском убедитесь, что исходники платформы уже на диске (или один раз подготовьте окружение из интерактивного терминала).
+- Для фиксации версии платформы используйте `odoo_build_date` / `--odoo-build-date` (git checkout по дате), а не отдельную загрузку архива.
 
 ## Типичные команды администратора
 
@@ -35,3 +36,11 @@ docker compose up -d
 odpm -d prod_db --db-backup
 odpm -d prod_db -u
 ```
+
+Для обновления модулей по git-диффу на **server** предпочтительно:
+
+```bash
+odpm run apply-modules-from-diff -d prod_db
+```
+
+См. [рецепты](../reference/recipes.md) и [маркер деплоя](../reference/deploy-marker.md).

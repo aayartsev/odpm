@@ -19,6 +19,8 @@ from ..translations import _, apply_locale_from_sources
 from . import user_env_parse as parse
 from . import user_env_wizard as wizard
 from .user_env_parse import EnvData, ParsedUserEnv
+from ..interactive import stdin_is_interactive
+
 
 _logger = get_module_logger(__name__)
 
@@ -26,7 +28,6 @@ __all__ = ["CreateUserEnvironment", "EnvData", "ParsedUserEnv"]
 
 
 def _stdin_is_interactive() -> bool:
-    from ..interactive import stdin_is_interactive
 
     return stdin_is_interactive()
 
@@ -47,6 +48,15 @@ def _apply_parsed_user_env(target: CreateUserEnvironment, parsed: ParsedUserEnv)
     target.odpm_ide = parsed.odpm_ide
     target.debugger_connect_host = parsed.debugger_connect_host
     target.debugger_suspend = parsed.debugger_suspend
+    target.compose_prefix = parsed.compose_prefix
+    target.compose_project_name = parsed.compose_project_name
+    target.odoo_service_name = parsed.odoo_service_name
+    target.postgres_volume_name = parsed.postgres_volume_name
+    target.compose_network_logical = parsed.compose_network_logical
+    target.compose_network_external = parsed.compose_network_external
+    target.compose_network_physical = parsed.compose_network_physical
+    target.base_image_profile = parsed.base_image_profile
+    target.security_profile = parsed.security_profile
 
 
 class CreateUserEnvironment:
@@ -83,11 +93,14 @@ class CreateUserEnvironment:
         return env_path
 
     def project_dotenv_dict(self) -> dict[str, str]:
-        """Return all key/value pairs from the resolved .env for manifest ${VAR} lookup."""
+        """Return effective merged home + project ``.env`` for manifest ``${VAR}`` lookup."""
         return dict(self._project_dotenv)
 
     def parse_env_file(self) -> None:
-        env_dict = parse.load_dotenv_dict(self.env_file)
+        env_dict = parse.load_layered_dotenv_dict(
+            project_path=self.pd_manager.project_path,
+            config_home_dir=self.config_home_dir,
+        )
         _apply_parsed_user_env(self, parse.parse_dotenv_dict(env_dict))
 
     def create_env_file(self, local_env_file: str) -> None:
@@ -102,7 +115,10 @@ class CreateUserEnvironment:
                 "environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, "
                 "PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, "
                 "GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, "
-                "ODPM_IDE) before the first run."
+                "ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, "
+                "ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, "
+                "ODPM_BASE_IMAGE_PROFILE) before the "
+                "first run."
             )
             _logger.error(message)
             raise ConfigError(message)
@@ -118,7 +134,43 @@ class CreateUserEnvironment:
         )
 
     def _build_env_data_interactive(self) -> EnvData:
-        env_data = EnvData(
+        scenario = self.get_from_user_odpm_scenario()
+        locale_value = self.get_from_user_odpm_locale()
+        env_data = self._scenario_env_data_interactive(scenario=scenario)
+        if locale_value:
+            env_data[constants.ODPM_LOCALE_ENV_KEY] = locale_value
+        return env_data
+
+    def _scenario_env_data_interactive(self, *, scenario: str) -> EnvData:
+        if scenario == constants.CI_SCENARIO:
+            data = EnvData(
+                BACKUP_DIR=os.path.join(os.path.expanduser("~"), "odoo_backups"),
+                ODOO_PROJECTS_DIR=self.get_from_user_odoo_projects_src_dir(),
+                PATH_TO_SSH_KEY="",
+                ODOO_PORT=constants.ODOO_DEFAULT_PORT,
+                POSTGRES_PORT=constants.POSTGRES_DEFAULT_PORT,
+                DEBUGGER_PORT=constants.DEBUGGER_DEFAULT_PORT,
+                GEVENT_PORT=constants.GEVENT_DEFAULT_PORT,
+                ODPM_SCENARIO=scenario,
+            )
+            data.update(self._ci_env_data_interactive())
+            data.update(self._debugger_env_data_interactive(odpm_scenario=scenario))
+            return data
+        if scenario == constants.SERVER_SCENARIO:
+            data = EnvData(
+                BACKUP_DIR=self.get_from_user_backup_dir(),
+                ODOO_PROJECTS_DIR=self.get_from_user_odoo_projects_src_dir(),
+                PATH_TO_SSH_KEY="",
+                ODOO_PORT=self.get_from_user_odoo_port(),
+                POSTGRES_PORT=self.get_from_user_postgres_port(),
+                DEBUGGER_PORT=constants.DEBUGGER_DEFAULT_PORT,
+                GEVENT_PORT=constants.GEVENT_DEFAULT_PORT,
+                ODPM_SCENARIO=scenario,
+            )
+            data.update(self._debugger_env_data_interactive(odpm_scenario=scenario))
+            return data
+        # developer (default)
+        data = EnvData(
             BACKUP_DIR=self.get_from_user_backup_dir(),
             ODOO_PROJECTS_DIR=self.get_from_user_odoo_projects_src_dir(),
             PATH_TO_SSH_KEY="",
@@ -126,17 +178,25 @@ class CreateUserEnvironment:
             POSTGRES_PORT=self.get_from_user_postgres_port(),
             DEBUGGER_PORT=self.get_from_user_debugger_port(),
             GEVENT_PORT=self.get_from_user_gevent_port(),
-            ODPM_SCENARIO=self.get_from_user_odpm_scenario(),
+            ODPM_SCENARIO=scenario,
         )
-        env_data.update(
-            self._debugger_env_data_interactive(
-                odpm_scenario=env_data["ODPM_SCENARIO"]
+        data.update(self._debugger_env_data_interactive(odpm_scenario=scenario))
+        return data
+
+    def _ci_env_data_interactive(self) -> EnvData:
+        builder = self.get_from_user_ci_image_builder()
+        data: EnvData = {
+            constants.ODPM_CI_IMAGE_BUILDER_ENV: builder,
+            constants.ODPM_CI_IMAGE_PUSH_ENV: self.get_from_user_ci_image_push(),
+        }
+        if builder == constants.CI_IMAGE_BUILDER_KANIKO:
+            data[constants.ODPM_KANIKO_EXECUTOR_MODE_ENV] = (
+                self.get_from_user_kaniko_executor_mode()
             )
-        )
-        locale_value = self.get_from_user_odpm_locale()
-        if locale_value:
-            env_data[constants.ODPM_LOCALE_ENV_KEY] = locale_value
-        return env_data
+            data[constants.ODPM_BASE_IMAGE_REGISTRY_ENV] = (
+                self.get_from_user_base_image_registry()
+            )
+        return data
 
     def _debugger_env_data_interactive(self, *, odpm_scenario: str) -> EnvData:
         defaults = EnvData(
@@ -196,3 +256,15 @@ class CreateUserEnvironment:
 
     def get_from_user_odpm_ide(self) -> str:
         return wizard.get_from_user_odpm_ide()
+
+    def get_from_user_ci_image_builder(self) -> str:
+        return wizard.get_from_user_ci_image_builder()
+
+    def get_from_user_kaniko_executor_mode(self) -> str:
+        return wizard.get_from_user_kaniko_executor_mode()
+
+    def get_from_user_ci_image_push(self) -> str:
+        return wizard.get_from_user_ci_image_push()
+
+    def get_from_user_base_image_registry(self) -> str:
+        return wizard.get_from_user_base_image_registry()

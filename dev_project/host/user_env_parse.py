@@ -23,6 +23,10 @@ from ..debugger.env_parsing import (
     parse_odpm_ide,
 )
 from .postgres_service_name import parse_postgres_service_name
+from ..compose.network_names import resolve_compose_network
+from ..compose.service_names import resolve_compose_naming
+from ..dockerfile_profiles import BaseImageProfile, parse_base_image_profile
+from ..security_profiles import SecurityProfile, parse_security_profile
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..translations import _, parse_odpm_locale_setting
@@ -48,6 +52,20 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_DEBUGGER_CONNECT_HOST: str
     ODPM_DEBUGGER_SUSPEND: str
     POSTGRES_SERVICE_NAME: str
+    ODPM_COMPOSE_PREFIX: str
+    ODPM_COMPOSE_NETWORK: str
+    ODPM_COMPOSE_NETWORK_EXTERNAL: str
+    ODPM_CI_IMAGE_BUILDER: str
+    ODPM_CI_IMAGE_PUSH: str
+    ODPM_KANIKO_EXECUTOR_MODE: str
+    ODPM_KANIKO_EXECUTOR_IMAGE: str
+    ODPM_KANIKO_EXECUTOR_BIN: str
+    ODPM_KANIKO_EXECUTOR_WRAPPER: str
+    ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS: str
+    ODPM_KANIKO_EXECUTOR_SUDO: str
+    ODPM_BASE_IMAGE_REGISTRY: str
+    ODPM_BASE_IMAGE_PROFILE: str
+    ODPM_SECURITY_PROFILE: str
 
 
 @dataclass(frozen=True)
@@ -67,18 +85,55 @@ class ParsedUserEnv:
     odpm_ide: str
     debugger_connect_host: str
     debugger_suspend: bool
+    compose_prefix: str | None
+    compose_project_name: str | None
+    odoo_service_name: str
+    postgres_volume_name: str
+    compose_network_logical: str | None
+    compose_network_external: bool
+    compose_network_physical: str | None
+    base_image_profile: BaseImageProfile | None
+    security_profile: SecurityProfile | None
 
 
 def resolve_env_file_path(
     pd_manager: ProjectDirManager, *, config_home_dir: str
 ) -> str:
-    """Return project-local .env when present, else the home config path."""
+    """Return project-local .env when present, else the home config path (write target)."""
     project_env_file = os.path.join(
         pd_manager.project_path, constants.ENV_FILE_NAME
     )
     if os.path.exists(project_env_file):
         return project_env_file
     return os.path.join(config_home_dir, constants.ENV_FILE_NAME)
+
+
+def layered_env_paths(
+    *, project_path: str, config_home_dir: str
+) -> tuple[str | None, str | None]:
+    """Return ``(home_path, project_path)`` for existing ``.env`` files."""
+    home_path = os.path.join(config_home_dir, constants.ENV_FILE_NAME)
+    project_path_file = os.path.join(project_path, constants.ENV_FILE_NAME)
+    return (
+        home_path if os.path.isfile(home_path) else None,
+        project_path_file if os.path.isfile(project_path_file) else None,
+    )
+
+
+def load_layered_dotenv_dict(
+    *, project_path: str, config_home_dir: str
+) -> dict[str, str]:
+    """Load home ``.env`` as base and project ``.env`` as overlay (project wins)."""
+    merged: dict[str, str] = {}
+    home_path, project_path_file = layered_env_paths(
+        project_path=project_path,
+        config_home_dir=config_home_dir,
+    )
+    if home_path is not None:
+        merged.update(load_dotenv_dict(home_path))
+    if project_path_file is not None:
+        merged.update(load_dotenv_dict(project_path_file))
+    return merged
 
 
 def load_dotenv_dict(env_file: str) -> dict[str, str]:
@@ -116,9 +171,33 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
             odpm_locale = parsed_locale
     else:
         odpm_locale = None
+    naming = resolve_compose_naming(
+        compose_prefix_raw=env_dict.get(constants.ODPM_COMPOSE_PREFIX_ENV),
+        legacy_postgres_service_name=parse_postgres_service_name(
+            env_dict.get(constants.POSTGRES_SERVICE_NAME_ENV)
+        ),
+    )
+    network = resolve_compose_network(
+        network_raw=env_dict.get(constants.ODPM_COMPOSE_NETWORK_ENV),
+        external_raw=env_dict.get(constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV),
+        naming=naming,
+    )
+    if raw_scenario == constants.CI_SCENARIO:
+        backups = env_dict.get(
+            "BACKUP_DIR",
+            os.path.join(str(Path.home()), "odoo_backups"),
+        )
+    else:
+        backups = env_dict["BACKUP_DIR"]
+    raw_profile = os.environ.get(constants.ODPM_BASE_IMAGE_PROFILE_ENV)
+    if raw_profile is None or not str(raw_profile).strip():
+        raw_profile = env_dict.get(constants.ODPM_BASE_IMAGE_PROFILE_ENV)
+    raw_security = os.environ.get(constants.ODPM_SECURITY_PROFILE_ENV)
+    if raw_security is None or not str(raw_security).strip():
+        raw_security = env_dict.get(constants.ODPM_SECURITY_PROFILE_ENV)
     return ParsedUserEnv(
         dotenv=dict(env_dict),
-        backups=env_dict["BACKUP_DIR"],
+        backups=backups,
         odoo_projects_dir=env_dict["ODOO_PROJECTS_DIR"],
         debugger_port=int(
             env_dict.get("DEBUGGER_PORT", str(constants.DEBUGGER_DEFAULT_PORT))
@@ -127,9 +206,7 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         postgres_port=int(
             env_dict.get("POSTGRES_PORT", str(constants.POSTGRES_DEFAULT_PORT))
         ),
-        postgres_service_name=parse_postgres_service_name(
-            env_dict.get(constants.POSTGRES_SERVICE_NAME_ENV)
-        ),
+        postgres_service_name=naming.postgres_service_name,
         gevent_port=int(
             env_dict.get("GEVENT_PORT", str(constants.GEVENT_DEFAULT_PORT))
         ),
@@ -146,6 +223,15 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         debugger_suspend=parse_debugger_suspend(
             env_dict.get(ODPM_DEBUGGER_SUSPEND_ENV)
         ),
+        compose_prefix=naming.compose_prefix,
+        compose_project_name=naming.compose_project_name,
+        odoo_service_name=naming.odoo_service_name,
+        postgres_volume_name=naming.postgres_volume_name,
+        compose_network_logical=network.logical_name,
+        compose_network_external=network.external,
+        compose_network_physical=network.physical_name,
+        base_image_profile=parse_base_image_profile(raw_profile),
+        security_profile=parse_security_profile(raw_security),
     )
 
 
@@ -170,13 +256,24 @@ def has_noninteractive_env_configuration(pd_manager: ProjectDirManager) -> bool:
             "GEVENT_PORT",
             "ODPM_SCENARIO",
             constants.ODPM_LOCALE_ENV_KEY,
+            constants.ODPM_COMPOSE_PREFIX_ENV,
+            constants.ODPM_COMPOSE_NETWORK_ENV,
+            constants.ODPM_CI_IMAGE_BUILDER_ENV,
+            constants.ODPM_CI_IMAGE_PUSH_ENV,
+            constants.ODPM_KANIKO_EXECUTOR_MODE_ENV,
+            constants.ODPM_BASE_IMAGE_REGISTRY_ENV,
             ODPM_DEBUGGER_BACKEND_ENV,
             ODPM_IDE_ENV,
         )
     ):
         return True
     project_env = os.path.join(pd_manager.project_path, constants.ENV_FILE_NAME)
-    return os.path.isfile(project_env)
+    if os.path.isfile(project_env):
+        return True
+    home_env = os.path.join(
+        pd_manager.home_config_dir, constants.ENV_FILE_NAME
+    )
+    return os.path.isfile(home_env)
 
 
 def debugger_env_defaults_from_environ() -> EnvData:
@@ -231,4 +328,31 @@ def build_env_data_from_environ_or_defaults() -> EnvData:
         env_data[constants.POSTGRES_SERVICE_NAME_ENV] = parse_postgres_service_name(
             raw_postgres_service
         )
+    raw_compose_prefix = os.environ.get(constants.ODPM_COMPOSE_PREFIX_ENV, "").strip()
+    if raw_compose_prefix:
+        env_data[constants.ODPM_COMPOSE_PREFIX_ENV] = raw_compose_prefix
+    raw_compose_network = os.environ.get(
+        constants.ODPM_COMPOSE_NETWORK_ENV, ""
+    ).strip()
+    if raw_compose_network:
+        env_data[constants.ODPM_COMPOSE_NETWORK_ENV] = raw_compose_network
+    raw_network_external = os.environ.get(
+        constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV, ""
+    ).strip()
+    if raw_network_external:
+        env_data[constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV] = raw_network_external
+    for key in (
+        constants.ODPM_CI_IMAGE_BUILDER_ENV,
+        constants.ODPM_CI_IMAGE_PUSH_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_MODE_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_IMAGE_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_BIN_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_WRAPPER_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS_ENV,
+        constants.ODPM_KANIKO_EXECUTOR_SUDO_ENV,
+        constants.ODPM_BASE_IMAGE_REGISTRY_ENV,
+    ):
+        raw = os.environ.get(key, "").strip()
+        if raw:
+            env_data[key] = raw  # type: ignore[literal-type]
     return env_data

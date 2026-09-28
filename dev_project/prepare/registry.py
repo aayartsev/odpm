@@ -15,7 +15,12 @@ from .steps_compose import (
     exec_compose_validate,
 )
 from .steps_database import evaluate_database_drift, exec_database_drift
-from .steps_secrets import evaluate_secrets_materialize, exec_secrets_materialize
+from .steps_secrets import (
+    evaluate_secrets_fetch,
+    evaluate_secrets_materialize,
+    exec_secrets_fetch,
+    exec_secrets_materialize,
+)
 from .steps_docker import (
     evaluate_docker_engine_check,
     evaluate_docker_ports_release,
@@ -23,6 +28,7 @@ from .steps_docker import (
     exec_docker_ports_release,
 )
 from .steps_hooks import evaluate_hooks_post_clone, exec_hooks_post_clone
+from .steps_sources import evaluate_sources_materialize, exec_sources_materialize
 from .steps_git import (
     evaluate_git_checkout,
     evaluate_git_ensure_present,
@@ -54,6 +60,7 @@ from .steps_template import (
     exec_template_odoo_conf,
 )
 from .types import PrepareStepDef
+from ..extensions.registry import get_prepare_steps as merge_extension_prepare_steps
 
 BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     PrepareStepDef("git.lock_load", "", evaluate_git_lock_load, exec_lock_load),
@@ -62,6 +69,12 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     ),
     PrepareStepDef(
         "git.materialize", "", evaluate_git_materialize, exec_git_materialize
+    ),
+    PrepareStepDef(
+        "sources.materialize",
+        "",
+        evaluate_sources_materialize,
+        exec_sources_materialize,
     ),
     PrepareStepDef(
         "hooks.post_clone", "", evaluate_hooks_post_clone, exec_hooks_post_clone
@@ -110,6 +123,12 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         exec_compose_fragments,
     ),
     PrepareStepDef(
+        "secrets.fetch",
+        "",
+        evaluate_secrets_fetch,
+        exec_secrets_fetch,
+    ),
+    PrepareStepDef(
         "secrets.materialize",
         "",
         evaluate_secrets_materialize,
@@ -148,8 +167,6 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
 
 def get_prepare_steps() -> tuple[PrepareStepDef, ...]:
     """Built-in prepare steps plus pluggy/entry-point extensions."""
-    from ..extensions.registry import get_prepare_steps as merge_extension_prepare_steps
-
     return merge_extension_prepare_steps(BUILTIN_PREPARE_STEPS)
 
 

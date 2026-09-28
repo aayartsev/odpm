@@ -5,6 +5,7 @@ import pathlib
 from typing import TYPE_CHECKING
 
 from .. import constants
+from ..database.postgres_paths import postgres_local_storage_relpath
 
 if TYPE_CHECKING:
     from .config import Config
@@ -15,8 +16,9 @@ class ConfigPaths:
         self.config = config
 
     def get_postgres_data_local_storage_path(self) -> str:
+        rel = postgres_local_storage_relpath(self.config.postgres_version)
         postgres_data_local_storage_path = os.path.join(
-            self.config.pd_manager.project_path, constants.POSTGRES_LOCAL_STORAGE_DIR
+            self.config.pd_manager.project_path, rel
         )
         if not os.path.exists(postgres_data_local_storage_path):
             pathlib.Path(postgres_data_local_storage_path).mkdir(
@@ -31,14 +33,31 @@ class ConfigPaths:
         version_label = str(self.config.odoo_version).replace(".", "-")
         return f"{self.config.platform_name}-{version_label}-ci:latest"
 
-    def apply_image_names(self) -> None:
-        docker = self.config.docker_layout
+    def local_base_image_name(self) -> str:
+        """Unprefixed local base image name (docker default tag target)."""
         profile = self.config.policy.base_image_profile
-        docker.odoo_image_name = (
+        return (
             f"odoo-{self.config.arch}-python-{self.config.python_version}-"
             f"{self.config.distro_name}-"
             f"{self.config.distro_version.replace('.', '')}-{profile}"
         )
+
+    def resolve_base_image_ref(self, *, registry: str | None = None) -> str:
+        """Return base image ref for build ``-t`` / Kaniko ``--destination`` / Dockerfile FROM.
+
+        Without *registry*: local name (docker backend).
+        With *registry*: ``{registry}/{local}:{tag}`` (kaniko always-push).
+        """
+        local = self.local_base_image_name()
+        if not registry:
+            return local
+        prefix = registry.strip().rstrip("/")
+        tag = constants.DEFAULT_BASE_IMAGE_TAG
+        return f"{prefix}/{local}:{tag}"
+
+    def apply_image_names(self) -> None:
+        docker = self.config.docker_layout
+        docker.odoo_image_name = self.local_base_image_name()
         docker.odoo_ci_image_name = self.get_odoo_ci_image_name()
         docker.ci_build_context_dir = os.path.join(
             self.config.project_dir, constants.CI_BUILD_CONTEXT_DIR
@@ -87,6 +106,9 @@ class ConfigPaths:
             )
         docker.dependencies_dir = os.path.join(
             self.config.project_dir, constants.DEPENDENCIES_DIR
+        )
+        docker.service_sources_dir = os.path.join(
+            self.config.project_dir, constants.SERVICE_SOURCES_DIR
         )
         docker.odoo_tests_dir = os.path.join(
             self.config.project_dir, "data/odoo", "tmp/odoo_tests"

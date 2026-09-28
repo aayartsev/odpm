@@ -23,6 +23,9 @@ PLAN_L10N_RU: dict[str, str] = {
     "Clone or update platform, developing, and dependency git repos": (
         "Клонировать или обновить platform, developing и git-зависимости"
     ),
+    "Clone or update manifest service_sources git repositories": (
+        "Клонировать или обновить git-репозитории service_sources из manifest"
+    ),
     "Collect resolved git commits and write .odpm/deps.lock.json": (
         "Собрать разрешённые git-коммиты и записать .odpm/deps.lock.json"
     ),
@@ -102,7 +105,6 @@ PLAN_L10N_RU: dict[str, str] = {
         "применить закреплённые коммиты из {SOURCE}"
     ),
     "base image identity mismatch": "несовпадение идентичности базового образа",
-    "bind_platform_link is not configured": "bind_platform_link не настроен",
     "build CI image from prepared context": (
         "собрать CI-образ из подготовленного контекста"
     ),
@@ -114,6 +116,9 @@ PLAN_L10N_RU: dict[str, str] = {
     ),
     "check_system disabled; Docker check skipped": (
         "check_system отключён; проверка Docker пропущена"
+    ),
+    "CI kaniko direct prepare-only; Docker daemon check skipped": (
+        "CI kaniko direct prepare-only; проверка Docker daemon пропущена"
     ),
     "checkout dependency repos": "переключить репозитории зависимостей",
     "clone or update git repos": "клонировать или обновить git-репозитории",
@@ -141,6 +146,9 @@ PLAN_L10N_RU: dict[str, str] = {
         "освободить порты odoo, debugger, postgres и gevent перед compose up"
     ),
     "git repos will be materialized": "git-репозитории будут материализованы",
+    "inject service_sources paths into env resolver": (
+        "подставить пути service_sources в env resolver"
+    ),
     "invalid JSON in secrets file {PATH}: {DETAIL}": (
         "некорректный JSON в файле secrets {PATH}: {DETAIL}"
     ),
@@ -154,6 +162,9 @@ PLAN_L10N_RU: dict[str, str] = {
         "материализовать репозитории перед записью deps.lock"
     ),
     "no git lock source available": "источник git lock недоступен",
+    "sync project service-sources links": (
+        "синхронизировать ссылки project/service-sources"
+    ),
     "no {PHASE} hooks configured": "hooks {PHASE} не настроены",
     "odoo config template stale": "шаблон конфигурации Odoo устарел",
     "odoo.conf and template up to date": "odoo.conf и шаблон актуальны",
@@ -185,6 +196,8 @@ PLAN_L10N_RU: dict[str, str] = {
         "монтирование secrets отключено для CI-сценария"
     ),
     "skipped with --no-git-update": "пропущено с --no-git-update",
+    "service_sources stale or missing": "service_sources устарели или отсутствуют",
+    "service_sources up to date": "service_sources актуальны",
     "skipped with --update-lock": "пропущено с --update-lock",
     "start compose stack (--force-recreate unknown without docker probe)": (
         "запуск compose-стека (--force-recreate неизвестен без docker probe)"
@@ -208,6 +221,9 @@ PLAN_L10N_RU: dict[str, str] = {
     ),
     "verify local git directories exist": (
         "проверить наличие локальных git-каталогов"
+    ),
+    "verify service_sources paths exist": (
+        "проверить наличие путей service_sources"
     ),
     "write deps.lock.json from resolved commits": (
         "записать deps.lock.json из разрешённых коммитов"
@@ -269,5 +285,19 @@ PLAN_L10N_RU: dict[str, str] = {
     ),
     "System checker is not attached to CreateProjectEnvironment": (
         "Системная проверка окружения не подключена к проекту."
+    ),
+    "Fetch secrets via provider {NAME}": (
+        "Получить секреты через провайдер {NAME}"
+    ),
+    "already fetched this run ({COUNT} keys)": (
+        "уже получены в этом запуске ({COUNT} ключей)"
+    ),
+    "file provider uses existing source": (
+        "файловый провайдер использует существующий source"
+    ),
+    "import --secrets-file": "импорт --secrets-file",
+    "remote provider configured": "настроен удалённый провайдер",
+    "secrets already imported this run": (
+        "секреты уже импортированы в этом запуске"
     ),
 }

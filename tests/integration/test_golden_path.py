@@ -20,8 +20,49 @@ from tests.integration.http_wait import HttpWaitTimeoutError, wait_for_http_ok
 
 RUN_DOCKER_INTEGRATION = os.environ.get("ODPM_RUN_DOCKER_INTEGRATION") == "1"
 GOLDEN_PATH_PROJECT = os.environ.get("ODPM_GOLDEN_PATH_PROJECT", "").strip()
-GOLDEN_PATH_TIMEOUT = float(os.environ.get("ODPM_GOLDEN_PATH_TIMEOUT", "90"))
+GOLDEN_PATH_TIMEOUT = float(os.environ.get("ODPM_GOLDEN_PATH_TIMEOUT", "60"))
 DEBUG_BUNDLE_DIR = os.environ.get("ODPM_COMPOSE_DEBUG_DIR", "").strip()
+
+
+def golden_path_maintenance_hint(*, odoo_logs: str, db_logs: str) -> str:
+    """Actionable runner maintenance when golden-path logs match known stale-DB signatures."""
+    combined = f"{odoo_logs}\n{db_logs}"
+    hints: list[str] = []
+    if "translate IS TRUE must be type boolean" in combined:
+        hints.append(
+            "PostgreSQL was created with an older Odoo major; recreate test_db "
+            "or the postgres data volume, then run "
+            "`odpm -d test_db -i base,web` on the runner."
+        )
+    if "short_time_format does not exist" in combined:
+        hints.append(
+            "Odoo source still SELECTs res_lang.short_time_format but the DB "
+            "was built with a newer 19.0 tree (column removed in the datetime "
+            "remake). Prefer: git pull Odoo 19.0 past that remake. Or remedi ate "
+            "the DB to match the mounted source: "
+            "`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 …/refresh_golden_path_project.sh`."
+        )
+    if "_get_data" in odoo_logs and "res.lang" in odoo_logs:
+        hints.append(
+            "Odoo web templates expect Odoo 19+ ORM but the database or addons "
+            "are inconsistent — usually fixed by the same DB recreate as above."
+        )
+    if "ModuleNotFoundError" in odoo_logs and "No module named" in odoo_logs:
+        hints.append(
+            "Container venv is missing an Odoo pip dependency. Usually the "
+            "platform checkout no longer matches odpm.json odoo_version "
+            "(or requirements.txt changed). Run "
+            "`scripts/refresh_golden_path_project.sh` (without "
+            "ODPM_GOLDEN_PATH_NO_GIT_UPDATE) so odpm checks out odoo_version "
+            "and rebuilds the venv; bare `compose up` / unittest alone is "
+            "not enough."
+        )
+    if not hints:
+        return ""
+    return (
+        "Runner maintenance (see docs/contributing/ci.md):\n- "
+        + "\n- ".join(hints)
+    )
 
 
 def _docker_available() -> bool:
@@ -148,11 +189,176 @@ class GoldenPathIntegrationTests(unittest.TestCase):
                 self.postgres_service,
                 tail=15,
             )
+            hint = golden_path_maintenance_hint(odoo_logs=odoo_logs, db_logs=db_logs)
+            hint_block = f"\n\n--- maintenance ---\n{hint}" if hint else ""
             raise AssertionError(
                 f"{error}\n\n--- odoo logs (tail) ---\n{odoo_logs}\n\n"
                 f"--- {self.postgres_service} logs (tail) ---\n{db_logs}"
+                f"{hint_block}"
             ) from error
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GoldenPathMaintenanceHintTests(unittest.TestCase):
+    def test_hint_for_stale_postgres_schema(self) -> None:
+        hint = golden_path_maintenance_hint(
+            odoo_logs="QWebException res.lang _get_data",
+            db_logs="translate IS TRUE must be type boolean",
+        )
+        self.assertIn("recreate test_db", hint)
+        self.assertIn("Odoo 19", hint)
+
+    def test_hint_for_short_time_format_mismatch(self) -> None:
+        hint = golden_path_maintenance_hint(
+            odoo_logs="UndefinedColumn: column res_lang.short_time_format does not exist",
+            db_logs="ERROR: column res_lang.short_time_format does not exist",
+        )
+        self.assertIn("short_time_format", hint)
+        self.assertIn("AUTO_REMEDIATE", hint)
+        self.assertIn("git pull", hint)
+
+    def test_hint_empty_for_unrelated_logs(self) -> None:
+        self.assertEqual(
+            golden_path_maintenance_hint(odoo_logs="ok", db_logs="ok"),
+            "",
+        )
+
+    def test_hint_for_missing_odoo_pip_dependency(self) -> None:
+        hint = golden_path_maintenance_hint(
+            odoo_logs="ModuleNotFoundError: No module named 'some_pkg'",
+            db_logs="",
+        )
+        self.assertIn("refresh_golden_path_project.sh", hint)
+        self.assertIn("odoo_version", hint)
+        self.assertIn("venv", hint)
+        self.assertIn("ODPM_GOLDEN_PATH_NO_GIT_UPDATE", hint)
+        self.assertNotIn("some_pkg", hint)
+
+
+class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
+    def test_refresh_and_preflight_scripts_exist(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        for name in (
+            "golden_path_project_lib.sh",
+            "refresh_golden_path_project.sh",
+            "preflight_golden_path_project.sh",
+        ):
+            path = root / "scripts" / name
+            self.assertTrue(path.is_file(), msg=name)
+            self.assertTrue(path.stat().st_mode & 0o111, msg=name)
+        refresh = (root / "scripts" / "refresh_golden_path_project.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("ODPM_GOLDEN_PATH_AUTO_REMEDIATE", refresh)
+        self.assertIn("golden_path_remediate_database", refresh)
+        self.assertIn("docker compose down", refresh)
+        self.assertIn("ODPM_GOLDEN_PATH_NO_GIT_UPDATE", refresh)
+        self.assertIn('odpm --skip-start "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}"', refresh)
+        self.assertIn(
+            '"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
+            refresh,
+        )
+        # Default path must allow git checkout (platform → odoo_version).
+        self.assertNotIn(
+            'odpm --skip-start --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
+            refresh,
+        )
+        self.assertIn("[golden-path refresh", refresh)
+        self.assertIn("expects odpm.json odoo_version 19.x", refresh)
+        self.assertIn("Postgres not ready after refresh; wiping postgres volume", refresh)
+        self.assertIn("golden_path_remediate_database", refresh)
+        # Re-resolve postgres service after odpm regenerates compose (db-dev → db).
+        self.assertIn("postgres compose service=", refresh)
+        self.assertIn(
+            'POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"',
+            refresh,
+        )
+        self.assertGreaterEqual(
+            refresh.count(
+                'POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"'
+            ),
+            4,
+        )
+        lib = (root / "scripts" / "golden_path_project_lib.sh").read_text(encoding="utf-8")
+        self.assertIn("ODPM_GOLDEN_PATH_INIT_MODULES", lib)
+        self.assertIn("GOLDEN_PATH_ODPM_ACCEPT_DRIFT", lib)
+        self.assertIn("--accept-database-drift=postgres_major", lib)
+        self.assertIn("--accept-database-drift=odpm_scenario", lib)
+        self.assertIn("--accept-database-drift=data_dir_empty_changed", lib)
+        self.assertNotIn("--accept-database-drift=data_path", lib)
+        self.assertNotIn("--accept-database-drift=app_role_missing", lib)
+        self.assertIn("docker compose logs --no-color --tail=80", lib)
+        self.assertIn("golden_path_sql_drop_database", lib)
+        self.assertIn("golden_path_wipe_postgres_data", lib)
+        self.assertIn("ir_module_module", lib)
+        self.assertIn("golden_path_schema_compatible", lib)
+        self.assertIn("golden_path_column_exists", lib)
+        self.assertIn("golden_path_code_expects_short_time_format", lib)
+        self.assertIn("golden_path_log_short_time_gate", lib)
+        self.assertIn("docker-compose.yml", lib)
+        self.assertIn("file://", lib)
+        self.assertIn("regenerating compose for long-running start", lib)
+        self.assertIn('odpm -d "${db_name}" --skip-start --no-git-update', lib)
+        self.assertIn('"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"', lib)
+        self.assertIn(
+            'postgres_service="$(golden_path_postgres_service "${project}" "${repo_root}")"',
+            lib,
+        )
+        self.assertIn("Callers must re-read via golden_path_postgres_service", lib)
+        self.assertNotIn("translate=boolean", lib)
+        self.assertIn("alpine:3.20", lib)
+        self.assertIn("golden_path_emit_schema_failure", lib)
+        self.assertIn('--odoo-bin -i "${init_modules}"', lib)
+        # Init command must put accept-drift before --odoo-bin (REMAINDER).
+        self.assertRegex(
+            lib,
+            r'odpm -d "\$\{db_name\}"\s+\\\s*"\$\{GOLDEN_PATH_ODPM_ACCEPT_DRIFT\[@\]\}"\s+\\\s*--odoo-bin',
+        )
+
+    def test_platform_dir_discovers_compose_bind_and_short_time_format(self) -> None:
+
+        root = Path(__file__).resolve().parents[2]
+        lib = root / "scripts" / "golden_path_project_lib.sh"
+        with tempfile.TemporaryDirectory(prefix="odpm-golden-platform-") as tmp:
+            project = Path(tmp)
+            platform = project / "odoo-src"
+            res_lang = platform / "odoo" / "addons" / "base" / "models" / "res_lang.py"
+            res_lang.parent.mkdir(parents=True)
+            res_lang.write_text(
+                "short_time_format = fields.Char()\n",
+                encoding="utf-8",
+            )
+            (project / "docker-compose.yml").write_text(
+                "services:\n"
+                "  odoo:\n"
+                "    image: odoo:dev\n"
+                f"    volumes:\n"
+                f"      - {platform}:/home/odoo/odoo:Z\n",
+                encoding="utf-8",
+            )
+            discovered = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    f'source "{lib}" && golden_path_platform_dir "{project}"',
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(discovered.returncode, 0, msg=discovered.stderr)
+            self.assertEqual(discovered.stdout.strip(), str(platform.resolve()))
+            expects = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    f'source "{lib}" && golden_path_code_expects_short_time_format "{project}"',
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(expects.returncode, 0, msg=expects.stderr)

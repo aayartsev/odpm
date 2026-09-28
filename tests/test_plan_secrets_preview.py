@@ -83,6 +83,45 @@ class PlanSecretsPreviewTests(unittest.TestCase):
             self.assertEqual(len(diffs), 1)
             self.assertIn("2 secret keys", diffs[0].summary or "")
 
+    def test_fetch_diff_shows_key_count_without_values(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            import_secrets_from_path(
+                project_dir,
+                self._write_external(project_dir, {"token": "sk_live_must_not_leak"}),
+            )
+            plan = OdpmPlan(
+                steps=(
+                    PlanStep(
+                        "secrets.fetch",
+                        "Fetch secrets via provider fake",
+                        "update",
+                        True,
+                        "remote provider configured",
+                    ),
+                ),
+                warnings=(),
+            )
+            host_ctx = HostProjectContext(
+                project_dir=project_dir,
+                program_dir="/opt/odpm",
+                config_home_dir=project_dir,
+                policy=ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO),
+                user_env=MagicMock(),
+                arguments=OdpmCliArgs(plan_show_diff=True),
+                user_settings=MagicMock(),
+                project_settings=MagicMock(),
+                docker_layout=MagicMock(),
+                addon_layout=MagicMock(),
+            )
+            diffs = build_plan_diffs(
+                plan, host_ctx, OdpmCliArgs(plan_show_diff=True), None
+            )
+            self.assertEqual(len(diffs), 1)
+            summary = diffs[0].summary or ""
+            self.assertIn("secret keys", summary)
+            self.assertNotIn("sk_live_must_not_leak", summary)
+            self.assertIsNone(diffs[0].unified_diff)
+
     def test_plan_step_skips_for_ci(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()

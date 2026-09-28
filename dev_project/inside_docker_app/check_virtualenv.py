@@ -1,4 +1,5 @@
 import os
+import sys
 
 from .. import constants
 from ..bake_venv import (
@@ -106,8 +107,6 @@ class VirtualenvChecker:
         return self.uv_info
 
     def is_virtualenv(self):
-        import sys
-
         return sys.prefix != sys.base_prefix
 
     def set_venv(self):

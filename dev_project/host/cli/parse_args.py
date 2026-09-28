@@ -9,8 +9,11 @@ from . import params
 from .args_common import add_common_arguments
 from .args_database import register_database_subparser
 from .args_manifest import register_manifest_subparser
+from .args_modules import register_modules_subparser
 from .args_plan import register_plan_subparser
+from .args_run import register_run_subparser
 from .args_scaffold import register_scaffold_subparser
+from .args import OdpmCliArgs
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -28,6 +31,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     register_plan_subparser(command_subparsers, common_parser)
     register_database_subparser(command_subparsers, common_parser)
     register_manifest_subparser(command_subparsers, common_parser)
+    register_modules_subparser(command_subparsers, common_parser)
+    register_run_subparser(command_subparsers, common_parser)
     register_scaffold_subparser(command_subparsers)
     return parser
 
@@ -40,7 +45,7 @@ def parse_args(argv: list[str] | None = None):
         argv = sys.argv[1:]
     argv_list = list(argv)
     if params.PLAN_PARAM in argv_list:
-        from ...logging import get_module_logger
+        from ...logging import get_module_logger  # noqa: PLC0415  # optional
 
         get_module_logger(__name__).warning(
             '%s is deprecated; use "odpm plan" instead.',
@@ -53,6 +58,5 @@ def parse_args(argv: list[str] | None = None):
 
 
 def parse_cli_args(argv: list[str] | None = None):
-    from .args import OdpmCliArgs
 
     return OdpmCliArgs.from_namespace(parse_args(argv))

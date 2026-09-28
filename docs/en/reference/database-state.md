@@ -35,17 +35,33 @@ The snapshot includes:
 | Event | Writer |
 |-------|--------|
 | First run without `last_run.json` | **Adoption** — before `compose up` (role + baseline) |
-| Successful credential check in checker | **Checker** — after TCP and `psql` as `db_user` |
+| Successful credential check in checker | **Checker** — after TCP and `psql`/psycopg2 as `db_user` |
 
 Adoption runs **once**. While the file exists, only drift vs the saved snapshot is reported.
+
+## PostgreSQL wait in the checker (container)
+
+Before Odoo operations the checker:
+
+1. Waits for TCP on `db_host:db_port`.
+2. Verifies credentials against the system database **`postgres`** (`SELECT 1`).
+3. When CLI **`-d <name>`** is set (and the name is not `postgres`) — also waits until that database accepts connections (retries on crash recovery / “not yet accepting”). If the database does not exist yet, wait succeeds; creation stays with `ensure_database_exists`.
+
+**Limits:** without `-d`, wait only targets `postgres` (db list / dbfilter are not probed); each verify step times out after 60s (long recovery fails on timeout).
 
 ## Legacy project adoption
 
 If `last_run.json` is missing (typical with an inherited PostgreSQL data directory), odpm before the full stack:
 
 1. Starts PostgreSQL if needed.
-2. Runs **`ensure_app_role`** — creates or updates the application role (default `odoo`), including single-user bootstrap when no admin login role exists.
+2. Runs **`ensure_app_role`**:
+   - role **`postgres`** — `LOGIN SUPERUSER` (odpm admin / compose `POSTGRES_USER`);
+   - role **`odoo`** — `LOGIN NOSUPERUSER CREATEDB` (Odoo session, `db_user`);
+   - extensions `unaccent` and `pg_trgm` on **`template1`** (new DBs inherit; existing DBs need a manual install if required);
+   - when no login admin exists — single-user bootstrap of both roles, then reconcile.
 3. Writes the current configuration as baseline.
+
+Admin and app share one password (`POSTGRES_ODOO_PASS`). Demoting `odoo` blocks `COPY … TO PROGRAM` from the application role; a leaked shared password still allows `-U postgres` — see [security](../operations/security.md).
 
 **Adoption does not:**
 
@@ -98,16 +114,20 @@ Commands run prepare (without `compose up`) when needed to read configuration.
 
 ## `.env` and `odoo.conf`
 
-**`POSTGRES_SERVICE_NAME`** in `.env` sets the compose service name and the expected **`db_host`** in `odoo.conf`. On mismatch:
+**`POSTGRES_SERVICE_NAME`** in `.env` sets the postgres compose service name and the expected **`db_host`** in `odoo.conf` when **`ODPM_COMPOSE_PREFIX`** is unset.
 
-- prepare step **`template.odoo_conf`** regenerates the config;
-- drift **`db_host_mismatch`** appears in plan.
+**`ODPM_COMPOSE_PREFIX`** sets **physical** built-in service names (`{prefix}db`, `{prefix}odoo`), the data volume, and the Docker Compose project name. The `last_run.json` snapshot stores `compose.service_name` (postgres), `compose.compose_project_name`, and `compose.odoo_service_name`. When the prefix or `POSTGRES_SERVICE_NAME` changes relative to the snapshot:
+
+- prepare step **`template.odoo_conf`** regenerates the config on `db_host` mismatch;
+- drift **`service_name`**, **`compose_project_name`**, or **`db_host_mismatch`** appears in plan.
+
+See [`.env` variables](env-dotenv.md), [odoo.conf](odoo-conf.md).
 
 ## Odoo databases: backup, restore, drop
 
 **`--db-drop`**, **`--db-restore`**, **`--db-backup`** operate on **Odoo databases** inside the cluster, not on `last_run.json`.
 
-On a legacy cluster a database may exist but be **owned by another PostgreSQL user**. Standard Odoo `exp_drop` then skips silently; odpm falls back to direct `DROP DATABASE` and fails clearly if the database remains.
+On a legacy cluster (Odoo before 20) a database may exist but be **owned by another PostgreSQL user**. Standard Odoo `exp_drop` then skips silently; odpm falls back to direct `DROP DATABASE` and fails clearly if the database remains. On **Odoo 20+** the checker calls `odoo.modules.db.drop` (there is no silent `exp_drop` skip).
 
 Example:
 
@@ -120,13 +140,14 @@ odpm -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
 ```bash
 odpm database status
 odpm plan --skip-start
-docker compose logs db-dev    # service name from POSTGRES_SERVICE_NAME
+docker compose logs db-dev    # postgres service name from .env (or acme-db when ODPM_COMPOSE_PREFIX=acme)
 ```
 
-After renaming the postgres service, remove orphan containers:
+After changing `POSTGRES_SERVICE_NAME` or `ODPM_COMPOSE_PREFIX`, remove orphan containers (with the same project scope odpm uses):
 
 ```bash
 docker compose down --remove-orphans
+# odpm passes -p automatically; manually: docker compose -p acme down --remove-orphans
 ```
 
 ## What odpm does not automate

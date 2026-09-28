@@ -12,6 +12,7 @@ from dev_project.manifest.reader import ManifestView
 from dev_project.plan.locks_preview import collect_git_lock_warnings
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.translations import update_locale
+import tempfile
 
 
 def _host_ctx(project_dir: str) -> HostProjectContext:
@@ -49,7 +50,6 @@ class GitLockPlanWarningsTests(unittest.TestCase):
         )
 
     def test_divergence_warning_when_both_sources_present(self):
-        import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
             manifest_view = ManifestView(

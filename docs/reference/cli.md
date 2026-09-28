@@ -18,7 +18,9 @@
 | `--distro-version ВЕР` | Версия дистрибутива (`11`, `12`, …) |
 | `--postgres-version ВЕР` | Версия PostgreSQL в compose |
 | `--requirements-txt ПАКЕТЫ` | Пакеты Python через запятую → запись в `odpm.json` |
-| `--secrets-file ПУТЬ` | Импорт JSON v1 в `.odpm/secrets.json` (при `--init` и на любом запуске). См. [локальные секреты](../operations/secrets.md). |
+| `--secrets-file ПУТЬ` | Импорт JSON v1 в `.odpm/secrets.json` (при `--init` и на любом запуске; early bootstrap, до expand `${@secret:}` в `user_settings`). Подразумевает провайдер `file`. См. [локальные секреты](../operations/secrets.md). |
+| `--secrets-provider ИМЯ` | Провайдер секретов на этот запуск (`file`, `infisical` или id плагина). Сильнее `ODPM_SECRETS_PROVIDER` и `secrets.provider.type`. `--secrets-file` выставляет `file`. |
+| `--security-profile ИМЯ` | Профиль безопасности (`convenience` / `hardened`). Сильнее `ODPM_SECURITY_PROFILE`; иначе дефолт от `ODPM_SCENARIO`. См. [безопасность](../operations/security.md). |
 
 Пример:
 
@@ -46,6 +48,8 @@ odpm --secrets-file ~/new-secrets.json --skip-start
 | `--no-git-update` | Не трогать git; lock **не читается**; каталоги должны уже существовать |
 | `--build-image` | Собрать образ для сценария **`ci`** (иначе ошибка) |
 | `--image-tag МЕТКА` | Имя и тег образа Docker для `--build-image` |
+| `--image-builder {docker,kaniko}` | Бэкенд сборки CI-образа (по умолчанию `docker`; перекрывает `ODPM_CI_IMAGE_BUILDER`) |
+| `--image-push` | После сборки опубликовать образ (`docker push` / kaniko `--destination`) |
 | `--version` | Показать версию odpm |
 
 ## План изменений (пробный прогон)
@@ -89,19 +93,49 @@ odpm database ensure-role
 
 Подробнее: [состояние PostgreSQL и drift](database-state.md).
 
+## Подкоманда `modules`
+
+Списки модулей для `-i`/`-u` из git-истории developing и маркер последнего apply:
+
+```bash
+odpm modules diff
+odpm modules diff --diff-base @last-applied --format shell
+odpm modules record-applied
+```
+
+| Команда | Описание |
+|---------|----------|
+| `modules diff` | Init/update CSV с `BASE...HEAD`; `--diff-base`, `--format {text,shell,json}` |
+| `modules record-applied` | Записать HEAD developing в `.odpm/deploy/last_applied.json` |
+
+Подробнее и shell-рецепт: [маркер деплоя](deploy-marker.md).
+
+## Подкоманда `run`
+
+Именованные рецепты (повторный вызов odpm):
+
+```bash
+odpm run --list
+odpm run apply-modules-from-diff -d prod_db
+odpm run apply-modules-from-diff -d prod_db --dry-run
+```
+
+Подробнее: [рецепты](recipes.md), [маркер деплоя](deploy-marker.md).
+
 ## База данных и модули
 
 | Параметр | Описание |
 |----------|----------|
 | `-d ИМЯ_БД` | Имя базы; при отсутствии — создание по `db_creation_data` |
-| `-i` | Установить модули из `init_modules` |
-| `-u` | Обновить модули из `update_modules` |
+| `-i [МОДУЛИ]` | Без значения — модули из `init_modules`; с CSV (напр. `sale,crm`) — список с CLI (приоритет над settings) |
+| `-u [МОДУЛИ]` | Без значения — модули из `update_modules`; с CSV — список с CLI (приоритет над settings) |
 | `-t`, `--test` | Запустить тесты модулей; нужны `-d` и обычно `-i` или `-u` |
 | `--screencasts` | С `-t`: сохранять видео при ошибках туров |
 | `--odoo-bin АРГУМЕНТЫ…` | Передать аргументы исполняемому файлу Odoo, напр. `--stop-after-init` |
 
 ```bash
 odpm -d test_db -i -u
+odpm -d test_db -i sale,crm -u my_module
 odpm -d test_db -i --odoo-bin --stop-after-init
 ```
 
@@ -125,7 +159,7 @@ odpm -d test_db -i --odoo-bin --stop-after-init
 | Параметр | Описание |
 |----------|----------|
 | `--translate ЯЗЫК` | Обновить переводы (напр. `ru_RU`) |
-| `--export-po-files ЯЗЫК` | Экспорт pot/po для модулей из `update_modules` |
+| `--export-po-files ЯЗЫК` | Экспорт pot/po для модулей из `update_modules`, либо из `-u CSV`, если задан |
 | `--set-admin-pass` | Логин/пароль admin из `db_default_admin_*`; нужен `-d` |
 
 ## Прочие инструменты разработчика

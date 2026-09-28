@@ -37,6 +37,11 @@ from dev_project.compose.generator import ComposeGenerator
 from dev_project.project_env.types import MappedPath
 from dev_project.debugger.constants import DEBUGGER_BACKEND_DEBUGPY_LISTEN, DEFAULT_DEBUGGER_CONNECT_HOST
 from dev_project.scenario_policy import ScenarioPolicy
+from dataclasses import replace
+from dev_project.prepare.execute import build_prepare_plan
+from dev_project.manifest.reader import load_manifest
+from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.compose.fragments import collect_service_patches
 
 
 class _MailpitFragment:
@@ -71,6 +76,38 @@ class ComposeFragmentsRenderTests(unittest.TestCase):
         )
         self.assertIn("    user: root", block)
         self.assertIn("    tty: true", block)
+
+    def test_render_service_with_hostname_and_healthcheck(self):
+        block = render_compose_services_block(
+            {
+                "minio": {
+                    "image": "minio/minio:latest",
+                    "hostname": "minio",
+                    "healthcheck": {
+                        "test": ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"],
+                        "interval": "30s",
+                        "retries": 3,
+                    },
+                }
+            }
+        )
+        self.assertIn("    hostname: minio", block)
+        self.assertIn("    healthcheck:", block)
+        self.assertIn("      interval: 30s", block)
+        self.assertIn("      retries: 3", block)
+
+    def test_render_service_with_privileged_and_pid(self):
+        block = render_compose_services_block(
+            {
+                "sysbox": {
+                    "image": "example/sys:latest",
+                    "privileged": True,
+                    "pid": "host",
+                }
+            }
+        )
+        self.assertIn("    privileged: true", block)
+        self.assertIn("    pid: host", block)
 
 
 class ComposeFragmentsCollectTests(unittest.TestCase):
@@ -108,7 +145,9 @@ class ComposeFragmentsMaterializeTests(unittest.TestCase):
             snapshot = Path(compose_fragments_snapshot_path(project_dir)).read_text(
                 encoding="utf-8"
             )
-            self.assertEqual(json.loads(snapshot), services)
+            payload = json.loads(snapshot)
+            self.assertEqual(payload["odpm_scenario"], constants.DEVELOPER_SCENARIO)
+            self.assertEqual(payload["services"], services)
             gitignore = Path(fragments_dir, ".gitignore").read_text(encoding="utf-8")
             self.assertIn("*", gitignore)
 
@@ -208,6 +247,57 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             content = ComposeGenerator(env).render_docker_compose_content()
             self.assertIn("  mailpit:", content)
             self.assertIn("    image: axllent/mailpit", content)
+
+    def test_server_binds_sidecar_published_ports_localhost(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            self._copy_compose_template(project_dir)
+            policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.policy = policy
+            config.odoo_image_name = "odoo-base:dev"
+            config.compose_service = ComposeOdooService(
+                working_dir="/home/odoo",
+                include_runtime_config=policy.mount_runtime_config_from_host(),
+                include_runtime_secrets=False,
+                command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT],
+            )
+            config.compose_file_version = "3.8"
+            config.postgres_version = "16"
+            config.postgres_data_local_storage = "/tmp/postgres-data"
+            config.pd_manager = MagicMock()
+            config.bootstrap = MagicMock()
+            config.bootstrap.manifest_view = ManifestView(
+                manifest_schema=constants.MANIFEST_SCHEMA_V2,
+                requires_odpm="4.4",
+                services={
+                    "mailpit": {
+                        "image": "axllent/mailpit",
+                        "ports": ["8025:8025"],
+                    }
+                },
+                hooks=None,
+                locks=None,
+                raw_normalized={},
+                source_raw={},
+            )
+            config.repo_odpm_json = os.path.join(project_dir, "odpm.json")
+            user_env = MagicMock()
+            user_env.postgres_port = 15432
+            user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
+            user_env.debugger_port = 5678
+            user_env.debugger_backend = DEBUGGER_BACKEND_DEBUGPY_LISTEN
+            user_env.debugger_connect_host = DEFAULT_DEBUGGER_CONNECT_HOST
+            user_env.odoo_port = 8069
+            user_env.gevent_port = 8072
+            config.user_env = user_env
+            env = CreateProjectEnvironment(config)
+            env.mapped_folders = [
+                MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
+            ]
+            content = ComposeGenerator(env).render_docker_compose_content()
+            self.assertIn("127.0.0.1:8025:8025", content)
+            self.assertIn("127.0.0.1:8069:8069", content)
 
 
 class ComposeFragmentsPrepareStepTests(unittest.TestCase):
@@ -344,9 +434,7 @@ class ComposeServicePatchTests(unittest.TestCase):
             self.assertIn("    command:", content)
 
     def test_build_plan_includes_compose_patch_step(self):
-        from dataclasses import replace
 
-        from dev_project.prepare.execute import build_prepare_plan
 
         with tempfile.TemporaryDirectory() as project_dir:
             ctx = ComposeFragmentsPrepareStepTests()._make_ctx(
@@ -376,6 +464,102 @@ class ComposeServicePatchTests(unittest.TestCase):
                 step_ids.index("compose.service"),
             )
 
+
+class ComposeFragmentsScenarioSliceTests(unittest.TestCase):
+    def test_need_materialize_detects_odpm_scenario_change(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            services = {"mailpit": {"image": "axllent/mailpit"}}
+            materialize_compose_fragments(
+                project_dir,
+                services,
+                odpm_scenario=constants.DEVELOPER_SCENARIO,
+            )
+            self.assertFalse(
+                compose_fragments_need_materialize(
+                    project_dir,
+                    services,
+                    odpm_scenario=constants.DEVELOPER_SCENARIO,
+                )
+            )
+            self.assertTrue(
+                compose_fragments_need_materialize(
+                    project_dir,
+                    services,
+                    odpm_scenario=constants.SERVER_SCENARIO,
+                )
+            )
+
+    def test_collect_compose_services_uses_effective_scenario_slice(self):
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            services={"mailpit": {"image": "axllent/mailpit:base"}},
+            scenarios={
+                "server": {
+                    "services": {
+                        "mailpit": {"image": "axllent/mailpit:server"},
+                    }
+                }
+            },
+        )
+        dev_view = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server_view = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        dev_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_services=dev_view.services,
+            manifest_service_patches=dev_view.service_patches,
+        )
+        server_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_services=server_view.services,
+            manifest_service_patches=server_view.service_patches,
+        )
+        self.assertEqual(
+            collect_compose_services(dev_ext)["mailpit"]["image"],
+            "axllent/mailpit:base",
+        )
+        self.assertEqual(
+            collect_compose_services(server_ext)["mailpit"]["image"],
+            "axllent/mailpit:server",
+        )
+
+    def test_collect_service_patches_uses_effective_scenario_slice(self):
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            service_patches={"odoo": {"environment": {"BASE": "1"}}},
+            scenarios={
+                "ci": {
+                    "service_patches": {
+                        "odoo": {"environment": {"CI": "1"}},
+                    }
+                }
+            },
+        )
+        dev_view = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        ci_view = load_manifest(raw, active_scenario=constants.CI_SCENARIO)
+        dev_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_service_patches=dev_view.service_patches,
+        )
+        ci_ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_service_patches=ci_view.service_patches,
+        )
+        dev_env = collect_service_patches(dev_ext)["odoo"]["environment"]
+        ci_env = collect_service_patches(ci_ext)["odoo"]["environment"]
+
+        def _env_pairs(value):
+            if isinstance(value, dict):
+                return {f"{key}={val}" for key, val in value.items()}
+            return set(value)
+
+        self.assertEqual(_env_pairs(dev_env), {"BASE=1"})
+        self.assertEqual(_env_pairs(ci_env), {"BASE=1", "CI=1"})
 
 if __name__ == "__main__":
     unittest.main()

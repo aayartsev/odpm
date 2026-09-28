@@ -6,6 +6,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ..host.ports import BootstrapHandle
+from ..plan.compose_preview import (
+    compose_start_command_changed,
+    preview_compose_service,
+    preview_runtime_config_text,
+)
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -21,16 +26,10 @@ class ComposePreviewPort:
         return self.bootstrap.config
 
     def runtime_config_text(self) -> str | None:
-        from ..plan.compose_preview import preview_runtime_config_text
-
         return preview_runtime_config_text(self.bootstrap.config)
 
     def compose_start_command_changed(self) -> bool:
-        from ..plan.compose_preview import compose_start_command_changed
-
         return compose_start_command_changed(self.bootstrap.config)
 
     def preview_compose_service(self):
-        from ..plan.compose_preview import preview_compose_service
-
         return preview_compose_service(self.bootstrap.config)

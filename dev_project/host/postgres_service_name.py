@@ -6,6 +6,7 @@ import re
 
 from .. import constants
 from ..logging import get_module_logger
+from ..translations import _
 
 _logger = get_module_logger(__name__)
 
@@ -21,10 +22,13 @@ def parse_postgres_service_name(raw: str | None) -> str:
         return default
     if not _VALID_POSTGRES_SERVICE_NAME.fullmatch(name):
         _logger.warning(
-            "Invalid %s=%r (use lowercase letters, digits, '_' or '-'); using %s",
-            constants.POSTGRES_SERVICE_NAME_ENV,
-            raw,
-            default,
+            _(
+                "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
+            ).format(
+                ENV=constants.POSTGRES_SERVICE_NAME_ENV,
+                VALUE=raw,
+                DEFAULT=default,
+            ),
         )
         return default
     return name

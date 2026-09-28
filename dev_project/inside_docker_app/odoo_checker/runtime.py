@@ -9,7 +9,9 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Callable, ContextManager
 
-USED_ODOO_SUBMODULES = ("tools", "api", "service")
+from ..utils import write_odoo_config_data_to_file
+
+USED_ODOO_SUBMODULES = ("tools", "api", "service", "modules")
 
 
 @dataclass(frozen=True)
@@ -61,8 +63,10 @@ def apply_odoo_config(
     odoo_config_data: dict,
     docker_path_odoo_conf: str,
 ) -> None:
-    from ..utils import write_odoo_config_data_to_file
-
     write_odoo_config_data_to_file(odoo_config_data, docker_path_odoo_conf)
-    runtime.odoo.tools.config.parse_config(["-c", docker_path_odoo_conf])
+    parse_argv = ["-c", docker_path_odoo_conf]
+    if runtime.int_odoo_version >= 20:
+        runtime.odoo.tools.config.parse_config(parse_argv, setup_logging=True)
+    else:
+        runtime.odoo.tools.config.parse_config(parse_argv)
     runtime.odoo_config_object["list_db"] = True

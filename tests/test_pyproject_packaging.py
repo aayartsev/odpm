@@ -51,6 +51,14 @@ class PyprojectPackagingTests(unittest.TestCase):
     def test_prepare_steps_entry_point_group_declared(self):
         entry_points = _load_pyproject().get("project", {}).get("entry-points", {})
         self.assertIn("odpm.prepare_steps", entry_points)
+        self.assertIn("odpm.secrets_providers", entry_points)
+
+    def test_runtime_dependencies_have_no_infisical_sdk(self):
+        dependencies = _load_pyproject()["project"]["dependencies"]
+        joined = " ".join(dependencies).lower()
+        self.assertNotIn("infisical", joined)
+        self.assertNotIn("requests", joined)
+        self.assertNotIn("httpx", joined)
 
     def test_project_urls_and_license(self):
         project = _load_pyproject()["project"]

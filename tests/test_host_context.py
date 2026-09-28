@@ -9,6 +9,8 @@ from unittest.mock import MagicMock, patch
 from dev_project.host.context import HostProjectContext
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project import constants
+from dev_project.manifest.reader import ManifestView
+from dev_project.config.config import Config
 
 
 class HostProjectContextTests(unittest.TestCase):
@@ -31,7 +33,6 @@ class HostProjectContextTests(unittest.TestCase):
         return config
 
     def test_from_config_copies_manifest_fields_from_bootstrap(self):
-        from dev_project.manifest.reader import ManifestView
 
         config = self._make_config()
         view = ManifestView(
@@ -101,7 +102,6 @@ class HostProjectContextTests(unittest.TestCase):
         self.assertFalse(ctx.update_lock)
 
     def test_config_host_context_property_delegates(self):
-        from dev_project.config.config import Config
 
         config = self._make_config()
         with patch.object(

@@ -12,6 +12,7 @@ ARG PASSWORD={CURRENT_PASSWORD}
 RUN groupadd --gid $USER_GID $USER_NAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USER_NAME -p $(openssl passwd -6 $PASSWORD) \
     && apt-get update \
+    && (getent group messagebus >/dev/null || groupadd -r messagebus) \
     && apt-get install -y sudo \
     && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
     && chmod 0440 /etc/sudoers.d/$USER_NAME\
@@ -20,6 +21,7 @@ RUN groupadd --gid $USER_GID $USER_NAME \
     && mkdir -p /home/$USER_NAME/.vscode-server\
     && chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/.vscode-server
 
+# build-essential kept for arm64 Python sdists (e.g. libsass) when no manylinux aarch64 wheel exists
 # install dependecies
 RUN apt-get update && apt-get -y install libxml2-dev libxslt1-dev libldap2-dev\
         libsasl2-dev libtiff5-dev libjpeg62-turbo-dev libopenjp2-7-dev\

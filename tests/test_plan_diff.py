@@ -207,7 +207,7 @@ class PlanDiffFormatTests(unittest.TestCase):
 class PlanDiffIntegrationTests(unittest.TestCase):
     def setUp(self):
         self._recreate_patcher = patch(
-            "dev_project.compose.runtime.should_force_recreate_compose_for_host",
+            "dev_project.plan.compose_runtime.probe_should_force_recreate",
             return_value=False,
         )
         self._recreate_patcher.start()
@@ -260,7 +260,8 @@ class PlanDiffIntegrationTests(unittest.TestCase):
                 OdpmCliArgs(plan_show_diff=True, skip_start=True),
             )
             self.assertTrue(plan.diffs)
-            self.assertEqual(plan.diffs[0].path, constants.ODPM_RUNTIME_CONFIG_REL_PATH)
+            paths = [item.path for item in plan.diffs]
+            self.assertIn(constants.ODPM_RUNTIME_CONFIG_REL_PATH, paths)
 
     def test_parse_args_accepts_plan_show_diff(self):
         args = parse_args_module.parse_args(["--plan", "--plan-show-diff"])

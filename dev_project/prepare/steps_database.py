@@ -8,7 +8,7 @@ from ..database.drift import (
     meaningful_database_drifts,
 )
 from ..database.resolve import resolve_database_drifts
-from ..plan import PlanStep
+from ..plan.core import PlanStep
 from ..plan.l10n import plan_msg
 from .helpers import make_plan_step
 from .types import PrepareContext

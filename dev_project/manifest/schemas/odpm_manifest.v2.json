@@ -45,12 +45,10 @@
     },
     "postgres": { "type": "string", "minLength": 1 },
     "dependencies": {
-      "type": "array",
-      "items": { "type": "string" }
+      "$ref": "#/$defs/stringList"
     },
     "requirements": {
-      "type": "array",
-      "items": { "type": "string" }
+      "$ref": "#/$defs/stringList"
     },
     "developing": {
       "type": "object",
@@ -73,49 +71,7 @@
       }
     },
     "hooks": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "post_clone": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "array",
-                "minItems": 1,
-                "items": { "type": "string" }
-              },
-              { "type": "string", "minLength": 1 }
-            ]
-          }
-        },
-        "post_prepare": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "array",
-                "minItems": 1,
-                "items": { "type": "string" }
-              },
-              { "type": "string", "minLength": 1 }
-            ]
-          }
-        },
-        "pre_up": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "array",
-                "minItems": 1,
-                "items": { "type": "string" }
-              },
-              { "type": "string", "minLength": 1 }
-            ]
-          }
-        }
-      }
+      "$ref": "#/$defs/manifestHooks"
     },
     "services": {
       "type": "object",
@@ -124,6 +80,9 @@
     "service_patches": {
       "type": "object",
       "additionalProperties": { "$ref": "#/$defs/composeServicePatch" }
+    },
+    "service_sources": {
+      "$ref": "#/$defs/serviceSources"
     },
     "extensions": {
       "type": "object",
@@ -144,22 +103,150 @@
       }
     },
     "odoo_conf": {
+      "$ref": "#/$defs/odooConf"
+    },
+    "secrets": {
+      "$ref": "#/$defs/manifestSecrets"
+    },
+    "scenarios": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "options": {
-          "type": "object",
-          "additionalProperties": { "type": "string" }
-        }
+        "developer": { "$ref": "#/$defs/scenarioOverlay" },
+        "server": { "$ref": "#/$defs/scenarioOverlay" },
+        "ci": { "$ref": "#/$defs/scenarioOverlay" }
       }
     }
   },
   "$defs": {
+    "odooConf": {
+      "type": "object",
+      "description": "INI-like sections for Odoo. options is core Odoo; other section names (redis_server, s3_server, …) are allowed for modules.",
+      "properties": {
+        "options": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "number", "boolean"]
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["string", "number", "boolean"]
+        }
+      }
+    },
+    "scenarioOverlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "odoo_conf": {
+          "$ref": "#/$defs/odooConf"
+        },
+        "services": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/composeService" }
+        },
+        "service_patches": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/composeServicePatch" }
+        },
+        "service_sources": {
+          "$ref": "#/$defs/serviceSources"
+        },
+        "requirements": {
+          "$ref": "#/$defs/stringList"
+        },
+        "dependencies": {
+          "$ref": "#/$defs/stringList"
+        },
+        "hooks": {
+          "$ref": "#/$defs/manifestHooks"
+        },
+        "secrets": {
+          "$ref": "#/$defs/manifestSecrets"
+        }
+      }
+    },
+    "manifestSecrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "keys": {
+          "$ref": "#/$defs/stringList"
+        },
+        "provider": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "type": "string", "minLength": 1 },
+            "host": { "type": "string" },
+            "project_id": { "type": "string" },
+            "project_slug": { "type": "string" },
+            "environment_slug": { "type": "string" },
+            "secret_path": { "type": "string" },
+            "recursive": { "type": "boolean" },
+            "key_map": {
+              "type": "object",
+              "additionalProperties": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "serviceSourceName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "serviceSources": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": { "$ref": "#/$defs/serviceSourceName" },
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": { "type": "string", "minLength": 1 }
+      }
+    },
+    "hookCommandEntry": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        { "type": "string", "minLength": 1 }
+      ]
+    },
+    "manifestHooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "post_clone": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hookCommandEntry" }
+        },
+        "post_prepare": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hookCommandEntry" }
+        },
+        "pre_up": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hookCommandEntry" }
+        }
+      }
+    },
     "composeService": {
       "type": "object",
       "additionalProperties": false,
       "required": ["image"],
       "properties": {
+        "source": { "$ref": "#/$defs/serviceSourceName" },
         "image": { "type": "string", "minLength": 1 },
         "ports": {
           "type": "array",
@@ -182,6 +269,8 @@
           "items": { "type": "string", "minLength": 1 }
         },
         "restart": { "type": "string", "minLength": 1 },
+        "hostname": { "type": "string", "minLength": 1 },
+        "healthcheck": { "$ref": "#/$defs/composeHealthcheck" },
         "command": {
           "type": "array",
           "minItems": 1,
@@ -193,7 +282,9 @@
           "items": { "type": "string" }
         },
         "user": { "type": "string", "minLength": 1 },
-        "tty": { "type": "boolean" }
+        "tty": { "type": "boolean" },
+        "privileged": { "type": "boolean" },
+        "pid": { "type": "string", "minLength": 1 }
       }
     },
     "composeServicePatch": {
@@ -223,6 +314,8 @@
           "items": { "type": "string", "minLength": 1 }
         },
         "restart": { "type": "string", "minLength": 1 },
+        "hostname": { "type": "string", "minLength": 1 },
+        "healthcheck": { "$ref": "#/$defs/composeHealthcheck" },
         "command": {
           "type": "array",
           "minItems": 1,
@@ -234,7 +327,31 @@
           "items": { "type": "string" }
         },
         "user": { "type": "string", "minLength": 1 },
-        "tty": { "type": "boolean" }
+        "tty": { "type": "boolean" },
+        "privileged": { "type": "boolean" },
+        "pid": { "type": "string", "minLength": 1 }
+      }
+    },
+    "composeHealthcheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "test": {
+          "oneOf": [
+            { "type": "string", "minLength": 1 },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string" }
+            }
+          ]
+        },
+        "interval": { "type": ["string", "number"] },
+        "timeout": { "type": ["string", "number"] },
+        "retries": { "type": "integer", "minimum": 1 },
+        "start_period": { "type": ["string", "number"] },
+        "start_interval": { "type": ["string", "number"] },
+        "disable": { "type": "boolean" }
       }
     }
   }

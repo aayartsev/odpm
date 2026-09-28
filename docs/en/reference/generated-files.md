@@ -10,6 +10,7 @@ Some files in the project directory are **created and updated by odpm**. Do not 
 | root `.dockerignore` | from `.odpm/dockerignore` template; reset template — delete `.odpm/dockerignore` and run odpm again |
 | `.odpm/runtime/config.json` | automatically; in project gitignore |
 | `.odpm/database/last_run.json` | on adoption and after successful checker; mounted in container; see [database-state.md](database-state.md) |
+| `.odpm/deploy/last_applied.json` | `odpm modules record-applied`; in `.odpm/.gitignore` (`deploy/`); see [deploy marker](deploy-marker.md) |
 | `.odpm/runtime/debug-profile.json` | automatically in `developer` scenario (`include_debugpy`); in gitignore |
 | `.odpm/secrets.example.json` | template on init; in git |
 | `.odpm/secrets.json` | manually or `--secrets-file`; in `.odpm/.gitignore` |
@@ -17,6 +18,8 @@ Some files in the project directory are **created and updated by odpm**. Do not 
 | `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` when `ODPM_IDE=vscode` or `both` and `ODPM_DEBUGGER_BACKEND=debugpy_listen`; `settings.json` includes `python.analysis.extraPaths` for platform, developing, and dependencies |
 | `.run/Odoo Remote Attach.run.xml` | `odpm --skip-start` when `ODPM_IDE=pycharm` or `both` and **`debugpy_listen`** (PyCharm Attach to DAP) |
 | `.run/Odoo Debug Server.run.xml` | `odpm --skip-start` when `ODPM_IDE=pycharm` or `both` and **`pydevd_connect`** (PyCharm Debug Server, Pro) |
+| `Dockerfile` (project root) | from `.odpm/{distro}_{ver}_dockerfile_{profile}`; profile from `ODPM_SCENARIO` or override `ODPM_BASE_IMAGE_PROFILE` (ADR-007) |
+| `.odpm/base_image_identity.json` | after a successful base image `docker build`; in `.odpm/.gitignore`; fields `base_image_profile`, `dockerfile_sha256` — see ADR-007 |
 
 When `ODPM_DEBUGGER_BACKEND` changes, odpm removes the obsolete odpm file from the pair above (user `.run/*.run.xml` files are untouched). See [IDE debugging](../operations/vscode-debug.md).
 

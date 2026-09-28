@@ -41,6 +41,7 @@ DIFF_HELPERS = frozenset(
         "preview_docker_compose_content",
         "diff_docker_compose_text",
         "diff_secrets_materialize_summary",
+        "diff_secrets_fetch_summary",
     }
 )
 
@@ -48,6 +49,7 @@ COMPOSE_RUNTIME_HELPERS = frozenset(
     {
         "compose_up_force_recreate_value",
         "evaluate_compose_up_plan",
+        "probe_should_force_recreate",
     }
 )
 

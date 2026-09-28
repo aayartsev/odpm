@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from .artifacts import DeprecatedConfigHandler
@@ -15,23 +14,18 @@ from .transforms import OdooBuildDateResolver
 
 if TYPE_CHECKING:
     from .config import Config
+from .manifests.odpm_json_writer import rewrite_odpm_json
+import sys
 
 
 def _rewrite_odpm_json_impl(config: Config, *, create_default) -> None:
-    from .manifests.odpm_json_writer import rewrite_odpm_json
 
     rewrite_odpm_json(config, create_default=create_default)
 
 
 class ConfigBootstrapContext:
-    def __init__(
-        self,
-        config: Config,
-        *,
-        bind_platform_link: Callable[[Config], None] | None = None,
-    ) -> None:
+    def __init__(self, config: Config) -> None:
         self.config = config
-        self._bind_platform_link = bind_platform_link
         self._wire_services()
 
     def _wire_services(self) -> None:
@@ -51,11 +45,9 @@ class ConfigBootstrapContext:
         self.git_repos = GitRepoCoordinator(
             self.config,
             paths=self.paths,
-            bind_platform_link=self._bind_platform_link,
         )
 
     def rewrite_odpm_json(self) -> None:
-        import sys
 
         module = sys.modules[__name__]
         module._rewrite_odpm_json_impl(

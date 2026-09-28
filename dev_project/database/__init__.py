@@ -1,4 +1,10 @@
-"""Database configuration state and last-run snapshots for odpm projects."""
+"""Database configuration state and last-run snapshots for odpm projects.
+
+Leaf types live in :mod:`dev_project.database.schema` and path helpers in
+:mod:`dev_project.database.paths`. Heavier modules (state, drift, probe, …)
+load lazily so ``container_config`` can import schema/state without a cycle
+through this package ``__init__``.
+"""
 
 from __future__ import annotations
 
@@ -19,30 +25,6 @@ from .schema import (
     DatabaseCurrentState,
     DatabaseLastRun,
     DatabaseOdooConfFingerprint,
-)
-from .state import (
-    collect_database_state,
-    load_last_run,
-    read_odoo_conf_db_fingerprint,
-    save_last_run,
-)
-from .ensure_role import EnsureRoleResult, build_ensure_role_sql, ensure_app_role
-from .probe import (
-    probe_app_role_exists,
-    probe_postgres_container_running,
-    probe_postgres_ready,
-)
-from .drift import (
-    RESOLUTION_DRIFT_KINDS,
-    DatabaseDrift,
-    DatabaseDriftKind,
-    DatabaseDriftSeverity,
-    database_drift_kinds,
-    detect_database_drift,
-    detect_database_drift_for_config,
-    drifts_requiring_resolution,
-    has_blocking_database_drift,
-    meaningful_database_drifts,
 )
 
 __all__ = (
@@ -92,6 +74,26 @@ __all__ = (
 )
 
 _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
+    "collect_database_state": (".state", "collect_database_state"),
+    "load_last_run": (".state", "load_last_run"),
+    "read_odoo_conf_db_fingerprint": (".state", "read_odoo_conf_db_fingerprint"),
+    "save_last_run": (".state", "save_last_run"),
+    "EnsureRoleResult": (".ensure_role", "EnsureRoleResult"),
+    "build_ensure_role_sql": (".ensure_role", "build_ensure_role_sql"),
+    "ensure_app_role": (".ensure_role", "ensure_app_role"),
+    "probe_app_role_exists": (".probe", "probe_app_role_exists"),
+    "probe_postgres_container_running": (".probe", "probe_postgres_container_running"),
+    "probe_postgres_ready": (".probe", "probe_postgres_ready"),
+    "RESOLUTION_DRIFT_KINDS": (".drift", "RESOLUTION_DRIFT_KINDS"),
+    "DatabaseDrift": (".drift", "DatabaseDrift"),
+    "DatabaseDriftKind": (".drift", "DatabaseDriftKind"),
+    "DatabaseDriftSeverity": (".drift", "DatabaseDriftSeverity"),
+    "database_drift_kinds": (".drift", "database_drift_kinds"),
+    "detect_database_drift": (".drift", "detect_database_drift"),
+    "detect_database_drift_for_config": (".drift", "detect_database_drift_for_config"),
+    "drifts_requiring_resolution": (".drift", "drifts_requiring_resolution"),
+    "has_blocking_database_drift": (".drift", "has_blocking_database_drift"),
+    "meaningful_database_drifts": (".drift", "meaningful_database_drifts"),
     "run_database_command": (".commands", "run_database_command"),
     "DatabaseStatusReport": (".status", "DatabaseStatusReport"),
     "collect_database_status": (".status", "collect_database_status"),
@@ -117,3 +119,7 @@ def __getattr__(name: str) -> Any:
         return importlib.import_module(f".{name}", __name__)
     except ModuleNotFoundError as exc:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc
+
+
+def __dir__() -> list[str]:
+    return sorted(set(__all__) | set(globals()) | set(_LAZY_EXPORTS))

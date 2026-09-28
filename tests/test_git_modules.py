@@ -11,6 +11,11 @@ from dev_project.git import (
 from dev_project.git.discovery import ProjectDiscovery
 from dev_project.git.parser import LinkParser
 from dev_project.git.types import OdooProjectData
+from dev_project.git.runner import GitRunner
+from dev_project.git.clone import RepoCloneService
+from dev_project.errors import GitError
+from dev_project.git.checkout import CheckoutService
+from dev_project.git.build_date import BuildDateResolver
 
 
 class LinkParserTests(unittest.TestCase):
@@ -118,7 +123,6 @@ class ProjectDiscoveryTests(unittest.TestCase):
 
 class GitRunnerTests(unittest.TestCase):
     def _runner(self, **link_overrides):
-        from dev_project.git.runner import GitRunner
 
         link = object.__new__(HandleOdooProjectLink)
         link.project_path = "/tmp/repo"
@@ -177,8 +181,6 @@ class GitRunnerTests(unittest.TestCase):
 
 class RepoCloneServiceTests(unittest.TestCase):
     def _service(self, **link_overrides):
-        from dev_project.git.clone import RepoCloneService
-        from dev_project.git.runner import GitRunner
 
         link = object.__new__(HandleOdooProjectLink)
         link.project_path = "/tmp/repo"
@@ -217,7 +219,6 @@ class RepoCloneServiceTests(unittest.TestCase):
 
     @patch("dev_project.git.clone.run_logged", return_value=128)
     def test_clone_repo_raises_git_error_on_failure(self, _mock_run_logged):
-        from dev_project.errors import GitError
 
         service = self._service()
         with self.assertRaises(GitError):
@@ -251,8 +252,6 @@ class RepoCloneServiceTests(unittest.TestCase):
 
 class CheckoutServiceTests(unittest.TestCase):
     def _service(self, **link_overrides):
-        from dev_project.git.checkout import CheckoutService
-        from dev_project.git.runner import GitRunner
 
         link = object.__new__(HandleOdooProjectLink)
         link.project_path = "/tmp/repo"
@@ -355,7 +354,6 @@ class CheckoutServiceTests(unittest.TestCase):
     def test_checkout_version_branch_raises_without_switching_to_newest(
         self, mock_run_checked, mock_checkout
     ):
-        from dev_project.errors import GitError
 
         mock_run_checked.side_effect = [
             MagicMock(stdout="", returncode=0, stderr=""),
@@ -388,9 +386,6 @@ class CheckoutServiceTests(unittest.TestCase):
 
 class BuildDateResolverTests(unittest.TestCase):
     def _resolver(self, **link_overrides):
-        from dev_project.git.build_date import BuildDateResolver
-        from dev_project.git.checkout import CheckoutService
-        from dev_project.git.runner import GitRunner
 
         link = object.__new__(HandleOdooProjectLink)
         link.project_path = "/tmp/repo"
@@ -527,10 +522,6 @@ class HandleOdooProjectLinkGitServicesTests(unittest.TestCase):
 
     def test_wire_git_services_composes_runner_clone_checkout_build_date(self):
         link = self._link()
-        from dev_project.git.build_date import BuildDateResolver
-        from dev_project.git.checkout import CheckoutService
-        from dev_project.git.clone import RepoCloneService
-        from dev_project.git.runner import GitRunner
 
         self.assertIsInstance(link._runner, GitRunner)
         self.assertIsInstance(link._clone, RepoCloneService)

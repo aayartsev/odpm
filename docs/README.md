@@ -89,6 +89,8 @@ odpm -d test_db -i -u
 | Ссылки на репозитории (git, https, file) | [git-links.md](reference/git-links.md) |
 | Все параметры командной строки | [cli.md](reference/cli.md) |
 | Состояние PostgreSQL, drift, legacy adoption | [database-state.md](reference/database-state.md) |
+| Маркер деплоя модулей (`modules diff`) | [deploy-marker.md](reference/deploy-marker.md) |
+| Рецепты (`odpm run`) | [recipes.md](reference/recipes.md) |
 | Файлы `.env`, `odpm.json`, `odoo.conf` | [справочник](reference/config-hierarchy.md) |
 | Безопасность на сервере | [security.md](operations/security.md) |
 | Переход с версии 3.0 | [migration-3-to-4.md](operations/migration-3-to-4.md) |

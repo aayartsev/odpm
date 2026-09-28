@@ -9,6 +9,42 @@ from dev_project.protocols import (
     PrepareProjectServicesProtocol,
     SystemCheckerProtocol,
 )
+from dev_project.project_env.services import BaseImageService, CiImageBuildService, VscodeConfigurator
+from dev_project.runtime_coordinator import RuntimeCoordinator
+from dev_project.project_env.links import ProjectLinks
+from dev_project.project_env.templates import ProjectTemplates
+from dev_project import config as config_module
+from dev_project.config import Config
+from dev_project import project_env as project_env_module
+from dev_project import git as git_module
+from dev_project import compose as compose_module
+from dev_project.compose import ComposeGenerator, ComposeOdooService, ComposeServiceBuilder, StartCommand, should_force_recreate_compose
+from dev_project.compose.command_render import yaml_scalar
+from dev_project.compose.runtime import should_force_recreate_compose as runtime_fn
+from dev_project import project_materializer as materializer_module
+from dev_project import host as host_module
+from dev_project.host.cli import OdpmCliArgs, parse_cli_args
+from dev_project.config import bootstrap as bootstrap_module
+from dev_project.config import bootstrap_phases as bootstrap_phases_module
+from dev_project.config import layout as layout_module
+from dev_project.config.runtime_facade import ConfigRuntimeFacadeMixin
+from dev_project.cli import main
+from dev_project.plan import OdpmPlanner, PlanStep, format_plan
+from dev_project.plan.cli import is_plan_mode
+from dev_project.plan.format import format_plan_json, format_plan_table
+from dev_project import plan as plan_module
+from dev_project.plan import deps_lock_file_exists, project_template_needs_upgrade
+from dev_project.plan.compose_preview import preview_compose_service
+from dev_project.plan.compose_runtime import compose_up_would_run
+from dev_project.plan.core import OdpmPlan, runtime_config_stale
+from dev_project.plan.diff import PlanFileDiff, build_plan_diffs
+from dev_project.plan.runtime_preview import preview_runtime_config_text
+from dev_project import prepare as prepare_module
+from dev_project.prepare import PREPARE_STEPS, PrepareContext, build_prepare_plan, evaluate_prepare_plan, make_prepare_context
+from dev_project.program_dir import resolve_program_dir
+from dev_project.inside_docker_app import run_odoo as run_odoo_module
+from dev_project.logging import CustomFormatter, get_module_logger
+from dev_project.inside_docker_app import logger as legacy_logger
 
 
 class ProtocolTypingTests(unittest.TestCase):
@@ -16,23 +52,15 @@ class ProtocolTypingTests(unittest.TestCase):
         self.assertTrue(issubclass(SystemChecker, SystemCheckerProtocol))
 
     def test_project_env_services_are_importable(self):
-        from dev_project.project_env.services import (
-            BaseImageService,
-            CiImageBuildService,
-            PlatformSourcesService,
-            VscodeConfigurator,
-        )
 
         for service in (
             BaseImageService,
             CiImageBuildService,
-            PlatformSourcesService,
             VscodeConfigurator,
         ):
             self.assertTrue(callable(service))
 
     def test_runtime_coordinator_is_importable(self):
-        from dev_project.runtime_coordinator import RuntimeCoordinator
 
         self.assertTrue(callable(RuntimeCoordinator))
 
@@ -61,9 +89,6 @@ class ProtocolTypingTests(unittest.TestCase):
         )
 
     def test_prepare_service_modules_expose_prepare_operations(self):
-        from dev_project.compose.generator import ComposeGenerator
-        from dev_project.project_env.links import ProjectLinks
-        from dev_project.project_env.templates import ProjectTemplates
 
         for name in ("map_folders", "checkout_dependencies", "update_links"):
             self.assertTrue(callable(getattr(ProjectLinks, name)))
@@ -85,17 +110,14 @@ class ProtocolTypingTests(unittest.TestCase):
 
 class CanonicalImportSmokeTests(unittest.TestCase):
     def test_config_package_imports(self):
-        from dev_project import config as config_module
 
         self.assertTrue(hasattr(config_module, "Config"))
 
     def test_config_has_no_system_checker_backref(self):
-        from dev_project.config import Config
 
         self.assertFalse(hasattr(Config, "system_checker"))
 
     def test_config_runtime_fields_are_properties(self):
-        from dev_project.config import Config
 
         for name in (
             "compose_service",
@@ -106,26 +128,14 @@ class CanonicalImportSmokeTests(unittest.TestCase):
             self.assertIsInstance(getattr(Config, name), property)
 
     def test_project_env_package_imports(self):
-        from dev_project import project_env as project_env_module
 
         self.assertTrue(hasattr(project_env_module, "CreateProjectEnvironment"))
 
     def test_git_package_imports(self):
-        from dev_project import git as git_module
 
         self.assertTrue(hasattr(git_module, "HandleOdooProjectLink"))
 
     def test_compose_package_imports(self):
-        from dev_project import compose as compose_module
-        from dev_project.compose import (
-            ComposeGenerator,
-            ComposeOdooService,
-            ComposeServiceBuilder,
-            StartCommand,
-            should_force_recreate_compose,
-        )
-        from dev_project.compose.command_render import yaml_scalar
-        from dev_project.compose.runtime import should_force_recreate_compose as runtime_fn
 
         self.assertTrue(hasattr(compose_module, "ComposeServiceBuilder"))
         self.assertTrue(hasattr(compose_module, "ComposeGenerator"))
@@ -139,13 +149,10 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         self.assertTrue(hasattr(StartCommand, "__dataclass_fields__"))
 
     def test_project_materializer_imports(self):
-        from dev_project import project_materializer as materializer_module
 
         self.assertTrue(hasattr(materializer_module, "ProjectMaterializer"))
 
     def test_host_package_imports(self):
-        from dev_project import host as host_module
-        from dev_project.host.cli import OdpmCliArgs, parse_cli_args
 
         self.assertTrue(hasattr(host_module, "CreateUserEnvironment"))
         self.assertTrue(hasattr(host_module, "HostProjectContext"))
@@ -154,31 +161,23 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         self.assertTrue(hasattr(OdpmCliArgs, "__dataclass_fields__"))
 
     def test_config_bootstrap_imports(self):
-        from dev_project.config import bootstrap as bootstrap_module
-        from dev_project.config import bootstrap_phases as bootstrap_phases_module
 
         self.assertTrue(callable(bootstrap_module.bootstrap_config))
         self.assertTrue(callable(bootstrap_phases_module.load_user_settings))
 
     def test_config_layout_imports(self):
-        from dev_project.config import layout as layout_module
 
         self.assertTrue(callable(layout_module.apply_policy_and_layout))
 
     def test_config_runtime_facade_imports(self):
-        from dev_project.config.runtime_facade import ConfigRuntimeFacadeMixin
 
         self.assertTrue(hasattr(ConfigRuntimeFacadeMixin, "compose_service"))
 
     def test_cli_entrypoint_imports(self):
-        from dev_project.cli import main
 
         self.assertTrue(callable(main))
 
     def test_plan_module_imports(self):
-        from dev_project.plan import OdpmPlanner, PlanStep, format_plan
-        from dev_project.plan.cli import is_plan_mode
-        from dev_project.plan.format import format_plan_json, format_plan_table
 
         self.assertTrue(callable(OdpmPlanner.build))
         self.assertTrue(callable(is_plan_mode))
@@ -188,16 +187,6 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         self.assertTrue(hasattr(PlanStep, "__dataclass_fields__"))
 
     def test_plan_package_imports(self):
-        from dev_project import plan as plan_module
-        from dev_project.plan import (
-            deps_lock_file_exists,
-            project_template_needs_upgrade,
-        )
-        from dev_project.plan.compose_preview import preview_compose_service
-        from dev_project.plan.compose_runtime import compose_up_would_run
-        from dev_project.plan.core import OdpmPlan, runtime_config_stale
-        from dev_project.plan.diff import PlanFileDiff, build_plan_diffs
-        from dev_project.plan.runtime_preview import preview_runtime_config_text
 
         self.assertTrue(hasattr(plan_module, "OdpmPlanner"))
         self.assertTrue(hasattr(plan_module, "PlanStep"))
@@ -212,14 +201,6 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         self.assertTrue(callable(preview_runtime_config_text))
 
     def test_prepare_package_imports(self):
-        from dev_project import prepare as prepare_module
-        from dev_project.prepare import (
-            PREPARE_STEPS,
-            PrepareContext,
-            build_prepare_plan,
-            evaluate_prepare_plan,
-            make_prepare_context,
-        )
 
         self.assertTrue(hasattr(prepare_module, "make_prepare_context"))
         self.assertTrue(hasattr(PREPARE_STEPS, "__len__"))
@@ -229,18 +210,14 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         self.assertTrue(callable(make_prepare_context))
 
     def test_program_dir_resolver_imports(self):
-        from dev_project.program_dir import resolve_program_dir
 
         self.assertTrue(callable(resolve_program_dir))
 
     def test_run_odoo_entrypoint_imports(self):
-        from dev_project.inside_docker_app import run_odoo as run_odoo_module
 
         self.assertTrue(callable(run_odoo_module.main))
 
     def test_inside_docker_app_logger_reexports_canonical_logging(self):
-        from dev_project.logging import CustomFormatter, get_module_logger
-        from dev_project.inside_docker_app import logger as legacy_logger
 
         self.assertIs(legacy_logger.get_module_logger, get_module_logger)
         self.assertIs(legacy_logger.CustomFormatter, CustomFormatter)

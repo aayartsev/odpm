@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 from .. import constants
 from .paths import ensure_database_dir_gitignore, last_run_path
+from .postgres_paths import postgres_cluster_dir_on_host
 from .schema import (
     DATABASE_ENGINE_POSTGRES,
     DatabaseClusterFingerprint,
@@ -100,9 +101,17 @@ def read_odoo_conf_db_fingerprint(
 
 def collect_database_state(config: Config) -> DatabaseCurrentState:
     data_path = os.path.realpath(config.postgres_data_local_storage)
-    service_name = config.user_env.postgres_service_name
+    cluster_path = postgres_cluster_dir_on_host(data_path, config.postgres_version)
+    user_env = config.user_env
+    service_name = user_env.postgres_service_name
+    compose_project_name = getattr(user_env, "compose_project_name", None)
+    if not isinstance(compose_project_name, str) or not compose_project_name:
+        compose_project_name = None
+    odoo_service_name = getattr(user_env, "odoo_service_name", None)
+    if not isinstance(odoo_service_name, str) or not odoo_service_name:
+        odoo_service_name = None
     host_port = int(
-        config.user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
+        user_env.postgres_port or constants.POSTGRES_DEFAULT_PORT
     )
     default_user = constants.POSTGRES_ODOO_USER
     odoo_conf = read_odoo_conf_db_fingerprint(
@@ -119,11 +128,14 @@ def collect_database_state(config: Config) -> DatabaseCurrentState:
             image_tag=str(config.postgres_version),
             data_path_abs=data_path,
             host_port=host_port,
+            compose_project_name=compose_project_name,
+            odoo_service_name=odoo_service_name,
         ),
         odoo_conf=odoo_conf,
         cluster=DatabaseClusterFingerprint(
-            data_dir_nonempty=_data_dir_nonempty(data_path),
-            pg_major=_read_pg_major(data_path),
+            data_dir_nonempty=_data_dir_nonempty(cluster_path)
+            or _data_dir_nonempty(data_path),
+            pg_major=_read_pg_major(cluster_path),
             app_role=default_user,
             app_role_present=None,
         ),
@@ -152,7 +164,7 @@ def save_current_database_baseline(
     assume_app_role_present: bool = False,
 ) -> str:
     """Persist current configuration fingerprints as the database baseline."""
-    from .status import collect_database_status
+    from .status import collect_database_status  # noqa: PLC0415  # cycle
 
     report = collect_database_status(config)
     current = report.current

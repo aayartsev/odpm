@@ -18,12 +18,15 @@ from ..debugger.constants import (
 )
 from ..logging import get_module_logger
 from ..translations import _, parse_odpm_locale_setting
+from ..interactive import prompt_input
+from ..translations import _locale_from_environment
+from ..debugger.env_parsing import parse_debugger_suspend
+
 
 _logger = get_module_logger(__name__)
 
 
 def _prompt_input(prompt: str) -> str:
-    from ..interactive import prompt_input
 
     return prompt_input(prompt)
 
@@ -93,7 +96,7 @@ def get_from_user_odoo_port() -> int:
             "You select this port for which odoo will listen: "
             "{SELECTED_ODOO_PORT}\n"
         ).format(
-            SELECTED_ODOO_PORT=default_port,
+            SELECTED_ODOO_PORT=port,
         )
     )
     return int(port)
@@ -117,7 +120,7 @@ def get_from_user_postgres_port() -> int:
             "You select this port for which PostgreSQL database server will "
             "listen: {SELECTED_POSTGRES_PORT}\n"
         ).format(
-            SELECTED_POSTGRES_PORT=default_port,
+            SELECTED_POSTGRES_PORT=port,
         )
     )
     return int(port)
@@ -141,7 +144,7 @@ def get_from_user_debugger_port() -> int:
             "You select this port for which Python Debugger will listen: "
             "{SELECTED_DEBUGGER_PORT}\n"
         ).format(
-            SELECTED_DEBUGGER_PORT=default_port,
+            SELECTED_DEBUGGER_PORT=port,
         )
     )
     return int(port)
@@ -165,7 +168,7 @@ def get_from_user_gevent_port() -> int:
             "You select this port for which Odoo Gevent Websocket System will "
             "listen: {SELECTED_GEVENT_PORT}\n"
         ).format(
-            SELECTED_GEVENT_PORT=default_port,
+            SELECTED_GEVENT_PORT=port,
         )
     )
     return int(port)
@@ -201,7 +204,6 @@ def get_from_user_odpm_scenario() -> str:
 
 
 def get_from_user_odpm_locale() -> str:
-    from ..translations import _locale_from_environment
 
     system_locale = _locale_from_environment()
     user_locale = sys.modules[__name__]._prompt_input(
@@ -247,7 +249,7 @@ def get_from_user_debugger_connect_host() -> str:
     if not user_host:
         selected = default_host
     else:
-        from ..debugger.env_parsing import parse_debugger_connect_host
+        from ..debugger.env_parsing import parse_debugger_connect_host  # noqa: PLC0415  # optional
 
         selected = parse_debugger_connect_host(user_host)
     _logger.info(
@@ -259,7 +261,6 @@ def get_from_user_debugger_connect_host() -> str:
 
 
 def get_from_user_debugger_suspend() -> bool:
-    from ..debugger.env_parsing import parse_debugger_suspend
 
     choice = sys.modules[__name__]._prompt_input(
         _(
@@ -340,3 +341,115 @@ def get_from_user_odpm_ide() -> str:
         )
     )
     return selected
+
+
+def get_from_user_ci_image_builder() -> str:
+    default_builder = constants.CI_IMAGE_BUILDER_DOCKER
+    options = "\n".join(
+        f"{index} - {name}"
+        for index, name in enumerate(constants.CI_IMAGE_BUILDERS, start=1)
+    )
+    choice = sys.modules[__name__]._prompt_input(
+        _(
+            "Select CI image build backend "
+            "(Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+        ).format(DEFAULT_BUILDER=default_builder, OPTIONS=options)
+    )
+    if not choice:
+        selected = default_builder
+    else:
+        try:
+            selected = constants.CI_IMAGE_BUILDERS[int(choice) - 1]
+        except (ValueError, IndexError):
+            _logger.warning(
+                _("Invalid CI image builder choice %r, using %s"),
+                choice,
+                default_builder,
+            )
+            selected = default_builder
+    _logger.info(
+        _("You selected CI image builder: {SELECTED_BUILDER}\n").format(
+            SELECTED_BUILDER=selected,
+        )
+    )
+    return selected
+
+
+def get_from_user_kaniko_executor_mode() -> str:
+    default_mode = constants.KANIKO_EXECUTOR_MODE_DIRECT
+    options = "\n".join(
+        f"{index} - {name}"
+        for index, name in enumerate(constants.KANIKO_EXECUTOR_MODES, start=1)
+    )
+    choice = sys.modules[__name__]._prompt_input(
+        _(
+            "Select Kaniko executor mode (Enter for default {DEFAULT_MODE}). "
+            "Note: docker-run still requires a Docker daemon:\n{OPTIONS}\n"
+        ).format(DEFAULT_MODE=default_mode, OPTIONS=options)
+    )
+    if not choice:
+        selected = default_mode
+    else:
+        try:
+            selected = constants.KANIKO_EXECUTOR_MODES[int(choice) - 1]
+        except (ValueError, IndexError):
+            _logger.warning(
+                _("Invalid Kaniko executor mode choice %r, using %s"),
+                choice,
+                default_mode,
+            )
+            selected = default_mode
+    if selected == constants.KANIKO_EXECUTOR_MODE_DOCKER_RUN:
+        _logger.warning(
+            _(
+                "Kaniko docker-run mode requires a Docker daemon on the build host."
+            )
+        )
+    _logger.info(
+        _("You selected Kaniko executor mode: {SELECTED_MODE}\n").format(
+            SELECTED_MODE=selected,
+        )
+    )
+    return selected
+
+
+def get_from_user_ci_image_push() -> str:
+    choice = sys.modules[__name__]._prompt_input(
+        _(
+            "Push the final CI image after build? Answer y/yes or n/no "
+            "(Enter for no):\n"
+        )
+    )
+    selected = choice.strip().lower() in {"1", "y", "yes", "true"}
+    value = "1" if selected else "0"
+    _logger.info(
+        _("You selected CI image push: {SELECTED_PUSH}\n").format(
+            SELECTED_PUSH="yes" if selected else "no",
+        )
+    )
+    return value
+
+
+def get_from_user_base_image_registry() -> str:
+    registry = sys.modules[__name__]._prompt_input(
+        _(
+            "Set base image registry prefix for Kaniko "
+            "(required, e.g. registry.example.com/odpm):\n"
+        )
+    ).strip()
+    while not registry:
+        _logger.warning(
+            _("Base image registry is required when using the kaniko builder.")
+        )
+        registry = sys.modules[__name__]._prompt_input(
+            _(
+                "Set base image registry prefix for Kaniko "
+                "(required, e.g. registry.example.com/odpm):\n"
+            )
+        ).strip()
+    _logger.info(
+        _("You selected base image registry: {SELECTED_REGISTRY}\n").format(
+            SELECTED_REGISTRY=registry,
+        )
+    )
+    return registry

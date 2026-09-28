@@ -1,6 +1,6 @@
 # Исторический backlog odpm
 
-Активный техдолг и статусы фаз 4.4 — в [docs/contributing/architecture-debt.md](docs/contributing/architecture-debt.md#debt-tracker-44-closure).
+Исторический backlog; закрытые фазы 4.4–4.6 — см. [CHANGELOG.md](CHANGELOG.md) и [goals_ru.md](goals_ru.md).
 
 ## Backlog (post-4.4 closure, triage 2026-06)
 
@@ -32,7 +32,7 @@
 - [x] создать пакеты deb и rpm и, возможно для mac
 - [x] CI secrets import через `--secrets-file` (`test_ci_secrets_smoke`, `ci-docker.yml`)
 - [x] CI secrets bake (`ODPM_BAKE_SECRETS=1`, ADR-002, `test_ci_secrets_smoke` bake cases)
-- [x] архитектура G/C/E (A10/A4/A11): plan status — `docs/contributing/architecture-debt.md`
+- [x] архитектура G/C/E (A10/A4/A11): plan status (закрыто)
 - [x] надо подумать как выносить шаблон конфигурации odoo в папку проекта, чтобы разработчик мог его модифицировать под свои нужды
 - [x] IDE-neutral DebuggerProfile v1 + `.odpm/runtime/debug-profile.json` (profile_only; VS Code из профиля)
 - [x] TD-FEAT-08a: генератор run/debug конфигурации PyCharm из `debug-profile.json`

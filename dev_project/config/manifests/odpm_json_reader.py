@@ -6,17 +6,24 @@ import json
 import os
 import shutil
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ... import constants
-from ...manifest.reader import load_manifest
 from ..transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
     expand_env_in_json,
+    with_secrets,
 )
+from ..transforms.secret_refs import (
+    ensure_secrets_available_for_refs,
+    manifest_trees_for_secret_ref_gate,
+)
+from ...project_env.odoo_password_secrets import maybe_ensure_odoo_password_keys
+from ...secrets_providers.fetch import ensure_secrets_source_for_config
 
 if TYPE_CHECKING:
     from ..config import Config
+from ...manifest.reader import load_manifest
 
 
 class OdpmJsonReader:
@@ -60,7 +67,32 @@ class OdpmJsonReader:
             self._rewrite_odpm_json()
         with open(self.config.repo_odpm_json) as repo_odpm_json:
             raw = json.load(repo_odpm_json)
-        view = load_manifest(raw, env_resolver=self.config.env_resolver)
+        active_scenario = self.config.user_env.odpm_scenario
+        settings_disk: dict[str, Any] = getattr(
+            self.config.bootstrap, "raw_user_settings_disk", None
+        ) or {}
+        ensure_secrets_source_for_config(
+            self.config,
+            raw=raw,
+            phase="early",
+            extra_ref_trees=(settings_disk,),
+        )
+        maybe_ensure_odoo_password_keys(self.config, raw_manifest=raw)
+        secrets_map = ensure_secrets_available_for_refs(
+            self.config.project_dir,
+            *manifest_trees_for_secret_ref_gate(raw, active_scenario),
+            settings_disk,
+        )
+        resolver = with_secrets(
+            self.config.env_resolver,
+            secrets_map,
+        )
+        self.config._env_resolver = resolver
+        view = load_manifest(
+            raw,
+            env_resolver=resolver,
+            active_scenario=self.config.user_env.odpm_scenario,
+        )
         self.config.bootstrap.manifest_view = view
         self.config._raw_odpm_json = expand_env_in_json(
             view.raw_normalized,

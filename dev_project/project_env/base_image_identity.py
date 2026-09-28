@@ -33,15 +33,20 @@ def dockerfile_content_sha256(project_dir: str) -> str:
     return digest.hexdigest()
 
 
-def expected_base_image_identity(config: Config) -> dict[str, str]:
+def expected_base_image_identity(
+    config: Config, *, image_ref: str | None = None
+) -> dict[str, str]:
     policy = config.policy
-    return {
+    identity = {
         "user": policy.runtime_unix_user(),
         "uid": policy.runtime_unix_uid(),
         "gid": policy.runtime_unix_gid(),
         "base_image_profile": policy.base_image_profile,
         "dockerfile_sha256": dockerfile_content_sha256(config.project_dir),
     }
+    if image_ref:
+        identity["image_ref"] = image_ref
+    return identity
 
 
 def read_base_image_identity(project_dir: str) -> dict[str, str] | None:
@@ -53,7 +58,11 @@ def read_base_image_identity(project_dir: str) -> dict[str, str] | None:
     required = ("user", "uid", "gid", "base_image_profile", "dockerfile_sha256")
     if not all(isinstance(payload.get(key), str) for key in required):
         return None
-    return {key: payload[key] for key in required}
+    identity = {key: payload[key] for key in required}
+    image_ref = payload.get("image_ref")
+    if isinstance(image_ref, str) and image_ref:
+        identity["image_ref"] = image_ref
+    return identity
 
 
 def write_base_image_identity(project_dir: str, identity: dict[str, str]) -> None:
@@ -80,11 +89,20 @@ def ensure_base_image_identity_gitignore(project_dir: str) -> None:
         Path(gitignore_path).write_text(f"{existing}{suffix}{entry}\n", encoding="utf-8")
 
 
-def base_image_identity_matches(config: Config) -> bool:
+def base_image_identity_matches(
+    config: Config, *, image_ref: str | None = None
+) -> bool:
     stamp = read_base_image_identity(config.project_dir)
     if stamp is None:
         return False
-    return stamp == expected_base_image_identity(config)
+    expected = expected_base_image_identity(config, image_ref=image_ref)
+    if image_ref is None:
+        # Ignore optional image_ref in stamp when caller does not care.
+        stamp = {key: value for key, value in stamp.items() if key != "image_ref"}
+        expected = {
+            key: value for key, value in expected.items() if key != "image_ref"
+        }
+    return stamp == expected
 
 
 def base_image_identity_matches_host(host_ctx) -> bool:

@@ -20,7 +20,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 |----------|-----------------|-------------------|
 | **Manifest `services`** | `odpm.json` v2 → `services` | Prepare `compose.fragments` + `odpm plan` → `compose.fragment.<name>` |
 | **Manifest `hooks`** | `odpm.json` v2 → `hooks` | `post_clone` после git materialize; `post_prepare` после prepare; `pre_up` перед compose up |
-| **Python entry points** | `pyproject.toml` пакета | Pluggy: `odpm.prepare_steps`, `odpm.hooks` |
+| **Python entry points** | `pyproject.toml` пакета | Pluggy: `odpm.prepare_steps`, `odpm.hooks`; секреты: `odpm.secrets_providers` |
 | **Project-local plugins** | `.odpm/plugins/*.py` или `extensions.local` | Импорт при bootstrap (только внутри `project_dir`) |
 
 Подробнее о полях v2: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).
@@ -43,7 +43,41 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 }
 ```
 
-Для sidecar допустимы **`user`** и **`tty`** (как в `service_patches`):
+Локально отключить sidecar без правки shared `odpm.json`: `user_settings.json` → `"sidecars": { "mailpit": false }` ([user-settings](user-settings.md), [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md)).
+
+Для sidecar доступны также **`user`**, **`tty`**, **`hostname`**, **`healthcheck`**, **`privileged`**, **`pid`** (как в `service_patches`). Для sidecar с **git build-контекстом** (рекомендуется, 4.7+) используйте `service_sources` и `${@source:...}`; для API-ключей sidecar — `${@secret:...}` из `.odpm/secrets.json`:
+
+```json
+"service_sources": {
+  "autoparts_env": "https://github.com/org/autoparts-env.git 17.0"
+},
+"services": {
+  "armtek_test": {
+    "source": "autoparts_env",
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"],
+    "environment": {
+      "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}"
+    }
+  }
+},
+"hooks": {
+  "post_prepare": [
+    [
+      "docker", "build",
+      "-f", "${@source:autoparts_env}/Dockerfile",
+      "-t", "autoparts_env:emulator",
+      "${@source:autoparts_env}"
+    ]
+  ]
+}
+```
+
+`${@secret:...}` требует `.odpm/secrets.json` или `--secrets-file`; значение попадёт в generated compose YAML (осознанно). Подробнее: [secrets.md](../operations/secrets.md).
+
+См. [service-sources.md](service-sources.md). Legacy-вариант с путём из `.env`:
 
 ```json
 "services": {
@@ -59,6 +93,46 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 Тот же spec в коде: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC`.
 
 После `odpm up` сервис появится в сгенерированном `docker-compose.yml` (блок `{COMPOSE_SERVICE_FRAGMENTS}`). Артефакты materialize: `.odpm/compose/fragments/mailpit.yml` (gitignored).
+
+В `depends_on` sidecar указывайте **логическое** имя `db` (не physical `acme-db`); при `ODPM_COMPOSE_PREFIX` odpm перепишет зависимости при генерации compose — см. [env-dotenv.md](env-dotenv.md).
+
+### Compose-сеть (`networks`, 4.7+)
+
+По умолчанию весь стек живёт в implicit default network Docker Compose. Чтобы объявить **одну** именованную сеть для всех сервисов, задайте в `.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=stack
+```
+
+Для **external** сети reverse proxy (Traefik, Caddy) — обычно в `~/.odpm/.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=proxy
+ODPM_COMPOSE_NETWORK_EXTERNAL=1
+```
+
+См. [env-dotenv.md](env-dotenv.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
+
+В manifest sidecar можно указать `networks` (логические имена; при `ODPM_COMPOSE_PREFIX` odpm перепишет managed-сеть в physical, external — без prefix):
+
+```json
+"services": {
+  "metrics": {
+    "image": "prom/prometheus",
+    "networks": ["stack"]
+  }
+}
+```
+
+Если в manifest указано `networks: ["stack"]`, в `.env` должно быть **`ODPM_COMPOSE_NETWORK=stack`** (или уберите `networks` — odpm подключит sidecar автоматически). `odpm manifest validate` выдаёт **warning**, если логическое имя `stack` не совпадает с `.env`.
+
+Для proxy-only sidecar без odpm-managed `stack`:
+
+```json
+"networks": ["${PROXY_NETWORK}"]
+```
+
+с `PROXY_NETWORK=proxy` и `ODPM_COMPOSE_NETWORK=proxy` в `.env`.
 
 ### Patch built-in сервисов (`service_patches`, 4.6+)
 
@@ -107,28 +181,29 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 
 Каждый элемент — либо **argv** (массив строк, выполняется в `project_dir` **без shell**), либо **plugin id** (строка) для pluggy hook runner.
 
-В argv поддерживается **`${VAR}`** / **`${VAR:-default}`** (как в Compose): раскрытие при выполнении hook из process env → project `.env` → default в строке. Subprocess получает **merged env** (process + недостающие ключи из `.env`). Пример сборки образа sidecar:
+В argv поддерживается **`${VAR}`** / **`${VAR:-default}`**, **`${@source:<name>}`** (после `sources.materialize`) и **`${@secret:<key>}`** (из `.odpm/secrets.json`): раскрытие при выполнении hook. Subprocess получает **merged env** (process + недостающие ключи из `.env`).
 
 ```json
 "hooks": {
   "post_prepare": [[
     "docker", "build",
-    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-f", "${@source:autoparts_env}/Dockerfile",
     "-t", "autoparts_env:emulator",
-    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+    "${@source:autoparts_env}"
   ]]
 }
 ```
 
-В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — раскрытие при чтении manifest с `EnvResolver`.
+В `services` / `service_patches` те же правила подстановки для строковых полей (`image`, `volumes[]`, `command[]`, `environment`, …) — `${VAR}` / `${@secret:...}` при чтении manifest; `${@source:...}` после `sources.materialize`.
 
-Порядок по ADR-004:
+Порядок prepare (фрагмент):
 
 1. Git materialize
-2. `hooks.post_clone` (если задан)
-3. Все prepare steps (built-in + `odpm.prepare_steps` + local plugins), сортировка по `order`
-4. `hooks.post_prepare`
-5. Runtime: debug profile, IDE, database drift
+2. **`sources.materialize`** (если есть `service_sources`)
+3. `hooks.post_clone` (если задан)
+4. Все prepare steps (built-in + `odpm.prepare_steps` + local plugins), сортировка по `order`
+5. `hooks.post_prepare`
+6. Runtime: debug profile, IDE, database drift
 6. `hooks.pre_up`
 7. `docker compose up`
 

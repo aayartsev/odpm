@@ -67,6 +67,23 @@ class OdpmCliArgsBridgeTests(unittest.TestCase):
         cli_args = parse_cli_args(argv)
         self.assertEqual(cli_args, OdpmCliArgs.from_namespace(ns))
 
+    def test_parse_i_u_module_flags(self):
+        absent = parse_args_module.parse_args([])
+        self.assertIsNone(absent.i)
+        self.assertIsNone(absent.u)
+
+        bare = parse_args_module.parse_args(["-i", "-u"])
+        self.assertIs(bare.i, True)
+        self.assertIs(bare.u, True)
+
+        with_lists = parse_args_module.parse_args(["-i", "sale,crm", "-u", "my_module"])
+        self.assertEqual(with_lists.i, "sale,crm")
+        self.assertEqual(with_lists.u, "my_module")
+
+        cli_args = OdpmCliArgs.from_namespace(with_lists)
+        self.assertEqual(cli_args.i, "sale,crm")
+        self.assertEqual(cli_args.u, "my_module")
+
     def test_is_plan_mode_accepts_odpm_cli_args(self):
         self.assertTrue(is_plan_mode(OdpmCliArgs(plan=True)))
         self.assertTrue(is_plan_mode(OdpmCliArgs(command="plan")))

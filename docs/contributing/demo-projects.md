@@ -203,4 +203,3 @@ Demo-обёртки **не делают** golden-path обязательным �
 
 - [Тесты репозитория odpm](tests.md)
 - [Smoke checklist 4.x](../smoke-4.0-checklist.md)
-- [Architecture debt — golden-path backlog](architecture-debt.md)

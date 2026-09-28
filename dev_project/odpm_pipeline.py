@@ -17,7 +17,9 @@ from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
 from .host.ports import PipelinePorts
 from .project_materializer import ProjectMaterializer
-from .system_check_policy import SystemCheckPolicy
+from .secrets_providers.session import SecretsFetchSession
+from .system_check_policy import SystemCheckPolicy, cli_allows_ci_explicit_mode
+from .translations import _
 
 _logger = get_module_logger(__name__)
 
@@ -51,14 +53,15 @@ class OdpmPipeline:
             sync_templates=not for_plan,
         )
         self.cli_args = self.pd_manager.arguments
+        secrets_session = SecretsFetchSession()
         user_environment = CreateUserEnvironment(self.pd_manager)
         self.config = Config(
             self.pd_manager,
             self.cli_args,
             self.program_dir,
             user_environment,
+            secrets_fetch_session=secrets_session,
         )
-        self._import_secrets_if_requested()
         self.project_environment = CreateProjectEnvironment(self.config)
         self.system_checker = SystemChecker(self.config, self.project_environment)
         policy = SystemCheckPolicy.from_config(self.config)
@@ -76,13 +79,6 @@ class OdpmPipeline:
             raise RuntimeError("OdpmPipeline.setup() was not called")
         return self.ports
 
-    def _import_secrets_if_requested(self) -> None:
-        if not self.cli_args.secrets_file:
-            return
-        from .project_env.secrets import import_secrets_from_path
-
-        import_secrets_from_path(self.config.project_dir, self.cli_args.secrets_file)
-
     def prepare_project_files(self) -> None:
         host_summaries.log_prepare_started()
         ProjectMaterializer().run(
@@ -92,8 +88,11 @@ class OdpmPipeline:
         host_summaries.log_prepare_completed()
 
     def print_plan(self) -> int:
-        from .plan import OdpmPlanner, format_plan
-        from .plan.format import plan_has_required_changes, resolve_plan_format
+        from .plan import OdpmPlanner, format_plan  # noqa: PLC0415  # optional
+        from .plan.format import (  # noqa: PLC0415  # optional
+            plan_has_required_changes,
+            resolve_plan_format,
+        )
 
         ports = self._ports()
         plan = OdpmPlanner.build(
@@ -132,12 +131,26 @@ class OdpmPipeline:
 
     def run(self) -> None:
         try:
-            from .plan.cli import is_database_mode, is_manifest_mode, is_plan_mode
+            from .plan.cli import (  # noqa: PLC0415  # optional
+                is_database_mode,
+                is_manifest_mode,
+                is_modules_mode,
+                is_plan_mode,
+                is_run_mode,
+            )
 
             for_plan = is_plan_mode(self.cli_args)
             for_database = is_database_mode(self.cli_args)
             for_manifest = is_manifest_mode(self.cli_args)
-            self.setup(for_plan=for_plan or for_database or for_manifest)
+            for_modules = is_modules_mode(self.cli_args)
+            for_run = is_run_mode(self.cli_args)
+            self.setup(
+                for_plan=for_plan
+                or for_database
+                or for_manifest
+                or for_modules
+                or for_run
+            )
 
             if for_plan:
                 exit_code = self.print_plan()
@@ -145,19 +158,34 @@ class OdpmPipeline:
                     sys.exit(exit_code)
                 return
             if for_database:
-                from .database.commands import run_database_command
+                from .database.commands import run_database_command  # noqa: PLC0415  # optional
 
                 exit_code = run_database_command(self.cli_args, self._config())
                 if exit_code:
                     sys.exit(exit_code)
                 return
             if for_manifest:
-                from .manifest.commands import run_manifest_command
+                from .manifest.commands import run_manifest_command  # noqa: PLC0415  # optional
 
                 exit_code = run_manifest_command(self.cli_args, self._config())
                 if exit_code:
                     sys.exit(exit_code)
                 return
+            if for_modules:
+                from .modules.commands import run_modules_command  # noqa: PLC0415  # optional
+
+                exit_code = run_modules_command(self.cli_args, self._config())
+                if exit_code:
+                    sys.exit(exit_code)
+                return
+            if for_run:
+                from .recipes.commands import run_recipes_command  # noqa: PLC0415  # optional
+
+                exit_code = run_recipes_command(self.cli_args, self._config())
+                if exit_code:
+                    sys.exit(exit_code)
+                return
+            self._enforce_ci_explicit_mode()
             self.prepare_project_files()
             self._runtime().run_after_prepare()
         except OdpmError as exc:
@@ -165,6 +193,22 @@ class OdpmPipeline:
             if message:
                 _logger.error("%s", message)
             sys.exit(exc.exit_code)
+
+    def _enforce_ci_explicit_mode(self) -> None:
+        if self.config is None:
+            return
+        config = self.config
+        policy = getattr(config, "policy", None)
+        scenario = getattr(policy, "scenario", None) if policy is not None else None
+        if scenario != constants.CI_SCENARIO:
+            return
+        if cli_allows_ci_explicit_mode(self.cli_args):
+            return
+        message = _(
+            "In the ci scenario use --skip-start or --build-image "
+            "(bare odpm compose up is not allowed)."
+        )
+        raise ConfigError(message)
 
     def _config(self) -> Config:
         if self.config is None:

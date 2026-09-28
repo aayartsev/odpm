@@ -65,6 +65,56 @@ class ComposeValidateTests(unittest.TestCase):
             }
         )
 
+    def test_hostname_and_healthcheck_pass_when_valid(self):
+        validate_compose_document(
+            {
+                "services": {
+                    "minio": {
+                        "image": "minio/minio:latest",
+                        "hostname": "minio",
+                        "healthcheck": {
+                            "test": ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"],
+                            "interval": "30s",
+                            "retries": 3,
+                        },
+                    }
+                }
+            }
+        )
+
+    def test_invalid_hostname_or_healthcheck_raises(self):
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "hostname": ""}}}
+            )
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "healthcheck": "bad"}}}
+            )
+
+    def test_privileged_and_pid_pass_when_valid(self):
+        validate_compose_document(
+            {
+                "services": {
+                    "sysbox": {
+                        "image": "example/sys:latest",
+                        "privileged": True,
+                        "pid": "host",
+                    }
+                }
+            }
+        )
+
+    def test_invalid_privileged_or_pid_raises(self):
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "privileged": "yes"}}}
+            )
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {"services": {"odoo": {"image": "odoo:dev", "pid": ""}}}
+            )
+
     def test_validate_text_skips_header_comment(self):
         body = dump_document({"services": {"db": {"image": "postgres:16"}}})
         validate_compose_text(f"# generated\n\n{body}")
@@ -79,6 +129,33 @@ class ComposeValidateTests(unittest.TestCase):
     def test_validate_file_missing_raises(self):
         with self.assertRaises(ConfigError):
             validate_compose_file("/nonexistent/docker-compose.yml")
+
+    def test_undeclared_service_network_raises(self):
+        with self.assertRaises(ConfigError):
+            validate_compose_document(
+                {
+                    "services": {
+                        "odoo": {
+                            "image": "odoo:dev",
+                            "networks": ["missing"],
+                        }
+                    },
+                    "networks": {"stack": {"driver": "bridge"}},
+                }
+            )
+
+    def test_declared_service_network_passes(self):
+        validate_compose_document(
+            {
+                "services": {
+                    "odoo": {
+                        "image": "odoo:dev",
+                        "networks": ["stack"],
+                    }
+                },
+                "networks": {"stack": {"driver": "bridge"}},
+            }
+        )
 
 
 if __name__ == "__main__":

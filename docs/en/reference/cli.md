@@ -20,7 +20,9 @@ Below is a reference by group. Flag names are **as in the program** (Latin).
 | `--distro-version VER` | Distribution version (`11`, `12`, …) |
 | `--postgres-version VER` | PostgreSQL version in compose |
 | `--requirements-txt PACKAGES` | Python packages comma-separated → written to `odpm.json` |
-| `--secrets-file PATH` | Import JSON v1 into `.odpm/secrets.json` (on `--init` and any run). See [local secrets](../operations/secrets.md). |
+| `--secrets-file PATH` | Import JSON v1 into `.odpm/secrets.json` (on `--init` and any run; early bootstrap, before `${@secret:}` expand in `user_settings`). Implies the `file` provider. See [local secrets](../operations/secrets.md). |
+| `--secrets-provider NAME` | Secrets provider for this run (`file`, `infisical`, or a plugin id). Overrides `ODPM_SECRETS_PROVIDER` and `secrets.provider.type`. `--secrets-file` forces `file`. |
+| `--security-profile NAME` | Security profile (`convenience` / `hardened`). Overrides `ODPM_SECURITY_PROFILE`; else defaults from `ODPM_SCENARIO`. See [security](../operations/security.md). |
 
 Example:
 
@@ -48,6 +50,8 @@ odpm --secrets-file ~/new-secrets.json --skip-start
 | `--no-git-update` | Do not touch git; lock is **not read**; directories must already exist |
 | `--build-image` | Build image for **`ci`** scenario (error otherwise) |
 | `--image-tag TAG` | Docker image name and tag for `--build-image` |
+| `--image-builder {docker,kaniko}` | CI image build backend (default `docker`; overrides `ODPM_CI_IMAGE_BUILDER`) |
+| `--image-push` | After build, publish the image (`docker push` / kaniko `--destination`) |
 | `--version` | Show odpm version |
 
 ## Change plan (dry run)
@@ -109,19 +113,49 @@ odpm manifest validate
 
 Migration moves `database` (from manifest or `user_settings`), `developing.git`, and `locks.git` (from `.odpm/deps.lock.json`). See [odpm.json](odpm-json.md#migration-v1--v2).
 
+## `modules` subcommand
+
+Init/update module lists from developing git history and the last-applied deploy marker:
+
+```bash
+odpm modules diff
+odpm modules diff --diff-base @last-applied --format shell
+odpm modules record-applied
+```
+
+| Command | Description |
+|---------|-------------|
+| `modules diff` | Init/update CSV from `BASE...HEAD`; `--diff-base`, `--format {text,shell,json}` |
+| `modules record-applied` | Write developing HEAD to `.odpm/deploy/last_applied.json` |
+
+Details and shell recipe: [deploy marker](deploy-marker.md).
+
+## `run` subcommand
+
+Named recipes (re-exec odpm steps):
+
+```bash
+odpm run --list
+odpm run apply-modules-from-diff -d prod_db
+odpm run apply-modules-from-diff -d prod_db --dry-run
+```
+
+Details: [recipes](recipes.md), [deploy marker](deploy-marker.md).
+
 ## Database and modules
 
 | Parameter | Description |
 |-----------|-------------|
 | `-d DB_NAME` | Database name; if missing — creation per `db_creation_data` |
-| `-i` | Install modules from `init_modules` |
-| `-u` | Update modules from `update_modules` |
+| `-i [MODULES]` | Without a value — modules from `init_modules`; with a CSV (e.g. `sale,crm`) — CLI list (overrides settings for this run) |
+| `-u [MODULES]` | Without a value — modules from `update_modules`; with a CSV — CLI list (overrides settings for this run) |
 | `-t`, `--test` | Run module tests; requires `-d` and usually `-i` or `-u` |
 | `--screencasts` | With `-t`: save video on tour failures |
 | `--odoo-bin ARGS…` | Pass arguments to the Odoo executable, e.g. `--stop-after-init` |
 
 ```bash
 odpm -d test_db -i -u
+odpm -d test_db -i sale,crm -u my_module
 odpm -d test_db -i --odoo-bin --stop-after-init
 ```
 
@@ -145,7 +179,7 @@ odpm -d test_db -i --odoo-bin --stop-after-init
 | Parameter | Description |
 |-----------|-------------|
 | `--translate LANG` | Update translations (e.g. `ru_RU`) |
-| `--export-po-files LANG` | Export pot/po for modules from `update_modules` |
+| `--export-po-files LANG` | Export pot/po for modules from `update_modules`, or from `-u CSV` when that form is used |
 | `--set-admin-pass` | Admin login/password from `db_default_admin_*`; requires `-d` |
 
 ## Other developer tools

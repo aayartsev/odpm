@@ -5,6 +5,8 @@ import unittest
 from dev_project import constants
 from dev_project.host.runtime import HostRuntimeState
 from dev_project.compose.start_command import ComposeOdooService
+from dev_project.config.config import Config
+from dev_project.config.state import DockerLayoutState
 
 
 class HostRuntimeStateTests(unittest.TestCase):
@@ -23,8 +25,6 @@ class HostRuntimeStateTests(unittest.TestCase):
         )
 
     def test_config_runtime_properties_delegate(self):
-        from dev_project.config.config import Config
-        from dev_project.config.state import DockerLayoutState
 
         config = Config.__new__(Config)
         runtime = HostRuntimeState(
@@ -45,8 +45,6 @@ class HostRuntimeStateTests(unittest.TestCase):
         self.assertEqual(config.docker_compose_command, "docker compose")
 
     def test_config_setters_update_runtime_state(self):
-        from dev_project.config.config import Config
-        from dev_project.config.state import DockerLayoutState
 
         instance = Config.__new__(Config)
         instance._runtime = HostRuntimeState()

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from .. import constants
 from ..config.payload import runtime_config_path
 from ..database.paths import database_dir_path, ensure_database_dir_gitignore
+from ..database.postgres_paths import postgres_container_mount_path
 from ..debugger.constants import DEFAULT_DEBUGGER_CONNECT_HOST
 from ..debugger.user_env import (
     resolve_debugger_backend_id,
@@ -16,16 +17,22 @@ from ..debugger.user_env import (
 )
 from ..yaml import merge_services, merge_services_with_patches
 from ..docker_capabilities import cached_docker_capabilities
+from ..scenario_policy import format_published_port
+from .network_names import (
+    attach_logical_compose_network,
+    compose_network_from_user_env,
+)
+from .service_names import (
+    LOGICAL_DB,
+    LOGICAL_ODOO,
+    LOGICAL_POSTGRES_VOLUME,
+    apply_compose_physical_names,
+    compose_naming_from_user_env,
+)
 
 if TYPE_CHECKING:
     from ..project_env.environment import CreateProjectEnvironment
-
-
-def _resolve_postgres_service_name(user_env) -> str:
-    name = getattr(user_env, "postgres_service_name", None)
-    if isinstance(name, str) and name:
-        return name
-    return constants.DEFAULT_POSTGRES_SERVICE_NAME
+from .sidecar_gates import apply_sidecar_gates, scrub_service_deps, sidecar_gates_from_user_settings
 
 
 def _resolve_port(user_env, attr: str, default: int) -> int:
@@ -44,6 +51,15 @@ def _config_str(config, attr: str, default: str) -> str:
     return default
 
 
+def _bind_service_ports_localhost(services: dict[str, Any]) -> None:
+    for service in services.values():
+        if not isinstance(service, dict):
+            continue
+        ports = service.get("ports")
+        if not isinstance(ports, list):
+            continue
+        service["ports"] = [format_published_port(port) for port in ports]
+
 def _compose_command(compose_service) -> list[str]:
     command = getattr(compose_service, "command", None)
     if not isinstance(command, list) or not command:
@@ -60,8 +76,8 @@ def _compose_working_dir(compose_service) -> str:
 
 def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     """Assemble the full compose mapping (services + volumes)."""
-    from ..extensions.context import ExtensionHostContext
-    from .fragments import collect_compose_services, collect_service_patches
+    from ..extensions.context import ExtensionHostContext  # noqa: PLC0415  # cycle
+    from .fragments import collect_compose_services, collect_service_patches  # noqa: PLC0415  # cycle
 
     config = env.config
     policy = env.host_ctx.policy
@@ -74,7 +90,6 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
 
     odoo_image = _config_str(config, policy.odoo_image_attr, "odoo:dev")
     compose_user = policy.runtime_unix_user()
-    db_name = _resolve_postgres_service_name(user_env)
 
     postgres_port = _resolve_port(user_env, "postgres_port", constants.POSTGRES_DEFAULT_PORT)
     postgres_port_map = policy.build_postgres_port_map(
@@ -85,18 +100,29 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     debugger_backend = resolve_debugger_backend_id(user_env)
     debugger_connect_host = resolve_debugger_connect_host(user_env)
 
+    restart_policy = policy.compose_service_restart_policy()
+
     postgres_service: dict[str, Any] = {
         "image": f"postgres:{_config_str(config, 'postgres_version', '16')}",
         "user": "root",
         "tty": True,
-        "ports": [postgres_port_map],
-        "environment": [
-            f"POSTGRES_PASSWORD={constants.POSTGRES_ODOO_PASS}",
-            f"POSTGRES_USER={constants.POSTGRES_ODOO_USER}",
-            "POSTGRES_DB=postgres",
-        ],
-        "volumes": ["postgres-data:/var/lib/postgresql/data"],
     }
+    if restart_policy:
+        postgres_service["restart"] = restart_policy
+    postgres_service.update(
+        {
+            "ports": [postgres_port_map],
+            "environment": [
+                f"POSTGRES_PASSWORD={constants.POSTGRES_ODOO_PASS}",
+                f"POSTGRES_USER={constants.POSTGRES_ADMIN_USER}",
+                "POSTGRES_DB=postgres",
+            ],
+            "volumes": [
+                f"{LOGICAL_POSTGRES_VOLUME}:"
+                f"{postgres_container_mount_path(_config_str(config, 'postgres_version', '16'))}"
+            ],
+        }
+    )
 
     odoo_environment = ["PYTHONUNBUFFERED=1"]
     if policy.is_developer():
@@ -123,12 +149,18 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         "image": odoo_image,
         "user": compose_user,
         "tty": True,
-        "depends_on": [db_name],
-        "working_dir": _compose_working_dir(compose_service),
-        "environment": odoo_environment,
-        "command": _compose_command(compose_service),
-        "ports": odoo_ports,
     }
+    if restart_policy:
+        odoo_service["restart"] = restart_policy
+    odoo_service.update(
+        {
+            "depends_on": [LOGICAL_DB],
+            "working_dir": _compose_working_dir(compose_service),
+            "environment": odoo_environment,
+            "command": _compose_command(compose_service),
+            "ports": odoo_ports,
+        }
+    )
     capabilities = cached_docker_capabilities(config)
     if capabilities is not None and capabilities.supports_pull_policy_never:
         odoo_service["pull_policy"] = "never"
@@ -141,19 +173,25 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         if debugger_connect_host.strip() == DEFAULT_DEBUGGER_CONNECT_HOST:
             odoo_service["extra_hosts"] = ["host.docker.internal:host-gateway"]
 
+
     ext = ExtensionHostContext.from_config(config)
-    base_services = {db_name: postgres_service, "odoo": odoo_service}
+    base_services = {LOGICAL_DB: postgres_service, LOGICAL_ODOO: odoo_service}
     fragment_services = collect_compose_services(ext)
     service_patches = collect_service_patches(ext)
     services = merge_services_with_patches(
         merge_services(base_services, fragment_services),
         service_patches,
     )
+    gates = sidecar_gates_from_user_settings(env.host_ctx.user_settings)
+    services, dropped = apply_sidecar_gates(services, gates)
+    scrub_service_deps(services, dropped)
+    if policy.bind_published_ports_localhost:
+        _bind_service_ports_localhost(services)
 
-    return {
+    document = {
         "services": services,
         "volumes": {
-            "postgres-data": {
+            LOGICAL_POSTGRES_VOLUME: {
                 "driver": "local",
                 "driver_opts": {
                     "type": "none",
@@ -167,6 +205,13 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             },
         },
     }
+    network_ctx = compose_network_from_user_env(user_env)
+    attach_logical_compose_network(document, network_ctx)
+    return apply_compose_physical_names(
+        document,
+        compose_naming_from_user_env(user_env),
+        network_ctx=network_ctx,
+    )
 
 
 def _build_odoo_volume_mounts(

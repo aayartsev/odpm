@@ -12,6 +12,8 @@ from ..translations import _
 if TYPE_CHECKING:
     from ..config.transforms.env_substitution import EnvResolver
     from .context import ExtensionHostContext
+from ..config.transforms.env_substitution import expand_env_string
+
 
 _logger = get_module_logger(__name__)
 
@@ -68,7 +70,6 @@ def _expand_hook_argv(
     phase: LifecyclePhase,
     command_index: int,
 ) -> tuple[str, ...]:
-    from ..config.transforms.env_substitution import expand_env_string
 
     return tuple(
         expand_env_string(
@@ -88,13 +89,13 @@ def run_lifecycle_hooks(
     env_resolver: EnvResolver | None = None,
 ) -> None:
     """Run manifest shell hooks and registered pluggy hook runners for *phase*."""
-    from .registry import get_hook_runner, load_hook_runners
+    from .registry import get_hook_runner, load_hook_runners  # noqa: PLC0415  # cycle
 
     load_hook_runners()
     shell_commands, plugin_ids = parse_hook_phase(ext.manifest_hooks, phase)
     subprocess_env = None
     if env_resolver is not None:
-        from ..config.transforms.env_substitution import merged_subprocess_environ
+        from ..config.transforms.env_substitution import merged_subprocess_environ  # noqa: PLC0415  # optional
 
         subprocess_env = merged_subprocess_environ(env_resolver)
     for command_index, argv in enumerate(shell_commands):

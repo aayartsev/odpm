@@ -13,6 +13,8 @@ class OdpmCliArgs:
     init: str | None = None
     build_image: bool = False
     image_tag: str | None = None
+    image_builder: str | None = None
+    image_push: bool = False
     get_dbs_list: str | None = None
     start_precommit: bool = False
     set_admin_pass: bool | str | None = None
@@ -21,8 +23,8 @@ class OdpmCliArgs:
     db_restore: str | None = None
     db_backup: bool | str | None = None
     d: str | None = None
-    i: bool = False
-    u: bool = False
+    i: bool | str | None = None
+    u: bool | str | None = None
     test: bool = False
     branch: str | None = None
     screencasts: bool = False
@@ -39,6 +41,8 @@ class OdpmCliArgs:
     requirements_txt: str = ""
     odoo_build_date: str | None = None
     secrets_file: str | None = None
+    secrets_provider: str | None = None
+    security_profile: str | None = None
     plan: bool = False
     plan_no_docker: bool = False
     plan_show_diff: bool = False
@@ -57,6 +61,13 @@ class OdpmCliArgs:
     accept_database_drift: tuple[str, ...] = ()
     manifest_subcommand: str | None = None
     manifest_migrate_write: bool = False
+    modules_subcommand: str | None = None
+    modules_diff_base: str | None = None
+    modules_diff_format: str = "text"
+    run_recipe: str | None = None
+    run_list: bool = False
+    run_dry_run: bool = False
+    run_diff_base: str | None = None
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:

@@ -24,6 +24,8 @@ from dev_project.debugger import is_debugpy_requirement
 from dev_project.ide_stubs import is_odoo_stubs_requirement, odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.container_config_helpers import apply_odpm_config_database_fields
+from dev_project.scenario_policy import format_published_port
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEV_PROJECT_DIR = PROJECT_ROOT / "dev_project"
@@ -56,6 +58,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.install_odoo_stubs)
         self.assertFalse(policy.apply_dev_mode)
         self.assertTrue(policy.bind_postgres_localhost)
+        self.assertFalse(policy.bind_published_ports_localhost)
         self.assertTrue(policy.allow_build_image)
         self.assertTrue(policy.skip_ide_config)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_BAKED)
@@ -64,6 +67,8 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.is_ci())
         self.assertFalse(policy.is_developer())
         self.assertEqual(policy.base_image_profile, "ci")
+        self.assertEqual(policy.security_profile, "convenience")
+        self.assertFalse(policy.should_bootstrap_odoo_password_secrets())
 
     def test_ci_does_not_mount_runtime_config_from_host(self):
         policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
@@ -91,12 +96,25 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertFalse(policy.install_odoo_stubs)
         self.assertFalse(policy.apply_dev_mode)
         self.assertTrue(policy.bind_postgres_localhost)
+        self.assertTrue(policy.bind_published_ports_localhost)
         self.assertFalse(policy.allow_build_image)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
         self.assertTrue(policy.allows_venv_recreate())
         self.assertFalse(policy.is_ci())
         self.assertFalse(policy.is_developer())
+        self.assertTrue(policy.is_server())
+        self.assertEqual(policy.compose_service_restart_policy(), "unless-stopped")
+        self.assertEqual(policy.security_profile, "hardened")
+        self.assertTrue(policy.should_bootstrap_odoo_password_secrets())
+
+    def test_compose_restart_policy_only_on_server(self):
+        self.assertIsNone(
+            ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO).compose_service_restart_policy()
+        )
+        self.assertIsNone(
+            ScenarioPolicy.from_scenario(constants.CI_SCENARIO).compose_service_restart_policy()
+        )
 
     def test_report_compose_failure_on_host_by_scenario(self):
         self.assertFalse(
@@ -122,11 +140,14 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertTrue(policy.install_odoo_stubs)
         self.assertTrue(policy.apply_dev_mode)
         self.assertFalse(policy.bind_postgres_localhost)
+        self.assertFalse(policy.bind_published_ports_localhost)
         self.assertEqual(policy.venv_mode, constants.VENV_MODE_FRESH)
         self.assertFalse(policy.venv_is_baked())
         self.assertTrue(policy.allows_venv_recreate())
         self.assertFalse(policy.is_ci())
         self.assertTrue(policy.is_developer())
+        self.assertEqual(policy.security_profile, "convenience")
+        self.assertFalse(policy.should_bootstrap_odoo_password_secrets())
 
     def test_runtime_identity_developer_matches_host(self):
         policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
@@ -299,6 +320,24 @@ class ScenarioPolicyTests(unittest.TestCase):
         self.assertEqual(
             policy.build_postgres_port_map("5432:5432"),
             "127.0.0.1:5432:5432",
+        )
+
+    def test_format_published_port(self):
+
+        self.assertEqual(format_published_port("8069:8069"), "127.0.0.1:8069:8069")
+        self.assertEqual(
+            format_published_port("127.0.0.1:8069:8069"), "127.0.0.1:8069:8069"
+        )
+        self.assertEqual(format_published_port("8069"), "127.0.0.1:8069")
+        self.assertEqual(
+            format_published_port({"target": 8069, "published": 8069}),
+            {"target": 8069, "published": 8069, "host_ip": "127.0.0.1"},
+        )
+        self.assertEqual(
+            format_published_port(
+                {"target": 8069, "published": 8069, "host_ip": "10.0.0.1"}
+            ),
+            {"target": 8069, "published": 8069, "host_ip": "10.0.0.1"},
         )
 
     def test_compose_fragments_developer(self):

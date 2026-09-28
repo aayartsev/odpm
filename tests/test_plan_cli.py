@@ -17,6 +17,7 @@ from dev_project.plan.cli import is_plan_mode
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.host.ports import ports_from_config
 from tests.plan_smoke_helpers import seed_migrated_project_layout
+from dev_project.odpm_pipeline import OdpmPipeline
 
 
 def _attach_pipeline_ports(pipeline, config, project_environment) -> None:
@@ -104,7 +105,6 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
 
     @patch("dev_project.odpm_pipeline.OdpmPipeline.setup")
     def test_plan_subcommand_prints_json_to_stdout(self, _mock_setup):
-        from dev_project.odpm_pipeline import OdpmPipeline
 
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp))
@@ -124,7 +124,6 @@ class PlanSubcommandPipelineTests(unittest.TestCase):
     def test_plan_subcommand_equivalent_to_plan_flag(
         self, _mock_required, _mock_setup
     ):
-        from dev_project.odpm_pipeline import OdpmPipeline
 
         with tempfile.TemporaryDirectory() as tmp:
             seed_migrated_project_layout(Path(tmp))

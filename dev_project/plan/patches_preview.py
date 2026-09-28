@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..compose.fragments import collect_service_patches
-from ..plan import PlanStep
+from .core import PlanStep
 from ..prepare.helpers import make_plan_step
 from ..prepare.types import PrepareContext
 from .l10n import plan_msg

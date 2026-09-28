@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from ..config.git_repos import GitRepoCoordinator
     from ..git.deps_lock_manager import DepsLockManager
     from ..manifest.reader import ManifestView
-    from ..project_env import CreateProjectEnvironment
+from ..project_env import CreateProjectEnvironment
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,7 @@ class BootstrapHandle:
         return self.config._git_repos
 
     def new_lock_manager(self) -> DepsLockManager:
-        from ..git.deps_lock_manager import DepsLockManager
+        from ..git.deps_lock_manager import DepsLockManager  # noqa: PLC0415  # cycle
 
         return DepsLockManager(self.config)
 
@@ -118,7 +118,6 @@ def ports_from_config(
     args: OdpmCliArgs | None = None,
 ) -> PipelinePorts:
     """Build ports for tests and legacy call sites that still hold a bare Config."""
-    from ..project_env import CreateProjectEnvironment
 
     resolved_args = args if args is not None else config.arguments
     resolved_env = (

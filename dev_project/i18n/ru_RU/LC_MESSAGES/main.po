@@ -11,6 +11,9 @@ msgstr " Файл с параметрами \"config.json\" является у�
 msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .env"
 
+msgid "--no-git-update requires existing service_sources directories: {PATHS}"
+msgstr "--no-git-update требует существующие каталоги service_sources: {PATHS}"
+
 msgid "--sync-manifest-locks is only supported in developer scenario"
 msgstr "--sync-manifest-locks поддерживается только в developer-сценарии"
 
@@ -23,8 +26,17 @@ msgstr "--sync-manifest-locks требует --update-lock"
 msgid "--update-lock cannot be used together with --no-git-update"
 msgstr "Нельзя использовать --update-lock вместе с --no-git-update"
 
+msgid "-i/-u module list must contain at least one module name (comma-separated, e.g. sale,crm)"
+msgstr "Список модулей для -i/-u должен содержать хотя бы одно имя модуля (через запятую, например sale,crm)"
+
 msgid ".odpm/secrets.json exists but is not listed in .odpm/.gitignore; risk of accidental commit"
 msgstr "файл .odpm/secrets.json существует, но не указан в .odpm/.gitignore; риск случайного коммита"
+
+msgid ".odpm/secrets.json has placeholder values for keys: {KEYS}"
+msgstr "В .odpm/secrets.json для ключей указаны заглушки: {KEYS}"
+
+msgid ".odpm/secrets.json is missing required keys: {KEYS}"
+msgstr "В .odpm/secrets.json отсутствуют обязательные ключи: {KEYS}"
 
 msgid "Accepted database drift: {KIND}"
 msgstr "Принят дрейф конфигурации БД: {KIND}"
@@ -53,6 +65,9 @@ msgstr "Применение git lock из {PATH}"
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
 
+msgid "Base image registry is required when using the kaniko builder."
+msgstr "Префикс registry для base image обязателен при использовании бэкенда kaniko."
+
 msgid "Blocking database configuration drift detected; resolve before starting containers."
 msgstr "Обнаружен блокирующий дрейф конфигурации БД; устраните его перед запуском контейнеров."
 
@@ -70,6 +85,9 @@ msgstr "Собрать команду запуска compose и записать
 
 msgid "Build docker volume mapping for Odoo, venv, and addons"
 msgstr "Построить маппинг docker-томов для Odoo, venv и аддонов"
+
+msgid "CI kaniko direct prepare-only; Docker daemon check skipped"
+msgstr "CI kaniko direct prepare-only; проверка Docker daemon пропущена"
 
 msgid "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgstr "Не удалось выполнить подключение к службе Docker. Проверьте запущена ли она."
@@ -107,11 +125,17 @@ msgstr "Переключение на {REF} для {PROJECT}"
 msgid "Checkout dependency repos to odoo version branch"
 msgstr "Переключить репозитории зависимостей на ветку версии Odoo"
 
+msgid "Clone or update manifest service_sources git repositories"
+msgstr "Клонировать или обновить git-репозитории service_sources из manifest"
+
 msgid "Clone or update platform, developing, and dependency git repos"
 msgstr "Клонировать или обновить platform, developing и git-зависимости"
 
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Собрать разрешённые git-коммиты и записать .odpm/deps.lock.json"
+
+msgid "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})"
+msgstr "Ссылка на compose-сервис {NAME} не может быть раскрыта (нужна для поля manifest {FIELD})"
 
 msgid "Compose service {NAME} must be a mapping"
 msgstr "Сервис compose {NAME} должен быть mapping"
@@ -119,11 +143,26 @@ msgstr "Сервис compose {NAME} должен быть mapping"
 msgid "Compose service {NAME} must define a non-empty image"
 msgstr "Сервис compose {NAME} должен содержать непустой image"
 
+msgid "Compose service {NAME} references undeclared network {NET}"
+msgstr "Сервис compose {NAME} ссылается на необъявленную сеть {NET}"
+
 msgid "Compose service {NAME}.environment list entries must be strings"
 msgstr "Элементы списка environment сервиса compose {NAME} должны быть строками"
 
 msgid "Compose service {NAME}.environment must be a list or mapping"
 msgstr "environment сервиса compose {NAME} должен быть списком или mapping"
+
+msgid "Compose service {NAME}.healthcheck must be a mapping"
+msgstr "Поле healthcheck сервиса compose {NAME} должно быть mapping"
+
+msgid "Compose service {NAME}.hostname must be a non-empty string"
+msgstr "Поле hostname сервиса compose {NAME} должно быть непустой строкой"
+
+msgid "Compose service {NAME}.pid must be a non-empty string"
+msgstr "Поле pid сервиса compose {NAME} должно быть непустой строкой"
+
+msgid "Compose service {NAME}.privileged must be a boolean"
+msgstr "Поле privileged сервиса compose {NAME} должно быть boolean"
 
 msgid "Compose service {NAME}.tty must be a boolean"
 msgstr "Поле tty сервиса compose {NAME} должно быть boolean"
@@ -146,11 +185,20 @@ msgstr "Стек compose в порядке; перезапуск без --force-
 msgid "Configuration drift:"
 msgstr "Дрейф конфигурации:"
 
+msgid "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required for field {FIELD})"
+msgstr "В конфигурации есть ссылки на секреты (@secret), но нет .odpm/secrets.json; создайте файл или передайте --secrets-file (нужно для поля {FIELD})"
+
+msgid "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
+msgstr "В конфигурации есть ссылки на секреты (@secret), но нет .odpm/secrets.json; создайте файл или передайте --secrets-file (нужные ключи: {KEYS})"
+
 msgid "Container start skipped (--skip-start)."
 msgstr "Запуск контейнеров пропущен (--skip-start)."
 
 msgid "Control+C pressed; stopping."
 msgstr "Нажато Control+C; остановка."
+
+msgid "Could not load project recipes; listing builtins only."
+msgstr "Не удалось загрузить проектные рецепты; показаны только builtins."
 
 msgid "Created PostgreSQL application role {ROLE}."
 msgstr "Создана роль приложения PostgreSQL {ROLE}."
@@ -170,6 +218,21 @@ msgstr "Разрешение дрейфа конфигурации БД отме
 msgid "Database status"
 msgstr "Состояние базы данных"
 
+msgid "Deploy marker is missing developing_sha: {PATH}"
+msgstr "В маркере деплоя нет developing_sha: {PATH}"
+
+msgid "Deploy marker must be a JSON object: {PATH}"
+msgstr "Маркер деплоя должен быть JSON-объектом: {PATH}"
+
+msgid "Deploy marker not found at {PATH}; pass --diff-base <sha|tag> for the first apply."
+msgstr "Маркер деплоя не найден: {PATH}; передайте --diff-base <sha|tag> для первого apply."
+
+msgid "Developing project is not a git repository: {PATH}"
+msgstr "Developing-проект не является git-репозиторием: {PATH}"
+
+msgid "Developing project path is missing or not a directory; run a normal odpm prepare first."
+msgstr "Путь developing-проекта отсутствует или это не каталог; сначала выполните обычный odpm prepare."
+
 msgid "Did you install git?"
 msgstr "Вы установили git?"
 
@@ -184,9 +247,6 @@ msgstr "Не изменяйте данный параметр, его значе
 
 msgid "Do not change, it will get from \"db_manager_password\" param from config.json file"
 msgstr "Не изменяйте данный параметр, его значение будет взято из параметра \"db_manager_password\" файла конфигурации config.json"
-
-msgid "Do you want to clone odoo? y/n\n"
-msgstr "Вы хотите клонировать odoo? y/n\n"
 
 msgid "Docker compose command is not configured; stack health was not probed"
 msgstr "Команда docker compose не настроена; состояние стека не проверялось"
@@ -203,6 +263,9 @@ msgstr "Ошибка при проверке порта PostgreSQL: {DETAIL}"
 msgid "Failed to bootstrap PostgreSQL application role {ROLE} in single-user mode."
 msgstr "Не удалось создать роль приложения PostgreSQL {ROLE} в single-user режиме."
 
+msgid "Failed to ensure PostgreSQL extensions on template1."
+msgstr "Не удалось обеспечить расширения PostgreSQL на template1."
+
 msgid "Failed to ensure PostgreSQL role {ROLE}."
 msgstr "Не удалось создать или обновить роль PostgreSQL {ROLE}."
 
@@ -212,6 +275,9 @@ msgstr "Не удалось прочитать вложенный {CONFIG_FILE_N
 msgid "Failed to start PostgreSQL service {SERVICE} for baseline adoption."
 msgstr "Не удалось запустить сервис PostgreSQL {SERVICE} для принятия baseline."
 
+msgid "Fetch secrets via provider {NAME}"
+msgstr "Получить секреты через провайдер {NAME}"
+
 msgid "File {SOURCE_FILE} with deprecated content was renamed to {DEPRECATED_FILE_NAME}"
 msgstr "Файл {SOURCE_FILE} с устаревшим содержимым был переименован в {DEPRECATED_FILE_NAME}"
 
@@ -220,6 +286,9 @@ msgstr "Сгенерированный compose-документ должен с�
 
 msgid "Generated compose document root must be a mapping"
 msgstr "Корень сгенерированного compose-документа должен быть mapping"
+
+msgid "Generated compose networks must be a mapping when present"
+msgstr "Секция networks сгенерированного compose должна быть mapping, если присутствует"
 
 msgid "Generated compose volumes must be a mapping when present"
 msgstr "Секция volumes сгенерированного compose должна быть mapping, если присутствует"
@@ -236,6 +305,9 @@ msgstr "Источник git lock: .odpm/deps.lock.json; после смены �
 msgid "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA in locks.git and run --update-lock to sync .odpm/deps.lock.json."
 msgstr "Источник git lock: locks.git в odpm.json (канон); правьте SHA в locks.git и выполните --update-lock для синхронизации .odpm/deps.lock.json."
 
+msgid "Git ref {REF!r} is not available in {PATH} (fetch the base commit if this is a shallow clone)."
+msgstr "Git-ссылка {REF!r} недоступна в {PATH} (для shallow clone сначала fetch базового коммита)."
+
 msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
 msgstr "Плагин хука {PLUGIN_ID} не реализует {METHOD}"
 
@@ -244,6 +316,24 @@ msgstr "Порт на host: {PORT}"
 
 msgid "If you want drop this file to default values, just delete it"
 msgstr "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
+
+msgid "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
+msgstr "В сценарии ci используйте --skip-start или --build-image (обычный odpm compose up запрещён)."
+
+msgid "Infisical HTTP {STATUS} for {PATH}"
+msgstr "Infisical HTTP {STATUS} для {PATH}"
+
+msgid "Infisical environment_slug is required"
+msgstr "Для Infisical обязателен environment_slug"
+
+msgid "Infisical request failed: {DETAIL}"
+msgstr "Запрос Infisical не удался: {DETAIL}"
+
+msgid "Infisical requires exactly one of project_id or project_slug"
+msgstr "Infisical требует ровно одно из полей project_id или project_slug"
+
+msgid "Infisical secrets missing after fetch: {KEYS}"
+msgstr "После fetch Infisical отсутствуют секреты: {KEYS}"
 
 msgid "Interactive input is not available in non-interactive mode."
 msgstr "Интерактивный ввод недоступен в неинтерактивном режиме."
@@ -256,6 +346,12 @@ msgstr "Недопустимое значение %s=%r, используетс�
 
 msgid "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
 msgstr "Некорректный .odpm/deps.lock.json; шаг проверки lock исключён из плана"
+
+msgid "Invalid CI image builder choice %r, using %s"
+msgstr "Неверный выбор CI image builder %r, используется %s"
+
+msgid "Invalid Kaniko executor mode choice %r, using %s"
+msgstr "Неверный выбор режима Kaniko executor %r, используется %s"
 
 msgid "Invalid ODPM_IDE choice %r, using %s"
 msgstr "Недопустимое значение ODPM_IDE %r, используется %s"
@@ -281,11 +377,47 @@ msgstr "Недопустимый manifest hook {PHASE}: ожидается argv 
 msgid "Invalid manifest_schema value {VALUE!r}; expected an integer."
 msgstr "Недопустимое значение manifest_schema {VALUE!r}; ожидается целое число."
 
+msgid "Invalid recipe YAML in {PATH}: {ERROR}"
+msgstr "Некорректный YAML рецепта {PATH}: {ERROR}"
+
+msgid "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
+msgstr "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '-'; должно начинаться с буквы); префикс отключён"
+
+msgid "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
+msgstr "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '_' или '-'); используется {DEFAULT}"
+
+msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
+msgstr "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; должно начинаться с буквы); compose network отключена"
+
+msgid "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile"
+msgstr "Недопустимое {ENV}={VALUE!r} (допустимо: {ALLOWED}); используется профиль по умолчанию для сценария"
+
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия (например 4.4 или 4.4.0)."
 
 msgid "Invalid {LABEL} odpm.json at {PATH}: {DETAIL}"
 msgstr "Недопустимый {LABEL} odpm.json в {PATH}: {DETAIL}"
+
+msgid "Kaniko --image-push in docker-run mode requires {PATH} (docker login credentials). Create it, or use ODPM_KANIKO_EXECUTOR_MODE=direct with registry credentials available to the executor."
+msgstr "Для Kaniko --image-push в режиме docker-run нужен файл {PATH} (учётные данные docker login). Создайте его или используйте ODPM_KANIKO_EXECUTOR_MODE=direct с credentials, доступными executor."
+
+msgid "Kaniko base image build requires {ENV} (registry prefix for a pullable base image)."
+msgstr "Сборка base image через Kaniko требует {ENV} (префикс registry для pullable base image)."
+
+msgid "Kaniko direct mode requires a privileged executor launch while odpm runs as a non-root user. Set {WRAPPER_ENV} to a script that runs {BIN_ENV} as root (recommended), or set {SUDO_ENV}=1 with passwordless sudo for the executor binary. odpm itself must not run as root."
+msgstr "Режим Kaniko direct требует привилегированного запуска executor, пока odpm работает не от root. Задайте {WRAPPER_ENV} — скрипт, запускающий {BIN_ENV} от root (рекомендуется), или {SUDO_ENV}=1 с passwordless sudo для бинаря executor. Сам odpm не должен работать от root."
+
+msgid "Kaniko direct mode with {ENV}=1 requires passwordless sudo (sudo -n true failed). Configure sudoers for the executor binary or set {WRAPPER_ENV} instead."
+msgstr "Режим Kaniko direct с {ENV}=1 требует passwordless sudo (sudo -n true не прошёл). Настройте sudoers для бинаря executor или задайте {WRAPPER_ENV}."
+
+msgid "Kaniko docker-run mode requires a Docker daemon on the build host."
+msgstr "Режим Kaniko docker-run требует Docker daemon на машине сборки."
+
+msgid "Kaniko executor wrapper {PATH} is not a file; check {ENV}."
+msgstr "Wrapper Kaniko executor {PATH} не является файлом; проверьте {ENV}."
+
+msgid "Kaniko executor wrapper {PATH} is not executable; check {ENV}."
+msgstr "Wrapper Kaniko executor {PATH} не исполняемый; проверьте {ENV}."
 
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Загрузить git lock из {SOURCE} и включить режим apply перед checkout"
@@ -329,6 +461,15 @@ msgstr "Материализовать compose-фрагмент для серв�
 msgid "Materialize manifest and plugin compose service fragments"
 msgstr "Материализовать compose-фрагменты из manifest и плагинов"
 
+msgid "Materialized service source {NAME} at {PATH}"
+msgstr "Materialized источник service_sources {NAME} в {PATH}"
+
+msgid "Missing Infisical credentials: {KEYS}"
+msgstr "Отсутствуют учётные данные Infisical: {KEYS}"
+
+msgid "Nested 'odpm run' is not allowed (ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0)."
+msgstr "Вложенный 'odpm run' запрещён (ODPM_RECIPE_DEPTH={DEPTH}, max nesting 0)."
+
 msgid "Nested odpm.json at {MANIFEST_PATH} declares odoo_version {NESTED_VERSION}, host project uses {HOST_VERSION}"
 msgstr "Вложенный odpm.json ({MANIFEST_PATH}) задаёт odoo_version {NESTED_VERSION}, в host-проекте используется {HOST_VERSION}"
 
@@ -344,14 +485,14 @@ msgstr "Нет доступной административной роли Post
 msgid "No database last_run snapshot yet; baseline will be adopted automatically on startup."
 msgstr "Снимок last_run для БД ещё не создан; baseline будет принят автоматически при запуске."
 
+msgid "No git diff baseline: set --diff-base, {ENV}, {CI_ENV}, or create {PATH} via odpm modules record-applied."
+msgstr "Нет baseline для git diff: задайте --diff-base, {ENV}, {CI_ENV} или создайте {PATH} через odpm modules record-applied."
+
 msgid "No manifest changes to apply."
 msgstr "Нет изменений манифеста для применения."
 
-msgid "Non-interactive mode cannot prompt to download Odoo platform sources for the server scenario. Platform directory {odoo_src_dir} is missing odoo-bin. Pre-install platform sources, run odpm from an interactive terminal, or use ODPM_SCENARIO=developer for git-based clone during prepare."
-msgstr "В неинтерактивном режиме нельзя запросить загрузку исходников platform для сценария server. В каталоге {odoo_src_dir} отсутствует odoo-bin. Установите исходники заранее, запустите odpm в интерактивном терминале или используйте ODPM_SCENARIO=developer для git-клонирования на этапе prepare."
-
-msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) before the first run."
-msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE) перед первым запуском."
+msgid "Non-interactive mode requires an existing .env file in the project directory or under ~/.odpm/.env. Create it manually or set environment variables (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, ODPM_BASE_IMAGE_PROFILE) before the first run."
+msgstr "В неинтерактивном режиме нужен готовый файл .env в каталоге проекта или ~/.odpm/.env. Создайте его вручную или задайте переменные окружения (BACKUP_DIR, ODOO_PROJECTS_DIR, PATH_TO_SSH_KEY, ODOO_PORT, POSTGRES_PORT, DEBUGGER_PORT, GEVENT_PORT, ODPM_SCENARIO, ODPM_LOCALE, ODPM_DEBUGGER_BACKEND, ODPM_IDE, ODPM_CI_IMAGE_BUILDER, ODPM_CI_IMAGE_PUSH, ODPM_KANIKO_EXECUTOR_MODE, ODPM_BASE_IMAGE_REGISTRY, ODPM_BASE_IMAGE_PROFILE) перед первым запуском."
 
 msgid "Non-interactive mode requires odoo_version in the developing project's odpm.json or pass --odoo-version on the command line."
 msgstr "В неинтерактивном режиме требуется odoo_version в odpm.json разрабатываемого проекта или параметр --odoo-version в командной строке."
@@ -361,6 +502,9 @@ msgstr "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}."
 
 msgid "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
 msgstr "Сценарий ODPM изменился: {PREVIOUS} -> {CURRENT}.\nВыберите: (a) отмена  (c) продолжить\n"
+
+msgid "ODPM_DIFF_BASE=@last-applied but deploy marker is missing at {PATH}."
+msgstr "ODPM_DIFF_BASE=@last-applied, но маркер деплоя отсутствует: {PATH}."
 
 msgid "Planned changes:"
 msgstr "Планируемые изменения:"
@@ -419,6 +563,9 @@ msgstr "Состояние инициализации каталога данн�
 msgid "PostgreSQL data directory initialization state changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) continue\n"
 msgstr "Состояние инициализации каталога данных PostgreSQL изменилось: {PREVIOUS} -> {CURRENT}.\nВыберите: (a) отмена  (c) продолжить\n"
 
+msgid "PostgreSQL database {DBNAME} does not exist yet; credentials are valid against the cluster and the database may be created later."
+msgstr "База PostgreSQL {DBNAME} ещё не существует; учётные данные к кластеру верны, база может быть создана позже."
+
 msgid "PostgreSQL host port changed: {PREVIOUS} -> {CURRENT}."
 msgstr "Порт PostgreSQL на host изменился: {PREVIOUS} -> {CURRENT}."
 
@@ -455,14 +602,68 @@ msgstr "Pre-commit файл {PRE_COMMIT_FILE} не был найден в кат
 msgid "Preparing your Odoo environment (dependencies, templates, compose files)..."
 msgstr "Подготовка окружения Odoo (зависимости, шаблоны, compose)..."
 
+msgid "Project directory is not set."
+msgstr "Каталог проекта не задан."
+
 msgid "Project files are ready."
 msgstr "Файлы проекта готовы."
+
+msgid "Push the final CI image after build? Answer y/yes or n/no (Enter for no):\n"
+msgstr "Пушить финальный CI-образ после сборки? Ответьте y/yes или n/no (Enter — нет):\n"
 
 msgid "PyCharm run configuration already present"
 msgstr "Конфигурация запуска PyCharm уже присутствует"
 
+msgid "Recipe 'params' must be a mapping."
+msgstr "Поле 'params' рецепта должно быть mapping."
+
+msgid "Recipe 'steps' must be a non-empty list."
+msgstr "Поле 'steps' рецепта должно быть непустым списком."
+
+msgid "Recipe YAML missing name: {PATH}"
+msgstr "В YAML рецепта нет name: {PATH}"
+
+msgid "Recipe YAML root must be a mapping: {PATH}"
+msgstr "Корень YAML рецепта должен быть mapping: {PATH}"
+
+msgid "Recipe name required: use \"odpm run RECIPE\" or \"odpm run --list\"."
+msgstr "Укажите имя рецепта: \"odpm run RECIPE\" или \"odpm run --list\"."
+
+msgid "Recipe nesting exceeds maximum depth {MAX}."
+msgstr "Вложенность рецептов превышает максимум {MAX}."
+
+msgid "Recipe param {NAME!r} must be a mapping."
+msgstr "Параметр рецепта {NAME!r} должен быть mapping."
+
+msgid "Recipe step argv must not be empty."
+msgstr "argv шага рецепта не должен быть пустым."
+
+msgid "Recipe step {INDEX} 'odpm' must be a list of strings."
+msgstr "Шаг рецепта {INDEX} 'odpm' должен быть списком строк."
+
+msgid "Recipe step {INDEX} must be a mapping with key 'odpm'."
+msgstr "Шаг рецепта {INDEX} должен быть mapping с ключом 'odpm'."
+
+msgid "Recipe steps must not invoke 'odpm run' (recursion forbidden)."
+msgstr "Шаги рецепта не должны вызывать 'odpm run' (рекурсия запрещена)."
+
+msgid "Recipe substitution missing env {NAME!r}."
+msgstr "Подстановка рецепта: нет env {NAME!r}."
+
+msgid "Recipe substitution unknown param {NAME!r}."
+msgstr "Подстановка рецепта: неизвестный param {NAME!r}."
+
+msgid "Recipe {RECIPE} requires param {NAME}{HINT}."
+msgstr "Рецепту {RECIPE} нужен параметр {NAME}{HINT}."
+
+msgid "Recipe {RECIPE} step failed (exit {CODE}): {ARGV}"
+msgstr "Шаг рецепта {RECIPE} завершился с кодом {CODE}: {ARGV}"
+
 msgid "Recorded database baseline snapshot at {PATH}."
 msgstr "Записан снимок baseline БД: {PATH}."
+
+msgid "Recorded developing SHA {SHA} in {PATH}."
+msgstr "Записан developing SHA {SHA} в {PATH}."
 
 msgid "Refresh project symlinks for local codebase access"
 msgstr "Обновить симлинки проекта для локального доступа к коду"
@@ -488,17 +689,53 @@ msgstr "Выполнить lifecycle hooks manifest ({PHASE})"
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Запуск скрипта от root/sudo запрещен"
 
+msgid "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy from .odpm/secrets.example.json or pass --secrets-file"
+msgstr "Для сценария {SCENARIO} нужен .odpm/secrets.json с ключами: {KEYS}; скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+
+msgid "Scenario {SCENARIO} requires .odpm/secrets.json; copy from .odpm/secrets.example.json or pass --secrets-file"
+msgstr "Для сценария {SCENARIO} нужен .odpm/secrets.json; скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
+
+msgid "Secret {KEY} is not set in .odpm/secrets.json (required for field {FIELD})"
+msgstr "Секрет {KEY} не задан в .odpm/secrets.json (нужен для поля {FIELD})"
+
+msgid "Secret {KEY} still has a placeholder value (required for field {FIELD})"
+msgstr "Секрет {KEY} всё ещё содержит значение-заглушку (нужен для поля {FIELD})"
+
+msgid "Security profile hardened: {FIELD} in user_settings.json is not a ${{@secret:...}} reference (file not modified)"
+msgstr "Профиль безопасности hardened: поле {FIELD} в user_settings.json не является ссылкой ${{@secret:...}} (файл не изменён)"
+
+msgid "Security profile hardened: {FIELD} is missing or empty in user_settings.json; prefer ${{@secret:...}} (file not modified)"
+msgstr "Профиль безопасности hardened: поле {FIELD} отсутствует или пусто в user_settings.json; предпочтительна ссылка ${{@secret:...}} (файл не изменён)"
+
+msgid "Select CI image build backend (Enter for default {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+msgstr "Выберите бэкенд сборки CI-образа (Enter — по умолчанию {DEFAULT_BUILDER}):\n{OPTIONS}\n"
+
 msgid "Select IDE configuration to generate (Enter for default {DEFAULT_IDE}):\n{OPTIONS}\n"
 msgstr "Выберите конфигурацию IDE для генерации (Enter — по умолчанию {DEFAULT_IDE}):\n{OPTIONS}\n"
 
+msgid "Select Kaniko executor mode (Enter for default {DEFAULT_MODE}). Note: docker-run still requires a Docker daemon:\n{OPTIONS}\n"
+msgstr "Выберите режим Kaniko executor (Enter — по умолчанию {DEFAULT_MODE}). Внимание: docker-run всё ещё требует Docker daemon:\n{OPTIONS}\n"
+
 msgid "Select debugger backend for developer scenario (Enter for default {DEFAULT_BACKEND}):\n{OPTIONS}\n"
 msgstr "Выберите backend отладчика для сценария developer (Enter — по умолчанию {DEFAULT_BACKEND}):\n{OPTIONS}\n"
+
+msgid "Service source {NAME} file:// path does not exist: {PATH}"
+msgstr "Путь file:// источника service_sources {NAME} не существует: {PATH}"
+
+msgid "Service source {NAME} is not materialized (required for manifest field {FIELD})"
+msgstr "Источник service_sources {NAME} ещё не materialized (нужен для поля manifest {FIELD})"
+
+msgid "Service source {NAME} materialize failed: {PATH}"
+msgstr "Не удалось materialize источник service_sources {NAME}: {PATH}"
 
 msgid "Set IDE host name for pydevd_connect (container connects to Debug Server). Press 'Enter' for default {DEFAULT_HOST}:\n"
 msgstr "Укажите имя хоста IDE для pydevd_connect (контейнер подключается к Debug Server). Нажмите 'Enter' для значения по умолчанию {DEFAULT_HOST}:\n"
 
 msgid "Set PostgreSQL database server port which it will listen. You can leave default {DEFAULT_POSTGRES_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Укажите порт, который будет слушать сервер PostgreSQL. Можете оставить значение по умолчанию {DEFAULT_POSTGRES_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
+
+msgid "Set base image registry prefix for Kaniko (required, e.g. registry.example.com/odpm):\n"
+msgstr "Укажите префикс registry для base image Kaniko (обязательно, напр. registry.example.com/odpm):\n"
 
 msgid "Set debugger port which it will listen. You can leave default {DEFAULT_DEBUGGER_PORT} or write your own. Press 'Enter' to leave default value:\n"
 msgstr "Укажите порт, который будет слушать сервер Отладчик. Можете оставить значение по умолчанию {DEFAULT_DEBUGGER_PORT} или укажите свой собственный. Нажмите 'Enter' чтобы оставить значение по умолчанию:\n"
@@ -557,6 +794,12 @@ msgstr "Чтобы использовать другой каталог данн
 msgid "Unexpected PostgreSQL connection error: {DETAIL}"
 msgstr "Неожиданная ошибка подключения к PostgreSQL: {DETAIL}"
 
+msgid "Unknown CI image builder {BUILDER!r}; expected one of: {ALLOWED}"
+msgstr "Неизвестный бэкенд сборки CI-образа {BUILDER!r}; ожидается одно из: {ALLOWED}"
+
+msgid "Unknown Kaniko executor mode {MODE!r}; expected one of: {ALLOWED}"
+msgstr "Неизвестный режим Kaniko executor {MODE!r}; ожидается одно из: {ALLOWED}"
+
 msgid "Unknown ODPM_DEBUGGER_BACKEND=%r, using %s"
 msgstr "Неизвестный ODPM_DEBUGGER_BACKEND=%r, используется %s"
 
@@ -571,6 +814,18 @@ msgstr "Неизвестный ODPM_SCENARIO=%r, используется %s"
 
 msgid "Unknown manifest hook plugin id: {PLUGIN_ID}"
 msgstr "Неизвестный id плагина manifest hook: {PLUGIN_ID}"
+
+msgid "Unknown recipe {NAME!r}. Known recipes: {KNOWN}."
+msgstr "Неизвестный рецепт {NAME!r}. Известные: {KNOWN}."
+
+msgid "Unknown secrets provider: {NAME}"
+msgstr "Неизвестный провайдер секретов: {NAME}"
+
+msgid "Unknown {ENV}={VALUE!r}, using managed network"
+msgstr "Неизвестное значение {ENV}={VALUE!r}, используется managed network"
+
+msgid "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; only debian is supported ({SUPPORTED}). Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version)."
+msgstr "Неподдерживаемый дистрибутив базового образа {DISTRO_NAME}/{DISTRO_VERSION}; поддерживается только debian ({SUPPORTED}). Измените distro_name/distro_version в odpm.json (или --distro-name/--distro-version)."
 
 msgid "Unsupported manifest_schema {SCHEMA}."
 msgstr "Неподдерживаемый manifest_schema {SCHEMA}."
@@ -641,9 +896,6 @@ msgstr "Вы не указали разрабатываемый проект. В
 msgid "You need to add your user {CURRENT_USER} to group {LINUX_DOCKER_GROUPNAME} run this command as root or sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER} then reboot your computer"
 msgstr "Вам необходимо добавить пользователя {CURRENT_USER} в группу {LINUX_DOCKER_GROUPNAME}\n запустите следующую команду от имени root или с помощью sudo:  usermod -a -G {LINUX_DOCKER_GROUPNAME} {CURRENT_USER}\n Затем перезапустите ваш компьютер"
 
-msgid "You need to have free space more than {NECESSARY_FREE_SPACE} in {DIR_FOR_FREE_SPACE} directory"
-msgstr "В каталоге {DIR_FOR_FREE_SPACE} должно быть больше чем {NECESSARY_FREE_SPACE} свободного места"
-
 msgid "You select this odoo backups dir: {SELECTED_ODOO_BACKUPS_DIR}\n"
 msgstr "Вы выбрали следующий каталог для использования бэкапов odoo: {SELECTED_ODOO_BACKUPS_DIR}\n"
 
@@ -668,8 +920,20 @@ msgstr "Вы выбрали следующий порт, который буде
 msgid "You select {SELECTED_ODPM_SCENARIO} scenario  for odpm usage\n"
 msgstr "Вы выбрали ценарий {SELECTED_ODPM_SCENARIO} для использования odpm\n"
 
+msgid "You selected CI image builder: {SELECTED_BUILDER}\n"
+msgstr "Вы выбрали CI image builder: {SELECTED_BUILDER}\n"
+
+msgid "You selected CI image push: {SELECTED_PUSH}\n"
+msgstr "Вы выбрали push CI-образа: {SELECTED_PUSH}\n"
+
 msgid "You selected IDE configuration: {SELECTED_IDE}\n"
 msgstr "Вы выбрали конфигурацию IDE: {SELECTED_IDE}\n"
+
+msgid "You selected Kaniko executor mode: {SELECTED_MODE}\n"
+msgstr "Вы выбрали режим Kaniko executor: {SELECTED_MODE}\n"
+
+msgid "You selected base image registry: {SELECTED_REGISTRY}\n"
+msgstr "Вы выбрали registry для base image: {SELECTED_REGISTRY}\n"
 
 msgid "You selected debugger backend: {SELECTED_BACKEND}\n"
 msgstr "Вы выбрали backend отладчика: {SELECTED_BACKEND}\n"
@@ -686,8 +950,8 @@ msgstr "Вы выбрали системную локаль по умолчан�
 msgid "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 msgstr "Вы выбрали следующую локаль для сообщений odpm: {SELECTED_LOCALE}\n"
 
-msgid "Your odoo src directory {odoo_src_dir} is not git repository.Please fix it, or delete and clone its repo again: git clone https://github.com/odoo/odoo.git"
-msgstr "Указанный вами каталог с исходными текстами odoo {odoo_src_dir} не является git репозиторием или репозиторий поврежденПожалуйста исправьте повреждения или клонируйте репозиторий заново: git clone https://github.com/odoo/odoo.git"
+msgid "already fetched this run ({COUNT} keys)"
+msgstr "уже получены в этом запуске ({COUNT} ключей)"
 
 msgid "apply pinned commits from {SOURCE}"
 msgstr "применить закреплённые коммиты из {SOURCE}"
@@ -695,14 +959,14 @@ msgstr "применить закреплённые коммиты из {SOURCE}
 msgid "base image identity mismatch"
 msgstr "несовпадение идентичности базового образа"
 
-msgid "bind_platform_link is not configured"
-msgstr "bind_platform_link не настроен"
-
 msgid "build CI image from prepared context"
 msgstr "собрать CI-образ из подготовленного контекста"
 
 msgid "build compose service for compose.generate ({REASON})"
 msgstr "собрать compose service для compose.generate ({REASON})"
+
+msgid "cannot fetch secrets: project directory is not set"
+msgstr "нельзя получить секреты: каталог проекта не задан"
 
 msgid "cannot read secrets file {PATH}: {DETAIL}"
 msgstr "не удалось прочитать файл secrets {PATH}: {DETAIL}"
@@ -776,6 +1040,9 @@ msgstr "docker build завершился с кодом {EXIT_CODE}"
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
+msgid "docker push failed with exit code {EXIT_CODE}"
+msgstr "docker push завершился с кодом {EXIT_CODE}"
+
 msgid "docker-compose.yml differs from preview"
 msgstr "docker-compose.yml отличается от preview"
 
@@ -803,8 +1070,14 @@ msgstr "шаблон dockerignore устарел"
 msgid "dockerignore template up to date"
 msgstr "шаблон dockerignore актуален"
 
+msgid "dry-run skip: {ARGV}"
+msgstr "dry-run skip: {ARGV}"
+
 msgid "extensions.local must be a list of module names"
 msgstr "extensions.local должен быть списком имён модулей"
+
+msgid "file provider uses existing source"
+msgstr "файловый провайдер использует существующий source"
 
 msgid "first database run (no last_run snapshot yet)"
 msgstr "первый запуск БД (снимок last_run ещё не создан)"
@@ -812,11 +1085,23 @@ msgstr "первый запуск БД (снимок last_run ещё не соз
 msgid "free odoo, debugger, postgres, and gevent ports before compose up"
 msgstr "освободить порты odoo, debugger, postgres и gevent перед compose up"
 
+msgid "git diff failed in {PATH}: {ERROR}"
+msgstr "git diff завершился с ошибкой в {PATH}: {ERROR}"
+
 msgid "git repos will be materialized"
 msgstr "git-репозитории будут материализованы"
 
+msgid "import --secrets-file"
+msgstr "импорт --secrets-file"
+
+msgid "inject service_sources paths into env resolver"
+msgstr "подставить пути service_sources в env resolver"
+
 msgid "invalid JSON in secrets file {PATH}: {DETAIL}"
 msgstr "некорректный JSON в файле secrets {PATH}: {DETAIL}"
+
+msgid "kaniko build failed with exit code {EXIT_CODE}"
+msgstr "сборка kaniko завершилась с кодом {EXIT_CODE}"
 
 msgid "load git lock from {SOURCE} before checkout"
 msgstr "загрузить git lock из {SOURCE} перед checkout"
@@ -833,20 +1118,50 @@ msgstr "manifest locks.git"
 msgid "manifest locks.git vs deps.lock.json differ: {DETAIL}"
 msgstr "locks.git в manifest и deps.lock.json расходятся: {DETAIL}"
 
-msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
-msgstr "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
+msgid "manifest odoo_conf.options.{KEY} cannot be overridden in scenario \"{SCENARIO}\".\n\nKeys managed by odpm in this scenario:\n  {KEYS}\n\ndb_* overrides are allowed only in scenario \"ci\"."
+msgstr "manifest odoo_conf.options.{KEY} нельзя переопределять в сценарии \"{SCENARIO}\".\n\nКлючи, которыми управляет odpm в этом сценарии:\n  {KEYS}\n\nПереопределения db_* разрешены только в сценарии \"ci\"."
 
 msgid "manifest odoo_conf.options.{KEY} is reserved; odpm manages this option automatically"
 msgstr "manifest odoo_conf.options.{KEY} зарезервировано; odpm управляет этой опцией автоматически"
 
+msgid "manifest services.{NAME} is reserved; use service_patches.{NAME} to patch built-in services"
+msgstr "manifest services.{NAME} зарезервировано; для patch встроенных сервисов используйте service_patches.{NAME}"
+
+msgid "manifest services.{NAME}.source must be a non-empty name."
+msgstr "manifest services.{NAME}.source должно быть непустым именем."
+
+msgid "manifest services.{NAME}.source references unknown service_sources entry {SOURCE!r}"
+msgstr "manifest services.{NAME}.source ссылается на неизвестный service_sources {SOURCE!r}"
+
+msgid "manifest services.{SVC}.networks references logical network {NET!r}; set {ENV}={NET} in .env or remove explicit networks"
+msgstr "manifest services.{SVC}.networks ссылается на логическую сеть {NET!r}; задайте {ENV}={NET} в .env или уберите явные networks"
+
 msgid "manifest subcommand required: use \"odpm manifest migrate\" or \"odpm manifest validate\"."
 msgstr "Укажите подкоманду manifest: \"odpm manifest migrate\" или \"odpm manifest validate\"."
+
+msgid "manifest v1 does not support scenarios; run \"odpm manifest migrate --write\" to upgrade to manifest v2."
+msgstr "manifest v1 не поддерживает scenarios; выполните \"odpm manifest migrate --write\" для перехода на manifest v2."
 
 msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
 msgstr "manifest_schema 2 требует поле requires_odpm (минимальная версия менеджера odpm)."
 
 msgid "materialize repos before writing deps.lock"
 msgstr "материализовать репозитории перед записью deps.lock"
+
+msgid "modules diff JSON must be an object."
+msgstr "JSON modules diff должен быть объектом."
+
+msgid "modules diff JSON parse failed: {ERROR}"
+msgstr "Не удалось разобрать JSON modules diff: {ERROR}"
+
+msgid "modules diff produced no step result."
+msgstr "modules diff не вернул результат шага."
+
+msgid "modules diff step was skipped unexpectedly."
+msgstr "Шаг modules diff был неожиданно пропущен."
+
+msgid "modules subcommand required: use \"odpm modules diff\" or \"odpm modules record-applied\"."
+msgstr "Укажите подкоманду modules: \"odpm modules diff\" или \"odpm modules record-applied\"."
 
 msgid "no git lock source available"
 msgstr "источник git lock недоступен"
@@ -890,6 +1205,9 @@ msgstr "освобождение портов только в developer-сцен
 msgid "psycopg2 is required."
 msgstr "Требуется psycopg2."
 
+msgid "recipe step: {ARGV}"
+msgstr "шаг рецепта: {ARGV}"
+
 msgid "refresh VS Code launch and settings"
 msgstr "обновить launch и settings VS Code"
 
@@ -898,6 +1216,9 @@ msgstr "обновить маппинг docker-томов"
 
 msgid "refresh project symlinks"
 msgstr "обновить симлинки проекта"
+
+msgid "remote provider configured"
+msgstr "настроен удалённый провайдер"
 
 msgid "remove stale runtime secrets"
 msgstr "удалить устаревшие runtime secrets"
@@ -916,6 +1237,9 @@ msgstr "отсутствуют runtime secrets"
 
 msgid "secret value for {KEY} must be a string"
 msgstr "значение secret для {KEY} должно быть строкой"
+
+msgid "secrets already imported this run"
+msgstr "секреты уже импортированы в этом запуске"
 
 msgid "secrets file must be a JSON object"
 msgstr "файл secrets должен быть JSON-объектом"
@@ -938,6 +1262,21 @@ msgstr "runtime secrets актуальны"
 msgid "secrets source changed"
 msgstr "источник secrets изменился"
 
+msgid "service_sources file:// link must be a non-empty path."
+msgstr "Ссылка service_sources file:// должна быть непустым путём."
+
+msgid "service_sources key {NAME!r} is invalid; use lowercase letters, digits, and underscores (must start with a letter)."
+msgstr "Ключ service_sources {NAME!r} недопустим; используйте строчные буквы, цифры и подчёркивания (имя должно начинаться с буквы)."
+
+msgid "service_sources stale or missing"
+msgstr "service_sources устарели или отсутствуют"
+
+msgid "service_sources up to date"
+msgstr "service_sources актуальны"
+
+msgid "service_sources.{NAME} must be a non-empty git link."
+msgstr "service_sources.{NAME} должно быть непустой git-ссылкой."
+
 msgid "skipped with --no-git-update"
 msgstr "пропущено с --no-git-update"
 
@@ -956,11 +1295,26 @@ msgstr "запуск compose-стека с --force-recreate (стек отсут
 msgid "start compose stack without --force-recreate (stack healthy)"
 msgstr "запуск compose-стека без --force-recreate (стек здоров)"
 
+msgid "sync project service-sources links"
+msgstr "синхронизировать ссылки project/service-sources"
+
 msgid "unable to preview debug profile"
 msgstr "не удалось построить preview debug profile"
 
 msgid "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
 msgstr "неподдерживаемый secrets schema_version: {VERSION} (ожидается {EXPECTED})"
+
+msgid "user_settings.json sidecars cannot include built-in service {NAME}"
+msgstr "user_settings.json sidecars не может включать встроенный сервис {NAME}"
+
+msgid "user_settings.json sidecars must be an object of service name to boolean"
+msgstr "user_settings.json sidecars должен быть объектом «имя сервиса → boolean»"
+
+msgid "user_settings.json sidecars refers to unknown compose service {NAME}"
+msgstr "user_settings.json sidecars ссылается на неизвестный compose-сервис {NAME}"
+
+msgid "user_settings.json sidecars.{NAME} must be a boolean (true or false)"
+msgstr "user_settings.json sidecars.{NAME} должен быть boolean (true или false)"
 
 msgid "validate docker-compose.yml"
 msgstr "проверить docker-compose.yml"
@@ -977,11 +1331,20 @@ msgstr "проверить соответствие checkout {SOURCE}"
 msgid "verify local git directories exist"
 msgstr "проверить наличие локальных git-каталогов"
 
+msgid "verify service_sources paths exist"
+msgstr "проверить наличие путей service_sources"
+
 msgid "write deps.lock.json from resolved commits"
 msgstr "записать deps.lock.json из разрешённых коммитов"
 
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell-команда(ы)"
+
+msgid "{ENV}=1 requires sudo on PATH for Kaniko direct mode."
+msgstr "{ENV}=1 требует sudo в PATH для режима Kaniko direct."
+
+msgid "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})"
+msgstr "Задан {PREFIX_ENV}; {LEGACY_ENV}=%r игнорируется (сервис postgres будет {DB_NAME})"
 
 msgid "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"
 msgstr "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"

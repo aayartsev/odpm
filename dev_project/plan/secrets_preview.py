@@ -13,6 +13,27 @@ from ..project_env.secrets import (
     secrets_source_is_gitignored,
     secrets_source_path,
 )
+from ..manifest.secrets_policy import (
+    ManifestSecretsSpec,
+    collect_secrets_requirement_issues,
+)
+
+
+def collect_secrets_requirement_warnings(
+    project_dir: str,
+    spec: ManifestSecretsSpec | None,
+    *,
+    mount_secrets_from_host: bool,
+    scenario: str,
+) -> tuple[str, ...]:
+    return tuple(
+        collect_secrets_requirement_issues(
+            project_dir,
+            spec,
+            mount_secrets_from_host=mount_secrets_from_host,
+            scenario=scenario,
+        )
+    )
 
 
 def secrets_source_key_count(project_dir: str) -> int:

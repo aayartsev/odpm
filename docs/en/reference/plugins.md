@@ -22,7 +22,7 @@ Breaking changes to pluggy protocols or manifest hooks require a major API bump.
 |-----------|-------------|--------------|
 | **Manifest `services`** | `odpm.json` v2 → `services` | Prepare `compose.fragments`; plan `compose.fragment.<name>` |
 | **Manifest `hooks`** | `odpm.json` v2 → `hooks` | `post_clone` after git materialize; `post_prepare` after prepare; `pre_up` before compose up |
-| **Python entry points** | package `pyproject.toml` | Pluggy: `odpm.prepare_steps`, `odpm.hooks` |
+| **Python entry points** | package `pyproject.toml` | Pluggy: `odpm.prepare_steps`, `odpm.hooks`; secrets: `odpm.secrets_providers` |
 | **Project-local plugins** | `.odpm/plugins/*.py` or `extensions.local` | Loaded at bootstrap (sandboxed to project dir) |
 
 v2 field details: [odpm.json](odpm-json.md). ADR: [adr-001-extensions-and-manifest-v2.md](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-001-extensions-and-manifest-v2.md).
@@ -45,7 +45,29 @@ Test SMTP with web UI on port **8025**. Add to nested manifest v2:
 }
 ```
 
-Sidecars may set **`user`** and **`tty`** (same as `service_patches`):
+Disable a sidecar locally without editing shared `odpm.json`: `user_settings.json` → `"sidecars": { "mailpit": false }` ([user-settings](user-settings.md), [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md)).
+
+Sidecars may set **`user`**, **`tty`**, **`hostname`**, **`healthcheck`**, **`privileged`**, and **`pid`** (same as `service_patches`). For **git build contexts** (recommended, 4.7+), use `service_sources` and `${@source:...}`; for sidecar API keys use `${@secret:...}` from `.odpm/secrets.json`:
+
+```json
+"service_sources": {
+  "autoparts_env": "https://github.com/org/autoparts-env.git 17.0"
+},
+"services": {
+  "armtek_test": {
+    "source": "autoparts_env",
+    "image": "autoparts_env:emulator",
+    "user": "root",
+    "tty": true,
+    "volumes": ["${@source:autoparts_env}/data:/data:Z"],
+    "environment": {
+      "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}"
+    }
+  }
+}
+```
+
+`${@secret:...}` requires `.odpm/secrets.json` or `--secrets-file`; the value lands in generated compose YAML intentionally. See [secrets.md](../operations/secrets.md). See also [service-sources.md](service-sources.md). Legacy path from `.env`:
 
 ```json
 "services": {
@@ -61,6 +83,46 @@ Sidecars may set **`user`** and **`tty`** (same as `service_patches`):
 Same spec in code: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPEC`.
 
 After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE_SERVICE_FRAGMENTS}` block). Materialize artifacts: `.odpm/compose/fragments/mailpit.yml` (gitignored).
+
+In sidecar `depends_on`, use the **logical** name `db` (not physical `acme-db`); with `ODPM_COMPOSE_PREFIX` odpm rewrites dependencies at compose generation — see [env-dotenv.md](env-dotenv.md).
+
+### Compose network (`networks`, 4.7+)
+
+By default the stack uses Docker Compose implicit default network. To attach **all** services to one named network, set in `.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=stack
+```
+
+For an **external** reverse-proxy network (Traefik, Caddy), typically in `~/.odpm/.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=proxy
+ODPM_COMPOSE_NETWORK_EXTERNAL=1
+```
+
+See [env-dotenv.md](env-dotenv.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
+
+Sidecars may declare `networks` (logical names; with `ODPM_COMPOSE_PREFIX` odpm rewrites managed networks to physical names; external names stay as-is):
+
+```json
+"services": {
+  "metrics": {
+    "image": "prom/prometheus",
+    "networks": ["stack"]
+  }
+}
+```
+
+If manifest uses `networks: ["stack"]`, `.env` must set **`ODPM_COMPOSE_NETWORK=stack`** (or omit `networks` — odpm attaches the sidecar automatically). `odpm manifest validate` logs a **warning** when logical `stack` does not match `.env`.
+
+Proxy-only sidecar with `${VAR}`:
+
+```json
+"networks": ["${PROXY_NETWORK}"]
+```
+
+with `PROXY_NETWORK=proxy` and `ODPM_COMPOSE_NETWORK=proxy` in `.env`.
 
 ### Patch built-in services (`service_patches`, 4.6+)
 
@@ -112,30 +174,31 @@ The `odoo` start command stays owned by the generator; override via `service_pat
 
 Each element is either **argv** (string array, runs in `project_dir` **without a shell**) or a **plugin id** (string) for the pluggy hook runner.
 
-Argv supports **`${VAR}`** / **`${VAR:-default}`** (Compose-style): expanded at hook execution from process env → project `.env` → inline default. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
+Argv supports **`${VAR}`** / **`${VAR:-default}`**, **`${@source:<name>}`** (after `sources.materialize`), and **`${@secret:<key>}`** (from `.odpm/secrets.json`): expanded at hook execution. The subprocess receives **merged env** (process + missing keys from `.env`). Example sidecar image build:
 
 ```json
 "hooks": {
   "post_prepare": [[
     "docker", "build",
-    "-f", "${DIGITAL_AUTOPARTS_ENV_DIR}/server_launch_system/alpine_dockerfile",
+    "-f", "${@source:autoparts_env}/Dockerfile",
     "-t", "autoparts_env:emulator",
-    "${DIGITAL_AUTOPARTS_ENV_DIR}"
+    "${@source:autoparts_env}"
   ]]
 }
 ```
 
-`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …) — expanded when the manifest is loaded with `EnvResolver`.
+`services` / `service_patches` use the same substitution rules for string fields (`image`, `volumes[]`, `command[]`, `environment`, …): `${VAR}` / `${@secret:...}` at manifest read; `${@source:...}` after `sources.materialize`.
 
-Order per ADR-004:
+Prepare order (excerpt):
 
 1. Git materialize
-2. `hooks.post_clone` (when configured)
-3. All prepare steps (built-in + `odpm.prepare_steps` + local plugins), sorted by `order`
-4. `hooks.post_prepare`
-5. Runtime: debug profile, IDE, database drift
-6. `hooks.pre_up`
-7. `docker compose up`
+2. **`sources.materialize`** (when `service_sources` is set)
+3. `hooks.post_clone` (if configured)
+4. All prepare steps (built-in + `odpm.prepare_steps` + local plugins), sorted by `order`
+5. `hooks.post_prepare`
+6. Runtime: debug profile, IDE, database drift
+7. `hooks.pre_up`
+8. `docker compose up`
 
 `odpm plan` shows `hooks.*`, `compose.fragment.<service>`, and `compose.patch.<service>` steps when configured.
 

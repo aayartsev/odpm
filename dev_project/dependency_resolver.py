@@ -47,6 +47,7 @@ def read_nested_odpm_fragment(
     project_path: str,
     *,
     resolver: EnvResolver | None = None,
+    active_scenario: str | None = None,
 ) -> NestedOdpmFragment | None:
     """Read dependency discovery fields from odpm.json at a dependency repo root."""
     manifest_path = os.path.join(project_path, constants.PROJECT_CONFIG_FILE_NAME)
@@ -74,10 +75,10 @@ def read_nested_odpm_fragment(
         return None
 
     if resolver is not None:
-        from .config.transforms.env_substitution import (
+        from .config.transforms.env_substitution import (  # noqa: PLC0415  # optional
             ODPM_JSON_ENV_EXPAND_FIELDS,
             expand_env_in_json,
-        )
+        )  # noqa: PLC0415  # optional
 
         raw = expand_env_in_json(
             raw,
@@ -96,9 +97,13 @@ def read_nested_odpm_fragment(
     services: dict[str, Any] | None = None
     service_patches: dict[str, Any] | None = None
     try:
-        from .manifest.reader import load_manifest
+        from .manifest.reader import load_manifest  # noqa: PLC0415  # optional
 
-        view = load_manifest(raw, env_resolver=resolver)
+        view = load_manifest(
+            raw,
+            env_resolver=resolver,
+            active_scenario=active_scenario,
+        )
         services = view.services
         service_patches = view.service_patches
     except (TypeError, ValueError, ConfigError):

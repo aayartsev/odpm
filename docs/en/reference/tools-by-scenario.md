@@ -8,8 +8,8 @@ A single odpm utility provides a **set of commands**; in different scenarios (`O
 |------|:---------:|:------:|:-----------:|
 | Initialization `odpm --init` | yes | yes | yes |
 | Prepare `odpm` / `--skip-start` | yes | yes | yes |
-| Start `docker compose up` | yes | yes | yes |
-| Database and modules `-d -i -u` | yes | yes | yes |
+| Start `docker compose up` | yes | yes | via `docker compose` after `--skip-start` / `--build-image` (bare `odpm` in ci rejected, ADR-017) |
+| Database and modules `-d -i -u` | yes | yes | after `compose up` via `compose exec` (not bare `odpm`) |
 | Module tests `-t` | yes | rarely | yes |
 | Database backup and restore | yes | yes | yes |
 | Admin password change, translations | yes | yes | as needed |
@@ -20,6 +20,8 @@ A single odpm utility provides a **set of commands**; in different scenarios (`O
 | Change plan `odpm plan` | yes | yes | yes |
 | Lock update `--update-lock` | coordinator | read | strict |
 | Image build `--build-image` | **no** | **no** | **yes** |
+| Backend `--image-builder` / env `ODPM_CI_IMAGE_BUILDER` (`docker`, `kaniko`) | **no** | **no** | **yes** |
+| Publish `--image-push` / env `ODPM_CI_IMAGE_PUSH` | **no** | **no** | **yes** |
 | Prepare without git `--no-git-update` | yes | yes | yes |
 
-Full parameter list: [command line](cli.md).
+Full parameter list: [command line](cli.md). For `kaniko` see [ci scenario](../scenarios/ci.md) and [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md).

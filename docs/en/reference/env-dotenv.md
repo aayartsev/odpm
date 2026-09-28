@@ -2,9 +2,35 @@
 
 > **AI-translated** from Russian.
 
-The **`.env`** file sets parameters for **this** odpm environment directory: ports, scenario, backup paths, and git clone locations. If it lives **in the project directory**, it **fully replaces** `~/.odpm/.env` — values from the two files are not merged ([hierarchy](config-hierarchy.md)).
+Environment parameters (ports, scenario, backup paths, git clone roots) live in **`.env`**. Since **4.7**, odpm **merges** two files on read ([hierarchy](config-hierarchy.md), [ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md)):
 
-On the **first interactive** odpm run, the setup wizard asks questions and writes answers to `.env` (global or project-level). Press Enter for unfamiliar items.
+| File | Role |
+|------|------|
+| `~/.odpm/.env` | Shared user profile (base) |
+| `.env` in the project directory | Overrides for **this** environment (overlay, stronger than home) |
+
+The first-run wizard **writes** to project `.env` when that file already exists, else to `~/.odpm/.env`. In project `.env` you can keep only differing keys (e.g. `ODOO_PORT`, `ODPM_COMPOSE_PREFIX`) while `BACKUP_DIR` and `ODOO_PROJECTS_DIR` stay in home.
+
+On the **first interactive** run, the setup wizard asks questions. Press Enter for unfamiliar items.
+
+### Example: shared home, per-project overrides
+
+`~/.odpm/.env`:
+
+```ini
+BACKUP_DIR=/home/dev/backups
+ODOO_PROJECTS_DIR=/home/dev/odoo_projects
+PATH_TO_SSH_KEY=/home/dev/.ssh/id_ed25519
+ODPM_LOCALE=en_US
+```
+
+`<project>/.env`:
+
+```ini
+ODOO_PORT=8070
+ODPM_COMPOSE_PREFIX=acme
+ODOO_PLATFORM_DIR=/work/client/odoo/19.0
+```
 
 ## Variables
 
@@ -14,7 +40,10 @@ On the **first interactive** odpm run, the setup wizard asks questions and write
 | `ODOO_PROJECTS_DIR` | Where to clone platform and git dependencies | `~/odoo_projects` |
 | `ODOO_PORT` | Odoo HTTP port on the host | `8069` |
 | `POSTGRES_PORT` | PostgreSQL port on the host (in `server` scenario — localhost only) | `5432` |
-| `POSTGRES_SERVICE_NAME` | PostgreSQL service name in `docker-compose.yml` and `db_host` in `odoo.conf` | `db` |
+| `POSTGRES_SERVICE_NAME` | PostgreSQL service name in `docker-compose.yml` and `db_host` in `odoo.conf` (when `ODPM_COMPOSE_PREFIX` is unset) | `db` |
+| `ODPM_COMPOSE_PREFIX` | Prefix for **full** compose-stack isolation: `db`/`odoo` service keys, `postgres-data` volume, Docker Compose project name | unset |
+| `ODPM_COMPOSE_NETWORK` | Logical name of **one** compose network for the whole stack (managed bridge or external); unset — implicit default network | unset |
+| `ODPM_COMPOSE_NETWORK_EXTERNAL` | `1` / `true` — network already exists on the host (`external: true`); name not prefixed | `0` |
 | `DEBUGGER_PORT` | Debugger port; see [backend semantics](#debugger_port-and-backend) | `5678` |
 | `ODPM_DEBUGGER_BACKEND` | `debugpy_listen` or `pydevd_connect` | `debugpy_listen` |
 | `ODPM_IDE` | Which IDE settings to generate: `vscode`, `pycharm`, `both`, `none` | `vscode` |
@@ -22,10 +51,25 @@ On the **first interactive** odpm run, the setup wizard asks questions and write
 | `ODPM_DEBUGGER_SUSPEND` | `1` / `y` — Odoo waits for the IDE after `settrace` (`pydevd_connect`) | `0` |
 | `GEVENT_PORT` | gevent websocket port | `8072` |
 | `ODPM_SCENARIO` | `developer`, `server`, or `ci` | `developer` |
+| `ODPM_CI_IMAGE_BUILDER` | `--build-image` backend: `docker` or `kaniko` (weaker than CLI `--image-builder`; read from layered `.env`, ADR-017) | `docker` |
+| `ODPM_CI_IMAGE_PUSH` | `1` / `true` / `yes` — push after `--build-image` (same as `--image-push`) | off |
+| `ODPM_KANIKO_EXECUTOR_MODE` | `docker-run` or `direct` (CI+kaniko wizard defaults to `direct`) | `docker-run` |
+| `ODPM_KANIKO_EXECUTOR_IMAGE` | Executor image for `docker-run` mode | `gcr.io/kaniko-project/executor:v1.23.2` |
+| `ODPM_KANIKO_EXECUTOR_BIN` | Executor binary for `direct` mode | `executor` |
+| `ODPM_KANIKO_EXECUTOR_WRAPPER` | Optional argv prefix for `direct` (wrapper script that runs executor as root); recommended on non-root CI | empty |
+| `ODPM_KANIKO_EXECUTOR_EXTRA_FLAGS` | Extra Kaniko executor flags (e.g. `--kaniko-dir=/tmp/kaniko`) | empty |
+| `ODPM_KANIKO_EXECUTOR_SUDO` | `1` / `true` / `yes` — prepend `sudo -n` before executor in `direct` when wrapper unset; requires passwordless sudo | off |
+| `ODPM_BASE_IMAGE_REGISTRY` | Registry prefix for the base image when using `kaniko` (required for daemonless base) | empty |
+| `ODPM_BASE_IMAGE_PROFILE` | Override base Dockerfile profile: `full`, `medium`, or `ci` (process env wins; invalid → scenario default). Does not change other scenario policy — see [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md) | from `ODPM_SCENARIO` |
 | `ODPM_LOCALE` | odpm message language, e.g. `ru_RU` | from system | see [locale.md](locale.md) |
 | `PATH_TO_SSH_KEY` | SSH key path for git (rarely needed) | empty |
+| `ODPM_SECRETS_PROVIDER` | Override secrets provider type (`file` / `infisical` / plugin id). Weaker than `--secrets-provider`; `--secrets-file` still forces `file`. The wizard **does not** prompt for this key. | `file` |
+| `INFISICAL_CLIENT_ID` | Universal Auth client id (`.env` / process env only) | empty |
+| `INFISICAL_CLIENT_SECRET` | Universal Auth client secret | empty |
+| `INFISICAL_HOST` | Override `secrets.provider.host` (self-hosted Infisical) | `https://app.infisical.com` |
+| `INFISICAL_ENVIRONMENT_SLUG` | Override `secrets.provider.environment_slug` | from manifest |
 
-Changing `POSTGRES_SERVICE_NAME` or `POSTGRES_PORT` relative to the saved snapshot causes **database drift** — see [PostgreSQL state](database-state.md).
+Changing `POSTGRES_SERVICE_NAME`, `POSTGRES_PORT`, or `ODPM_COMPOSE_PREFIX` relative to the saved snapshot causes **database drift** — see [PostgreSQL state](database-state.md).
 
 ## `DEBUGGER_PORT` and backend
 
@@ -75,6 +119,17 @@ ODPM_SCENARIO=developer
 ODPM_LOCALE=ru_RU
 ```
 
+### Base image profile override
+
+When the scenario default is wrong (e.g. `ci` needs wkhtmltopdf from **medium**), set the profile explicitly — the wizard does not ask for this key:
+
+```ini
+ODPM_SCENARIO=ci
+ODPM_BASE_IMAGE_PROFILE=medium
+```
+
+Allowed: `full`, `medium`, `ci`. Process env wins over layered `.env`. See [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md).
+
 ## SSH and git
 
 The setup wizard **does not ask** for an SSH key path. OpenSSH configuration (`~/.ssh/config`, ssh-agent) is usually enough.
@@ -91,11 +146,68 @@ One key applies to all specified remote repositories.
 
 PostgreSQL service name in `docker-compose.yml` and `db_host` value in `odoo.conf` (DNS inside the docker network). Lowercase letters, digits, `_`, and `-` are allowed; the name must start with a letter. After a change, regenerate `docker-compose.yml` and `odoo.conf` (a normal `odpm` run).
 
+**Ignored** when **`ODPM_COMPOSE_PREFIX`** is set — postgres is named `{prefix}db` (e.g. `acme-db`), with a warning in the log.
+
+## `ODPM_COMPOSE_PREFIX`
+
+Optional prefix for **full compose-stack isolation** on a shared host: multiple odpm environments without colliding service names, volumes, or Docker Compose project scope.
+
+| Mode | Behaviour |
+|------|-----------|
+| **Unset** | Same as 4.6: postgres from `POSTGRES_SERVICE_NAME` (default `db`), odoo `odoo`, volume `postgres-data` |
+| **Set** (`acme` or `acme-`) | Services `acme-db`, `acme-odoo`; volume `acme-postgres-data`; project name / `docker compose -p` — `acme` |
+
+Normalization: lowercase, charset `[a-z0-9-]`, must start with a letter; trailing `-` in `.env` is optional. Invalid values are **ignored** (prefix disabled, warning logged).
+
+Manifest sidecars keep **logical** names (`depends_on: ["db"]`); odpm rewrites them to physical names when generating `docker-compose.yml`. For hostnames inside `environment` / `command`, use **`${@service:db}`** / **`${@service:odoo}`** — the YAML gets the physical name (`acme-db`). Sidecar keys without a prefix resolve to the same name.
+
+Example:
+
+```ini
+ODPM_COMPOSE_PREFIX=acme
+```
+
+See [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md), [`odpm.json` substitution](odpm-json.md).
+
+## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
+
+Optionally declare **one** named Docker Compose network for the **entire** odpm stack (`db`, `odoo`, sidecars). When unset, odpm does **not** add a `networks:` section to `docker-compose.yml` — services stay on the project's implicit default network (same as 4.6).
+
+| Mode | `.env` | Behaviour |
+|------|--------|-----------|
+| **Default** | variables unset | No `networks:` in YAML |
+| **Managed** | `ODPM_COMPOSE_NETWORK=stack` | `networks: { stack: { driver: bridge } }`; services without their own `networks` are attached |
+| **External** | `ODPM_COMPOSE_NETWORK=proxy` + `ODPM_COMPOSE_NETWORK_EXTERNAL=1` | `external: true`; name **without** prefix (shared reverse-proxy network) |
+
+With **`ODPM_COMPOSE_PREFIX=acme`**, managed network `stack` becomes physical **`acme-stack`**; external `proxy` stays `proxy`.
+
+Name normalization matches prefix (`[a-z0-9-]`, start with a letter). Invalid values disable the network (warning). `ODPM_COMPOSE_NETWORK_EXTERNAL` without a network name has no effect.
+
+Typical split ([ADR-013](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md)):
+
+`~/.odpm/.env`:
+
+```ini
+ODPM_COMPOSE_NETWORK=proxy
+ODPM_COMPOSE_NETWORK_EXTERNAL=1
+```
+
+`<project>/.env`:
+
+```ini
+ODPM_COMPOSE_PREFIX=acme
+ODPM_COMPOSE_NETWORK=stack
+```
+
+Manifest sidecars with `networks: ["stack"]` are consistent only when `ODPM_COMPOSE_NETWORK=stack`; otherwise `odpm manifest validate` logs a warning. See [plugins](plugins.md), [ADR-014](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-014-compose-stack-network.md).
+
+Changing the network does **not** cause database drift (not in `last_run.json`); `docker-compose.yml` is regenerated on the next materialize.
+
 ## Variables for manifest substitution
 
 Besides built-in odpm keys, `.env` may define **arbitrary** names for `${VAR}` in `odpm.json` and `user_settings.json` (e.g. `ODOO_PLATFORM_DIR`, `OCA_WEB_PATH`, `GIT_HOST`). They **do not** control ports or scenario by themselves — they are only substituted into whitelist manifest fields when JSON is read.
 
-Priority for `${VAR}`: odpm **process** variables override the project `.env`. Empty default in manifest: `${VAR:-}`.
+Priority for `${VAR}`: odpm **process** variables override the effective merged `.env` (home + project). Empty default in manifest: `${VAR:-}`.
 
 Typical project `.env` fragment for local development:
 

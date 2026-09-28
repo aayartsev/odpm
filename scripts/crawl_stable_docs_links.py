@@ -138,7 +138,7 @@ def main() -> int:
         f"- Base: `{args.base}`",
         f"- Pages visited: **{len(pages)}**",
         f"- Broken internal links: **{len(broken)}**",
-        f"- Checked at: crawl run from repo script `scripts/crawl_stable_docs_links.py`",
+        "- Checked at: crawl run from repo script `scripts/crawl_stable_docs_links.py`",
         "",
     ]
     if broken:

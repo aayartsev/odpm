@@ -1,18 +1,22 @@
-"""Expand ${VAR} / ${VAR:-default} references in manifest JSON string fields."""
+"""Expand ${VAR} / ${VAR:-default} / ${@source:} / ${@service:} / ${@secret:} in manifest strings."""
 
 from __future__ import annotations
 
 import os
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from ...errors import ConfigError
 from ...translations import _
+from ...manifest.secrets_policy import is_secret_placeholder
+from ...manifest.service_sources import source_env_key
 
 if TYPE_CHECKING:
+    from ...compose.service_names import ComposeNamingContext
     from ...host.user_env import CreateUserEnvironment
+
 
 ODPM_JSON_ENV_EXPAND_FIELDS = frozenset({
     "dependencies",
@@ -23,17 +27,26 @@ USER_SETTINGS_ENV_EXPAND_FIELDS = frozenset({
     "developing_project",
 })
 
+# Groups: 1=@source, 2=@service, 3=@secret, 4=VAR, 5=default
 _ENV_REF_PATTERN = re.compile(
-    r"\$\{([^}:]+)(?::-([^}]*))?\}|\$\$"
+    r"\$\{@source:([a-z][a-z0-9_]*)\}|"
+    r"\$\{@service:([a-z][a-z0-9_]*)\}|"
+    r"\$\{@secret:([A-Za-z0-9_.-]+)\}|"
+    r"\$\{([^}:]+)(?::-([^}]*))?\}|"
+    r"\$\$"
 )
+
+_SECRET_REF_ONLY_PATTERN = re.compile(r"\$\{@secret:([A-Za-z0-9_.-]+)\}")
 
 
 @dataclass(frozen=True)
 class EnvResolver:
-    """Resolve manifest env var names from process environ and project .env."""
+    """Resolve manifest env var names from process environ, project .env, and secrets."""
 
     process_environ: Mapping[str, str]
     project_dotenv: Mapping[str, str]
+    compose_naming: ComposeNamingContext | None = None
+    secrets: Mapping[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_sources(
@@ -41,6 +54,8 @@ class EnvResolver:
         *,
         process_environ: Mapping[str, str] | None = None,
         project_dotenv: Mapping[str, str] | None = None,
+        compose_naming: ComposeNamingContext | None = None,
+        secrets: Mapping[str, str] | None = None,
     ) -> EnvResolver:
         environ = process_environ if process_environ is not None else os.environ
         return cls(
@@ -48,6 +63,8 @@ class EnvResolver:
             project_dotenv={
                 key: str(value) for key, value in (project_dotenv or {}).items()
             },
+            compose_naming=compose_naming,
+            secrets={key: str(value) for key, value in (secrets or {}).items()},
         )
 
     @classmethod
@@ -56,10 +73,18 @@ class EnvResolver:
         user_env: CreateUserEnvironment,
         *,
         process_environ: Mapping[str, str] | None = None,
+        compose_naming: ComposeNamingContext | None = None,
+        secrets: Mapping[str, str] | None = None,
     ) -> EnvResolver:
+        if compose_naming is None:
+            from ...compose.service_names import compose_naming_from_user_env  # noqa: PLC0415  # optional
+
+            compose_naming = compose_naming_from_user_env(user_env)
         return cls.from_sources(
             process_environ=process_environ,
             project_dotenv=user_env.project_dotenv_dict(),
+            compose_naming=compose_naming,
+            secrets=secrets,
         )
 
     def resolve(self, name: str) -> str | None:
@@ -71,7 +96,147 @@ class EnvResolver:
         return None
 
 
-def expand_env_string(value: str, resolver: EnvResolver, *, field_path: str) -> str:
+def with_secrets(
+    resolver: EnvResolver,
+    secrets: Mapping[str, str],
+) -> EnvResolver:
+    """Return resolver with secrets map replaced (for bootstrap / re-expand)."""
+    return EnvResolver(
+        process_environ=resolver.process_environ,
+        project_dotenv=resolver.project_dotenv,
+        compose_naming=resolver.compose_naming,
+        secrets={key: str(value) for key, value in secrets.items()},
+    )
+
+
+def collect_secret_refs_in_value(value: Any) -> set[str]:
+    """Collect ``${@secret:key}`` keys from nested str/list/dict trees."""
+    found: set[str] = set()
+    if isinstance(value, str):
+        for match in _SECRET_REF_ONLY_PATTERN.finditer(value):
+            found.add(match.group(1))
+        return found
+    if isinstance(value, list):
+        for item in value:
+            found.update(collect_secret_refs_in_value(item))
+        return found
+    if isinstance(value, dict):
+        for item in value.values():
+            found.update(collect_secret_refs_in_value(item))
+        return found
+    return found
+
+
+def _resolve_source_ref(
+    source_name: str,
+    token: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved: bool,
+) -> str:
+
+    resolved = resolver.resolve(source_env_key(source_name))
+    if resolved is not None:
+        return resolved
+    if allow_unresolved:
+        return token
+    raise ConfigError(
+        _(
+            "Service source {NAME} is not materialized "
+            "(required for manifest field {FIELD})"
+        ).format(NAME=source_name, FIELD=field_path)
+    )
+
+
+def _resolve_service_ref(
+    service_name: str,
+    token: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved: bool,
+) -> str:
+    naming = resolver.compose_naming
+    if naming is not None:
+        from ...compose.service_names import map_logical_service_name  # noqa: PLC0415  # optional
+
+        return map_logical_service_name(service_name, naming)
+    if allow_unresolved:
+        return token
+    raise ConfigError(
+        _(
+            "Compose service reference {NAME} cannot be resolved "
+            "(required for manifest field {FIELD})"
+        ).format(NAME=service_name, FIELD=field_path)
+    )
+
+
+def _resolve_secret_ref(
+    secret_key: str,
+    token: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved: bool,
+) -> str:
+    if secret_key not in resolver.secrets:
+        if allow_unresolved:
+            return token
+        if not resolver.secrets:
+            raise ConfigError(
+                _(
+                    "Configuration references secrets (@secret) but "
+                    ".odpm/secrets.json is missing; create it or pass "
+                    "--secrets-file (required for field {FIELD})"
+                ).format(FIELD=field_path)
+            )
+        raise ConfigError(
+            _(
+                "Secret {KEY} is not set in .odpm/secrets.json "
+                "(required for field {FIELD})"
+            ).format(KEY=secret_key, FIELD=field_path)
+        )
+    secret_value = resolver.secrets[secret_key]
+    if is_secret_placeholder(secret_value):
+        raise ConfigError(
+            _(
+                "Secret {KEY} still has a placeholder value "
+                "(required for field {FIELD})"
+            ).format(KEY=secret_key, FIELD=field_path)
+        )
+    return secret_value
+
+
+def _resolve_env_var_ref(
+    name: str,
+    default: str | None,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+) -> str:
+    resolved = resolver.resolve(name)
+    if resolved is not None:
+        return resolved
+    if default is not None:
+        return default
+    raise ConfigError(
+        _(
+            "Environment variable {VAR} is not set "
+            "(required for manifest field {FIELD})"
+        ).format(VAR=name, FIELD=field_path)
+    )
+
+
+def expand_env_string(
+    value: str,
+    resolver: EnvResolver,
+    *,
+    field_path: str,
+    allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
+) -> str:
     if "$" not in value:
         return value
 
@@ -83,21 +248,45 @@ def expand_env_string(value: str, resolver: EnvResolver, *, field_path: str) -> 
         token = match.group(0)
         if token == "$$":
             parts.append("$")
-        else:
-            name = match.group(1)
-            default = match.group(2)
-            resolved = resolver.resolve(name)
-            if resolved is not None:
-                parts.append(resolved)
-            elif default is not None:
-                parts.append(default)
-            else:
-                raise ConfigError(
-                    _(
-                        "Environment variable {VAR} is not set "
-                        "(required for manifest field {FIELD})"
-                    ).format(VAR=name, FIELD=field_path)
+        elif match.group(1) is not None:
+            parts.append(
+                _resolve_source_ref(
+                    match.group(1),
+                    token,
+                    resolver,
+                    field_path=field_path,
+                    allow_unresolved=allow_unresolved_source,
                 )
+            )
+        elif match.group(2) is not None:
+            parts.append(
+                _resolve_service_ref(
+                    match.group(2),
+                    token,
+                    resolver,
+                    field_path=field_path,
+                    allow_unresolved=allow_unresolved_service,
+                )
+            )
+        elif match.group(3) is not None:
+            parts.append(
+                _resolve_secret_ref(
+                    match.group(3),
+                    token,
+                    resolver,
+                    field_path=field_path,
+                    allow_unresolved=allow_unresolved_secret,
+                )
+            )
+        else:
+            parts.append(
+                _resolve_env_var_ref(
+                    match.group(4),
+                    match.group(5),
+                    resolver,
+                    field_path=field_path,
+                )
+            )
         last_end = match.end()
 
     parts.append(value[last_end:])
@@ -125,17 +314,80 @@ def expand_env_in_json(
     return expanded
 
 
+def expand_env_deep(
+    data: Any,
+    *,
+    resolver: EnvResolver,
+    field_path: str = "user_settings",
+    allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
+) -> Any:
+    """Deep-expand ``${VAR}`` / ``${@secret:}`` / … in all string leaves."""
+    if isinstance(data, str):
+        return expand_env_string(
+            data,
+            resolver,
+            field_path=field_path,
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
+        )
+    if isinstance(data, list):
+        return [
+            expand_env_deep(
+                item,
+                resolver=resolver,
+                field_path=f"{field_path}[]",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+            for item in data
+        ]
+    if isinstance(data, dict):
+        return {
+            key: expand_env_deep(
+                value,
+                resolver=resolver,
+                field_path=f"{field_path}.{key}" if field_path else str(key),
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+            for key, value in data.items()
+        }
+    return data
+
+
 def _expand_field_value(
     value: Any,
     *,
     resolver: EnvResolver,
     field_path: str,
+    allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
 ) -> Any:
     if isinstance(value, str):
-        return expand_env_string(value, resolver, field_path=field_path)
+        return expand_env_string(
+            value,
+            resolver,
+            field_path=field_path,
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
+        )
     if isinstance(value, list):
         return [
-            expand_env_string(item, resolver, field_path=f"{field_path}[]")
+            expand_env_string(
+                item,
+                resolver,
+                field_path=f"{field_path}[]",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
             if isinstance(item, str)
             else item
             for item in value
@@ -143,7 +395,9 @@ def _expand_field_value(
     return value
 
 
-_COMPOSE_SERVICE_STRING_SCALARS = frozenset({"image", "user", "restart"})
+_COMPOSE_SERVICE_STRING_SCALARS = frozenset(
+    {"image", "user", "restart", "hostname", "pid"}
+)
 _COMPOSE_SERVICE_STRING_LISTS = frozenset({
     "ports",
     "volumes",
@@ -151,6 +405,12 @@ _COMPOSE_SERVICE_STRING_LISTS = frozenset({
     "networks",
     "command",
     "entrypoint",
+})
+_COMPOSE_HEALTHCHECK_STRING_SCALARS = frozenset({
+    "interval",
+    "timeout",
+    "start_period",
+    "start_interval",
 })
 
 
@@ -162,11 +422,62 @@ def merged_subprocess_environ(resolver: EnvResolver) -> dict[str, str]:
     return merged
 
 
+def _expand_healthcheck(
+    healthcheck: dict[str, Any],
+    *,
+    resolver: EnvResolver,
+    field_prefix: str,
+    allow_unresolved_source: bool,
+    allow_unresolved_service: bool,
+    allow_unresolved_secret: bool,
+) -> dict[str, Any]:
+    result = dict(healthcheck)
+    test = result.get("test")
+    if isinstance(test, str):
+        result["test"] = expand_env_string(
+            test,
+            resolver,
+            field_path=f"{field_prefix}.test",
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
+        )
+    elif isinstance(test, list):
+        result["test"] = [
+            expand_env_string(
+                item,
+                resolver,
+                field_path=f"{field_prefix}.test[]",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+            if isinstance(item, str)
+            else item
+            for item in test
+        ]
+    for key in _COMPOSE_HEALTHCHECK_STRING_SCALARS:
+        value = result.get(key)
+        if isinstance(value, str):
+            result[key] = expand_env_string(
+                value,
+                resolver,
+                field_path=f"{field_prefix}.{key}",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
+    return result
+
+
 def _expand_compose_service_spec(
     spec: dict[str, Any],
     *,
     resolver: EnvResolver,
     field_prefix: str,
+    allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
 ) -> dict[str, Any]:
     result = dict(spec)
     for key in _COMPOSE_SERVICE_STRING_SCALARS:
@@ -176,13 +487,23 @@ def _expand_compose_service_spec(
                 value,
                 resolver,
                 field_path=f"{field_prefix}.{key}",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
             )
     for key in _COMPOSE_SERVICE_STRING_LISTS:
         value = result.get(key)
         if not isinstance(value, list):
             continue
         result[key] = [
-            expand_env_string(item, resolver, field_path=f"{field_prefix}.{key}[]")
+            expand_env_string(
+                item,
+                resolver,
+                field_path=f"{field_prefix}.{key}[]",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
             if isinstance(item, str)
             else item
             for item in value
@@ -190,11 +511,29 @@ def _expand_compose_service_spec(
     environment = result.get("environment")
     if isinstance(environment, dict):
         result["environment"] = {
-            env_key: expand_env_string(env_value, resolver, field_path=f"{field_prefix}.environment.{env_key}")
+            env_key: expand_env_string(
+                env_value,
+                resolver,
+                field_path=f"{field_prefix}.environment.{env_key}",
+                allow_unresolved_source=allow_unresolved_source,
+                allow_unresolved_service=allow_unresolved_service,
+                allow_unresolved_secret=allow_unresolved_secret,
+            )
             if isinstance(env_value, str)
             else env_value
             for env_key, env_value in environment.items()
         }
+    healthcheck = result.get("healthcheck")
+    if isinstance(healthcheck, dict):
+        result["healthcheck"] = _expand_healthcheck(
+            healthcheck,
+            resolver=resolver,
+            field_prefix=f"{field_prefix}.healthcheck",
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
+        )
+    result.pop("source", None)
     return result
 
 
@@ -203,8 +542,11 @@ def expand_env_in_compose_service_map(
     *,
     resolver: EnvResolver,
     field_prefix: str,
+    allow_unresolved_source: bool = False,
+    allow_unresolved_service: bool = False,
+    allow_unresolved_secret: bool = False,
 ) -> dict[str, Any] | None:
-    """Expand ``${VAR}`` in manifest v2 ``services`` / ``service_patches`` string fields."""
+    """Expand ``${VAR}`` / ``${@source:}`` / ``${@service:}`` / ``${@secret:}`` in compose maps."""
     if not isinstance(services, dict):
         return services
     expanded: dict[str, Any] = {}
@@ -216,8 +558,26 @@ def expand_env_in_compose_service_map(
             dict(spec),
             resolver=resolver,
             field_prefix=f"{field_prefix}.{name}",
+            allow_unresolved_source=allow_unresolved_source,
+            allow_unresolved_service=allow_unresolved_service,
+            allow_unresolved_secret=allow_unresolved_secret,
         )
     return expanded
+
+
+def inject_service_source_paths(
+    resolver: EnvResolver,
+    source_paths: Mapping[str, str],
+) -> EnvResolver:
+    merged_environ = dict(resolver.process_environ)
+    for name, path in source_paths.items():
+        merged_environ[source_env_key(name)] = str(path)
+    return EnvResolver(
+        process_environ=merged_environ,
+        project_dotenv=resolver.project_dotenv,
+        compose_naming=resolver.compose_naming,
+        secrets=resolver.secrets,
+    )
 
 
 def expand_env_in_odoo_conf(
@@ -225,7 +585,7 @@ def expand_env_in_odoo_conf(
     *,
     resolver: EnvResolver,
 ) -> dict[str, Any] | None:
-    """Expand ``${VAR}`` in manifest ``odoo_conf`` string option values."""
+    """Expand ``${VAR}`` / ``${@secret:}`` in manifest ``odoo_conf`` string option values."""
     if not isinstance(odoo_conf, dict):
         return odoo_conf
     expanded: dict[str, Any] = {}
@@ -244,3 +604,21 @@ def expand_env_in_odoo_conf(
             for key, value in section_data.items()
         }
     return expanded
+
+
+def expand_env_in_service_sources(
+    service_sources: dict[str, str] | None,
+    *,
+    resolver: EnvResolver,
+) -> dict[str, str] | None:
+    """Expand ``${VAR}`` / ``${@secret:}`` in manifest ``service_sources`` git link values."""
+    if not isinstance(service_sources, dict):
+        return service_sources
+    expanded: dict[str, str] = {}
+    for name, link in service_sources.items():
+        expanded[str(name)] = expand_env_string(
+            str(link),
+            resolver,
+            field_path=f"service_sources.{name}",
+        )
+    return expanded or None

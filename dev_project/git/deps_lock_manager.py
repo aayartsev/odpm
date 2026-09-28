@@ -201,6 +201,7 @@ class DepsLockManager:
             platform=platform_entry,
             developing=developing_entry,
             dependencies=sort_lock_entries(dependency_entries),
+            service_sources=self._collect_service_source_entries(),
         )
         save_deps_lock(self._path, lock)
         _logger.info(
@@ -259,6 +260,47 @@ class DepsLockManager:
             developing=self._config.developing_project,
             dependencies=self._config.dependencies_projects,
         )
+        self.verify_service_sources()
+
+    def lock_entries_for_service_sources(self) -> dict[str, LockEntry]:
+        if not self._apply_mode or self._lock is None:
+            return {}
+        return dict(self._lock.service_sources)
+
+    def verify_service_sources(self) -> None:
+        if not self._apply_mode or self._lock is None:
+            return
+        view = _bootstrap_handle(self._config).manifest_view
+        declared = (
+            dict(view.service_sources)
+            if view is not None and view.service_sources
+            else {}
+        )
+        self._check_stale_service_source_entries(declared)
+        paths = getattr(self._config.bootstrap, "service_source_paths", {}) or {}
+        for name, entry in self._lock.service_sources.items():
+            if name not in declared:
+                continue
+            git_link = declared[name].strip()
+            if git_link.startswith("file://"):
+                project_path = paths.get(name)
+                if not project_path:
+                    continue
+                link = self._config.handle_git_link(git_link, materialize=False)
+                link.project_path = project_path
+                self._verify_entry(link, entry, label=f"service_source {name}")
+                continue
+            project_path = paths.get(name)
+            if not project_path:
+                self._report_issue(
+                    f"service_sources.{name} is locked but was not materialized; "
+                    "run prepare without --no-git-update"
+                )
+                continue
+            link = self._config.handle_git_link(git_link, materialize=False)
+            link.project_path = project_path
+            link.dir_to_clone = os.path.dirname(project_path)
+            self._verify_entry(link, entry, label=f"service_source {name}")
 
     def _warn_manifest_deps_lock_divergence(self) -> None:
         if self._lock_source != LockSource.MANIFEST:
@@ -296,6 +338,55 @@ class DepsLockManager:
             branch=branch,
             kind=lock_kind_for_link(project),
         )
+
+    def _collect_service_source_entries(self) -> dict[str, LockEntry]:
+        view = _bootstrap_handle(self._config).manifest_view
+        sources = view.service_sources if view is not None else None
+        if not sources:
+            return {}
+        paths = getattr(self._config.bootstrap, "service_source_paths", {}) or {}
+        entries: dict[str, LockEntry] = {}
+        for name, git_link in sources.items():
+            link_text = git_link.strip()
+            if not link_text:
+                continue
+            project_path = paths.get(name)
+            if not project_path:
+                continue
+            link = self._config.handle_git_link(link_text, materialize=False)
+            link.project_path = project_path
+            if link_text.startswith("file://"):
+                entries[name] = LockEntry(
+                    url=canonical_repo_url(link_text),
+                    commit=resolve_lock_commit(link),
+                    branch=link.branch if link.branch_explicit else None,
+                    kind=lock_kind_for_link(link),
+                )
+                continue
+            if not is_remote_git_link(link):
+                continue
+            entries[name] = self._entry_from_project(link)
+        return entries
+
+    def _check_stale_service_source_entries(
+        self,
+        declared: dict[str, str],
+    ) -> None:
+        if self._lock is None:
+            return
+        declared_names = set(declared)
+        for name in self._lock.service_sources:
+            if name not in declared_names:
+                self._report_issue(
+                    f"deps.lock.json lists stale service_sources.{name!r} "
+                    "that is not in manifest service_sources; run --update-lock"
+                )
+        for name in declared_names:
+            if name not in self._lock.service_sources:
+                self._report_issue(
+                    f"manifest service_sources.{name!r} is missing from "
+                    "deps.lock.json; run --update-lock and commit the lock file"
+                )
 
     def _check_seed_coverage(self) -> None:
         if self._lock is None:

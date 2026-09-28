@@ -34,6 +34,7 @@ An **odpm project directory** (e.g. `odoo_demo_project-19/`) is the **working en
 | Object | Purpose |
 |--------|---------|
 | `dependencies/` | Service links to dependency clones |
+| `service-sources/` | Service links to `service_sources` clones (sidecar/build); clones themselves live under `${ODOO_PROJECTS_DIR}/service-sources/` |
 | `data/odoo/` | Process home in container, tests, cache |
 | `.vscode/` | Debug settings (developer scenario) |
 

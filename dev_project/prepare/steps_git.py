@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..plan import PlanStep, deps_lock_file_exists
+from ..plan.core import PlanStep, deps_lock_file_exists
 from ..plan.l10n import plan_msg
 from .helpers import (
     lock_source_label,

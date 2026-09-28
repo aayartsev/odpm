@@ -6,6 +6,11 @@ ARCH = str(platform.machine()).lower()
 DATABASE_NAME_INSTANCE = "db"
 DEFAULT_POSTGRES_SERVICE_NAME = DATABASE_NAME_INSTANCE
 POSTGRES_SERVICE_NAME_ENV = "POSTGRES_SERVICE_NAME"
+ODPM_COMPOSE_PREFIX_ENV = "ODPM_COMPOSE_PREFIX"
+ODPM_COMPOSE_NETWORK_ENV = "ODPM_COMPOSE_NETWORK"
+ODPM_COMPOSE_NETWORK_EXTERNAL_ENV = "ODPM_COMPOSE_NETWORK_EXTERNAL"
+ODPM_BASE_IMAGE_PROFILE_ENV = "ODPM_BASE_IMAGE_PROFILE"
+ODPM_SECURITY_PROFILE_ENV = "ODPM_SECURITY_PROFILE"
 DEBUGGER_DEFAULT_PORT = 5678
 DEBUGGER_DOCKER_PORT = DEBUGGER_DEFAULT_PORT
 ODOO_DEFAULT_PORT = 8069
@@ -59,8 +64,11 @@ CURRENT_PASSWORD = CONTAINER_PASSWORD
 # https://github.com/docker-library/docs/blob/master/postgres/README.md
 # Warning: the Docker specific variables will only have an effect if you start the container with a data directory that is empty; any pre-existing database will be left untouched on container startup.
 # In this case you need to delete old data or use old variables
+# Legacy (<=17) PGDATA mount; prefer database.postgres_paths helpers for version-aware paths.
 POSTGRES_CONTAINER_DATA_DIR = "/var/lib/postgresql/data"
 POSTGRES_CONTAINER_OS_USER = "postgres"
+# Cluster bootstrap / odpm admin role (compose POSTGRES_USER on empty data dir).
+POSTGRES_ADMIN_USER = "postgres"
 POSTGRES_ODOO_USER = CONTAINER_USER
 POSTGRES_ODOO_PASS = CONTAINER_PASSWORD
 POSTGRES_ODOO_HOST = DATABASE_NAME_INSTANCE
@@ -107,6 +115,7 @@ DEBUGPY = {
     "3.11": "debugpy==1.7.0",
     "3.12": "debugpy==1.7.0",
     "3.13": "debugpy==1.8.0",
+    "3.14": "debugpy==1.8.0",
 }
 
 # PyCharm Debug Server (pydevd_connect). Pin targets 2024.3; see ide-debug docs if IDE mismatches.
@@ -119,6 +128,7 @@ PYDEVD_PYCHARM = {
     "3.11": DEFAULT_PYDEVD_PYCHARM,
     "3.12": DEFAULT_PYDEVD_PYCHARM,
     "3.13": DEFAULT_PYDEVD_PYCHARM,
+    "3.14": DEFAULT_PYDEVD_PYCHARM,
 }
 
 DEFAULT_VENV_BOOTSTRAP = [
@@ -133,6 +143,7 @@ VENV_BOOTSTRAP_PACKAGES = {
     "3.11": ["cython<3.0", "setuptools==75.1.0", "wheel"],
     "3.12": ["cython<3.0", "setuptools==75.1.0", "wheel"],
     "3.13": ["cython<3.0", "setuptools==80", "wheel"],
+    "3.14": ["cython<3.0", "setuptools==80", "wheel"],
 }
 
 DEFAULT_POSTGRES_VERSION = "13"
@@ -145,15 +156,17 @@ DISTRO_INFO = {
         "12": "bookworm",
         "13": "trixie",
     },
-    "ubuntu": {
-        "22.04": "jammy",
-        "20.04": "focal",
-    },
 }
 
 # git rev-parse --abbrev-ref HEAD
-ODOO_LATEST_VERSION = "19.0"
+ODOO_LATEST_VERSION = "20.0"
 ODOO_VERSION_DEFAULT_ENV = {
+    "20.0": {
+        "python_version": "3.14",
+        "distro_name": DEFAULT_DISTRO_NAME,
+        "distro_version": "13",
+        "postgres_version": "18",
+    },
     "19.0": {
         "python_version": "3.12",
         "distro_name": DEFAULT_DISTRO_NAME,
@@ -215,7 +228,7 @@ DEFAULT_UPDATE_MODULES = DEFAULT_LIST_OF_MODULES
 # Default values for database creation
 DEFAULT_DB_CREATION_DATA_DB_LANG = "en_US"
 DEFAULT_DB_CREATION_DATA_DB_COUNTRY_CODE = None
-DEFAULT_DB_CREATION_DATA_CREATE_DEMO = True
+DEFAULT_DB_CREATION_DATA_CREATE_DEMO = False
 DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_LOGIN = "admin"
 DEFAULT_DB_CREATION_DATA_DB_DEFAULT_ADMIN_PASSWORD = "admin"
 
@@ -243,14 +256,6 @@ DEFAULT_PRE_COMMIT_MAP_FILES = []
 DEFAULT_SQL_QUERIES = []
 DEFAULT_USE_OCA_DEPENDENCIES = False
 DEFAULT_CREATE_MODULE_LINKS = False
-
-# YANDEX DISK LINKS
-YADISK_SHARING_LINK = "https://disk.yandex.ru/d/FbMn-ySeNYGAoQ"
-YADISK_API_ENDPOINT = (
-    "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={}"
-)
-
-FREE_SPACE_FOR_USAGE = 2.0
 
 VENV_LOCK_KEYS = (
     "python_version",
@@ -280,3 +285,13 @@ VENV_EXTRAS_REQUIREMENTS_BASENAME = ".extras-requirements.txt"
 ODOO_VENV_IMPLICIT_PACKAGES = (
     "decorator",
 )
+
+# Odoo 20.0 requirements still select gevent==24.11.1 for python_version >= 3.13
+# (no 3.14 upper bound). That sdist fails to build on 3.14 (_PyLong_AsByteArray).
+# Override until upstream adds a Resolute/3.14 gevent pin; 26.9.0 ships cp314 wheels.
+GEVENT_PACKAGE_FOR_PYTHON_314 = "gevent==26.9.0"
+
+# Odoo pins libsass==0.22.0; its setup.py fails on 3.14 (ast.Constant has no .s) before
+# any compile. 0.23.0 ships abi3 wheels on amd64 and a fixed sdist for arm64 (needs
+# build-essential in the Debian base image — already present in all profiles).
+LIBSASS_PACKAGE_FOR_PYTHON_314 = "libsass==0.23.0"

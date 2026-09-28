@@ -408,7 +408,7 @@ flowchart LR
 2. ~~Dry-run plan~~ — `odpm plan` с шагами, probe, diff, JSON и strict exit code
 3. ~~Dependency lock (commit SHAs)~~ — `.odpm/deps.lock.json`, `--update-lock`; OCA resolved graph, developing, CI strict verify
 4. ~~Plugin/hook API~~ — **4.4:** manifest v2 `services` / `hooks`, pluggy `odpm.prepare_steps` и `odpm.hooks`; см. [docs/reference/plugins.md](docs/reference/plugins.md)
-5. ~~Golden-path E2E как обязательный CI gate на каждый PR~~ — **post-4.4 backlog:** обязательные PR gates — `compose-smoke` (v1 flat) и `compose-smoke-mailpit` (manifest v2 + Mailpit); full golden-path (`init` → HTTP 200) остаётся **opt-in** (nightly, `workflow_dispatch`, label `run-docker`, `ODPM_GOLDEN_PATH_ENABLED` + `ODPM_GOLDEN_PATH_PROJECT`). Критерии перехода golden-path в mandatory — [docs/contributing/ci.md](docs/contributing/ci.md). См. также [architecture-debt.md](docs/contributing/architecture-debt.md#debt-tracker-44-closure).
+5. ~~Golden-path E2E как обязательный CI gate на каждый PR~~ — **post-4.4 backlog:** обязательные PR gates — `compose-smoke` (v1 flat) и `compose-smoke-mailpit` (manifest v2 + Mailpit); full golden-path (`init` → HTTP 200) остаётся **opt-in** (nightly, `workflow_dispatch`, label `run-docker`, `ODPM_GOLDEN_PATH_ENABLED` + `ODPM_GOLDEN_PATH_PROJECT`). Критерии перехода golden-path в mandatory — [docs/contributing/ci.md](docs/contributing/ci.md).
 6. ~~Plan с probe compose health~~ — есть в `odpm plan`
 
 ---

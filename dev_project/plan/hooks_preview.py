@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, cast
 
 from ..extensions.context import ExtensionHostContext
 from ..extensions.hooks import LifecyclePhase, parse_hook_phase
-from ..plan import PlanStep
+from .core import PlanStep
 from ..prepare.helpers import make_plan_step
 from .l10n import plan_msg
 

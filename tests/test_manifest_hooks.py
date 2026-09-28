@@ -23,6 +23,8 @@ from dev_project.prepare.execute import execute_prepare
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.host.cli.args import OdpmCliArgs
 from tests.fixtures.compose.mailpit_fragment import MAILPIT_COMPOSE_FRAGMENT
+from dev_project.manifest.reader import load_manifest
+from tests.test_manifest_v2_reader import _minimal_v2
 
 
 class _RecordingHookRunner:
@@ -159,6 +161,52 @@ class RunLifecycleHooksTests(unittest.TestCase):
             run_lifecycle_hooks(ext, "pre_up", cwd="/tmp/project")
 
 
+class LoadManifestScenarioHooksTests(unittest.TestCase):
+    def test_load_manifest_wires_scenario_overlay_hooks(self):
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            hooks={"pre_up": [["echo", "shared"]]},
+            scenarios={
+                "developer": {
+                    "hooks": {
+                        "post_prepare": [["echo", "developer"]],
+                    },
+                }
+            },
+        )
+        dev = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        server = load_manifest(raw, active_scenario=constants.SERVER_SCENARIO)
+        self.assertEqual(
+            dev.hooks,
+            {
+                "pre_up": [["echo", "shared"]],
+                "post_prepare": [["echo", "developer"]],
+            },
+        )
+        self.assertEqual(server.hooks, {"pre_up": [["echo", "shared"]]})
+
+    @patch("dev_project.extensions.hooks.run_or_raise")
+    def test_run_lifecycle_hooks_uses_merged_scenario_overlay_hooks(self, mock_run):
+
+        raw = _minimal_v2(
+            requires_odpm="4.6.0",
+            scenarios={
+                "developer": {
+                    "hooks": {"post_prepare": [["echo", "scenario"]]},
+                }
+            },
+        )
+        view = load_manifest(raw, active_scenario=constants.DEVELOPER_SCENARIO)
+        ext = ExtensionHostContext(
+            host=MagicMock(),
+            repo_odpm_json="/tmp/odpm.json",
+            manifest_hooks=view.hooks,
+        )
+        run_lifecycle_hooks(ext, "post_prepare", cwd="/tmp/project")
+        mock_run.assert_called_once_with(("echo", "scenario"), cwd="/tmp/project")
+
+
 class HookRunnerRegistryTests(unittest.TestCase):
     def setUp(self) -> None:
         reset_extension_registry_state()
@@ -181,7 +229,7 @@ class MailpitReferenceTests(unittest.TestCase):
 
 class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
     @patch("dev_project.prepare.execute.get_prepare_steps", return_value=())
-    @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
+    @patch("dev_project.prepare.execute.run_lifecycle_hooks")
     def test_execute_prepare_runs_post_prepare_hooks(
         self, mock_run_hooks, _mock_steps
     ):
@@ -206,16 +254,18 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
         return_value=False,
     )
+    @patch("dev_project.runtime_coordinator.BaseImageService")
     @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
-    @patch("dev_project.extensions.hooks.run_lifecycle_hooks")
-    @patch("dev_project.database.resolve.ensure_no_blocking_database_drift")
-    @patch("dev_project.database.adopt.adopt_database_baseline")
+    @patch("dev_project.runtime_coordinator.run_lifecycle_hooks")
+    @patch("dev_project.runtime_coordinator.ensure_no_blocking_database_drift")
+    @patch("dev_project.runtime_coordinator.adopt_database_baseline")
     def test_pre_up_runs_before_compose_up(
         self,
         _mock_adopt,
         _mock_drift,
         mock_run_hooks,
         mock_run_logged,
+        mock_base_image_service,
         _mock_force_recreate,
     ):
         config = MagicMock()
@@ -232,6 +282,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         config.arguments = OdpmCliArgs(skip_start=False)
         config.docker_compose_command = "docker compose"
         config.no_log_prefix = False
+        config.odoo_image_name = "odoo:dev"
         coordinator = RuntimeCoordinator(OdpmCliArgs(skip_start=False), config, MagicMock())
         coordinator.handle_build_image = MagicMock(return_value=False)
         coordinator.write_debug_profile = MagicMock()
@@ -247,6 +298,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
 
         mock_run_hooks.side_effect = record_hooks
         mock_run_logged.side_effect = record_up
+        mock_base_image_service.return_value.ensure_base_image.return_value = None
         coordinator.run_after_prepare()
         self.assertEqual(call_order, ["pre_up", "compose_up"])
         mock_run_hooks.assert_called_once()

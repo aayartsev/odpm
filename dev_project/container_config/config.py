@@ -167,13 +167,18 @@ class ContainerConfig:
 
     @classmethod
     def from_odpm_config(cls, config: Config) -> ContainerConfig:
-        from ..config.payload import compute_venv_lock_hash
+        from ..config.payload import compute_venv_lock_hash  # noqa: PLC0415  # cycle
+        from ..config.transforms.modules import modules_csv_for_update_list  # noqa: PLC0415  # cycle
 
         run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)
         debugger = cls._debugger_settings_from_host(config)
         database = None
         if config.policy.mount_runtime_config_from_host():
             database = DatabaseContainerContext.from_host_config(config)
+        update_csv = modules_csv_for_update_list(
+            getattr(config.arguments, "u", None),
+            config.update_modules,
+        )
         return cls(
             schema_version=CONTAINER_CONFIG_SCHEMA_VERSION,
             docker_odoo_dir=config.docker_odoo_dir,
@@ -191,9 +196,7 @@ class ContainerConfig:
             platform_name=config.platform_name,
             arch=config.arch,
             sql_queries=list(config.sql_queries),
-            modules_to_update=config.update_modules.split(",")
-            if config.update_modules
-            else [],
+            modules_to_update=update_csv.split(",") if update_csv else [],
             docker_dirs_with_addons=list(config.docker_dirs_with_addons),
             odpm_scenario=config.user_env.odpm_scenario,
             venv_mode=config.policy.venv_mode,

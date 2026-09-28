@@ -16,22 +16,39 @@ class DatabaseComposeFingerprint:
     image_tag: str
     data_path_abs: str
     host_port: int
+    compose_project_name: str | None = None
+    odoo_service_name: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "service_name": self.service_name,
             "image_tag": self.image_tag,
             "data_path_abs": self.data_path_abs,
             "host_port": self.host_port,
         }
+        if self.compose_project_name is not None:
+            payload["compose_project_name"] = self.compose_project_name
+        if self.odoo_service_name is not None:
+            payload["odoo_service_name"] = self.odoo_service_name
+        return payload
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DatabaseComposeFingerprint:
+        compose_project_name = data.get("compose_project_name")
+        odoo_service_name = data.get("odoo_service_name")
         return cls(
             service_name=str(data["service_name"]),
             image_tag=str(data["image_tag"]),
             data_path_abs=str(data["data_path_abs"]),
             host_port=int(data["host_port"]),
+            compose_project_name=(
+                str(compose_project_name)
+                if compose_project_name is not None
+                else None
+            ),
+            odoo_service_name=(
+                str(odoo_service_name) if odoo_service_name is not None else None
+            ),
         )
 
 

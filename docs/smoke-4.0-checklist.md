@@ -189,7 +189,7 @@ export ODPM_RUN_DOCKER_INTEGRATION=1
 |-------|----------|--------|------|
 | `test_compose_up_serves_web` | PASS; HTTP 200 on `/web` | | |
 
-Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=90` (default); increase for slow cold starts.
+Optional timeout override: `ODPM_GOLDEN_PATH_TIMEOUT=60` (default; CI job ≤9 min). Pre-release refresh remediates only when schema is incompatible (`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`); non-interactive refresh/remediate accepts baseline DB drift (`postgres_major`, `odpm_scenario`, `data_dir_empty_changed`); if Postgres does not become ready after a major bump, wipe + remedi ate; fail-fast unless `odoo_version` is `19.x`.
 
 ---
 
@@ -219,11 +219,17 @@ curl -sL -o /dev/null -w '%{http_code}\n' "http://127.0.0.1:${ODOO_PORT:-8069}/w
 ## 2E — CI scenario (optional)
 
 Requires `ODPM_SCENARIO=ci` and a project with CI layout / lock file as documented in README.
+Bare `odpm` without `--skip-start` / `--build-image` (or other ADR-017 allowlist flags) is rejected.
+For `kaniko`: set `ODPM_BASE_IMAGE_REGISTRY` (base always pushed); final push via `--image-push` / `ODPM_CI_IMAGE_PUSH`.
 
 ```bash
 export ODPM_SCENARIO=ci
 export ODPM_CI_PROJECT="$ODPM_PROJECT"   # optional: prepare project before build
 "$ODPM_REPO/scripts/verify_ci_scenario.sh"
+# After up, install modules with compose exec (not bare odpm -d/-i).
+# With ODPM_COMPOSE_PREFIX, use "{prefix}odoo" as the service name:
+# ODOO_SVC="${ODPM_COMPOSE_PREFIX:-}odoo"
+# docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 
 | Check | Expected | Result | Date |
@@ -231,6 +237,7 @@ export ODPM_CI_PROJECT="$ODPM_PROJECT"   # optional: prepare project before buil
 | CI image build | `odpm --build-image` succeeds | | |
 | Compose up | Stack starts without host Odoo bind-mounts | | |
 | HTTP | `/web` returns 200 on configured port | | |
+| CI guard | bare `odpm` in ci exits non-zero with `--skip-start` hint | | |
 
 ---
 
@@ -295,7 +302,7 @@ Do not commit private project paths, host home directories, or proprietary depen
 
 ## 4.5 — Integration matrix (ADR-006)
 
-**Branch:** `4.6.0-dev`. Policy: [contributing/ci.md](contributing/ci.md), [ADR-006](contributing/adr-006-integration-gate-policy.md).
+**Branch:** `4.7.0-dev`. Policy: [contributing/ci.md](contributing/ci.md), [ADR-006](contributing/adr-006-integration-gate-policy.md).
 
 ### Required on every PR
 

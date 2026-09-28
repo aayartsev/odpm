@@ -7,6 +7,7 @@ from dev_project.config.config import Config
 from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.errors import ConfigError
 from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
+from dev_project.config.bootstrap_context import ConfigBootstrapContext
 
 
 class GitRepoCoordinatorHandleLinkTests(unittest.TestCase):
@@ -107,43 +108,15 @@ class GitRepoCoordinatorEnsurePresentTests(unittest.TestCase):
             GitRepoCoordinator(config, paths=MagicMock()).ensure_git_repos_present()
 
 
-class GitRepoCoordinatorPlatformSourcesTests(unittest.TestCase):
-    def test_get_platform_sources_rebinds_platform_and_applies_build_date(self):
-        config = MagicMock()
-        config.odoo_build_date = "20240501"
-        config.odoo_version = "19.0"
-        bind_platform_link = MagicMock()
-
-        GitRepoCoordinator(
-            config,
-            paths=MagicMock(),
-            bind_platform_link=bind_platform_link,
-        ).get_platform_sources()
-
-        bind_platform_link.assert_called_once_with(config)
-        config.odoo_platform_project.build_project.assert_called_once()
-        config.odoo_platform_project.apply_build_date.assert_called_once_with(
-            "20240501",
-            "19.0",
-        )
-
-    def test_get_platform_sources_requires_bind_platform_link(self):
-        config = MagicMock()
-
-        with self.assertRaises(ConfigError):
-            GitRepoCoordinator(config, paths=MagicMock()).get_platform_sources()
-
-
 class ConfigGitRepoDelegationTests(unittest.TestCase):
     @patch("dev_project.config.git_repos.HandleOdooProjectLink")
     def test_config_handle_git_link_uses_context_coordinator(self, mock_link_cls):
-        from dev_project.config.bootstrap_context import ConfigBootstrapContext
 
         mock_link = MagicMock()
         mock_link_cls.return_value = mock_link
         config = Config.__new__(Config)
         config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
-        ctx = ConfigBootstrapContext(config, bind_platform_link=MagicMock())
+        ctx = ConfigBootstrapContext(config)
         config._git_repos = ctx.git_repos
 
         result = config.handle_git_link(

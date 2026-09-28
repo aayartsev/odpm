@@ -117,6 +117,34 @@ class DatabaseDriftDetectionTests(unittest.TestCase):
             drifts,
         )
 
+    def test_compose_project_name_drift(self):
+        current = _current(service_name="acme-db", db_host="acme-db")
+        current = DatabaseCurrentState(
+            odpm_scenario=current.odpm_scenario,
+            engine=current.engine,
+            compose=DatabaseComposeFingerprint(
+                service_name="acme-db",
+                image_tag=current.compose.image_tag,
+                data_path_abs=current.compose.data_path_abs,
+                host_port=current.compose.host_port,
+                compose_project_name="acme",
+                odoo_service_name="acme-odoo",
+            ),
+            odoo_conf=current.odoo_conf,
+            cluster=current.cluster,
+        )
+        last = _last_run(service_name="db-dev")
+        drifts = detect_database_drift(current, last)
+        self.assertIn(
+            DatabaseDrift(
+                kind="compose_project_name",
+                severity="low",
+                previous="",
+                current="acme",
+            ),
+            drifts,
+        )
+
     def test_data_path_drift_is_high_severity(self):
         drifts = detect_database_drift(
             _current(data_path="/tmp/new/pg"),

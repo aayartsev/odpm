@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from ..manifest.reader import ManifestView
 
 from .. import constants
+from ..compose.sidecar_gates import parse_sidecar_gates
 from ..git import HandleOdooProjectLink
 from ..manifest.v1_contract import resolve_v1_manifest_contract_line
 from .types import DbCreationData
@@ -22,6 +23,9 @@ def user_settings_from_raw(
     *,
     beautify_module_list: Callable[[Any], str],
 ) -> UserSettingsState:
+    if not isinstance(raw, dict):
+        raw = {}
+
     return UserSettingsState(
         init_modules=beautify_module_list(raw.get("init_modules")),
         update_modules=beautify_module_list(raw.get("update_modules")),
@@ -46,6 +50,7 @@ def user_settings_from_raw(
         create_module_links=raw.get(
             "create_module_links", constants.DEFAULT_CREATE_MODULE_LINKS
         ),
+        sidecars=parse_sidecar_gates(raw.get("sidecars")),
     )
 
 
@@ -149,10 +154,14 @@ class BootstrapState:
     repo_odpm_json: str = ""
     project_odpm_json: str = ""
     raw_user_settings: dict = field(default_factory=dict)
+    raw_user_settings_disk: dict = field(default_factory=dict)
     raw_odpm_json: dict = field(default_factory=dict)
     manifest_view: ManifestView | None = None
+    service_source_paths: dict[str, str] = field(default_factory=dict)
     user_loaded: bool = False
     project_loaded: bool = False
+    wrote_hardened_password_defaults: bool = False
+    secrets_file_imported_early: bool = False
 
 
 BOOTSTRAP_FIELDS = (
@@ -189,6 +198,7 @@ class UserSettingsState:
     sql_queries: list = field(default_factory=lambda: list(constants.DEFAULT_SQL_QUERIES))
     use_oca_dependencies: bool = constants.DEFAULT_USE_OCA_DEPENDENCIES
     create_module_links: bool = constants.DEFAULT_CREATE_MODULE_LINKS
+    sidecars: dict[str, bool] = field(default_factory=dict)
 
 
 @dataclass
@@ -242,6 +252,7 @@ class DockerLayoutState:
     venv_dir: str = ""
     dir_for_odoo_container_home: str = ""
     dependencies_dir: str = ""
+    service_sources_dir: str = ""
     odoo_tests_dir: str = ""
     compose_file_version: str = constants.DOCKER_COMPOSE_DEFAULT_FILE_VERSION
     docker_compose_command: str = constants.DEFAULT_DOCKER_COMPOSE_COMMAND

@@ -31,6 +31,11 @@ from tests.scenario_plan_matrix_helpers import (
     seed_v1_deps_lock,
     sync_idle_compose_state,
 )
+from dev_project.extensions.registry import reset_extension_registry_state
+from tests.fixtures.sample_plugin import sample_odpm_plugin
+from tests.test_compose_generator import ComposeGeneratorPolicyTests
+from dev_project.prepare.steps_compose import exec_compose_fragments
+
 
 SCENARIOS = tuple(constants.ODPM_SCENARIO_VALUES)
 
@@ -239,9 +244,45 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
         self.assertEqual(plan_step(plan, "hooks.post_prepare").outcome, "run")
         self.assertEqual(plan_step(plan, "hooks.pre_up").outcome, "run")
 
+    def test_a18b_plan_includes_scenario_overlay_hooks_for_active_scenario(self) -> None:
+        project_dir = self._provision(
+            scenario=constants.DEVELOPER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        odpm_path = project_dir / "developing" / "odpm.json"
+        payload = json.loads(odpm_path.read_text(encoding="utf-8"))
+        payload["scenarios"] = {
+            "developer": {
+                "hooks": {
+                    "post_prepare": [["echo", "scenario-prepare"]],
+                }
+            }
+        }
+        odpm_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        plan, _pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertEqual(plan_step(plan, "hooks.post_prepare").outcome, "run")
+
+        server_dir = self._provision(
+            scenario=constants.SERVER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        server_odpm = server_dir / "developing" / "odpm.json"
+        server_payload = json.loads(server_odpm.read_text(encoding="utf-8"))
+        server_payload["scenarios"] = payload["scenarios"]
+        server_odpm.write_text(
+            json.dumps(server_payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        server_plan, _ = build_matrix_plan(
+            server_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertFalse(plan_has_step(server_plan, "hooks.post_prepare"))
+
     def test_a19_extension_prepare_step_in_plan_matrix(self) -> None:
-        from dev_project.extensions.registry import reset_extension_registry_state
-        from tests.fixtures.sample_plugin import sample_odpm_plugin
 
         reset_extension_registry_state()
         sample_odpm_plugin.register_sample_plugin()
@@ -620,7 +661,6 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
     """Registry rows C7 and A16 compose content markers."""
 
     def test_c7_compose_markers_by_scenario(self) -> None:
-        from tests.test_compose_generator import ComposeGeneratorPolicyTests
 
         helper = ComposeGeneratorPolicyTests()
         for scenario in SCENARIOS:
@@ -643,7 +683,6 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
                     self.assertIn("odoo-ci", content)
 
     def test_a16_mailpit_fragment_materialized(self) -> None:
-        from dev_project.prepare.steps_compose import exec_compose_fragments
 
         project_dir = self._provision(
             scenario=constants.DEVELOPER_SCENARIO,
@@ -663,6 +702,56 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
         fragment = project_dir / constants.COMPOSE_FRAGMENTS_DIR_REL_PATH / "mailpit.yml"
         self.assertTrue(fragment.is_file())
         self.assertIn("mailpit", fragment.read_text(encoding="utf-8"))
+
+    def test_scenario_overlay_marks_compose_fragments_stale(self) -> None:
+
+        project_dir = self._provision(
+            scenario=constants.DEVELOPER_SCENARIO,
+            manifest_v2_mailpit=True,
+        )
+        developing = project_dir / "developing" / "odpm.json"
+        payload = json.loads(developing.read_text(encoding="utf-8"))
+        payload["scenarios"] = {
+            "server": {
+                "services": {
+                    "mailpit": {"image": "axllent/mailpit:server-overlay"},
+                }
+            }
+        }
+        developing.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+        _plan, pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        ctx = make_prepare_context(
+            pipeline.config,
+            pipeline.project_environment,
+            pipeline.system_checker,
+            OdpmCliArgs(skip_start=True, no_git_update=True),
+        )
+        exec_compose_fragments(ctx)
+
+        env_path = project_dir / ".env"
+        env_text = env_path.read_text(encoding="utf-8").replace(
+            f"ODPM_SCENARIO={constants.DEVELOPER_SCENARIO}",
+            f"ODPM_SCENARIO={constants.SERVER_SCENARIO}",
+        )
+        env_path.write_text(env_text, encoding="utf-8")
+
+        plan, _pipeline = build_matrix_plan(
+            project_dir,
+            OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
+        )
+        self.assertIn(
+            plan_step(plan, "compose.fragments").outcome,
+            ("run", "update"),
+        )
+        self.assertTrue(plan_has_step(plan, "compose.fragment.mailpit"))
+        self.assertIn(
+            plan_step(plan, "compose.fragment.mailpit").outcome,
+            ("run", "update"),
+        )
 
 
 class PlanMatrixCliInProcessTests(_MatrixProjectTestCase):

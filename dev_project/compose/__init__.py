@@ -38,15 +38,15 @@ def __getattr__(name: str):
         "render_odpm_config_path_env_line",
         "yaml_scalar",
     ):
-        from . import command_render as command_render_module
+        from . import command_render as command_render_module  # noqa: PLC0415  # optional
 
         return getattr(command_render_module, name)
     if name == "ComposeGenerator":
-        from .generator import ComposeGenerator
+        from .generator import ComposeGenerator  # noqa: PLC0415  # optional
 
         return ComposeGenerator
     if name == "ComposeServiceBuilder":
-        from .service_builder import ComposeServiceBuilder
+        from .service_builder import ComposeServiceBuilder  # noqa: PLC0415  # optional
 
         return ComposeServiceBuilder
     if name in (
@@ -57,7 +57,7 @@ def __getattr__(name: str):
         "container_is_running_and_healthy",
         "should_force_recreate_compose",
     ):
-        from . import runtime as runtime_module
+        from . import runtime as runtime_module  # noqa: PLC0415  # optional
 
         return getattr(runtime_module, name)
     if name in _COMPOSE_SUBMODULES:

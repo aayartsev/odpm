@@ -2,8 +2,20 @@
 
 from __future__ import annotations
 
+import os
+
 from .. import constants
-from ..plan import PlanStep, project_template_needs_upgrade
+from ..compose.fragments import (
+    compose_fragments_need_materialize,
+    materialize_compose_fragments,
+)
+from ..compose.sidecar_gates import (
+    collect_effective_compose_services,
+    sidecar_gates_from_user_settings,
+)
+from ..compose.validate import validate_compose_file
+from ..docker_capabilities import ensure_config_docker_capabilities
+from ..plan.core import PlanStep, project_template_needs_upgrade
 from ..plan.compose_preview import (
     compose_generate_needs_execute,
     compose_service_needs_update,
@@ -38,11 +50,15 @@ def evaluate_compose_template(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_compose_fragments(ctx: PrepareContext) -> PlanStep:
-    from ..compose.fragments import collect_compose_services, compose_fragments_need_materialize
-
     description = plan_msg("Materialize manifest and plugin compose service fragments")
-    services = collect_compose_services(ctx.extension_host())
-    if compose_fragments_need_materialize(ctx.host_ctx.project_dir, services):
+    gates = sidecar_gates_from_user_settings(ctx.host_ctx.user_settings)
+    services = collect_effective_compose_services(ctx.extension_host(), gates)
+    odpm_scenario = ctx.host_ctx.user_env.odpm_scenario
+    if compose_fragments_need_materialize(
+        ctx.host_ctx.project_dir,
+        services,
+        odpm_scenario=odpm_scenario,
+    ):
         reason = (
             plan_msg("compose service fragments stale")
             if services
@@ -139,10 +155,13 @@ def exec_compose_template(ctx: PrepareContext) -> None:
 
 
 def exec_compose_fragments(ctx: PrepareContext) -> None:
-    from ..compose.fragments import collect_compose_services, materialize_compose_fragments
-
-    services = collect_compose_services(ctx.extension_host())
-    materialize_compose_fragments(ctx.host_ctx.project_dir, services)
+    gates = sidecar_gates_from_user_settings(ctx.host_ctx.user_settings)
+    services = collect_effective_compose_services(ctx.extension_host(), gates)
+    materialize_compose_fragments(
+        ctx.host_ctx.project_dir,
+        services,
+        odpm_scenario=ctx.host_ctx.user_env.odpm_scenario,
+    )
 
 
 def exec_compose_service(ctx: PrepareContext) -> None:
@@ -150,22 +169,18 @@ def exec_compose_service(ctx: PrepareContext) -> None:
 
 
 def exec_compose_generate(ctx: PrepareContext) -> None:
-    from ..docker_capabilities import cached_docker_capabilities, probe_docker_capabilities
-    from ..subprocess_runner import run_checked
-
-    config = ctx.config
-    if cached_docker_capabilities(config) is None:
-        config.docker_capabilities = probe_docker_capabilities(
-            config.docker_compose_command,
-            run_checked=run_checked,
-        )
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
+    config = ctx.ports.bootstrap.config
+    if policy.skip_compose_cli_probe:
+        if not getattr(config, "docker_compose_command", None):
+            config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+    else:
+        ensure_config_docker_capabilities(config)
     ctx.compose_generator.generate_docker_compose_file()
 
 
 def exec_compose_validate(ctx: PrepareContext) -> None:
-    import os
-
-    from ..compose.validate import validate_compose_file
-
-    ctx.system_checker.check_docker_compose()
+    policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
+    if not policy.skip_compose_cli_probe:
+        ctx.system_checker.check_docker_compose()
     validate_compose_file(os.path.join(ctx.host_ctx.project_dir, "docker-compose.yml"))

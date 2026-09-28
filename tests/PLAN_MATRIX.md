@@ -35,6 +35,10 @@ Unit gate for **documented odpm features verifiable without a Docker daemon**. I
 | A15 | compose template/generate/service | `PlanMatrixCoreTests.test_a15_*` | compose steps noop after idle sync |
 | A16 | Mailpit `compose.fragments` | `PlanMatrixCoreTests.test_a16_*`, `PlanMatrixComposeMarkersTests.test_a16_*` | fragments step + YAML artifact |
 | A17 | Evaluate side-effect free | `PlanMatrixCoreTests.test_a17_*` | no runtime config write on plan |
+| A18 | Manifest hook plan steps (v2) | `PlanMatrixCoreTests.test_a18_*` | `hooks.pre_up` in plan |
+| A18b | Scenario overlay hooks in plan | `PlanMatrixCoreTests.test_a18b_*` | `hooks.post_prepare` only for active scenario |
+| A19 | Extension prepare step | `PlanMatrixCoreTests.test_a19_*` | registered prepare step |
+| A20 | Scenario overlay → compose fragments | `PlanMatrixComposeMarkersTests.test_scenario_overlay_*` | stale regen on `ODPM_SCENARIO` change |
 
 ## Registry B — runtime plan steps
 
@@ -73,6 +77,11 @@ C1–C6 are covered by A1–A4, A14, B1–B5.
 - `database ensure-role`, live `database status` with postgres
 - `--build-image` exec, full `odpm --skip-start` materialize with network git clone
 - `compose.validate` exec (`check_docker_compose` + structural `validate_compose_file`)
+- Full kaniko build (manual): `ODPM_CI_IMAGE_BUILDER=kaniko` + `ODPM_KANIKO_EXECUTOR_MODE=direct` + `ODPM_BASE_IMAGE_REGISTRY` (ADR-017/019); unit coverage in `test_system_check_policy` / `test_ci_image_build_backends`
+
+## ADR-017 note
+
+For `ci` + `kaniko` + `direct` + `--skip-start`/`--build-image`, plan evaluate skips `docker.engine.check` daemon probe and compose CLI probe, but **`compose.validate` structural outcome stays `run`**.
 
 ## Running
 

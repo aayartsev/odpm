@@ -2,18 +2,32 @@
 
 from __future__ import annotations
 
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
+from unittest.mock import patch
 
+from dev_project import constants
 from dev_project.config.transforms.env_substitution import (
     ODPM_JSON_ENV_EXPAND_FIELDS,
     EnvResolver,
+    collect_secret_refs_in_value,
     expand_env_in_compose_service_map,
     expand_env_in_json,
     expand_env_string,
+    inject_service_source_paths,
     merged_subprocess_environ,
+    with_secrets,
 )
 from dev_project.errors import ConfigError
+from dev_project.host.user_env import CreateUserEnvironment
+from tests.test_user_env_bootstrap import _home_env_path, _make_pd_manager, _write_minimal_env_file
+from dev_project.manifest.service_sources import source_env_key
+from dev_project.compose.service_names import resolve_compose_naming
+from dev_project.manifest.reader import load_manifest, refresh_manifest_view_compose_expansion
+from tests.test_manifest_v2_reader import _minimal_v2
 
 
 class EnvResolverTests(unittest.TestCase):
@@ -38,13 +52,59 @@ class EnvResolverTests(unittest.TestCase):
     def test_from_user_env_uses_project_dotenv_dict(self):
         user_env = mock.MagicMock()
         user_env.project_dotenv_dict.return_value = {"PLATFORM_DIR": "/tmp/platform"}
+        user_env.compose_prefix = None
+        user_env.compose_project_name = None
+        user_env.postgres_service_name = "db"
+        user_env.odoo_service_name = "odoo"
+        user_env.postgres_volume_name = "postgres-data"
         resolver = EnvResolver.from_user_env(
             user_env,
             process_environ={"GIT_HOST": "from-process"},
         )
         self.assertEqual(resolver.resolve("GIT_HOST"), "from-process")
         self.assertEqual(resolver.resolve("PLATFORM_DIR"), "/tmp/platform")
+        self.assertIsNotNone(resolver.compose_naming)
+        self.assertEqual(resolver.compose_naming.postgres_service_name, "db")
         user_env.project_dotenv_dict.assert_called_once_with()
+
+    def test_from_user_env_wires_compose_prefix_naming(self):
+        user_env = mock.MagicMock()
+        user_env.project_dotenv_dict.return_value = {}
+        user_env.compose_prefix = "acme-"
+        user_env.compose_project_name = "acme"
+        user_env.postgres_service_name = "acme-db"
+        user_env.odoo_service_name = "acme-odoo"
+        user_env.postgres_volume_name = "acme-postgres-data"
+        resolver = EnvResolver.from_user_env(user_env, process_environ={})
+        self.assertEqual(resolver.compose_naming.postgres_service_name, "acme-db")
+        self.assertEqual(resolver.compose_naming.odoo_service_name, "acme-odoo")
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "acme-db",
+        )
+
+    def test_from_user_env_sees_home_only_key_after_layered_merge(self):
+
+        with tempfile.TemporaryDirectory() as project_dir, tempfile.TemporaryDirectory() as home_dir:
+            _write_minimal_env_file(
+                _home_env_path(home_dir),
+                extra_lines=["GIT_HOST=git.home.example"],
+            )
+            Path(os.path.join(project_dir, constants.ENV_FILE_NAME)).write_text(
+                "ODOO_PLATFORM_DIR=/work/odoo/19.0\n",
+                encoding="utf-8",
+            )
+            pd_manager = _make_pd_manager(project_dir, home_dir=home_dir)
+            with patch.dict(os.environ, {"HOME": home_dir}, clear=False):
+                user_env = CreateUserEnvironment(pd_manager)
+            resolver = EnvResolver.from_user_env(user_env, process_environ={})
+            self.assertEqual(resolver.resolve("GIT_HOST"), "git.home.example")
+            self.assertEqual(resolver.resolve("ODOO_PLATFORM_DIR"), "/work/odoo/19.0")
+            self.assertIsNotNone(resolver.compose_naming)
 
 
 class ExpandEnvStringTests(unittest.TestCase):
@@ -114,6 +174,282 @@ class ExpandEnvStringTests(unittest.TestCase):
             field_path="odoo_git_link",
         )
         self.assertEqual(result, "file:///fixed/path")
+
+    def test_expands_source_reference_from_resolver(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"ODPM_SOURCE_AUTOPARTS_ENV": "/opt/autoparts"},
+            project_dotenv={},
+        )
+        result = expand_env_string(
+            "${@source:autoparts_env}/data",
+            resolver,
+            field_path="services.armtek.volumes[]",
+        )
+        self.assertEqual(result, "/opt/autoparts/data")
+
+    def test_missing_source_raises_config_error(self):
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@source:autoparts_env}/data",
+                self.resolver,
+                field_path="services.armtek.volumes[]",
+            )
+        self.assertIn("autoparts_env", str(ctx.exception))
+
+    def test_allow_unresolved_source_preserves_token(self):
+        result = expand_env_string(
+            "${@source:autoparts_env}/data",
+            self.resolver,
+            field_path="services.armtek.volumes[]",
+            allow_unresolved_source=True,
+        )
+        self.assertEqual(result, "${@source:autoparts_env}/data")
+
+    def test_source_and_var_in_same_string(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"ODPM_SOURCE_AUTOPARTS_ENV": "/opt/autoparts"},
+            project_dotenv={"DATA_SUBDIR": "data"},
+        )
+        result = expand_env_string(
+            "${@source:autoparts_env}/${DATA_SUBDIR}",
+            resolver,
+            field_path="services.armtek.volumes[]",
+        )
+        self.assertEqual(result, "/opt/autoparts/data")
+
+
+class SourceEnvKeyTests(unittest.TestCase):
+    def test_source_env_key_uppercases_name(self):
+
+        self.assertEqual(source_env_key("autoparts_env"), "ODPM_SOURCE_AUTOPARTS_ENV")
+
+
+class InjectServiceSourcePathsTests(unittest.TestCase):
+    def test_inject_adds_odpm_source_keys(self):
+
+        base = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        injected = inject_service_source_paths(
+            base,
+            {"autoparts_env": "/opt/autoparts"},
+        )
+        self.assertEqual(
+            injected.resolve("ODPM_SOURCE_AUTOPARTS_ENV"),
+            "/opt/autoparts",
+        )
+
+    def test_inject_preserves_compose_naming(self):
+
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name="db",
+        )
+        base = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=naming,
+        )
+        injected = inject_service_source_paths(
+            base,
+            {"autoparts_env": "/opt/autoparts"},
+        )
+        self.assertIs(injected.compose_naming, naming)
+        self.assertEqual(
+            injected.resolve("ODPM_SOURCE_AUTOPARTS_ENV"),
+            "/opt/autoparts",
+        )
+
+
+class ExpandServiceRefTests(unittest.TestCase):
+    def _naming(self, *, prefix: str | None = "acme", legacy_db: str = "db"):
+
+        return resolve_compose_naming(
+            compose_prefix_raw=prefix,
+            legacy_postgres_service_name=legacy_db,
+        )
+
+    def test_expands_db_and_odoo_with_prefix(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "acme-db",
+        )
+        self.assertEqual(
+            expand_env_string(
+                "http://${@service:odoo}:8069",
+                resolver,
+                field_path="services.x.environment.ODOO_URL",
+            ),
+            "http://acme-odoo:8069",
+        )
+
+    def test_sidecar_identity_unchanged(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:mailpit}",
+                resolver,
+                field_path="services.x.environment.PEER",
+            ),
+            "mailpit",
+        )
+
+    def test_no_prefix_keeps_logical_db(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix=None),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "db",
+        )
+
+    def test_legacy_postgres_service_name(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix=None, legacy_db="pg"),
+        )
+        self.assertEqual(
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            ),
+            "pg",
+        )
+
+    def test_missing_naming_raises_without_allow_flag(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@service:db}",
+                resolver,
+                field_path="services.x.environment.DB_HOST",
+            )
+        self.assertIn("db", str(ctx.exception))
+        self.assertIn("services.x.environment.DB_HOST", str(ctx.exception))
+
+    def test_allow_unresolved_service_preserves_token(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        result = expand_env_string(
+            "${@service:db}",
+            resolver,
+            field_path="services.x.environment.DB_HOST",
+            allow_unresolved_service=True,
+        )
+        self.assertEqual(result, "${@service:db}")
+
+    def test_dollar_escape_with_service_ref(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        result = expand_env_string(
+            "cost $$ and ${@service:db}",
+            resolver,
+            field_path="services.x.command[]",
+        )
+        self.assertEqual(result, "cost $ and acme-db")
+
+    def test_compose_map_expands_environment_service_refs(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            compose_naming=self._naming(prefix="acme"),
+        )
+        expanded = expand_env_in_compose_service_map(
+            {
+                "worker": {
+                    "image": "busybox",
+                    "environment": {
+                        "DB_HOST": "${@service:db}",
+                        "ODOO_URL": "http://${@service:odoo}:8069",
+                    },
+                    "command": ["echo", "${@service:db}"],
+                }
+            },
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["worker"]["environment"]["DB_HOST"], "acme-db")
+        self.assertEqual(
+            expanded["worker"]["environment"]["ODOO_URL"],
+            "http://acme-odoo:8069",
+        )
+        self.assertEqual(expanded["worker"]["command"], ["echo", "acme-db"])
+
+
+class RefreshManifestViewComposeExpansionTests(unittest.TestCase):
+    def test_reexpands_services_after_source_materialize(self):
+
+        view = load_manifest(
+            _minimal_v2(
+                service_sources={
+                    "autoparts_env": "https://github.com/org/autoparts-env.git 17.0",
+                },
+                services={
+                    "armtek_test": {
+                        "image": "autoparts_env:emulator",
+                        "volumes": ["${@source:autoparts_env}/data:/data:Z"],
+                    }
+                },
+            ),
+            env_resolver=EnvResolver.from_sources(process_environ={}, project_dotenv={}),
+        )
+        self.assertEqual(
+            view.services["armtek_test"]["volumes"],
+            ["${@source:autoparts_env}/data:/data:Z"],
+        )
+        resolver = inject_service_source_paths(
+            EnvResolver.from_sources(process_environ={}, project_dotenv={}),
+            {"autoparts_env": "/opt/autoparts-env"},
+        )
+        refreshed = refresh_manifest_view_compose_expansion(view, env_resolver=resolver)
+        self.assertEqual(
+            refreshed.services["armtek_test"]["volumes"],
+            ["/opt/autoparts-env/data:/data:Z"],
+        )
+
+    def test_load_manifest_expands_service_refs_when_naming_present(self):
+
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name="db",
+        )
+        view = load_manifest(
+            _minimal_v2(
+                services={
+                    "worker": {
+                        "image": "busybox",
+                        "environment": {"DB_HOST": "${@service:db}"},
+                    }
+                },
+            ),
+            env_resolver=EnvResolver.from_sources(
+                process_environ={},
+                project_dotenv={},
+                compose_naming=naming,
+            ),
+        )
+        self.assertEqual(view.services["worker"]["environment"]["DB_HOST"], "acme-db")
 
 
 class ExpandEnvInJsonTests(unittest.TestCase):
@@ -195,6 +531,245 @@ class ExpandComposeServiceMapTests(unittest.TestCase):
         merged = merged_subprocess_environ(resolver)
         self.assertEqual(merged["BUILD_DIR"], "/from-process")
         self.assertEqual(merged["ONLY_DOTENV"], "yes")
+
+    def test_expands_networks_list_in_compose_services(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={"PROXY_NETWORK": "proxy"},
+        )
+        services = {
+            "metrics": {
+                "image": "prom/prometheus",
+                "networks": ["${PROXY_NETWORK}"],
+            }
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["metrics"]["networks"], ["proxy"])
+
+    def test_strips_source_field_from_compose_spec(self):
+        resolver = EnvResolver.from_sources(process_environ={}, project_dotenv={})
+        services = {
+            "armtek": {
+                "source": "autoparts_env",
+                "image": "autoparts_env:emulator",
+            }
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertNotIn("source", expanded["armtek"])
+
+    def test_expands_hostname_and_healthcheck_strings(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={"HC_HOST": "127.0.0.1"},
+            project_dotenv={"SIDECAR_HOST": "minio-local"},
+        )
+        services = {
+            "minio": {
+                "image": "minio/minio:latest",
+                "hostname": "${SIDECAR_HOST}",
+                "healthcheck": {
+                    "test": [
+                        "CMD",
+                        "curl",
+                        "-f",
+                        "http://${HC_HOST}:9000/minio/health/live",
+                    ],
+                    "interval": "${HC_INTERVAL:-30s}",
+                    "retries": 3,
+                },
+            }
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["minio"]["hostname"], "minio-local")
+        self.assertEqual(
+            expanded["minio"]["healthcheck"]["test"][-1],
+            "http://127.0.0.1:9000/minio/health/live",
+        )
+        self.assertEqual(expanded["minio"]["healthcheck"]["interval"], "30s")
+        self.assertEqual(expanded["minio"]["healthcheck"]["retries"], 3)
+
+    def test_expands_pid_string(self):
+
+        naming = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            legacy_postgres_service_name="db",
+        )
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={"PID_MODE": "host"},
+            compose_naming=naming,
+        )
+        services = {
+            "sysbox": {
+                "image": "example/sys:latest",
+                "privileged": True,
+                "pid": "${PID_MODE}",
+            },
+            "helper": {
+                "image": "busybox:latest",
+                "pid": "service:${@service:odoo}",
+            },
+        }
+        expanded = expand_env_in_compose_service_map(
+            services,
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["sysbox"]["pid"], "host")
+        self.assertTrue(expanded["sysbox"]["privileged"])
+        self.assertEqual(expanded["helper"]["pid"], "service:acme-odoo")
+
+
+class SecretRefExpansionTests(unittest.TestCase):
+    def test_expands_dotted_secret_key(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"partner_armtek.armtek.apilogin": "login-value"},
+        )
+        result = expand_env_string(
+            "${@secret:partner_armtek.armtek.apilogin}",
+            resolver,
+            field_path="services.armtek.environment.APILOGIN",
+        )
+        self.assertEqual(result, "login-value")
+
+    def test_secret_coexists_with_dollar_escape(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"api.key": "secret"},
+        )
+        result = expand_env_string(
+            "cost $$ and ${@secret:api.key}",
+            resolver,
+            field_path="services.x.command[]",
+        )
+        self.assertEqual(result, "cost $ and secret")
+
+    def test_missing_secret_key_raises(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"other.key": "x"},
+        )
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@secret:missing.key}",
+                resolver,
+                field_path="services.x.environment.TOKEN",
+            )
+        self.assertIn("missing.key", str(ctx.exception))
+
+    def test_empty_secrets_map_raises_file_gate_message(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={},
+        )
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@secret:api.key}",
+                resolver,
+                field_path="services.x.environment.TOKEN",
+            )
+        message = str(ctx.exception)
+        self.assertIn("secrets.json", message)
+        self.assertIn("--secrets-file", message)
+
+    def test_placeholder_secret_raises(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"api.key": "REPLACE_ME"},
+        )
+        with self.assertRaises(ConfigError) as ctx:
+            expand_env_string(
+                "${@secret:api.key}",
+                resolver,
+                field_path="services.x.environment.TOKEN",
+            )
+        message = str(ctx.exception).lower()
+        self.assertIn("api.key", message)
+        self.assertTrue(
+            "placeholder" in message or "заглуш" in message,
+            msg=message,
+        )
+
+    def test_allow_unresolved_secret_preserves_token(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={},
+        )
+        result = expand_env_string(
+            "${@secret:api.key}",
+            resolver,
+            field_path="services.x.environment.TOKEN",
+            allow_unresolved_secret=True,
+        )
+        self.assertEqual(result, "${@secret:api.key}")
+
+    def test_with_secrets_and_inject_preserve_secrets(self):
+        base = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"api.key": "v1"},
+        )
+        updated = with_secrets(base, {"api.key": "v2", "other": "o"})
+        self.assertEqual(updated.secrets["api.key"], "v2")
+        injected = inject_service_source_paths(updated, {"autoparts_env": "/opt/src"})
+        self.assertEqual(injected.secrets["api.key"], "v2")
+        self.assertEqual(injected.resolve("ODPM_SOURCE_AUTOPARTS_ENV"), "/opt/src")
+
+    def test_collect_secret_refs_in_nested_tree(self):
+        refs = collect_secret_refs_in_value(
+            {
+                "environment": {
+                    "USER": "${@secret:partner_armtek.armtek.apilogin}",
+                    "PASS": "${@secret:partner_armtek.armtek.apipass}",
+                },
+                "command": ["echo", "$$", "${VAR}"],
+            }
+        )
+        self.assertEqual(
+            refs,
+            {
+                "partner_armtek.armtek.apilogin",
+                "partner_armtek.armtek.apipass",
+            },
+        )
+
+    def test_compose_environment_expands_secret(self):
+        resolver = EnvResolver.from_sources(
+            process_environ={},
+            project_dotenv={},
+            secrets={"partner_armtek.armtek.apilogin": "u1"},
+        )
+        expanded = expand_env_in_compose_service_map(
+            {
+                "armtek": {
+                    "image": "armtek:latest",
+                    "environment": {
+                        "APILOGIN": "${@secret:partner_armtek.armtek.apilogin}",
+                    },
+                }
+            },
+            resolver=resolver,
+            field_prefix="services",
+        )
+        self.assertEqual(expanded["armtek"]["environment"]["APILOGIN"], "u1")
 
 
 if __name__ == "__main__":

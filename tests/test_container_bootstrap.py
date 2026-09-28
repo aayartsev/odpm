@@ -10,6 +10,9 @@ from dev_project.inside_docker_app.exceptions import VenvError
 from dev_project.inside_docker_app.utils import resolve_venv_is_baked, resolve_venv_mode
 
 from tests.container_config_helpers import minimal_container_config
+from dev_project.inside_docker_app.exceptions import PostgresError
+from dev_project.inside_docker_app.odoo_checker.postgres_waiter import PostgresWaiter
+import builtins
 
 
 class ResolveVenvIsBakedTests(unittest.TestCase):
@@ -101,8 +104,6 @@ class RunContainerBootstrapTests(unittest.TestCase):
 
 class PostgresWaiterErrorTests(unittest.TestCase):
     def test_wait_for_postgres_timeout_raises_postgres_error(self):
-        from dev_project.inside_docker_app.exceptions import PostgresError
-        from dev_project.inside_docker_app.odoo_checker.postgres_waiter import PostgresWaiter
 
         waiter = PostgresWaiter(timeout=0, check_interval=0)
         with patch.object(waiter, "is_postgres_up", return_value=False):
@@ -111,10 +112,7 @@ class PostgresWaiterErrorTests(unittest.TestCase):
         self.assertEqual(ctx.exception.exit_code, 1)
 
     def test_wait_for_postgres_db_missing_psycopg2_raises(self):
-        import builtins
 
-        from dev_project.inside_docker_app.exceptions import PostgresError
-        from dev_project.inside_docker_app.odoo_checker.postgres_waiter import PostgresWaiter
 
         real_import = builtins.__import__
 

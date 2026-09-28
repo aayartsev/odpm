@@ -17,6 +17,8 @@ from dev_project.manifest.database import (
     merge_db_creation_from_manifest,
 )
 from dev_project.manifest.reader import ManifestView, load_manifest
+from dev_project.config.bootstrap_context import OdooBuildDateResolver
+from dev_project.host.cli.args import OdpmCliArgs
 
 
 class DatabaseOverridesFromManifestTests(unittest.TestCase):
@@ -134,8 +136,6 @@ class ApplyManifestDatabaseBootstrapTests(unittest.TestCase):
 
 class LoadProjectSettingsDatabaseMergeTests(unittest.TestCase):
     def test_load_project_settings_merges_manifest_database(self):
-        from dev_project.config.bootstrap_context import OdooBuildDateResolver
-        from dev_project.host.cli.args import OdpmCliArgs
 
         config = MagicMock()
         config._user = UserSettingsState(

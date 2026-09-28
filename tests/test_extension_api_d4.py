@@ -21,6 +21,8 @@ from dev_project.manifest.nested_compose import inherit_nested_compose_into_mani
 from dev_project.manifest.reader import load_manifest
 from tests.fixtures.sample_plugin import sample_odpm_plugin
 from tests.test_manifest_v2_reader import _minimal_v2
+from dev_project.extensions.local import reset_local_plugins_state
+from dev_project.extensions.local import load_project_local_plugins
 
 
 class ExtensionApiVersionTests(unittest.TestCase):
@@ -146,18 +148,15 @@ class NestedComposeInheritTests(unittest.TestCase):
 class LocalPluginApiValidationTests(unittest.TestCase):
     def setUp(self) -> None:
         reset_extension_registry_state()
-        from dev_project.extensions.local import reset_local_plugins_state
 
         reset_local_plugins_state()
 
     def tearDown(self) -> None:
         reset_extension_registry_state()
-        from dev_project.extensions.local import reset_local_plugins_state
 
         reset_local_plugins_state()
 
     def test_local_plugin_with_unsupported_api_version_raises(self) -> None:
-        from dev_project.extensions.local import load_project_local_plugins
 
         plugin_source = textwrap.dedent(
             '''

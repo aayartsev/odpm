@@ -24,7 +24,7 @@
 
 Снимок содержит:
 
-- **`compose`** — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте;
+- **`compose`** — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте; при `ODPM_COMPOSE_PREFIX` — также `compose_project_name` и `odoo_service_name`;
 - **`odoo_conf`** — `db_host`, `db_port`, `db_user`;
 - **`cluster`** — data dir непустой, major PostgreSQL (`PG_VERSION`), роль приложения и её наличие.
 
@@ -33,17 +33,33 @@
 | Событие | Кто записывает |
 |---------|----------------|
 | Первый запуск без `last_run.json` | **Adoption** — до `compose up` (роль + baseline) |
-| Успешная проверка credentials в checker | **Checker** — после TCP и `psql` от имени `db_user` |
+| Успешная проверка credentials в checker | **Checker** — после TCP и `psql`/psycopg2 от имени `db_user` |
 
 Adoption срабатывает **один раз**. Пока файл есть, повторной «настройки» не будет — только drift относительно сохранённого снимка.
+
+## Wait PostgreSQL в checker (контейнер)
+
+Перед операциями Odoo checker:
+
+1. Ждёт TCP на `db_host:db_port`.
+2. Проверяет credentials к системной БД **`postgres`** (`SELECT 1`).
+3. Если задан CLI **`-d <name>`** (и имя не `postgres`) — дополнительно ждёт готовности этой БД (retry при crash recovery / «not yet accepting»). Если БД ещё нет — wait не падает; создание остаётся за `ensure_database_exists`.
+
+**Ограничения:** без `-d` wait только к `postgres` (список БД / dbfilter не опрашиваются); timeout verify — 60s на шаг (долгий recovery → ошибка по timeout).
 
 ## Adoption legacy-проектов
 
 Если в каталоге проекта ещё нет `last_run.json` (типично: унаследованный data dir PostgreSQL), перед полным стеком odpm:
 
 1. Поднимает сервис PostgreSQL (если не готов).
-2. Выполняет **`ensure_app_role`** — создаёт или обновляет роль приложения (`odoo` по умолчанию), в том числе через single-user bootstrap, если в кластере нет административной login-роли.
+2. Выполняет **`ensure_app_role`**:
+   - роль **`postgres`** — `LOGIN SUPERUSER` (admin odpm / compose `POSTGRES_USER`);
+   - роль **`odoo`** — `LOGIN NOSUPERUSER CREATEDB` (сессия Odoo, `db_user`);
+   - расширения `unaccent` и `pg_trgm` на **`template1`** (новые БД наследуют; уже созданные БД — вручную при необходимости);
+   - при отсутствии login-admin — single-user bootstrap обеих ролей, затем reconcile.
 3. Записывает текущую конфигурацию как baseline.
+
+Пароль admin и app — один секрет (`POSTGRES_ODOO_PASS`). Demote `odoo` закрывает `COPY … TO PROGRAM` от роли приложения; при утечке общего пароля доступ как `-U postgres` всё ещё возможен — см. [безопасность](../operations/security.md).
 
 **Adoption не делает:**
 
@@ -96,10 +112,12 @@ odpm database ensure-role
 
 ## Связь с `.env` и `odoo.conf`
 
-Переменная **`POSTGRES_SERVICE_NAME`** в `.env` задаёт имя сервиса в `docker-compose.yml` и ожидаемый **`db_host`** в `odoo.conf`. При рассинхроне:
+Переменная **`POSTGRES_SERVICE_NAME`** в `.env` задаёт имя сервиса postgres в `docker-compose.yml` и ожидаемый **`db_host`** в `odoo.conf`, когда **`ODPM_COMPOSE_PREFIX`** не задан.
 
-- шаг **`template.odoo_conf`** пересоздаёт конфиг;
-- drift **`db_host_mismatch`** попадает в plan.
+Переменная **`ODPM_COMPOSE_PREFIX`** задаёт **физические** имена встроенных сервисов (`{prefix}db`, `{prefix}odoo`), том данных и имя проекта Docker Compose. В снимке `last_run.json` сохраняются `compose.service_name` (postgres), `compose.compose_project_name` и `compose.odoo_service_name`. При смене префикса или `POSTGRES_SERVICE_NAME` относительно снимка:
+
+- шаг **`template.odoo_conf`** пересоздаёт конфиг при рассинхроне `db_host`;
+- drift **`service_name`**, **`compose_project_name`** или **`db_host_mismatch`** попадает в plan.
 
 Подробнее: [переменные .env](env-dotenv.md), [odoo.conf](odoo-conf.md).
 
@@ -107,7 +125,7 @@ odpm database ensure-role
 
 Операции **`--db-drop`**, **`--db-restore`**, **`--db-backup`** работают на уровне **Odoo-баз** внутри кластера, а не на уровне `last_run.json`.
 
-На legacy-кластере база может существовать, но быть **владельцем другого PostgreSQL-пользователя**. Тогда стандартный Odoo `exp_drop` молча пропускает удаление; odpm выполняет прямой `DROP DATABASE` и выдаёт ошибку, если база осталась.
+На legacy-кластере (Odoo до 20) база может существовать, но быть **владельцем другого PostgreSQL-пользователя**. Тогда стандартный Odoo `exp_drop` молча пропускает удаление; odpm выполняет прямой `DROP DATABASE` и выдаёт ошибку, если база осталась. На **Odoo 20+** checker вызывает `odoo.modules.db.drop` (отдельного silent skip `exp_drop` нет).
 
 Пример полного цикла:
 
@@ -120,13 +138,14 @@ odpm -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
 ```bash
 odpm database status
 odpm plan --skip-start
-docker compose logs db-dev    # имя сервиса из POSTGRES_SERVICE_NAME
+docker compose logs db-dev    # имя postgres-сервиса из .env (или acme-db при ODPM_COMPOSE_PREFIX=acme)
 ```
 
-После переименования сервиса postgres удалите orphan-контейнеры:
+После смены `POSTGRES_SERVICE_NAME` или `ODPM_COMPOSE_PREFIX` удалите orphan-контейнеры (с тем же project scope, что у odpm):
 
 ```bash
 docker compose down --remove-orphans
+# при префиксе odpm передаёт -p автоматически; вручную: docker compose -p acme down --remove-orphans
 ```
 
 ## Что odpm не автоматизирует

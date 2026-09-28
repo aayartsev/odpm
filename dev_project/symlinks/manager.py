@@ -27,7 +27,7 @@ class SymlinkManager:
         if self._host_ctx_override is not None:
             return self._host_ctx_override
         if self._host_ctx_cached is None:
-            from ..host.context import HostProjectContext
+            from ..host.context import HostProjectContext  # noqa: PLC0415  # optional
 
             self._host_ctx_cached = HostProjectContext.from_config(self.config)
         return self._host_ctx_cached
@@ -39,14 +39,27 @@ class SymlinkManager:
             return os.path.join(self.config.project_dir, constants.DEPENDENCIES_DIR)
         return ""
 
-    def ensure_link(self, link_dir: str, target_path: str) -> None:
+    def _service_sources_link_dir(self) -> str:
+        if getattr(self.config, "service_sources_dir", None):
+            return self.config.service_sources_dir
+        if self.config.project_dir:
+            return os.path.join(self.config.project_dir, constants.SERVICE_SOURCES_DIR)
+        return ""
+
+    def ensure_link(
+        self,
+        link_dir: str,
+        target_path: str,
+        *,
+        link_name: str | None = None,
+    ) -> None:
         if not link_dir or not target_path:
             return
-        link_name = os.path.basename(target_path.rstrip(os.sep))
-        if not link_name:
+        name = link_name or os.path.basename(target_path.rstrip(os.sep))
+        if not name:
             return
         os.makedirs(link_dir, exist_ok=True)
-        link_path = os.path.join(link_dir, link_name)
+        link_path = os.path.join(link_dir, name)
         try:
             os.symlink(target_path, link_path)
             self._record_symlink(target_path, link_path)
@@ -63,6 +76,32 @@ class SymlinkManager:
         if not link_dir:
             return
         self.ensure_link(link_dir, target_path)
+
+    def sync_service_source_project_links(self, source_paths: dict[str, str]) -> None:
+        link_dir = self._service_sources_link_dir()
+        if not link_dir:
+            return
+        if source_paths:
+            os.makedirs(link_dir, exist_ok=True)
+            for name, target in source_paths.items():
+                if not name or not target:
+                    continue
+                link_path = os.path.join(link_dir, name)
+                if os.path.islink(link_path):
+                    if os.readlink(link_path) == target:
+                        self._record_symlink(target, link_path)
+                        continue
+                    os.unlink(link_path)
+                elif os.path.exists(link_path):
+                    continue
+                self.ensure_link(link_dir, target, link_name=name)
+        if not os.path.isdir(link_dir):
+            return
+        expected = set(source_paths)
+        for item in os.listdir(link_dir):
+            link_path = os.path.join(link_dir, item)
+            if os.path.islink(link_path) and item not in expected:
+                os.unlink(link_path)
 
     def update_links(self) -> None:
         if (

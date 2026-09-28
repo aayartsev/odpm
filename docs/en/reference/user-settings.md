@@ -7,23 +7,24 @@ The file describes **how to work** with an already defined stack (`odpm.json`): 
 | Field | Purpose |
 |-------|---------|
 | `developing_project` | Link to the developing repository or directory ([link formats](git-links.md)); supports `${VAR}` — see below |
-| `init_modules` | Modules to install with `-i` (comma-separated, no spaces) |
-| `update_modules` | Modules to update with `-u` |
+| `init_modules` | Modules to install with bare `-i` (comma-separated, no spaces); explicit `-i sale,crm` overrides for this run |
+| `update_modules` | Modules to update with bare `-u`; explicit `-u my_module` overrides for this run |
 | `db_creation_data` | Parameters for a **new** database on first `-d` |
 | `db_creation_data.db_lang` | *(deprecated)* Database language — prefer `database.language` in [odpm.json](odpm-json.md) |
 | `db_creation_data.db_country_code` | *(deprecated)* Country code — prefer `database.country` in [odpm.json](odpm-json.md) |
-| `db_creation_data.create_demo` | Whether to create demo data |
+| `db_creation_data.create_demo` | Whether to create demo data (default `false` in new `user_settings.json`) |
 | `db_creation_data.db_default_admin_login` | Administrator login |
 | `db_creation_data.db_default_admin_password` | Administrator password |
 | `update_git_repos` | Whether to update git on restart |
 | `clean_git_repos` | Whether to reset local changes in platform and dependencies |
 | `check_system` | Docker and git checks for beginners (default `true`) |
 | `dev_mode` | Odoo development mode; `developer` scenario only |
-| `db_manager_password` | Odoo database manager password |
+| `db_manager_password` | Odoo database manager password (on `hardened` usually `${@secret:odpm.db_manager_password}`; see [security](../operations/security.md)) |
 | `sql_queries` | SQL list for `--sql-execute` |
 | `pre_commit_map_files` | Files for pre-commit when not on Linux |
 | `use_oca_dependencies` | Extended OCA and nested `odpm.json` resolution (default `false`) |
 | `create_module_links` | Symbolic links for the editor (default `false`) |
+| `sidecars` | Local compose-sidecar toggles: name → `true`/`false`. `false` drops the service from plan, fragments, and `docker-compose.yml`; missing key or `true` keeps it. Cannot list `db`/`odoo`. After change — `odpm --skip-start`. See below |
 
 ## `${VAR}` substitution in `developing_project`
 
@@ -52,3 +53,22 @@ When `true`, basic git and Docker checks run. Does not disable compose validatio
 ## Symbolic links (`create_module_links`)
 
 Simplify navigation and debugging in VS Code — [dedicated article](../operations/vscode-debug.md).
+
+## Local sidecars (`sidecars`)
+
+Map of **logical** compose service names from the manifest/plugins (not `service_sources`, not `db`/`odoo`):
+
+```json
+{
+  "sidecars": {
+    "mailpit": false,
+    "redis": true
+  }
+}
+```
+
+- `false` — service is omitted from `odpm plan` fragment steps, `.odpm/compose/fragments/`, and `docker-compose.yml`.
+- missing key or `true` — service stays.
+- JSON booleans only; strings like `"false"` are an error.
+- Personal `false` values in a committed `user_settings.json` can surprise the team/CI — coordinate or keep the override local.
+- After a change: `odpm --skip-start` (same as after changing `dev_mode`). Details: [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md).

@@ -3,6 +3,8 @@
 **Status:** accepted (4.5-dev)  
 **Date:** 2026-06-22
 
+Related: unit local/CI parity and host quirks — [ADR-023](adr-023-local-unit-parity.md), runbook — [tests.md](tests.md).
+
 ## Context
 
 odpm 4.4 established a **fast** mandatory gate (`compose-smoke` on `ubuntu-latest`) and an **opt-in** full golden-path (`init` → `docker compose up` → HTTP 200 `/web`) on a self-hosted runner with secret `ODPM_GOLDEN_PATH_PROJECT`.
@@ -57,7 +59,7 @@ Not used in 4.5.0 — integration jobs run on every PR to `4.5-dev`. Future opti
 |-----|----------------------|-------------|-------|
 | `compose-smoke` | 20 | `ODPM_COMPOSE_SMOKE_TIMEOUT=900` | T1 fast gate |
 | `http-smoke` | 25 | `ODPM_HTTP_SMOKE_TIMEOUT=600` | T2 Mailpit HTTP |
-| `golden-path` | 15 | `ODPM_GOLDEN_PATH_TIMEOUT=90` | T3 self-hosted |
+| `golden-path` | 9 | `ODPM_GOLDEN_PATH_TIMEOUT=60` | T3 self-hosted; remedi ate only if schema incompatible; accept baseline drift; wipe if Postgres not ready after major bump; require `odoo_version` 19.x |
 | `fixture-golden-path` (weekly) | 45 | `ODPM_FIXTURE_GOLDEN_TIMEOUT=900` | I2 in-repo `/web` |
 
 ### I2 — extended matrix (weekly + PR steps)

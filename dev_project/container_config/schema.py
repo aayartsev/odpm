@@ -102,14 +102,14 @@ def _validate_container_config_enums(data: dict) -> None:
 
 def _validate_container_config_optional_sections(data: dict) -> None:
     if "debugger" in data:
-        from .config import DebuggerSettings
+        from .config import DebuggerSettings  # noqa: PLC0415  # optional
 
         DebuggerSettings.from_dict(data["debugger"])
 
     if "database" in data and data["database"] is not None:
         if not isinstance(data["database"], dict):
             raise ConfigValidationError("database must be an object")
-        from .database_context import DatabaseContainerContext
+        from .database_context import DatabaseContainerContext  # noqa: PLC0415  # optional
 
         DatabaseContainerContext.from_dict(data["database"])
 

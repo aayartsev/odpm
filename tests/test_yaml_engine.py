@@ -5,6 +5,8 @@ from __future__ import annotations
 import unittest
 
 from dev_project.yaml import dump_document, load_document, merge_services
+from dev_project.yaml import merge_services_with_patches
+from dev_project.compose.fragments import render_compose_services_block
 
 
 class YamlEngineTests(unittest.TestCase):
@@ -47,7 +49,6 @@ class YamlEngineTests(unittest.TestCase):
         self.assertEqual(merged["mailpit"], {"image": "plugin/mailpit:latest"})
 
     def test_merge_services_with_patches_appends_environment(self):
-        from dev_project.yaml import merge_services_with_patches
 
         services = {
             "odoo": {
@@ -63,7 +64,6 @@ class YamlEngineTests(unittest.TestCase):
         self.assertIn("EXTRA_FLAG=1", patched["odoo"]["environment"])
 
     def test_merge_services_with_patches_replaces_ports_list(self):
-        from dev_project.yaml import merge_services_with_patches
 
         services = {"odoo": {"ports": ["8069:8069", "8072:8072"]}}
         patched = merge_services_with_patches(
@@ -72,7 +72,6 @@ class YamlEngineTests(unittest.TestCase):
         self.assertEqual(patched["odoo"]["ports"], ["9090:8069"])
 
     def test_merge_services_with_patches_unknown_service_raises(self):
-        from dev_project.yaml import merge_services_with_patches
 
         with self.assertRaises(ValueError):
             merge_services_with_patches({"odoo": {}}, {"redis": {"image": "redis"}})
@@ -90,7 +89,6 @@ class YamlEngineTests(unittest.TestCase):
         self.assertIn("- sh", text)
 
     def test_render_compose_services_block_via_engine(self):
-        from dev_project.compose.fragments import render_compose_services_block
 
         block = render_compose_services_block(
             {"mailpit": {"image": "axllent/mailpit", "ports": ["8025:8025"]}}

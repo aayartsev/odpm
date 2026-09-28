@@ -11,6 +11,8 @@ from .. import constants
 from ..errors import ConfigError
 from ..logging import get_module_logger
 from ..translations import _
+from ..config.payload import ensure_runtime_dir_gitignore
+
 
 _logger = get_module_logger(__name__)
 
@@ -104,7 +106,6 @@ def write_secrets_source(project_dir: str, secrets: dict[str, str]) -> str:
 
 
 def write_secrets_runtime(project_dir: str, secrets: dict[str, str]) -> str:
-    from ..config.payload import ensure_runtime_dir_gitignore
 
     path = secrets_runtime_path(project_dir)
     ensure_runtime_dir_gitignore(project_dir)
@@ -183,13 +184,22 @@ def bake_secrets_enabled() -> bool:
     return value in ("1", "true", "yes")
 
 
-def prepare_secrets_for_ci_bake(project_dir: str) -> bool:
+def prepare_secrets_for_ci_bake(project_dir: str, config: object | None = None) -> bool:
     """Materialize secrets for CI bake when :envvar:`ODPM_BAKE_SECRETS` is set.
 
-    Returns True when a runtime secrets file exists after preparation.
+    Always runs ``ensure_secrets_source`` on the same config session first.
     """
     if not bake_secrets_enabled():
         return False
+    if config is not None:
+        from ..secrets_providers.fetch import ensure_secrets_source_for_config  # noqa: PLC0415  # optional
+
+        raw: dict = {}
+        bootstrap = getattr(config, "bootstrap", None)
+        view = getattr(bootstrap, "manifest_view", None) if bootstrap is not None else None
+        if view is not None and getattr(view, "source_raw", None):
+            raw = dict(view.source_raw)
+        ensure_secrets_source_for_config(config, raw=raw, phase="bake")
     materialize_secrets(project_dir)
     return os.path.isfile(secrets_runtime_path(project_dir))
 

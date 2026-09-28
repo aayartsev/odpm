@@ -1,5 +1,4 @@
 from .docker_base_image import BaseImageService
-from .platform_sources import PlatformSourcesService
 from .pycharm_configurator import PycharmConfigurator
 from .python_analysis_paths import PythonAnalysisPathsBuilder
 from .vscode_configurator import VscodeConfigurator
@@ -7,7 +6,6 @@ from .vscode_configurator import VscodeConfigurator
 __all__ = [
     "BaseImageService",
     "CiImageBuildService",
-    "PlatformSourcesService",
     "PycharmConfigurator",
     "PythonAnalysisPathsBuilder",
     "VscodeConfigurator",
@@ -16,7 +14,7 @@ __all__ = [
 
 def __getattr__(name: str):
     if name == "CiImageBuildService":
-        from .ci_image_build import CiImageBuildService
+        from .ci_image_build import CiImageBuildService  # noqa: PLC0415  # optional
 
         return CiImageBuildService
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

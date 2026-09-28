@@ -3,11 +3,12 @@ services:
     image: postgres:16
     user: root
     tty: true
+    restart: unless-stopped
     ports:
       - 127.0.0.1:15432:5432
     environment:
       - POSTGRES_PASSWORD=odoo
-      - POSTGRES_USER=odoo
+      - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -15,6 +16,7 @@ services:
     image: odoo-base:dev
     user: 1000:1000
     tty: true
+    restart: unless-stopped
     depends_on:
       - db
     working_dir: /home/odoo
@@ -28,8 +30,8 @@ services:
       - --
       - /home/odoo/odoo/odoo-bin
     ports:
-      - 8069:8069
-      - 8072:8072
+      - 127.0.0.1:8069:8069
+      - 127.0.0.1:8072:8072
     volumes:
       - /tmp/odpm-golden-fixture-project/.odpm/runtime/config.json:/run/odpm/config.json:ro,Z
       - /tmp/odpm-golden-fixture-project/.odpm/database:/run/odpm/database:Z

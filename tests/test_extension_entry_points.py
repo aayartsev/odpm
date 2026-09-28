@@ -20,6 +20,7 @@ from dev_project.plan import PlanStep
 from dev_project.prepare.helpers import make_plan_step
 from dev_project.prepare.registry import BUILTIN_PREPARE_STEPS, get_prepare_steps as all_prepare_steps
 from dev_project.prepare.types import PrepareContext
+from dev_project.extensions.registry import get_prepare_steps
 
 
 @dataclass(frozen=True)
@@ -104,7 +105,6 @@ class ExtensionRegistryTests(unittest.TestCase):
         self.assertIn("example", services)
 
     def test_get_prepare_steps_requires_builtin_argument(self):
-        from dev_project.extensions.registry import get_prepare_steps
 
         merged = get_prepare_steps(BUILTIN_PREPARE_STEPS)
         self.assertEqual(
