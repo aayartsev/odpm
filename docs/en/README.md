@@ -12,31 +12,33 @@
 
 > **AI-translated** from [Russian documentation](https://aayartsev.github.io/odpm/). Reviewed by maintainers incrementally; report issues on [GitHub](https://github.com/aayartsev/odpm/issues).
 
-> Odoo development breaks on **infrastructure**, not Python syntax: many repositories, path consistency, mixed OS and CPU architectures on team machines, Docker, venv, odoo.conf, IDE, CI, and more layers to watch. **odpm** turns that into **one reproducible project contour** from a single `odpm.json` so the team spends time on modules, not rebuilding or debugging the environment.
+> The hard part of Odoo development shows up first in **infrastructure**, not Python syntax: many git repositories, keeping everything that flows from those repos in sync. Teammates may use different OS (macOS, Windows, Linux) and architectures (x86, arm); then you still need Docker, venv, odoo.conf, IDE, CI, and more layers to watch.
 
-**odpm** builds a **full developer workspace** and **the same Odoo environment** for the whole team — including servers and CI. A single `odpm.json` in the repository is enough: odpm prepares directories, containers, configuration, module paths, and typical database operations.
+`odpm` builds a **full developer workspace** and **the same Odoo environment** for the whole team — including servers and CI. A single `odpm.json` in the repository is enough: odpm prepares directories, containers, configuration, module paths, and typical database operations.
 
 The project was created to **lower the very high barrier** to Odoo development — including solo developers and small teams without a dedicated infrastructure administrator.
 
 ## Problems odpm solves
 
-You **can** install Odoo from a system package (deb, rpm) or a long online guide, and the service **will start**. That is **not enough** for **day-to-day development**.
+You **can** install Odoo from a system package (deb, rpm, or even a Windows exe) or a long online guide, and the service **will start**. That is **not enough** for **day-to-day development**.
 
-A developer needs more than “the server is up” — a **connected whole**:
+A developer needs more than “bring the server up” — a **full working environment**:
 
-- a directory where they **write their code** (customer or company modules);
-- quick access to **all environment settings** in one logical place;
-- clear **system and Python dependencies** in an isolated environment;
+- a directory where they **write their code** (for example modules for a customer or for their company);
+- quick access to **all environment settings** — the whole project context, dependencies, and helper systems in one place;
+- clear ways to add **system and Python dependencies** inside an isolated environment;
 - an **Odoo config file** with correct addon paths;
 - **Odoo platform source** for reading, debugging, and updating modules;
-- **sources of all linked projects and dependencies** (OCA, corporate repos);
-- consistent **addon paths** and **their own codebase** locations.
+- **sources of all linked projects and dependencies** (OCA, corporate repos, modules on the filesystem);
+- consistent **addon paths** and **their own codebase** locations;
+- all code paths wired into the **debugger**;
+- and a quick, convenient way to do many other day-to-day operations.
 
-Assembling this manually is hard even on one machine. Add **Docker** “so everyone has the same stack” and complexity doubles: what to mount from disk, user permissions, paths inside vs outside the container, config paths matching the real filesystem. That is when “it works for my colleague, my module is not found” usually appears.
+Assembling this **systematically** by hand is hard even on one machine. Add **Docker** (meant to solve OS and architecture compatibility so everyone has the same stack) and a second complexity layer appears: what to mount from disk, user permissions, paths inside vs outside the container, config paths matching the real filesystem. That is when “it works for my colleague, my module is not found” usually appears.
 
-**odpm takes over this assembly:** one project directory on your machine, one `odpm.json` in the module git repo — automatic cloning, `docker-compose` generation, Odoo configuration, and commands for backup, module install, and editor debugging.
+`odpm` **takes over this assembly:** one project directory on your machine, one `odpm.json` in the module git repo — automatic cloning, `docker-compose` generation, Odoo configuration, restoring a database from an archive with automatic module install, and a debugger already configured in the editor.
 
-Full article (10 pain layers, program roles, alternatives, boundaries): [Why odpm](getting-started/why-odpm.md).
+Full article (10 problem layers, program roles, alternatives, boundaries): [Why odpm](getting-started/why-odpm.md).
 
 Short on-ramp for beginners: [Beginner-friendly guide](getting-started/beginner-friendly.md).
 
@@ -45,16 +47,20 @@ Short on-ramp for beginners: [Beginner-friendly guide](getting-started/beginner-
 You need **Docker**, **git**, and **odpm** on the host (see [installation](../install/README.md)).
 
 ```bash
-mkdir my-odoo-project-19 && cd my-odoo-project-19
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 19.0
+mkdir odoo_demo_project-20 && cd odoo_demo_project-20
+odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 20.0 --odoo-bin --stop-after-init
+
 ```
 
 On first run the setup wizard asks about directories and scenario; press Enter for unknown answers to use defaults.
 
 After the environment is prepared:
+Enable demo data when the database is created, so the module can install demo records that already appear in the UI:
+- open `user_settings.json`
+- set `"create_demo": true`
 
 ```bash
-odpm -d test_db -i -u
+odpm -d test_db -i first_module
 ```
 
 Open in the browser: `http://127.0.0.1:8069`.
@@ -63,7 +69,7 @@ Step-by-step guide: [Local dev from scratch](getting-started/local-dev-from-scra
 
 ## Installing odpm
 
-Platform and method overview: **[Installing odpm (all platforms)](../install/README.md)**.
+**[Installing odpm (all platforms)](../install/README.md)**.
 
 ## Usage scenarios
 
@@ -71,8 +77,8 @@ The scenario is set by `ODPM_SCENARIO` in `.env`. Same `odpm.json`; different la
 
 | Value | Who and why |
 |-------|-------------|
-| `developer` | Developer on their computer: VS Code debugging, Odoo dev mode |
-| `server` | VM or customer server without debugger, restricted DB access |
+| `developer` | Developer on their computer: IDE debugging, nearly unrestricted security profile, default passwords |
+| `server` | VM or customer server; strict security profile by default |
 | `ci` | Baked image for continuous integration pipeline |
 
 Articles: [developer](../scenarios/developer.md) · [server](../scenarios/server.md) · [ci](../scenarios/ci.md) · [team scaling](../scenarios/scaling.md).
@@ -93,7 +99,6 @@ Published site: **[English](https://aayartsev.github.io/odpm/en/)** (EN) · **[�
 | Recipes (`odpm run`) | [recipes.md](reference/recipes.md) |
 | `.env`, `odpm.json`, `odoo.conf` | [reference](../reference/config-hierarchy.md) |
 | Server security | [security.md](../operations/security.md) |
-| Migrating from 3.0 | [migration-3-to-4.md](../operations/migration-3-to-4.md) |
 
 ## For odpm contributors
 

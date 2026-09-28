@@ -24,7 +24,7 @@ Open the folder in **Visual Studio Code** (File → Open Folder). The integrated
 ## Init from a git repository
 
 ```bash
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 19.0
+odpm --init https://github.com/your-org/your-odoo-project.git --branch 20.0
 ```
 
 `--branch` is the **developing** repository branch. If omitted, the git server’s default branch is used.
@@ -45,7 +45,7 @@ On first `odpm --init` (and on full prepare runs), odpm:
 
 1. Runs the setup wizard and saves answers to `.env` (backup dir, git clone dir, ports, **scenario** `developer` / `server` / `ci`).
 2. When deploying from scratch, asks for Odoo version if missing from the developing project’s `odpm.json`.
-3. Clones the Odoo **platform** repo (can take **40+ minutes** — be patient).
+3. Clones the Odoo **platform** repo (can take **10+ minutes** — be patient).
 4. Clones the developing project or links the local path you gave.
 5. Generates `Dockerfile` for the chosen Linux distro and Python version.
 6. Copies the template to `.odpm/dockerignore` and creates the root `.dockerignore` for image builds.
