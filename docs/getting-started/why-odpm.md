@@ -158,15 +158,56 @@ C **odpm:**
 
 ## Где odpm на карте решений
 
-Ниша **между** «голым Docker Odoo» и **тяжёлым Doodba / Odoo.sh**:
+Ниша **между** «голым Docker Odoo» и **тяжёлым Doodba / Odoo.sh**. Ниже — сравнение по слоям задач (актуально для линейки **4.7**).
 
-| Альтернатива | Чего не хватает типичной команде |
-|-------------|----------------------------------|
-| Пакет / bare metal | multi-repo, Docker, IDE, CI profile |
-| Official Odoo Docker | developing project, git deps, venv, debug |
-| Dev Containers | Odoo-specific: odpm.json, OCA graph, lock, scenarios |
-| Doodba | выше порог входа и крен в сторону DevOps; меньше дружелюбности к новичкам «одна кнопка и поехали» это не их стиль |
-| Odoo.sh | SaaS, не доступен для self-hosted систем и локальных машин разработки |
+### Позиция решений
+
+| Решение | Что это | Где ниша |
+|--------|---------|----------|
+| Пакет / bare metal | deb / rpm / exe, systemd | «Odoo запущен», не готовое рабочее место |
+| Official Odoo Docker | один образ + PostgreSQL | демо и простой стенд |
+| Dev Containers / свой compose | общий Docker-паттерн | нет Odoo-специфики из коробки |
+| **odpm** | manifest + оркестратор поверх Docker | self-hosted: разработчик, сервер, CI из одного `odpm.json` |
+| **Doodba** | зрелый DevOps-стек вокруг Odoo | мощно, высокий порог, конвенция `custom/` |
+| **Odoo.sh** | облачный PaaS | SaaS; не ваш ноутбук и не произвольный VPS |
+
+### Матрица функционала
+
+Легенда: **●** сильная поддержка · **◐** частично / другим способом · **○** нет или не цель продукта.
+
+| Возможность | Пакет | Official Docker | Dev Container | **odpm** | Doodba | Odoo.sh |
+|-------------|:-----:|:---------------:|:-------------:|:--------:|:------:|:-------:|
+| Multi-repo (platform + project + deps) | ○ | ○ | ◐ руками | **●** | **●** | **●** |
+| Lock ревизий git | ○ | ○ | ◐ | **●** [`deps.lock`](../reference/deps-lock.md) | **●** | ● внутри SaaS |
+| Один состав → developer / server / CI | ○ | ○ | ○ | **●** сценарии + overlays | ◐ свои профили | ● их пайплайн |
+| Генерация compose / Dockerfile / odoo.conf | ○ | ○ | ◐ шаблон | **●** + [`odpm plan`](../reference/cli.md) | **●** | ○ (закрытый контур) |
+| Отладка в IDE (VS Code / PyCharm) | ○ | ○ | ◐ | **●** | ◐ | ограниченно |
+| Операции БД и модулей из CLI | ○ | ○ | ○ | **●** | ◐ скрипты / `custom` | ● UI / CI |
+| Sidecar-сервисы | ○ | ○ | ◐ | **●** [`services`](../reference/plugins.md) / [`service_sources`](../reference/service-sources.md) | **●** | ◐ |
+| Секреты без коммита в git | ○ | ○ | ◐ | **●** | ◐ | ● SaaS |
+| Плагины / lifecycle hooks | ○ | ○ | ○ | **●** | **●** `custom/` | ○ |
+| Self-hosted на своей машине | **●** | **●** | **●** | **●** | **●** | **○** |
+| Staging / prod как PaaS | ○ | ○ | ○ | **○** | ◐ сами | **●** |
+| Порог входа для новичка | «поставить» легко, «разрабатывать» тяжело | средний | средний+ | **низкий–средний** | **высокий** | низкий в облаке |
+| Полный prod: nginx / TLS / backup | ◐ | ○ | ○ | **○** | ◐ | **●** |
+
+См. также [масштабирование команды](../scenarios/scaling.md), [плагины](../reference/plugins.md), [сценарии](../scenarios/developer.md).
+
+### Относительно «лёгких» решений
+
+Пакет, official Docker и голый Dev Container обычно дают **запущенный сервис**, но не закрывают multi-repo, lock, три роли, IDE-отладку и повседневные операции с БД/модулями из одного контракта. **odpm** как раз собирает этот контур: один `odpm.json`, предсказуемый `plan`, контейнерный стек на разных ОС и архитектурах.
+
+### Пересечение с Doodba
+
+**Общий класс задач:** multi-repo Odoo в Docker, расширение стека, CI-образ, sidecars.
+
+**Другой угол:** у odpm контракт — declarative `odpm.json` и сценарии (`developer` / `server` / `ci`); у Doodba — своя экосистема и богатый набор build/entrypoint в `custom/`. Цель odpm — **не** быть drop-in заменой всего surface Doodba `custom/` (см. раздел ниже), а снизить порог и держать один воспроизводимый контур для команды.
+
+### Пересечение с Odoo.sh
+
+**Odoo.sh** выигрывает там, где нужен managed staging/prod и встроенный облачный CI/CD.
+
+**odpm** выигрывает на локальной машине, своём сервере, в self-hosted и air-gapped контурах: полный контроль над compose, секретами и одним описанием без привязки к SaaS.
 
 **odpm** — Odoo-specific Dev Container manager: declarative manifest + scenario + plan + container contract, без облачной привязки.
 

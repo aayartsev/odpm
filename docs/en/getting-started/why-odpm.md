@@ -160,15 +160,56 @@ With **odpm:** `debug-profile.json`, automatic VS Code / PyCharm config generati
 
 ## Where odpm sits on the map
 
-Niche **between** “plain Docker Odoo” and **heavy Doodba / Odoo.sh**:
+Niche **between** “plain Docker Odoo” and **heavy Doodba / Odoo.sh**. Below is a task-layer comparison (current for the **4.7** line).
 
-| Alternative | What typical teams still miss |
-|-------------|------------------------------|
-| Package / bare metal | multi-repo, Docker, IDE, CI profile |
-| Official Odoo Docker | developing project, git deps, venv, debug |
-| Dev Containers | Odoo-specific: odpm.json, OCA graph, lock, scenarios |
-| Doodba | higher barrier and a DevOps tilt; less beginner-friendly “one button and go” — that is not their style |
-| Odoo.sh | SaaS; not available for self-hosted systems and local developer machines |
+### Solution positions
+
+| Solution | What it is | Where it fits |
+|----------|------------|---------------|
+| Package / bare metal | deb / rpm / exe, systemd | “Odoo is running”, not a ready workspace |
+| Official Odoo Docker | one image + PostgreSQL | demos and simple staging |
+| Dev Containers / custom compose | generic Docker pattern | no Odoo-specifics out of the box |
+| **odpm** | manifest + orchestrator on Docker | self-hosted: developer, server, CI from one `odpm.json` |
+| **Doodba** | mature DevOps stack around Odoo | powerful, high barrier, `custom/` convention |
+| **Odoo.sh** | cloud PaaS | SaaS; not your laptop or arbitrary VPS |
+
+### Feature matrix
+
+Legend: **●** strong support · **◐** partial / another path · **○** absent or not a product goal.
+
+| Capability | Package | Official Docker | Dev Container | **odpm** | Doodba | Odoo.sh |
+|------------|:-------:|:---------------:|:-------------:|:--------:|:------:|:-------:|
+| Multi-repo (platform + project + deps) | ○ | ○ | ◐ by hand | **●** | **●** | **●** |
+| Lock git revisions | ○ | ○ | ◐ | **●** [`deps.lock`](../reference/deps-lock.md) | **●** | ● inside SaaS |
+| One composition → developer / server / CI | ○ | ○ | ○ | **●** scenarios + overlays | ◐ own profiles | ● their pipeline |
+| Generate compose / Dockerfile / odoo.conf | ○ | ○ | ◐ template | **●** + [`odpm plan`](../reference/cli.md) | **●** | ○ (closed contour) |
+| IDE debugging (VS Code / PyCharm) | ○ | ○ | ◐ | **●** | ◐ | limited |
+| DB and module ops from CLI | ○ | ○ | ○ | **●** | ◐ scripts / `custom` | ● UI / CI |
+| Sidecar services | ○ | ○ | ◐ | **●** [`services`](../reference/plugins.md) / [`service_sources`](../reference/service-sources.md) | **●** | ◐ |
+| Secrets without committing to git | ○ | ○ | ◐ | **●** | ◐ | ● SaaS |
+| Plugins / lifecycle hooks | ○ | ○ | ○ | **●** | **●** `custom/` | ○ |
+| Self-hosted on your machine | **●** | **●** | **●** | **●** | **●** | **○** |
+| Staging / prod as PaaS | ○ | ○ | ○ | **○** | ◐ DIY | **●** |
+| Beginner barrier | easy to “install”, hard to “develop” | medium | medium+ | **low–medium** | **high** | low in the cloud |
+| Full prod: nginx / TLS / backup | ◐ | ○ | ○ | **○** | ◐ | **●** |
+
+See also [team scaling](../scenarios/scaling.md), [plugins](../reference/plugins.md), [scenarios](../scenarios/developer.md).
+
+### Versus “light” solutions
+
+A package, official Docker, and a bare Dev Container usually give a **running service**, but do not close multi-repo, lock, three roles, IDE debugging, and day-to-day DB/module ops under one contract. **odpm** assembles that contour: one `odpm.json`, predictable `plan`, container stack across OS and CPU architectures.
+
+### Overlap with Doodba
+
+**Shared problem class:** multi-repo Odoo in Docker, stack extensions, CI image, sidecars.
+
+**Different angle:** odpm’s contract is a declarative `odpm.json` and scenarios (`developer` / `server` / `ci`); Doodba has its own ecosystem and a rich build/entrypoint surface in `custom/`. odpm’s goal is **not** to be a drop-in clone of the full Doodba `custom/` surface (see below), but to lower the barrier and keep one reproducible contour for the team.
+
+### Overlap with Odoo.sh
+
+**Odoo.sh** wins when you need managed staging/prod and built-in cloud CI/CD.
+
+**odpm** wins on a local machine, your own server, and self-hosted or air-gapped setups: full control over compose, secrets, and one description without SaaS lock-in.
 
 **odpm** — Odoo-specific Dev Container manager: declarative manifest + scenario + plan + container contract, no cloud lock-in.
 
