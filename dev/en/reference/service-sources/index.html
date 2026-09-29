@@ -2103,7 +2103,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/service-sources.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.8.0-dev/docs/en/reference/service-sources.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2184,8 +2184,9 @@
 <li>Clones git sources under <strong><code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code></strong></li>
 <li>For <code>file://</code> — uses the given directory (no clone)</li>
 <li>Writes paths to <code>ODPM_SOURCE_*</code> and <strong>re-expands</strong> <code>services</code> / <code>service_patches</code> before compose</li>
+<li>Creates/updates <strong><code>&lt;project&gt;/service-sources/&lt;name&gt;</code></strong> in the odpm project directory — a symlink to the clone (or <code>file://</code> path) for IDE navigation; do not confuse with the clone tree under <code>ODOO_PROJECTS_DIR</code></li>
 </ol>
-<p>With <code>--no-git-update</code>, odpm only verifies that directories already exist.</p>
+<p>With <code>--no-git-update</code>, odpm only verifies that directories already exist and syncs the project links.</p>
 <h2 id="source-substitution"><code>${@source:...}</code> substitution<a class="headerlink" href="#source-substitution" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Syntax: <strong><code>${@source:&lt;name&gt;}</code></strong> → env key <strong><code>ODPM_SOURCE_&lt;NAME&gt;</code></strong> (uppercase name)</li>

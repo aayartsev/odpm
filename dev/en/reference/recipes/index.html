@@ -1927,6 +1927,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#builtin-pull-remote-db" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Builtin: pull-remote-db
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yaml-recipes-v1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1965,7 +1976,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/recipes.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.8.0-dev/docs/en/reference/recipes.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1980,6 +1991,7 @@
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>--list
 odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db
 odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--diff-base<span class="w"> </span>@last-applied<span class="w"> </span>--dry-run
+odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class="w"> </span>-d<span class="w"> </span>local_copy<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod
 </code></pre></div>
 <table>
 <thead>
@@ -1995,7 +2007,7 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 </tr>
 <tr>
 <td><code>--dry-run</code></td>
-<td>Print argv plan; for <code>apply-modules-from-diff</code> still runs <code>modules diff</code> (capture); apply/record are not spawned</td>
+<td>Print argv plan; for <code>apply-modules-from-diff</code> still runs <code>modules diff</code> (capture); apply/record are not spawned; for <code>pull-remote-db</code> <strong>no</strong> network calls</td>
 </tr>
 <tr>
 <td><code>-d</code></td>
@@ -2005,14 +2017,22 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 <td><code>--diff-base</code></td>
 <td>Baseline for recipes that support <code>diff_base</code></td>
 </tr>
+<tr>
+<td><code>--url</code></td>
+<td>Remote Odoo URL for recipes that support <code>url</code> (else env <code>ODPM_REMOTE_DB_URL</code>)</td>
+</tr>
+<tr>
+<td><code>--remote-db</code></td>
+<td>Remote DB name for recipes that support <code>remote_db</code> (else env <code>ODPM_REMOTE_DB_NAME</code>)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="discovery">Discovery<a class="headerlink" href="#discovery" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Python builtins (odpm package), currently: <code>apply-modules-from-diff</code></li>
+<li>Python builtins (odpm package), currently: <code>apply-modules-from-diff</code>, <code>pull-remote-db</code></li>
 <li>Project: <code>{project_dir}/.odpm/recipes/&lt;name&gt;.yaml</code> — <strong>overrides</strong> a builtin with the same name</li>
 </ol>
-<p>Do not override <code>apply-modules-from-diff</code> unless you intend to.</p>
+<p>Do not override builtins unless you intend to.</p>
 <h2 id="builtin-apply-modules-from-diff">Builtin: <code>apply-modules-from-diff</code><a class="headerlink" href="#builtin-apply-modules-from-diff" title="Permanent link">&para;</a></h2>
 <p>Intended for <strong><code>ODPM_SCENARIO=server</code></strong> (and manual developer use).</p>
 <ol>
@@ -2023,6 +2043,19 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 <p>Empty <code>-i</code>/<code>-u</code> flags are never passed. Long-running compose without <code>--stop-after-init</code> is out of scope for this recipe.</p>
 <h3 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h3>
 <p>Under <code>ODPM_SCENARIO=ci</code>, end-to-end apply via <code>odpm run</code> is <strong>not</strong> supported (child <code>odpm -d -i/-u</code> is not CI-allowlisted). In CI use <code>odpm modules diff</code>; run apply on server.</p>
+<h2 id="builtin-pull-remote-db">Builtin: <code>pull-remote-db</code><a class="headerlink" href="#builtin-pull-remote-db" title="Permanent link">&para;</a></h2>
+<p>For <strong><code>developer</code> / <code>server</code></strong>: download a zip from a remote Odoo manager and restore it into a local database.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span><span class="w">   </span><span class="c1"># remote DB manager master password</span>
+odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class="w"> </span>-d<span class="w"> </span>local_copy<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--remote-db<span class="w"> </span>prod
+</code></pre></div>
+<ol>
+<li><code>odpm database pull --url … --remote-db …</code> → file under <code>BACKUP_DIR</code> (password from env only; stdout is the archive name)</li>
+<li><code>odpm -d … --db-restore &lt;archive&gt;</code> — full prepare/runtime, same as a normal restore</li>
+</ol>
+<p><code>--dry-run</code> prints argv <strong>without</strong> network I/O. Do not commit the master password to git. Default HTTP timeout is 600s (tool); recipe steps use no subprocess timeout limit.</p>
+<p>Requires an odpm project directory with <code>BACKUP_DIR</code> configured. A typical CI pull+restore flow is <strong>not</strong> a product goal.</p>
 <h2 id="yaml-recipes-v1">YAML recipes (v1)<a class="headerlink" href="#yaml-recipes-v1" title="Permanent link">&para;</a></h2>
 <p>Linear steps only (no conditionals). Substitutions: <code>${param.name}</code>, <code>${env:VAR}</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example-backup</span>

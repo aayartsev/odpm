@@ -2081,7 +2081,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/reference/odpm-json.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.8.0-dev/docs/reference/odpm-json.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2257,7 +2257,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>Правила merge в <code>scenarios.*</code>: <strong><code>service_sources</code> — replace-by-name</strong> (overlay перекрывает то же имя, остальные записи сохраняются).</p>
-<p>Репозитории из <code>service_sources</code> <strong>не</strong> попадают в <code>dependencies</code> / <code>addons_path</code>. Шаг prepare <strong><code>sources.materialize</code></strong> (после <code>git.materialize</code>) клонирует их в <code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code> и подставляет путь через <code>${@source:&lt;name&gt;}</code>. Пины коммитов — в <code>.odpm/deps.lock.json</code> → <code>service_sources.&lt;name&gt;</code> (см. <code>odpm --update-lock</code>). Подробнее: <a href="../service-sources/">service-sources.md</a>.</p>
+<p>Репозитории из <code>service_sources</code> <strong>не</strong> попадают в <code>dependencies</code> / <code>addons_path</code>. Шаг prepare <strong><code>sources.materialize</code></strong> (после <code>git.materialize</code>) клонирует их в <code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code>, подставляет путь через <code>${@source:&lt;name&gt;}</code> и создаёт проектные ссылки <code>&lt;project&gt;/service-sources/&lt;name&gt;</code>. Пины коммитов — в <code>.odpm/deps.lock.json</code> → <code>service_sources.&lt;name&gt;</code> (см. <code>odpm --update-lock</code>). Подробнее: <a href="../service-sources/">service-sources.md</a>.</p>
 <h2 id="odoo_conf-odoo">Блок <code>odoo_conf</code> (переопределения Odoo)<a class="headerlink" href="#odoo_conf-odoo" title="Permanent link">&para;</a></h2>
 <p>Необязательный объект для <strong>командных</strong> настроек Odoo в git (preview, staging, production). Значения из manifest <strong>перекрывают</strong> одноимённые ключи в дисковом <code>odoo.conf</code> при сборке <code>odoo_config_data</code> для контейнера; обратная запись в <code>odoo.conf</code> <strong>не выполняется</strong>.</p>
 <ul>

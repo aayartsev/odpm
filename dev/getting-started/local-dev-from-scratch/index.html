@@ -2169,7 +2169,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/getting-started/local-dev-from-scratch.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.8.0-dev/docs/getting-started/local-dev-from-scratch.md" title="Редактировать страницу" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2189,7 +2189,7 @@
 <p>Откройте созданный каталог в <strong>Visual Studio Code</strong> (меню «Файл → Открыть папку»). Встроенный терминал редактора удобен для всех команд odpm.</p>
 <p><strong>Важно:</strong> не оборачивайте запуск <code>odpm</code> в виртуальное окружение Python на хосте. Утилита рассчитана на запуск системным <code>python3</code> или командой <code>odpm</code> из пакета; изолированное окружение Python для Odoo создаётся <strong>внутри контейнера</strong>.</p>
 <h2 id="git-">Инициализация из git-репозитория<a class="headerlink" href="#git-" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">20</span>.0
 </code></pre></div>
 <p>Параметр <code>--branch</code> задаёт ветку <strong>разрабатываемого</strong> репозитория. Если ветку не указать, будет использована ветка по умолчанию на сервере git.</p>
 <h2 id="_3">Инициализация с локального каталога<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
@@ -2202,7 +2202,7 @@
 <ol>
 <li>Задаёт вопросы мастера настройки и сохраняет ответы в <code>.env</code> (каталог резервных копий, каталог клонов git, порты, <strong>сценарий</strong> <code>developer</code> / <code>server</code> / <code>ci</code>).</li>
 <li>При развёртывании «с нуля» уточняет версию Odoo, если её нет в <code>odpm.json</code> разрабатываемого проекта.</li>
-<li>Клонирует репозиторий <strong>платформы</strong> Odoo (это может занять <strong>40 минут и больше</strong> — наберитесь терпения).</li>
+<li>Клонирует репозиторий <strong>платформы</strong> Odoo (это может занять <strong>10 минут и больше</strong> — наберитесь терпения).</li>
 <li>Клонирует разрабатываемый проект или подключает указанный локальный каталог.</li>
 <li>Генерирует <code>Dockerfile</code> под выбранный дистрибутив Linux и версию Python.</li>
 <li>Копирует шаблон в <code>.odpm/dockerignore</code> и создаёт корневой <code>.dockerignore</code> для сборки образа.</li>

@@ -2235,7 +2235,7 @@
 
 
   
-    <a href="https://github.com/aayartsev/odpm/edit/4.7.0-dev/docs/en/reference/cli.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/aayartsev/odpm/edit/4.8.0-dev/docs/en/reference/cli.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2401,10 +2401,11 @@ odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span cl
 </table>
 <p>Among prepare steps there is <strong><code>database.drift</code></strong> — comparison of PostgreSQL configuration to the <code>last_run.json</code> snapshot. See <a href="../database-state/">PostgreSQL state</a>.</p>
 <h2 id="database-subcommand"><code>database</code> subcommand<a class="headerlink" href="#database-subcommand" title="Permanent link">&para;</a></h2>
-<p>Inspection and recovery of the <strong>PostgreSQL cluster</strong> (not to be confused with Odoo databases <code>-d</code>):</p>
+<p>Local <strong>PostgreSQL cluster</strong> inspection, application role repair, and <strong>remote Odoo manager backup download</strong>:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>status
 odpm<span class="w"> </span>database<span class="w"> </span>status<span class="w"> </span>--format<span class="w"> </span>json
 odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
+<span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span><span class="w"> </span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod
 </code></pre></div>
 <table>
 <thead>
@@ -2426,10 +2427,15 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <td><code>database ensure-role</code></td>
 <td>Create or update the application role in running PostgreSQL</td>
 </tr>
+<tr>
+<td><code>database pull</code></td>
+<td>Download a zip from <code>{URL}/web/database/backup</code> into <code>BACKUP_DIR</code> (password only via env <code>ODPM_REMOTE_DB_MASTER_PWD</code>)</td>
+</tr>
 </tbody>
 </table>
+<p><code>database pull</code> needs an odpm project with <code>BACKUP_DIR</code> in <code>.env</code>; compose up is not required for the download itself. stdout prints only the archive file name. Intended for <strong>developer</strong> / <strong>server</strong>, not typical CI.</p>
 <p>Flag <strong><code>--accept-database-drift=KIND</code></strong> (repeatable) — accept drift without an interactive prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
-<p>Details: <a href="../database-state/">PostgreSQL state and drift</a>.</p>
+<p>Local cluster details: <a href="../database-state/">PostgreSQL state and drift</a>. Remote pull + restore: <a href="../recipes/">recipes</a> (<code>pull-remote-db</code>).</p>
 <h2 id="manifest-subcommand"><code>manifest</code> subcommand<a class="headerlink" href="#manifest-subcommand" title="Permanent link">&para;</a></h2>
 <p>Migrate <code>odpm.json</code> between schema versions:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>manifest<span class="w"> </span>migrate
