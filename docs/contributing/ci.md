@@ -2,7 +2,7 @@
 
 Badges в README указывают на [ci.yml](https://github.com/aayartsev/odpm/actions/workflows/ci.yml) и [ci-docker.yml](https://github.com/aayartsev/odpm/actions/workflows/ci-docker.yml).
 
-**Активная ветка разработки 4.7:** `4.7.0-dev` (push/PR → lint, unit, contract, compose-smoke, deploy `/dev/` docs).
+**Активная ветка разработки 4.8:** `4.8.0-dev` (push/PR → lint, unit, contract, compose-smoke, deploy `/dev/` docs). Stable-линия 4.7: `4.7.0` / `4.7.0-dev` (patch).
 
 ## Матрица jobs
 

@@ -77,12 +77,13 @@ Among prepare steps there is **`database.drift`** — comparison of PostgreSQL c
 
 ## `database` subcommand
 
-Inspection and recovery of the **PostgreSQL cluster** (not to be confused with Odoo databases `-d`):
+Local **PostgreSQL cluster** inspection, application role repair, and **remote Odoo manager backup download**:
 
 ```bash
 odpm database status
 odpm database status --format json
 odpm database ensure-role
+ODPM_REMOTE_DB_MASTER_PWD='…' odpm database pull --url https://client.example.com --remote-db prod
 ```
 
 | Command | Description |
@@ -90,10 +91,13 @@ odpm database ensure-role
 | `database status` | Fingerprints, drift, postgres container and application role checks |
 | `database status --format json` | Same as JSON |
 | `database ensure-role` | Create or update the application role in running PostgreSQL |
+| `database pull` | Download a zip from `{URL}/web/database/backup` into `BACKUP_DIR` (password only via env `ODPM_REMOTE_DB_MASTER_PWD`) |
+
+`database pull` needs an odpm project with `BACKUP_DIR` in `.env`; compose up is not required for the download itself. stdout prints only the archive file name. Intended for **developer** / **server**, not typical CI.
 
 Flag **`--accept-database-drift=KIND`** (repeatable) — accept drift without an interactive prompt. KIND: `data_path`, `postgres_major`, `app_role_missing`, `odpm_scenario`, `data_dir_empty_changed`.
 
-Details: [PostgreSQL state and drift](database-state.md).
+Local cluster details: [PostgreSQL state and drift](database-state.md). Remote pull + restore: [recipes](recipes.md) (`pull-remote-db`).
 
 ## `manifest` subcommand
 

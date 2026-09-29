@@ -10,21 +10,24 @@
 odpm run --list
 odpm run apply-modules-from-diff -d prod_db
 odpm run apply-modules-from-diff -d prod_db --diff-base @last-applied --dry-run
+odpm run pull-remote-db -d local_copy --url https://client.example.com --remote-db prod
 ```
 
 | Флаг | Описание |
 |------|----------|
 | `--list` | Список рецептов (builtin + `.odpm/recipes/*.yaml`) |
-| `--dry-run` | Печать плана argv; для `apply-modules-from-diff` всё же выполняется `modules diff` (capture), apply/record не запускаются |
+| `--dry-run` | Печать плана argv; для `apply-modules-from-diff` всё же выполняется `modules diff` (capture), apply/record не запускаются; для `pull-remote-db` сеть **не** вызывается |
 | `-d` | Имя БД (param `database`; иначе env `ODPM_RUN_DATABASE`) |
 | `--diff-base` | Baseline для рецептов с `diff_base` |
+| `--url` | Remote Odoo URL для рецептов с `url` (иначе env `ODPM_REMOTE_DB_URL`) |
+| `--remote-db` | Remote DB name для рецептов с `remote_db` (иначе env `ODPM_REMOTE_DB_NAME`) |
 
 ## Discovery
 
-1. Python builtins (пакет odpm), сейчас: `apply-modules-from-diff`
+1. Python builtins (пакет odpm), сейчас: `apply-modules-from-diff`, `pull-remote-db`
 2. Проект: `{project_dir}/.odpm/recipes/<name>.yaml` — **перекрывает** builtin с тем же именем
 
-Не перекрывайте `apply-modules-from-diff` без необходимости.
+Не перекрывайте builtin-рецепты без необходимости.
 
 ## Builtin: `apply-modules-from-diff`
 
@@ -39,6 +42,24 @@ odpm run apply-modules-from-diff -d prod_db --diff-base @last-applied --dry-run
 ### CI
 
 В `ODPM_SCENARIO=ci` end-to-end apply через `odpm run` **не** поддерживается (дочерний `odpm -d -i/-u` не в CI allowlist). В CI используйте `odpm modules diff`; apply выполняйте на server.
+
+## Builtin: `pull-remote-db`
+
+Для сценариев **`developer` / `server`**: скачать zip с удалённого Odoo manager и восстановить в локальную БД.
+
+```bash
+export ODPM_REMOTE_DB_MASTER_PWD='…'   # master password менеджера БД на удалённом инстансе
+odpm run pull-remote-db -d local_copy \
+  --url https://client.example.com \
+  --remote-db prod
+```
+
+1. `odpm database pull --url … --remote-db …` → файл в `BACKUP_DIR` (пароль только из env; на stdout — имя архива)
+2. `odpm -d … --db-restore <archive>` — полный prepare/runtime, как обычный restore
+
+`--dry-run` печатает argv **без** сети. Не храните master password в git. Для больших дампов timeout HTTP по умолчанию 600s (tool); шаги рецепта без лимита subprocess.
+
+Нужен каталог проекта odpm с настроенным `BACKUP_DIR`. Типичный CI-use-case для pull+restore **не** поддерживается как цель продукта.
 
 ## YAML-рецепты (v1)
 

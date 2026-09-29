@@ -20,6 +20,7 @@ from .project_materializer import ProjectMaterializer
 from .secrets_providers.session import SecretsFetchSession
 from .system_check_policy import SystemCheckPolicy, cli_allows_ci_explicit_mode
 from .translations import _
+from .host.version_info import format_odpm_version_line
 
 _logger = get_module_logger(__name__)
 
@@ -42,9 +43,7 @@ class OdpmPipeline:
 
     def setup(self, *, for_plan: bool = False) -> None:
         if self.cli_args.version:
-            _logger.info(
-                f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}"
-            )
+            _logger.info("%s", format_odpm_version_line(self.program_dir))
             raise ConfigError("", exit_code=0)
         self.pd_manager = ProjectDirManager(
             self.start_dir,

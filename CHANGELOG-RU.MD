@@ -8,6 +8,15 @@
 
 ## [Unreleased]
 
+### Добавлено
+
+- **Remote DB pull** — `odpm database pull` скачивает zip с удалённого Odoo `/web/database/backup` в `BACKUP_DIR` (master password только через env `ODPM_REMOTE_DB_MASTER_PWD`). Builtin-рецепт `odpm run pull-remote-db` склеивает pull и `--db-restore`. HTTP-хелпер: `dev_project/tools/http_download.py`. Для developer/server. Документация: `cli.md`, `recipes.md`. Тесты: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
+- **Линия dev + git stamp в `--version`** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` остаётся `4.7.0`). `odpm --version` печатает `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` из git-checkout; установленные пакеты без `.git` — только номер. CI/docs и `mkdocs` `edit_uri` → `4.8.0-dev`. Документация: `release-lines.md`, `packaging.md`. Тесты: `test_version_info`, `test_release_packaging`.
+
+### Исправлено
+
+- **Голый `odpm` из `$HOME`** — `~/.odpm` (домашний конфиг) больше не считается project service directory: вместо `TypeError` в `get_developing_project_link` показывается обычное сообщение «это не каталог odpm». Защита: без `--init` / `developing_project` — `ConfigError`. Тесты: `test_phase2_infra`, `test_host_config`.
+
 ## [4.7.0] - 2026-09-28
 
 **Стабильный релиз 4.7.0** на ветке `4.7.0`; сменяет **4.6.0** как `LATEST_STABLE_RELEASE`. Scenario overlays, compose prefix/network, layered `.env`, секреты/Infisical, Odoo 20, CI kaniko, recipes и связанный ops-инструментарий. Pre-release **4.7.0-beta** проверил packaging и docs-каналы. Без breaking changes для flat v1 `odpm.json`; возможности 4.7 остаются opt-in.

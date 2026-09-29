@@ -23,7 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 class ReleasePackagingVersionTests(unittest.TestCase):
     def test_odpm_version_aliases_release_version(self):
         self.assertEqual(constants.ODPM_VERSION, constants.RELEASE_VERSION)
-        self.assertEqual(constants.RELEASE_VERSION, "4.7.0")
+        self.assertEqual(constants.RELEASE_VERSION, "4.8.0-dev")
         self.assertEqual(constants.LATEST_STABLE_RELEASE, "4.7.0")
 
     def test_manifest_contract_line_stays_separate_from_product_version(self):
@@ -34,9 +34,16 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             completed = run_odpm("--version", cwd=tmp)
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+        combined = completed.stderr + completed.stdout
         self.assertIn(
             f"odpm version: {constants.RELEASE_VERSION}",
-            completed.stderr + completed.stdout,
+            combined,
+        )
+        # From a git checkout the line includes short SHA and commit date.
+        self.assertRegex(
+            combined,
+            rf"odpm version: {re.escape(constants.RELEASE_VERSION)}"
+            r"( \([0-9a-f]+, \d{4}-\d{2}-\d{2}\))?",
         )
 
     def test_debian_changelog_matches_release_line(self):
@@ -58,16 +65,17 @@ class ReleasePackagingVersionTests(unittest.TestCase):
 
     def test_release_version_parses_for_rpm(self):
         rpm_version, rpm_release = rpm_version_and_release(constants.RELEASE_VERSION)
-        self.assertEqual(rpm_version, "4.7.0")
-        self.assertEqual(rpm_release, "1")
+        self.assertEqual(rpm_version, "4.8.0")
+        self.assertEqual(rpm_release, "dev")
         base, suffix = parse_release_version(constants.RELEASE_VERSION)
-        self.assertEqual(base, "4.7.0")
-        self.assertIsNone(suffix)
+        self.assertEqual(base, "4.8.0")
+        self.assertEqual(suffix, "dev")
 
     def test_release_version_parses_for_debian(self):
         self.assertEqual(debian_upstream_version("4.5.0-beta"), "4.5.0~beta")
         self.assertEqual(debian_upstream_version("4.4.3-beta"), "4.4.3~beta")
         self.assertEqual(debian_upstream_version("4.4.3"), "4.4.3")
+        self.assertEqual(debian_upstream_version("4.8.0-dev"), "4.8.0~dev")
 
     def test_release_tag_matches_release_version(self):
         verify_release_tag_version(constants.RELEASE_VERSION)
@@ -78,7 +86,8 @@ class ReleasePackagingVersionTests(unittest.TestCase):
 
     def test_wheel_version_uses_pep440_normalization(self):
         self.assertEqual(str(Version("4.4.2-beta")), "4.4.2b0")
-        self.assertEqual(str(Version(constants.RELEASE_VERSION)), "4.7.0")
+        self.assertEqual(str(Version("4.8.0-dev")), "4.8.0.dev0")
+        self.assertEqual(str(Version(constants.RELEASE_VERSION)), "4.8.0.dev0")
 
     def test_release_packages_prerelease_golden_path_gate(self):
         workflow = (

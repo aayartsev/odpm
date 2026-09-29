@@ -10,21 +10,24 @@ Use it for flows like “diff modules → `-i`/`-u` → write marker” on **ser
 odpm run --list
 odpm run apply-modules-from-diff -d prod_db
 odpm run apply-modules-from-diff -d prod_db --diff-base @last-applied --dry-run
+odpm run pull-remote-db -d local_copy --url https://client.example.com --remote-db prod
 ```
 
 | Flag | Description |
 |------|-------------|
 | `--list` | List recipes (builtins + `.odpm/recipes/*.yaml`) |
-| `--dry-run` | Print argv plan; for `apply-modules-from-diff` still runs `modules diff` (capture); apply/record are not spawned |
+| `--dry-run` | Print argv plan; for `apply-modules-from-diff` still runs `modules diff` (capture); apply/record are not spawned; for `pull-remote-db` **no** network calls |
 | `-d` | Database name (param `database`; else env `ODPM_RUN_DATABASE`) |
 | `--diff-base` | Baseline for recipes that support `diff_base` |
+| `--url` | Remote Odoo URL for recipes that support `url` (else env `ODPM_REMOTE_DB_URL`) |
+| `--remote-db` | Remote DB name for recipes that support `remote_db` (else env `ODPM_REMOTE_DB_NAME`) |
 
 ## Discovery
 
-1. Python builtins (odpm package), currently: `apply-modules-from-diff`
+1. Python builtins (odpm package), currently: `apply-modules-from-diff`, `pull-remote-db`
 2. Project: `{project_dir}/.odpm/recipes/<name>.yaml` — **overrides** a builtin with the same name
 
-Do not override `apply-modules-from-diff` unless you intend to.
+Do not override builtins unless you intend to.
 
 ## Builtin: `apply-modules-from-diff`
 
@@ -39,6 +42,24 @@ Empty `-i`/`-u` flags are never passed. Long-running compose without `--stop-aft
 ### CI
 
 Under `ODPM_SCENARIO=ci`, end-to-end apply via `odpm run` is **not** supported (child `odpm -d -i/-u` is not CI-allowlisted). In CI use `odpm modules diff`; run apply on server.
+
+## Builtin: `pull-remote-db`
+
+For **`developer` / `server`**: download a zip from a remote Odoo manager and restore it into a local database.
+
+```bash
+export ODPM_REMOTE_DB_MASTER_PWD='…'   # remote DB manager master password
+odpm run pull-remote-db -d local_copy \
+  --url https://client.example.com \
+  --remote-db prod
+```
+
+1. `odpm database pull --url … --remote-db …` → file under `BACKUP_DIR` (password from env only; stdout is the archive name)
+2. `odpm -d … --db-restore <archive>` — full prepare/runtime, same as a normal restore
+
+`--dry-run` prints argv **without** network I/O. Do not commit the master password to git. Default HTTP timeout is 600s (tool); recipe steps use no subprocess timeout limit.
+
+Requires an odpm project directory with `BACKUP_DIR` configured. A typical CI pull+restore flow is **not** a product goal.
 
 ## YAML recipes (v1)
 

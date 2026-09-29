@@ -13,6 +13,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.plan.cli import is_run_mode
 from dev_project.recipes.builtin.apply_modules_from_diff import ApplyModulesFromDiffRecipe
+from dev_project.recipes.builtin.pull_remote_db import PullRemoteDbRecipe
 from dev_project.recipes.invoke import RECIPE_DEPTH_ENV, guard_step_argv
 from dev_project.recipes.registry import get_recipe, list_recipes
 from dev_project.recipes.runner import resolve_params, run_recipe
@@ -243,6 +244,81 @@ class RunnerTests(unittest.TestCase):
                 )
 
 
+class PullRemoteDbRecipeTests(unittest.TestCase):
+    def test_phases_timeout_none_and_no_secret_in_argv(self):
+        recipe = PullRemoteDbRecipe()
+        ctx = RecipeContext(
+            project_dir="/tmp/p",
+            program_dir="/tmp",
+            params={
+                "database": "local",
+                "url": "https://client.example.com",
+                "remote_db": "prod",
+            },
+            environ={},
+        )
+        recipe.reset(ctx)
+        pull = recipe.next_step(ctx)
+        assert pull is not None
+        self.assertEqual(
+            list(pull.argv),
+            [
+                "database",
+                "pull",
+                "--url",
+                "https://client.example.com",
+                "--remote-db",
+                "prod",
+            ],
+        )
+        self.assertTrue(pull.capture)
+        self.assertFalse(pull.execute_even_if_dry_run)
+        self.assertIsNone(pull.timeout)
+        self.assertNotIn("master", " ".join(pull.argv).lower())
+        self.assertNotIn("pwd", " ".join(pull.argv).lower())
+        ctx.step_results.append(
+            StepResult(returncode=0, stdout="host_prod_2026.zip\n")
+        )
+        restore = recipe.next_step(ctx)
+        assert restore is not None
+        self.assertEqual(
+            list(restore.argv),
+            ["-d", "local", "--db-restore", "host_prod_2026.zip"],
+        )
+        self.assertIsNone(restore.timeout)
+        self.assertFalse(restore.execute_even_if_dry_run)
+        self.assertIsNone(recipe.next_step(ctx))
+
+    def test_dry_run_skips_network_and_prints_plan(self):
+        recipe = get_recipe("pull-remote-db")
+        executed: list[list[str]] = []
+
+        def fake_run(argv, **kwargs):
+            executed.append(list(argv))
+            return MagicMock(returncode=0, stdout="", stderr="")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch("dev_project.recipes.runner.subprocess.run", side_effect=fake_run):
+                with patch("sys.stdout", new_callable=StringIO) as out:
+                    code = run_recipe(
+                        recipe,
+                        project_dir=tmp,
+                        program_dir=tmp,
+                        params={
+                            "database": "local",
+                            "url": "https://client.example.com",
+                            "remote_db": "prod",
+                        },
+                        dry_run=True,
+                    )
+        self.assertEqual(code, 0)
+        self.assertEqual(executed, [])
+        plan = out.getvalue()
+        self.assertIn("database pull", plan)
+        self.assertIn("--db-restore", plan)
+        self.assertIn("<archive.zip>", plan)
+
+
 class CliAndAllowlistTests(unittest.TestCase):
     def test_parse_run_list(self):
         args = parse_cli_args(["run", "--list"])
@@ -259,6 +335,24 @@ class CliAndAllowlistTests(unittest.TestCase):
         self.assertEqual(args.d, "db")
         self.assertEqual(args.run_diff_base, "abc")
 
+    def test_parse_run_pull_remote_flags(self):
+        args = parse_cli_args(
+            [
+                "run",
+                "pull-remote-db",
+                "-d",
+                "local",
+                "--url",
+                "https://client.example.com",
+                "--remote-db",
+                "prod",
+            ]
+        )
+        self.assertEqual(args.run_recipe, "pull-remote-db")
+        self.assertEqual(args.run_remote_url, "https://client.example.com")
+        self.assertEqual(args.run_remote_db, "prod")
+        self.assertEqual(args.d, "local")
+
     def test_ci_allowlist_run(self):
         self.assertTrue(cli_allows_ci_explicit_mode(OdpmCliArgs(command="run")))
         self.assertTrue(cli_allows_ci_explicit_mode(OdpmCliArgs(run_list=True)))
@@ -268,8 +362,9 @@ class CliAndAllowlistTests(unittest.TestCase):
     def test_builtin_listed(self):
         names = [r.name for r in list_recipes(project_dir=None)]
         self.assertIn("apply-modules-from-diff", names)
-        recipe = get_recipe("apply-modules-from-diff")
-        self.assertEqual(recipe.name, "apply-modules-from-diff")
+        self.assertIn("pull-remote-db", names)
+        recipe = get_recipe("pull-remote-db")
+        self.assertEqual(recipe.name, "pull-remote-db")
 
 
 if __name__ == "__main__":

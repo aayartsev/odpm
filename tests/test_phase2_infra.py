@@ -3,6 +3,7 @@ import os
 import tempfile
 import unittest
 from argparse import Namespace
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
@@ -267,6 +268,20 @@ class ProjectDirManagerErrorTests(unittest.TestCase):
             args = cli_args(odoo_git_link=None)
             with self.assertRaises(ProjectDirError) as ctx:
                 ProjectDirManager(project_dir, args, "/opt/odpm")
+            self.assertEqual(ctx.exception.exit_code, 0)
+
+    def test_home_config_dir_is_not_treated_as_project(self):
+        """Running from $HOME must not treat ~/.odpm as a project root."""
+        with tempfile.TemporaryDirectory() as fake_home:
+            home_config = os.path.join(fake_home, constants.CONFIG_DIR_IN_HOME_DIR)
+            os.makedirs(home_config)
+            args = cli_args(odoo_git_link=None)
+            with patch(
+                "dev_project.project_dir_manager.Path.home",
+                return_value=Path(fake_home),
+            ):
+                with self.assertRaises(ProjectDirError) as ctx:
+                    ProjectDirManager(fake_home, args, "/opt/odpm")
             self.assertEqual(ctx.exception.exit_code, 0)
 
     def test_odoo_git_link_without_init_raises_project_dir_error(self):

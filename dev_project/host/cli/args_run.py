@@ -45,4 +45,18 @@ def register_run_subparser(
         metavar="REF",
         help="""Pass-through baseline for recipes that support diff_base (e.g. apply-modules-from-diff).""",
     )
+    parser.add_argument(
+        params.RUN_REMOTE_URL_PARAM,
+        dest="run_remote_url",
+        default=None,
+        metavar="URL",
+        help="""Remote Odoo base URL for recipes that support url (e.g. pull-remote-db).""",
+    )
+    parser.add_argument(
+        params.RUN_REMOTE_DB_PARAM,
+        dest="run_remote_db",
+        default=None,
+        metavar="NAME",
+        help="""Remote database name for recipes that support remote_db (e.g. pull-remote-db).""",
+    )
     return parser

@@ -1,6 +1,8 @@
 # Идеальная картина odpm: к чему ведут зрелые аналоги
 
-Вы правы: такие инструменты уже есть. odpm решает задачу **«reproducible Odoo dev environment from repo metadata»** — это не уникальная ниша, а хорошо изученный класс продуктов. Ниже — как это выглядит на **хорошем уровне**, с опорой на реальные референсы и на то, куда проект уже движется.
+Внутренний **vision / компас** для контрибьюторов (не пользовательская документация). Пользовательская карта альтернатив и матрица функционала — в [docs/getting-started/why-odpm.md](docs/getting-started/why-odpm.md). Актуальные планы фич — в `.cursor/plans/`.
+
+odpm решает задачу **«reproducible Odoo dev environment from repo metadata»** — это не уникальная ниша, а хорошо изученный класс продуктов. Ниже — как это выглядит на **хорошем уровне**, с опорой на референсы и на то, куда проект уже пришёл к **4.7** / куда смотрит **4.8**.
 
 ---
 
@@ -17,15 +19,15 @@
 
 | Инструмент                                                    | Уровень             | Что делает хорошо                                                                                            | Чем отличается от odpm                                                                |
 | ------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| **[Doodba](https://github.com/Tecnativa/doodba)** (Tecnativa) | Зрелый OSS          | Multi-stage Docker, aggregating repos, prod-like CI, onbuild hooks, `devel.yaml` / `test.yaml` / `prod.yaml` | Меньше «одной кнопки для новичка», больше DevOps-культуры; другая модель конфигурации |
-| **Official Odoo Docker**                                      | Минимальный         | Простой `docker run odoo:16`                                                                                 | Нет multi-repo, нет developing project, нет venv/debug                                |
-| **[Dev Containers](https://containers.dev/)** (VS Code)       | Стандарт IDE        | `.devcontainer/` → reproducible workspace в Docker                                                           | Универсальный, не Odoo-specific (нет odpm.json, git deps, nightly platform)           |
+| **[Doodba](https://github.com/Tecnativa/doodba)** (Tecnativa) | Зрелый OSS          | Multi-stage Docker, aggregating repos, prod-like CI, onbuild hooks, `devel.yaml` / `test.yaml` / `prod.yaml` | Меньше «одной кнопки для новичка», больше DevOps-культуры; другая модель (`custom/`)  |
+| **Official Odoo Docker**                                      | Минимальный         | Простой `docker run odoo:…`                                                                                  | Нет multi-repo, нет developing project, нет venv/debug                                |
+| **[Dev Containers](https://containers.dev/)** (VS Code)       | Стандарт IDE        | `.devcontainer/` → reproducible workspace в Docker                                                           | Универсальный, не Odoo-specific (нет odpm.json, git deps, lock, scenarios)            |
 | **Odoo.sh**                                                   | SaaS PaaS           | Git push → build → staging/prod, branches, backups                                                           | Закрытый, облачный; эталон UX для Odoo-команд                                         |
 | **Gitpod / Codespaces**                                       | Cloud IDE           | URL → dev environment за минуты                                                                              | Облако, не self-hosted Docker на ноутбуке                                             |
 | **Nix / devenv**                                              | Reproducibility max | Byte-identical deps                                                                                          | Крутая модель, но высокий порог входа                                                 |
 
 
-**Вывод:** odpm ближе всего к **Doodba + Dev Container + Odoo.sh-lite для локалки**. Идеал — взять лучшее из каждого слоя, не копируя монолит.
+**Вывод:** odpm ближе всего к **Doodba + Dev Container + Odoo.sh-lite для локалки**. Идеал — взять лучшее из каждого слоя, не копируя монолит. Подробная матрица «что уже закрыто в 4.7» — в why-odpm.
 
 ---
 
@@ -105,31 +107,31 @@ stateDiagram-v2
 ### Developer (`ODPM_SCENARIO=developer`)
 
 - Bind-mount исходников, **fresh venv** при смене lock
-- **debugpy** из коробки, VS Code attach
-- `**dev_mode`** → Odoo `--dev` в compose; при `reload`/`all` auto-`inotify` в venv
-- Postgres на все интерфaces (локальная машина)
+- **debugpy** из коробки, VS Code / PyCharm attach
+- **`dev_mode`** → Odoo `--dev` в compose; при `reload`/`all` auto-`inotify` в venv
+- Postgres по политике security profile (по умолчанию convenience)
 - Быстрый цикл: правка модуля → `-u my_module` без пересборки образа
 
 ### Server (`ODPM_SCENARIO=server`)
 
-- Тот же stack, но **без debugpy**, Postgres только `127.0.0.1`
-- `**dev_mode` игнорируется** (warning в лог), как и `debugpy`
-- Рекомендации hardening в manifest (не auto-enforce, но documented defaults)
+- Тот же stack, но **без debugpy**, published ports на `127.0.0.1`
+- **`dev_mode` игнорируется** (warning в лог), как и `debugpy`
+- Профиль **hardened** по умолчанию; nginx/TLS/backup — на операторе ([security](docs/operations/security.md))
 
 ### CI (`ODPM_SCENARIO=ci`)
 
 - **Baked venv + sources в образе**, без bind-mount Odoo
-- `**dev_mode` игнорируется** (как на server)
-- `odpm build-image` → push → `compose up` на runner
-- Тесты: `-i -u --test --stop-after-init`
+- **`dev_mode` игнорируется** (как на server)
+- `odpm --build-image` (docker / **kaniko**), prepare-only policy
+- Тесты: `-i -u -t --stop-after-init` (цель 4.8 — `odpm test` + coverage)
 
-**Идеал:** один `ScenarioPolicy` (у вас уже есть) + **один runtime engine**, разные **profiles** — как Docker Compose profiles или Doodba's `devel`/`test`/`prod`.
+**Идеал:** один `ScenarioPolicy` + **один runtime engine**, разные **profiles** — как Docker Compose profiles или Doodba's `devel`/`test`/`prod`. Scenario overlays в manifest v2 (`scenarios.*`) уже есть с **4.7**.
 
 ---
 
 ## Идеальный data flow: host → container
 
-Сейчас odpm передаёт config как `**.odpm/runtime/config.json`** (mount в контейнер, `ODPM_CONFIG_PATH`; в CI — baked в образ). На хорошем уровне это выглядит так:
+odpm передаёт config как **`.odpm/runtime/config.json`** (mount в контейнер, `ODPM_CONFIG_PATH`; в CI — baked в образ).
 
 ```mermaid
 sequenceDiagram
@@ -151,16 +153,14 @@ sequenceDiagram
 
 
 
-**Что улучшить относительно «идеала»:**
+**Контракт host↔container (достигнуто к 4.x):**
 
-
-| Сейчас (odpm 4.0)                          | Идеал                                                                |
-| ------------------------------------------ | -------------------------------------------------------------------- |
-| ~~base64 JSON без `schema_version`~~       | Versioned schema + migration — `ContainerConfig` v1 + legacy v0      |
-| ~~`bash -c 'cd && ... && odoo-bin ...'`~~  | Structured entrypoint (argv list) — `run_odoo` + exec form в compose |
-| ~~dict в container checkers~~              | Typed `ContainerConfig` dataclass                                    |
-| ~~Host user vs container `odoo` mismatch~~ | Явные `HOST_USER` / `CONTAINER_USER`                                 |
-
+| Было (до 4.0)                              | Сейчас                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------------- |
+| ~~base64 JSON без `schema_version`~~       | Versioned schema + migration — `ContainerConfig` v1 + legacy v0        |
+| ~~`bash -c 'cd && ... && odoo-bin ...'`~~  | Structured entrypoint (argv list) — `run_odoo` + exec form в compose   |
+| ~~dict в container checkers~~              | Typed `ContainerConfig` dataclass                                      |
+| ~~Host user vs container `odoo` mismatch~~ | Явные `HOST_USER` / `CONTAINER_USER`                                   |
 
 Референс: Doodba кладёт конфиг в **файлы внутри образа** (`auto/` addons, `conf.d/`), а не в одну гигантскую shell-строку.
 
@@ -168,36 +168,43 @@ sequenceDiagram
 
 ## Идеальный `odpm.json`: single source of truth
 
-```yaml
-# Концептуально (не обязательно YAML — JSON как сейчас ок)
-odpm_version: "2"
-platform:
-  git: "https://github.com/odoo/odoo.git 19.0"
-  build_date: "20250529"   # optional nightly pin
-python: "3.12"
-distro: { name: debian, version: "13" }
-postgres: "15"
-dependencies:
-  - "git@github.com:OCA/web.git 19.0"
-  - "git@github.com:OCA/server-tools.git 19.0"
-requirements:
-  - "python-ldap==3.4"
-developing:
-  git: "git@github.com:acme/my_project.git"
-scenarios:
-  default: developer
-locks:
-  venv: "sha256:..."   # или отдельный venv.lock
+Концептуально (реальный формат — JSON; ниже упрощённый sketch nested **manifest v2**):
+
+```json
+{
+  "manifest_schema": 2,
+  "requires_odpm": "4.7.0",
+  "odoo_version": "20.0",
+  "python_version": "3.14",
+  "distro_name": "debian",
+  "distro_version": "13",
+  "postgres_version": "18",
+  "platform": {
+    "git": "https://github.com/odoo/odoo.git 20.0"
+  },
+  "dependencies": [
+    "git@github.com:OCA/web.git 20.0"
+  ],
+  "requirements_txt": ["python-ldap==3.4"],
+  "service_sources": {},
+  "services": {},
+  "hooks": {},
+  "scenarios": {
+    "ci": { "odoo_conf": { "options": {} } }
+  }
+}
 ```
+
+Плюс в git: `.odpm/deps.lock.json`. Локально: `user_settings.json`, `.env`, `.odpm/secrets.json`.
 
 **Идеальное поведение:**
 
-1. `odpm init` — только клонирует developing project, читает `odpm.json`
-2. Всё остальное **детерминировано** из manifest + lock
-3. `user_settings.json` — **локальные предпочтения** (модули `-i/-u`, demo data), не дублирует platform deps
-4. `.env` — **secrets и порты**, не дублирует odpm.json
+1. `odpm --init` — клонирует developing project, читает `odpm.json`
+2. Всё остальное **детерминировано** из manifest + lock (+ scenario overlay)
+3. `user_settings.json` — **локальные предпочтения** (модули `-i/-u`, demo data, sidecar gates), не дублирует platform deps
+4. `.env` — scenario, порты, path roots; секреты — через provider / `${@secret:}`, не в git
 
-Референс UX: **Odoo.sh** — push в git → система сама знает версию и зависимости из репозитория.
+Референс UX: **Odoo.sh** — push в git → система сама знает версию и зависимости из репозитория. Справочник полей: [odpm.json](docs/reference/odpm-json.md).
 
 ---
 
@@ -230,12 +237,13 @@ flowchart LR
 
 
 
-**На хорошем уровне:**
+**На хорошем уровне (в основном уже так):**
 
-- **Один resolver** для init и для `up` (у вас `DevelopingRepoMaterializer` + `dependency_resolver` — правильное направление)
+- **Один resolver** для init и для prepare (`DevelopingRepoMaterializer` + `dependency_resolver`)
 - **Shallow clone** по умолчанию, deepen только для `build_date`
-- **Dry-run:** `odpm plan` — таблица или JSON шагов prepare/runtime; предсказание `compose.up` и `--force-recreate`; unified diff генерируемых файлов (`--plan-show-diff`); не выполняет git materialize, запись runtime/compose и `docker compose up` (при загрузке конфигурации возможны обновление шаблонов `.odpm/` и probe Docker)
-- **Lock file** зависимостей (commit SHAs) для CI reproducibility — как `package-lock.json`
+- **Dry-run:** `odpm plan` — шаги prepare/runtime, probe compose, `--plan-show-diff`, `--plan-strict`
+- **Lock file** — `.odpm/deps.lock.json` (platform, dependencies, `service_sources`), `--update-lock`, CI verify
+- Sidecar git-контексты — `service_sources` + проектные ссылки `service-sources/` (4.7)
 
 Doodba делает это через **Git aggregator** и pinned commits в repos.yaml.
 
@@ -270,108 +278,117 @@ flowchart TB
 
 **Идеал:**
 
-- **Один** `bake_venv` / `install_fresh` (у вас уже так)
+- **Один** `bake_venv` / `install_fresh`
 - Lock hash = f(python, distro, odoo_version, requirements, venv_mode, arch)
 - CI image **immutable**; dev — **mutable venv** с быстрым incremental sync
-- ~~Optional: **uv** everywhere для скорости~~ — **есть (4.0+):** в шаблонах `debian_12_dockerfile` / `debian_13_dockerfile` в образ ставится `uv`; `bake_venv.detect_uv()` + `install_fresh` и `VirtualenvChecker` при наличии `uv` в PATH используют `uv venv` / `uv pip` (с `--link-mode=copy`), иначе stdlib `venv` + `python -m pip` — один кодовый путь для fresh-режима (первый старт / recreate) и CI bake (`bake_venv` CLI)
+- **uv** в Debian 12/13 образах; `bake_venv.detect_uv()` / fallback на pip
+- **Горизонт 4.8:** shared wheel cache (`ODPM_WHEEL_CACHE_ROOT`) для fleet workers
 
 ---
 
 ## Идеальный CLI: команды, а не флаги
 
-Сейчас odpm — entry point `odpm` (pip) или `odpm.py` (legacy) с большим argparse. На зрелом уровне:
+Entry point `odpm` (pip) или legacy `odpm.py`. Часть глаголов уже есть (`plan`, `database`, `modules`, `run`, `scaffold`, `manifest`); остальное — смесь подкоманд и флагов.
 
 ```bash
 odpm init https://github.com/acme/demo.git
-odpm up                    # prepare if needed + compose up
-odpm up --skip-start       # только regenerate templates
-odpm down
-odpm db backup -d prod_copy
-odpm db restore -d prod_copy backup.zip
-odpm module update -u sale,my_module
-odpm build-image           # ci only
-odpm shell                 # exec into odoo container
-odpm logs -f odoo
-odpm plan                  # что изменится (git, venv, compose)
+odpm up                    # prepare if needed + compose up   # ещё идеал
+odpm up --skip-start       # только regenerate templates      # близко: --skip-start
+odpm down                                                     # ещё идеал
+odpm database … / odpm -d … --db-restore …
+odpm modules diff | record-applied
+odpm run apply-modules-from-diff -d prod_db
+odpm --build-image         # ci
+odpm shell                 # ещё идеал
+odpm logs -f odoo          # ещё идеал
+odpm plan
+odpm test …                # горизонт 4.8
 ```
 
-**Уже в 4.0-beta:** `odpm plan` — dry-run: таблица или JSON шагов prepare/runtime с исходами (`run`/`update`/`noop`/`skip`), probe compose для `compose.up`, diff файлов (`--plan-show-diff`), strict exit code (`--plan-strict`); без git materialize, записи runtime/compose и `docker compose up`. Alias `--plan` устарел.
+**Уже есть:** `odpm plan`, `database`, `modules`, `run`, CSV для `-i`/`-u`, recipes.
 
-**Установка:** `pip install` (console script `odpm`) или копия `odpm.py` + `dev_project/` — оба режима поддерживаются; шаблоны берутся из установленного пакета или локальной копии.
+**Горизонт 4.8:** `up`/`down`/`logs`/`shell` как first-class; `odpm test` + coverage; `--events-jsonl` для машинного стрима.
 
-Референсы: **docker compose**, **kubectl**, **doodba-qa** subcommands — предсказуемый vocabulary.
+**Установка:** `pip install`, `.deb` / `.rpm`, APT/YUM suite `stable`. Host зависит от **stdlib + jsonschema + pluggy** (не «zero deps» — осознанный trade-off с 4.4).
+
+Референсы: **docker compose**, **kubectl**, **doodba-qa** subcommands.
 
 ---
 
-## Идеальная extensibility (из README: «mechanisms for the future»)
+## Extensibility (есть с 4.4+)
 
 ```mermaid
 flowchart LR
     core[odpm core]
     hooks[Lifecycle hooks]
-    plugins[Plugins directory]
+    plugins[Plugins / entry points]
 
     core --> hooks
     hooks --> plugins
 
-    plugins --> pre_init[pre-init]
-    plugins --> post_prepare[post-prepare]
-    plugins --> custom_compose[compose fragments]
+    plugins --> post_clone[post_clone]
+    plugins --> post_prepare[post_prepare]
+    plugins --> pre_up[pre_up]
+    plugins --> compose[compose fragments / patches]
 ```
 
 
 
-**На хорошем уровне:**
+**Достигнуто:**
 
-- **Hooks** в `odpm.json`: `hooks.post_clone`, `hooks.pre_up`
-- **Compose fragments**: `docker-compose.override.yml` auto-merge
-- **Plugin entry points** (Python): `odpm.plugins.`* — стабильный API
+- Manifest v2: `hooks.post_clone` / `post_prepare` / `pre_up`, `services`, `service_patches`
+- Pluggy: `odpm.prepare_steps`, `odpm.hooks`, `odpm.secrets_providers`
+- Project-local: `.odpm/plugins/*.py`
+- API **1.1** + [ADR-004](docs/contributing/adr-004-plugin-api-stability.md)
+- Docs: [plugins.md](docs/reference/plugins.md)
 
-Doodba: `custom/` hooks и onbuild. Dev Containers: `features` и `postCreateCommand`.
+**Не цель:** полный клон Doodba `custom/` surface (см. why-odpm).
+
+**Горизонт:** Events JSONL для внешних потребителей; plugin `on_event` — follow-up после Events v1.
 
 ---
 
 ## Идеальное качество инструмента (vision)
 
-На зрелом уровне odpm проверяется на всех слоях: unit-логика policy и resolver, subprocess-скрипты venv, opt-in docker smoke на CI, nightly golden path `init → HTTP 200`, контракт `ContainerConfig` с миграцией legacy v0.
+Слои проверки: unit (policy, resolver, manifest), subprocess venv, compose-smoke на PR, opt-in / nightly golden path `init → HTTP 200`, контракт `ContainerConfig`.
 
-**Золотой путь:** demo-проект + `--init` + `-d test -i base --stop-after-init` за разумное время на CI.
+**Сейчас:** обязательные PR gates — `compose-smoke` и `compose-smoke-mailpit`; full golden-path — opt-in (см. [ci.md](docs/contributing/ci.md)). Публичный demo / golden-path baseline — **Odoo 19.0**; код поддерживает **20.0**.
+
+**Горизонт:** расширить demo/golden на 20.0; `odpm test` + coverage gate в CI-сценариях команд.
 
 ---
 
 ## Идеальный UX для новичка
-
-Путь первого дня (вместо `journey` — совместимый flowchart):
 
 ```mermaid
 flowchart LR
     subgraph day1 [Первый день с odpm]
         direction TB
         s1[Установить Docker, git, VS Code]
-        s2[mkdir + odpm init demo repo]
+        s2[mkdir + odpm --init demo repo]
         s3[odpm создаёт .env, клонирует deps]
-        s4[odpm up — localhost:8069]
+        s4[odpm поднимает localhost:8069]
         s5[F5 attach debugpy в VS Code]
-        s6[odpm db restore staging dump]
+        s6[restore dump / -i first_module]
         s1 --> s2 --> s3 --> s4 --> s5 --> s6
     end
 ```
 
 
 
-**Идеал:** zero questions при наличии `odpm.json` (non-interactive — уже есть). TTY только для выбора scenario при первом запуске без `.env`. Host-CLI odpm — **zero runtime Python deps** (stdlib + Docker/git); установка через `pip install` или legacy-копию репозитория.
+**Идеал:** zero questions при наличии `odpm.json` (non-interactive — есть). TTY — wizard при первом запуске без `.env` (в т.ч. scenario-driven, ADR-018). Вход для новичков: [beginner-friendly](docs/getting-started/beginner-friendly.md).
 
 ---
 
-## Где odpm 4.0 на этой карте
+## Где odpm 4.7 / 4.8 на этой карте
 
-**Оси:** automation (строки) × качество architecture (столбцы). Читать снизу вверх — automation растёт.
+**Оси:** automation × качество architecture.
 
 
-|                        | Ad-hoc architecture | Clean architecture                    |
-| ---------------------- | ------------------- | ------------------------------------- |
-| **Высокая automation** | odpm 3.x            | **Doodba**, **Odoo.sh**, **odpm 4.0** |
-| **Низкая automation**  | —                   | Official Odoo Docker, Dev Containers  |
+|                        | Ad-hoc architecture | Clean architecture                           |
+| ---------------------- | ------------------- | -------------------------------------------- |
+| **Высокая automation** | odpm 3.x            | **Doodba**, **Odoo.sh**, **odpm 4.7**        |
+| **Низкая automation**  | —                   | Official Odoo Docker, Dev Containers         |
 
 
 ```
@@ -379,42 +396,34 @@ flowchart LR
               ┌────────────────────┬──────────────────────────────┐
   высокая     │                    │  Doodba                      │
   automation  │     odpm 3.x       │  Odoo.sh                     │
-              │                    │  odpm 4.0  ◄── здесь сейчас  │
+              │                    │  odpm 4.7  ◄── здесь сейчас  │
+              │                    │  4.8 → automation surface    │
               ├────────────────────┼──────────────────────────────┤
   низкая      │                    │  Official Odoo Docker        │
   automation  │         —          │  Dev Containers              │
               └────────────────────┴──────────────────────────────┘
-                    ▲                                    ▲
-              ad-hoc arch                          clean arch
 ```
 
-**odpm 4.0 после рефакторинга** — правый верхний квадрант: clean architecture (pipeline, policy, modules). Host-слой разделён по ответственности:
+**Достигнуто к 4.7 (сжато):** clean pipeline/policy; `odpm plan`; `deps.lock`; manifest v2 + plugins/hooks; scenario overlays; compose prefix/network; layered `.env`; secrets + Infisical; `service_sources`; recipes / modules diff; security profiles; Odoo 20 defaults; CI docker/kaniko.
 
-- **Prepare и запуск:** pipeline загружает конфигурацию, при обычном запуске материализует проект и поднимает compose; подготовка (git, шаблоны, runtime config) отделена от runtime
-- **Конфигурация:** тонкий facade; фазы bootstrap, docker layout и runtime-опции — в отдельных модулях; slice-поля через typed state
-- **Read-only snapshot:** неизменяемый снимок paths, policy и user settings для prepare и plan
-- **Runtime state:** compose service, run mode и опции docker-compose отдельно от JSON-манifest
-- **Logging:** единый модуль на host; container re-export без циклических import
-- **DI:** system checker передаётся в create-project flow, без обратной ссылки на config
-- **Subprocess:** host не меняет global CWD — только `cwd=` в subprocess
-- **Контракт host↔container:** typed `ContainerConfig` v1, stdlib validation, reference schema, миграция legacy v0
-- **Дистрибуция:** pip-пакет с console script `odpm`; dual-mode поиск шаблонов (site-packages или legacy-копия репозитория)
-- **Plan (dry-run):** `odpm plan` — таблица или JSON шагов prepare/runtime, probe compose, diff файлов, strict exit code; без materialize и compose up
-- **uv для venv/pip:** auto-detect в контейнере (`bake_venv`, `check_virtualenv`); fallback на pip, если `uv` нет в образе (например Debian 11)
+Архитектурный чеклист рефакторинга 4.0 (facade Config, typed snapshot, DI, no global CWD, …) — **считаем закрытым**; детали живут в коде и ADR.
 
-До уровня Doodba/Odoo.sh по automation не хватает:
+### Открытый backlog (компас на 4.8+)
 
-1. ~~Versioned config contract host↔container~~ — typed config, stdlib validation, reference JSON spec
-2. ~~Dry-run plan~~ — `odpm plan` с шагами, probe, diff, JSON и strict exit code
-3. ~~Dependency lock (commit SHAs)~~ — `.odpm/deps.lock.json`, `--update-lock`; OCA resolved graph, developing, CI strict verify
-4. ~~Plugin/hook API~~ — **4.4:** manifest v2 `services` / `hooks`, pluggy `odpm.prepare_steps` и `odpm.hooks`; см. [docs/reference/plugins.md](docs/reference/plugins.md)
-5. ~~Golden-path E2E как обязательный CI gate на каждый PR~~ — **post-4.4 backlog:** обязательные PR gates — `compose-smoke` (v1 flat) и `compose-smoke-mailpit` (manifest v2 + Mailpit); full golden-path (`init` → HTTP 200) остаётся **opt-in** (nightly, `workflow_dispatch`, label `run-docker`, `ODPM_GOLDEN_PATH_ENABLED` + `ODPM_GOLDEN_PATH_PROJECT`). Критерии перехода golden-path в mandatory — [docs/contributing/ci.md](docs/contributing/ci.md).
-6. ~~Plan с probe compose health~~ — есть в `odpm plan`
+1. **Events JSONL** (`--events-jsonl`) — machine-readable ход prepare/runtime для CI / odpm.web
+2. **Shared wheel cache** — `ODPM_WHEEL_CACHE_ROOT` для N проектов на одном worker
+3. **`odpm test` + coverage** — subcommand, отчёты, `--coverage-fail-under`
+4. **Appliance edges** — Traefik ingress labels + native DB backup zip (контракт odpm.web)
+5. **CLI verbs** — `up` / `down` / `logs` / `shell` как first-class
+6. **Мелкие follow-up 4.7** — не materialize `service_sources` для выключенных sidecars; HostGateInputs / явный SystemCheckPolicy; опционально Vault/SOPS provider
+7. **Demo / golden на Odoo 20.0** — публичный путь сейчас на 19.0
+
+Сознательно **не** целимся: PaaS как Odoo.sh; полный prod nginx/TLS; клон всего Doodba `custom/`; Nix byte-identical.
 
 ---
 
-## Практический «идеал v4» в одном абзаце
+## Практический «идеал» в одном абзаце
 
-**odpm** — это **declarative Odoo environment manager**: `odpm.json` описывает platform, deps и Python; scenario выбирает profile (dev/server/ci); CLI загружает конфигурацию, при необходимости показывает план (`odpm plan`) и материализует Docker stack; container entrypoint — typed, versioned, без bash-магии; venv либо fresh (dev), либо baked (CI); IDE и DB-tools — thin wrappers; extensibility — hooks и plugins; CI проверяет golden path от `init` до HTTP 200.
+**odpm** — **declarative Odoo environment manager**: `odpm.json` описывает platform, deps, sidecars и scenarios; CLI показывает `plan` и материализует Docker stack; container entrypoint — typed `ContainerConfig`; venv fresh (dev/server) или baked (CI); IDE и DB/module tools — thin wrappers; extensibility — hooks и plugins; дальше — automation surface (events, test/coverage, wheel cache, appliance) без потери «одной кнопки» для новичка.
 
-Инструмент не «изобретает велосипед» — он **собирает Odoo-specific Dev Container**, которого в экосистеме не хватает между «голым docker odoo» и «тяжёлым Doodba». README прямо говорит про extensibility — это и есть следующий горизонт после стабилизации
+Инструмент не «изобретает велосипед» — он **собирает Odoo-specific Dev Container** между «голым docker odoo» и «тяжёлым Doodba». Пользовательское обоснование ниши — [why-odpm](docs/getting-started/why-odpm.md).

@@ -61,10 +61,20 @@ class ProjectDirManager:
             self.sync_project_templates()
 
     def find_project_dir_in_parents(self):
-        exist_service_directory = os.path.exists(self.service_directory)
+        # ~/.odpm is user config home, never a project service directory.
+        exist_service_directory = (
+            os.path.exists(self.service_directory)
+            and self.service_directory != self.home_config_dir
+        )
         while not exist_service_directory:
             parent_dir = os.path.abspath(os.path.join(self.project_path, os.pardir))
             if self.project_path == parent_dir:
+                # No project above start_dir — restore start so callers get the
+                # "not an odpm directory" message instead of "cd /".
+                self.project_path = self.start_dir_path
+                self.service_directory = os.path.join(
+                    self.project_path, constants.PROJECT_SERVICE_DIRECTORY
+                )
                 break
             self.project_path = parent_dir
             self.service_directory = os.path.join(
@@ -88,7 +98,11 @@ class ProjectDirManager:
                 )
             )
             raise ProjectDirError("", exit_code=0)
-        if os.path.exists(self.service_directory):
+        # ~/.odpm is the user config home, not a project service directory.
+        if (
+            os.path.exists(self.service_directory)
+            and self.service_directory != self.home_config_dir
+        ):
             self.dir_is_project = True
         else:
             self.project_path = self.start_dir_path

@@ -129,9 +129,9 @@ class InstallDocsP2Tests(unittest.TestCase):
 
     def test_mkdocs_edit_uri_targets_active_dev_branch(self):
         text = (PROJECT_ROOT / "mkdocs.yml").read_text(encoding="utf-8")
-        self.assertIn("edit_uri: edit/4.7.0-dev/docs/", text)
+        self.assertIn("edit_uri: edit/4.8.0-dev/docs/", text)
 
-    def test_ci_workflows_target_47_dev_branch(self):
+    def test_ci_workflows_target_48_dev_branch(self):
         for rel in (
             ".github/workflows/ci.yml",
             ".github/workflows/ci-docker.yml",
@@ -139,7 +139,7 @@ class InstallDocsP2Tests(unittest.TestCase):
         ):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             with self.subTest(workflow=rel):
-                self.assertIn("4.7.0-dev", text)
+                self.assertIn("4.8.0-dev", text)
 
     def test_ci_yml_defines_i18n_job(self):
         workflow = (PROJECT_ROOT / ".github/workflows/ci.yml").read_text(

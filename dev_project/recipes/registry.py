@@ -9,12 +9,14 @@ from .. import constants
 from ..errors import ConfigError
 from ..translations import _
 from .builtin.apply_modules_from_diff import ApplyModulesFromDiffRecipe
+from .builtin.pull_remote_db import PullRemoteDbRecipe
 from .protocol import Recipe
 from .yaml_loader import load_recipe_yaml_file
 from .yaml_recipe import yaml_recipe_from_raw
 
 _PYTHON_BUILTINS: dict[str, Recipe] = {
     ApplyModulesFromDiffRecipe.name: ApplyModulesFromDiffRecipe(),
+    PullRemoteDbRecipe.name: PullRemoteDbRecipe(),
 }
 
 

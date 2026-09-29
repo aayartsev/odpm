@@ -13,16 +13,19 @@
 | **4.5.x** | `4.5-dev` | **заморожена** (patch only) | Линия 4.5; stable **v4.5.0**; архив: `v4.5.0-beta` |
 | **4.6.x** | `4.6.0-dev` | **заморожена** (patch only) | Линия 4.6; stable **v4.6.0**; архив: `v4.6.0-beta` |
 | **4.7.x** | `4.7.0` / `4.7.0-dev` | **stable** | Scenario overlays, compose prefix/network, layered `.env`, secrets, Odoo 20; stable **v4.7.0**; архив: `v4.7.0-beta` |
+| **4.8.x** | `4.8.0-dev` | **active development** | Следующая линия; `RELEASE_VERSION` = `4.8.0-dev` до stable `v4.8.0` |
 | Старые | `3.0`, `4.0-*`, … | архив | Без поддержки; документация и релизы остаются на GitHub для истории. |
 
-**Правило:** patch/security 4.7 — в `4.7.0` (или обратнопорт на `4.7.0-dev` по решению maintainer). Линии 4.4 (`4.4-dev`), 4.5 (`4.5-dev`) и 4.6 (`4.6.0-dev`) — только patch/security. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
+**Модель версий (с 4.8):** две пользовательские линии — **`X.Y.Z-dev`** (разработка) и **`X.Y.Z`** (stable). Отдельный обязательный gate alpha/beta не требуется. `odpm --version` на git-checkout печатает `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)`; в установленных пакетах без `.git` — только номер. Тег `vX.Y.Z-dev` в APT/PyPI обычно не публикуем (иначе суффикс `-dev` не попадёт в suite `testing` без правки CI); пакеты — на stable `vX.Y.Z`.
+
+**Правило:** patch/security 4.7 — в `4.7.0` (или обратнопорт на `4.7.0-dev` по решению maintainer). Активная разработка — `4.8.0-dev`. Линии 4.4 (`4.4-dev`), 4.5 (`4.5-dev`) и 4.6 (`4.6.0-dev`) — только patch/security. Тег `v*` создаётся только когда `RELEASE_VERSION` в `dev_project/constants/scenarios.py` совпадает с тегом (проверяет `scripts/verify_release_tag_version.py` в CI).
 
 ### Константы в `scenarios.py`
 
 | Константа | Когда менять | Пример сейчас |
 |-----------|--------------|---------------|
-| `RELEASE_VERSION` | Каждый релиз / pre-release | `4.7.0` |
-| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без `-beta`/`-rc`) | `4.7.0` |
+| `RELEASE_VERSION` | Старт линии (`*-dev`) и stable-релиз | `4.8.0-dev` |
+| `LATEST_STABLE_RELEASE` | **Только** при выходе **stable** тега (без суффикса) | `4.7.0` |
 | `ODPM_VERSION` | Alias `RELEASE_VERSION`; не трогать отдельно | = `RELEASE_VERSION` |
 | `MANIFEST_V1_CONTRACT_LINE` | Контракт flat `odpm.json`; не путать с версией менеджера | `4.0` |
 

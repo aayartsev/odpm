@@ -16,6 +16,7 @@ from ...git import (
     SSH_MARKER,
 )
 from ...logging import get_module_logger
+from ...host.cli import params as cli_params
 from ..types import DbCreationData, OdpmJson, UserSettingsJson
 
 if TYPE_CHECKING:
@@ -69,6 +70,17 @@ class ConfigDefaultsFactory:
         if config_json_dev_link:
             return config_json_dev_link
         pd_manger_init_dev_link = self.config.pd_manager.init
+        if not pd_manger_init_dev_link:
+            raise ConfigError(
+                _(
+                    'Cannot determine developing project source. Set '
+                    '"developing_project" in odpm.json, run from an odpm project '
+                    'directory, or use "{PROJECT_NAME} {INIT_PARAM}".'
+                ).format(
+                    PROJECT_NAME=constants.PROJECT_NAME,
+                    INIT_PARAM=cli_params.INIT_PARAM,
+                )
+            )
         if pd_manger_init_dev_link == ".":
             pd_manger_init_dev_link = (
                 f"file://{self.config.pd_manager.project_path}/my_odoo_project"

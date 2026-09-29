@@ -75,12 +75,13 @@ odpm plan --plan-show-diff --skip-start
 
 ## Подкоманда `database`
 
-Инспекция и восстановление **кластера PostgreSQL** (не путать с Odoo-базами `-d`):
+Инспекция локального **кластера PostgreSQL**, роли приложения и **скачивание remote backup** через Odoo manager:
 
 ```bash
 odpm database status
 odpm database status --format json
 odpm database ensure-role
+ODPM_REMOTE_DB_MASTER_PWD='…' odpm database pull --url https://client.example.com --remote-db prod
 ```
 
 | Команда | Описание |
@@ -88,10 +89,13 @@ odpm database ensure-role
 | `database status` | Fingerprints, drift, проверка контейнера postgres и роли приложения |
 | `database status --format json` | То же в JSON |
 | `database ensure-role` | Создать или обновить роль приложения в запущенном PostgreSQL |
+| `database pull` | Скачать zip с `{URL}/web/database/backup` в `BACKUP_DIR` (пароль только из env `ODPM_REMOTE_DB_MASTER_PWD`) |
+
+`database pull` нужен каталог проекта odpm с `BACKUP_DIR` в `.env`; compose up для самого download не требуется. На stdout печатается только имя архива. Предназначено для сценариев **developer** / **server**, не для типичного CI.
 
 Флаг **`--accept-database-drift=KIND`** (повторяемый) — принять drift без интерактивного prompt. KIND: `data_path`, `postgres_major`, `app_role_missing`, `odpm_scenario`, `data_dir_empty_changed`.
 
-Подробнее: [состояние PostgreSQL и drift](database-state.md).
+Подробнее о локальном кластере: [состояние PostgreSQL и drift](database-state.md). Remote pull + restore: [рецепты](recipes.md) (`pull-remote-db`).
 
 ## Подкоманда `modules`
 

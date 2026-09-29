@@ -50,6 +50,8 @@ def run_recipes_command(cli_args: OdpmCliArgs, config: Config | None) -> int:
     cli_values = {
         "database": cli_args.d,
         "diff_base": cli_args.run_diff_base,
+        "url": cli_args.run_remote_url,
+        "remote_db": cli_args.run_remote_db,
     }
     params = resolve_params(recipe, cli_values=cli_values, environ=environ)
     return run_recipe(

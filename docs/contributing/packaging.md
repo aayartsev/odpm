@@ -10,10 +10,12 @@ See [ADR-001](adr-001-extensions-and-manifest-v2.md) for manifest vs manager ver
 
 | Constant / artifact | Example | Meaning |
 |---------------------|---------|---------|
-| `RELEASE_VERSION` | `4.7.0-beta` | Git tag (`v4.7.0-beta`), deb/rpm filenames, GitHub Release title, `odpm --version` |
-| `LATEST_STABLE_RELEASE` | `4.6.0` | Install docs and mike `stable` alias (bump on stable tag only) |
+| `RELEASE_VERSION` | `4.8.0-dev` | Git tag (`v4.8.0` on stable; avoid publishing `v*-dev` to APT/PyPI without CI suite rules), deb/rpm filenames, GitHub Release title, base of `odpm --version` |
+| `LATEST_STABLE_RELEASE` | `4.7.0` | Install docs and mike `stable` alias (bump on stable tag only) |
 | `ODPM_VERSION` | same as `RELEASE_VERSION` | Alias; pip wheel metadata |
 | `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new v1 projects — **not** the installed manager version |
+
+On a git checkout, `odpm --version` appends short SHA and commit date: `odpm version: 4.8.0-dev (87564d8, 2026-09-28)`. Installed wheels/deb/rpm without `.git` print the version only.
 
 Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release. Tag `v{RELEASE_VERSION}` must match (`scripts/verify_release_tag_version.py`).
 

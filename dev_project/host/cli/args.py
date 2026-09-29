@@ -58,6 +58,8 @@ class OdpmCliArgs:
     scaffold_template_name: str | None = None
     database_subcommand: str | None = None
     database_status_format: str = "table"
+    database_pull_url: str | None = None
+    database_pull_remote_db: str | None = None
     accept_database_drift: tuple[str, ...] = ()
     manifest_subcommand: str | None = None
     manifest_migrate_write: bool = False
@@ -68,6 +70,8 @@ class OdpmCliArgs:
     run_list: bool = False
     run_dry_run: bool = False
     run_diff_base: str | None = None
+    run_remote_url: str | None = None
+    run_remote_db: str | None = None
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:

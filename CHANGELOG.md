@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Remote DB pull** — `odpm database pull` downloads a zip from a remote Odoo `/web/database/backup` into `BACKUP_DIR` (master password via env `ODPM_REMOTE_DB_MASTER_PWD` only). Builtin recipe `odpm run pull-remote-db` chains pull + `--db-restore`. Host HTTP helper in `dev_project/tools/http_download.py`. Intended for developer/server. Docs: `cli.md`, `recipes.md`. Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
+- **Dev version line + git build stamp** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` remains `4.7.0`). `odpm --version` prints `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` when sources sit in a git checkout; installed packages without `.git` print the version only. CI/docs workflows and `mkdocs` `edit_uri` target `4.8.0-dev`. Docs: `release-lines.md`, `packaging.md`. Tests: `test_version_info`, `test_release_packaging`.
+
+### Fixed
+
+- **Bare `odpm` from `$HOME`** — `~/.odpm` (user config home) is no longer treated as a project service directory, so a missing project yields the normal “not an odpm directory” message instead of a `TypeError` in `get_developing_project_link`. Defense-in-depth: missing `--init` / `developing_project` raises `ConfigError`. Tests: `test_phase2_infra`, `test_host_config`.
+
 ## [4.7.0] - 2026-09-28
 
 **Stable release 4.7.0** on branch `4.7.0`; supersedes **4.6.0** as `LATEST_STABLE_RELEASE`. Scenario overlays, compose prefix/network, layered `.env`, secrets/Infisical, Odoo 20, CI kaniko, recipes, and related ops tooling. Pre-release **4.7.0-beta** verified packaging and docs channels. No breaking changes for v1 flat `odpm.json`; 4.7 features remain opt-in.

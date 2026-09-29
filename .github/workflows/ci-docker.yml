@@ -14,6 +14,7 @@ on:
       - 4.0-rc1
       - 4.4-dev
       - 4.7.0-dev
+      - 4.8.0-dev
       - main
   pull_request:
     branches:
@@ -21,6 +22,7 @@ on:
       - 4.0-rc1
       - 4.4-dev
       - 4.7.0-dev
+      - 4.8.0-dev
       - main
   schedule:
     # Nightly full golden-path (requires ODPM_GOLDEN_PATH_ENABLED + secret).

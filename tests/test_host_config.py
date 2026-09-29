@@ -248,6 +248,14 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         link = ConfigDefaultsFactory(config).get_developing_project_link()
         self.assertEqual(link, "file:///tmp/project/my_repo")
 
+    def test_get_developing_project_link_raises_when_init_missing(self):
+        config = MagicMock()
+        config.config_json_content = {}
+        config.pd_manager = MagicMock(init=None, project_path="/tmp/project")
+        with self.assertRaises(ConfigError) as ctx:
+            ConfigDefaultsFactory(config).get_developing_project_link()
+        self.assertIn("developing project", str(ctx.exception).lower())
+
     def test_create_default_user_settings_check_system_true_by_default(self):
         config = MagicMock()
         config.config_json_content = {}
