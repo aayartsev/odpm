@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Remote DB pull** — `odpm database pull` downloads a zip from a remote Odoo `/web/database/backup` into `BACKUP_DIR` (master password via env `ODPM_REMOTE_DB_MASTER_PWD` only). Builtin recipe `odpm run pull-remote-db` chains pull + `--db-restore`. Host HTTP helper in `dev_project/tools/http_download.py`. Intended for developer/server. Docs: `cli.md`, `recipes.md`. Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
+- **Remote pull UX** — preflight `/web/database/list` (DB found / missing); logs for auth success and download start; MiB progress heartbeats via logger; recipe `capture` keeps stderr live (stdout-only pipe). Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **Dev version line + git build stamp** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` remains `4.7.0`). `odpm --version` prints `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` when sources sit in a git checkout; installed packages without `.git` print the version only. CI/docs workflows and `mkdocs` `edit_uri` target `4.8.0-dev`. Docs: `release-lines.md`, `packaging.md`. Tests: `test_version_info`, `test_release_packaging`.
 
 ### Fixed

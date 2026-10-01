@@ -136,12 +136,14 @@ def _exec_step(
     if step.timeout is not None:
         run_kwargs["timeout"] = step.timeout
     if step.capture:
-        run_kwargs["capture_output"] = True
+        # Capture stdout only so live logs/progress on stderr remain visible.
+        run_kwargs["stdout"] = subprocess.PIPE
+        run_kwargs["stderr"] = None
         completed = subprocess.run(full_argv, **run_kwargs)
         return StepResult(
             returncode=completed.returncode,
             stdout=completed.stdout or "",
-            stderr=completed.stderr or "",
+            stderr="",
         )
     completed = subprocess.run(full_argv, **run_kwargs)
     return StepResult(returncode=completed.returncode, stdout="", stderr="")

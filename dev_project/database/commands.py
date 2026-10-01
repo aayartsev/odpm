@@ -12,6 +12,7 @@ from ..logging import get_module_logger
 from ..tools.http_download import (
     assert_odoo_backup_zip,
     download_multipart_post,
+    list_remote_odoo_databases,
     safe_host_token,
 )
 from ..translations import _
@@ -81,6 +82,33 @@ def _backups_dir(config: Config) -> Path:
     return path
 
 
+def _preflight_remote_database(url: str, remote_db: str) -> None:
+    _logger.info(
+        _("Checking remote databases at {URL} …").format(URL=url)
+    )
+    try:
+        names = list_remote_odoo_databases(url)
+    except ConfigError as exc:
+        _logger.warning(
+            _(
+                "Could not list remote databases ({DETAIL}); "
+                "continuing with the backup request."
+            ).format(DETAIL=exc)
+        )
+        return
+    if remote_db not in names:
+        available = ", ".join(names) if names else _("(none)")
+        raise ConfigError(
+            _(
+                "Remote database {DB} was not found on {URL}. "
+                "Available: {LIST}."
+            ).format(DB=remote_db, URL=url, LIST=available)
+        )
+    _logger.info(
+        _("Remote database {DB} found on {URL}.").format(DB=remote_db, URL=url)
+    )
+
+
 def _run_database_pull(cli_args: OdpmCliArgs, config: Config) -> int:
     url = str(cli_args.database_pull_url or "").strip().rstrip("/")
     remote_db = str(cli_args.database_pull_remote_db or "").strip()
@@ -102,12 +130,38 @@ def _run_database_pull(cli_args: OdpmCliArgs, config: Config) -> int:
     archive_name = f"{safe_host_token(url)}_{remote_db}_{stamp}.zip"
     dest = backups / archive_name
     endpoint = f"{url}/web/database/backup"
+    _preflight_remote_database(url, remote_db)
     _logger.info(
-        _("Downloading remote backup for database {DB} from {URL} …").format(
-            DB=remote_db,
-            URL=url,
-        )
+        _(
+            "Requesting backup for database {DB} from {URL} "
+            "(master password authentication) …"
+        ).format(DB=remote_db, URL=url)
     )
+
+    def on_headers(_headers: dict[str, str]) -> None:
+        _logger.info(
+            _(
+                "Authentication succeeded; remote accepted the backup request "
+                "for {DB}."
+            ).format(DB=remote_db)
+        )
+        _logger.info(_("Download started …"))
+
+    def on_progress(total: int, content_length: int | None) -> None:
+        mib = total / (1024 * 1024)
+        if content_length and content_length > 0:
+            pct = min(100, int(total * 100 / content_length))
+            _logger.info(
+                _("Download progress: {PCT}% ({MIB:.1f} MiB).").format(
+                    PCT=pct,
+                    MIB=mib,
+                )
+            )
+        else:
+            _logger.info(
+                _("Download progress: {MIB:.1f} MiB.").format(MIB=mib)
+            )
+
     download_multipart_post(
         endpoint,
         dest,
@@ -116,6 +170,8 @@ def _run_database_pull(cli_args: OdpmCliArgs, config: Config) -> int:
             "name": remote_db,
             "backup_format": "zip",
         },
+        on_response_headers=on_headers,
+        on_progress=on_progress,
     )
     try:
         assert_odoo_backup_zip(dest)

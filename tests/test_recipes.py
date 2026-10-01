@@ -186,6 +186,37 @@ class RunnerTests(unittest.TestCase):
             self.assertIn("-i", printed)
             self.assertIn("m1", printed)
 
+    def test_capture_steps_pipe_stdout_only(self):
+        recipe = ApplyModulesFromDiffRecipe()
+        run_kwargs: list[dict] = []
+
+        def fake_run(argv, **kwargs):
+            run_kwargs.append(kwargs)
+            result = MagicMock()
+            result.returncode = 0
+            result.stdout = json.dumps(
+                {"init_modules": "", "update_modules": "", "base": "b", "head": "h"}
+            )
+            result.stderr = "should-not-be-used"
+            return result
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch("dev_project.recipes.runner.subprocess.run", side_effect=fake_run):
+                code = run_recipe(
+                    recipe,
+                    project_dir=tmp,
+                    program_dir=tmp,
+                    params={"database": "db"},
+                    environ={},
+                    dry_run=False,
+                )
+        self.assertEqual(code, 0)
+        self.assertTrue(run_kwargs)
+        first = run_kwargs[0]
+        self.assertIs(first.get("stdout"), __import__("subprocess").PIPE)
+        self.assertIsNone(first.get("stderr"))
+        self.assertNotIn("capture_output", first)
+
     def test_fail_fast(self):
         class TwoStep:
             name = "two"

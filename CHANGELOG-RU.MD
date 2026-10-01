@@ -11,6 +11,7 @@
 ### Добавлено
 
 - **Remote DB pull** — `odpm database pull` скачивает zip с удалённого Odoo `/web/database/backup` в `BACKUP_DIR` (master password только через env `ODPM_REMOTE_DB_MASTER_PWD`). Builtin-рецепт `odpm run pull-remote-db` склеивает pull и `--db-restore`. HTTP-хелпер: `dev_project/tools/http_download.py`. Для developer/server. Документация: `cli.md`, `recipes.md`. Тесты: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
+- **UX remote pull** — preflight `/web/database/list` (БД найдена / нет); логи auth OK и старта загрузки; heartbeat прогресса через logger; у recipe `capture` stderr остаётся live (pipe только stdout). Тесты: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **Линия dev + git stamp в `--version`** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` остаётся `4.7.0`). `odpm --version` печатает `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` из git-checkout; установленные пакеты без `.git` — только номер. CI/docs и `mkdocs` `edit_uri` → `4.8.0-dev`. Документация: `release-lines.md`, `packaging.md`. Тесты: `test_version_info`, `test_release_packaging`.
 
 ### Исправлено
