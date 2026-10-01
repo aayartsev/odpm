@@ -8,14 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Breaking
+
+- **Nested deps are sources-only** — with `use_oca_dependencies`, nested `odpm.json` no longer inherits `services` / `service_patches` into host compose, and no longer merges nested top-level `requirements_txt` into the host venv. Nested discovery contributes **git URLs** (plus version compatibility checks) only; declare sidecars and pip packages on the **host** `odpm.json` (or plugins). Removed `dev_project/manifest/nested_compose.py` and legacy `resolve_dependency_urls`. Migration: copy needed sidecars/`requirements` into the consuming project. Tests: `test_dependency_resolver`, `test_nested_odpm_integration`, `test_extension_api_d4`. Docs: `plugins.md`, `user-settings.md`, `platform-fork.md`, ADR-004/009.
+
 ### Added
 
-- **Remote DB pull** — `odpm database pull` downloads a zip from a remote Odoo `/web/database/backup` into `BACKUP_DIR` (master password via env `ODPM_REMOTE_DB_MASTER_PWD` only). Builtin recipe `odpm run pull-remote-db` chains pull + `--db-restore`. Host HTTP helper in `dev_project/tools/http_download.py`. Intended for developer/server. Docs: `cli.md`, `recipes.md`. Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
+- **Remote DB pull** — `odpm database pull` downloads a zip from a remote Odoo `/web/database/backup` into `BACKUP_DIR` (master password via env `ODPM_REMOTE_DB_MASTER_PWD` only). Builtin recipe `odpm run pull-remote-db` is a pull+restore **shortcut** only; full pipelines (restore + `-i`/`-u`/`--set-admin-pass`) are composed in shell from the pull primitive. Host HTTP helper in `dev_project/tools/http_download.py`. Intended for developer/server. Docs: `cli.md`, `recipes.md`. Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **Remote pull UX** — preflight `/web/database/list` (DB found / missing); logs for auth success and download start; MiB progress heartbeats via logger; recipe `capture` keeps stderr live (stdout-only pipe). Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **Dev version line + git build stamp** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` remains `4.7.0`). `odpm --version` prints `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` when sources sit in a git checkout; installed packages without `.git` print the version only. CI/docs workflows and `mkdocs` `edit_uri` target `4.8.0-dev`. Docs: `release-lines.md`, `packaging.md`. Tests: `test_version_info`, `test_release_packaging`.
 
 ### Fixed
 
+- **OCA discovery no longer checkouts developing** — with `use_oca_dependencies`, reading `oca_dependencies.txt` from the developing project no longer calls `checkout_repository` (which switched the tree to `odoo_version`). Branch/commit stay under the developer’s control; checkout still follows `_should_checkout_developing` (explicit `#branch`/`@commit`, or CI/server lock pin). Tests: `test_dependency_materializer`.
 - **Bare `odpm` from `$HOME`** — `~/.odpm` (user config home) is no longer treated as a project service directory, so a missing project yields the normal “not an odpm directory” message instead of a `TypeError` in `get_developing_project_link`. Defense-in-depth: missing `--init` / `developing_project` raises `ConfigError`. Tests: `test_phase2_infra`, `test_host_config`.
 
 ## [4.7.0] - 2026-09-28

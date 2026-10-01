@@ -6,10 +6,9 @@ import json
 import os
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from . import constants
-from .errors import ConfigError
 from .translations import _
 from .logging import get_module_logger
 
@@ -22,12 +21,9 @@ _logger = get_module_logger(__name__)
 @dataclass(frozen=True)
 class NestedOdpmFragment:
     dependencies: list[str]
-    requirements_txt: list[str]
     odoo_version: str | float | None
     python_version: str | None
     source_path: str
-    services: dict[str, Any] | None = None
-    service_patches: dict[str, Any] | None = None
 
 
 def _normalize_string_list(value: object) -> list[str]:
@@ -43,13 +39,28 @@ def _normalize_string_list(value: object) -> list[str]:
     return normalized
 
 
+def _nested_python_version(raw: dict) -> str | None:
+    """Read Python version from nested odpm.json (v2 ``python`` or legacy ``python_version``)."""
+    for key in ("python", "python_version"):
+        value = raw.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return None
+
+
 def read_nested_odpm_fragment(
     project_path: str,
     *,
     resolver: EnvResolver | None = None,
-    active_scenario: str | None = None,
 ) -> NestedOdpmFragment | None:
-    """Read dependency discovery fields from odpm.json at a dependency repo root."""
+    """Read git dependency discovery fields from odpm.json at a dependency repo root.
+
+    Sources-only: dependencies URLs and version metadata for compatibility checks.
+    Nested ``services`` / ``requirements_txt`` are ignored.
+    """
     manifest_path = os.path.join(project_path, constants.PROJECT_CONFIG_FILE_NAME)
     if not os.path.exists(manifest_path):
         return None
@@ -78,7 +89,7 @@ def read_nested_odpm_fragment(
         from .config.transforms.env_substitution import (  # noqa: PLC0415  # optional
             ODPM_JSON_ENV_EXPAND_FIELDS,
             expand_env_in_json,
-        )  # noqa: PLC0415  # optional
+        )
 
         raw = expand_env_in_json(
             raw,
@@ -90,42 +101,16 @@ def read_nested_odpm_fragment(
     if odoo_version is not None and not isinstance(odoo_version, (str, int, float)):
         odoo_version = None
 
-    python_version = raw.get("python_version")
-    if python_version is not None:
-        python_version = str(python_version).strip() or None
-
-    services: dict[str, Any] | None = None
-    service_patches: dict[str, Any] | None = None
-    try:
-        from .manifest.reader import load_manifest  # noqa: PLC0415  # optional
-
-        view = load_manifest(
-            raw,
-            env_resolver=resolver,
-            active_scenario=active_scenario,
-        )
-        services = view.services
-        service_patches = view.service_patches
-    except (TypeError, ValueError, ConfigError):
-        services = None
-        service_patches = None
-
     fragment = NestedOdpmFragment(
         dependencies=_normalize_string_list(raw.get("dependencies")),
-        requirements_txt=_normalize_string_list(raw.get("requirements_txt")),
         odoo_version=odoo_version,
-        python_version=python_version,
+        python_version=_nested_python_version(raw),
         source_path=manifest_path,
-        services=services,
-        service_patches=service_patches,
     )
     if (
         not fragment.dependencies
-        and not fragment.requirements_txt
         and fragment.odoo_version is None
         and fragment.python_version is None
-        and not fragment.services
-        and not fragment.service_patches
     ):
         return None
     return fragment
@@ -134,25 +119,13 @@ def read_nested_odpm_fragment(
 @dataclass(frozen=True)
 class DependencyDiscovery:
     urls: list[str] = field(default_factory=list)
-    requirements: list[str] = field(default_factory=list)
     nested_fragment: NestedOdpmFragment | None = None
 
 
 @dataclass(frozen=True)
 class DependencyResolutionResult:
     urls: list[str]
-    transitive_requirements: list[str]
     nested_fragments: list[NestedOdpmFragment]
-
-
-def _append_unique_strings(target: list[str], items: Iterable[str]) -> None:
-    seen = set(target)
-    for item in items:
-        text = (item or "").strip()
-        if not text or text in seen:
-            continue
-        seen.add(text)
-        target.append(text)
 
 
 def resolve_dependencies(
@@ -162,8 +135,7 @@ def resolve_dependencies(
     initial_extra_urls: Iterable[str] | None = None,
 ) -> DependencyResolutionResult:
     """
-    Resolve full dependency list in one pass, collecting transitive requirements
-    and nested odpm.json fragments along the way.
+    Resolve full dependency list in one pass, collecting nested odpm.json fragments.
 
     seed_urls: dependencies from host odpm.json (stable order).
     initial_extra_urls: URLs discovered from developing project before iteration.
@@ -173,7 +145,6 @@ def resolve_dependencies(
     queued: set[str] = set()
     ordered: list[str] = []
     processed: set[str] = set()
-    transitive_requirements: list[str] = []
     nested_fragments: list[NestedOdpmFragment] = []
     seen_fragment_paths: set[str] = set()
 
@@ -186,7 +157,6 @@ def resolve_dependencies(
             queue.append(normalized)
 
     def record_discovery(discovery: DependencyDiscovery) -> None:
-        _append_unique_strings(transitive_requirements, discovery.requirements)
         fragment = discovery.nested_fragment
         if fragment is not None and fragment.source_path not in seen_fragment_paths:
             seen_fragment_paths.add(fragment.source_path)
@@ -208,35 +178,8 @@ def resolve_dependencies(
 
     return DependencyResolutionResult(
         urls=ordered,
-        transitive_requirements=transitive_requirements,
         nested_fragments=nested_fragments,
     )
-
-
-def resolve_dependency_urls(
-    seed_urls: Iterable[str],
-    get_oca_urls: Callable[[str], list[str]],
-    *,
-    initial_extra_urls: Iterable[str] | None = None,
-) -> list[str]:
-    """
-    Resolve full dependency list in one pass.
-
-    seed_urls: dependencies from odpm.json (stable order).
-    initial_extra_urls: URLs discovered from developing project oca_dependencies.txt
-        before dependency iteration (same as legacy append-before-loop behavior).
-    get_oca_urls: callback for a checked-out dependency; returns new URLs from its
-        oca_dependencies.txt (project checkout is caller responsibility).
-    """
-
-    def discover(url: str) -> DependencyDiscovery:
-        return DependencyDiscovery(urls=get_oca_urls(url))
-
-    return resolve_dependencies(
-        seed_urls,
-        discover,
-        initial_extra_urls=initial_extra_urls,
-    ).urls
 
 
 def parse_oca_dependencies_line(line: str) -> str | None:

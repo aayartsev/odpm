@@ -43,7 +43,6 @@ Reserved names in `services`: **`odoo`**, **`db`**, **`postgres`** → `ConfigEr
 
 - **`services` / `service_patches`**: string fields expanded at manifest load via `EnvResolver` (process env → project `.env` → `${VAR:-default}`).
 - **`hooks` shell argv**: expanded at execution; subprocess env is process environ plus missing keys from project `.env`.
-- Nested dependency fragments inherit the same expansion when resolved with `use_oca_dependencies`.
 
 ### Plan integration
 
@@ -60,4 +59,4 @@ Reserved names in `services`: **`odoo`**, **`db`**, **`postgres`** → `ConfigEr
 
 - `docker-compose.override.yml` merge (D5-3).
 - JSON Schema validation of final compose output (D5-1).
-- **Nested dependency `services` merge** — implemented in 4.6 D4: transitive v2 `odpm.json` `services` / `service_patches` inherit when `use_oca_dependencies` resolves nested fragments; host manifest wins on conflict ([ADR-004](adr-004-plugin-api-stability.md)).
+- **Nested dependency `services` merge** — **removed in 4.8** (was 4.6 D4). Nested `odpm.json` is sources-only; declare sidecars on the host manifest or via plugins ([ADR-004](adr-004-plugin-api-stability.md)).

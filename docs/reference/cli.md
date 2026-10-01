@@ -91,11 +91,19 @@ ODPM_REMOTE_DB_MASTER_PWD='…' odpm database pull --url https://client.example.
 | `database ensure-role` | Создать или обновить роль приложения в запущенном PostgreSQL |
 | `database pull` | Скачать zip с `{URL}/web/database/backup` в `BACKUP_DIR` (пароль только из env `ODPM_REMOTE_DB_MASTER_PWD`) |
 
-`database pull` нужен каталог проекта odpm с `BACKUP_DIR` в `.env`; compose up для самого download не требуется. Сначала вызывается `/web/database/list` (если доступен) — проверка, что `--remote-db` есть на сервере; затем backup: логи «auth OK» / «download started» и heartbeat прогресса. На stdout печатается только имя архива. Предназначено для сценариев **developer** / **server**, не для типичного CI.
+`database pull` — **примитив**: нужен каталог проекта odpm с `BACKUP_DIR` в `.env`; compose up для download не требуется. Сначала `/web/database/list` (если доступен), затем backup; логи auth/progress — в stderr, **на stdout только имя архива** (basename в `BACKUP_DIR`). Дальше пайплайн собираете сами (shell / CI), например:
+
+```bash
+export ODPM_REMOTE_DB_MASTER_PWD='…'
+ARCHIVE=$(odpm database pull --url https://client.example.com --remote-db prod)
+odpm -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
+```
+
+Shortcut pull+restore без своих шагов: builtin [`odpm run pull-remote-db`](recipes.md#builtin-pull-remote-db). YAML-рецепты **не** подставляют stdout предыдущего шага — для цепочек с именем архива используйте shell. Предназначено для **developer** / **server**, не для типичного CI.
 
 Флаг **`--accept-database-drift=KIND`** (повторяемый) — принять drift без интерактивного prompt. KIND: `data_path`, `postgres_major`, `app_role_missing`, `odpm_scenario`, `data_dir_empty_changed`.
 
-Подробнее о локальном кластере: [состояние PostgreSQL и drift](database-state.md). Remote pull + restore: [рецепты](recipes.md) (`pull-remote-db`).
+Подробнее о локальном кластере: [состояние PostgreSQL и drift](database-state.md). Remote pull: [рецепты](recipes.md) (примитив + `pull-remote-db`).
 
 ## Подкоманда `modules`
 

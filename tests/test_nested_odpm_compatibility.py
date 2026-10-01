@@ -8,7 +8,6 @@ class CollectNestedCompatibilityIssuesTests(unittest.TestCase):
     def _fragment(self, **kwargs) -> NestedOdpmFragment:
         defaults = {
             "dependencies": [],
-            "requirements_txt": [],
             "odoo_version": None,
             "python_version": None,
             "source_path": "/tmp/framework/odpm.json",

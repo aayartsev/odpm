@@ -8,7 +8,6 @@ if TYPE_CHECKING:
 from ..host.cli.args import OdpmCliArgs
 
 from ..dependency_resolver import NestedOdpmFragment
-from ..manifest.nested_compose import inherit_nested_compose_into_manifest
 from ..errors import PipelineError
 from ..git import HandleOdooProjectLink
 from ..host.user_env import CreateUserEnvironment
@@ -111,13 +110,11 @@ class Config(ConfigRuntimeFacadeMixin):
             return []
         return [str(url).strip() for url in seeds if url and str(url).strip()]
 
-    def apply_transitive_requirements(
+    def apply_nested_compatibility(
         self,
-        transitive_requirements: list[str],
-        *,
         nested_fragments: list[NestedOdpmFragment] | None = None,
     ) -> None:
-        """Merge transitive Python requirements and validate nested manifest versions."""
+        """Validate nested dependency manifest versions against the host project."""
         fragments = list(nested_fragments or [])
         for message in collect_nested_compatibility_issues(
             self.odoo_version,
@@ -128,22 +125,6 @@ class Config(ConfigRuntimeFacadeMixin):
                 _logger.error(message)
                 raise PipelineError(message, exit_code=1)
             _logger.warning(message)
-
-        inherit_nested_compose_into_manifest(self, fragments)
-
-        if not transitive_requirements:
-            return
-
-        merged = list(self.requirements_txt)
-        seen = set(merged)
-        for requirement in transitive_requirements:
-            text = (requirement or "").strip()
-            if not text or text in seen:
-                continue
-            seen.add(text)
-            merged.append(text)
-
-        self._project.requirements_txt = self._normalize_project_requirements(merged)
 
     def ensure_git_repos_present(self) -> None:
         self._git_repos.ensure_git_repos_present()

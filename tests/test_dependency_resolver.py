@@ -12,7 +12,6 @@ from dev_project.dependency_resolver import (
     read_nested_odpm_fragment,
     read_oca_dependency_urls,
     resolve_dependencies,
-    resolve_dependency_urls,
 )
 from dev_project.errors import ConfigError
 from dev_project.project_env import CreateProjectEnvironment
@@ -40,7 +39,7 @@ class ReadNestedOdpmFragmentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             self.assertIsNone(read_nested_odpm_fragment(project_dir))
 
-    def test_reads_whitelisted_fields_only(self):
+    def test_reads_dependencies_and_versions_only(self):
         with tempfile.TemporaryDirectory() as project_dir:
             manifest = Path(project_dir) / "odpm.json"
             manifest.write_text(
@@ -51,6 +50,7 @@ class ReadNestedOdpmFragmentTests(unittest.TestCase):
                             "",
                         ],
                         "requirements_txt": ["openupgradelib", "  "],
+                        "services": {"mailpit": {"image": "axllent/mailpit"}},
                         "odoo_version": "17.0",
                         "python_version": "3.12",
                         "odoo_git_link": "git@host:org/odoo.git",
@@ -66,10 +66,41 @@ class ReadNestedOdpmFragmentTests(unittest.TestCase):
                 fragment.dependencies,
                 ["https://github.com/acme/framework.git"],
             )
-            self.assertEqual(fragment.requirements_txt, ["openupgradelib"])
+            self.assertFalse(hasattr(fragment, "requirements_txt"))
+            self.assertFalse(hasattr(fragment, "services"))
             self.assertEqual(fragment.odoo_version, "17.0")
             self.assertEqual(fragment.python_version, "3.12")
             self.assertEqual(fragment.source_path, str(manifest))
+
+    def test_reads_v2_python_field(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            (Path(project_dir) / "odpm.json").write_text(
+                json.dumps(
+                    {
+                        "dependencies": ["https://github.com/acme/A.git"],
+                        "python": "3.10",
+                        "odoo_version": "17.0",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            fragment = read_nested_odpm_fragment(project_dir)
+            self.assertIsNotNone(fragment)
+            assert fragment is not None
+            self.assertEqual(fragment.python_version, "3.10")
+
+    def test_services_only_manifest_returns_none(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            (Path(project_dir) / "odpm.json").write_text(
+                json.dumps(
+                    {
+                        "services": {"mailpit": {"image": "axllent/mailpit"}},
+                        "requirements_txt": ["requests"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertIsNone(read_nested_odpm_fragment(project_dir))
 
     def test_invalid_json_returns_none_and_logs_warning(self):
         with tempfile.TemporaryDirectory() as project_dir:
@@ -192,26 +223,22 @@ class ReadOcaDependencyUrlsTests(unittest.TestCase):
 
 
 class ResolveDependenciesTests(unittest.TestCase):
-    def test_transitive_nested_chain_with_requirements(self):
+    def test_transitive_nested_chain(self):
         url_a = "https://github.com/acme/A.git"
         url_b = "https://github.com/acme/B.git"
         graph = {
             url_a: DependencyDiscovery(
                 urls=[url_b],
-                requirements=["openupgradelib"],
                 nested_fragment=NestedOdpmFragment(
                     dependencies=[url_b],
-                    requirements_txt=["openupgradelib"],
                     odoo_version="17.0",
                     python_version="3.12",
                     source_path="/tmp/a/odpm.json",
                 ),
             ),
             url_b: DependencyDiscovery(
-                requirements=["xlrd"],
                 nested_fragment=NestedOdpmFragment(
                     dependencies=[],
-                    requirements_txt=["xlrd"],
                     odoo_version=None,
                     python_version=None,
                     source_path="/tmp/b/odpm.json",
@@ -222,7 +249,6 @@ class ResolveDependenciesTests(unittest.TestCase):
         result = resolve_dependencies([url_a], graph.get)
 
         self.assertEqual(result.urls, [url_a, url_b])
-        self.assertEqual(result.transitive_requirements, ["openupgradelib", "xlrd"])
         self.assertEqual(len(result.nested_fragments), 2)
 
     def test_combined_oca_and_nested_urls_in_one_discovery(self):
@@ -232,10 +258,7 @@ class ResolveDependenciesTests(unittest.TestCase):
 
         def discover(url: str) -> DependencyDiscovery:
             if url == url_a:
-                return DependencyDiscovery(
-                    urls=[url_b, url_c],
-                    requirements=["requests"],
-                )
+                return DependencyDiscovery(urls=[url_b, url_c])
             if url == url_b:
                 return DependencyDiscovery(urls=[url_c])
             return DependencyDiscovery()
@@ -243,33 +266,10 @@ class ResolveDependenciesTests(unittest.TestCase):
         result = resolve_dependencies([url_a], discover)
 
         self.assertEqual(result.urls, [url_a, url_b, url_c])
-        self.assertEqual(result.transitive_requirements, ["requests"])
-
-    def test_requirements_deduped_in_bfs_order(self):
-        url_a = "https://github.com/acme/A.git"
-        url_b = "https://github.com/acme/B.git"
-
-        def discover(url: str) -> DependencyDiscovery:
-            if url == url_a:
-                return DependencyDiscovery(
-                    urls=[url_b],
-                    requirements=["openupgradelib", "requests"],
-                )
-            if url == url_b:
-                return DependencyDiscovery(requirements=["requests", "xlrd"])
-            return DependencyDiscovery()
-
-        result = resolve_dependencies([url_a], discover)
-
-        self.assertEqual(
-            result.transitive_requirements,
-            ["openupgradelib", "requests", "xlrd"],
-        )
 
     def test_nested_fragments_deduped_by_source_path(self):
         fragment = NestedOdpmFragment(
             dependencies=[],
-            requirements_txt=["pkg"],
             odoo_version=None,
             python_version=None,
             source_path="/tmp/shared/odpm.json",
@@ -277,36 +277,26 @@ class ResolveDependenciesTests(unittest.TestCase):
         url = "https://github.com/acme/A.git"
 
         def discover(_url: str) -> DependencyDiscovery:
-            return DependencyDiscovery(requirements=["pkg"], nested_fragment=fragment)
+            return DependencyDiscovery(nested_fragment=fragment)
 
         result = resolve_dependencies([url, url], discover)
 
         self.assertEqual(result.urls, [url])
         self.assertEqual(result.nested_fragments, [fragment])
 
-
-class ResolveDependencyUrlsTests(unittest.TestCase):
     def test_transitive_oca_chain_resolved_in_one_pass(self):
-        """A -> B -> C must all appear without a second odpm run."""
         graph = {
-            "https://github.com/OCA/A.git": [
-                "https://github.com/OCA/B.git",
-            ],
-            "https://github.com/OCA/B.git": [
-                "https://github.com/OCA/C.git",
-            ],
+            "https://github.com/OCA/A.git": ["https://github.com/OCA/B.git"],
+            "https://github.com/OCA/B.git": ["https://github.com/OCA/C.git"],
             "https://github.com/OCA/C.git": [],
         }
 
-        def get_oca(url: str) -> list[str]:
-            return graph.get(url, [])
+        def discover(url: str) -> DependencyDiscovery:
+            return DependencyDiscovery(urls=graph.get(url, []))
 
-        resolved = resolve_dependency_urls(
-            ["https://github.com/OCA/A.git"],
-            get_oca,
-        )
+        result = resolve_dependencies(["https://github.com/OCA/A.git"], discover)
         self.assertEqual(
-            resolved,
+            result.urls,
             [
                 "https://github.com/OCA/A.git",
                 "https://github.com/OCA/B.git",
@@ -315,22 +305,23 @@ class ResolveDependencyUrlsTests(unittest.TestCase):
         )
 
     def test_developing_project_extras_processed_like_legacy_append(self):
-        """URLs from developing oca_dependencies.txt follow odpm.json seeds."""
         calls: list[str] = []
 
-        def get_oca(url: str) -> list[str]:
+        def discover(url: str) -> DependencyDiscovery:
             calls.append(url)
             if url.endswith("sale-workflow.git"):
-                return ["https://github.com/OCA/stock-logistics-workflow.git"]
-            return []
+                return DependencyDiscovery(
+                    urls=["https://github.com/OCA/stock-logistics-workflow.git"]
+                )
+            return DependencyDiscovery()
 
-        resolved = resolve_dependency_urls(
+        result = resolve_dependencies(
             ["https://github.com/OCA/account-financial-tools.git"],
-            get_oca,
+            discover,
             initial_extra_urls=["https://github.com/OCA/sale-workflow.git"],
         )
         self.assertEqual(
-            resolved,
+            result.urls,
             [
                 "https://github.com/OCA/account-financial-tools.git",
                 "https://github.com/OCA/sale-workflow.git",
@@ -347,28 +338,21 @@ class ResolveDependencyUrlsTests(unittest.TestCase):
         )
 
     def test_duplicates_and_cycles_do_not_inflate_list(self):
-        def get_oca(url: str) -> list[str]:
+        def discover(url: str) -> DependencyDiscovery:
             if url.endswith("A.git"):
-                return ["https://github.com/OCA/B.git"]
+                return DependencyDiscovery(urls=["https://github.com/OCA/B.git"])
             if url.endswith("B.git"):
-                return ["https://github.com/OCA/A.git"]
-            return []
+                return DependencyDiscovery(urls=["https://github.com/OCA/A.git"])
+            return DependencyDiscovery()
 
-        resolved = resolve_dependency_urls(
+        result = resolve_dependencies(
             ["https://github.com/OCA/A.git", "https://github.com/OCA/A.git"],
-            get_oca,
+            discover,
         )
         self.assertEqual(
-            resolved,
+            result.urls,
             ["https://github.com/OCA/A.git", "https://github.com/OCA/B.git"],
         )
-
-    def test_without_oca_callback_returns_seeds_only(self):
-        resolved = resolve_dependency_urls(
-            ["https://github.com/OCA/X.git"],
-            lambda _url: [],
-        )
-        self.assertEqual(resolved, ["https://github.com/OCA/X.git"])
 
 
 class ResolveDependenciesIntegrationTests(unittest.TestCase):
@@ -413,12 +397,46 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config.env_resolver = None
 
-            resolved = self._make_env(config).links._resolve_dependencies()
+            env = self._make_env(config)
+            resolved = env.links._resolve_dependencies()
 
             self.assertEqual(resolved.urls, [url_a, url_b])
             config.handle_git_link.assert_any_call(url_a, materialize=True)
             config.handle_git_link.assert_any_call(url_b, materialize=True)
+            for call in env._links.checkout_project.call_args_list:
+                self.assertIsNot(call.args[0], config.developing_project)
+
+    def test_resolve_dependencies_reads_developing_oca_without_checkout(self):
+        with tempfile.TemporaryDirectory() as base:
+            developing = Path(base) / "developing"
+            developing.mkdir()
+            oca_url = "https://github.com/OCA/web.git"
+            (developing / "oca_dependencies.txt").write_text(
+                f"{oca_url}\n",
+                encoding="utf-8",
+            )
+
+            def handle_git_link(dependency_string, materialize=False, system_type="standart"):
+                link = MagicMock()
+                link.is_cloned = False
+                link.project_path = ""
+                return link
+
+            config = MagicMock()
+            config.dependencies = []
+            config.use_oca_dependencies = True
+            config.skip_git_update.return_value = False
+            config.developing_project = MagicMock(project_path=str(developing))
+            config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config.env_resolver = None
+
+            env = self._make_env(config)
+            resolved = env.links._resolve_dependencies()
+
+            self.assertEqual(resolved.urls, [oca_url])
+            env._links.checkout_project.assert_not_called()
 
     def test_resolve_dependencies_warns_when_dependency_not_cloned(self):
         config = MagicMock()

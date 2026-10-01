@@ -31,6 +31,6 @@ The `odoo_build_date` field or `--odoo-build-date` parameter (format `YYYYMMDD`)
 
 ## Dependencies with nested `odpm.json`
 
-With `use_oca_dependencies` enabled, odpm reads manifests in nested repositories. Odoo/Python version incompatibility with the main project: warning in developer mode, **error** in the `ci` scenario. The **host** platform repository is not replaced.
+With `use_oca_dependencies` enabled, odpm builds a transitive **git** graph from `oca_dependencies.txt` and nested `odpm.json` `dependencies`, clones those repos, and mounts them as module directories. Nested sidecar `services` and pip packages are **not** inherited — declare them on the host `odpm.json`. Odoo/Python version incompatibility with the main project: warning in developer mode, **error** in the `ci` scenario. The **host** platform repository is not replaced.
 
 See [repository links](../reference/git-links.md), [odpm.json](../reference/odpm-json.md).

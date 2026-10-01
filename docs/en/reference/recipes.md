@@ -45,7 +45,7 @@ Under `ODPM_SCENARIO=ci`, end-to-end apply via `odpm run` is **not** supported (
 
 ## Builtin: `pull-remote-db`
 
-For **`developer` / `server`**: download a zip from a remote Odoo manager and restore it into a local database.
+Shortcut for **`developer` / `server`**: **pull + `--db-restore` only**. Does not install/update modules or reset the admin password.
 
 ```bash
 export ODPM_REMOTE_DB_MASTER_PWD='…'   # remote DB manager master password
@@ -61,9 +61,32 @@ odpm run pull-remote-db -d local_copy \
 
 Requires an odpm project directory with `BACKUP_DIR` configured. A typical CI pull+restore flow is **not** a product goal.
 
+## Compose a pipeline from primitives (canonical)
+
+`odpm database pull` is a low-level step: download a zip and print its name. Further steps (**restore**, `-i`/`-u`, `--set-admin-pass`, …) belong in **shell** (or a CI job), not in one oversized `odpm run`.
+
+```bash
+export ODPM_REMOTE_DB_MASTER_PWD='…'
+ARCHIVE=$(odpm database pull \
+  --url https://client.example.com \
+  --remote-db prod)
+odpm -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
+```
+
+Two-call equivalent when the builtin restore shortcut is enough:
+
+```bash
+odpm run pull-remote-db -d test_db --url https://client.example.com --remote-db prod
+odpm -d test_db -i -u --set-admin-pass
+```
+
+Why not YAML: v1 only substitutes `${param.*}` / `${env:…}` and **cannot** feed a step’s stdout into the next argv. For archive-name chains use shell (or a custom Python recipe).
+
+See also [CLI: `database pull`](cli.md) and [database state](database-state.md).
+
 ## YAML recipes (v1)
 
-Linear steps only (no conditionals). Substitutions: `${param.name}`, `${env:VAR}`.
+Linear steps only (no conditionals). Substitutions: `${param.name}`, `${env:VAR}` — **no** previous-step stdout capture.
 
 ```yaml
 name: example-backup

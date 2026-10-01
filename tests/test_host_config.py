@@ -38,7 +38,6 @@ from dev_project.config.state import (
     UserSettingsState,
 )
 from dev_project.errors import ConfigError, PipelineError
-from dev_project.ide_stubs import odoo_stubs_pip_requirement
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.dependency_resolver import NestedOdpmFragment
 from dev_project.bake_venv import get_venv_bootstrap_packages
@@ -1017,7 +1016,7 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertTrue(config._project_loaded)
 
 
-class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
+class ConfigApplyNestedCompatibilityTests(unittest.TestCase):
     def _config(self, *, scenario: str = constants.DEVELOPER_SCENARIO) -> Config:
         config = Config.__new__(Config)
         config._user = UserSettingsState()
@@ -1030,18 +1029,6 @@ class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
         config.user_env = MagicMock()
         config.user_env.debugger_backend = "debugpy_listen"
         return config
-
-    def test_merges_transitive_requirements_and_renormalizes(self):
-        config = self._config()
-        config.apply_transitive_requirements(
-            ["openupgradelib", "requests==2.31.0"],
-        )
-        expected_debugpy = config.policy.debugpy_requirement("3.12")
-        expected_stubs = odoo_stubs_pip_requirement("17.0")
-        self.assertEqual(
-            config.requirements_txt,
-            ["requests==2.31.0", "openupgradelib", expected_debugpy, expected_stubs],
-        )
 
     def test_dev_mode_reload_adds_inotify_to_requirements(self):
         config = self._config()
@@ -1067,13 +1054,12 @@ class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
         config = self._config()
         fragment = NestedOdpmFragment(
             dependencies=[],
-            requirements_txt=[],
             odoo_version="19.0",
             python_version=None,
             source_path="/tmp/framework/odpm.json",
         )
         with self.assertLogs("dev_project.config.config", level="WARNING") as captured:
-            config.apply_transitive_requirements([], nested_fragments=[fragment])
+            config.apply_nested_compatibility([fragment])
         self.assertEqual(len(captured.output), 1)
         self.assertIn("19.0", captured.output[0])
         self.assertIn("17.0", captured.output[0])
@@ -1082,13 +1068,12 @@ class ConfigApplyTransitiveRequirementsTests(unittest.TestCase):
         config = self._config(scenario=constants.CI_SCENARIO)
         fragment = NestedOdpmFragment(
             dependencies=[],
-            requirements_txt=[],
             odoo_version="19.0",
             python_version=None,
             source_path="/tmp/framework/odpm.json",
         )
         with self.assertRaises(PipelineError):
-            config.apply_transitive_requirements([], nested_fragments=[fragment])
+            config.apply_nested_compatibility([fragment])
 
 
 if __name__ == "__main__":

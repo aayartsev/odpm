@@ -64,7 +64,6 @@ class VolumeMapperTests(unittest.TestCase):
         env.config.handle_git_link = MagicMock(return_value=dependency)
         resolution = DependencyResolutionResult(
             urls=[url],
-            transitive_requirements=[],
             nested_fragments=[],
         )
 
@@ -91,7 +90,6 @@ class VolumeMapperTests(unittest.TestCase):
         env.config.handle_git_link = MagicMock(return_value=dependency)
         resolution = DependencyResolutionResult(
             urls=[url],
-            transitive_requirements=[],
             nested_fragments=[],
         )
 

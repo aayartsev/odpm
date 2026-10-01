@@ -10,7 +10,7 @@
 |------|---------------|---------|-----------|
 | VSCode Dev Containers | запуск через docker окружение VSCode | **Отложено** — DebuggerProfile + [vscode-debug.md](docs/operations/vscode-debug.md); отдельный devcontainer spec | P3 |
 | `pip list` в odpm CLI | команда версий пакетов в venv | **Отложено** — `docker compose exec odoo pip list` / inspect venv lock | P4 |
-| Автопоиск Python-зависимостей | поиск и добавление в проект | **Отложено** — `requirements_txt` + resolver + nested `odpm.json` покрывают основной кейс | P3 |
+| Автопоиск Python-зависимостей | поиск и добавление в проект | **Отложено** — host `requirements_txt` / `requirements` покрывают основной кейс (nested pip merge убран в 4.8) | P3 |
 | Финальный production-образ | сборка контейнера со всеми исходниками | **Отложено** — horizon; CI image bake частично закрывает ci scenario | P2 |
 | pre-commit для platform | линтеры в репозитории platform | **Отложено** — вне scope odpm manager; настраивается в git platform | P4 |
 | Цветной unified diff | `odpm manifest migrate` (и опц. `plan --plan-show-diff`): `-` бледно-красный фон, `+` бледно-зелёный; auto TTY / `NO_COLOR` / `FORCE_COLOR` / `--color=auto\|always\|never`; helper в `plan/diff.py` | **Отложено** — UX; обход: `odpm manifest migrate \| delta` | P4 |
@@ -45,7 +45,7 @@
 - [x] сделать автоматический парсер зависимостей oca модулей и автоматическое их добавление к проекту
 - [x] dev_mode: при `reload`/`all` в venv автоматически добавляется `inotify`, используется только в сценарии `developer` (`ScenarioPolicy.apply_dev_mode`); на server/ci — warning и параметр игнорируется
 - [x] архитектура: single-pass resolver зависимостей (OCA `oca_dependencies.txt` — `dependency_resolver.py`, `map_folders()` использует `_resolve_dependencies()`)
-- [x] dependency resolver: если в git-зависимости из `odpm.json` → `dependencies` есть репозиторий с `odpm.json` в корне, после clone/checkout читать оттуда `dependencies` и `requirements_txt` (по аналогии с `oca_dependencies.txt`), добавлять в resolver graph и merge Python requirements; проверять совместимость `odoo_version`, `python_version` и др. с host-проектом (warn/fail), **без** подмены platform/`odoo_git_link`; transitive URLs попадают в `.odpm/deps.lock.json` при `--update-lock`
+- [x] dependency resolver: если в git-зависимости из `odpm.json` → `dependencies` есть репозиторий с `odpm.json` в корне, после clone/checkout читать оттуда `dependencies` (по аналогии с `oca_dependencies.txt`), добавлять в resolver graph; проверять совместимость `odoo_version` / `python` с host-проектом (warn/fail), **без** подмены platform/`odoo_git_link` и **без** наследования nested `services` / `requirements_txt` (sources-only с 4.8); transitive URLs попадают в `.odpm/deps.lock.json` при `--update-lock`
 - [x] проработать вариант использования ссылок на переменные окружения в файлах конфигурации (`odpm.json`, `user_settings.json`; nested `odpm.json`; `${VAR}` в whitelist, `deps.lock` — resolved URL)
 - [x] автогенерация `python.analysis.extraPaths` в `.vscode/settings.json` из графа platform/developing/dependencies (Pylance)
 - [x] автоустановка `odoo-stubs` в сценарии developer (git-пин odoo-ide/odoo-stubs; Odoo ≥ 19 пропуск)

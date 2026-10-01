@@ -1,4 +1,4 @@
-"""Integration tests for nested odpm.json discovery: lock, requirements, CI strict."""
+"""Integration tests for nested odpm.json discovery: lock, sources-only, CI strict."""
 
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
     config.user_env.debugger_backend = "debugpy_listen"
     config.arguments = OdpmCliArgs(no_git_update=False)
     config.skip_git_update = Config.skip_git_update.__get__(config, Config)
-    config.apply_transitive_requirements = Config.apply_transitive_requirements.__get__(
+    config.apply_nested_compatibility = Config.apply_nested_compatibility.__get__(
         config, Config
     )
     config._docker = DockerLayoutState(
@@ -126,6 +126,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
                     {
                         "dependencies": [nested_url],
                         "requirements_txt": ["openupgradelib"],
+                        "services": {"mailpit": {"image": "axllent/mailpit"}},
                     }
                 ),
             )
@@ -147,8 +148,8 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
             result = links._resolve_dependencies()
 
             self.assertEqual(result.urls, [framework_url, nested_url])
-            self.assertEqual(result.transitive_requirements, ["openupgradelib"])
             self.assertEqual(len(result.nested_fragments), 1)
+            self.assertEqual(result.nested_fragments[0].dependencies, [nested_url])
 
     def test_collect_lock_includes_nested_transitive_dependency(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -189,7 +190,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
             self.assertIn(canonical_repo_url(framework_url), locked_urls)
             self.assertIn(canonical_repo_url(nested_url), locked_urls)
 
-    def test_map_folders_merges_requirements_into_runtime_config(self):
+    def test_map_folders_does_not_merge_nested_requirements_into_runtime_config(self):
         config = _map_folders_config_stub()
         url = "https://github.com/acme/A.git"
         dependency = MagicMock(
@@ -205,7 +206,6 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
                 urls=[url],
-                transitive_requirements=["openupgradelib"],
                 nested_fragments=[],
             )
         )
@@ -217,7 +217,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
             links.map_folders()
             payload = json.loads(config_to_json(config).decode("utf-8"))
 
-        self.assertIn("openupgradelib", payload["requirements_txt"])
+        self.assertNotIn("openupgradelib", payload["requirements_txt"])
         self.assertIn("requests==2.31.0", payload["requirements_txt"])
 
     def test_map_folders_ci_nested_version_mismatch_raises_pipeline_error(self):
@@ -236,11 +236,9 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
                 urls=[url],
-                transitive_requirements=[],
                 nested_fragments=[
                     NestedOdpmFragment(
                         dependencies=[],
-                        requirements_txt=[],
                         odoo_version="19.0",
                         python_version=None,
                         source_path="/tmp/framework/odpm.json",

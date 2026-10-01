@@ -1,6 +1,6 @@
 # ADR-004: Plugin API stability (4.5)
 
-**Status:** accepted (4.5-dev). **Amended** for 4.6 debt closure slice D4 (API 1.1).  
+**Status:** accepted (4.5-dev). **Amended** for 4.6 debt closure slice D4 (API 1.1). **Amended** for 4.8: nested dep compose inherit removed (sources-only).  
 **Date:** 2026-06-22
 
 ## Context
@@ -25,7 +25,7 @@ Phase P (Plugins 2.0) adds project-local plugins, plan integration, and addition
 |----------|-------|
 | Load-time API check | `validate_pluggy_manager_plugins()` after entry-point load; local plugins after `exec_module` |
 | `compose_service_patches(ctx)` | Optional on `ComposeFragmentPlugin`; merged after manifest `service_patches` |
-| Nested dep compose inherit | v2 `services` / `service_patches` from dependency `odpm.json` merged in `apply_transitive_requirements`; **host manifest wins** on name conflict |
+| Nested dep compose inherit | **Removed in 4.8** — nested `odpm.json` is sources-only (git URLs + version compat); declare sidecars on the **host** manifest or via plugins |
 | `sample_plugin` | Contract fixture for sidecar + `service_patches` |
 
 ### Semver policy

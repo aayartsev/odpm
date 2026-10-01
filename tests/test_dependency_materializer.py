@@ -26,7 +26,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             resolved.urls,
             ["https://github.com/OCA/partner-contact.git"],
         )
-        self.assertEqual(resolved.transitive_requirements, [])
+        self.assertEqual(resolved.nested_fragments, [])
         checkout_fn.assert_not_called()
 
     def test_resolve_skips_discovery_when_oca_disabled(self):
@@ -41,18 +41,49 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
         self.assertEqual(resolved.urls, config.dependencies)
         checkout_fn.assert_not_called()
 
-    def test_apply_to_config_updates_dependencies_and_requirements(self):
+    def test_resolve_reads_developing_oca_without_checkout(self):
+        with tempfile.TemporaryDirectory() as base:
+            developing = Path(base) / "developing"
+            developing.mkdir()
+            oca_url = "https://github.com/OCA/web.git"
+            (developing / "oca_dependencies.txt").write_text(
+                f"{oca_url}\n",
+                encoding="utf-8",
+            )
+
+            def handle_git_link(dependency_string, materialize=False):
+                link = MagicMock()
+                # Transitive clone is out of scope: only assert developing is not checked out.
+                link.is_cloned = False
+                link.project_path = ""
+                return link
+
+            config = MagicMock()
+            config.dependencies = []
+            config.use_oca_dependencies = True
+            config.skip_git_update.return_value = False
+            config.developing_project = MagicMock(project_path=str(developing))
+            config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            checkout_fn = MagicMock()
+
+            resolved = DependencyMaterializer(
+                config,
+                checkout_fn=checkout_fn,
+            ).resolve()
+
+            self.assertEqual(resolved.urls, [oca_url])
+            checkout_fn.assert_not_called()
+
+    def test_apply_to_config_updates_dependencies_and_compatibility(self):
         config = MagicMock()
         fragment = NestedOdpmFragment(
             dependencies=[],
-            requirements_txt=["requests"],
             odoo_version="17.0",
             python_version="3.12",
             source_path="/tmp/odpm.json",
         )
         resolution = DependencyResolutionResult(
             urls=["https://github.com/acme/A.git", "https://github.com/acme/B.git"],
-            transitive_requirements=["requests"],
             nested_fragments=[fragment],
         )
 
@@ -61,16 +92,12 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
         )
 
         self.assertEqual(config.dependencies, resolution.urls)
-        config.apply_transitive_requirements.assert_called_once_with(
-            ["requests"],
-            nested_fragments=[fragment],
-        )
+        config.apply_nested_compatibility.assert_called_once_with([fragment])
 
-    def test_apply_to_config_skips_requirements_when_empty(self):
+    def test_apply_to_config_skips_compatibility_when_no_fragments(self):
         config = MagicMock()
         resolution = DependencyResolutionResult(
             urls=["https://github.com/acme/A.git"],
-            transitive_requirements=[],
             nested_fragments=[],
         )
 
@@ -79,7 +106,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
         )
 
         self.assertEqual(config.dependencies, resolution.urls)
-        config.apply_transitive_requirements.assert_not_called()
+        config.apply_nested_compatibility.assert_not_called()
 
 
 class DependencyMaterializerDiscoveryTests(unittest.TestCase):
@@ -94,6 +121,7 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
                     {
                         "dependencies": ["https://github.com/acme/B.git"],
                         "requirements_txt": ["openupgradelib"],
+                        "services": {"mailpit": {"image": "axllent/mailpit"}},
                     }
                 ),
                 encoding="utf-8",
@@ -131,7 +159,11 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
             ).resolve()
 
             self.assertEqual(result.urls, [url_a, url_b])
-            self.assertEqual(result.transitive_requirements, ["openupgradelib"])
+            self.assertEqual(len(result.nested_fragments), 1)
+            self.assertEqual(
+                result.nested_fragments[0].dependencies,
+                [url_b],
+            )
             config.handle_git_link.assert_any_call(url_a, materialize=True)
             checkout_fn.assert_called()
 

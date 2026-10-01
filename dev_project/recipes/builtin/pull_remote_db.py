@@ -14,7 +14,8 @@ class PullRemoteDbRecipe:
     description = (
         "Download a zip from a remote Odoo manager into BACKUP_DIR, then "
         "odpm --db-restore into a local database (developer/server; "
-        "set ODPM_REMOTE_DB_MASTER_PWD)."
+        "set ODPM_REMOTE_DB_MASTER_PWD). Does not run -i/-u or "
+        "--set-admin-pass — compose those in shell after pull/restore."
     )
 
     def __init__(self) -> None:

@@ -8,14 +8,19 @@
 
 ## [Unreleased]
 
+### Ломающие изменения
+
+- **Nested deps = только исходники** — при `use_oca_dependencies` nested `odpm.json` больше не наследует `services` / `service_patches` в host compose и не мержит nested top-level `requirements_txt` в venv. Discovery даёт только **git URL** (+ проверки совместимости версий); sidecar’ы и pip объявляйте в **host** `odpm.json` (или плагинах). Удалены `nested_compose.py` и legacy `resolve_dependency_urls`. Миграция: перенести нужные sidecar/`requirements` в потребительский проект. Тесты: `test_dependency_resolver`, `test_nested_odpm_integration`, `test_extension_api_d4`. Документация: `plugins.md`, `user-settings.md`, `platform-fork.md`, ADR-004/009.
+
 ### Добавлено
 
-- **Remote DB pull** — `odpm database pull` скачивает zip с удалённого Odoo `/web/database/backup` в `BACKUP_DIR` (master password только через env `ODPM_REMOTE_DB_MASTER_PWD`). Builtin-рецепт `odpm run pull-remote-db` склеивает pull и `--db-restore`. HTTP-хелпер: `dev_project/tools/http_download.py`. Для developer/server. Документация: `cli.md`, `recipes.md`. Тесты: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
+- **Remote DB pull** — `odpm database pull` скачивает zip с удалённого Odoo `/web/database/backup` в `BACKUP_DIR` (master password только через env `ODPM_REMOTE_DB_MASTER_PWD`). Builtin `odpm run pull-remote-db` — только shortcut pull+restore; полный пайплайн (restore + `-i`/`-u`/`--set-admin-pass`) собирается в shell из примитива pull. HTTP-хелпер: `dev_project/tools/http_download.py`. Для developer/server. Документация: `cli.md`, `recipes.md`. Тесты: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **UX remote pull** — preflight `/web/database/list` (БД найдена / нет); логи auth OK и старта загрузки; heartbeat прогресса через logger; у recipe `capture` stderr остаётся live (pipe только stdout). Тесты: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **Линия dev + git stamp в `--version`** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` остаётся `4.7.0`). `odpm --version` печатает `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` из git-checkout; установленные пакеты без `.git` — только номер. CI/docs и `mkdocs` `edit_uri` → `4.8.0-dev`. Документация: `release-lines.md`, `packaging.md`. Тесты: `test_version_info`, `test_release_packaging`.
 
 ### Исправлено
 
+- **OCA discovery больше не делает checkout developing** — при `use_oca_dependencies` чтение `oca_dependencies.txt` из developing больше не вызывает `checkout_repository` (раньше дерево уезжало на ветку `odoo_version`). Ветку/коммит оставляет разработчик; checkout по-прежнему через `_should_checkout_developing` (явный `#branch`/`@commit` или pin lock в ci/server). Тесты: `test_dependency_materializer`.
 - **Голый `odpm` из `$HOME`** — `~/.odpm` (домашний конфиг) больше не считается project service directory: вместо `TypeError` в `get_developing_project_link` показывается обычное сообщение «это не каталог odpm». Защита: без `--init` / `developing_project` — `ConfigError`. Тесты: `test_phase2_infra`, `test_host_config`.
 
 ## [4.7.0] - 2026-09-28

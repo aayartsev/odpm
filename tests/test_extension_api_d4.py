@@ -1,4 +1,4 @@
-"""D4 plugin API 1.1 and nested compose inheritance tests."""
+"""D4 plugin API 1.1 tests (nested compose inherit removed in 4.8)."""
 
 from __future__ import annotations
 
@@ -11,16 +11,13 @@ from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.compose.fragments import collect_compose_services, collect_service_patches
-from dev_project.dependency_resolver import NestedOdpmFragment, read_nested_odpm_fragment
+from dev_project.dependency_resolver import read_nested_odpm_fragment
 from dev_project.errors import ConfigError
 from dev_project.extensions.api import EXTENSION_API_VERSION, assert_extension_api_compatible
 from dev_project.extensions.context import ExtensionHostContext
 from dev_project.extensions.loader import resolve_plugin_api_version, validate_plugin_api
 from dev_project.extensions.registry import reset_extension_registry_state
-from dev_project.manifest.nested_compose import inherit_nested_compose_into_manifest
-from dev_project.manifest.reader import load_manifest
 from tests.fixtures.sample_plugin import sample_odpm_plugin
-from tests.test_manifest_v2_reader import _minimal_v2
 from dev_project.extensions.local import reset_local_plugins_state
 from dev_project.extensions.local import load_project_local_plugins
 
@@ -71,78 +68,19 @@ class SamplePluginPatchTests(unittest.TestCase):
         self.assertIn("mailpit", services)
 
 
-class NestedComposeInheritTests(unittest.TestCase):
-    def test_read_nested_fragment_extracts_services(self) -> None:
+class NestedSourcesOnlyRegressionTests(unittest.TestCase):
+    def test_nested_services_only_manifest_is_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
             manifest_path = os.path.join(project_dir, constants.PROJECT_CONFIG_FILE_NAME)
             with open(manifest_path, "w", encoding="utf-8") as handle:
                 json.dump(
-                    _minimal_v2(
-                        services={"mailpit": {"image": "axllent/mailpit"}},
-                    ),
+                    {
+                        "services": {"mailpit": {"image": "axllent/mailpit"}},
+                        "requirements_txt": ["openupgradelib"],
+                    },
                     handle,
                 )
-            fragment = read_nested_odpm_fragment(project_dir)
-            self.assertIsNotNone(fragment)
-            assert fragment is not None
-            self.assertIn("mailpit", fragment.services or {})
-
-    def test_host_manifest_wins_over_nested_services(self) -> None:
-        config = MagicMock()
-        host_view = load_manifest(
-            _minimal_v2(
-                services={"mailpit": {"image": "host/mailpit:custom"}},
-            )
-        )
-        config.bootstrap.manifest_view = host_view
-        config.bootstrap.raw_odpm_json = dict(host_view.raw_normalized)
-        nested = NestedOdpmFragment(
-            dependencies=[],
-            requirements_txt=[],
-            odoo_version=None,
-            python_version=None,
-            source_path="/tmp/dep/odpm.json",
-            services={"mailpit": {"image": "nested/mailpit"}},
-        )
-        inherit_nested_compose_into_manifest(config, [nested])
-        view = config.bootstrap.manifest_view
-        self.assertIsNotNone(view)
-        assert view is not None
-        self.assertEqual(view.services["mailpit"]["image"], "host/mailpit:custom")
-
-    def test_nested_service_patches_merge_before_host(self) -> None:
-        config = MagicMock()
-        host_view = load_manifest(
-            _minimal_v2(
-                service_patches={
-                    "odoo": {"environment": {"HOST_ONLY": "1"}},
-                }
-            )
-        )
-        config.bootstrap.manifest_view = host_view
-        config.bootstrap.raw_odpm_json = dict(host_view.raw_normalized)
-        nested = NestedOdpmFragment(
-            dependencies=[],
-            requirements_txt=[],
-            odoo_version=None,
-            python_version=None,
-            source_path="/tmp/dep/odpm.json",
-            service_patches={
-                "odoo": {"environment": {"NESTED_ONLY": "1"}},
-            },
-        )
-        inherit_nested_compose_into_manifest(config, [nested])
-        env = config.bootstrap.manifest_view.service_patches["odoo"]["environment"]
-        if isinstance(env, list):
-            env_map = {
-                item.split("=", 1)[0]: item.split("=", 1)[1]
-                for item in env
-                if isinstance(item, str) and "=" in item
-            }
-        else:
-            env_map = dict(env)
-        self.assertEqual(env_map["HOST_ONLY"], "1")
-        self.assertEqual(env_map["NESTED_ONLY"], "1")
+            self.assertIsNone(read_nested_odpm_fragment(project_dir))
 
 
 class LocalPluginApiValidationTests(unittest.TestCase):

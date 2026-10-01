@@ -36,13 +36,14 @@ class DependencyMaterializer:
         if self.config.skip_git_update() or not self.config.use_oca_dependencies:
             return DependencyResolutionResult(
                 urls=seed_urls,
-                transitive_requirements=[],
                 nested_fragments=[],
             )
 
+        # Read developing tree as-is: developer owns the branch/commit.
+        # Full checkout belongs to ProjectLinks._should_checkout_developing
+        # (explicit #branch/@commit, or CI/server lock pin) — not OCA discovery.
         initial_extra_urls: list[str] = []
         if self.config.developing_project.project_path:
-            self._checkout_fn(self.config.developing_project)
             initial_extra_urls = read_oca_dependency_urls(
                 self.config.developing_project.project_path
             )
@@ -75,7 +76,6 @@ class DependencyMaterializer:
             nested = read_nested_odpm_fragment(
                 project.project_path,
                 resolver=self.config.env_resolver,
-                active_scenario=self.config.user_env.odpm_scenario,
             )
             if nested is None:
                 return DependencyDiscovery(urls=urls)
@@ -88,7 +88,6 @@ class DependencyMaterializer:
                 merged_urls.append(dependency_url)
             return DependencyDiscovery(
                 urls=merged_urls,
-                requirements=list(nested.requirements_txt),
                 nested_fragment=nested,
             )
         finally:
@@ -96,8 +95,5 @@ class DependencyMaterializer:
 
     def apply_to_config(self, resolution: DependencyResolutionResult) -> None:
         self.config.dependencies = resolution.urls
-        if resolution.transitive_requirements or resolution.nested_fragments:
-            self.config.apply_transitive_requirements(
-                resolution.transitive_requirements,
-                nested_fragments=resolution.nested_fragments,
-            )
+        if resolution.nested_fragments:
+            self.config.apply_nested_compatibility(resolution.nested_fragments)

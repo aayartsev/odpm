@@ -20,7 +20,7 @@
 | `db_manager_password` | Пароль менеджера баз Odoo (на `hardened` — обычно `${@secret:odpm.db_manager_password}`; см. [безопасность](../operations/security.md)) |
 | `sql_queries` | Список SQL для `--sql-execute` |
 | `pre_commit_map_files` | Файлы для pre-commit при работе не на Linux |
-| `use_oca_dependencies` | Расширенный разбор OCA и вложенных `odpm.json` (по умолчанию `false`) |
+| `use_oca_dependencies` | Транзитивный git-граф из `oca_dependencies.txt` и nested `odpm.json` (`dependencies` + проверка версий); без наследования pip/`services` (по умолчанию `false`) |
 | `create_module_links` | Символические ссылки для редактора (по умолчанию `false`) |
 | `sidecars` | Локальные переключатели compose-sidecar: имя → `true`/`false`. `false` исключает сервис из plan, fragments и `docker-compose.yml`; отсутствие ключа или `true` — оставить. Нельзя указывать `db`/`odoo`. После смены — `odpm --skip-start`. См. ниже |
 

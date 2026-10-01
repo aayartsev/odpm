@@ -22,7 +22,7 @@ The file describes **how to work** with an already defined stack (`odpm.json`): 
 | `db_manager_password` | Odoo database manager password (on `hardened` usually `${@secret:odpm.db_manager_password}`; see [security](../operations/security.md)) |
 | `sql_queries` | SQL list for `--sql-execute` |
 | `pre_commit_map_files` | Files for pre-commit when not on Linux |
-| `use_oca_dependencies` | Extended OCA and nested `odpm.json` resolution (default `false`) |
+| `use_oca_dependencies` | Transitive git graph from `oca_dependencies.txt` and nested `odpm.json` (`dependencies` + version checks); no pip/`services` inherit (default `false`) |
 | `create_module_links` | Symbolic links for the editor (default `false`) |
 | `sidecars` | Local compose-sidecar toggles: name → `true`/`false`. `false` drops the service from plan, fragments, and `docker-compose.yml`; missing key or `true` keeps it. Cannot list `db`/`odoo`. After change — `odpm --skip-start`. See below |
 

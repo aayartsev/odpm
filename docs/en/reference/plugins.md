@@ -236,10 +236,6 @@ def compose_service_patches(self, ctx: ExtensionHostContext) -> dict:
     return {"odoo": {"environment": {"MY_FLAG": "1"}}}
 ```
 
-### Nested dependency `services` (4.6+)
-
-With `use_oca_dependencies`, v2 `services` / `service_patches` from dependency `odpm.json` files are inherited into host compose after `project.map_folders`. On name conflict the **host manifest wins**. See [ADR-004](https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md).
-
 ## Python plugin: prepare step
 
 ```toml

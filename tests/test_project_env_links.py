@@ -154,7 +154,6 @@ class ProjectLinksDependencyTests(unittest.TestCase):
             resolved.urls,
             ["https://github.com/OCA/partner-contact.git"],
         )
-        self.assertEqual(resolved.transitive_requirements, [])
         self.assertEqual(resolved.nested_fragments, [])
 
 
@@ -203,12 +202,13 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config.env_resolver = None
 
             result = self._make_links(config)._resolve_dependencies()
 
             self.assertEqual(result.urls, [url_a, url_b])
-            self.assertEqual(result.transitive_requirements, ["openupgradelib"])
             self.assertEqual(len(result.nested_fragments), 1)
+            self.assertEqual(result.nested_fragments[0].dependencies, [url_b])
             config.handle_git_link.assert_any_call(url_a, materialize=True)
 
     def test_discover_dependency_extensions_merges_oca_and_nested_urls(self):
@@ -245,11 +245,12 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config.env_resolver = None
 
             result = self._make_links(config)._resolve_dependencies()
 
             self.assertEqual(result.urls, [url_a, url_b, url_c])
-            self.assertEqual(result.transitive_requirements, ["requests"])
+            self.assertEqual(len(result.nested_fragments), 1)
 
     def test_discover_dependency_extensions_skips_materialize_when_no_git_update(self):
         config = MagicMock()
@@ -303,7 +304,6 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
                 urls=[url],
-                transitive_requirements=[],
                 nested_fragments=[],
             )
         )
@@ -312,11 +312,10 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
 
         config.handle_git_link.assert_called_once_with(url, materialize=False)
 
-    def test_map_folders_applies_transitive_requirements_from_resolution(self):
+    def test_map_folders_applies_nested_compatibility_from_resolution(self):
         url = "https://github.com/acme/A.git"
         fragment = NestedOdpmFragment(
             dependencies=[],
-            requirements_txt=["openupgradelib"],
             odoo_version="17.0",
             python_version="3.12",
             source_path="/tmp/framework/odpm.json",
@@ -344,7 +343,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         config.dependencies_dirs = []
         config.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
-        config.apply_transitive_requirements = MagicMock()
+        config.apply_nested_compatibility = MagicMock()
         dependency = MagicMock(
             is_cloned=True,
             project_path="/tmp/dep",
@@ -360,19 +359,15 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
                 urls=[url],
-                transitive_requirements=["openupgradelib"],
                 nested_fragments=[fragment],
             )
         )
 
         links.map_folders()
 
-        config.apply_transitive_requirements.assert_called_once_with(
-            ["openupgradelib"],
-            nested_fragments=[fragment],
-        )
+        config.apply_nested_compatibility.assert_called_once_with([fragment])
 
-    def test_map_folders_skips_apply_when_resolution_has_no_transitive_data(self):
+    def test_map_folders_skips_apply_when_resolution_has_no_nested_fragments(self):
         url = "https://github.com/acme/A.git"
         config = MagicMock()
         config.use_oca_dependencies = False
@@ -397,7 +392,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         config.dependencies_dirs = []
         config.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
-        config.apply_transitive_requirements = MagicMock()
+        config.apply_nested_compatibility = MagicMock()
         dependency = MagicMock(
             is_cloned=True,
             project_path="/tmp/dep",
@@ -413,14 +408,13 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
                 urls=[url],
-                transitive_requirements=[],
                 nested_fragments=[],
             )
         )
 
         links.map_folders()
 
-        config.apply_transitive_requirements.assert_not_called()
+        config.apply_nested_compatibility.assert_not_called()
 
 
 class ProjectLinksUpdateTests(unittest.TestCase):

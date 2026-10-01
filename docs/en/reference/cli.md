@@ -93,11 +93,19 @@ ODPM_REMOTE_DB_MASTER_PWD='…' odpm database pull --url https://client.example.
 | `database ensure-role` | Create or update the application role in running PostgreSQL |
 | `database pull` | Download a zip from `{URL}/web/database/backup` into `BACKUP_DIR` (password only via env `ODPM_REMOTE_DB_MASTER_PWD`) |
 
-`database pull` needs an odpm project with `BACKUP_DIR` in `.env`; compose up is not required for the download itself. It first calls `/web/database/list` when available to verify `--remote-db` exists, then requests the backup with logs for auth success, download start, and MiB progress heartbeats. stdout prints only the archive file name. Intended for **developer** / **server**, not typical CI.
+`database pull` is a **primitive**: needs an odpm project with `BACKUP_DIR` in `.env`; compose up is not required for the download. It calls `/web/database/list` when available, then the backup; auth/progress logs go to stderr, **stdout is only the archive file name** (basename under `BACKUP_DIR`). Compose further steps yourself (shell / CI), for example:
+
+```bash
+export ODPM_REMOTE_DB_MASTER_PWD='…'
+ARCHIVE=$(odpm database pull --url https://client.example.com --remote-db prod)
+odpm -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
+```
+
+Shortcut for pull+restore without custom steps: builtin [`odpm run pull-remote-db`](recipes.md#builtin-pull-remote-db). YAML recipes **cannot** substitute a previous step’s stdout — use shell for archive-name chains. Intended for **developer** / **server**, not typical CI.
 
 Flag **`--accept-database-drift=KIND`** (repeatable) — accept drift without an interactive prompt. KIND: `data_path`, `postgres_major`, `app_role_missing`, `odpm_scenario`, `data_dir_empty_changed`.
 
-Local cluster details: [PostgreSQL state and drift](database-state.md). Remote pull + restore: [recipes](recipes.md) (`pull-remote-db`).
+Local cluster details: [PostgreSQL state and drift](database-state.md). Remote pull: [recipes](recipes.md) (primitive + `pull-remote-db`).
 
 ## `manifest` subcommand
 
