@@ -2088,7 +2088,7 @@
 <h2 id="nightly-builds-and-commit-date">Nightly builds and commit date<a class="headerlink" href="#nightly-builds-and-commit-date" title="Permanent link">&para;</a></h2>
 <p>The <code>odoo_build_date</code> field or <code>--odoo-build-date</code> parameter (format <code>YYYYMMDD</code>) selects which commit on the platform branch to take "as of end of that day". Not applied if the link already pins a commit hash.</p>
 <h2 id="dependencies-with-nested-odpmjson">Dependencies with nested <code>odpm.json</code><a class="headerlink" href="#dependencies-with-nested-odpmjson" title="Permanent link">&para;</a></h2>
-<p>With <code>use_oca_dependencies</code> enabled, odpm reads manifests in nested repositories. Odoo/Python version incompatibility with the main project: warning in developer mode, <strong>error</strong> in the <code>ci</code> scenario. The <strong>host</strong> platform repository is not replaced.</p>
+<p>With <code>use_oca_dependencies</code> enabled, odpm builds a transitive <strong>git</strong> graph from <code>oca_dependencies.txt</code> and nested <code>odpm.json</code> <code>dependencies</code>, clones those repos, and mounts them as module directories. Nested sidecar <code>services</code> and pip packages are <strong>not</strong> inherited — declare them on the host <code>odpm.json</code>. Odoo/Python version incompatibility with the main project: warning in developer mode, <strong>error</strong> in the <code>ci</code> scenario. The <strong>host</strong> platform repository is not replaced.</p>
 <p>See <a href="../../reference/git-links/">repository links</a>, <a href="../../reference/odpm-json/">odpm.json</a>.</p>
 
 

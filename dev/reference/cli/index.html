@@ -2408,9 +2408,14 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </tr>
 </tbody>
 </table>
-<p><code>database pull</code> нужен каталог проекта odpm с <code>BACKUP_DIR</code> в <code>.env</code>; compose up для самого download не требуется. Сначала вызывается <code>/web/database/list</code> (если доступен) — проверка, что <code>--remote-db</code> есть на сервере; затем backup: логи «auth OK» / «download started» и heartbeat прогресса. На stdout печатается только имя архива. Предназначено для сценариев <strong>developer</strong> / <strong>server</strong>, не для типичного CI.</p>
+<p><code>database pull</code> — <strong>примитив</strong>: нужен каталог проекта odpm с <code>BACKUP_DIR</code> в <code>.env</code>; compose up для download не требуется. Сначала <code>/web/database/list</code> (если доступен), затем backup; логи auth/progress — в stderr, <strong>на stdout только имя архива</strong> (basename в <code>BACKUP_DIR</code>). Дальше пайплайн собираете сами (shell / CI), например:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span>
+<span class="nv">ARCHIVE</span><span class="o">=</span><span class="k">$(</span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod<span class="k">)</span>
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+</code></pre></div>
+<p>Shortcut pull+restore без своих шагов: builtin <a href="../recipes/#builtin-pull-remote-db"><code>odpm run pull-remote-db</code></a>. YAML-рецепты <strong>не</strong> подставляют stdout предыдущего шага — для цепочек с именем архива используйте shell. Предназначено для <strong>developer</strong> / <strong>server</strong>, не для типичного CI.</p>
 <p>Флаг <strong><code>--accept-database-drift=KIND</code></strong> (повторяемый) — принять drift без интерактивного prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
-<p>Подробнее о локальном кластере: <a href="../database-state/">состояние PostgreSQL и drift</a>. Remote pull + restore: <a href="../recipes/">рецепты</a> (<code>pull-remote-db</code>).</p>
+<p>Подробнее о локальном кластере: <a href="../database-state/">состояние PostgreSQL и drift</a>. Remote pull: <a href="../recipes/">рецепты</a> (примитив + <code>pull-remote-db</code>).</p>
 <h2 id="modules">Подкоманда <code>modules</code><a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
 <p>Списки модулей для <code>-i</code>/<code>-u</code> из git-истории developing и маркер последнего apply:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>modules<span class="w"> </span>diff

@@ -2085,7 +2085,7 @@
 <h2 id="_2">Ночные сборки и дата коммита<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>Поле <code>odoo_build_date</code> или параметр <code>--odoo-build-date</code> (формат <code>ГГГГММДД</code>) указывают, какой коммит на ветке платформы взять «на конец этого дня». Не применяется, если в ссылке уже зафиксирован хеш коммита.</p>
 <h2 id="odpmjson_1">Зависимости с вложенным <code>odpm.json</code><a class="headerlink" href="#odpmjson_1" title="Permanent link">&para;</a></h2>
-<p>При включённом <code>use_oca_dependencies</code> odpm читает описания во вложенных репозиториях. Несовместимость версий Odoo/Python с основным проектом: предупреждение в режиме разработчика, <strong>ошибка</strong> в сценарии <code>ci</code>. Репозиторий платформы <strong>хоста</strong> при этом не подменяется.</p>
+<p>При включённом <code>use_oca_dependencies</code> odpm строит транзитивный <strong>git</strong>-граф из <code>oca_dependencies.txt</code> и поля <code>dependencies</code> во вложенных <code>odpm.json</code>, клонирует репозитории и монтирует их как каталоги модулей. Sidecar-сервисы и pip-пакеты из nested-манифестов <strong>не</strong> наследуются — объявляйте их в host <code>odpm.json</code>. Несовместимость версий Odoo/Python с основным проектом: предупреждение в режиме разработчика, <strong>ошибка</strong> в сценарии <code>ci</code>. Репозиторий платформы <strong>хоста</strong> при этом не подменяется.</p>
 <p>См. <a href="../../reference/git-links/">ссылки на репозитории</a>, <a href="../../reference/odpm-json/">odpm.json</a>.</p>
 
 

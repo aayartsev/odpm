@@ -1728,17 +1728,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#nested-dependency-services-46" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nested dependency services (4.6+)
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -2271,17 +2260,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#nested-dependency-services-46" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nested dependency services (4.6+)
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -2588,8 +2566,6 @@
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">compose_service_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ExtensionHostContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">"odoo"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"environment"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"MY_FLAG"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">}}}</span>
 </code></pre></div>
-<h3 id="nested-dependency-services-46">Nested dependency <code>services</code> (4.6+)<a class="headerlink" href="#nested-dependency-services-46" title="Permanent link">&para;</a></h3>
-<p>При <code>use_oca_dependencies</code> v2 <code>services</code> / <code>service_patches</code> из <code>odpm.json</code> зависимостей наследуются в host compose после <code>project.map_folders</code>. При конфликте имён <strong>побеждает host manifest</strong>. См. <a href="https://github.com/aayartsev/odpm/blob/4.6.0-dev/docs/contributing/adr-004-plugin-api-stability.md">ADR-004</a>.</p>
 <h2 id="python-prepare-step">Python-плагин: prepare step<a class="headerlink" href="#python-prepare-step" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="k">[project.entry-points.</span><span class="s2">"odpm.prepare_steps"</span><span class="k">]</span>
 <span class="n">my_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"my_odpm_plugin.steps:plugin_factory"</span>

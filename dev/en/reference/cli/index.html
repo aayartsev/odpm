@@ -2433,9 +2433,14 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </tr>
 </tbody>
 </table>
-<p><code>database pull</code> needs an odpm project with <code>BACKUP_DIR</code> in <code>.env</code>; compose up is not required for the download itself. It first calls <code>/web/database/list</code> when available to verify <code>--remote-db</code> exists, then requests the backup with logs for auth success, download start, and MiB progress heartbeats. stdout prints only the archive file name. Intended for <strong>developer</strong> / <strong>server</strong>, not typical CI.</p>
+<p><code>database pull</code> is a <strong>primitive</strong>: needs an odpm project with <code>BACKUP_DIR</code> in <code>.env</code>; compose up is not required for the download. It calls <code>/web/database/list</code> when available, then the backup; auth/progress logs go to stderr, <strong>stdout is only the archive file name</strong> (basename under <code>BACKUP_DIR</code>). Compose further steps yourself (shell / CI), for example:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span>
+<span class="nv">ARCHIVE</span><span class="o">=</span><span class="k">$(</span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod<span class="k">)</span>
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+</code></pre></div>
+<p>Shortcut for pull+restore without custom steps: builtin <a href="../recipes/#builtin-pull-remote-db"><code>odpm run pull-remote-db</code></a>. YAML recipes <strong>cannot</strong> substitute a previous step’s stdout — use shell for archive-name chains. Intended for <strong>developer</strong> / <strong>server</strong>, not typical CI.</p>
 <p>Flag <strong><code>--accept-database-drift=KIND</code></strong> (repeatable) — accept drift without an interactive prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
-<p>Local cluster details: <a href="../database-state/">PostgreSQL state and drift</a>. Remote pull + restore: <a href="../recipes/">recipes</a> (<code>pull-remote-db</code>).</p>
+<p>Local cluster details: <a href="../database-state/">PostgreSQL state and drift</a>. Remote pull: <a href="../recipes/">recipes</a> (primitive + <code>pull-remote-db</code>).</p>
 <h2 id="manifest-subcommand"><code>manifest</code> subcommand<a class="headerlink" href="#manifest-subcommand" title="Permanent link">&para;</a></h2>
 <p>Migrate <code>odpm.json</code> between schema versions:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>manifest<span class="w"> </span>migrate

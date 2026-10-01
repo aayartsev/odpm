@@ -1938,6 +1938,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Сборка пайплайна из примитивов (канон)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yaml-v1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1949,7 +1960,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Модель выполнения
@@ -2044,7 +2055,7 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 <h3 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h3>
 <p>В <code>ODPM_SCENARIO=ci</code> end-to-end apply через <code>odpm run</code> <strong>не</strong> поддерживается (дочерний <code>odpm -d -i/-u</code> не в CI allowlist). В CI используйте <code>odpm modules diff</code>; apply выполняйте на server.</p>
 <h2 id="builtin-pull-remote-db">Builtin: <code>pull-remote-db</code><a class="headerlink" href="#builtin-pull-remote-db" title="Permanent link">&para;</a></h2>
-<p>Для сценариев <strong><code>developer</code> / <code>server</code></strong>: скачать zip с удалённого Odoo manager и восстановить в локальную БД.</p>
+<p>Shortcut для <strong><code>developer</code> / <code>server</code></strong>: только <strong>pull + <code>--db-restore</code></strong>. Не ставит модули и не сбрасывает admin-пароль.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span><span class="w">   </span><span class="c1"># master password менеджера БД на удалённом инстансе</span>
 odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class="w"> </span>-d<span class="w"> </span>local_copy<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span><span class="se">\</span>
@@ -2056,8 +2067,22 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 </ol>
 <p><code>--dry-run</code> печатает argv <strong>без</strong> сети. Не храните master password в git. Для больших дампов timeout HTTP по умолчанию 600s (tool); шаги рецепта без лимита subprocess.</p>
 <p>Нужен каталог проекта odpm с настроенным <code>BACKUP_DIR</code>. Типичный CI-use-case для pull+restore <strong>не</strong> поддерживается как цель продукта.</p>
+<h2 id="_2">Сборка пайплайна из примитивов (канон)<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p><code>odpm database pull</code> — низкоуровневый шаг: скачал zip и напечатал имя. Дальнейшие шаги (<strong>restore</strong>, <code>-i</code>/<code>-u</code>, <code>--set-admin-pass</code>, …) собирайте в <strong>shell</strong> (или CI job), а не ждите одного «толстого» <code>odpm run</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span>
+<span class="nv">ARCHIVE</span><span class="o">=</span><span class="k">$(</span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--remote-db<span class="w"> </span>prod<span class="k">)</span>
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+</code></pre></div>
+<p>Эквивалент двумя вызовами, если достаточно builtin restore:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+</code></pre></div>
+<p>Почему не YAML: v1 подставляет только <code>${param.*}</code> / <code>${env:…}</code> и <strong>не</strong> умеет передать stdout шага в следующий argv. Для цепочек с именем архива используйте shell (или свой Python-рецепт).</p>
+<p>См. также <a href="../cli/">CLI: <code>database pull</code></a> и <a href="../database-state/">состояние БД</a>.</p>
 <h2 id="yaml-v1">YAML-рецепты (v1)<a class="headerlink" href="#yaml-v1" title="Permanent link">&para;</a></h2>
-<p>Линейные шаги без условий. Подстановки: <code>${param.name}</code>, <code>${env:VAR}</code>.</p>
+<p>Линейные шаги без условий. Подстановки: <code>${param.name}</code>, <code>${env:VAR}</code> — <strong>без</strong> захвата stdout предыдущего шага.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example-backup</span>
 <span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Backup then skip-start</span>
 <span class="nt">params</span><span class="p">:</span>
@@ -2069,7 +2094,7 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">odpm</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"--skip-start"</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <p>Положите файл в <code>.odpm/recipes/example-backup.yaml</code>. Шаг не может начинаться с <code>run</code> (запрет рекурсии).</p>
-<h2 id="_2">Модель выполнения<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h2 id="_3">Модель выполнения<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>Phased: <code>next_step(ctx)</code> → subprocess → результат в context → снова <code>next_step</code>. У шага: <code>capture</code> (для JSON) или live stream; fail-fast при ненулевом exit.</p>
 
 

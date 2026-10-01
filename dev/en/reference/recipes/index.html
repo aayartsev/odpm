@@ -1938,6 +1938,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compose-a-pipeline-from-primitives-canonical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compose a pipeline from primitives (canonical)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yaml-recipes-v1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2044,7 +2055,7 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 <h3 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h3>
 <p>Under <code>ODPM_SCENARIO=ci</code>, end-to-end apply via <code>odpm run</code> is <strong>not</strong> supported (child <code>odpm -d -i/-u</code> is not CI-allowlisted). In CI use <code>odpm modules diff</code>; run apply on server.</p>
 <h2 id="builtin-pull-remote-db">Builtin: <code>pull-remote-db</code><a class="headerlink" href="#builtin-pull-remote-db" title="Permanent link">&para;</a></h2>
-<p>For <strong><code>developer</code> / <code>server</code></strong>: download a zip from a remote Odoo manager and restore it into a local database.</p>
+<p>Shortcut for <strong><code>developer</code> / <code>server</code></strong>: <strong>pull + <code>--db-restore</code> only</strong>. Does not install/update modules or reset the admin password.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span><span class="w">   </span><span class="c1"># remote DB manager master password</span>
 odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class="w"> </span>-d<span class="w"> </span>local_copy<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span><span class="se">\</span>
@@ -2056,8 +2067,22 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 </ol>
 <p><code>--dry-run</code> prints argv <strong>without</strong> network I/O. Do not commit the master password to git. Default HTTP timeout is 600s (tool); recipe steps use no subprocess timeout limit.</p>
 <p>Requires an odpm project directory with <code>BACKUP_DIR</code> configured. A typical CI pull+restore flow is <strong>not</strong> a product goal.</p>
+<h2 id="compose-a-pipeline-from-primitives-canonical">Compose a pipeline from primitives (canonical)<a class="headerlink" href="#compose-a-pipeline-from-primitives-canonical" title="Permanent link">&para;</a></h2>
+<p><code>odpm database pull</code> is a low-level step: download a zip and print its name. Further steps (<strong>restore</strong>, <code>-i</code>/<code>-u</code>, <code>--set-admin-pass</code>, …) belong in <strong>shell</strong> (or a CI job), not in one oversized <code>odpm run</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span>
+<span class="nv">ARCHIVE</span><span class="o">=</span><span class="k">$(</span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--remote-db<span class="w"> </span>prod<span class="k">)</span>
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+</code></pre></div>
+<p>Two-call equivalent when the builtin restore shortcut is enough:</p>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod
+odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+</code></pre></div>
+<p>Why not YAML: v1 only substitutes <code>${param.*}</code> / <code>${env:…}</code> and <strong>cannot</strong> feed a step’s stdout into the next argv. For archive-name chains use shell (or a custom Python recipe).</p>
+<p>See also <a href="../cli/">CLI: <code>database pull</code></a> and <a href="../database-state/">database state</a>.</p>
 <h2 id="yaml-recipes-v1">YAML recipes (v1)<a class="headerlink" href="#yaml-recipes-v1" title="Permanent link">&para;</a></h2>
-<p>Linear steps only (no conditionals). Substitutions: <code>${param.name}</code>, <code>${env:VAR}</code>.</p>
+<p>Linear steps only (no conditionals). Substitutions: <code>${param.name}</code>, <code>${env:VAR}</code> — <strong>no</strong> previous-step stdout capture.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example-backup</span>
 <span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Backup then skip-start</span>
 <span class="nt">params</span><span class="p">:</span>
