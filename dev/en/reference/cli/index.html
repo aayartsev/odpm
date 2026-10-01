@@ -2433,7 +2433,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </tr>
 </tbody>
 </table>
-<p><code>database pull</code> needs an odpm project with <code>BACKUP_DIR</code> in <code>.env</code>; compose up is not required for the download itself. stdout prints only the archive file name. Intended for <strong>developer</strong> / <strong>server</strong>, not typical CI.</p>
+<p><code>database pull</code> needs an odpm project with <code>BACKUP_DIR</code> in <code>.env</code>; compose up is not required for the download itself. It first calls <code>/web/database/list</code> when available to verify <code>--remote-db</code> exists, then requests the backup with logs for auth success, download start, and MiB progress heartbeats. stdout prints only the archive file name. Intended for <strong>developer</strong> / <strong>server</strong>, not typical CI.</p>
 <p>Flag <strong><code>--accept-database-drift=KIND</code></strong> (repeatable) — accept drift without an interactive prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
 <p>Local cluster details: <a href="../database-state/">PostgreSQL state and drift</a>. Remote pull + restore: <a href="../recipes/">recipes</a> (<code>pull-remote-db</code>).</p>
 <h2 id="manifest-subcommand"><code>manifest</code> subcommand<a class="headerlink" href="#manifest-subcommand" title="Permanent link">&para;</a></h2>

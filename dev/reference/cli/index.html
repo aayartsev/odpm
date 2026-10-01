@@ -2408,7 +2408,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </tr>
 </tbody>
 </table>
-<p><code>database pull</code> нужен каталог проекта odpm с <code>BACKUP_DIR</code> в <code>.env</code>; compose up для самого download не требуется. На stdout печатается только имя архива. Предназначено для сценариев <strong>developer</strong> / <strong>server</strong>, не для типичного CI.</p>
+<p><code>database pull</code> нужен каталог проекта odpm с <code>BACKUP_DIR</code> в <code>.env</code>; compose up для самого download не требуется. Сначала вызывается <code>/web/database/list</code> (если доступен) — проверка, что <code>--remote-db</code> есть на сервере; затем backup: логи «auth OK» / «download started» и heartbeat прогресса. На stdout печатается только имя архива. Предназначено для сценариев <strong>developer</strong> / <strong>server</strong>, не для типичного CI.</p>
 <p>Флаг <strong><code>--accept-database-drift=KIND</code></strong> (повторяемый) — принять drift без интерактивного prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
 <p>Подробнее о локальном кластере: <a href="../database-state/">состояние PostgreSQL и drift</a>. Remote pull + restore: <a href="../recipes/">рецепты</a> (<code>pull-remote-db</code>).</p>
 <h2 id="modules">Подкоманда <code>modules</code><a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
