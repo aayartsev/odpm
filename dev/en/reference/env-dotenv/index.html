@@ -1442,10 +1442,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#odpm_compose_prefix" class="md-nav__link">
+  <a href="#odpm_compose_prefix-odpm_compose_suffix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ODPM_COMPOSE_PREFIX
+        ODPM_COMPOSE_PREFIX / ODPM_COMPOSE_SUFFIX
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odpm_port_offset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODPM_PORT_OFFSET
       
     </span>
   </a>
@@ -2198,10 +2209,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#odpm_compose_prefix" class="md-nav__link">
+  <a href="#odpm_compose_prefix-odpm_compose_suffix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ODPM_COMPOSE_PREFIX
+        ODPM_COMPOSE_PREFIX / ODPM_COMPOSE_SUFFIX
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odpm_port_offset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODPM_PORT_OFFSET
       
     </span>
   </a>
@@ -2324,13 +2346,23 @@
 </tr>
 <tr>
 <td><code>POSTGRES_SERVICE_NAME</code></td>
-<td>PostgreSQL service name in <code>docker-compose.yml</code> and <code>db_host</code> in <code>odoo.conf</code> (when <code>ODPM_COMPOSE_PREFIX</code> is unset)</td>
+<td>PostgreSQL service name in <code>docker-compose.yml</code> and <code>db_host</code> in <code>odoo.conf</code> (when compose affixes are unset)</td>
 <td><code>db</code></td>
 </tr>
 <tr>
 <td><code>ODPM_COMPOSE_PREFIX</code></td>
 <td>Prefix for <strong>full</strong> compose-stack isolation: <code>db</code>/<code>odoo</code> service keys, <code>postgres-data</code> volume, Docker Compose project name</td>
 <td>unset</td>
+</tr>
+<tr>
+<td><code>ODPM_COMPOSE_SUFFIX</code></td>
+<td>Suffix — full peer of PREFIX (suffix-only also enables physical rewrite); with PREFIX: <code>acme-db-dev</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>ODPM_PORT_OFFSET</code></td>
+<td>Shift <strong>host</strong> publish ports (odoo/db/sidecars) and host-facing <code>ODOO_PORT</code>/<code>POSTGRES_PORT</code>/<code>DEBUGGER_PORT</code>/<code>GEVENT_PORT</code>; on-disk fragments stay unoffset</td>
+<td><code>0</code></td>
 </tr>
 <tr>
 <td><code>ODPM_COMPOSE_NETWORK</code></td>
@@ -2530,9 +2562,9 @@
 <p>One key applies to all specified remote repositories.</p>
 <h2 id="postgres_service_name"><code>POSTGRES_SERVICE_NAME</code><a class="headerlink" href="#postgres_service_name" title="Permanent link">&para;</a></h2>
 <p>PostgreSQL service name in <code>docker-compose.yml</code> and <code>db_host</code> value in <code>odoo.conf</code> (DNS inside the docker network). Lowercase letters, digits, <code>_</code>, and <code>-</code> are allowed; the name must start with a letter. After a change, regenerate <code>docker-compose.yml</code> and <code>odoo.conf</code> (a normal <code>odpm</code> run).</p>
-<p><strong>Ignored</strong> when <strong><code>ODPM_COMPOSE_PREFIX</code></strong> is set — postgres is named <code>{prefix}db</code> (e.g. <code>acme-db</code>), with a warning in the log.</p>
-<h2 id="odpm_compose_prefix"><code>ODPM_COMPOSE_PREFIX</code><a class="headerlink" href="#odpm_compose_prefix" title="Permanent link">&para;</a></h2>
-<p>Optional prefix for <strong>full compose-stack isolation</strong> on a shared host: multiple odpm environments without colliding service names, volumes, or Docker Compose project scope.</p>
+<p><strong>Ignored</strong> when <strong><code>ODPM_COMPOSE_PREFIX</code> and/or <code>ODPM_COMPOSE_SUFFIX</code></strong> is set — postgres gets a physical name (e.g. <code>acme-db</code>, <code>db-dev</code>), with a warning in the log.</p>
+<h2 id="odpm_compose_prefix-odpm_compose_suffix"><code>ODPM_COMPOSE_PREFIX</code> / <code>ODPM_COMPOSE_SUFFIX</code><a class="headerlink" href="#odpm_compose_prefix-odpm_compose_suffix" title="Permanent link">&para;</a></h2>
+<p>Optional affixes for <strong>full compose-stack isolation</strong> on a shared host. Either one enables physical rewrite (<code>uses_physical_naming</code>).</p>
 <table>
 <thead>
 <tr>
@@ -2542,21 +2574,37 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Unset</strong></td>
+<td><strong>Both unset</strong></td>
 <td>Same as 4.6: postgres from <code>POSTGRES_SERVICE_NAME</code> (default <code>db</code>), odoo <code>odoo</code>, volume <code>postgres-data</code></td>
 </tr>
 <tr>
-<td><strong>Set</strong> (<code>acme</code> or <code>acme-</code>)</td>
-<td>Services <code>acme-db</code>, <code>acme-odoo</code>; volume <code>acme-postgres-data</code>; project name / <code>docker compose -p</code> — <code>acme</code></td>
+<td><strong>PREFIX</strong> (<code>acme</code> / <code>acme-</code>)</td>
+<td><code>acme-db</code>, <code>acme-odoo</code>, volume <code>acme-postgres-data</code>, <code>-p acme</code></td>
+</tr>
+<tr>
+<td><strong>SUFFIX</strong> (<code>dev</code> / <code>-dev</code>)</td>
+<td><code>db-dev</code>, <code>odoo-dev</code>, volume <code>postgres-data-dev</code>, <code>-p dev</code></td>
+</tr>
+<tr>
+<td><strong>Both</strong></td>
+<td><code>acme-db-dev</code>, <code>acme-odoo-dev</code>, <code>-p acme-dev</code></td>
 </tr>
 </tbody>
 </table>
-<p>Normalization: lowercase, charset <code>[a-z0-9-]</code>, must start with a letter; trailing <code>-</code> in <code>.env</code> is optional. Invalid values are <strong>ignored</strong> (prefix disabled, warning logged).</p>
-<p>Manifest sidecars keep <strong>logical</strong> names (<code>depends_on: ["db"]</code>); odpm rewrites them to physical names when generating <code>docker-compose.yml</code>. For hostnames inside <code>environment</code> / <code>command</code>, use <strong><code>${@service:db}</code></strong> / <strong><code>${@service:odoo}</code></strong> — the YAML gets the physical name (<code>acme-db</code>). Sidecar keys without a prefix resolve to the same name.</p>
+<p>PREFIX normalization: trailing <code>-</code>; SUFFIX: leading <code>-</code>. Invalid values are ignored independently. Sidecar <strong>keys</strong> are not renamed.</p>
+<p>Manifest sidecars keep logical names (<code>depends_on: ["db"]</code>); for hostnames use <strong><code>${@service:db}</code></strong>.</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="na">ODPM_COMPOSE_PREFIX</span><span class="o">=</span><span class="s">acme</span>
+<span class="na">ODPM_COMPOSE_SUFFIX</span><span class="o">=</span><span class="s">dev</span>
 </code></pre></div>
-<p>See <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md">ADR-012</a>, <a href="../database-state/">PostgreSQL state</a>, <a href="../odpm-json/"><code>odpm.json</code> substitution</a>.</p>
+<p>See <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-012-compose-service-prefix.md">ADR-012</a>, <a href="../database-state/">PostgreSQL state</a>, <a href="../odpm-json/"><code>odpm.json</code> substitution</a>.</p>
+<h2 id="odpm_port_offset"><code>ODPM_PORT_OFFSET</code><a class="headerlink" href="#odpm_port_offset" title="Permanent link">&para;</a></h2>
+<p>Signed integer added to the <strong>host</strong> side of every publish in the final <code>docker-compose.yml</code> (after sidecar/patch merge) and to host-facing <code>.env</code> ports (<code>effective_odoo_port</code>, including <code>DEBUGGER_PORT</code> under <code>pydevd_connect</code>). Container listen ports are unchanged. On-disk <code>.odpm/compose/fragments/*.yml</code> stay <strong>unoffset</strong> — the root <code>docker-compose.yml</code> is the publish source of truth. Out-of-range after shift → <code>ConfigError</code>. Changing OFFSET alone does <strong>not</strong> cause database drift (snapshot keeps raw <code>POSTGRES_PORT</code>); <code>odpm database status</code> shows the effective host port.</p>
+<div class="highlight"><pre><span></span><code><span class="na">ODOO_PORT</span><span class="o">=</span><span class="s">8069</span>
+<span class="na">POSTGRES_PORT</span><span class="o">=</span><span class="s">5432</span>
+<span class="na">ODPM_PORT_OFFSET</span><span class="o">=</span><span class="s">10</span>
+</code></pre></div>
+<p>→ publish/host connect: <code>8079</code>, <code>5442</code>, …</p>
 <h2 id="odpm_compose_network-odpm_compose_network_external"><code>ODPM_COMPOSE_NETWORK</code> / <code>ODPM_COMPOSE_NETWORK_EXTERNAL</code><a class="headerlink" href="#odpm_compose_network-odpm_compose_network_external" title="Permanent link">&para;</a></h2>
 <p>Optionally declare <strong>one</strong> named Docker Compose network for the <strong>entire</strong> odpm stack (<code>db</code>, <code>odoo</code>, sidecars). When unset, odpm does <strong>not</strong> add a <code>networks:</code> section to <code>docker-compose.yml</code> — services stay on the project's implicit default network (same as 4.6).</p>
 <table>
@@ -2585,7 +2633,7 @@
 </tr>
 </tbody>
 </table>
-<p>With <strong><code>ODPM_COMPOSE_PREFIX=acme</code></strong>, managed network <code>stack</code> becomes physical <strong><code>acme-stack</code></strong>; external <code>proxy</code> stays <code>proxy</code>.</p>
+<p>With <strong><code>ODPM_COMPOSE_PREFIX=acme</code></strong>, managed network <code>stack</code> becomes physical <strong><code>acme-stack</code></strong>; with <strong><code>ODPM_COMPOSE_SUFFIX=dev</code></strong> — <strong><code>stack-dev</code></strong>; with both — <strong><code>acme-stack-dev</code></strong>. External <code>proxy</code> stays <code>proxy</code>.</p>
 <p>Name normalization matches prefix (<code>[a-z0-9-]</code>, start with a letter). Invalid values disable the network (warning). <code>ODPM_COMPOSE_NETWORK_EXTERNAL</code> without a network name has no effect.</p>
 <p>Typical split (<a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-013-layered-env-dotenv.md">ADR-013</a>):</p>
 <p><code>~/.odpm/.env</code>:</p>

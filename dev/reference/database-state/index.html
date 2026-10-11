@@ -2273,7 +2273,7 @@
 </table>
 <p>Снимок содержит:</p>
 <ul>
-<li><strong><code>compose</code></strong> — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте; при <code>ODPM_COMPOSE_PREFIX</code> — также <code>compose_project_name</code> и <code>odoo_service_name</code>;</li>
+<li><strong><code>compose</code></strong> — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте (raw <code>POSTGRES_PORT</code>; <code>ODPM_PORT_OFFSET</code> в снимок не входит); при compose affix — также <code>compose_project_name</code> и <code>odoo_service_name</code>;</li>
 <li><strong><code>odoo_conf</code></strong> — <code>db_host</code>, <code>db_port</code>, <code>db_user</code>;</li>
 <li><strong><code>cluster</code></strong> — data dir непустой, major PostgreSQL (<code>PG_VERSION</code>), роль приложения и её наличие.</li>
 </ul>
@@ -2397,8 +2397,8 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </table>
 <p>Команды выполняют prepare (без <code>compose up</code>), если это нужно для чтения конфигурации.</p>
 <h2 id="env-odooconf">Связь с <code>.env</code> и <code>odoo.conf</code><a class="headerlink" href="#env-odooconf" title="Permanent link">&para;</a></h2>
-<p>Переменная <strong><code>POSTGRES_SERVICE_NAME</code></strong> в <code>.env</code> задаёт имя сервиса postgres в <code>docker-compose.yml</code> и ожидаемый <strong><code>db_host</code></strong> в <code>odoo.conf</code>, когда <strong><code>ODPM_COMPOSE_PREFIX</code></strong> не задан.</p>
-<p>Переменная <strong><code>ODPM_COMPOSE_PREFIX</code></strong> задаёт <strong>физические</strong> имена встроенных сервисов (<code>{prefix}db</code>, <code>{prefix}odoo</code>), том данных и имя проекта Docker Compose. В снимке <code>last_run.json</code> сохраняются <code>compose.service_name</code> (postgres), <code>compose.compose_project_name</code> и <code>compose.odoo_service_name</code>. При смене префикса или <code>POSTGRES_SERVICE_NAME</code> относительно снимка:</p>
+<p>Переменная <strong><code>POSTGRES_SERVICE_NAME</code></strong> в <code>.env</code> задаёт имя сервиса postgres в <code>docker-compose.yml</code> и ожидаемый <strong><code>db_host</code></strong> в <code>odoo.conf</code>, когда <strong>не заданы</strong> compose affix (<code>ODPM_COMPOSE_PREFIX</code> / <code>ODPM_COMPOSE_SUFFIX</code>).</p>
+<p>Affix <strong><code>ODPM_COMPOSE_PREFIX</code></strong> / <strong><code>ODPM_COMPOSE_SUFFIX</code></strong> задают <strong>физические</strong> имена встроенных сервисов, том данных и имя проекта Docker Compose. В снимке <code>last_run.json</code> сохраняются <code>compose.service_name</code> (postgres), <code>compose.compose_project_name</code> и <code>compose.odoo_service_name</code>. Команда <code>odpm database status</code> для «Host port» показывает <strong>effective</strong> порт (<code>POSTGRES_PORT + ODPM_PORT_OFFSET</code>). При смене affix или <code>POSTGRES_SERVICE_NAME</code> относительно снимка:</p>
 <ul>
 <li>шаг <strong><code>template.odoo_conf</code></strong> пересоздаёт конфиг при рассинхроне <code>db_host</code>;</li>
 <li>drift <strong><code>service_name</code></strong>, <strong><code>compose_project_name</code></strong> или <strong><code>db_host_mismatch</code></strong> попадает в plan.</li>

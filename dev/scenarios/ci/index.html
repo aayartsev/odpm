@@ -2166,8 +2166,8 @@ odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-builder
 <span class="w">  </span>odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 <span class="c1"># Module install after stack is up (bare odpm -d/-i is rejected in ci).</span>
-<span class="c1"># Service key is "odoo" unless ODPM_COMPOSE_PREFIX is set (then "{prefix}odoo"):</span>
-<span class="nv">ODOO_SVC</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">ODPM_COMPOSE_PREFIX</span><span class="k">:-</span><span class="si">}</span><span class="s2">odoo"</span>
+<span class="c1"># Physical odoo key from docker-compose.yml (odoo / acme-odoo / odoo-dev / …):</span>
+<span class="nv">ODOO_SVC</span><span class="o">=</span>odoo
 docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span><span class="s2">"</span><span class="nv">$ODOO_SVC</span><span class="s2">"</span><span class="w"> </span>odoo-bin<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>base<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <p>В сценарии <code>ci</code> bare <code>odpm</code> без <code>--skip-start</code> / <code>--build-image</code> (и без allowlist: <code>plan</code>, <code>manifest</code>, <code>database</code>, <code>--update-lock</code>, <code>--init</code>, …) завершается ошибкой — см. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>.</p>
