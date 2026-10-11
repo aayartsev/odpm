@@ -36,7 +36,7 @@ golden_path_read_env() {
 golden_path_postgres_service() {
     # Resolve the physical postgres service key from on-disk docker-compose.yml.
     # Re-call after every ``odpm`` that may regenerate compose (``POSTGRES_SERVICE_NAME``
-    # / default ``db`` / ``ODPM_COMPOSE_PREFIX`` can change the service name).
+    # / default ``db`` / ``ODPM_COMPOSE_PREFIX`` / ``ODPM_COMPOSE_SUFFIX`` can change the service name).
     local project="$1"
     local repo_root="$2"
     python3 - <<PY

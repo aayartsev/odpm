@@ -50,9 +50,11 @@ Constant `LOGICAL_STACK_NETWORK = "stack"` in code is the conventional default n
 
 | Mode | Physical network name |
 |------|------------------------|
-| Managed, no prefix | Same as logical (e.g. `stack`) |
+| Managed, no affix | Same as logical (e.g. `stack`) |
 | Managed, `ODPM_COMPOSE_PREFIX=acme` | `{prefix}{logical}` (e.g. `acme-stack`) |
-| External | Logical name **as-is** — **no** prefix (shared host networks like `proxy`) |
+| Managed, `ODPM_COMPOSE_SUFFIX=dev` | `{logical}{suffix}` (e.g. `stack-dev`) |
+| Managed, prefix + suffix | `{prefix}{logical}{suffix}` (e.g. `acme-stack-dev`) |
+| External | Logical name **as-is** — **no** affix (shared host networks like `proxy`) |
 
 External networks are declared as:
 

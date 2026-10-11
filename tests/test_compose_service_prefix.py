@@ -99,6 +99,49 @@ class ApplyComposePrefixTests(unittest.TestCase):
         self.assertEqual(set(document["services"]), original_keys)
         self.assertNotIn("name", document)
 
+    def test_suffix_only_rewrites_builtin_services(self):
+        document = {
+            "services": {
+                LOGICAL_DB: {
+                    "image": "postgres:16",
+                    "volumes": [f"{LOGICAL_POSTGRES_VOLUME}:/var/lib/postgresql/data"],
+                },
+                LOGICAL_ODOO: {
+                    "image": "odoo:dev",
+                    "depends_on": [LOGICAL_DB],
+                },
+                "mailpit": {"image": "axllent/mailpit", "depends_on": [LOGICAL_DB]},
+            },
+            "volumes": {LOGICAL_POSTGRES_VOLUME: {"driver": "local"}},
+        }
+        ctx = resolve_compose_naming(
+            compose_prefix_raw=None,
+            compose_suffix_raw="dev",
+            legacy_postgres_service_name=constants.DEFAULT_POSTGRES_SERVICE_NAME,
+        )
+        apply_compose_prefix(document, ctx)
+        self.assertEqual(set(document["services"]), {"db-dev", "odoo-dev", "mailpit"})
+        self.assertEqual(document["services"]["odoo-dev"]["depends_on"], ["db-dev"])
+        self.assertEqual(document["services"]["mailpit"]["depends_on"], ["db-dev"])
+        self.assertEqual(document["name"], "dev")
+
+    def test_prefix_and_suffix_rewrite(self):
+        document = {
+            "services": {
+                LOGICAL_DB: {"image": "postgres:16"},
+                LOGICAL_ODOO: {"image": "odoo:dev", "depends_on": [LOGICAL_DB]},
+            },
+            "volumes": {LOGICAL_POSTGRES_VOLUME: {"driver": "local"}},
+        }
+        ctx = resolve_compose_naming(
+            compose_prefix_raw="acme",
+            compose_suffix_raw="dev",
+            legacy_postgres_service_name=constants.DEFAULT_POSTGRES_SERVICE_NAME,
+        )
+        apply_compose_prefix(document, ctx)
+        self.assertEqual(set(document["services"]), {"acme-db-dev", "acme-odoo-dev"})
+        self.assertEqual(document["name"], "acme-dev")
+
 
 class ApplyComposePhysicalNamesTests(unittest.TestCase):
     def test_legacy_postgres_service_name_without_prefix(self):
@@ -119,15 +162,34 @@ class ApplyComposePhysicalNamesTests(unittest.TestCase):
         self.assertEqual(document["services"]["odoo"]["depends_on"], ["postgres"])
         self.assertEqual(document["services"]["mailpit"]["depends_on"], ["postgres"])
 
+    def test_suffix_skips_legacy_postgres_rename(self):
+        document = {
+            "services": {
+                LOGICAL_DB: {"image": "postgres:16"},
+                LOGICAL_ODOO: {"image": "odoo:dev", "depends_on": [LOGICAL_DB]},
+            },
+            "volumes": {LOGICAL_POSTGRES_VOLUME: {"driver": "local"}},
+        }
+        ctx = resolve_compose_naming(
+            compose_prefix_raw=None,
+            compose_suffix_raw="dev",
+            legacy_postgres_service_name="postgres",
+        )
+        apply_compose_physical_names(document, ctx)
+        self.assertIn("db-dev", document["services"])
+        self.assertNotIn("postgres", document["services"])
+
 
 def _make_compose_env(
     *,
     compose_prefix: str | None = None,
+    compose_suffix: str | None = None,
     postgres_service_name: str = constants.DEFAULT_POSTGRES_SERVICE_NAME,
     manifest_services: dict | None = None,
     compose_network_logical: str | None = None,
     compose_network_physical: str | None = None,
     compose_network_external: bool = False,
+    port_offset: int = 0,
 ) -> CreateProjectEnvironment:
     policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
     config = MagicMock()
@@ -168,15 +230,18 @@ def _make_compose_env(
     )
     naming = resolve_compose_naming(
         compose_prefix_raw=compose_prefix,
+        compose_suffix_raw=compose_suffix,
         legacy_postgres_service_name=postgres_service_name,
     )
     user_env = MagicMock()
     user_env.postgres_port = 15432
     user_env.postgres_service_name = naming.postgres_service_name
     user_env.compose_prefix = naming.compose_prefix
+    user_env.compose_suffix = naming.compose_suffix
     user_env.compose_project_name = naming.compose_project_name
     user_env.odoo_service_name = naming.odoo_service_name
     user_env.postgres_volume_name = naming.postgres_volume_name
+    user_env.port_offset = port_offset
     user_env.debugger_port = 5678
     user_env.debugger_backend = DEBUGGER_BACKEND_DEBUGPY_LISTEN
     user_env.debugger_connect_host = DEFAULT_DEBUGGER_CONNECT_HOST

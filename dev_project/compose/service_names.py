@@ -1,4 +1,4 @@
-"""Compose logical vs physical service naming (4.7 prefix track)."""
+"""Compose logical vs physical service naming (prefix / suffix affixes)."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ LOGICAL_DB = constants.DATABASE_NAME_INSTANCE
 LOGICAL_ODOO = "odoo"
 LOGICAL_POSTGRES_VOLUME = "postgres-data"
 
-_VALID_COMPOSE_PREFIX = re.compile(r"^[a-z][a-z0-9-]*$")
+_VALID_COMPOSE_AFFIX = re.compile(r"^[a-z][a-z0-9-]*$")
 
 
 def parse_compose_prefix(raw: str | None) -> str | None:
@@ -26,10 +26,10 @@ def parse_compose_prefix(raw: str | None) -> str | None:
     value = raw.strip().lower()
     if not value:
         return None
-    if not _VALID_COMPOSE_PREFIX.fullmatch(value):
+    if not _VALID_COMPOSE_AFFIX.fullmatch(value):
         _logger.warning(
             _(
-                "Invalid {ENV}=%r (use lowercase letters, digits, '-'; "
+                "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; "
                 "must start with a letter); prefix disabled"
             ).format(ENV=constants.ODPM_COMPOSE_PREFIX_ENV, VALUE=raw),
         )
@@ -37,9 +37,48 @@ def parse_compose_prefix(raw: str | None) -> str | None:
     return value if value.endswith("-") else f"{value}-"
 
 
+def parse_compose_suffix(raw: str | None) -> str | None:
+    """Return canonical suffix with leading ``-``, or ``None`` when unset/invalid."""
+    if raw is None:
+        return None
+    value = raw.strip().lower()
+    if not value:
+        return None
+    if value.startswith("-"):
+        value = value[1:]
+    if not value or not _VALID_COMPOSE_AFFIX.fullmatch(value):
+        _logger.warning(
+            _(
+                "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; "
+                "must start with a letter); suffix disabled"
+            ).format(ENV=constants.ODPM_COMPOSE_SUFFIX_ENV, VALUE=raw),
+        )
+        return None
+    return f"-{value}"
+
+
+def compose_project_name_from_affixes(
+    prefix_with_dash: str | None, suffix_with_dash: str | None
+) -> str | None:
+    """Docker Compose project slug from prefix and/or suffix (no affix dashes)."""
+    parts: list[str] = []
+    if prefix_with_dash:
+        slug = prefix_with_dash.rstrip("-")
+        if slug:
+            parts.append(slug)
+    if suffix_with_dash:
+        slug = suffix_with_dash.lstrip("-")
+        if slug:
+            parts.append(slug)
+    if not parts:
+        return None
+    return "-".join(parts)
+
+
 def compose_project_name_from_prefix(prefix_with_dash: str) -> str:
     """Docker Compose project slug (no trailing ``-``)."""
-    return prefix_with_dash.rstrip("-")
+    name = compose_project_name_from_affixes(prefix_with_dash, None)
+    return name or ""
 
 
 @dataclass(frozen=True)
@@ -51,48 +90,67 @@ class ComposeNamingContext:
     postgres_service_name: str
     odoo_service_name: str
     postgres_volume_name: str
+    compose_suffix: str | None = None
 
     @property
     def uses_prefix(self) -> bool:
         return self.compose_prefix is not None
+
+    @property
+    def uses_physical_naming(self) -> bool:
+        return self.compose_prefix is not None or self.compose_suffix is not None
+
+
+def _physical_name(logical: str, prefix: str | None, suffix: str | None) -> str:
+    return f"{prefix or ''}{logical}{suffix or ''}"
 
 
 def resolve_compose_naming(
     *,
     compose_prefix_raw: str | None,
     legacy_postgres_service_name: str,
+    compose_suffix_raw: str | None = None,
 ) -> ComposeNamingContext:
-    """Build physical service/volume/project names from prefix and legacy postgres name."""
+    """Build physical service/volume/project names from affixes and legacy postgres name."""
     prefix = parse_compose_prefix(compose_prefix_raw)
-    if prefix is None:
+    suffix = parse_compose_suffix(compose_suffix_raw)
+    if prefix is None and suffix is None:
         return ComposeNamingContext(
             compose_prefix=None,
+            compose_suffix=None,
             compose_project_name=None,
             postgres_service_name=legacy_postgres_service_name,
             odoo_service_name=LOGICAL_ODOO,
             postgres_volume_name=LOGICAL_POSTGRES_VOLUME,
         )
 
+    postgres_physical = _physical_name(LOGICAL_DB, prefix, suffix)
     legacy_raw = legacy_postgres_service_name
     if legacy_raw != constants.DEFAULT_POSTGRES_SERVICE_NAME:
+        affix_envs = []
+        if prefix is not None:
+            affix_envs.append(constants.ODPM_COMPOSE_PREFIX_ENV)
+        if suffix is not None:
+            affix_envs.append(constants.ODPM_COMPOSE_SUFFIX_ENV)
         _logger.warning(
             _(
-                "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r "
+                "{AFFIX_ENV} is set; ignoring {LEGACY_ENV}={VALUE!r} "
                 "(postgres service will be {DB_NAME})"
             ).format(
-                PREFIX_ENV=constants.ODPM_COMPOSE_PREFIX_ENV,
+                AFFIX_ENV=" / ".join(affix_envs),
                 LEGACY_ENV=constants.POSTGRES_SERVICE_NAME_ENV,
                 VALUE=legacy_raw,
-                DB_NAME=f"{prefix}{LOGICAL_DB}",
+                DB_NAME=postgres_physical,
             ),
         )
 
     return ComposeNamingContext(
         compose_prefix=prefix,
-        compose_project_name=compose_project_name_from_prefix(prefix),
-        postgres_service_name=f"{prefix}{LOGICAL_DB}",
-        odoo_service_name=f"{prefix}{LOGICAL_ODOO}",
-        postgres_volume_name=f"{prefix}{LOGICAL_POSTGRES_VOLUME}",
+        compose_suffix=suffix,
+        compose_project_name=compose_project_name_from_affixes(prefix, suffix),
+        postgres_service_name=postgres_physical,
+        odoo_service_name=_physical_name(LOGICAL_ODOO, prefix, suffix),
+        postgres_volume_name=_physical_name(LOGICAL_POSTGRES_VOLUME, prefix, suffix),
     )
 
 
@@ -101,6 +159,9 @@ def compose_naming_from_user_env(user_env) -> ComposeNamingContext:
     compose_prefix = getattr(user_env, "compose_prefix", None)
     if not isinstance(compose_prefix, str) or not compose_prefix:
         compose_prefix = None
+    compose_suffix = getattr(user_env, "compose_suffix", None)
+    if not isinstance(compose_suffix, str) or not compose_suffix:
+        compose_suffix = None
     compose_project_name = getattr(user_env, "compose_project_name", None)
     if not isinstance(compose_project_name, str) or not compose_project_name:
         compose_project_name = None
@@ -113,6 +174,7 @@ def compose_naming_from_user_env(user_env) -> ComposeNamingContext:
 
     return ComposeNamingContext(
         compose_prefix=compose_prefix,
+        compose_suffix=compose_suffix,
         compose_project_name=compose_project_name,
         postgres_service_name=_str_attr("postgres_service_name", LOGICAL_DB),
         odoo_service_name=_str_attr("odoo_service_name", LOGICAL_ODOO),
@@ -121,7 +183,7 @@ def compose_naming_from_user_env(user_env) -> ComposeNamingContext:
 
 
 def map_logical_service_name(name: str, ctx: ComposeNamingContext) -> str:
-    """Map logical compose service name to physical (prefix / legacy postgres)."""
+    """Map logical compose service name to physical (affix / legacy postgres)."""
     if name == LOGICAL_DB:
         return ctx.postgres_service_name
     if name == LOGICAL_ODOO:
@@ -142,7 +204,7 @@ def _rewrite_service_name_list(
 
 
 def _rewrite_volume_mount(mount: Any, ctx: ComposeNamingContext) -> Any:
-    if not isinstance(mount, str) or not ctx.uses_prefix:
+    if not isinstance(mount, str) or not ctx.uses_physical_naming:
         return mount
     parts = mount.split(":", 2)
     if parts and parts[0] == LOGICAL_POSTGRES_VOLUME:
@@ -178,8 +240,8 @@ def _rename_service_keys(
 def apply_compose_prefix(
     document: dict[str, Any], ctx: ComposeNamingContext
 ) -> dict[str, Any]:
-    """Rewrite logical built-in service/volume names to physical names when prefix is active."""
-    if not ctx.uses_prefix:
+    """Rewrite logical built-in service/volume names when prefix and/or suffix is active."""
+    if not ctx.uses_physical_naming:
         return document
 
     services = document.get("services")
@@ -206,8 +268,8 @@ def apply_compose_prefix(
 def _apply_legacy_postgres_service_rename(
     document: dict[str, Any], ctx: ComposeNamingContext
 ) -> dict[str, Any]:
-    """4.6 ``POSTGRES_SERVICE_NAME`` rename without compose prefix."""
-    if ctx.uses_prefix or ctx.postgres_service_name == LOGICAL_DB:
+    """4.6 ``POSTGRES_SERVICE_NAME`` rename without compose affixes."""
+    if ctx.uses_physical_naming or ctx.postgres_service_name == LOGICAL_DB:
         return document
 
     services = document.get("services")
@@ -216,6 +278,7 @@ def _apply_legacy_postgres_service_rename(
 
     legacy_ctx = ComposeNamingContext(
         compose_prefix=None,
+        compose_suffix=None,
         compose_project_name=None,
         postgres_service_name=ctx.postgres_service_name,
         odoo_service_name=LOGICAL_ODOO,
@@ -237,7 +300,7 @@ def apply_compose_physical_names(
     ctx: ComposeNamingContext,
     network_ctx=None,
 ) -> dict[str, Any]:
-    """Apply prefix rewrite, legacy postgres rename, and optional network rewrite."""
+    """Apply affix rewrite, legacy postgres rename, and optional network rewrite."""
     from .network_names import ComposeNetworkContext, apply_compose_network  # noqa: PLC0415  # cycle
 
     apply_compose_prefix(document, ctx)

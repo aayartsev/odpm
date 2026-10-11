@@ -371,6 +371,9 @@ msgstr "HTTP-загрузка не удалась: {DETAIL}"
 msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
 msgstr "Плагин хука {PLUGIN_ID} не реализует {METHOD}"
 
+msgid "Host port {PORT} out of range 1..65535 ({CONTEXT})"
+msgstr "Host-порт {PORT} вне диапазона 1..65535 ({CONTEXT})"
+
 msgid "Host port: {PORT}"
 msgstr "Порт на host: {PORT}"
 
@@ -422,6 +425,9 @@ msgstr "Неверный выбор. Введите один из вариант
 msgid "Invalid debugger backend choice %r, using %s"
 msgstr "Недопустимое значение backend отладчика %r, используется %s"
 
+msgid "Invalid host port {PORT!r} ({CONTEXT})"
+msgstr "Недопустимый host-порт {PORT!r} ({CONTEXT})"
+
 msgid "Invalid local plugin module name: {NAME!r}"
 msgstr "Недопустимое имя локального модуля плагина: {NAME!r}"
 
@@ -440,17 +446,23 @@ msgstr "Недопустимое значение manifest_schema {VALUE!r}; о�
 msgid "Invalid recipe YAML in {PATH}: {ERROR}"
 msgstr "Некорректный YAML рецепта {PATH}: {ERROR}"
 
-msgid "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
-msgstr "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '-'; должно начинаться с буквы); префикс отключён"
-
 msgid "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
 msgstr "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '_' или '-'); используется {DEFAULT}"
 
 msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
 msgstr "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; должно начинаться с буквы); compose network отключена"
 
+msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
+msgstr "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; должно начинаться с буквы); префикс отключён"
+
+msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); suffix disabled"
+msgstr "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; должно начинаться с буквы); суффикс отключён"
+
 msgid "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile"
 msgstr "Недопустимое {ENV}={VALUE!r} (допустимо: {ALLOWED}); используется профиль по умолчанию для сценария"
+
+msgid "Invalid {ENV}={VALUE!r}; using 0"
+msgstr "Недопустимое значение {ENV}={VALUE!r}; используется 0"
 
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Недопустимое значение {FIELD} {VALUE!r}; ожидается семантическая версия (например 4.4 или 4.4.0)."
@@ -478,6 +490,18 @@ msgstr "Wrapper Kaniko executor {PATH} не является файлом; пр�
 
 msgid "Kaniko executor wrapper {PATH} is not executable; check {ENV}."
 msgstr "Wrapper Kaniko executor {PATH} не исполняемый; проверьте {ENV}."
+
+msgid "Leaving IPv6 compose port unchanged: %r"
+msgstr "IPv6 compose-порт оставлен без изменений: %r"
+
+msgid "Leaving bare container-only compose port unchanged: %r"
+msgstr "Compose-порт только контейнера оставлен без изменений: %r"
+
+msgid "Leaving unparseable compose port dict unchanged: %r"
+msgstr "Неразборчивый dict compose-порта оставлен без изменений: %r"
+
+msgid "Leaving unparseable compose port unchanged: %r"
+msgstr "Неразборчивый compose-порт оставлен без изменений: %r"
 
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Загрузить git lock из {SOURCE} и включить режим apply перед checkout"
@@ -1433,14 +1457,14 @@ msgstr "проверить наличие путей service_sources"
 msgid "write deps.lock.json from resolved commits"
 msgstr "записать deps.lock.json из разрешённых коммитов"
 
+msgid "{AFFIX_ENV} is set; ignoring {LEGACY_ENV}={VALUE!r} (postgres service will be {DB_NAME})"
+msgstr "Задан {AFFIX_ENV}; {LEGACY_ENV}={VALUE!r} игнорируется (сервис postgres будет {DB_NAME})"
+
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell-команда(ы)"
 
 msgid "{ENV}=1 requires sudo on PATH for Kaniko direct mode."
 msgstr "{ENV}=1 требует sudo в PATH для режима Kaniko direct."
-
-msgid "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})"
-msgstr "Задан {PREFIX_ENV}; {LEGACY_ENV}=%r игнорируется (сервис postgres будет {DB_NAME})"
 
 msgid "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"
 msgstr "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"

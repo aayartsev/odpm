@@ -84,7 +84,7 @@ Same spec in code: `dev_project.extensions.reference.mailpit.MAILPIT_SERVICE_SPE
 
 After `odpm up` the service appears in generated `docker-compose.yml` (`{COMPOSE_SERVICE_FRAGMENTS}` block). Materialize artifacts: `.odpm/compose/fragments/mailpit.yml` (gitignored).
 
-In sidecar `depends_on`, use the **logical** name `db` (not physical `acme-db`); with `ODPM_COMPOSE_PREFIX` odpm rewrites dependencies at compose generation — see [env-dotenv.md](env-dotenv.md).
+In sidecar `depends_on`, use the **logical** name `db` (not physical `acme-db` / `db-dev`); with `ODPM_COMPOSE_PREFIX` / `ODPM_COMPOSE_SUFFIX` odpm rewrites dependencies at compose generation — see [env-dotenv.md](env-dotenv.md).
 
 ### Compose network (`networks`, 4.7+)
 

@@ -104,8 +104,10 @@ class RuntimeCoordinator:
 
     def start_containers(self) -> None:
         BaseImageService(self.project_env).ensure_base_image()
+        from .host.ports import effective_odoo_port  # noqa: PLC0415  # cycle-safe
+
         host_summaries.log_starting_containers(
-            odoo_port=self.host_ctx.user_env.odoo_port,
+            odoo_port=effective_odoo_port(self.host_ctx.user_env),
         )
         returncode = run_logged(
             self.build_compose_up_argv(),

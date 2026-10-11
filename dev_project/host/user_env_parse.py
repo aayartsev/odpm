@@ -53,6 +53,8 @@ class EnvData(_EnvDataRequired, total=False):
     ODPM_DEBUGGER_SUSPEND: str
     POSTGRES_SERVICE_NAME: str
     ODPM_COMPOSE_PREFIX: str
+    ODPM_COMPOSE_SUFFIX: str
+    ODPM_PORT_OFFSET: str
     ODPM_COMPOSE_NETWORK: str
     ODPM_COMPOSE_NETWORK_EXTERNAL: str
     ODPM_CI_IMAGE_BUILDER: str
@@ -86,9 +88,11 @@ class ParsedUserEnv:
     debugger_connect_host: str
     debugger_suspend: bool
     compose_prefix: str | None
+    compose_suffix: str | None
     compose_project_name: str | None
     odoo_service_name: str
     postgres_volume_name: str
+    port_offset: int
     compose_network_logical: str | None
     compose_network_external: bool
     compose_network_physical: str | None
@@ -173,10 +177,14 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
         odpm_locale = None
     naming = resolve_compose_naming(
         compose_prefix_raw=env_dict.get(constants.ODPM_COMPOSE_PREFIX_ENV),
+        compose_suffix_raw=env_dict.get(constants.ODPM_COMPOSE_SUFFIX_ENV),
         legacy_postgres_service_name=parse_postgres_service_name(
             env_dict.get(constants.POSTGRES_SERVICE_NAME_ENV)
         ),
     )
+    from ..compose.ports import parse_port_offset  # noqa: PLC0415  # avoid cycle at import
+
+    port_offset = parse_port_offset(env_dict.get(constants.ODPM_PORT_OFFSET_ENV))
     network = resolve_compose_network(
         network_raw=env_dict.get(constants.ODPM_COMPOSE_NETWORK_ENV),
         external_raw=env_dict.get(constants.ODPM_COMPOSE_NETWORK_EXTERNAL_ENV),
@@ -224,9 +232,11 @@ def parse_dotenv_dict(env_dict: dict[str, str]) -> ParsedUserEnv:
             env_dict.get(ODPM_DEBUGGER_SUSPEND_ENV)
         ),
         compose_prefix=naming.compose_prefix,
+        compose_suffix=naming.compose_suffix,
         compose_project_name=naming.compose_project_name,
         odoo_service_name=naming.odoo_service_name,
         postgres_volume_name=naming.postgres_volume_name,
+        port_offset=port_offset,
         compose_network_logical=network.logical_name,
         compose_network_external=network.external,
         compose_network_physical=network.physical_name,
@@ -257,6 +267,7 @@ def has_noninteractive_env_configuration(pd_manager: ProjectDirManager) -> bool:
             "ODPM_SCENARIO",
             constants.ODPM_LOCALE_ENV_KEY,
             constants.ODPM_COMPOSE_PREFIX_ENV,
+            constants.ODPM_COMPOSE_SUFFIX_ENV,
             constants.ODPM_COMPOSE_NETWORK_ENV,
             constants.ODPM_CI_IMAGE_BUILDER_ENV,
             constants.ODPM_CI_IMAGE_PUSH_ENV,
@@ -331,6 +342,12 @@ def build_env_data_from_environ_or_defaults() -> EnvData:
     raw_compose_prefix = os.environ.get(constants.ODPM_COMPOSE_PREFIX_ENV, "").strip()
     if raw_compose_prefix:
         env_data[constants.ODPM_COMPOSE_PREFIX_ENV] = raw_compose_prefix
+    raw_compose_suffix = os.environ.get(constants.ODPM_COMPOSE_SUFFIX_ENV, "").strip()
+    if raw_compose_suffix:
+        env_data[constants.ODPM_COMPOSE_SUFFIX_ENV] = raw_compose_suffix
+    raw_port_offset = os.environ.get(constants.ODPM_PORT_OFFSET_ENV, "").strip()
+    if raw_port_offset:
+        env_data[constants.ODPM_PORT_OFFSET_ENV] = raw_port_offset
     raw_compose_network = os.environ.get(
         constants.ODPM_COMPOSE_NETWORK_ENV, ""
     ).strip()

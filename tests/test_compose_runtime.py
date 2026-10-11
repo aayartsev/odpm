@@ -122,6 +122,38 @@ class ComposeCliArgvTests(unittest.TestCase):
                 ["docker", "compose", "-p", "acme"],
             )
 
+    def test_compose_cli_argv_includes_project_when_suffix_set(self):
+        config = MagicMock()
+        config.docker_compose_command = "docker compose"
+        config.user_env.compose_project_name = "dev"
+        with patch(
+            "dev_project.host.context.HostProjectContext.from_config",
+            return_value=MagicMock(
+                docker_compose_command="docker compose",
+                user_env=config.user_env,
+            ),
+        ):
+            self.assertEqual(
+                compose_cli_argv(config),
+                ["docker", "compose", "-p", "dev"],
+            )
+
+    def test_compose_cli_argv_includes_project_when_prefix_and_suffix_set(self):
+        config = MagicMock()
+        config.docker_compose_command = "docker compose"
+        config.user_env.compose_project_name = "acme-dev"
+        with patch(
+            "dev_project.host.context.HostProjectContext.from_config",
+            return_value=MagicMock(
+                docker_compose_command="docker compose",
+                user_env=config.user_env,
+            ),
+        ):
+            self.assertEqual(
+                compose_cli_argv(config),
+                ["docker", "compose", "-p", "acme-dev"],
+            )
+
     @patch("dev_project.compose.runtime._run_checked")
     def test_running_container_id_passes_project_flag(self, mock_run):
 

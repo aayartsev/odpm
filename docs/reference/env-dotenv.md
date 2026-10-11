@@ -38,8 +38,10 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODOO_PROJECTS_DIR` | Куда клонировать platform и git-зависимости | `~/odoo_projects` |
 | `ODOO_PORT` | HTTP-порт Odoo на компьютере | `8069` |
 | `POSTGRES_PORT` | Порт PostgreSQL на компьютере (в сценарии `server` — только localhost) | `5432` |
-| `POSTGRES_SERVICE_NAME` | Имя сервиса PostgreSQL в `docker-compose.yml` и `db_host` в `odoo.conf` (без `ODPM_COMPOSE_PREFIX`) | `db` |
+| `POSTGRES_SERVICE_NAME` | Имя сервиса PostgreSQL в `docker-compose.yml` и `db_host` в `odoo.conf` (без affix `ODPM_COMPOSE_PREFIX` / `ODPM_COMPOSE_SUFFIX`) | `db` |
 | `ODPM_COMPOSE_PREFIX` | Префикс для **полной** изоляции compose-стека: ключи `db`/`odoo`, том `postgres-data`, имя проекта Docker Compose | не задан |
+| `ODPM_COMPOSE_SUFFIX` | Суффикс — полный peer PREFIX (suffix-only тоже включает physical rewrite); вместе с PREFIX: `acme-db-dev` | не задан |
+| `ODPM_PORT_OFFSET` | Сдвиг **host**-портов publish (odoo/db/sidecars) и host-facing `ODOO_PORT`/`POSTGRES_PORT`/`DEBUGGER_PORT`/`GEVENT_PORT`; фрагменты на диске без offset | `0` |
 | `ODPM_COMPOSE_NETWORK` | Логическое имя **одной** compose-сети для всего стека (managed bridge или external); без значения — implicit default network | не задан |
 | `ODPM_COMPOSE_NETWORK_EXTERNAL` | `1` / `true` — сеть уже существует на хосте (`external: true`); без prefix на имени | `0` |
 | `DEBUGGER_PORT` | Порт отладчика; см. [семантику по backend](#debugger_port-backend) | `5678` |
@@ -144,28 +146,43 @@ PATH_TO_SSH_KEY=/home/user/.ssh/id_ed25519
 
 Имя сервиса PostgreSQL в `docker-compose.yml` и значение `db_host` в `odoo.conf` (DNS внутри docker-сети). Допустимы строчные буквы, цифры, `_` и `-`; имя должно начинаться с буквы. После смены перегенерируйте `docker-compose.yml` и `odoo.conf` (обычный запуск `odpm`).
 
-**Не используется**, если задан **`ODPM_COMPOSE_PREFIX`** — postgres получает имя `{prefix}db` (например `acme-db`), с предупреждением в логе.
+**Не используется**, если задан **`ODPM_COMPOSE_PREFIX` и/или `ODPM_COMPOSE_SUFFIX`** — postgres получает physical имя (например `acme-db`, `db-dev`), с предупреждением в логе.
 
-## `ODPM_COMPOSE_PREFIX`
+## `ODPM_COMPOSE_PREFIX` / `ODPM_COMPOSE_SUFFIX`
 
-Опциональный префикс для **изоляции полного compose-стека** на общем хосте: несколько odpm-проектов в одном каталоге или параллельные копии без коллизий имён сервисов, томов и scope Docker Compose.
+Опциональные affix для **изоляции полного compose-стека** на общем хосте. Любой из них включает physical rewrite (`uses_physical_naming`).
 
 | Режим | Поведение |
 |-------|-----------|
-| **Не задан** | Как в 4.6: postgres — из `POSTGRES_SERVICE_NAME` (по умолчанию `db`), odoo — `odoo`, том — `postgres-data` |
-| **Задан** (`acme` или `acme-`) | Сервисы `acme-db`, `acme-odoo`; том `acme-postgres-data`; project name / `docker compose -p` — `acme` |
+| **Оба не заданы** | Как в 4.6: postgres — из `POSTGRES_SERVICE_NAME` (по умолчанию `db`), odoo — `odoo`, том — `postgres-data` |
+| **PREFIX** (`acme` / `acme-`) | `acme-db`, `acme-odoo`, том `acme-postgres-data`, `-p acme` |
+| **SUFFIX** (`dev` / `-dev`) | `db-dev`, `odoo-dev`, том `postgres-data-dev`, `-p dev` |
+| **Оба** | `acme-db-dev`, `acme-odoo-dev`, `-p acme-dev` |
 
-Нормализация: lowercase, символы `[a-z0-9-]`, имя начинается с буквы; завершающий `-` в `.env` опционален. Невалидное значение **игнорируется** (префикс отключён, warning в логе).
+Нормализация PREFIX: trailing `-`; SUFFIX: leading `-`. Невалидное значение игнорируется независимо (можно оставить только второй affix). Имена sidecar **не** переименовываются.
 
-В `odpm.json` sidecar по-прежнему указывают логические имена (`depends_on: ["db"]`); odpm переписывает их в physical при генерации `docker-compose.yml`. Для hostname внутри `environment` / `command` используйте **`${@service:db}`** / **`${@service:odoo}`** — в YAML попадёт уже physical имя (`acme-db`). Sidecar-ключи без префикса резолвятся в то же имя.
+В `odpm.json` sidecar указывают логические имена (`depends_on: ["db"]`); для hostname — **`${@service:db}`**.
 
 Пример:
 
 ```ini
 ODPM_COMPOSE_PREFIX=acme
+ODPM_COMPOSE_SUFFIX=dev
 ```
 
-См. [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md), [подстановку в `odpm.json`](odpm-json.md).
+См. [ADR-012](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [состояние PostgreSQL](database-state.md), [подстановку в `odpm.json`](odpm-json.md).
+
+## `ODPM_PORT_OFFSET`
+
+Целое (может быть отрицательным). Прибавляется к **host**-стороне каждого publish в итоговом `docker-compose.yml` (после merge sidecars/patches) и к host-facing портам из `.env` (`effective_odoo_port` и т.д., включая `DEBUGGER_PORT` при `pydevd_connect`). Порт внутри контейнера не меняется. Файлы `.odpm/compose/fragments/*.yml` на диске остаются **без** offset — source of truth для publish — корневой `docker-compose.yml`. Значение вне `1..65535` после сдвига → `ConfigError`. Смена OFFSET **не** создаёт database drift (в снимке хранится raw `POSTGRES_PORT`); `odpm database status` показывает effective host port.
+
+```ini
+ODOO_PORT=8069
+POSTGRES_PORT=5432
+ODPM_PORT_OFFSET=10
+```
+
+→ publish/host connect: `8079`, `5442`, …
 
 ## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
 
@@ -177,7 +194,7 @@ ODPM_COMPOSE_PREFIX=acme
 | **Managed** | `ODPM_COMPOSE_NETWORK=stack` | `networks: { stack: { driver: bridge } }`, все сервисы без своего `networks` подключаются |
 | **External** | `ODPM_COMPOSE_NETWORK=proxy` + `ODPM_COMPOSE_NETWORK_EXTERNAL=1` | `external: true`; имя **без** prefix (общая сеть reverse proxy) |
 
-С **`ODPM_COMPOSE_PREFIX=acme`** managed-сеть `stack` становится physical **`acme-stack`**; external `proxy` остаётся `proxy`.
+С **`ODPM_COMPOSE_PREFIX=acme`** managed-сеть `stack` становится physical **`acme-stack`**; с **`ODPM_COMPOSE_SUFFIX=dev`** — **`stack-dev`**; с обоими — **`acme-stack-dev`**. External `proxy` остаётся `proxy`.
 
 Нормализация имени: как у prefix (`[a-z0-9-]`, с буквы). Невалидное значение отключает сеть (warning). `ODPM_COMPOSE_NETWORK_EXTERNAL` без имени сети не действует.
 

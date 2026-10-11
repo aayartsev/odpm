@@ -20,7 +20,7 @@ COMPOSE_ODOO_SERVICE = LOGICAL_ODOO
 
 
 def compose_project_cli_args(user_env) -> list[str]:
-    """Return ``-p PROJECT`` argv suffix when ``ODPM_COMPOSE_PREFIX`` is active."""
+    """Return ``-p PROJECT`` argv when compose prefix and/or suffix sets a project name."""
     project_name = getattr(user_env, "compose_project_name", None)
     if isinstance(project_name, str) and project_name:
         return ["-p", project_name]

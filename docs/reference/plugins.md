@@ -94,7 +94,7 @@ Breaking changes в протоколах pluggy или manifest hooks требу
 
 После `odpm up` сервис появится в сгенерированном `docker-compose.yml` (блок `{COMPOSE_SERVICE_FRAGMENTS}`). Артефакты materialize: `.odpm/compose/fragments/mailpit.yml` (gitignored).
 
-В `depends_on` sidecar указывайте **логическое** имя `db` (не physical `acme-db`); при `ODPM_COMPOSE_PREFIX` odpm перепишет зависимости при генерации compose — см. [env-dotenv.md](env-dotenv.md).
+В `depends_on` sidecar указывайте **логическое** имя `db` (не physical `acme-db` / `db-dev`); при `ODPM_COMPOSE_PREFIX` / `ODPM_COMPOSE_SUFFIX` odpm перепишет зависимости при генерации compose — см. [env-dotenv.md](env-dotenv.md).
 
 ### Compose-сеть (`networks`, 4.7+)
 

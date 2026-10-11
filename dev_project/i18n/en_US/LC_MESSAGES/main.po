@@ -372,6 +372,9 @@ msgstr "HTTP download failed: {DETAIL}"
 msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
 msgstr "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
 
+msgid "Host port {PORT} out of range 1..65535 ({CONTEXT})"
+msgstr "Host port {PORT} out of range 1..65535 ({CONTEXT})"
+
 msgid "Host port: {PORT}"
 msgstr "Host port: {PORT}"
 
@@ -423,6 +426,9 @@ msgstr "Invalid choice. Please enter one of: {CHOICES}"
 msgid "Invalid debugger backend choice %r, using %s"
 msgstr "Invalid debugger backend choice %r, using %s"
 
+msgid "Invalid host port {PORT!r} ({CONTEXT})"
+msgstr "Invalid host port {PORT!r} ({CONTEXT})"
+
 msgid "Invalid local plugin module name: {NAME!r}"
 msgstr "Invalid local plugin module name: {NAME!r}"
 
@@ -441,17 +447,23 @@ msgstr "Invalid manifest_schema value {VALUE!r}; expected an integer."
 msgid "Invalid recipe YAML in {PATH}: {ERROR}"
 msgstr "Invalid recipe YAML in {PATH}: {ERROR}"
 
-msgid "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
-msgstr "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
-
 msgid "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
 msgstr "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}"
 
 msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
 msgstr "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); compose network disabled"
 
+msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
+msgstr "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); prefix disabled"
+
+msgid "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); suffix disabled"
+msgstr "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); suffix disabled"
+
 msgid "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile"
 msgstr "Invalid {ENV}={VALUE!r} (use {ALLOWED}); using scenario default profile"
+
+msgid "Invalid {ENV}={VALUE!r}; using 0"
+msgstr "Invalid {ENV}={VALUE!r}; using 0"
 
 msgid "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
 msgstr "Invalid {FIELD} value {VALUE!r}; expected a semantic version (for example 4.4 or 4.4.0)."
@@ -479,6 +491,18 @@ msgstr "Kaniko executor wrapper {PATH} is not a file; check {ENV}."
 
 msgid "Kaniko executor wrapper {PATH} is not executable; check {ENV}."
 msgstr "Kaniko executor wrapper {PATH} is not executable; check {ENV}."
+
+msgid "Leaving IPv6 compose port unchanged: %r"
+msgstr "Leaving IPv6 compose port unchanged: %r"
+
+msgid "Leaving bare container-only compose port unchanged: %r"
+msgstr "Leaving bare container-only compose port unchanged: %r"
+
+msgid "Leaving unparseable compose port dict unchanged: %r"
+msgstr "Leaving unparseable compose port dict unchanged: %r"
+
+msgid "Leaving unparseable compose port unchanged: %r"
+msgstr "Leaving unparseable compose port unchanged: %r"
 
 msgid "Load git lock from {SOURCE} and enter apply mode before checkout"
 msgstr "Load git lock from {SOURCE} and enter apply mode before checkout"
@@ -1434,14 +1458,14 @@ msgstr "verify service_sources paths exist"
 msgid "write deps.lock.json from resolved commits"
 msgstr "write deps.lock.json from resolved commits"
 
+msgid "{AFFIX_ENV} is set; ignoring {LEGACY_ENV}={VALUE!r} (postgres service will be {DB_NAME})"
+msgstr "{AFFIX_ENV} is set; ignoring {LEGACY_ENV}={VALUE!r} (postgres service will be {DB_NAME})"
+
 msgid "{COUNT} shell command(s)"
 msgstr "{COUNT} shell command(s)"
 
 msgid "{ENV}=1 requires sudo on PATH for Kaniko direct mode."
 msgstr "{ENV}=1 requires sudo on PATH for Kaniko direct mode."
-
-msgid "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})"
-msgstr "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})"
 
 msgid "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"
 msgstr "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead"

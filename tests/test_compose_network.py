@@ -123,6 +123,30 @@ class ComposeNetworkContextTests(unittest.TestCase):
         )
         self.assertEqual(ctx.physical_name, "acme-stack")
 
+    def test_managed_network_with_suffix(self):
+        ctx = resolve_compose_network(
+            network_raw="stack",
+            external_raw=None,
+            naming=resolve_compose_naming(
+                compose_prefix_raw=None,
+                compose_suffix_raw="dev",
+                legacy_postgres_service_name="db",
+            ),
+        )
+        self.assertEqual(ctx.physical_name, "stack-dev")
+
+    def test_managed_network_with_prefix_and_suffix(self):
+        ctx = resolve_compose_network(
+            network_raw="stack",
+            external_raw=None,
+            naming=resolve_compose_naming(
+                compose_prefix_raw="acme",
+                compose_suffix_raw="dev",
+                legacy_postgres_service_name="db",
+            ),
+        )
+        self.assertEqual(ctx.physical_name, "acme-stack-dev")
+
     def test_external_network_ignores_prefix(self):
         ctx = resolve_compose_network(
             network_raw="proxy",

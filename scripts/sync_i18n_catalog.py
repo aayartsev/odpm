@@ -715,13 +715,38 @@ RU_MESSAGES: dict[str, str] = {
     "{SOURCE} cannot declare reserved compose service {NAME}; use manifest service_patches instead": (
         "{SOURCE} не может объявлять зарезервированный compose-сервис {NAME}; используйте service_patches в manifest"
     ),
-    "Invalid {ENV}=%r (use lowercase letters, digits, '-'; must start with a letter); prefix disabled": (
-        "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '-'; "
+    "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); prefix disabled": (
+        "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; "
         "должно начинаться с буквы); префикс отключён"
     ),
-    "{PREFIX_ENV} is set; ignoring {LEGACY_ENV}=%r (postgres service will be {DB_NAME})": (
-        "Задан {PREFIX_ENV}; {LEGACY_ENV}=%r игнорируется "
+    "Invalid {ENV}={VALUE!r} (use lowercase letters, digits, '-'; must start with a letter); suffix disabled": (
+        "Недопустимое значение {ENV}={VALUE!r} (строчные буквы, цифры, '-'; "
+        "должно начинаться с буквы); суффикс отключён"
+    ),
+    "{AFFIX_ENV} is set; ignoring {LEGACY_ENV}={VALUE!r} (postgres service will be {DB_NAME})": (
+        "Задан {AFFIX_ENV}; {LEGACY_ENV}={VALUE!r} игнорируется "
         "(сервис postgres будет {DB_NAME})"
+    ),
+    "Invalid {ENV}={VALUE!r}; using 0": (
+        "Недопустимое значение {ENV}={VALUE!r}; используется 0"
+    ),
+    "Invalid host port {PORT!r} ({CONTEXT})": (
+        "Недопустимый host-порт {PORT!r} ({CONTEXT})"
+    ),
+    "Host port {PORT} out of range 1..65535 ({CONTEXT})": (
+        "Host-порт {PORT} вне диапазона 1..65535 ({CONTEXT})"
+    ),
+    "Leaving IPv6 compose port unchanged: %r": (
+        "IPv6 compose-порт оставлен без изменений: %r"
+    ),
+    "Leaving bare container-only compose port unchanged: %r": (
+        "Compose-порт только контейнера оставлен без изменений: %r"
+    ),
+    "Leaving unparseable compose port dict unchanged: %r": (
+        "Неразборчивый dict compose-порта оставлен без изменений: %r"
+    ),
+    "Leaving unparseable compose port unchanged: %r": (
+        "Неразборчивый compose-порт оставлен без изменений: %r"
     ),
     "Invalid {ENV}=%r (use lowercase letters, digits, '_' or '-'); using {DEFAULT}": (
         "Недопустимое значение {ENV}=%r (строчные буквы, цифры, '_' или '-'); "

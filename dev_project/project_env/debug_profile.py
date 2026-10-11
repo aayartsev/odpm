@@ -168,7 +168,9 @@ class DebuggerProfileBuilder:
         return self.env.config
 
     def build(self) -> DebuggerProfile:
-        port = self.env.user_env.debugger_port or constants.DEBUGGER_DEFAULT_PORT
+        from ..debugger.user_env import resolve_debugger_port  # noqa: PLC0415  # cycle-safe
+
+        port = resolve_debugger_port(self.env.user_env)
         backend_id = self.env.user_env.debugger_backend
         backend = get_backend(backend_id)
         direction = (

@@ -73,7 +73,7 @@ def resolve_compose_network(
     external_raw: str | None,
     naming: ComposeNamingContext,
 ) -> ComposeNetworkContext:
-    """Build logical/physical network names from ``.env`` and compose prefix context."""
+    """Build logical/physical network names from ``.env`` and compose affix context."""
     logical = parse_compose_network_name(network_raw)
     if logical is None:
         return ComposeNetworkContext(
@@ -90,8 +90,9 @@ def resolve_compose_network(
             external=True,
         )
 
-    prefix = naming.compose_prefix
-    physical = f"{prefix}{logical}" if prefix else logical
+    prefix = naming.compose_prefix or ""
+    suffix = naming.compose_suffix or ""
+    physical = f"{prefix}{logical}{suffix}"
     return ComposeNetworkContext(
         logical_name=logical,
         physical_name=physical,

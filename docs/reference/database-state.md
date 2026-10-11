@@ -24,7 +24,7 @@
 
 Снимок содержит:
 
-- **`compose`** — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте; при `ODPM_COMPOSE_PREFIX` — также `compose_project_name` и `odoo_service_name`;
+- **`compose`** — имя сервиса PostgreSQL, тег образа, абсолютный путь data dir, порт на хосте (raw `POSTGRES_PORT`; `ODPM_PORT_OFFSET` в снимок не входит); при compose affix — также `compose_project_name` и `odoo_service_name`;
 - **`odoo_conf`** — `db_host`, `db_port`, `db_user`;
 - **`cluster`** — data dir непустой, major PostgreSQL (`PG_VERSION`), роль приложения и её наличие.
 
@@ -112,9 +112,9 @@ odpm database ensure-role
 
 ## Связь с `.env` и `odoo.conf`
 
-Переменная **`POSTGRES_SERVICE_NAME`** в `.env` задаёт имя сервиса postgres в `docker-compose.yml` и ожидаемый **`db_host`** в `odoo.conf`, когда **`ODPM_COMPOSE_PREFIX`** не задан.
+Переменная **`POSTGRES_SERVICE_NAME`** в `.env` задаёт имя сервиса postgres в `docker-compose.yml` и ожидаемый **`db_host`** в `odoo.conf`, когда **не заданы** compose affix (`ODPM_COMPOSE_PREFIX` / `ODPM_COMPOSE_SUFFIX`).
 
-Переменная **`ODPM_COMPOSE_PREFIX`** задаёт **физические** имена встроенных сервисов (`{prefix}db`, `{prefix}odoo`), том данных и имя проекта Docker Compose. В снимке `last_run.json` сохраняются `compose.service_name` (postgres), `compose.compose_project_name` и `compose.odoo_service_name`. При смене префикса или `POSTGRES_SERVICE_NAME` относительно снимка:
+Affix **`ODPM_COMPOSE_PREFIX`** / **`ODPM_COMPOSE_SUFFIX`** задают **физические** имена встроенных сервисов, том данных и имя проекта Docker Compose. В снимке `last_run.json` сохраняются `compose.service_name` (postgres), `compose.compose_project_name` и `compose.odoo_service_name`. Команда `odpm database status` для «Host port» показывает **effective** порт (`POSTGRES_PORT + ODPM_PORT_OFFSET`). При смене affix или `POSTGRES_SERVICE_NAME` относительно снимка:
 
 - шаг **`template.odoo_conf`** пересоздаёт конфиг при рассинхроне `db_host`;
 - drift **`service_name`**, **`compose_project_name`** или **`db_host_mismatch`** попадает в plan.

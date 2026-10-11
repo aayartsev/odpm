@@ -72,8 +72,17 @@ String fields that need the **hostname** of a stack service (notably `environmen
 - **Tests:** `tests/test_compose_service_names.py`.
 - **Related:** [ADR-011](adr-011-scenario-manifest-overrides.md) (scenario overlays use logical compose names); [ADR-014](adr-014-compose-stack-network.md) (optional stack network from `.env`, physical rewrite after prefix).
 
+## Amendment (4.8): `ODPM_COMPOSE_SUFFIX` + `ODPM_PORT_OFFSET`
+
+| Variable | Role |
+|----------|------|
+| `ODPM_COMPOSE_SUFFIX` | Full peer of PREFIX for physical naming (suffix-only activates the same rewrite path) |
+| `ODPM_PORT_OFFSET` | Signed int added to **host** side of every published compose port and to host-facing core ports (`effective_*`); fragments on disk stay unoffset |
+
+Physical formula: `{prefix or ""}{logical}{suffix or ""}` (prefix stored with trailing `-`, suffix with leading `-`). Compose project slug: prefix → `acme`, suffix → `dev`, both → `acme-dev`. Rewrite gate is `uses_physical_naming` (prefix **or** suffix). `POSTGRES_SERVICE_NAME` ignored when **either** affix is set. Sidecar **keys** stay logical; their host ports are shifted by OFFSET. Snapshot `compose.host_port` stays **raw** `POSTGRES_PORT`; `odpm database status` displays **effective** postgres port. Out-of-range host port → `ConfigError` via shared `assert_host_port_in_range`.
+
 ## References
 
-- Plan: `.cursor/plans/4.7_scenarios_compose_prefix_9b4acf8a.plan.md`
+- Plan: `.cursor/plans/compose_suffix_env_6bce0b2c.plan.md`
 - [ADR-009](adr-009-compose-service-patch.md) — logical service names in manifest
 - [ADR-014](adr-014-compose-stack-network.md) — compose stack network (track D)

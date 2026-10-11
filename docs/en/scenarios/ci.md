@@ -55,8 +55,8 @@ ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
   odpm --build-image --image-tag myregistry/client-odoo:19.0 --image-push
 docker compose up -d
 # Module install after stack is up (bare odpm -d/-i is rejected in ci).
-# Service key is "odoo" unless ODPM_COMPOSE_PREFIX is set (then "{prefix}odoo"):
-ODOO_SVC="${ODPM_COMPOSE_PREFIX:-}odoo"
+# Physical odoo key from docker-compose.yml (odoo / acme-odoo / odoo-dev / …):
+ODOO_SVC=odoo
 docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from .. import constants
 from .constants import DEFAULT_DEBUGGER_BACKEND, DEFAULT_DEBUGGER_CONNECT_HOST
 from .env_parsing import parse_debugger_connect_host, parse_debugger_suspend
 
@@ -17,10 +16,9 @@ def resolve_debugger_backend_id(user_env: Any) -> str:
 
 
 def resolve_debugger_port(user_env: Any) -> int:
-    port = getattr(user_env, "debugger_port", None)
-    if isinstance(port, int) and not isinstance(port, bool):
-        return port
-    return constants.DEBUGGER_DEFAULT_PORT
+    from ..host.ports import effective_debugger_port  # noqa: PLC0415  # cycle-safe
+
+    return effective_debugger_port(user_env)
 
 
 def resolve_debugger_connect_host(user_env: Any) -> str:

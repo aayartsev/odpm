@@ -40,8 +40,10 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODOO_PROJECTS_DIR` | Where to clone platform and git dependencies | `~/odoo_projects` |
 | `ODOO_PORT` | Odoo HTTP port on the host | `8069` |
 | `POSTGRES_PORT` | PostgreSQL port on the host (in `server` scenario — localhost only) | `5432` |
-| `POSTGRES_SERVICE_NAME` | PostgreSQL service name in `docker-compose.yml` and `db_host` in `odoo.conf` (when `ODPM_COMPOSE_PREFIX` is unset) | `db` |
+| `POSTGRES_SERVICE_NAME` | PostgreSQL service name in `docker-compose.yml` and `db_host` in `odoo.conf` (when compose affixes are unset) | `db` |
 | `ODPM_COMPOSE_PREFIX` | Prefix for **full** compose-stack isolation: `db`/`odoo` service keys, `postgres-data` volume, Docker Compose project name | unset |
+| `ODPM_COMPOSE_SUFFIX` | Suffix — full peer of PREFIX (suffix-only also enables physical rewrite); with PREFIX: `acme-db-dev` | unset |
+| `ODPM_PORT_OFFSET` | Shift **host** publish ports (odoo/db/sidecars) and host-facing `ODOO_PORT`/`POSTGRES_PORT`/`DEBUGGER_PORT`/`GEVENT_PORT`; on-disk fragments stay unoffset | `0` |
 | `ODPM_COMPOSE_NETWORK` | Logical name of **one** compose network for the whole stack (managed bridge or external); unset — implicit default network | unset |
 | `ODPM_COMPOSE_NETWORK_EXTERNAL` | `1` / `true` — network already exists on the host (`external: true`); name not prefixed | `0` |
 | `DEBUGGER_PORT` | Debugger port; see [backend semantics](#debugger_port-and-backend) | `5678` |
@@ -146,28 +148,43 @@ One key applies to all specified remote repositories.
 
 PostgreSQL service name in `docker-compose.yml` and `db_host` value in `odoo.conf` (DNS inside the docker network). Lowercase letters, digits, `_`, and `-` are allowed; the name must start with a letter. After a change, regenerate `docker-compose.yml` and `odoo.conf` (a normal `odpm` run).
 
-**Ignored** when **`ODPM_COMPOSE_PREFIX`** is set — postgres is named `{prefix}db` (e.g. `acme-db`), with a warning in the log.
+**Ignored** when **`ODPM_COMPOSE_PREFIX` and/or `ODPM_COMPOSE_SUFFIX`** is set — postgres gets a physical name (e.g. `acme-db`, `db-dev`), with a warning in the log.
 
-## `ODPM_COMPOSE_PREFIX`
+## `ODPM_COMPOSE_PREFIX` / `ODPM_COMPOSE_SUFFIX`
 
-Optional prefix for **full compose-stack isolation** on a shared host: multiple odpm environments without colliding service names, volumes, or Docker Compose project scope.
+Optional affixes for **full compose-stack isolation** on a shared host. Either one enables physical rewrite (`uses_physical_naming`).
 
 | Mode | Behaviour |
 |------|-----------|
-| **Unset** | Same as 4.6: postgres from `POSTGRES_SERVICE_NAME` (default `db`), odoo `odoo`, volume `postgres-data` |
-| **Set** (`acme` or `acme-`) | Services `acme-db`, `acme-odoo`; volume `acme-postgres-data`; project name / `docker compose -p` — `acme` |
+| **Both unset** | Same as 4.6: postgres from `POSTGRES_SERVICE_NAME` (default `db`), odoo `odoo`, volume `postgres-data` |
+| **PREFIX** (`acme` / `acme-`) | `acme-db`, `acme-odoo`, volume `acme-postgres-data`, `-p acme` |
+| **SUFFIX** (`dev` / `-dev`) | `db-dev`, `odoo-dev`, volume `postgres-data-dev`, `-p dev` |
+| **Both** | `acme-db-dev`, `acme-odoo-dev`, `-p acme-dev` |
 
-Normalization: lowercase, charset `[a-z0-9-]`, must start with a letter; trailing `-` in `.env` is optional. Invalid values are **ignored** (prefix disabled, warning logged).
+PREFIX normalization: trailing `-`; SUFFIX: leading `-`. Invalid values are ignored independently. Sidecar **keys** are not renamed.
 
-Manifest sidecars keep **logical** names (`depends_on: ["db"]`); odpm rewrites them to physical names when generating `docker-compose.yml`. For hostnames inside `environment` / `command`, use **`${@service:db}`** / **`${@service:odoo}`** — the YAML gets the physical name (`acme-db`). Sidecar keys without a prefix resolve to the same name.
+Manifest sidecars keep logical names (`depends_on: ["db"]`); for hostnames use **`${@service:db}`**.
 
 Example:
 
 ```ini
 ODPM_COMPOSE_PREFIX=acme
+ODPM_COMPOSE_SUFFIX=dev
 ```
 
-See [ADR-012](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md), [`odpm.json` substitution](odpm-json.md).
+See [ADR-012](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-012-compose-service-prefix.md), [PostgreSQL state](database-state.md), [`odpm.json` substitution](odpm-json.md).
+
+## `ODPM_PORT_OFFSET`
+
+Signed integer added to the **host** side of every publish in the final `docker-compose.yml` (after sidecar/patch merge) and to host-facing `.env` ports (`effective_odoo_port`, including `DEBUGGER_PORT` under `pydevd_connect`). Container listen ports are unchanged. On-disk `.odpm/compose/fragments/*.yml` stay **unoffset** — the root `docker-compose.yml` is the publish source of truth. Out-of-range after shift → `ConfigError`. Changing OFFSET alone does **not** cause database drift (snapshot keeps raw `POSTGRES_PORT`); `odpm database status` shows the effective host port.
+
+```ini
+ODOO_PORT=8069
+POSTGRES_PORT=5432
+ODPM_PORT_OFFSET=10
+```
+
+→ publish/host connect: `8079`, `5442`, …
 
 ## `ODPM_COMPOSE_NETWORK` / `ODPM_COMPOSE_NETWORK_EXTERNAL`
 
@@ -179,7 +196,7 @@ Optionally declare **one** named Docker Compose network for the **entire** odpm 
 | **Managed** | `ODPM_COMPOSE_NETWORK=stack` | `networks: { stack: { driver: bridge } }`; services without their own `networks` are attached |
 | **External** | `ODPM_COMPOSE_NETWORK=proxy` + `ODPM_COMPOSE_NETWORK_EXTERNAL=1` | `external: true`; name **without** prefix (shared reverse-proxy network) |
 
-With **`ODPM_COMPOSE_PREFIX=acme`**, managed network `stack` becomes physical **`acme-stack`**; external `proxy` stays `proxy`.
+With **`ODPM_COMPOSE_PREFIX=acme`**, managed network `stack` becomes physical **`acme-stack`**; with **`ODPM_COMPOSE_SUFFIX=dev`** — **`stack-dev`**; with both — **`acme-stack-dev`**. External `proxy` stays `proxy`.
 
 Name normalization matches prefix (`[a-z0-9-]`, start with a letter). Invalid values disable the network (warning). `ODPM_COMPOSE_NETWORK_EXTERNAL` without a network name has no effect.
 

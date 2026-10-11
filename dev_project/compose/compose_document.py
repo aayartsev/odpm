@@ -22,6 +22,7 @@ from .network_names import (
     attach_logical_compose_network,
     compose_network_from_user_env,
 )
+from .ports import apply_host_port_offset
 from .service_names import (
     LOGICAL_DB,
     LOGICAL_ODOO,
@@ -185,6 +186,10 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     gates = sidecar_gates_from_user_settings(env.host_ctx.user_settings)
     services, dropped = apply_sidecar_gates(services, gates)
     scrub_service_deps(services, dropped)
+    port_offset = getattr(user_env, "port_offset", 0)
+    if not isinstance(port_offset, int) or isinstance(port_offset, bool):
+        port_offset = 0
+    apply_host_port_offset(services, port_offset)
     if policy.bind_published_ports_localhost:
         _bind_service_ports_localhost(services)
 

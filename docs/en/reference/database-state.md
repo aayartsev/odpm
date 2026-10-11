@@ -114,9 +114,9 @@ Commands run prepare (without `compose up`) when needed to read configuration.
 
 ## `.env` and `odoo.conf`
 
-**`POSTGRES_SERVICE_NAME`** in `.env` sets the postgres compose service name and the expected **`db_host`** in `odoo.conf` when **`ODPM_COMPOSE_PREFIX`** is unset.
+**`POSTGRES_SERVICE_NAME`** in `.env` sets the postgres compose service name and the expected **`db_host`** in `odoo.conf` when compose affixes (`ODPM_COMPOSE_PREFIX` / `ODPM_COMPOSE_SUFFIX`) are unset.
 
-**`ODPM_COMPOSE_PREFIX`** sets **physical** built-in service names (`{prefix}db`, `{prefix}odoo`), the data volume, and the Docker Compose project name. The `last_run.json` snapshot stores `compose.service_name` (postgres), `compose.compose_project_name`, and `compose.odoo_service_name`. When the prefix or `POSTGRES_SERVICE_NAME` changes relative to the snapshot:
+**`ODPM_COMPOSE_PREFIX`** / **`ODPM_COMPOSE_SUFFIX`** set **physical** built-in service names, the data volume, and the Docker Compose project name. The `last_run.json` snapshot stores `compose.service_name` (postgres), `compose.compose_project_name`, and `compose.odoo_service_name` (raw `POSTGRES_PORT`; `ODPM_PORT_OFFSET` is not snapshotted). `odpm database status` shows the **effective** host port. When an affix or `POSTGRES_SERVICE_NAME` changes relative to the snapshot:
 
 - prepare step **`template.odoo_conf`** regenerates the config on `db_host` mismatch;
 - drift **`service_name`**, **`compose_project_name`**, or **`db_host_mismatch`** appears in plan.

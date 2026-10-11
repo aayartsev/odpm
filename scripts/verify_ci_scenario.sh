@@ -36,8 +36,9 @@ for _ in $(seq 1 60); do
   if curl -sf "http://127.0.0.1:${ODOO_PORT}/web" >/dev/null; then
     echo "CI image built; stack started; Odoo HTTP OK."
     echo "Tip: install modules with:"
-    echo "  ODOO_SVC=\"\${ODPM_COMPOSE_PREFIX:-}odoo\""
-    echo "  docker compose exec \"\$ODOO_SVC\" odoo-bin -d DB -i MODULE --stop-after-init"
+    echo "  # Use the physical odoo service key from docker-compose.yml"
+    echo "  # (e.g. odoo, acme-odoo, odoo-dev, acme-odoo-dev)."
+    echo "  docker compose exec odoo odoo-bin -d DB -i MODULE --stop-after-init"
     exit 0
   fi
   sleep 5

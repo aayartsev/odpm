@@ -118,6 +118,7 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
             postgres_container_running=True,
             postgres_ready=True,
             app_role_present=False,
+            published_host_port=5432,
         )
         config = MagicMock()
         with patch("dev_project.database.commands._logger") as mock_logger:
@@ -141,6 +142,7 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
             postgres_container_running=True,
             postgres_ready=True,
             app_role_present=False,
+            published_host_port=5432,
         )
         config = MagicMock()
         buffer = StringIO()

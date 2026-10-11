@@ -227,8 +227,8 @@ export ODPM_SCENARIO=ci
 export ODPM_CI_PROJECT="$ODPM_PROJECT"   # optional: prepare project before build
 "$ODPM_REPO/scripts/verify_ci_scenario.sh"
 # After up, install modules with compose exec (not bare odpm -d/-i).
-# With ODPM_COMPOSE_PREFIX, use "{prefix}odoo" as the service name:
-# ODOO_SVC="${ODPM_COMPOSE_PREFIX:-}odoo"
+# With compose affixes, use the physical odoo key from docker-compose.yml
+# (e.g. acme-odoo, odoo-dev, acme-odoo-dev).
 # docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 

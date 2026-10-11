@@ -25,6 +25,7 @@ _COMPOSE_SUBMODULES = frozenset(
         "compose_document",
         "fragments",
         "generator",
+        "ports",
         "runtime",
         "service_builder",
         "validate",

@@ -124,3 +124,59 @@ def ports_from_config(
         project_env if project_env is not None else CreateProjectEnvironment(config)
     )
     return PipelinePorts.from_setup(config, resolved_env, resolved_args)
+
+
+def _raw_user_port(user_env: object, attr: str, default: int) -> int:
+    value = getattr(user_env, attr, None)
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return default
+
+
+def _user_port_offset(user_env: object) -> int:
+    value = getattr(user_env, "port_offset", 0)
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    return 0
+
+
+def effective_odoo_port(user_env: object) -> int:
+    from .. import constants  # noqa: PLC0415  # keep module import light
+    from ..compose.ports import assert_host_port_in_range  # noqa: PLC0415  # cycle-safe
+
+    raw = _raw_user_port(user_env, "odoo_port", constants.ODOO_DEFAULT_PORT)
+    return assert_host_port_in_range(
+        raw + _user_port_offset(user_env), context="ODOO_PORT + ODPM_PORT_OFFSET"
+    )
+
+
+def effective_postgres_port(user_env: object) -> int:
+    from .. import constants  # noqa: PLC0415  # keep module import light
+    from ..compose.ports import assert_host_port_in_range  # noqa: PLC0415  # cycle-safe
+
+    raw = _raw_user_port(user_env, "postgres_port", constants.POSTGRES_DEFAULT_PORT)
+    return assert_host_port_in_range(
+        raw + _user_port_offset(user_env), context="POSTGRES_PORT + ODPM_PORT_OFFSET"
+    )
+
+
+def effective_debugger_port(user_env: object) -> int:
+    from .. import constants  # noqa: PLC0415  # keep module import light
+    from ..compose.ports import assert_host_port_in_range  # noqa: PLC0415  # cycle-safe
+
+    raw = _raw_user_port(user_env, "debugger_port", constants.DEBUGGER_DEFAULT_PORT)
+    return assert_host_port_in_range(
+        raw + _user_port_offset(user_env), context="DEBUGGER_PORT + ODPM_PORT_OFFSET"
+    )
+
+
+def effective_gevent_port(user_env: object) -> int:
+    from .. import constants  # noqa: PLC0415  # keep module import light
+    from ..compose.ports import assert_host_port_in_range  # noqa: PLC0415  # cycle-safe
+
+    raw = _raw_user_port(user_env, "gevent_port", constants.GEVENT_DEFAULT_PORT)
+    return assert_host_port_in_range(
+        raw + _user_port_offset(user_env), context="GEVENT_PORT + ODPM_PORT_OFFSET"
+    )

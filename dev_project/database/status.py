@@ -54,9 +54,12 @@ class DatabaseStatusReport:
     postgres_container_running: bool | None
     postgres_ready: bool | None
     app_role_present: bool | None
+    published_host_port: int
 
 
 def collect_database_status(config: Config) -> DatabaseStatusReport:
+    from ..host.ports import effective_postgres_port  # noqa: PLC0415  # cycle-safe
+
     current = collect_database_state(config)
     last_run = load_last_run(config.project_dir)
     current, app_role_present = enrich_database_state_with_probe(config, current)
@@ -70,6 +73,7 @@ def collect_database_status(config: Config) -> DatabaseStatusReport:
         postgres_container_running=container_running,
         postgres_ready=postgres_ready,
         app_role_present=app_role_present,
+        published_host_port=effective_postgres_port(config.user_env),
     )
 
 
@@ -88,7 +92,7 @@ def format_database_status_table(report: DatabaseStatusReport) -> str:
             SERVICE=report.current.compose.service_name
         ),
         _("Data path: {PATH}").format(PATH=report.current.compose.data_path_abs),
-        _("Host port: {PORT}").format(PORT=report.current.compose.host_port),
+        _("Host port: {PORT}").format(PORT=report.published_host_port),
         _("odoo.conf db_host: {HOST}").format(HOST=report.current.odoo_conf.db_host),
         _("PostgreSQL container running: {VALUE}").format(
             VALUE=_format_bool(report.postgres_container_running)

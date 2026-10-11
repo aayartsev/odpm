@@ -99,11 +99,19 @@ class SystemChecker(SystemCheckerProtocol):
             self.ensure_base_image()
 
     def check_running_containers(self) -> None:
+        from .host.ports import (  # noqa: PLC0415  # keep check_system light
+            effective_debugger_port,
+            effective_gevent_port,
+            effective_odoo_port,
+            effective_postgres_port,
+        )
+
+        user_env = self.config.user_env
         ports_to_check = [
-            self.config.user_env.odoo_port,
-            self.config.user_env.debugger_port,
-            self.config.user_env.postgres_port,
-            self.config.user_env.gevent_port,
+            effective_odoo_port(user_env),
+            effective_debugger_port(user_env),
+            effective_postgres_port(user_env),
+            effective_gevent_port(user_env),
         ]
 
         def get_ports(data_port_string):
