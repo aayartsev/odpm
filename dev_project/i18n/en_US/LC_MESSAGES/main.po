@@ -9,11 +9,17 @@ msgstr ""
 msgid " \"config.json\" is deprecated. Please read documentation"
 msgstr " \"config.json\" is deprecated. Please read documentation"
 
+msgid "(none)"
+msgstr "(none)"
+
 msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 msgstr "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 
 msgid "--no-git-update requires existing service_sources directories: {PATHS}"
 msgstr "--no-git-update requires existing service_sources directories: {PATHS}"
+
+msgid "--remote-db is required for odpm database pull."
+msgstr "--remote-db is required for odpm database pull."
 
 msgid "--sync-manifest-locks is only supported in developer scenario"
 msgstr "--sync-manifest-locks is only supported in developer scenario"
@@ -26,6 +32,9 @@ msgstr "--sync-manifest-locks requires --update-lock"
 
 msgid "--update-lock cannot be used together with --no-git-update"
 msgstr "--update-lock cannot be used together with --no-git-update"
+
+msgid "--url is required for odpm database pull."
+msgstr "--url is required for odpm database pull."
 
 msgid "-i/-u module list must contain at least one module name (comma-separated, e.g. sale,crm)"
 msgstr "-i/-u module list must contain at least one module name (comma-separated, e.g. sale,crm)"
@@ -66,6 +75,21 @@ msgstr "Applying git dependency lock from {PATH}"
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Attached to container output. Detailed technical logs below are in English."
 
+msgid "Authentication succeeded; remote accepted the backup request for {DB}."
+msgstr "Authentication succeeded; remote accepted the backup request for {DB}."
+
+msgid "BACKUP_DIR is not set; configure it in the project .env file."
+msgstr "BACKUP_DIR is not set; configure it in the project .env file."
+
+msgid "Backup archive not found: {PATH}"
+msgstr "Backup archive not found: {PATH}"
+
+msgid "Backup looks invalid (HTML response): {PATH}"
+msgstr "Backup looks invalid (HTML response): {PATH}"
+
+msgid "Backup looks invalid (not a zip archive): {PATH}"
+msgstr "Backup looks invalid (not a zip archive): {PATH}"
+
 msgid "Base image registry is required when using the kaniko builder."
 msgstr "Base image registry is required when using the kaniko builder."
 
@@ -96,6 +120,9 @@ msgstr "Cannot connect to the Docker daemon. Is the docker daemon running?"
 msgid "Cannot create dir, {dir_path}, please check it"
 msgstr "Cannot create dir, {dir_path}, please check it"
 
+msgid "Cannot determine developing project source. Set \"developing_project\" in odpm.json, run from an odpm project directory, or use \"{PROJECT_NAME} {INIT_PARAM}\"."
+msgstr "Cannot determine developing project source. Set \"developing_project\" in odpm.json, run from an odpm project directory, or use \"{PROJECT_NAME} {INIT_PARAM}\"."
+
 msgid "Cannot get docker-compose info, did you install it?"
 msgstr "Cannot get docker-compose info, did you install it?"
 
@@ -122,6 +149,9 @@ msgstr "Check database configuration drift against last_run snapshot"
 
 msgid "Checking out {REF} for {PROJECT}"
 msgstr "Checking out {REF} for {PROJECT}"
+
+msgid "Checking remote databases at {URL} …"
+msgstr "Checking remote databases at {URL} …"
 
 msgid "Checkout dependency repos to odoo version branch"
 msgstr "Checkout dependency repos to odoo version branch"
@@ -198,6 +228,9 @@ msgstr "Container start skipped (--skip-start)."
 msgid "Control+C pressed; stopping."
 msgstr "Control+C pressed; stopping."
 
+msgid "Could not list remote databases ({DETAIL}); continuing with the backup request."
+msgstr "Could not list remote databases ({DETAIL}); continuing with the backup request."
+
 msgid "Could not load project recipes; listing builtins only."
 msgstr "Could not load project recipes; listing builtins only."
 
@@ -251,6 +284,15 @@ msgstr "Do not change, it will get from \"db_manager_password\" param from confi
 
 msgid "Docker compose command is not configured; stack health was not probed"
 msgstr "Docker compose command is not configured; stack health was not probed"
+
+msgid "Download progress: {MIB:.1f} MiB."
+msgstr "Download progress: {MIB:.1f} MiB."
+
+msgid "Download progress: {PCT}% ({MIB:.1f} MiB)."
+msgstr "Download progress: {PCT}% ({MIB:.1f} MiB)."
+
+msgid "Download started …"
+msgstr "Download started …"
 
 msgid "Ensured PostgreSQL application role {ROLE} during baseline adoption."
 msgstr "Ensured PostgreSQL application role {ROLE} during baseline adoption."
@@ -308,6 +350,24 @@ msgstr "Git lock source: manifest locks.git in odpm.json (canonical); edit SHA i
 
 msgid "Git ref {REF!r} is not available in {PATH} (fetch the base commit if this is a shallow clone)."
 msgstr "Git ref {REF!r} is not available in {PATH} (fetch the base commit if this is a shallow clone)."
+
+msgid "Git repository URL for {FIELD} is empty"
+msgstr "Git repository URL for {FIELD} is empty"
+
+msgid "Git repository URL is empty"
+msgstr "Git repository URL is empty"
+
+msgid "Git repository URL is empty for link {LINK}"
+msgstr "Git repository URL is empty for link {LINK}"
+
+msgid "HTTP backup failed for {URL}: {DETAIL}"
+msgstr "HTTP backup failed for {URL}: {DETAIL}"
+
+msgid "HTTP download failed with status {STATUS} for {URL}"
+msgstr "HTTP download failed with status {STATUS} for {URL}"
+
+msgid "HTTP download failed: {DETAIL}"
+msgstr "HTTP download failed: {DETAIL}"
 
 msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
 msgstr "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
@@ -678,8 +738,32 @@ msgstr "Regenerate project odoo.conf from .odpm template"
 msgid "Regenerate root .dockerignore from .odpm/dockerignore"
 msgstr "Regenerate root .dockerignore from .odpm/dockerignore"
 
+msgid "Remote backup saved as {NAME} under {DIR}."
+msgstr "Remote backup saved as {NAME} under {DIR}."
+
+msgid "Remote database list failed with status {STATUS} for {URL}"
+msgstr "Remote database list failed with status {STATUS} for {URL}"
+
+msgid "Remote database list failed: {DETAIL}"
+msgstr "Remote database list failed: {DETAIL}"
+
+msgid "Remote database list returned invalid JSON from {URL}"
+msgstr "Remote database list returned invalid JSON from {URL}"
+
+msgid "Remote database list returned unexpected payload from {URL}"
+msgstr "Remote database list returned unexpected payload from {URL}"
+
+msgid "Remote database {DB} found on {URL}."
+msgstr "Remote database {DB} found on {URL}."
+
+msgid "Remote database {DB} was not found on {URL}. Available: {LIST}."
+msgstr "Remote database {DB} was not found on {URL}. Available: {LIST}."
+
 msgid "Render docker-compose.yml from project template"
 msgstr "Render docker-compose.yml from project template"
+
+msgid "Requesting backup for database {DB} from {URL} (master password authentication) …"
+msgstr "Requesting backup for database {DB} from {URL} (master password authentication) …"
 
 msgid "Run docker compose up"
 msgstr "Run docker compose up"
@@ -755,6 +839,9 @@ msgstr "Set odpm host message language. System locale is {SYSTEM_LOCALE}. Press 
 
 msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
 msgstr "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
+
+msgid "Set {ENV} to the remote Odoo database manager master password (do not pass it on the command line)."
+msgstr "Set {ENV} to the remote Odoo database manager master password (do not pass it on the command line)."
 
 msgid "Skipping developing lock apply in developer scenario; git state is managed by the developer"
 msgstr "Skipping developing lock apply in developer scenario; git state is managed by the developer"
@@ -1014,8 +1101,17 @@ msgstr "database configuration drift detected: {KINDS}"
 msgid "database configuration matches last_run snapshot"
 msgstr "database configuration matches last_run snapshot"
 
-msgid "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
-msgstr "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
+msgid "database pull did not print an archive name."
+msgstr "database pull did not print an archive name."
+
+msgid "database pull produced no step result."
+msgstr "database pull produced no step result."
+
+msgid "database pull step was skipped unexpectedly."
+msgstr "database pull step was skipped unexpectedly."
+
+msgid "database subcommand required: use \"odpm database status\", \"odpm database ensure-role\", or \"odpm database pull\"."
+msgstr "database subcommand required: use \"odpm database status\", \"odpm database ensure-role\", or \"odpm database pull\"."
 
 msgid "debug profile missing"
 msgstr "debug profile missing"

@@ -12,6 +12,7 @@ from dev_project.compose.compose_document import build_compose_document
 from dev_project.docker_capabilities import (
     DockerCapabilities,
     detect_docker_capabilities,
+    ensure_config_docker_capabilities,
     probe_compose_command_from_candidates,
     resolve_docker_capabilities,
 )
@@ -19,6 +20,67 @@ from dev_project.errors import SystemCheckError
 from tests.fixtures.compose.golden_scenario_env import make_golden_compose_env
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "docker"
+
+
+class ProbeComposeCandidatesFileNotFoundTests(unittest.TestCase):
+    def test_skips_missing_binary_and_returns_none(self):
+        def fake_run_checked(argv, **kwargs):
+            raise FileNotFoundError(argv[0])
+
+        caps = probe_compose_command_from_candidates(
+            constants.LIST_OF_DOCKER_COMPOSE_COMMANDS,
+            run_checked=fake_run_checked,
+        )
+        self.assertIsNone(caps)
+
+    def test_falls_back_to_docker_compose_when_v2_not_working(self):
+        help_text = (FIXTURES / "compose_up_help_modern.txt").read_text(encoding="utf-8")
+
+        def fake_run_checked(argv, **kwargs):
+            result = MagicMock()
+            if argv[0] == "docker":
+                result.stdout = "not a compose plugin"
+                return result
+            if argv[-1] == "version":
+                # hyphen becomes space in compose_version_is_working
+                result.stdout = "docker-compose version 1.29.2, build unknown"
+            else:
+                result.stdout = help_text
+            return result
+
+        caps = probe_compose_command_from_candidates(
+            constants.LIST_OF_DOCKER_COMPOSE_COMMANDS,
+            run_checked=fake_run_checked,
+        )
+        self.assertIsNotNone(caps)
+        assert caps is not None
+        self.assertEqual(caps.compose_command, "docker-compose")
+
+    def test_ensure_returns_none_on_file_not_found(self):
+        config = MagicMock()
+        config.docker_capabilities = None
+        config.runtime = None
+        config.docker_compose_command = "docker compose"
+
+        def fake_run_checked(argv, **kwargs):
+            raise FileNotFoundError(argv[0])
+
+        caps = ensure_config_docker_capabilities(
+            config, run_checked=fake_run_checked
+        )
+        self.assertIsNone(caps)
+
+    def test_resolve_raises_system_check_error_on_file_not_found(self):
+        config = MagicMock()
+        config.docker_capabilities = None
+        config.runtime = None
+        config.docker_compose_command = "docker compose"
+
+        def fake_run_checked(argv, **kwargs):
+            raise FileNotFoundError(argv[0])
+
+        with self.assertRaises(SystemCheckError):
+            resolve_docker_capabilities(config, run_checked=fake_run_checked)
 
 
 class DetectDockerCapabilitiesTests(unittest.TestCase):

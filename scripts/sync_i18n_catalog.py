@@ -87,6 +87,89 @@ RU_MESSAGES: dict[str, str] = {
     "Blocking database configuration drift remains after resolution: {KINDS}": (
         "После разрешения дрейфа остаётся блокирующий дрейф конфигурации БД: {KINDS}"
     ),
+    "(none)": "(нет)",
+    "--remote-db is required for odpm database pull.": (
+        "Для odpm database pull требуется --remote-db."
+    ),
+    "--url is required for odpm database pull.": (
+        "Для odpm database pull требуется --url."
+    ),
+    "Authentication succeeded; remote accepted the backup request for {DB}.": (
+        "Аутентификация успешна; удалённый сервер принял запрос backup для {DB}."
+    ),
+    "BACKUP_DIR is not set; configure it in the project .env file.": (
+        "BACKUP_DIR не задан; настройте его в .env проекта."
+    ),
+    "Backup archive not found: {PATH}": (
+        "Архив backup не найден: {PATH}"
+    ),
+    "Backup looks invalid (HTML response): {PATH}": (
+        "Backup выглядит некорректно (ответ HTML): {PATH}"
+    ),
+    "Backup looks invalid (not a zip archive): {PATH}": (
+        "Backup выглядит некорректно (не zip-архив): {PATH}"
+    ),
+    "Cannot determine developing project source. Set \"developing_project\" in "
+    "odpm.json, run from an odpm project directory, or use "
+    '"{PROJECT_NAME} {INIT_PARAM}".': (
+        "Не удалось определить источник разрабатываемого проекта. Задайте "
+        '"developing_project" в odpm.json, запускайте из каталога odpm-проекта '
+        'или используйте "{PROJECT_NAME} {INIT_PARAM}".'
+    ),
+    "Checking remote databases at {URL} …": (
+        "Проверка удалённых баз на {URL} …"
+    ),
+    "Could not list remote databases ({DETAIL}); continuing with the backup request.": (
+        "Не удалось получить список удалённых баз ({DETAIL}); продолжаем запрос backup."
+    ),
+    "Download progress: {MIB:.1f} MiB.": (
+        "Прогресс загрузки: {MIB:.1f} МиБ."
+    ),
+    "Download progress: {PCT}% ({MIB:.1f} MiB).": (
+        "Прогресс загрузки: {PCT}% ({MIB:.1f} МиБ)."
+    ),
+    "Download started …": (
+        "Загрузка началась …"
+    ),
+    "HTTP backup failed for {URL}: {DETAIL}": (
+        "HTTP backup не удался для {URL}: {DETAIL}"
+    ),
+    "HTTP download failed with status {STATUS} for {URL}": (
+        "HTTP-загрузка не удалась со статусом {STATUS} для {URL}"
+    ),
+    "HTTP download failed: {DETAIL}": (
+        "HTTP-загрузка не удалась: {DETAIL}"
+    ),
+    "Remote backup saved as {NAME} under {DIR}.": (
+        "Удалённый backup сохранён как {NAME} в {DIR}."
+    ),
+    "Remote database list failed with status {STATUS} for {URL}": (
+        "Список удалённых баз не получен (статус {STATUS}) для {URL}"
+    ),
+    "Remote database list failed: {DETAIL}": (
+        "Список удалённых баз не получен: {DETAIL}"
+    ),
+    "Remote database list returned invalid JSON from {URL}": (
+        "Список удалённых баз вернул невалидный JSON с {URL}"
+    ),
+    "Remote database list returned unexpected payload from {URL}": (
+        "Список удалённых баз вернул неожиданный ответ с {URL}"
+    ),
+    "Remote database {DB} found on {URL}.": (
+        "Удалённая база {DB} найдена на {URL}."
+    ),
+    "Remote database {DB} was not found on {URL}. Available: {LIST}.": (
+        "Удалённая база {DB} не найдена на {URL}. Доступны: {LIST}."
+    ),
+    "Requesting backup for database {DB} from {URL} "
+    "(master password authentication) …": (
+        "Запрос backup базы {DB} с {URL} (аутентификация master password) …"
+    ),
+    "Set {ENV} to the remote Odoo database manager master password "
+    "(do not pass it on the command line).": (
+        "Задайте {ENV} — master password менеджера баз удалённого Odoo "
+        "(не передавайте его в командной строке)."
+    ),
     "Canonical git pins: odpm.json locks.git; run --update-lock to "
     "refresh .odpm/deps.lock.json.": (
         "Канонические git-пины: locks.git в odpm.json; выполните --update-lock, "
@@ -420,10 +503,19 @@ RU_MESSAGES: dict[str, str] = {
     "database configuration matches last_run snapshot": (
         "Конфигурация БД совпадает со снимком last_run"
     ),
-    'database subcommand required: use "odpm database status" or '
-    '"odpm database ensure-role".': (
-        'Укажите подкоманду database: "odpm database status" или '
-        '"odpm database ensure-role".'
+    'database subcommand required: use "odpm database status", '
+    '"odpm database ensure-role", or "odpm database pull".': (
+        'Укажите подкоманду database: "odpm database status", '
+        '"odpm database ensure-role" или "odpm database pull".'
+    ),
+    "database pull did not print an archive name.": (
+        "database pull не вывел имя архива."
+    ),
+    "database pull produced no step result.": (
+        "database pull не вернул результат шага."
+    ),
+    "database pull step was skipped unexpectedly.": (
+        "Шаг database pull неожиданно пропущен."
     ),
     "first database run (no last_run snapshot yet)": (
         "Первый запуск БД (снимок last_run ещё не создан)"
@@ -548,6 +640,15 @@ RU_MESSAGES: dict[str, str] = {
     ".odpm/deps.lock.json.": (
         "Источник git lock: locks.git в odpm.json (канон); правьте SHA в locks.git "
         "и выполните --update-lock для синхронизации .odpm/deps.lock.json."
+    ),
+    "Git repository URL is empty": (
+        "URL git-репозитория пуст"
+    ),
+    "Git repository URL is empty for link {LINK}": (
+        "URL git-репозитория пуст для ссылки {LINK}"
+    ),
+    "Git repository URL for {FIELD} is empty": (
+        "URL git-репозитория для {FIELD} пуст"
     ),
     "Generated compose document must include services": (
         "Сгенерированный compose-документ должен содержать services"

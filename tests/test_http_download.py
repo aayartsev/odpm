@@ -131,7 +131,8 @@ class HttpDownloadTests(unittest.TestCase):
             path.write_bytes(b"not-a-zip")
             with self.assertRaises(ConfigError) as ctx:
                 assert_odoo_backup_zip(path)
-            self.assertIn("not a zip", str(ctx.exception))
+            # Locale-stable token (EN "not a zip" / RU "не zip-архив").
+            self.assertIn("zip", str(ctx.exception).lower())
 
     def test_download_cleans_partial_on_http_error(self):
         import urllib.error

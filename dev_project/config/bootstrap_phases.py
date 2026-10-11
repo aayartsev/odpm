@@ -15,6 +15,7 @@ from .. import constants
 from .transforms import beautify_module_list
 from .transforms.env_substitution import with_secrets
 from .transforms.secret_refs import load_secrets_map
+from .git_url_validation import require_nonempty_git_url
 from .state import project_settings_from_raw, user_settings_from_raw
 from ..project_env.odoo_password_secrets import warn_hardened_plaintext_password_fields
 from ..project_env.secrets import import_secrets_from_path, read_secrets_source
@@ -134,8 +135,12 @@ def _apply_manifest_database_to_user_settings(config: Config) -> None:
 
 def bind_platform_link(config: Config) -> None:
     bootstrap = config.bootstrap
+    odoo_git_link = require_nonempty_git_url(
+        config.odoo_git_link, field="odoo_git_link"
+    )
+    config.odoo_git_link = odoo_git_link
     bootstrap.odoo_platform_project = config.handle_git_link(
-        config.odoo_git_link,
+        odoo_git_link,
         system_type="platform",
         materialize=False,
     )

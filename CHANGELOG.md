@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Empty git URL → ConfigError** — `normalize_repo_url` / `repo_url_for_link` no longer raise `IndexError` on empty/whitespace URLs; host `odoo_git_link` and `dependencies[i]` are validated at bootstrap. Tests: `test_deps_lock`, `test_host_config`.
+- **Missing compose binary during probe** — `FileNotFoundError` for `docker` / `docker-compose` in compose capability probe continues to the next candidate (`ensure` → `None`, `resolve` / `check_docker_compose` → `SystemCheckError`) instead of a traceback. Tests: `test_docker_capabilities`.
+- **Install-docs contract + i18n catalog** — install P2 tests assert current `LATEST_STABLE_RELEASE` (4.7.0) and archive layout; ru_RU catalog covers remote DB pull msgids. Tests: `test_install_docs_p2`, `test_ci_i18n`.
 - **OCA discovery no longer checkouts developing** — with `use_oca_dependencies`, reading `oca_dependencies.txt` from the developing project no longer calls `checkout_repository` (which switched the tree to `odoo_version`). Branch/commit stay under the developer’s control; checkout still follows `_should_checkout_developing` (explicit `#branch`/`@commit`, or CI/server lock pin). Tests: `test_dependency_materializer`.
 - **Bare `odpm` from `$HOME`** — `~/.odpm` (user config home) is no longer treated as a project service directory, so a missing project yields the normal “not an odpm directory” message instead of a `TypeError` in `get_developing_project_link`. Defense-in-depth: missing `--init` / `developing_project` raises `ConfigError`. Tests: `test_phase2_infra`, `test_host_config`.
 

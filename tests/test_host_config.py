@@ -36,6 +36,7 @@ from dev_project.config.state import (
     DockerLayoutState,
     ProjectSettingsState,
     UserSettingsState,
+    project_settings_from_raw,
 )
 from dev_project.errors import ConfigError, PipelineError
 from dev_project.scenario_policy import ScenarioPolicy
@@ -253,7 +254,8 @@ class ConfigDefaultsFactoryTests(unittest.TestCase):
         config.pd_manager = MagicMock(init=None, project_path="/tmp/project")
         with self.assertRaises(ConfigError) as ctx:
             ConfigDefaultsFactory(config).get_developing_project_link()
-        self.assertIn("developing project", str(ctx.exception).lower())
+        # Locale-stable token (EN/RU both keep the settings key).
+        self.assertIn("developing_project", str(ctx.exception))
 
     def test_create_default_user_settings_check_system_true_by_default(self):
         config = MagicMock()
@@ -912,6 +914,42 @@ class BindPlatformLinkTests(unittest.TestCase):
         )
         self.assertIs(config.odoo_platform_project, platform_link)
         self.assertEqual(config.odoo_src_dir, "/tmp/odoo/src")
+
+    def test_bind_platform_link_rejects_empty_odoo_git_link(self):
+        config = Config.__new__(Config)
+        config._project = ProjectSettingsState()
+        config.odoo_git_link = "   "
+        config.handle_git_link = MagicMock()
+
+        with self.assertRaises(ConfigError) as ctx:
+            bind_platform_link(config)
+        self.assertIn("odoo_git_link", str(ctx.exception))
+        config.handle_git_link.assert_not_called()
+
+
+class ProjectSettingsFromRawDependencyTests(unittest.TestCase):
+    def test_rejects_empty_dependency_url(self):
+        with self.assertRaises(ConfigError) as ctx:
+            project_settings_from_raw(
+                {
+                    "odoo_version": "19.0",
+                    "dependencies": ["https://github.com/OCA/web.git", ""],
+                },
+                OdpmCliArgs(),
+                odoo_build_date="",
+            )
+        self.assertIn("dependencies[1]", str(ctx.exception))
+
+    def test_accepts_nonempty_dependencies(self):
+        state = project_settings_from_raw(
+            {
+                "odoo_version": "19.0",
+                "dependencies": [" https://github.com/OCA/web.git "],
+            },
+            OdpmCliArgs(),
+            odoo_build_date="",
+        )
+        self.assertEqual(state.dependencies, ["https://github.com/OCA/web.git"])
 
 
 class ConfigStateSliceTests(unittest.TestCase):

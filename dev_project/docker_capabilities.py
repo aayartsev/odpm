@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 from . import constants
+from .errors import SystemCheckError
+from .translations import _
 
 if TYPE_CHECKING:
     from .config import Config
@@ -96,10 +98,16 @@ def probe_compose_command_from_candidates(
 ) -> DockerCapabilities | None:
     for command in commands:
         parts = command.split()
-        version = run_checked([*parts, "version"])
+        try:
+            version = run_checked([*parts, "version"])
+        except FileNotFoundError:
+            continue
         if not compose_version_is_working(version.stdout):
             continue
-        up_help = run_checked([*parts, "up", "--help"])
+        try:
+            up_help = run_checked([*parts, "up", "--help"])
+        except FileNotFoundError:
+            continue
         return detect_docker_capabilities(command, up_help.stdout, version.stdout)
     return None
 
@@ -120,7 +128,10 @@ def ensure_config_docker_capabilities(
         from .subprocess_runner import run_checked as default_run_checked  # noqa: PLC0415  # optional
 
         run_checked = default_run_checked
-    probed = probe_docker_capabilities(compose_command, run_checked=run_checked)
+    try:
+        probed = probe_docker_capabilities(compose_command, run_checked=run_checked)
+    except FileNotFoundError:
+        return None
     config.docker_capabilities = probed
     return probed
 
@@ -149,10 +160,15 @@ def resolve_docker_capabilities(
         from .subprocess_runner import run_checked as default_run_checked  # noqa: PLC0415  # optional
 
         run_checked = default_run_checked
-    probed = probe_docker_capabilities(
-        config.docker_compose_command,
-        run_checked=run_checked,
-    )
+    try:
+        probed = probe_docker_capabilities(
+            config.docker_compose_command,
+            run_checked=run_checked,
+        )
+    except FileNotFoundError as exc:
+        raise SystemCheckError(
+            _("Cannot get docker-compose info, did you install it?")
+        ) from exc
     if hasattr(config, "docker_capabilities"):
         config.docker_capabilities = probed
     return probed

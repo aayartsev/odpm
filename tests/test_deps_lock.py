@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
+from dev_project.errors import ConfigError
 from dev_project.git.deps_lock import (
     DEPS_LOCK_SCHEMA_VERSION,
     LOCK_KIND_FILE,
@@ -20,6 +21,7 @@ from dev_project.git.deps_lock import (
     is_remote_git_link,
     load_deps_lock,
     normalize_repo_url,
+    repo_url_for_link,
     resolve_lock_commit,
     save_deps_lock,
     snapshot_commit_for_path,
@@ -39,6 +41,21 @@ class NormalizeRepoUrlTests(unittest.TestCase):
             normalize_repo_url("https://github.com/acme/demo.git 17.0"),
             "https://github.com/acme/demo",
         )
+
+    def test_empty_url_raises_config_error(self):
+        with self.assertRaises(ConfigError):
+            normalize_repo_url("")
+        with self.assertRaises(ConfigError):
+            normalize_repo_url("   ")
+
+    def test_repo_url_for_link_empty_raises_config_error(self):
+        link = MagicMock()
+        link.gitlink = ""
+        link.project_link = ""
+        link.project_string = ""
+        with self.assertRaises(ConfigError) as ctx:
+            repo_url_for_link(link)
+        self.assertNotIsInstance(ctx.exception, IndexError)
 
 
 class CanonicalRepoUrlTests(unittest.TestCase):

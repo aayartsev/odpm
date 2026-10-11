@@ -20,6 +20,9 @@
 
 ### Исправлено
 
+- **Пустой git URL → ConfigError** — `normalize_repo_url` / `repo_url_for_link` больше не дают `IndexError` на пустых/пробельных URL; host `odoo_git_link` и `dependencies[i]` проверяются при bootstrap. Тесты: `test_deps_lock`, `test_host_config`.
+- **Отсутствие compose при probe** — `FileNotFoundError` для `docker` / `docker-compose` при probe capabilities переходит к следующему кандидату (`ensure` → `None`, `resolve` / `check_docker_compose` → `SystemCheckError`) вместо traceback. Тесты: `test_docker_capabilities`.
+- **Контракт install-docs + i18n-каталог** — P2-тесты install сверяют текущий `LATEST_STABLE_RELEASE` (4.7.0) и архивную раскладку; ru_RU покрывает msgid remote DB pull. Тесты: `test_install_docs_p2`, `test_ci_i18n`.
 - **OCA discovery больше не делает checkout developing** — при `use_oca_dependencies` чтение `oca_dependencies.txt` из developing больше не вызывает `checkout_repository` (раньше дерево уезжало на ветку `odoo_version`). Ветку/коммит оставляет разработчик; checkout по-прежнему через `_should_checkout_developing` (явный `#branch`/`@commit` или pin lock в ci/server). Тесты: `test_dependency_materializer`.
 - **Голый `odpm` из `$HOME`** — `~/.odpm` (домашний конфиг) больше не считается project service directory: вместо `TypeError` в `get_developing_project_link` показывается обычное сообщение «это не каталог odpm». Защита: без `--init` / `developing_project` — `ConfigError`. Тесты: `test_phase2_infra`, `test_host_config`.
 

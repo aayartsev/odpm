@@ -12,6 +12,8 @@ from typing import Any, Literal
 from urllib.parse import urlparse
 
 from .. import constants
+from ..errors import ConfigError
+from ..translations import _
 
 DEPS_LOCK_SCHEMA_VERSION = 1
 LOCK_KIND_GIT = "git"
@@ -133,7 +135,10 @@ def deps_lock_path(project_dir: str) -> str:
 
 def normalize_repo_url(url: str) -> str:
     """Normalize git URL token (first word, no .git suffix)."""
-    token = (url or "").strip().split()[0]
+    tokens = (url or "").strip().split()
+    if not tokens:
+        raise ConfigError(_("Git repository URL is empty"))
+    token = tokens[0]
     return token.rstrip("/").removesuffix(".git")
 
 
@@ -159,7 +164,13 @@ def canonical_repo_url(url: str) -> str:
 
 def repo_url_for_link(link) -> str:
     raw = link.gitlink or link.project_link or link.project_string
-    return canonical_repo_url(raw)
+    text = "" if raw is None else str(raw).strip()
+    if not text:
+        label = getattr(link, "project_string", None) or repr(link)
+        raise ConfigError(
+            _("Git repository URL is empty for link {LINK}").format(LINK=label)
+        )
+    return canonical_repo_url(text)
 
 
 def lock_kind_for_link(link) -> LockKind:

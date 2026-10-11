@@ -17,6 +17,7 @@ from ...git import (
 )
 from ...logging import get_module_logger
 from ...host.cli import params as cli_params
+from ..git_url_validation import require_nonempty_dependency_urls
 from ..types import DbCreationData, OdpmJson, UserSettingsJson
 
 if TYPE_CHECKING:
@@ -269,7 +270,9 @@ class ConfigDefaultsFactory:
                     cli_value=self.config.arguments.postgres_version,
                 ),
                 odoo_version=odoo_version,
-                dependencies=self.config.config_json_content.get("dependencies", []),
+                dependencies=require_nonempty_dependency_urls(
+                    self.config.config_json_content.get("dependencies", [])
+                ),
                 requirements_txt=self.config.config_json_content.get(
                     "requirements_txt", self.config.arguments.requirements_txt.split(",") or []
                 ),
@@ -318,7 +321,9 @@ class ConfigDefaultsFactory:
                 cli_value=self.config.arguments.postgres_version,
             ),
             odoo_version=user_odoo_version,
-            dependencies=self.config._raw_odpm_json.get("dependencies", []),
+            dependencies=require_nonempty_dependency_urls(
+                self.config._raw_odpm_json.get("dependencies", [])
+            ),
             requirements_txt=self.config._raw_odpm_json.get(
                 "requirements_txt", self.config.arguments.requirements_txt.split(",") or []
             ),

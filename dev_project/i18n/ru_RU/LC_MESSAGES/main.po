@@ -8,11 +8,17 @@ msgstr ""
 msgid " \"config.json\" is deprecated. Please read documentation"
 msgstr " Файл с параметрами \"config.json\" является устаревшим. Пожалуйста обратитесь к документации "
 
+msgid "(none)"
+msgstr "(нет)"
+
 msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
 msgstr "--build-image доступен только при ODPM_SCENARIO=ci в .env"
 
 msgid "--no-git-update requires existing service_sources directories: {PATHS}"
 msgstr "--no-git-update требует существующие каталоги service_sources: {PATHS}"
+
+msgid "--remote-db is required for odpm database pull."
+msgstr "Для odpm database pull требуется --remote-db."
 
 msgid "--sync-manifest-locks is only supported in developer scenario"
 msgstr "--sync-manifest-locks поддерживается только в developer-сценарии"
@@ -25,6 +31,9 @@ msgstr "--sync-manifest-locks требует --update-lock"
 
 msgid "--update-lock cannot be used together with --no-git-update"
 msgstr "Нельзя использовать --update-lock вместе с --no-git-update"
+
+msgid "--url is required for odpm database pull."
+msgstr "Для odpm database pull требуется --url."
 
 msgid "-i/-u module list must contain at least one module name (comma-separated, e.g. sale,crm)"
 msgstr "Список модулей для -i/-u должен содержать хотя бы одно имя модуля (через запятую, например sale,crm)"
@@ -65,6 +74,21 @@ msgstr "Применение git lock из {PATH}"
 msgid "Attached to container output. Detailed technical logs below are in English."
 msgstr "Подключение к выводу контейнера. Подробные технические логи ниже — на английском."
 
+msgid "Authentication succeeded; remote accepted the backup request for {DB}."
+msgstr "Аутентификация успешна; удалённый сервер принял запрос backup для {DB}."
+
+msgid "BACKUP_DIR is not set; configure it in the project .env file."
+msgstr "BACKUP_DIR не задан; настройте его в .env проекта."
+
+msgid "Backup archive not found: {PATH}"
+msgstr "Архив backup не найден: {PATH}"
+
+msgid "Backup looks invalid (HTML response): {PATH}"
+msgstr "Backup выглядит некорректно (ответ HTML): {PATH}"
+
+msgid "Backup looks invalid (not a zip archive): {PATH}"
+msgstr "Backup выглядит некорректно (не zip-архив): {PATH}"
+
 msgid "Base image registry is required when using the kaniko builder."
 msgstr "Префикс registry для base image обязателен при использовании бэкенда kaniko."
 
@@ -95,6 +119,9 @@ msgstr "Не удалось выполнить подключение к слу�
 msgid "Cannot create dir, {dir_path}, please check it"
 msgstr "Не удалось создать каталог, {dir_path}, пожалуйста проверьте его."
 
+msgid "Cannot determine developing project source. Set \"developing_project\" in odpm.json, run from an odpm project directory, or use \"{PROJECT_NAME} {INIT_PARAM}\"."
+msgstr "Не удалось определить источник разрабатываемого проекта. Задайте \"developing_project\" в odpm.json, запускайте из каталога odpm-проекта или используйте \"{PROJECT_NAME} {INIT_PARAM}\"."
+
 msgid "Cannot get docker-compose info, did you install it?"
 msgstr "Не удалось получить информацию о Docker Compose. Проверьте установлен ли он."
 
@@ -121,6 +148,9 @@ msgstr "Проверить дрейф конфигурации БД относи
 
 msgid "Checking out {REF} for {PROJECT}"
 msgstr "Переключение на {REF} для {PROJECT}"
+
+msgid "Checking remote databases at {URL} …"
+msgstr "Проверка удалённых баз на {URL} …"
 
 msgid "Checkout dependency repos to odoo version branch"
 msgstr "Переключить репозитории зависимостей на ветку версии Odoo"
@@ -197,6 +227,9 @@ msgstr "Запуск контейнеров пропущен (--skip-start)."
 msgid "Control+C pressed; stopping."
 msgstr "Нажато Control+C; остановка."
 
+msgid "Could not list remote databases ({DETAIL}); continuing with the backup request."
+msgstr "Не удалось получить список удалённых баз ({DETAIL}); продолжаем запрос backup."
+
 msgid "Could not load project recipes; listing builtins only."
 msgstr "Не удалось загрузить проектные рецепты; показаны только builtins."
 
@@ -250,6 +283,15 @@ msgstr "Не изменяйте данный параметр, его значе
 
 msgid "Docker compose command is not configured; stack health was not probed"
 msgstr "Команда docker compose не настроена; состояние стека не проверялось"
+
+msgid "Download progress: {MIB:.1f} MiB."
+msgstr "Прогресс загрузки: {MIB:.1f} МиБ."
+
+msgid "Download progress: {PCT}% ({MIB:.1f} MiB)."
+msgstr "Прогресс загрузки: {PCT}% ({MIB:.1f} МиБ)."
+
+msgid "Download started …"
+msgstr "Загрузка началась …"
 
 msgid "Ensured PostgreSQL application role {ROLE} during baseline adoption."
 msgstr "Роль приложения PostgreSQL {ROLE} создана при принятии baseline."
@@ -307,6 +349,24 @@ msgstr "Источник git lock: locks.git в odpm.json (канон); прав
 
 msgid "Git ref {REF!r} is not available in {PATH} (fetch the base commit if this is a shallow clone)."
 msgstr "Git-ссылка {REF!r} недоступна в {PATH} (для shallow clone сначала fetch базового коммита)."
+
+msgid "Git repository URL for {FIELD} is empty"
+msgstr "URL git-репозитория для {FIELD} пуст"
+
+msgid "Git repository URL is empty"
+msgstr "URL git-репозитория пуст"
+
+msgid "Git repository URL is empty for link {LINK}"
+msgstr "URL git-репозитория пуст для ссылки {LINK}"
+
+msgid "HTTP backup failed for {URL}: {DETAIL}"
+msgstr "HTTP backup не удался для {URL}: {DETAIL}"
+
+msgid "HTTP download failed with status {STATUS} for {URL}"
+msgstr "HTTP-загрузка не удалась со статусом {STATUS} для {URL}"
+
+msgid "HTTP download failed: {DETAIL}"
+msgstr "HTTP-загрузка не удалась: {DETAIL}"
 
 msgid "Hook plugin {PLUGIN_ID} does not implement {METHOD}"
 msgstr "Плагин хука {PLUGIN_ID} не реализует {METHOD}"
@@ -677,8 +737,32 @@ msgstr "Перегенерировать odoo.conf проекта из шабл�
 msgid "Regenerate root .dockerignore from .odpm/dockerignore"
 msgstr "Перегенерировать корневой .dockerignore из .odpm/dockerignore"
 
+msgid "Remote backup saved as {NAME} under {DIR}."
+msgstr "Удалённый backup сохранён как {NAME} в {DIR}."
+
+msgid "Remote database list failed with status {STATUS} for {URL}"
+msgstr "Список удалённых баз не получен (статус {STATUS}) для {URL}"
+
+msgid "Remote database list failed: {DETAIL}"
+msgstr "Список удалённых баз не получен: {DETAIL}"
+
+msgid "Remote database list returned invalid JSON from {URL}"
+msgstr "Список удалённых баз вернул невалидный JSON с {URL}"
+
+msgid "Remote database list returned unexpected payload from {URL}"
+msgstr "Список удалённых баз вернул неожиданный ответ с {URL}"
+
+msgid "Remote database {DB} found on {URL}."
+msgstr "Удалённая база {DB} найдена на {URL}."
+
+msgid "Remote database {DB} was not found on {URL}. Available: {LIST}."
+msgstr "Удалённая база {DB} не найдена на {URL}. Доступны: {LIST}."
+
 msgid "Render docker-compose.yml from project template"
 msgstr "Сгенерировать docker-compose.yml из шаблона проекта"
+
+msgid "Requesting backup for database {DB} from {URL} (master password authentication) …"
+msgstr "Запрос backup базы {DB} с {URL} (аутентификация master password) …"
 
 msgid "Run docker compose up"
 msgstr "Запустить docker compose up"
@@ -754,6 +838,9 @@ msgstr "Укажите язык сообщений odpm на host. Локаль 
 
 msgid "Set other odoo projects sources directory, You can leave default {DEFAULT_ODOO_PROJECTS_SRC_DIR} or write your own. Press 'Enter' to leave default value:"
 msgstr "Укажите каталог хранения исходных текстов других проектов odoo, Вы можете оставить значение по умолчанию {DEFAULT_ODOO_PROJECTS_SRC_DIR} или написать ваше собственное. Нажмите 'Enter' чтобы оставить значение по умолчанию:"
+
+msgid "Set {ENV} to the remote Odoo database manager master password (do not pass it on the command line)."
+msgstr "Задайте {ENV} — master password менеджера баз удалённого Odoo (не передавайте его в командной строке)."
 
 msgid "Skipping developing lock apply in developer scenario; git state is managed by the developer"
 msgstr "Пропуск применения lock developing в developer-сценарии; состояние git управляется разработчиком"
@@ -1013,8 +1100,17 @@ msgstr "обнаружен дрейф конфигурации БД: {KINDS}"
 msgid "database configuration matches last_run snapshot"
 msgstr "конфигурация БД соответствует снимку last_run"
 
-msgid "database subcommand required: use \"odpm database status\" or \"odpm database ensure-role\"."
-msgstr "Укажите подкоманду database: \"odpm database status\" или \"odpm database ensure-role\"."
+msgid "database pull did not print an archive name."
+msgstr "database pull не вывел имя архива."
+
+msgid "database pull produced no step result."
+msgstr "database pull не вернул результат шага."
+
+msgid "database pull step was skipped unexpectedly."
+msgstr "Шаг database pull неожиданно пропущен."
+
+msgid "database subcommand required: use \"odpm database status\", \"odpm database ensure-role\", or \"odpm database pull\"."
+msgstr "Укажите подкоманду database: \"odpm database status\", \"odpm database ensure-role\" или \"odpm database pull\"."
 
 msgid "debug profile missing"
 msgstr "отсутствует debug profile"

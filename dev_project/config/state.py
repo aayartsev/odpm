@@ -15,6 +15,7 @@ from .. import constants
 from ..compose.sidecar_gates import parse_sidecar_gates
 from ..git import HandleOdooProjectLink
 from ..manifest.v1_contract import resolve_v1_manifest_contract_line
+from .git_url_validation import require_nonempty_dependency_urls
 from .types import DbCreationData
 
 
@@ -85,7 +86,7 @@ def project_settings_from_raw(
         distro_version_codename=constants.DISTRO_INFO.get(distro_name, {}).get(
             distro_version, ""
         ),
-        dependencies=raw.get("dependencies", []),
+        dependencies=require_nonempty_dependency_urls(raw.get("dependencies", [])),
         requirements_txt=raw.get(
             "requirements_txt", arguments.requirements_txt.split(",") or []
         ),

@@ -6,11 +6,22 @@ import re
 import unittest
 from pathlib import Path
 
+from dev_project import constants
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 _LEGACY_DOC_URL = re.compile(
     r"https://aayartsev\.github\.io/odpm/"
     r"(?!stable/|4\.|dev/|apt/|yum/)"
+)
+
+# Archived beta docs still linked from install guides (not product constants).
+_ARCHIVED_BETAS = (
+    "4.7.0-beta",
+    "4.6.0-beta",
+    "4.5.0-beta",
+    "4.4.3-beta",
+    "4.4.2-beta",
 )
 
 
@@ -20,15 +31,15 @@ class InstallDocsP2Tests(unittest.TestCase):
             encoding="utf-8"
         )
         stable = text.index("### Stable (рекомендуется")
-        beta = text.index("### Предварительная версия (4.7.0-beta)")
         archived = text.index("### Предварительные версии (архив)")
-        self.assertLess(stable, beta)
-        self.assertLess(beta, archived)
+        self.assertLess(stable, archived)
         self.assertIn("/odpm/apt stable main", text)
-        self.assertIn("/odpm/apt testing main", text)
+        self.assertIn("`testing`", text)
         self.assertIn("/stable/install/linux-deb/", text)
-        self.assertIn("odpm version: 4.6.0", text)
-        self.assertIn("odpm version: 4.7.0-beta", text)
+        stable_ver = constants.LATEST_STABLE_RELEASE
+        self.assertIn(f"odpm version: {stable_ver}", text)
+        self.assertIn(stable_ver, text)
+        self.assertIn("4.7.0-beta", text)
 
     def test_fedora_rpm_uses_pages_repo_files_en(self):
         text = (PROJECT_ROOT / "docs" / "en" / "install" / "fedora-rpm.md").read_text(
@@ -39,21 +50,22 @@ class InstallDocsP2Tests(unittest.TestCase):
         self.assertNotIn("raw.githubusercontent.com", text)
 
     def test_install_readme_links_stable_and_beta(self):
+        stable_ver = constants.LATEST_STABLE_RELEASE
         for rel in ("docs/install/README.md", "docs/en/install/README.md"):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
-            self.assertIn("4.6.0", text)
+            self.assertIn(stable_ver, text)
             self.assertIn("4.7.0-beta", text)
             self.assertIn("/odpm/stable/", text)
             self.assertIn("/4.7.0-beta/", text)
             self.assertIn("/4.6.0-beta/", text)
             if rel.startswith("docs/install/"):
                 self.assertIn("/odpm/dev/install/", text)
-            self.assertIn("/4.5.0-beta/", text)
-            self.assertIn("/4.4.3-beta/", text)
-            self.assertIn("/4.4.2-beta/", text)
+            for beta in _ARCHIVED_BETAS:
+                self.assertIn(f"/{beta}/", text)
             self.assertIn("documentation-versions", text)
 
-    def test_linux_deb_and_fedora_mention_active_and_archived_beta(self):
+    def test_linux_deb_and_fedora_mention_stable_and_archived_beta(self):
+        stable_ver = constants.LATEST_STABLE_RELEASE
         cases = (
             "docs/install/linux-deb.md",
             "docs/install/fedora-rpm.md",
@@ -63,12 +75,12 @@ class InstallDocsP2Tests(unittest.TestCase):
         for rel in cases:
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             with self.subTest(doc=rel):
-                self.assertIn("4.6.0", text)
-                self.assertIn("odpm version: 4.6.0", text)
+                self.assertIn(stable_ver, text)
+                self.assertIn(f"odpm version: {stable_ver}", text)
                 self.assertIn("4.7.0-beta", text)
-                self.assertIn("odpm version: 4.7.0-beta", text)
                 self.assertIn("4.6.0-beta", text)
                 self.assertIn("/4.6.0-beta/", text)
+                self.assertIn("/4.7.0-beta/", text)
 
     def test_release_notes_use_versioned_doc_urls(self):
         notes_dir = PROJECT_ROOT / ".github" / "release-notes"
