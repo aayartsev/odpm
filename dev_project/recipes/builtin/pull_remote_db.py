@@ -13,7 +13,7 @@ class PullRemoteDbRecipe:
     name = "pull-remote-db"
     description = (
         "Download a zip from a remote Odoo manager into BACKUP_DIR, then "
-        "odpm --db-restore into a local database (developer/server; "
+        "odpm database restore into a local database (developer/server; "
         "set ODPM_REMOTE_DB_MASTER_PWD). Does not run -i/-u or "
         "--set-admin-pass — compose those in shell after pull/restore."
     )
@@ -74,9 +74,10 @@ class PullRemoteDbRecipe:
             archive = str(ctx.scratch.get("archive") or "").strip()
             return OdpmStep(
                 argv=(
+                    "database",
+                    "restore",
                     "-d",
                     ctx.params["database"],
-                    "--db-restore",
                     archive,
                 ),
                 capture=False,

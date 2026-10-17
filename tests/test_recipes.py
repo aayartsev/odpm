@@ -44,14 +44,14 @@ class YamlSubstTests(unittest.TestCase):
         raw = parse_recipe_yaml(
             """
 name: example-backup
-description: Backup then skip-start
+description: Backup then prepare
 params:
   database:
     required: true
     env: ODPM_RUN_DATABASE
 steps:
-  - odpm: ["-d", "${param.database}", "--db-backup"]
-  - odpm: ["--skip-start"]
+  - odpm: ["database", "backup", "-d", "${param.database}"]
+  - odpm: ["prepare"]
 """
         )
         recipe = yaml_recipe_from_raw(raw, source="<test>")
@@ -69,10 +69,12 @@ steps:
         recipe.reset(ctx)
         first = recipe.next_step(ctx)
         assert first is not None
-        self.assertEqual(list(first.argv), ["-d", "db1", "--db-backup"])
+        self.assertEqual(
+            list(first.argv), ["database", "backup", "-d", "db1"]
+        )
         second = recipe.next_step(ctx)
         assert second is not None
-        self.assertEqual(list(second.argv), ["--skip-start"])
+        self.assertEqual(list(second.argv), ["prepare"])
         self.assertIsNone(recipe.next_step(ctx))
 
     def test_missing_required_param(self):
@@ -314,7 +316,7 @@ class PullRemoteDbRecipeTests(unittest.TestCase):
         assert restore is not None
         self.assertEqual(
             list(restore.argv),
-            ["-d", "local", "--db-restore", "host_prod_2026.zip"],
+            ["database", "restore", "-d", "local", "host_prod_2026.zip"],
         )
         self.assertIsNone(restore.timeout)
         self.assertFalse(restore.execute_even_if_dry_run)
@@ -346,7 +348,7 @@ class PullRemoteDbRecipeTests(unittest.TestCase):
         self.assertEqual(executed, [])
         plan = out.getvalue()
         self.assertIn("database pull", plan)
-        self.assertIn("--db-restore", plan)
+        self.assertIn("database restore", plan)
         self.assertIn("<archive.zip>", plan)
 
 

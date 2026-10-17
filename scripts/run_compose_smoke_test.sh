@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run compose smoke integration (minimal fixture + odpm --skip-start + docker compose config).
+# Run compose smoke integration (minimal fixture + odpm prepare + docker compose config).
 # Mirrors CI compose-smoke job flags (see docs/contributing/ci.md).
 set -euo pipefail
 

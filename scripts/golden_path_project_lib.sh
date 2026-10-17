@@ -428,7 +428,7 @@ golden_path_emit_schema_failure() {
         echo "Installed base module is ${base_version}; expected 19.x (stale DB from older Odoo major)." >&2
     elif [[ "${status_line}" == *"web=missing"* ]]; then
         echo "Module web is not installed; golden-path needs /web." >&2
-        echo "Run: odpm -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
+        echo "Run: odpm up -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
     elif [[ "${status_line}" == *"odoo_tables=missing"* ]]; then
         echo "Database exists but has no Odoo tables; run init on the runner." >&2
     elif [[ "${status_line}" == *"short_time_format=absent"* ]] \
@@ -498,14 +498,14 @@ golden_path_remediate_database() {
     # odpm's -i flag would not forward module names to odoo-bin.
     # Accept-drift flags MUST come before --odoo-bin (argparse REMAINDER), or Odoo
     # sees --accept-database-drift and exits with "no such option".
-    odpm -d "${db_name}" \
+    odpm up -d "${db_name}" \
         "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}" \
         --odoo-bin -i "${init_modules}" --stop-after-init
     docker compose down --remove-orphans 2>/dev/null || true
     # Init bakes -i / --stop-after-init into docker-compose.yml; restore a long-running
     # start command before golden-path `compose up` (otherwise Odoo exits after load).
     echo "Golden-path: regenerating compose for long-running start (db=${db_name})..."
-    odpm -d "${db_name}" --skip-start --no-git-update \
+    odpm prepare --no-git-update \
         "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
     # Callers must re-read via golden_path_postgres_service before the next compose up:
     # odpm may have renamed the postgres service again.

@@ -2,7 +2,7 @@
 # Verify every Odoo --dev flag on a real odpm project (opt-in, slow).
 #
 # Runs:
-#   1. test_all_dev_mode_flags_compose — odpm --skip-start + compose --dev (13 cases)
+#   1. test_all_dev_mode_flags_compose — odpm prepare + compose --dev (13 cases)
 #   2. test_all_dev_mode_flags_live — docker up/down + HTTP (requires stack down)
 #   3. scripts/verify_dev_mode_autoreload.sh — save .py with dev_mode=all (reload probe)
 #

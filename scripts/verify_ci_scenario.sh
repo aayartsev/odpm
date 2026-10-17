@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# CI scenario smoke: prepare (--skip-start) + --build-image + compose up + HTTP.
-# Bare `odpm` without allowlist flags is rejected in ci (ADR-017).
-# Module install after up: docker compose exec … (not bare odpm -d/-i).
+# CI scenario smoke: odpm prepare + odpm build + compose up + HTTP.
+# odpm up / stack database / scaffold are rejected in ci (ADR-017 / ADR-026).
+# Module install after up: docker compose exec … (not odpm up -d/-i).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,16 +18,16 @@ fi
 if [[ -n "${ODPM_CI_PROJECT:-}" ]]; then
     LOCK_FILE="${ODPM_CI_PROJECT}/.odpm/deps.lock.json"
     if [[ "${ODPM_SKIP_DEPS_LOCK_CHECK:-}" != "1" ]] && [[ ! -f "${LOCK_FILE}" ]]; then
-        echo "Missing ${LOCK_FILE}; run odpm.py --update-lock in the project or set ODPM_SKIP_DEPS_LOCK_CHECK=1" >&2
+        echo "Missing ${LOCK_FILE}; run odpm.py prepare --update-lock in the project or set ODPM_SKIP_DEPS_LOCK_CHECK=1" >&2
         exit 1
     fi
     echo "Preparing project (lock checkout) in ${ODPM_CI_PROJECT} ..."
-    (cd "${ODPM_CI_PROJECT}" && python3 "${PROJECT_ROOT}/odpm.py" --skip-start)
+    (cd "${ODPM_CI_PROJECT}" && python3 "${PROJECT_ROOT}/odpm.py" prepare)
 fi
 
 # Optional: ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct
 #           ODPM_BASE_IMAGE_REGISTRY=… ODPM_CI_IMAGE_PUSH=1
-python3 "${PROJECT_ROOT}/odpm.py" --build-image
+python3 "${PROJECT_ROOT}/odpm.py" build
 docker compose up -d
 
 ODOO_PORT="${ODOO_PORT:-8069}"

@@ -1,4 +1,4 @@
-"""Docker compose smoke: minimal fixture, odpm --skip-start, docker compose config."""
+"""Docker compose smoke: minimal fixture, odpm prepare, docker compose config."""
 
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ class _ComposeSmokeTestCase(unittest.TestCase):
 
     def _run_skip_start(self) -> subprocess.CompletedProcess[str]:
         return run_odpm(
-            "--skip-start",
+            "prepare",
             "--no-git-update",
             cwd=self.project_dir,
             env={

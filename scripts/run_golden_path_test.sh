@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run opt-in golden-path E2E from any cwd (requires ODPM_GOLDEN_PATH_PROJECT).
-# Mirrors CI golden-path job: refresh (odpm --skip-start) → preflight → unittest
+# Mirrors CI golden-path job: refresh (odpm prepare) → preflight → unittest
 # (ADR-006 / docs/contributing/ci.md).
 set -euo pipefail
 

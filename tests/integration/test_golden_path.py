@@ -32,7 +32,7 @@ def golden_path_maintenance_hint(*, odoo_logs: str, db_logs: str) -> str:
         hints.append(
             "PostgreSQL was created with an older Odoo major; recreate test_db "
             "or the postgres data volume, then run "
-            "`odpm -d test_db -i base,web` on the runner."
+            "`odpm up -d test_db -i base,web` on the runner."
         )
     if "short_time_format does not exist" in combined:
         hints.append(
@@ -256,14 +256,14 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("golden_path_remediate_database", refresh)
         self.assertIn("docker compose down", refresh)
         self.assertIn("ODPM_GOLDEN_PATH_NO_GIT_UPDATE", refresh)
-        self.assertIn('odpm --skip-start "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}"', refresh)
+        self.assertIn('odpm prepare "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}"', refresh)
         self.assertIn(
             '"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
             refresh,
         )
         # Default path must allow git checkout (platform → odoo_version).
         self.assertNotIn(
-            'odpm --skip-start --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
+            'odpm prepare --no-git-update "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
             refresh,
         )
         self.assertIn("[golden-path refresh", refresh)
@@ -301,7 +301,8 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("docker-compose.yml", lib)
         self.assertIn("file://", lib)
         self.assertIn("regenerating compose for long-running start", lib)
-        self.assertIn('odpm -d "${db_name}" --skip-start --no-git-update', lib)
+        self.assertIn("odpm prepare --no-git-update", lib)
+        self.assertIn('odpm up -d "${db_name}"', lib)
         self.assertIn('"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"', lib)
         self.assertIn(
             'postgres_service="$(golden_path_postgres_service "${project}" "${repo_root}")"',
@@ -315,7 +316,7 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         # Init command must put accept-drift before --odoo-bin (REMAINDER).
         self.assertRegex(
             lib,
-            r'odpm -d "\$\{db_name\}"\s+\\\s*"\$\{GOLDEN_PATH_ODPM_ACCEPT_DRIFT\[@\]\}"\s+\\\s*--odoo-bin',
+            r'odpm up -d "\$\{db_name\}"\s+\\\s*"\$\{GOLDEN_PATH_ODPM_ACCEPT_DRIFT\[@\]\}"\s+\\\s*--odoo-bin',
         )
 
     def test_platform_dir_discovers_compose_bind_and_short_time_format(self) -> None:
