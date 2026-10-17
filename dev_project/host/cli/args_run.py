@@ -9,11 +9,11 @@ from . import params
 
 def register_run_subparser(
     command_subparsers,
-    common_parser: argparse.ArgumentParser,
+    global_parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
     parser = command_subparsers.add_parser(
         params.RUN_SUBCOMMAND,
-        parents=[common_parser],
+        parents=[global_parser],
         help="""Run a named recipe (re-exec odpm steps). Example: odpm run --list""",
         description=(
             "Execute a phased recipe of odpm invocations. "
@@ -58,5 +58,12 @@ def register_run_subparser(
         default=None,
         metavar="NAME",
         help="""Remote database name for recipes that support remote_db (e.g. pull-remote-db).""",
+    )
+    parser.add_argument(
+        params.D_PARAM,
+        dest="d",
+        default=None,
+        type=str,
+        help="""Local database name for recipes that apply -d to nested odpm steps.""",
     )
     return parser

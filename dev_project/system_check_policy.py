@@ -12,6 +12,7 @@ from . import constants
 if TYPE_CHECKING:
     from .config import Config
     from .host.cli.args import OdpmCliArgs
+from .host.cli import params as cli_params
 from .host.cli.args import OdpmCliArgs
 from .project_env.image_build.resolve import resolve_ci_image_builder
 
@@ -32,11 +33,17 @@ def is_ci_prepare_only(arguments: OdpmCliArgs | None) -> bool:
         or arguments.update_lock
         or arguments.sync_manifest_locks
         or arguments.init
+        or arguments.command
+        in {
+            cli_params.PREPARE_SUBCOMMAND,
+            cli_params.BUILD_SUBCOMMAND,
+            cli_params.INIT_SUBCOMMAND,
+        }
     )
 
 
 def cli_allows_ci_explicit_mode(arguments: OdpmCliArgs | None) -> bool:
-    """Allowlist for bare ``odpm`` under ``ODPM_SCENARIO=ci`` (ADR-017)."""
+    """Allowlist for prepare-only / tooling under ``ODPM_SCENARIO=ci`` (ADR-017)."""
     if arguments is None:
         return False
     if (
@@ -50,10 +57,20 @@ def cli_allows_ci_explicit_mode(arguments: OdpmCliArgs | None) -> bool:
         return True
     if arguments.init:
         return True
-    if arguments.command in {"plan", "database", "manifest", "modules", "run"}:
+    if arguments.command in {
+        cli_params.PREPARE_SUBCOMMAND,
+        cli_params.BUILD_SUBCOMMAND,
+        cli_params.INIT_SUBCOMMAND,
+        cli_params.PLAN_SUBCOMMAND,
+        cli_params.MANIFEST_SUBCOMMAND,
+        cli_params.MODULES_SUBCOMMAND,
+        cli_params.RUN_SUBCOMMAND,
+    }:
         return True
-    if arguments.database_subcommand is not None:
+    if arguments.database_subcommand in cli_params.DATABASE_HOST_SUBCOMMANDS:
         return True
+    if arguments.database_subcommand in cli_params.DATABASE_STACK_SUBCOMMANDS:
+        return False
     if arguments.manifest_subcommand is not None:
         return True
     if arguments.modules_subcommand is not None:

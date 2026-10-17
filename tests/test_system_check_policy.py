@@ -247,10 +247,13 @@ class CiExplicitModeAllowlistTests(unittest.TestCase):
             OdpmCliArgs(init="https://example.com/repo.git"),
             OdpmCliArgs(version=True),
             OdpmCliArgs(command="plan"),
-            OdpmCliArgs(command="database"),
+            OdpmCliArgs(command="prepare", skip_start=True),
+            OdpmCliArgs(command="build", build_image=True),
+            OdpmCliArgs(command="init", init="https://example.com/repo.git"),
             OdpmCliArgs(command="manifest"),
             OdpmCliArgs(command="modules"),
             OdpmCliArgs(command="run"),
+            OdpmCliArgs(command="database", database_subcommand="status"),
             OdpmCliArgs(database_subcommand="status"),
             OdpmCliArgs(manifest_subcommand="validate"),
             OdpmCliArgs(modules_subcommand="diff"),
@@ -261,6 +264,14 @@ class CiExplicitModeAllowlistTests(unittest.TestCase):
                 self.assertTrue(cli_allows_ci_explicit_mode(args))
         self.assertFalse(cli_allows_ci_explicit_mode(OdpmCliArgs()))
         self.assertFalse(cli_allows_ci_explicit_mode(OdpmCliArgs(d="db", i=True)))
+        self.assertFalse(cli_allows_ci_explicit_mode(OdpmCliArgs(command="up")))
+        self.assertFalse(cli_allows_ci_explicit_mode(OdpmCliArgs(command="scaffold")))
+        self.assertFalse(
+            cli_allows_ci_explicit_mode(
+                OdpmCliArgs(command="database", database_subcommand="backup")
+            )
+        )
+        self.assertFalse(cli_allows_ci_explicit_mode(OdpmCliArgs(command="database")))
 
 
 class MergedEnvironTests(unittest.TestCase):

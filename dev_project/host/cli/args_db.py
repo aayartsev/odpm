@@ -114,9 +114,3 @@ def add_db_arguments(parser: argparse.ArgumentParser) -> None:
         help="""Will export pot and po file for selected language, for example ru_RU or eu_US, for modules from "update_modules" in "user_settings.json", or from "-u MODULES" when that form is used """,
         type=str,
     )
-
-    parser.add_argument(
-        params.VERSION,
-        help="""Will show version of odpm manager""",
-        action="store_true",
-    )

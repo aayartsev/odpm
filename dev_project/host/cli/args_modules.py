@@ -9,11 +9,11 @@ from . import params
 
 def register_modules_subparser(
     command_subparsers,
-    common_parser: argparse.ArgumentParser,
+    global_parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
     parser = command_subparsers.add_parser(
         params.MODULES_SUBCOMMAND,
-        parents=[common_parser],
+        parents=[global_parser],
         help="""Classify Odoo modules from git history. Example: odpm modules diff""",
         description=(
             "Compute init/update module lists from the developing git repo, "

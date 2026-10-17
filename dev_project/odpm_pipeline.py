@@ -131,7 +131,7 @@ class OdpmPipeline:
     def run(self) -> None:
         try:
             from .plan.cli import (  # noqa: PLC0415  # optional
-                is_database_mode,
+                is_database_host_mode,
                 is_manifest_mode,
                 is_modules_mode,
                 is_plan_mode,
@@ -139,13 +139,15 @@ class OdpmPipeline:
             )
 
             for_plan = is_plan_mode(self.cli_args)
-            for_database = is_database_mode(self.cli_args)
+            for_database_host = is_database_host_mode(self.cli_args)
             for_manifest = is_manifest_mode(self.cli_args)
             for_modules = is_modules_mode(self.cli_args)
             for_run = is_run_mode(self.cli_args)
+            # Lightweight setup (no template sync) only for host tooling.
+            # Stack database / up / scaffold need full setup like bare up today.
             self.setup(
                 for_plan=for_plan
-                or for_database
+                or for_database_host
                 or for_manifest
                 or for_modules
                 or for_run
@@ -156,7 +158,7 @@ class OdpmPipeline:
                 if exit_code:
                     sys.exit(exit_code)
                 return
-            if for_database:
+            if for_database_host:
                 from .database.commands import run_database_command  # noqa: PLC0415  # optional
 
                 exit_code = run_database_command(self.cli_args, self._config())

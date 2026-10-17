@@ -9,11 +9,11 @@ from . import params
 
 def register_manifest_subparser(
     command_subparsers,
-    common_parser: argparse.ArgumentParser,
+    global_parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
     parser = command_subparsers.add_parser(
         params.MANIFEST_SUBCOMMAND,
-        parents=[common_parser],
+        parents=[global_parser],
         help="""Migrate or validate project manifest. Example: odpm manifest validate""",
         description="Migrate or validate odpm.json manifest schema.",
     )
