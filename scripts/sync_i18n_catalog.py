@@ -94,6 +94,17 @@ RU_MESSAGES: dict[str, str] = {
     "--url is required for odpm database pull.": (
         "Для odpm database pull требуется --url."
     ),
+    "Invalid --remote-db {DB}: database name must be a single path segment.": (
+        "Некорректный --remote-db {DB}: имя базы должно быть одним сегментом пути."
+    ),
+    "Invalid --remote-db {DB}: database name must not contain "
+    "path separators or null bytes.": (
+        "Некорректный --remote-db {DB}: имя базы не должно содержать "
+        "разделители пути или нулевые байты."
+    ),
+    "Refusing to write backup outside BACKUP_DIR ({DIR}): {PATH}": (
+        "Отказ записать backup вне BACKUP_DIR ({DIR}): {PATH}"
+    ),
     "Authentication succeeded; remote accepted the backup request for {DB}.": (
         "Аутентификация успешна; удалённый сервер принял запрос backup для {DB}."
     ),

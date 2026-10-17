@@ -17,6 +17,7 @@ from dev_project.tools.http_download import (
     download_multipart_post,
     list_remote_odoo_databases,
     safe_host_token,
+    validate_remote_db_name,
 )
 
 
@@ -31,6 +32,16 @@ class HttpDownloadTests(unittest.TestCase):
     def test_safe_host_token(self):
         self.assertEqual(safe_host_token("https://client.example.com:8069/"), "client_example_com")
         self.assertEqual(safe_host_token("http://127.0.0.1"), "127_0_0_1")
+
+    def test_validate_remote_db_name_accepts_plain_names(self):
+        self.assertEqual(validate_remote_db_name("prod"), "prod")
+        self.assertEqual(validate_remote_db_name("  my_db-1  "), "my_db-1")
+
+    def test_validate_remote_db_name_rejects_path_escape(self):
+        for bad in ("../evil", "a/b", r"a\b", "foo/../../etc", ""):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ConfigError):
+                    validate_remote_db_name(bad)
 
     def test_list_remote_odoo_databases(self):
         payload = json.dumps(

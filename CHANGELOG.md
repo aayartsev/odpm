@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **`database pull` remote-db path safety** — `--remote-db` must be a single path segment (no `/`, `\`, or null bytes); archive path is resolved under `BACKUP_DIR`. Tests: `test_http_download`, `test_database_pull_cli`.
 - **Empty git URL → ConfigError** — `normalize_repo_url` / `repo_url_for_link` no longer raise `IndexError` on empty/whitespace URLs; host `odoo_git_link` and `dependencies[i]` are validated at bootstrap. Tests: `test_deps_lock`, `test_host_config`.
 - **Missing compose binary during probe** — `FileNotFoundError` for `docker` / `docker-compose` in compose capability probe continues to the next candidate (`ensure` → `None`, `resolve` / `check_docker_compose` → `SystemCheckError`) instead of a traceback. Tests: `test_docker_capabilities`.
 - **Install-docs contract + i18n catalog** — install P2 tests assert current `LATEST_STABLE_RELEASE` (4.7.0) and archive layout; ru_RU catalog covers remote DB pull msgids. Tests: `test_install_docs_p2`, `test_ci_i18n`.

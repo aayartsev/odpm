@@ -14,6 +14,7 @@ from ..tools.http_download import (
     download_multipart_post,
     list_remote_odoo_databases,
     safe_host_token,
+    validate_remote_db_name,
 )
 from ..translations import _
 from .ensure_role import ensure_app_role
@@ -111,11 +112,11 @@ def _preflight_remote_database(url: str, remote_db: str) -> None:
 
 def _run_database_pull(cli_args: OdpmCliArgs, config: Config) -> int:
     url = str(cli_args.database_pull_url or "").strip().rstrip("/")
-    remote_db = str(cli_args.database_pull_remote_db or "").strip()
+    remote_db = validate_remote_db_name(
+        str(cli_args.database_pull_remote_db or "").strip()
+    )
     if not url:
         raise ConfigError(_("--url is required for odpm database pull."))
-    if not remote_db:
-        raise ConfigError(_("--remote-db is required for odpm database pull."))
     master_pwd = str(os.environ.get(REMOTE_DB_MASTER_PWD_ENV) or "").strip()
     if not master_pwd:
         raise ConfigError(
@@ -126,9 +127,16 @@ def _run_database_pull(cli_args: OdpmCliArgs, config: Config) -> int:
         )
 
     backups = _backups_dir(config)
+    backups_resolved = backups.resolve()
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
     archive_name = f"{safe_host_token(url)}_{remote_db}_{stamp}.zip"
-    dest = backups / archive_name
+    dest = (backups / archive_name).resolve()
+    if not dest.is_relative_to(backups_resolved):
+        raise ConfigError(
+            _(
+                "Refusing to write backup outside BACKUP_DIR ({DIR}): {PATH}"
+            ).format(DIR=backups_resolved, PATH=dest)
+        )
     endpoint = f"{url}/web/database/backup"
     _preflight_remote_database(url, remote_db)
     _logger.info(

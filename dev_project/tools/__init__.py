@@ -6,6 +6,7 @@ from .http_download import (
     download_multipart_post,
     list_remote_odoo_databases,
     safe_host_token,
+    validate_remote_db_name,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "download_multipart_post",
     "list_remote_odoo_databases",
     "safe_host_token",
+    "validate_remote_db_name",
 ]

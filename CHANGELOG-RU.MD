@@ -22,6 +22,7 @@
 
 ### Исправлено
 
+- **Безопасность `--remote-db` в `database pull`** — имя БД должно быть одним сегментом пути (без `/`, `\` и нулевых байтов); путь архива резолвится строго под `BACKUP_DIR`. Тесты: `test_http_download`, `test_database_pull_cli`.
 - **Пустой git URL → ConfigError** — `normalize_repo_url` / `repo_url_for_link` больше не дают `IndexError` на пустых/пробельных URL; host `odoo_git_link` и `dependencies[i]` проверяются при bootstrap. Тесты: `test_deps_lock`, `test_host_config`.
 - **Отсутствие compose при probe** — `FileNotFoundError` для `docker` / `docker-compose` при probe capabilities переходит к следующему кандидату (`ensure` → `None`, `resolve` / `check_docker_compose` → `SystemCheckError`) вместо traceback. Тесты: `test_docker_capabilities`.
 - **Контракт install-docs + i18n-каталог** — P2-тесты install сверяют текущий `LATEST_STABLE_RELEASE` (4.7.0) и архивную раскладку; ru_RU покрывает msgid remote DB pull. Тесты: `test_install_docs_p2`, `test_ci_i18n`.

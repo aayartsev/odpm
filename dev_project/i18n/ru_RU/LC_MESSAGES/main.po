@@ -11,9 +11,6 @@ msgstr " Файл с параметрами \"config.json\" является у�
 msgid "(none)"
 msgstr "(нет)"
 
-msgid "odpm build is only allowed when ODPM_SCENARIO=ci in .env"
-msgstr "odpm build доступен только при ODPM_SCENARIO=ci в .env"
-
 msgid "--no-git-update requires existing service_sources directories: {PATHS}"
 msgstr "--no-git-update требует существующие каталоги service_sources: {PATHS}"
 
@@ -407,6 +404,12 @@ msgstr "Недопустимое значение %s=%r, используетс�
 msgid "Invalid %s=%r, using system locale %s"
 msgstr "Недопустимое значение %s=%r, используется системная локаль %s"
 
+msgid "Invalid --remote-db {DB}: database name must be a single path segment."
+msgstr "Некорректный --remote-db {DB}: имя базы должно быть одним сегментом пути."
+
+msgid "Invalid --remote-db {DB}: database name must not contain path separators or null bytes."
+msgstr "Некорректный --remote-db {DB}: имя базы не должно содержать разделители пути или нулевые байты."
+
 msgid "Invalid .odpm/deps.lock.json; lock verify step omitted from plan"
 msgstr "Некорректный .odpm/deps.lock.json; шаг проверки lock исключён из плана"
 
@@ -751,6 +754,9 @@ msgstr "Записан developing SHA {SHA} в {PATH}."
 
 msgid "Refresh project symlinks for local codebase access"
 msgstr "Обновить симлинки проекта для локального доступа к коду"
+
+msgid "Refusing to write backup outside BACKUP_DIR ({DIR}): {PATH}"
+msgstr "Отказ записать backup вне BACKUP_DIR ({DIR}): {PATH}"
 
 msgid "Regenerate project Dockerfile from odpm template"
 msgstr "Перегенерировать Dockerfile проекта из шаблона odpm"
@@ -1309,6 +1315,9 @@ msgstr "odoo.conf db_host: {HOST}"
 
 msgid "odoo.conf missing db settings"
 msgstr "в odoo.conf отсутствуют настройки БД"
+
+msgid "odpm build is only allowed when ODPM_SCENARIO=ci in .env"
+msgstr "odpm build доступен только при ODPM_SCENARIO=ci в .env"
 
 msgid "only used with --update-lock"
 msgstr "используется только с --update-lock"

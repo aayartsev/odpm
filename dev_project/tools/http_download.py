@@ -342,3 +342,31 @@ def safe_host_token(url: str) -> str:
     while "__" in cleaned:
         cleaned = cleaned.replace("__", "_")
     return cleaned.strip("_") or "remote"
+
+
+def validate_remote_db_name(name: str) -> str:
+    """Return a remote DB name safe to embed in a local backup filename.
+
+    Rejects empty values and names that introduce path separators or other
+    components so ``BACKUP_DIR / f"…_{name}_….zip"`` cannot escape the
+    backups directory. The validated string is also sent as the Odoo
+    manager ``name`` form field.
+    """
+    cleaned = str(name or "").strip()
+    if not cleaned:
+        raise ConfigError(_("--remote-db is required for odpm database pull."))
+    if "\0" in cleaned or "/" in cleaned or "\\" in cleaned:
+        raise ConfigError(
+            _(
+                "Invalid --remote-db {DB}: database name must not contain "
+                "path separators or null bytes."
+            ).format(DB=cleaned)
+        )
+    if Path(cleaned).name != cleaned:
+        raise ConfigError(
+            _(
+                "Invalid --remote-db {DB}: database name must be a single "
+                "path segment."
+            ).format(DB=cleaned)
+        )
+    return cleaned

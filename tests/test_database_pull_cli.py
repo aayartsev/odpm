@@ -55,6 +55,32 @@ class DatabasePullCliTests(unittest.TestCase):
                 _run_database_pull(args, config)
             self.assertIn(REMOTE_DB_MASTER_PWD_ENV, str(ctx.exception))
 
+    def test_pull_rejects_remote_db_path_traversal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = MagicMock()
+            config.user_env.backups = tmp
+            for bad in ("../outside", "a/b", r"..\windows"):
+                args = OdpmCliArgs(
+                    command="database",
+                    database_subcommand="pull",
+                    database_pull_url="https://client.example.com",
+                    database_pull_remote_db=bad,
+                )
+                with self.subTest(bad=bad):
+                    with patch.dict(
+                        os.environ, {REMOTE_DB_MASTER_PWD_ENV: "secret"}
+                    ):
+                        with patch(
+                            "dev_project.database.commands.download_multipart_post"
+                        ) as download:
+                            with self.assertRaises(ConfigError) as ctx:
+                                _run_database_pull(args, config)
+                    download.assert_not_called()
+                    self.assertIn("--remote-db", str(ctx.exception))
+                    outside = list(Path(tmp).parent.glob("*.zip"))
+                    self.assertEqual(outside, [])
+                    self.assertEqual(list(Path(tmp).glob("*.zip")), [])
+
     def test_pull_fails_when_remote_db_missing(self):
         config = MagicMock()
         config.user_env.backups = "/tmp/backups"
