@@ -19,29 +19,29 @@ The developer writes module code, debugs it in the editor, frequently restarts m
 | **Python environment** | "Recreatable" mode: when the version lock file changes, the environment may be rebuilt. |
 | **Python warnings in logs** | `docker-compose` sets `PYTHONWARNINGS=ignore::DeprecationWarning:docutils` so that Odoo startup does not scare beginners with a long traceback from deprecated API in the **docutils** package (this is not an error in your code). In `server` and `ci` scenarios the filter is **not** enabled — warnings remain in the log and may signal docutils incompatibility with the Python version in the image. |
 | **Base image** | Default profile **full** (browser/Xvfb/IDE stack). Override with `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci` — see [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md). |
-| **CI image build** | The `--build-image` command is **unavailable** (only in the `ci` scenario). |
+| **CI image build** | The `odpm build` / `--build-image` command is **unavailable** (only in the `ci` scenario). |
 
 ## Odoo development mode (`dev_mode`)
 
 In `user_settings.json`, the **`dev_mode`** field sets Odoo `--dev` flags (e.g. `reload`, `xml`, `all` — see Odoo documentation). Works **only** in this scenario. With `reload` or `all` values, odpm adds the `inotify` package to Python requirements for code auto-reload.
 
-After changing `dev_mode`, recreate compose: `odpm --skip-start`.
+After changing `dev_mode`, recreate compose: `odpm prepare`.
 
 ## Typical day
 
 1. `odpm` — prepare and start containers.
-2. `odpm -d dev_db -u` — update modules after changes.
+2. `odpm up -d dev_db -u` — update modules after changes.
 3. Debugger in VS Code — as needed.
 4. `http://127.0.0.1:8069` — check in the browser.
 
 Manual scenarios (plan, drift, debugging) on demo wrappers: [demo-projects](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md).
 
-After changing `POSTGRES_SERVICE_NAME` or the port in `.env` — run `odpm database status` and `odpm plan --skip-start` before a full restart.
+After changing `POSTGRES_SERVICE_NAME` or the port in `.env` — run `odpm database status` and `odpm plan` before a full restart.
 
 ## Switching to another scenario
 
 1. Change `ODPM_SCENARIO` in the **project directory** `.env` (it takes precedence over the file in `~/.odpm/`).
-2. Run `odpm --skip-start`.
+2. Run `odpm prepare`.
 3. Restart containers: `docker compose up -d` or `odpm` again.
 
 Scenario comparison: [scaling](scaling.md).

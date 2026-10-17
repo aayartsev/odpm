@@ -34,14 +34,14 @@ Do not override builtins unless you intend to.
 Intended for **`ODPM_SCENARIO=server`** (and manual developer use).
 
 1. `odpm modules diff [--diff-base] --format json`
-2. If init/update non-empty: `odpm -d … [-i …] [-u …] --odoo-bin --stop-after-init`
+2. If init/update non-empty: `odpm up -d … [-i …] [-u …] --odoo-bin --stop-after-init`
 3. `odpm modules record-applied` (also when both lists are empty — advance baseline)
 
 Empty `-i`/`-u` flags are never passed. Long-running compose without `--stop-after-init` is out of scope for this recipe.
 
 ### CI
 
-Under `ODPM_SCENARIO=ci`, end-to-end apply via `odpm run` is **not** supported (child `odpm -d -i/-u` is not CI-allowlisted). In CI use `odpm modules diff`; run apply on server.
+Under `ODPM_SCENARIO=ci`, end-to-end apply via `odpm run` is **not** supported (child `odpm up -d -i/-u` is not CI-allowlisted). In CI use `odpm modules diff`; run apply on server.
 
 ## Builtin: `pull-remote-db`
 
@@ -55,7 +55,7 @@ odpm run pull-remote-db -d local_copy \
 ```
 
 1. `odpm database pull --url … --remote-db …` → file under `BACKUP_DIR` (password from env only; stdout is the archive name)
-2. `odpm -d … --db-restore <archive>` — full prepare/runtime, same as a normal restore
+2. `odpm up -d … --db-restore <archive>` — full prepare/runtime, same as a normal restore
 
 `--dry-run` prints argv **without** network I/O. Do not commit the master password to git. Default HTTP timeout is 600s (tool); recipe steps use no subprocess timeout limit.
 
@@ -70,14 +70,14 @@ export ODPM_REMOTE_DB_MASTER_PWD='…'
 ARCHIVE=$(odpm database pull \
   --url https://client.example.com \
   --remote-db prod)
-odpm -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
+odpm up -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
 ```
 
 Two-call equivalent when the builtin restore shortcut is enough:
 
 ```bash
 odpm run pull-remote-db -d test_db --url https://client.example.com --remote-db prod
-odpm -d test_db -i -u --set-admin-pass
+odpm up -d test_db -i -u --set-admin-pass
 ```
 
 Why not YAML: v1 only substitutes `${param.*}` / `${env:…}` and **cannot** feed a step’s stdout into the next argv. For archive-name chains use shell (or a custom Python recipe).
@@ -90,14 +90,14 @@ Linear steps only (no conditionals). Substitutions: `${param.name}`, `${env:VAR}
 
 ```yaml
 name: example-backup
-description: Backup then skip-start
+description: Backup then prepare
 params:
   database:
     required: true
     env: ODPM_RUN_DATABASE
 steps:
-  - odpm: ["-d", "${param.database}", "--db-backup"]
-  - odpm: ["--skip-start"]
+  - odpm: ["database", "backup", "-d", "${param.database}"]
+  - odpm: ["prepare"]
 ```
 
 Place the file in `.odpm/recipes/example-backup.yaml`. A step must not start with `run` (recursion guard).

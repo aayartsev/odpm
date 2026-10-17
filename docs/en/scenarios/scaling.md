@@ -67,7 +67,7 @@ What changes is **packaging**, not the list of repositories and pinned revisions
 **Large setup** (image registry, multiple environments):
 
 ```text
-odpm --build-image  →  image registry  →  deploy (VM, orchestrator)
+odpm build  →  image registry  →  deploy (VM, orchestrator)
 ```
 
 odpm is a **link in building a reproducible Odoo image**, not a replacement for GitHub Actions, GitLab CI, or orchestration systems. Project description and version pinning live in git.

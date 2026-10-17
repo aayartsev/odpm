@@ -16,27 +16,27 @@
 | **Исходники** | Каталоги платформы, разрабатываемого проекта и зависимостей подключены с компьютера разработчика. |
 | **Окружение Python** | Режим «пересоздаваемый»: при изменении файла фиксации версий окружение может быть пересобрано. |
 | **Base image** | По умолчанию профиль **full** (browser/Xvfb/IDE stack). Override: `ODPM_BASE_IMAGE_PROFILE` = `full` / `medium` / `ci` — см. [ADR-007](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-007-base-image-profiles.md). |
-| **Сборка CI-образа** | Команда `--build-image` **недоступна** (только сценарий `ci`). |
+| **Сборка CI-образа** | Команда `odpm build` / `--build-image` **недоступна** (только сценарий `ci`). |
 
 ## Режим разработки Odoo (`dev_mode`)
 
 В `user_settings.json` поле **`dev_mode`** задаёт флаги Odoo `--dev` (например `reload`, `xml`, `all` — см. документацию Odoo). Работает **только** в этом сценарии. При значениях `reload` или `all` odpm добавляет пакет `inotify` в требования Python для автоперезагрузки кода.
 
-После изменения `dev_mode` пересоздайте compose: `odpm --skip-start`.
+После изменения `dev_mode` пересоздайте compose: `odpm prepare`.
 
 ## Типичный день
 
 1. `odpm` — подготовка и запуск контейнеров.
-2. `odpm -d dev_db -u` — обновить модули после правок.
+2. `odpm up -d dev_db -u` — обновить модули после правок.
 3. Отладчик в VS Code — по необходимости.
 4. `http://127.0.0.1:8069` — проверка в браузере.
 
-После смены `POSTGRES_SERVICE_NAME` или порта в `.env` — `odpm database status` и `odpm plan --skip-start` перед полным перезапуском.
+После смены `POSTGRES_SERVICE_NAME` или порта в `.env` — `odpm database status` и `odpm plan` перед полным перезапуском.
 
 ## Смена на другой сценарий
 
 1. Измените `ODPM_SCENARIO` в `.env` **каталога проекта** (он важнее файла в `~/.odpm/`).
-2. Выполните `odpm --skip-start`.
+2. Выполните `odpm prepare`.
 3. Перезапустите контейнеры: `docker compose up -d` или снова `odpm`.
 
 Сравнение сценариев: [масштабирование](scaling.md).

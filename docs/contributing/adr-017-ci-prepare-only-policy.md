@@ -17,7 +17,7 @@ Accepted (4.7).
    - `require_ci_explicit_mode` — `ci` (runtime guard);
    - `compose_validate` остаётся **всегда** on: structural YAML validate не отключается вместе с CLI probe.
 
-2. **CI guard:** после `setup`, перед prepare, если `ODPM_SCENARIO=ci` и CLI не в allowlist → `ConfigError`. Allowlist: `--skip-start`, `--build-image`, `plan` / `--plan`, `manifest`, `database`, `--update-lock` / `--sync-manifest-locks`, `--init`, `--version`. Bare `odpm -d/-i` **не** обходится через `--skip-start` (early return до runtime); module install — через `docker compose exec`.
+2. **CI guard:** после `setup`, перед prepare, если `ODPM_SCENARIO=ci` и CLI не в allowlist → `ConfigError`. Allowlist: `prepare` / `--skip-start`, `build` / `--build-image`, `init` / `--init`, `plan` / `--plan`, `manifest`, `modules`, `run`, host-`database` (`status` / `ensure-role` / `pull`), `--update-lock` / `--sync-manifest-locks`, `-V` / `--version`. **Не** в allowlist: `up`, `scaffold`, stack-`database` (`backup` / `restore` / `drop` / `list`). Bare `odpm up -d/-i` и legacy root flags запрещены; module install — через `docker compose exec`. См. [ADR-026](adr-026-cli-command-verbs.md).
 
 3. **Dotenv → resolve:** `resolve_ci_image_builder` / `push` получают merged environ (layered dotenv + process env, process wins) из `Config` / `HostProjectContext`.
 

@@ -22,7 +22,7 @@ cd my-odoo-project-19
 ## Инициализация из git-репозитория
 
 ```bash
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 20.0
+odpm init https://github.com/your-org/your-odoo-project.git --branch 20.0
 ```
 
 Параметр `--branch` задаёт ветку **разрабатываемого** репозитория. Если ветку не указать, будет использована ветка по умолчанию на сервере git.
@@ -32,14 +32,14 @@ odpm --init https://github.com/your-org/your-odoo-project.git --branch 20.0
 Если вы пока не используете удалённый git:
 
 ```bash
-odpm --init file:///home/user/path/to/my_addons
+odpm init file:///home/user/path/to/my_addons
 ```
 
 Подробно о формате `file://` и трёх слэшах — в статье [Ссылки на репозитории](../reference/git-links.md).
 
 ## Что происходит при первом запуске
 
-При первом вызове `odpm --init` (и при последующих полных прогонах подготовки) утилита последовательно:
+При первом вызове `odpm init` (и при последующих полных прогонах подготовки) утилита последовательно:
 
 1. Задаёт вопросы мастера настройки и сохраняет ответы в `.env` (каталог резервных копий, каталог клонов git, порты, **сценарий** `developer` / `server` / `ci`).
 2. При развёртывании «с нуля» уточняет версию Odoo, если её нет в `odpm.json` разрабатываемого проекта.
@@ -59,7 +59,7 @@ odpm --init file:///home/user/path/to/my_addons
 После успешной подготовки:
 
 ```bash
-odpm -d test_db -i -u
+odpm up -d test_db -i -u
 ```
 
 - `-d test_db` — имя базы; если базы нет, она создаётся с параметрами из `db_creation_data` в `user_settings.json`.
@@ -81,10 +81,10 @@ odpm -d test_db -i -u
 
 | Задача | Действие |
 |--------|----------|
-| Перезапустить окружение после смены настроек | `odpm` или `odpm --skip-start`, затем при необходимости `docker compose up -d` |
-| Обновить модуль после правки кода | `odpm -d test_db -u` |
-| Резервная копия базы | `odpm -d test_db --db-backup` |
-| Восстановление из архива | `odpm -d test_db --db-restore имя_архива` |
+| Перезапустить окружение после смены настроек | `odpm up` или `odpm prepare`, затем при необходимости `docker compose up -d` |
+| Обновить модуль после правки кода | `odpm up -d test_db -u` |
+| Резервная копия базы | `odpm database backup -d test_db` |
+| Восстановление из архива | `odpm database restore -d test_db имя_архива` |
 | Новый модуль | `odpm scaffold имя_модуля` |
 | Отладка с точками останова | [VS Code и отладка](../operations/vscode-debug.md) |
 | API-ключи и токены для модулей | [Локальные секреты](../operations/secrets.md) — `.odpm/secrets.json` → `/run/odpm/secrets.json` |
@@ -94,15 +94,15 @@ odpm -d test_db -i -u
 Если модули обращаются к внешним API, подготовьте файл секретов **до** или **после** init:
 
 ```bash
-# из шаблона (после odpm --init)
+# из шаблона (после odpm init)
 cp .odpm/secrets.example.json .odpm/secrets.json
 # отредактируйте ключи, затем:
-odpm --skip-start
+odpm prepare
 ```
 
-Или при init: `odpm --init … --secrets-file /path/to/secrets.json`.
+Или при init: `odpm init … --secrets-file /path/to/secrets.json`.
 
-После смены значений снова `odpm --skip-start` и при необходимости `docker compose up -d`. Подробно — [локальные секреты](../operations/secrets.md).
+После смены значений снова `odpm prepare` и при необходимости `docker compose up -d`. Подробно — [локальные секреты](../operations/secrets.md).
 
 ## Шаблон `.dockerignore`
 

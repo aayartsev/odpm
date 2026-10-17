@@ -34,14 +34,14 @@ odpm run pull-remote-db -d local_copy --url https://client.example.com --remote-
 Для **`ODPM_SCENARIO=server`** (и ручного запуска в developer).
 
 1. `odpm modules diff [--diff-base] --format json`
-2. Если есть init/update: `odpm -d … [-i …] [-u …] --odoo-bin --stop-after-init`
+2. Если есть init/update: `odpm up -d … [-i …] [-u …] --odoo-bin --stop-after-init`
 3. `odpm modules record-applied` (в т.ч. когда оба списка пусты — сдвиг baseline)
 
 Пустые `-i`/`-u` не передаются. Долгоживущий compose без `--stop-after-init` этим рецептом не управляется.
 
 ### CI
 
-В `ODPM_SCENARIO=ci` end-to-end apply через `odpm run` **не** поддерживается (дочерний `odpm -d -i/-u` не в CI allowlist). В CI используйте `odpm modules diff`; apply выполняйте на server.
+В `ODPM_SCENARIO=ci` end-to-end apply через `odpm run` **не** поддерживается (дочерний `odpm up -d -i/-u` не в CI allowlist). В CI используйте `odpm modules diff`; apply выполняйте на server.
 
 ## Builtin: `pull-remote-db`
 
@@ -55,7 +55,7 @@ odpm run pull-remote-db -d local_copy \
 ```
 
 1. `odpm database pull --url … --remote-db …` → файл в `BACKUP_DIR` (пароль только из env; на stdout — имя архива)
-2. `odpm -d … --db-restore <archive>` — полный prepare/runtime, как обычный restore
+2. `odpm up -d … --db-restore <archive>` — полный prepare/runtime, как обычный restore
 
 `--dry-run` печатает argv **без** сети. Не храните master password в git. Для больших дампов timeout HTTP по умолчанию 600s (tool); шаги рецепта без лимита subprocess.
 
@@ -70,14 +70,14 @@ export ODPM_REMOTE_DB_MASTER_PWD='…'
 ARCHIVE=$(odpm database pull \
   --url https://client.example.com \
   --remote-db prod)
-odpm -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
+odpm up -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
 ```
 
 Эквивалент двумя вызовами, если достаточно builtin restore:
 
 ```bash
 odpm run pull-remote-db -d test_db --url https://client.example.com --remote-db prod
-odpm -d test_db -i -u --set-admin-pass
+odpm up -d test_db -i -u --set-admin-pass
 ```
 
 Почему не YAML: v1 подставляет только `${param.*}` / `${env:…}` и **не** умеет передать stdout шага в следующий argv. Для цепочек с именем архива используйте shell (или свой Python-рецепт).
@@ -90,14 +90,14 @@ odpm -d test_db -i -u --set-admin-pass
 
 ```yaml
 name: example-backup
-description: Backup then skip-start
+description: Backup then prepare
 params:
   database:
     required: true
     env: ODPM_RUN_DATABASE
 steps:
-  - odpm: ["-d", "${param.database}", "--db-backup"]
-  - odpm: ["--skip-start"]
+  - odpm: ["database", "backup", "-d", "${param.database}"]
+  - odpm: ["prepare"]
 ```
 
 Положите файл в `.odpm/recipes/example-backup.yaml`. Шаг не может начинаться с `run` (запрет рекурсии).

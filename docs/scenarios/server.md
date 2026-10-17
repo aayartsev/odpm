@@ -31,10 +31,10 @@
 ## Типичные команды администратора
 
 ```bash
-odpm --skip-start
+odpm prepare
 docker compose up -d
-odpm -d prod_db --db-backup
-odpm -d prod_db -u
+odpm database backup -d prod_db
+odpm up -d prod_db -u
 ```
 
 Для обновления модулей по git-диффу на **server** предпочтительно:

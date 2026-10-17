@@ -12,7 +12,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 
 | Область | Как устроено |
 |---------|--------------|
-| **Образ** | Создаётся командой `odpm --build-image` (доступна **только** в этом сценарии). Бэкенд: `docker` (по умолчанию) или `kaniko` — см. [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
+| **Образ** | Создаётся командой `odpm build` (доступна **только** в этом сценарии). Бэкенд: `docker` (по умолчанию) или `kaniko` — см. [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
 | **Исходники** | Внутри образа, без подключения с хоста. |
 | **Окружение Python** | Собрано при сборке образа, не пересоздаётся при каждом `up`. |
 | **Отладчик** | Нет. |
@@ -25,8 +25,8 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 ```text
 отправка в git → машина сборки
   → ODPM_SCENARIO=ci
-  → odpm --skip-start
-  → odpm --build-image [--image-tag реестр/проект:метка] [--image-builder docker|kaniko] [--image-push]
+  → odpm prepare
+  → odpm build [--image-tag реестр/проект:метка] [--image-builder docker|kaniko] [--image-push]
   → публикация образа (или --image-push / артефакт tar для kaniko)
   → развёртывание (ваши инструменты)
 ```
@@ -50,20 +50,20 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 # ODPM_CI_IMAGE_PUSH=1
 
 export ODPM_SCENARIO=ci
-odpm --skip-start
-odpm --build-image --image-tag myregistry/client-odoo:19.0
-odpm --build-image --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
+odpm prepare
+odpm build --image-tag myregistry/client-odoo:19.0
+odpm build --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
 ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
   ODPM_BASE_IMAGE_REGISTRY=registry.example.com/odpm \
-  odpm --build-image --image-tag myregistry/client-odoo:19.0 --image-push
+  odpm build --image-tag myregistry/client-odoo:19.0 --image-push
 docker compose up -d
-# Module install after stack is up (bare odpm -d/-i is rejected in ci).
+# Module install after stack is up (bare `odpm up -d/-i` / legacy root flags is rejected in ci).
 # Physical odoo key from docker-compose.yml (odoo / acme-odoo / odoo-dev / …):
 ODOO_SVC=odoo
 docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 
-В сценарии `ci` bare `odpm` без `--skip-start` / `--build-image` (и без allowlist: `plan`, `manifest`, `database`, `--update-lock`, `--init`, …) завершается ошибкой — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md).
+В сценарии `ci` запрещены `odpm up`, `scaffold` и стековые `database backup|restore|drop|list`. Разрешены `prepare` / `build` / `init` / `plan` / `manifest` / `modules` / `run` / host-`database` / `--version`/`-V` (и legacy-синонимы) — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md), [ADR-026](../contributing/adr-026-cli-command-verbs.md).
 
 ## Внешняя PostgreSQL в `ci` (ADR-022)
 
@@ -100,6 +100,7 @@ docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 export ODPM_SCENARIO=ci
 export ODOO_PROJECTS_DIR=/data/odoo_projects
 export BACKUP_DIR=/data/backups
+# init без compose up (4.8: legacy-комбо; иначе odpm init поднимает стек)
 odpm --init https://github.com/example/demo.git --skip-start
 ```
 

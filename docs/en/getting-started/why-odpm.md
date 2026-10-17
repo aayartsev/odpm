@@ -228,7 +228,7 @@ A package, official Docker, and a bare Dev Container usually give a **running se
 ## Next steps
 
 1. [Beginner-friendly guide](beginner-friendly.md) — host install and first run.
-2. [Local dev from scratch](local-dev-from-scratch.md) — `odpm --init`, first database.
+2. [Local dev from scratch](local-dev-from-scratch.md) — `odpm init`, first database.
 3. [Team coordinator](../scenarios/team-coordinator.md) — lock, non-interactive, CI.
 4. [Developer scenario](../scenarios/developer.md) — debugging and `dev_mode`.
 

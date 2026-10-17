@@ -91,7 +91,7 @@ odpm manifest migrate --write  # записать odpm.json
 ## После миграции
 
 1. **`odpm plan`** — проверьте шаги prepare (в т.ч. `compose.fragments`, `compose.patch.*`) и предупреждения об источнике lock.
-2. **`odpm up --skip-start`** — materialize без поднятия контейнеров.
+2. **`odpm prepare`** — materialize без поднятия контейнеров.
 3. **Locks** — см. [Locks после миграции (v2)](#locks-после-миграции-v2).
 4. **Откат** — восстановите v1 из git; dual-read не требует v2.
 

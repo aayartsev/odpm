@@ -130,14 +130,14 @@ Affix **`ODPM_COMPOSE_PREFIX`** / **`ODPM_COMPOSE_SUFFIX`** задают **фи�
 Пример полного цикла:
 
 ```bash
-odpm -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
+odpm up -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
 ```
 
 ## Диагностика
 
 ```bash
 odpm database status
-odpm plan --skip-start
+odpm plan
 docker compose logs db-dev    # имя postgres-сервиса из .env (или acme-db при ODPM_COMPOSE_PREFIX=acme)
 ```
 

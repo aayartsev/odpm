@@ -15,7 +15,7 @@ In small and medium Odoo teams it helps to designate a **coordinator** (lead dev
 ## How to change a dependency
 
 1. Discussion and pull request with changes to `dependencies`, `requirements_txt`, or `oca_dependencies.txt`.
-2. On the coordinator's machine: `odpm --update-lock --skip-start`.
+2. On the coordinator's machine: `odpm prepare --update-lock`.
 3. Commit the **lock file** together with the manifest changes.
 4. In automated checks: `odpm plan --strict`.
 
@@ -30,9 +30,9 @@ If git stores a manifest with `${VAR}` (e.g. `file://${ODOO_PLATFORM_DIR}`), the
 The team sees the same preparation plan:
 
 ```bash
-odpm plan --skip-start
-odpm plan --plan-show-diff --skip-start
-odpm plan --plan-strict --skip-start
+odpm plan
+odpm plan --plan-show-diff
+odpm plan --plan-strict
 ```
 
 This reduces "my compose is different" disputes before release.

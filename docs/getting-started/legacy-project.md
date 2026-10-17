@@ -8,7 +8,7 @@
 
 ```bash
 mkdir client_addons-19 && cd client_addons-19
-odpm --init git@github.com:organization/client_addons.git --branch 19.0
+odpm init git@github.com:organization/client_addons.git --branch 19.0
 ```
 
 Если в корне разрабатываемого репозитория уже есть **`odpm.json`**, odpm подхватит версии и зависимости оттуда. Если файла нет — укажите `--odoo-version` при `--init` или добавьте `odoo_version` в репозиторий до подключения.
@@ -38,8 +38,8 @@ docker compose logs -f
 Перед рискованными правками:
 
 ```bash
-odpm plan --skip-start
-odpm plan --plan-show-diff --skip-start
+odpm plan
+odpm plan --plan-show-diff
 ```
 
 Будет показано, какие шаги подготовки выполнились бы и как изменятся `docker-compose.yml` и служебная конфигурация — **без** записи на диск и без запуска контейнеров.
@@ -49,7 +49,7 @@ odpm plan --plan-show-diff --skip-start
 После согласования зависимостей ответственный разработчик (координатор) выполняет:
 
 ```bash
-odpm --update-lock --skip-start
+odpm prepare --update-lock
 ```
 
 и коммитит **`.odpm/deps.lock.json`** в репозиторий. Подробнее: [deps.lock.json](../reference/deps-lock.md) и [роль координатора](../scenarios/team-coordinator.md).
@@ -66,7 +66,7 @@ odpm --update-lock --skip-start
 
 ```bash
 odpm database status
-odpm plan --skip-start
+odpm plan
 ```
 
 Если роль отсутствует, а adoption ещё не сработал:

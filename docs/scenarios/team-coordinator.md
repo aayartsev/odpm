@@ -13,7 +13,7 @@
 ## Как вносить изменение зависимостей
 
 1. Обсуждение и pull request с правкой `dependencies`, `requirements_txt` или `oca_dependencies.txt`.
-2. На машине координатора: `odpm --update-lock --skip-start`.
+2. На машине координатора: `odpm prepare --update-lock`.
 3. Коммит **lock-файла** вместе с описанием.
 4. В автоматической проверке: `odpm plan --strict`.
 
@@ -28,9 +28,9 @@
 Команда видит одинаковый план подготовки:
 
 ```bash
-odpm plan --skip-start
-odpm plan --plan-show-diff --skip-start
-odpm plan --plan-strict --skip-start
+odpm plan
+odpm plan --plan-show-diff
+odpm plan --plan-strict
 ```
 
 Это снижает споры «у меня compose другой» перед релизом.

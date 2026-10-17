@@ -2,15 +2,33 @@
 
 > **AI-translated** from Russian.
 
-The **`odpm`** command (or `python3 …/odpm.py`) accepts parameters that set **one-off** behaviour: initialization, database work, image build, change plan. Full list with brief English hints: `odpm --help`.
+The **`odpm`** command (or `python3 …/odpm.py`) accepts **subcommands** and flags for one-off behaviour: stack up, prepare files, init, image build, database ops. Full list: `odpm --help`. Version: `odpm -V` / `odpm --version`.
 
-Below is a reference by group. Flag names are **as in the program** (Latin).
+## Command tree
+
+| Command | Meaning |
+|---------|---------|
+| `odpm up` | Prepare files and start the compose stack (incl. `-i`/`-u`, combined `--db-restore`) |
+| `odpm prepare` | Files / lock only, **no** containers (replaces `--skip-start`) |
+| `odpm init URL` | Project init (replaces `--init`) |
+| `odpm build` | CI image build (replaces `--build-image`) |
+| `odpm plan` | Dry-run of prepare steps |
+| `odpm database …` | Host: `status` / `ensure-role` / `pull`. Stack: `backup` / `restore` / `drop` / `list` |
+| `odpm modules …` | Diff / record-applied |
+| `odpm run …` | Recipes |
+| `odpm manifest …` | migrate / validate |
+| `odpm scaffold …` | Module scaffold |
+| `-V`, `--version` | odpm version (global) |
+
+In **4.8**, bare `odpm` and legacy root flags still work with a **warning**. In **5.0**, bare `odpm` prints subcommand help (no stack up). See [Deprecated in 4.8](#deprecated-in-48).
 
 ## Project initialization
 
+Preferred: **`odpm init URL`**. Deprecated synonym: `--init LINK`.
+
 | Parameter | Description |
 |-----------|-------------|
-| `--init LINK` | Make the current directory an odpm project. Link: HTTPS, `git@…`, `file:///…` |
+| `odpm init LINK` / `--init LINK` | Make the current directory an odpm project. Link: HTTPS, `git@…`, `file:///…` |
 | `--branch NAME` | With `--init`: branch of the **developing** repository |
 | `--odoo-version VER` | Odoo version (e.g. `19.0`) in `odpm.json` |
 | `--odoo-git-link LINK` | **Platform** repository instead of official odoo/odoo |
@@ -27,32 +45,34 @@ Below is a reference by group. Flag names are **as in the program** (Latin).
 Example:
 
 ```bash
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 \
+odpm init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 \
   --odoo-version 19.0 --python-version 3.12 --distro-version 12
 ```
 
 Import secrets on deploy:
 
 ```bash
-odpm --init file:///path/to/my_addons \
+odpm init file:///path/to/my_addons \
   --secrets-file /secure/client-secrets.json
 
 # key rotation on an existing project
-odpm --secrets-file ~/new-secrets.json --skip-start
+odpm prepare --secrets-file ~/new-secrets.json
 ```
 
 ## Environment prepare and image
 
-| Parameter | Description |
-|-----------|-------------|
-| `--skip-start` | Regenerate Docker files and compose **without** starting containers; with a lock — select revisions from the lock file |
-| `--update-lock` | Write `.odpm/deps.lock.json` and exit |
+| Command / parameter | Description |
+|---------------------|-------------|
+| `odpm prepare` | Regenerate Docker files and compose **without** starting containers |
+| `odpm prepare --update-lock` | Write `.odpm/deps.lock.json` and exit |
 | `--no-git-update` | Do not touch git; lock is **not read**; directories must already exist |
-| `--build-image` | Build image for **`ci`** scenario (error otherwise) |
-| `--image-tag TAG` | Docker image name and tag for `--build-image` |
-| `--image-builder {docker,kaniko}` | CI image build backend (default `docker`; overrides `ODPM_CI_IMAGE_BUILDER`) |
-| `--image-push` | After build, publish the image (`docker push` / kaniko `--destination`) |
-| `--version` | Show odpm version |
+| `odpm build` | Build image for **`ci`** scenario (error otherwise) |
+| `--image-tag TAG` | Docker image name and tag for `odpm build` |
+| `--image-builder {docker,kaniko}` | CI image build backend (default `docker`) |
+| `--image-push` | After build, publish the image |
+| `-V`, `--version` | Show odpm version |
+
+Deprecated synonyms: `--skip-start` → `odpm prepare`; `--build-image` → `odpm build`.
 
 ## Change plan (dry run)
 
@@ -98,7 +118,7 @@ ODPM_REMOTE_DB_MASTER_PWD='…' odpm database pull --url https://client.example.
 ```bash
 export ODPM_REMOTE_DB_MASTER_PWD='…'
 ARCHIVE=$(odpm database pull --url https://client.example.com --remote-db prod)
-odpm -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
+odpm up -d test_db --db-restore "$ARCHIVE" -i -u --set-admin-pass
 ```
 
 Shortcut for pull+restore without custom steps: builtin [`odpm run pull-remote-db`](recipes.md#builtin-pull-remote-db). YAML recipes **cannot** substitute a previous step’s stdout — use shell for archive-name chains. Intended for **developer** / **server**, not typical CI.
@@ -166,9 +186,9 @@ Details: [recipes](recipes.md), [deploy marker](deploy-marker.md).
 | `--odoo-bin ARGS…` | Pass arguments to the Odoo executable, e.g. `--stop-after-init` |
 
 ```bash
-odpm -d test_db -i -u
-odpm -d test_db -i sale,crm -u my_module
-odpm -d test_db -i --odoo-bin --stop-after-init
+odpm up -d test_db -i -u
+odpm up -d test_db -i sale,crm -u my_module
+odpm up -d test_db -i --odoo-bin --stop-after-init
 ```
 
 ## Platform nightly build date
@@ -216,3 +236,20 @@ odpm scaffold module_name -t /path/to/templates
 | `-t`, `--scaffold_template_name` | Custom template directory |
 
 Git version pinning: [deps.lock.json](deps-lock.md).
+
+## Deprecated in 4.8
+
+Legacy invocations still work and print a warning. Preferred forms:
+
+| Deprecated | Preferred |
+|------------|-----------|
+| bare `odpm` | `odpm up` (in **5.0** bare `odpm` → subcommand help) |
+| `odpm -d … -i …` | `odpm up -d … -i …` |
+| `odpm --skip-start` | `odpm prepare` |
+| `odpm --init URL` | `odpm init URL` |
+| `odpm --build-image` | `odpm build` |
+| `odpm --plan` | `odpm plan` |
+| single `--db-backup` / `--db-restore` / `--db-drop` / `--get-dbs-list` | `odpm database backup\|restore\|drop\|list` |
+| `--db-drop --db-restore …` or restore+`-i` | `odpm up …` |
+
+Contract: [ADR-026](../../contributing/adr-026-cli-command-verbs.md) (Russian).

@@ -18,7 +18,7 @@ Configuration file name: **`{platform_name}.conf`** (not necessarily `odoo.conf`
 ## Example at initialization
 
 ```bash
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 \
+odpm init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 \
   --odoo-version 19.0 \
   --odoo-git-link 'git@github.com:org/odoo-19.git 19.0' \
   --platform-name odoo \

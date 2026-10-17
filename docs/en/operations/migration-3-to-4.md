@@ -9,23 +9,23 @@ A 3.0 environment **must not be “upgraded in place”**. You need a **new proj
 ## Recommended order
 
 1. **Back up the database** from the 3.0 environment:
-   - with `odpm --db-backup` (if the old odpm is still available), or
+   - with `odpm database backup` / `odpm up --db-backup` (or legacy `odpm --db-backup` if an older odpm is still available), or
    - with PostgreSQL tools (`pg_dump`).
 2. Create a **new** odpm environment directory (e.g. `project-19-v4/`).
 3. Install **odpm 4.x** — [installation](../install/README.md).
-4. Run `odpm --init` with the current repository and 4.x-format `odpm.json`.
+4. Run `odpm init` with the current repository and 4.x-format `odpm.json`.
 5. Bring up the environment and **restore the database**:
    ```bash
-   odpm -d database_name --db-restore archive_name
+   odpm up -d database_name --db-restore archive_name
    ```
 6. Update modules for the new Odoo version:
    ```bash
-   odpm -d database_name -u
+   odpm up -d database_name -u
    ```
 
 Keep the old 3.0 directory for reference until the team fully switches.
 
-If you **repeat** `odpm --init` in the same environment directory (not recommended for production), the old Docker volume `*_postgres-data` may point at an outdated `data/postgres/...` path. Remove the volume before starting: `docker volume rm <project>_postgres-data` — see [non-interactive runs](non-interactive.md).
+If you **repeat** `odpm init` in the same environment directory (not recommended for production), the old Docker volume `*_postgres-data` may point at an outdated `data/postgres/...` path. Remove the volume before starting: `docker volume rm <project>_postgres-data` — see [non-interactive runs](non-interactive.md).
 
 ## What changed fundamentally
 

@@ -226,7 +226,7 @@ C **odpm:**
 ## Следующие шаги
 
 1. [Дружелюбность к новичкам](beginner-friendly.md) — что установить на хост и первый запуск.
-2. [Локальная разработка с нуля](local-dev-from-scratch.md) — `odpm --init`, первая база.
+2. [Локальная разработка с нуля](local-dev-from-scratch.md) — `odpm init`, первая база.
 3. [Координатор команды](../scenarios/team-coordinator.md) — lock, non-interactive, CI.
 4. [Сценарий developer](../scenarios/developer.md) — отладка и `dev_mode`.
 

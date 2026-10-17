@@ -6,20 +6,20 @@ A single odpm utility provides a **set of commands**; in different scenarios (`O
 
 | Task | Developer | Server | Image build |
 |------|:---------:|:------:|:-----------:|
-| Initialization `odpm --init` | yes | yes | yes |
-| Prepare `odpm` / `--skip-start` | yes | yes | yes |
-| Start `docker compose up` | yes | yes | via `docker compose` after `--skip-start` / `--build-image` (bare `odpm` in ci rejected, ADR-017) |
-| Database and modules `-d -i -u` | yes | yes | after `compose up` via `compose exec` (not bare `odpm`) |
-| Module tests `-t` | yes | rarely | yes |
-| Database backup and restore | yes | yes | yes |
+| Initialization `odpm init` | yes | yes | yes |
+| Prepare `odpm prepare` / `odpm up` | yes | yes | `prepare` yes; `up` **forbidden** (ADR-017) |
+| Start stack | `odpm up` / `docker compose up` | yes | `docker compose` only after `prepare` / `build` |
+| Database and modules `odpm up -d -i -u` | yes | yes | after `compose up` via `compose exec` (not `odpm up`) |
+| Module tests `-t` (on `up`) | yes | rarely | yes |
+| Backup / restore (`odpm database …` / `odpm up --db-*`) | yes | yes | stack `database` **forbidden** in ci |
 | Admin password change, translations | yes | yes | as needed |
-| Module scaffold `scaffold` | yes | no | no |
+| Module scaffold `scaffold` | yes | no | **forbidden** in ci |
 | VS Code debugging | yes | no | no |
-| Module secrets (`--secrets-file`, `/run/odpm/secrets.json`) | yes | yes | no |
+| Module secrets (`--secrets-file`, `/run/odpm/secrets.json`) | yes | yes | no (host mount) |
 | Run pre-commit in container | yes | no | no |
 | Change plan `odpm plan` | yes | yes | yes |
-| Lock update `--update-lock` | coordinator | read | strict |
-| Image build `--build-image` | **no** | **no** | **yes** |
+| Lock update `odpm prepare --update-lock` | coordinator | read | strict |
+| Image build `odpm build` | **no** | **no** | **yes** |
 | Backend `--image-builder` / env `ODPM_CI_IMAGE_BUILDER` (`docker`, `kaniko`) | **no** | **no** | **yes** |
 | Publish `--image-push` / env `ODPM_CI_IMAGE_PUSH` | **no** | **no** | **yes** |
 | Prepare without git `--no-git-update` | yes | yes | yes |

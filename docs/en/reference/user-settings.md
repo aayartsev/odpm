@@ -24,7 +24,7 @@ The file describes **how to work** with an already defined stack (`odpm.json`): 
 | `pre_commit_map_files` | Files for pre-commit when not on Linux |
 | `use_oca_dependencies` | Transitive git graph from `oca_dependencies.txt` and nested `odpm.json` (`dependencies` + version checks); no pip/`services` inherit (default `false`) |
 | `create_module_links` | Symbolic links for the editor (default `false`) |
-| `sidecars` | Local compose-sidecar toggles: name → `true`/`false`. `false` drops the service from plan, fragments, and `docker-compose.yml`; missing key or `true` keeps it. Cannot list `db`/`odoo`. After change — `odpm --skip-start`. See below |
+| `sidecars` | Local compose-sidecar toggles: name → `true`/`false`. `false` drops the service from plan, fragments, and `docker-compose.yml`; missing key or `true` keeps it. Cannot list `db`/`odoo`. After change — `odpm prepare`. See below |
 
 ## `${VAR}` substitution in `developing_project`
 
@@ -44,7 +44,7 @@ Other `user_settings.json` fields do **not** get substitution.
 
 ## Odoo development mode (`dev_mode`)
 
-String of Odoo flags: `reload`, `qweb`, `werkzeug`, `xml`, `access`, `all` (see Odoo documentation). Ignored in `server` and `ci` scenarios. After a change — `odpm --skip-start`.
+String of Odoo flags: `reload`, `qweb`, `werkzeug`, `xml`, `access`, `all` (see Odoo documentation). Ignored in `server` and `ci` scenarios. After a change — `odpm prepare`.
 
 ## System check (`check_system`)
 
@@ -71,4 +71,4 @@ Map of **logical** compose service names from the manifest/plugins (not `service
 - missing key or `true` — service stays.
 - JSON booleans only; strings like `"false"` are an error.
 - Personal `false` values in a committed `user_settings.json` can surprise the team/CI — coordinate or keep the override local.
-- After a change: `odpm --skip-start` (same as after changing `dev_mode`). Details: [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md).
+- After a change: `odpm prepare` (same as after changing `dev_mode`). Details: [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md).

@@ -93,7 +93,7 @@ Before `--write`, save a copy or commit the current `odpm.json`.
 ## After migration
 
 1. **`odpm plan`** — check prepare steps (including `compose.fragments`, `compose.patch.*`) and lock source warnings.
-2. **`odpm up --skip-start`** — materialize without starting containers.
+2. **`odpm prepare`** — materialize without starting containers.
 3. **Locks** — see [Locks after migration (v2)](#locks-after-migration-v2).
 4. **Rollback** — restore v1 from git; dual-read does not require v2.
 

@@ -10,7 +10,7 @@ As with a new project, create a **separate** odpm environment directory (e.g. `c
 
 ```bash
 mkdir client_addons-19 && cd client_addons-19
-odpm --init git@github.com:organization/client_addons.git --branch 19.0
+odpm init git@github.com:organization/client_addons.git --branch 19.0
 ```
 
 If the developing repo root already has **`odpm.json`**, odpm picks up versions and dependencies from it. If not, pass `--odoo-version` on `--init` or add `odoo_version` to the repo before connecting.
@@ -40,8 +40,8 @@ Link formats: [git, https, file](../reference/git-links.md).
 Before risky edits:
 
 ```bash
-odpm plan --skip-start
-odpm plan --plan-show-diff --skip-start
+odpm plan
+odpm plan --plan-show-diff
 ```
 
 Shows which prepare steps would run and how `docker-compose.yml` and runtime config would change — **without** writing disk or starting containers.
@@ -51,7 +51,7 @@ Shows which prepare steps would run and how `docker-compose.yml` and runtime con
 After dependencies are agreed, the coordinator runs:
 
 ```bash
-odpm --update-lock --skip-start
+odpm prepare --update-lock
 ```
 
 and commits **`.odpm/deps.lock.json`**. See [deps.lock.json](../reference/deps-lock.md) and [team coordinator](../scenarios/team-coordinator.md).
@@ -68,7 +68,7 @@ Diagnostics:
 
 ```bash
 odpm database status
-odpm plan --skip-start
+odpm plan
 ```
 
 If the role is missing and adoption has not run yet:

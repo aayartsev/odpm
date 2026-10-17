@@ -69,7 +69,7 @@ cd "$ODPM_REPO"
 |-------|----------|--------|------|
 | GitHub Actions `CI Docker` → compose-smoke | Green on push/PR | | |
 | GitHub Actions `CI Docker` → compose-smoke-mailpit | Green on push/PR (manifest v2 + Mailpit step in same job) | | |
-| `odpm --skip-start` on minimal fixture | Exit 0 | | |
+| `odpm prepare` on minimal fixture | Exit 0 | | |
 | `docker compose config` | Exit 0; `services:` in output | | |
 
 **Golden-path** (compose up + HTTP 200): `ODPM_GOLDEN_PATH_PROJECT=/path/to/your-odpm-env ./scripts/run_golden_path_test.sh` locally; in CI — self-hosted runner, secret `ODPM_GOLDEN_PATH_PROJECT`, nightly, **workflow_dispatch** with golden flag, or PR label **`run-docker`** when `ODPM_GOLDEN_PATH_ENABLED=true` (see [contributing/ci.md](../contributing/ci.md)). Re-run **CI Docker** manually after adding `run-docker` to a PR.
@@ -93,7 +93,7 @@ Use a **real** odpm project directory that was on 3.x compose or an old 4.0-beta
 
 ```bash
 cd "$ODPM_PROJECT"
-odpm --skip-start
+odpm prepare
 # review docker-compose.yml, then:
 docker compose up -d
 curl -sf "http://127.0.0.1:${ODOO_PORT:-8069}/web"
@@ -101,7 +101,7 @@ curl -sf "http://127.0.0.1:${ODOO_PORT:-8069}/web"
 
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
-| `odpm --skip-start` | Exit 0; templates regenerated | | |
+| `odpm prepare` | Exit 0; templates regenerated | | |
 | Odoo `command` | Exec form: `python3 -m dev_project.inside_docker_app.run_odoo` | | |
 | Runtime config | `.odpm/runtime/config.json` exists; `schema_version: 1` | | |
 | Debug profile (developer) | `.odpm/runtime/debug-profile.json` exists; `schema_version: 1`; `odpm plan` shows `ide.debug_profile` | | |
@@ -120,8 +120,8 @@ On a developer/server project with host-mounted runtime config:
 
 ```bash
 cd "$ODPM_PROJECT"
-odpm database status --skip-start
-odpm plan --skip-start
+odpm database status
+odpm plan
 ```
 
 | Check | Expected | Result | Date |
@@ -142,10 +142,10 @@ Run on the same migrated project as **2B** after templates are in place:
 
 ```bash
 cd "$ODPM_PROJECT"
-odpm plan --skip-start
+odpm plan
 odpm plan --plan-format json | jq .
-# or: odpm --plan --skip-start  (deprecated alias; logs a warning)
-# or: python3 "$ODPM_REPO/odpm.py" plan --skip-start
+# or: odpm --plan  (deprecated alias; logs a warning)
+# or: python3 "$ODPM_REPO/odpm.py" plan
 ```
 
 | Check | Expected | Result | Date |
@@ -201,16 +201,16 @@ Run only if you maintain projects with `"use_oca_dependencies": true` and transi
 
 ```bash
 cd "$ODPM_PROJECT"
-odpm --update-lock --skip-start
-odpm --skip-start
-odpm
+odpm prepare --update-lock
+odpm prepare
+odpm up
 curl -sL -o /dev/null -w '%{http_code}\n' "http://127.0.0.1:${ODOO_PORT:-8069}/web/login"
 ```
 
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
-| `--update-lock` | Writes `.odpm/deps.lock.json` with resolved graph | | |
-| `--skip-start` + checkout | Locked SHAs applied; compose regenerated | | |
+| `prepare --update-lock` | Writes `.odpm/deps.lock.json` with resolved graph | | |
+| `prepare` + checkout | Locked SHAs applied; compose regenerated | | |
 | Dependency mounts | Git deps appear in compose volumes and runtime `addons_path` | | |
 | HTTP | Login page HTTP 200 (or project-appropriate code) | | |
 
@@ -219,7 +219,7 @@ curl -sL -o /dev/null -w '%{http_code}\n' "http://127.0.0.1:${ODOO_PORT:-8069}/w
 ## 2E — CI scenario (optional)
 
 Requires `ODPM_SCENARIO=ci` and a project with CI layout / lock file as documented in README.
-Bare `odpm` without `--skip-start` / `--build-image` (or other ADR-017 allowlist flags) is rejected.
+`odpm up` / stack `database` / `scaffold` are rejected in ci (ADR-017 / ADR-026).
 For `kaniko`: set `ODPM_BASE_IMAGE_REGISTRY` (base always pushed); final push via `--image-push` / `ODPM_CI_IMAGE_PUSH`.
 
 ```bash
@@ -234,10 +234,10 @@ export ODPM_CI_PROJECT="$ODPM_PROJECT"   # optional: prepare project before buil
 
 | Check | Expected | Result | Date |
 |-------|----------|--------|------|
-| CI image build | `odpm --build-image` succeeds | | |
+| CI image build | `odpm build` succeeds | | |
 | Compose up | Stack starts without host Odoo bind-mounts | | |
 | HTTP | `/web` returns 200 on configured port | | |
-| CI guard | bare `odpm` in ci exits non-zero with `--skip-start` hint | | |
+| CI guard | `odpm up` in ci exits non-zero (prepare/build allowlisted) | | |
 
 ---
 
@@ -249,7 +249,7 @@ Back up `user_settings.json` before experiments.
 
 ### 3A — Manual spot checks (optional)
 
-After each `dev_mode` change: `odpm --skip-start`, restart stack, check container stays up and HTTP on `/web/login`.
+After each `dev_mode` change: `odpm prepare`, restart stack, check container stays up and HTTP on `/web/login`.
 
 Note: `--dev xml` may surface QWeb errors on some projects (Odoo/project level), not necessarily an odpm failure.
 

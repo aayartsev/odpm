@@ -22,7 +22,7 @@
 | `pre_commit_map_files` | Файлы для pre-commit при работе не на Linux |
 | `use_oca_dependencies` | Транзитивный git-граф из `oca_dependencies.txt` и nested `odpm.json` (`dependencies` + проверка версий); без наследования pip/`services` (по умолчанию `false`) |
 | `create_module_links` | Символические ссылки для редактора (по умолчанию `false`) |
-| `sidecars` | Локальные переключатели compose-sidecar: имя → `true`/`false`. `false` исключает сервис из plan, fragments и `docker-compose.yml`; отсутствие ключа или `true` — оставить. Нельзя указывать `db`/`odoo`. После смены — `odpm --skip-start`. См. ниже |
+| `sidecars` | Локальные переключатели compose-sidecar: имя → `true`/`false`. `false` исключает сервис из plan, fragments и `docker-compose.yml`; отсутствие ключа или `true` — оставить. Нельзя указывать `db`/`odoo`. После смены — `odpm prepare`. См. ниже |
 
 ## Подстановка `${VAR}` в `developing_project`
 
@@ -42,7 +42,7 @@ DEVELOPING_PROJECT_DIR=/home/dev/my_addons
 
 ## Режим разработки Odoo (`dev_mode`)
 
-Строка с флагами Odoo: `reload`, `qweb`, `werkzeug`, `xml`, `access`, `all` (см. документацию Odoo). В сценариях `server` и `ci` **игнорируется**. После изменения — `odpm --skip-start`.
+Строка с флагами Odoo: `reload`, `qweb`, `werkzeug`, `xml`, `access`, `all` (см. документацию Odoo). В сценариях `server` и `ci` **игнорируется**. После изменения — `odpm prepare`.
 
 ## Проверка системы (`check_system`)
 
@@ -69,4 +69,4 @@ DEVELOPING_PROJECT_DIR=/home/dev/my_addons
 - отсутствие ключа или `true` — сервис остаётся.
 - Только JSON boolean; строки вроде `"false"` — ошибка.
 - Личные `false` в закоммиченном `user_settings.json` могут удивить команду/CI — согласовывайте или держите override локально.
-- После изменения: `odpm --skip-start` (как после смены `dev_mode`). Подробнее: [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md).
+- После изменения: `odpm prepare` (как после смены `dev_mode`). Подробнее: [ADR-025](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md).

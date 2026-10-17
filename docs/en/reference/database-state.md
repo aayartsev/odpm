@@ -132,14 +132,14 @@ On a legacy cluster (Odoo before 20) a database may exist but be **owned by anot
 Example:
 
 ```bash
-odpm -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
+odpm up -d test_db --db-drop --db-restore my_backup.zip -i -u --set-admin-pass
 ```
 
 ## Troubleshooting
 
 ```bash
 odpm database status
-odpm plan --skip-start
+odpm plan
 docker compose logs db-dev    # postgres service name from .env (or acme-db when ODPM_COMPOSE_PREFIX=acme)
 ```
 

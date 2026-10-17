@@ -34,10 +34,10 @@ A full pipeline with an image registry is **not required** — `docker compose u
 ## Typical administrator commands
 
 ```bash
-odpm --skip-start
+odpm prepare
 docker compose up -d
-odpm -d prod_db --db-backup
-odpm -d prod_db -u
+odpm database backup -d prod_db
+odpm up -d prod_db -u
 ```
 
 For module updates from git on **server**, prefer:

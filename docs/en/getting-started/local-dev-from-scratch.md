@@ -24,7 +24,7 @@ Open the folder in **Visual Studio Code** (File → Open Folder). The integrated
 ## Init from a git repository
 
 ```bash
-odpm --init https://github.com/your-org/your-odoo-project.git --branch 20.0
+odpm init https://github.com/your-org/your-odoo-project.git --branch 20.0
 ```
 
 `--branch` is the **developing** repository branch. If omitted, the git server’s default branch is used.
@@ -34,14 +34,14 @@ odpm --init https://github.com/your-org/your-odoo-project.git --branch 20.0
 If you are not using remote git yet:
 
 ```bash
-odpm --init file:///home/user/path/to/my_addons
+odpm init file:///home/user/path/to/my_addons
 ```
 
 See [Git repository links](../reference/git-links.md) for `file://` and the three slashes.
 
 ## What happens on first run
 
-On first `odpm --init` (and on full prepare runs), odpm:
+On first `odpm init` (and on full prepare runs), odpm:
 
 1. Runs the setup wizard and saves answers to `.env` (backup dir, git clone dir, ports, **scenario** `developer` / `server` / `ci`).
 2. When deploying from scratch, asks for Odoo version if missing from the developing project’s `odpm.json`.
@@ -61,7 +61,7 @@ Stop a foreground interactive run: **Ctrl+C**. Stop containers separately if nee
 After a successful prepare:
 
 ```bash
-odpm -d test_db -i -u
+odpm up -d test_db -i -u
 ```
 
 - `-d test_db` — database name; created with `db_creation_data` from `user_settings.json` if missing.
@@ -83,10 +83,10 @@ More detail: [odpm.json and user_settings.json](../reference/config-split.md).
 
 | Task | Action |
 |------|--------|
-| Restart after config changes | `odpm` or `odpm --skip-start`, then `docker compose up -d` if needed |
-| Update module after code change | `odpm -d test_db -u` |
-| Database backup | `odpm -d test_db --db-backup` |
-| Restore from archive | `odpm -d test_db --db-restore archive_name` |
+| Restart after config changes | `odpm up` or `odpm prepare`, then `docker compose up -d` if needed |
+| Update module after code change | `odpm up -d test_db -u` |
+| Database backup | `odpm database backup -d test_db` |
+| Restore from archive | `odpm database restore -d test_db archive_name` |
 | New module scaffold | `odpm scaffold module_name` |
 | Breakpoint debugging | [IDE debugging](../operations/vscode-debug.md) |
 | Module API keys / tokens | [Local secrets](../operations/secrets.md) — `.odpm/secrets.json` → `/run/odpm/secrets.json` |
@@ -96,15 +96,15 @@ More detail: [odpm.json and user_settings.json](../reference/config-split.md).
 If modules call external APIs, prepare secrets **before or after** init:
 
 ```bash
-# from template (after odpm --init)
+# from template (after odpm init)
 cp .odpm/secrets.example.json .odpm/secrets.json
 # edit keys, then:
-odpm --skip-start
+odpm prepare
 ```
 
-Or at init: `odpm --init … --secrets-file /path/to/secrets.json`.
+Or at init: `odpm init … --secrets-file /path/to/secrets.json`.
 
-After value changes, run `odpm --skip-start` and `docker compose up -d` if needed. See [local secrets](../operations/secrets.md).
+After value changes, run `odpm prepare` and `docker compose up -d` if needed. See [local secrets](../operations/secrets.md).
 
 ## `.dockerignore` template
 

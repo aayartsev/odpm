@@ -59,7 +59,7 @@ The Odoo Python project and its venv live **in the container**. Do **not** wrap 
 2. Follow [Local dev from scratch](local-dev-from-scratch.md) with a repository that already has `odpm.json`.
 3. On Windows use the [WSL guide](../install/windows-wsl.md).
 
-On `odpm --init`, the **setup wizard** asks for Odoo version, usage scenario, backup and clone directories. Press Enter on unknown answers for sensible defaults.
+On `odpm init`, the **setup wizard** asks for Odoo version, usage scenario, backup and clone directories. Press Enter on unknown answers for sensible defaults.
 
 ## In short
 
