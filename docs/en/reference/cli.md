@@ -252,4 +252,4 @@ Legacy invocations still work and print a warning. Preferred forms:
 | single `--db-backup` / `--db-restore` / `--db-drop` / `--get-dbs-list` | `odpm database backup\|restore\|drop\|list` |
 | `--db-drop --db-restore …` or restore+`-i` | `odpm up …` |
 
-Contract: [ADR-026](../../contributing/adr-026-cli-command-verbs.md) (Russian).
+Contract: [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md) (Russian).

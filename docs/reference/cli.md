@@ -248,4 +248,4 @@ odpm scaffold имя_модуля -t /путь/к/шаблонам
 | один `--db-backup` / `--db-restore` / `--db-drop` / `--get-dbs-list` | `odpm database backup\|restore\|drop\|list` |
 | `--db-drop --db-restore …` или restore+`-i` | `odpm up …` |
 
-Контракт: [ADR-026](../contributing/adr-026-cli-command-verbs.md).
+Контракт: [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md).
