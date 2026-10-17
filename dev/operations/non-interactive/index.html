@@ -2109,20 +2109,21 @@
 <p>Без TTY odpm <strong>не задаёт</strong> вопросов о расхождении конфигурации PostgreSQL. Если обнаружен blocking drift (<code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code> и др.), запуск завершится ошибкой.</p>
 <p>Варианты:</p>
 <ol>
-<li>Один раз разрешить drift из интерактивного терминала (<code>odpm</code> или <code>odpm plan</code>).</li>
+<li>Один раз разрешить drift из интерактивного терминала (<code>odpm up</code> или <code>odpm plan</code>).</li>
 <li>Явно принять вид drift: <strong><code>--accept-database-drift=KIND</code></strong> (флаг можно повторять для нескольких KIND).</li>
 <li>Перед стеком восстановить роль: <code>odpm database ensure-role</code> (postgres должен быть запущен).</li>
 </ol>
 <p>Пример:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--accept-database-drift<span class="o">=</span>odpm_scenario<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>prepare<span class="w"> </span>--accept-database-drift<span class="o">=</span>odpm_scenario
 odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
 </code></pre></div>
 <p>Подробнее: <a href="../../reference/database-state/">состояние PostgreSQL</a>.</p>
 <h2 id="_3">Пример для сценария сборки образа<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODOO_PROJECTS_DIR</span><span class="o">=</span>/data/odoo_projects
 <span class="nb">export</span><span class="w"> </span><span class="nv">BACKUP_DIR</span><span class="o">=</span>/data/backups
+<span class="c1"># init без compose up (4.8: legacy-комбо; у odpm init нет --skip-start)</span>
 odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/example/demo.git<span class="w"> </span>--skip-start
 </code></pre></div>
 

@@ -2048,12 +2048,12 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 <p>Intended for <strong><code>ODPM_SCENARIO=server</code></strong> (and manual developer use).</p>
 <ol>
 <li><code>odpm modules diff [--diff-base] --format json</code></li>
-<li>If init/update non-empty: <code>odpm -d … [-i …] [-u …] --odoo-bin --stop-after-init</code></li>
+<li>If init/update non-empty: <code>odpm up -d … [-i …] [-u …] --odoo-bin --stop-after-init</code></li>
 <li><code>odpm modules record-applied</code> (also when both lists are empty — advance baseline)</li>
 </ol>
 <p>Empty <code>-i</code>/<code>-u</code> flags are never passed. Long-running compose without <code>--stop-after-init</code> is out of scope for this recipe.</p>
 <h3 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h3>
-<p>Under <code>ODPM_SCENARIO=ci</code>, end-to-end apply via <code>odpm run</code> is <strong>not</strong> supported (child <code>odpm -d -i/-u</code> is not CI-allowlisted). In CI use <code>odpm modules diff</code>; run apply on server.</p>
+<p>Under <code>ODPM_SCENARIO=ci</code>, end-to-end apply via <code>odpm run</code> is <strong>not</strong> supported (child <code>odpm up -d -i/-u</code> is not CI-allowlisted). In CI use <code>odpm modules diff</code>; run apply on server.</p>
 <h2 id="builtin-pull-remote-db">Builtin: <code>pull-remote-db</code><a class="headerlink" href="#builtin-pull-remote-db" title="Permanent link">&para;</a></h2>
 <p>Shortcut for <strong><code>developer</code> / <code>server</code></strong>: <strong>pull + <code>--db-restore</code> only</strong>. Does not install/update modules or reset the admin password.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span><span class="w">   </span><span class="c1"># remote DB manager master password</span>
@@ -2063,7 +2063,7 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 </code></pre></div>
 <ol>
 <li><code>odpm database pull --url … --remote-db …</code> → file under <code>BACKUP_DIR</code> (password from env only; stdout is the archive name)</li>
-<li><code>odpm -d … --db-restore &lt;archive&gt;</code> — full prepare/runtime, same as a normal restore</li>
+<li><code>odpm up -d … --db-restore &lt;archive&gt;</code> — full prepare/runtime, same as a normal restore</li>
 </ol>
 <p><code>--dry-run</code> prints argv <strong>without</strong> network I/O. Do not commit the master password to git. Default HTTP timeout is 600s (tool); recipe steps use no subprocess timeout limit.</p>
 <p>Requires an odpm project directory with <code>BACKUP_DIR</code> configured. A typical CI pull+restore flow is <strong>not</strong> a product goal.</p>
@@ -2073,25 +2073,25 @@ odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class
 <span class="nv">ARCHIVE</span><span class="o">=</span><span class="k">$(</span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--remote-db<span class="w"> </span>prod<span class="k">)</span>
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
 </code></pre></div>
 <p>Two-call equivalent when the builtin restore shortcut is enough:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>pull-remote-db<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
 </code></pre></div>
 <p>Why not YAML: v1 only substitutes <code>${param.*}</code> / <code>${env:…}</code> and <strong>cannot</strong> feed a step’s stdout into the next argv. For archive-name chains use shell (or a custom Python recipe).</p>
 <p>See also <a href="../cli/">CLI: <code>database pull</code></a> and <a href="../database-state/">database state</a>.</p>
 <h2 id="yaml-recipes-v1">YAML recipes (v1)<a class="headerlink" href="#yaml-recipes-v1" title="Permanent link">&para;</a></h2>
 <p>Linear steps only (no conditionals). Substitutions: <code>${param.name}</code>, <code>${env:VAR}</code> — <strong>no</strong> previous-step stdout capture.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example-backup</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Backup then skip-start</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Backup then prepare</span>
 <span class="nt">params</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">database</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">    </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ODPM_RUN_DATABASE</span>
 <span class="nt">steps</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">odpm</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"-d"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"${param.database}"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"--db-backup"</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">odpm</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"--skip-start"</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">odpm</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"database"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"backup"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"-d"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"${param.database}"</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">odpm</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"prepare"</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <p>Place the file in <code>.odpm/recipes/example-backup.yaml</code>. A step must not start with <code>run</code> (recursion guard).</p>
 <h2 id="execution-model">Execution model<a class="headerlink" href="#execution-model" title="Permanent link">&para;</a></h2>

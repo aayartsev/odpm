@@ -1925,40 +1925,40 @@
 </thead>
 <tbody>
 <tr>
-<td>Инициализация <code>odpm --init</code></td>
+<td>Инициализация <code>odpm init</code></td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
 </tr>
 <tr>
-<td>Подготовка <code>odpm</code> / <code>--skip-start</code></td>
+<td>Подготовка <code>odpm prepare</code> / <code>odpm up</code></td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
-<td style="text-align: center;">да</td>
+<td style="text-align: center;"><code>prepare</code> да; <code>up</code> <strong>запрещён</strong> (ADR-017)</td>
 </tr>
 <tr>
-<td>Запуск <code>docker compose up</code></td>
+<td>Запуск стека</td>
+<td style="text-align: center;"><code>odpm up</code> / <code>docker compose up</code></td>
 <td style="text-align: center;">да</td>
-<td style="text-align: center;">да</td>
-<td style="text-align: center;">через <code>docker compose</code> после <code>--skip-start</code> / <code>--build-image</code> (bare <code>odpm</code> в ci запрещён, ADR-017)</td>
+<td style="text-align: center;">только <code>docker compose</code> после <code>prepare</code> / <code>build</code></td>
 </tr>
 <tr>
-<td>База и модули <code>-d -i -u</code></td>
+<td>База и модули <code>odpm up -d -i -u</code></td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
-<td style="text-align: center;">после <code>compose up</code> через <code>compose exec</code> (не bare <code>odpm</code>)</td>
+<td style="text-align: center;">после <code>compose up</code> через <code>compose exec</code> (не <code>odpm up</code>)</td>
 </tr>
 <tr>
-<td>Тесты модулей <code>-t</code></td>
+<td>Тесты модулей <code>-t</code> (на <code>up</code>)</td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">редко</td>
 <td style="text-align: center;">да</td>
 </tr>
 <tr>
-<td>Резервное копирование и восстановление базы</td>
+<td>Резервное копирование / восстановление (<code>odpm database …</code> / <code>odpm up --db-*</code>)</td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
-<td style="text-align: center;">да</td>
+<td style="text-align: center;">стековый <code>database</code> в ci <strong>запрещён</strong></td>
 </tr>
 <tr>
 <td>Смена пароля администратора, переводы</td>
@@ -1970,7 +1970,7 @@
 <td>Генерация каркаса модуля <code>scaffold</code></td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">нет</td>
-<td style="text-align: center;">нет</td>
+<td style="text-align: center;"><strong>запрещён</strong> в ci</td>
 </tr>
 <tr>
 <td>Отладка в VS Code</td>
@@ -1982,7 +1982,7 @@
 <td>Секреты модулей (<code>--secrets-file</code>, <code>/run/odpm/secrets.json</code>)</td>
 <td style="text-align: center;">да</td>
 <td style="text-align: center;">да</td>
-<td style="text-align: center;">нет</td>
+<td style="text-align: center;">нет (host mount)</td>
 </tr>
 <tr>
 <td>Запуск pre-commit в контейнере</td>
@@ -1997,13 +1997,13 @@
 <td style="text-align: center;">да</td>
 </tr>
 <tr>
-<td>Обновление фиксации <code>--update-lock</code></td>
+<td>Обновление фиксации <code>odpm prepare --update-lock</code></td>
 <td style="text-align: center;">координатор</td>
 <td style="text-align: center;">чтение</td>
 <td style="text-align: center;">строго</td>
 </tr>
 <tr>
-<td>Сборка образа <code>--build-image</code></td>
+<td>Сборка образа <code>odpm build</code></td>
 <td style="text-align: center;"><strong>нет</strong></td>
 <td style="text-align: center;"><strong>нет</strong></td>
 <td style="text-align: center;"><strong>да</strong></td>

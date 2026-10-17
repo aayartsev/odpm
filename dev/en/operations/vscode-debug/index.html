@@ -2543,7 +2543,7 @@
 <li>In <strong><code>.odpm/runtime/debug-profile.json</code></strong> — an IDE-neutral profile (<code>schema_version: 2</code>): <code>backend</code>, <code>direction</code>, <code>protocol</code>, host/port, <code>path_mappings</code>.</li>
 <li>By <strong><code>ODPM_IDE</code></strong>: <code>vscode</code> / <code>both</code> → <code>.vscode/</code>; <code>pycharm</code> / <code>both</code> → <code>.run/*.run.xml</code> (which file depends on the backend); <code>none</code> — only <code>debug-profile.json</code> is created.</li>
 </ul>
-<p>Regeneration: <code>odpm</code> or <code>odpm --skip-start</code>. Plan steps: <code>ide.debug_profile</code>, <code>pycharm.settings</code>; diff — <code>odpm plan --plan-show-diff</code>.</p>
+<p>Regeneration: <code>odpm up</code> or <code>odpm prepare</code>. Plan steps: <code>ide.debug_profile</code>, <code>pycharm.settings</code>; diff — <code>odpm plan --plan-show-diff</code>.</p>
 <hr />
 <h2 id="debugpy_listen-vs-code-pycharm-attach-to-dap"><code>debugpy_listen</code> — VS Code / PyCharm Attach to DAP<a class="headerlink" href="#debugpy_listen-vs-code-pycharm-attach-to-dap" title="Permanent link">&para;</a></h2>
 <h3 id="profile-example">Profile (example)<a class="headerlink" href="#profile-example" title="Permanent link">&para;</a></h3>
@@ -2593,7 +2593,7 @@
 <p>The interactive wizard in <code>developer</code> asks for <code>connect_host</code> and <code>suspend</code> only when <code>pydevd_connect</code> is selected.</p>
 <h3 id="workflow-step-order-matters">Workflow (step order matters)<a class="headerlink" href="#workflow-step-order-matters" title="Permanent link">&para;</a></h3>
 <ol>
-<li><code>odpm --skip-start</code> — the directive updates <code>docker-compose.yml</code>, <code>config.json</code>, <strong><code>.run/Odoo Debug Server.run.xml</code></strong>.</li>
+<li><code>odpm prepare</code> — the directive updates <code>docker-compose.yml</code>, <code>config.json</code>, <strong><code>.run/Odoo Debug Server.run.xml</code></strong>.</li>
 <li>In PyCharm: <strong>Run</strong> (not Attach) the <strong>Odoo Debug Server</strong> configuration — in the Debug window: <em>Waiting for process connection...</em></li>
 <li><code>odpm</code> or <code>docker compose up</code> — the container calls <code>pydevd_pycharm.settrace(connect_host, port, suspend=...)</code>.</li>
 <li>With <code>ODPM_DEBUGGER_SUSPEND=1</code> — in PyCharm press <strong>Resume</strong>, then set breakpoints in addons.</li>
@@ -2632,15 +2632,15 @@
 <p>Package: <code>pydevd-pycharm</code> (version pinned in odpm, see below).</p>
 <hr />
 <h2 id="switching-backend">Switching backend<a class="headerlink" href="#switching-backend" title="Permanent link">&para;</a></h2>
-<p>After changing <code>ODPM_DEBUGGER_BACKEND</code>, run <code>odpm --skip-start</code> and restart the containers.</p>
-<p>When <code>ODPM_DEBUGGER_BACKEND</code> changes, odpm on <code>odpm --skip-start</code> <strong>removes</strong> the outdated odpm file (<code>.run/Odoo Remote Attach.run.xml</code> or <code>.run/Odoo Debug Server.run.xml</code>). User configurations in <code>.run/</code> are not affected.</p>
+<p>After changing <code>ODPM_DEBUGGER_BACKEND</code>, run <code>odpm prepare</code> and restart the containers.</p>
+<p>When <code>ODPM_DEBUGGER_BACKEND</code> changes, odpm on <code>odpm prepare</code> <strong>removes</strong> the outdated odpm file (<code>.run/Odoo Remote Attach.run.xml</code> or <code>.run/Odoo Debug Server.run.xml</code>). User configurations in <code>.run/</code> are not affected.</p>
 <p>When the backend changes, the venv is rebuilt with the required pip package (<code>debugpy</code> ↔ <code>pydevd-pycharm</code>).</p>
 <hr />
 <h2 id="symbolic-links-create_module_links">Symbolic links (<code>create_module_links</code>)<a class="headerlink" href="#symbolic-links-create_module_links" title="Permanent link">&para;</a></h2>
 <p>If <strong><code>"create_module_links": true</code></strong> is set in <code>user_settings.json</code>, odpm creates symlinks to the platform, developing project, and dependencies. This helps align debugger paths: <code>launch.json</code> and PyCharm path mappings account for both <code>~/odoo_projects/...</code> and paths through the odpm project tree.</p>
 <p>The option is <strong>off</strong> by default.</p>
 <h2 id="imports-and-code-analysis-pylance-pyright">Imports and code analysis (Pylance / Pyright)<a class="headerlink" href="#imports-and-code-analysis-pylance-pyright" title="Permanent link">&para;</a></h2>
-<p>On <code>odpm --skip-start</code> (<code>developer</code> scenario, <code>ODPM_IDE=vscode</code> or <code>both</code>), odpm generates <code>.vscode/settings.json</code> with <strong><code>python.analysis.extraPaths</code></strong> from the same repository graph that prepare uses:</p>
+<p>On <code>odpm prepare</code> (<code>developer</code> scenario, <code>ODPM_IDE=vscode</code> or <code>both</code>), odpm generates <code>.vscode/settings.json</code> with <strong><code>python.analysis.extraPaths</code></strong> from the same repository graph that prepare uses:</p>
 <ul>
 <li><strong>platform</strong> root (<code>odoo_src_dir</code>);</li>
 <li><strong>developing</strong> project;</li>
@@ -2655,7 +2655,7 @@
 <li>Stubs cover the <strong><code>odoo</code> core</strong>, not <code>odoo.addons.*</code> (the addons namespace is created at runtime).</li>
 <li>The <a href="https://marketplace.visualstudio.com/items?itemName=trinhanhngoc.vscode-odoo">vscode-odoo</a> extension already includes its own stubs — duplication is harmless.</li>
 <li>On <strong>server</strong> / <strong>ci</strong>, <code>odoo-stubs</code> is removed from <code>odpm.json</code> (like debugger packages).</li>
-<li>The file is <strong>overwritten</strong> on every <code>odpm --skip-start</code> — do not edit <code>extraPaths</code> manually in <code>.vscode/settings.json</code>.</li>
+<li>The file is <strong>overwritten</strong> on every <code>odpm prepare</code> — do not edit <code>extraPaths</code> manually in <code>.vscode/settings.json</code>.</li>
 </ul>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
@@ -2666,7 +2666,7 @@
 <h3 id="odoo-starts-before-debug-server">Odoo starts before Debug Server<a class="headerlink" href="#odoo-starts-before-debug-server" title="Permanent link">&para;</a></h3>
 <p>Use <code>ODPM_DEBUGGER_SUSPEND=1</code> and <strong>first</strong> start Debug Server in PyCharm, <strong>then</strong> the container.</p>
 <h3 id="verification-without-a-full-run-generation">Verification without a full run (generation)<a class="headerlink" href="#verification-without-a-full-run-generation" title="Permanent link">&para;</a></h3>
-<p>After <code>odpm --skip-start</code> with <code>pydevd_connect</code>:</p>
+<p>After <code>odpm prepare</code> with <code>pydevd_connect</code>:</p>
 <ul>
 <li><code>config.json</code>: <code>"backend": "pydevd_connect"</code>;</li>
 <li>compose: <code>extra_hosts</code>, no <code>DEBUGGER_PORT:DEBUGGER_PORT</code>;</li>

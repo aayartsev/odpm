@@ -2192,16 +2192,16 @@
 <p>Open the folder in <strong>Visual Studio Code</strong> (File → Open Folder). The integrated terminal is convenient for odpm commands.</p>
 <p><strong>Important:</strong> do not run <code>odpm</code> inside a host Python venv. Use system <code>python3</code> or the <code>odpm</code> package command; Odoo’s isolated Python env is created <strong>inside the container</strong>.</p>
 <h2 id="init-from-a-git-repository">Init from a git repository<a class="headerlink" href="#init-from-a-git-repository" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">20</span>.0
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">20</span>.0
 </code></pre></div>
 <p><code>--branch</code> is the <strong>developing</strong> repository branch. If omitted, the git server’s default branch is used.</p>
 <h2 id="init-from-a-local-directory">Init from a local directory<a class="headerlink" href="#init-from-a-local-directory" title="Permanent link">&para;</a></h2>
 <p>If you are not using remote git yet:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>file:///home/user/path/to/my_addons
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>file:///home/user/path/to/my_addons
 </code></pre></div>
 <p>See <a href="../../reference/git-links/">Git repository links</a> for <code>file://</code> and the three slashes.</p>
 <h2 id="what-happens-on-first-run">What happens on first run<a class="headerlink" href="#what-happens-on-first-run" title="Permanent link">&para;</a></h2>
-<p>On first <code>odpm --init</code> (and on full prepare runs), odpm:</p>
+<p>On first <code>odpm init</code> (and on full prepare runs), odpm:</p>
 <ol>
 <li>Runs the setup wizard and saves answers to <code>.env</code> (backup dir, git clone dir, ports, <strong>scenario</strong> <code>developer</code> / <code>server</code> / <code>ci</code>).</li>
 <li>When deploying from scratch, asks for Odoo version if missing from the developing project’s <code>odpm.json</code>.</li>
@@ -2217,7 +2217,7 @@
 <p>Stop a foreground interactive run: <strong>Ctrl+C</strong>. Stop containers separately if needed: <code>docker compose down</code>.</p>
 <h2 id="first-database-and-modules">First database and modules<a class="headerlink" href="#first-database-and-modules" title="Permanent link">&para;</a></h2>
 <p>After a successful prepare:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
 </code></pre></div>
 <ul>
 <li><code>-d test_db</code> — database name; created with <code>db_creation_data</code> from <code>user_settings.json</code> if missing.</li>
@@ -2256,19 +2256,19 @@
 <tbody>
 <tr>
 <td>Restart after config changes</td>
-<td><code>odpm</code> or <code>odpm --skip-start</code>, then <code>docker compose up -d</code> if needed</td>
+<td><code>odpm up</code> or <code>odpm prepare</code>, then <code>docker compose up -d</code> if needed</td>
 </tr>
 <tr>
 <td>Update module after code change</td>
-<td><code>odpm -d test_db -u</code></td>
+<td><code>odpm up -d test_db -u</code></td>
 </tr>
 <tr>
 <td>Database backup</td>
-<td><code>odpm -d test_db --db-backup</code></td>
+<td><code>odpm database backup -d test_db</code></td>
 </tr>
 <tr>
 <td>Restore from archive</td>
-<td><code>odpm -d test_db --db-restore archive_name</code></td>
+<td><code>odpm database restore -d test_db archive_name</code></td>
 </tr>
 <tr>
 <td>New module scaffold</td>
@@ -2286,13 +2286,13 @@
 </table>
 <h2 id="module-secrets-optional">Module secrets (optional)<a class="headerlink" href="#module-secrets-optional" title="Permanent link">&para;</a></h2>
 <p>If modules call external APIs, prepare secrets <strong>before or after</strong> init:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># from template (after odpm --init)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># from template (after odpm init)</span>
 cp<span class="w"> </span>.odpm/secrets.example.json<span class="w"> </span>.odpm/secrets.json
 <span class="c1"># edit keys, then:</span>
-odpm<span class="w"> </span>--skip-start
+odpm<span class="w"> </span>prepare
 </code></pre></div>
-<p>Or at init: <code>odpm --init … --secrets-file /path/to/secrets.json</code>.</p>
-<p>After value changes, run <code>odpm --skip-start</code> and <code>docker compose up -d</code> if needed. See <a href="../../operations/secrets/">local secrets</a>.</p>
+<p>Or at init: <code>odpm init … --secrets-file /path/to/secrets.json</code>.</p>
+<p>After value changes, run <code>odpm prepare</code> and <code>docker compose up -d</code> if needed. See <a href="../../operations/secrets/">local secrets</a>.</p>
 <h2 id="dockerignore-template"><code>.dockerignore</code> template<a class="headerlink" href="#dockerignore-template" title="Permanent link">&para;</a></h2>
 <p>Edit exclusion rules in <strong><code>.odpm/dockerignore</code></strong>. odpm recreates the root <code>.dockerignore</code> on each run — do not edit it by hand. To reset the template, delete <code>.odpm/dockerignore</code> and run odpm again.</p>
 

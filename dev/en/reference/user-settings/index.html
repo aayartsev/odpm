@@ -2154,7 +2154,7 @@
 </tr>
 <tr>
 <td><code>sidecars</code></td>
-<td>Local compose-sidecar toggles: name → <code>true</code>/<code>false</code>. <code>false</code> drops the service from plan, fragments, and <code>docker-compose.yml</code>; missing key or <code>true</code> keeps it. Cannot list <code>db</code>/<code>odoo</code>. After change — <code>odpm --skip-start</code>. See below</td>
+<td>Local compose-sidecar toggles: name → <code>true</code>/<code>false</code>. <code>false</code> drops the service from plan, fragments, and <code>docker-compose.yml</code>; missing key or <code>true</code> keeps it. Cannot list <code>db</code>/<code>odoo</code>. After change — <code>odpm prepare</code>. See below</td>
 </tr>
 </tbody>
 </table>
@@ -2168,7 +2168,7 @@
 </code></pre></div>
 <p>Other <code>user_settings.json</code> fields do <strong>not</strong> get substitution.</p>
 <h2 id="odoo-development-mode-dev_mode">Odoo development mode (<code>dev_mode</code>)<a class="headerlink" href="#odoo-development-mode-dev_mode" title="Permanent link">&para;</a></h2>
-<p>String of Odoo flags: <code>reload</code>, <code>qweb</code>, <code>werkzeug</code>, <code>xml</code>, <code>access</code>, <code>all</code> (see Odoo documentation). Ignored in <code>server</code> and <code>ci</code> scenarios. After a change — <code>odpm --skip-start</code>.</p>
+<p>String of Odoo flags: <code>reload</code>, <code>qweb</code>, <code>werkzeug</code>, <code>xml</code>, <code>access</code>, <code>all</code> (see Odoo documentation). Ignored in <code>server</code> and <code>ci</code> scenarios. After a change — <code>odpm prepare</code>.</p>
 <h2 id="system-check-check_system">System check (<code>check_system</code>)<a class="headerlink" href="#system-check-check_system" title="Permanent link">&para;</a></h2>
 <p>When <code>true</code>, basic git and Docker checks run. Does not disable compose validation. Freeing occupied ports in developer mode is separate logic.</p>
 <h2 id="symbolic-links-create_module_links">Symbolic links (<code>create_module_links</code>)<a class="headerlink" href="#symbolic-links-create_module_links" title="Permanent link">&para;</a></h2>
@@ -2187,7 +2187,7 @@
 <li>missing key or <code>true</code> — service stays.</li>
 <li>JSON booleans only; strings like <code>"false"</code> are an error.</li>
 <li>Personal <code>false</code> values in a committed <code>user_settings.json</code> can surprise the team/CI — coordinate or keep the override local.</li>
-<li>After a change: <code>odpm --skip-start</code> (same as after changing <code>dev_mode</code>). Details: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md">ADR-025</a>.</li>
+<li>After a change: <code>odpm prepare</code> (same as after changing <code>dev_mode</code>). Details: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md">ADR-025</a>.</li>
 </ul>
 
 

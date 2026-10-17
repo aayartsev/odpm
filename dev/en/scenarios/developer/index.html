@@ -2113,26 +2113,26 @@
 </tr>
 <tr>
 <td><strong>CI image build</strong></td>
-<td>The <code>--build-image</code> command is <strong>unavailable</strong> (only in the <code>ci</code> scenario).</td>
+<td>The <code>odpm build</code> / <code>--build-image</code> command is <strong>unavailable</strong> (only in the <code>ci</code> scenario).</td>
 </tr>
 </tbody>
 </table>
 <h2 id="odoo-development-mode-dev_mode">Odoo development mode (<code>dev_mode</code>)<a class="headerlink" href="#odoo-development-mode-dev_mode" title="Permanent link">&para;</a></h2>
 <p>In <code>user_settings.json</code>, the <strong><code>dev_mode</code></strong> field sets Odoo <code>--dev</code> flags (e.g. <code>reload</code>, <code>xml</code>, <code>all</code> — see Odoo documentation). Works <strong>only</strong> in this scenario. With <code>reload</code> or <code>all</code> values, odpm adds the <code>inotify</code> package to Python requirements for code auto-reload.</p>
-<p>After changing <code>dev_mode</code>, recreate compose: <code>odpm --skip-start</code>.</p>
+<p>After changing <code>dev_mode</code>, recreate compose: <code>odpm prepare</code>.</p>
 <h2 id="typical-day">Typical day<a class="headerlink" href="#typical-day" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>odpm</code> — prepare and start containers.</li>
-<li><code>odpm -d dev_db -u</code> — update modules after changes.</li>
+<li><code>odpm up -d dev_db -u</code> — update modules after changes.</li>
 <li>Debugger in VS Code — as needed.</li>
 <li><code>http://127.0.0.1:8069</code> — check in the browser.</li>
 </ol>
 <p>Manual scenarios (plan, drift, debugging) on demo wrappers: <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md">demo-projects</a>.</p>
-<p>After changing <code>POSTGRES_SERVICE_NAME</code> or the port in <code>.env</code> — run <code>odpm database status</code> and <code>odpm plan --skip-start</code> before a full restart.</p>
+<p>After changing <code>POSTGRES_SERVICE_NAME</code> or the port in <code>.env</code> — run <code>odpm database status</code> and <code>odpm plan</code> before a full restart.</p>
 <h2 id="switching-to-another-scenario">Switching to another scenario<a class="headerlink" href="#switching-to-another-scenario" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Change <code>ODPM_SCENARIO</code> in the <strong>project directory</strong> <code>.env</code> (it takes precedence over the file in <code>~/.odpm/</code>).</li>
-<li>Run <code>odpm --skip-start</code>.</li>
+<li>Run <code>odpm prepare</code>.</li>
 <li>Restart containers: <code>docker compose up -d</code> or <code>odpm</code> again.</li>
 </ol>
 <p>Scenario comparison: <a href="../scaling/">scaling</a>.</p>

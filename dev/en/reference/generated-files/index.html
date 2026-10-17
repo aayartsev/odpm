@@ -2016,7 +2016,7 @@
 <tbody>
 <tr>
 <td><code>docker-compose.yml</code></td>
-<td><code>odpm</code> or <code>odpm --skip-start</code></td>
+<td><code>odpm up</code> or <code>odpm prepare</code></td>
 </tr>
 <tr>
 <td>root <code>.dockerignore</code></td>
@@ -2052,15 +2052,15 @@
 </tr>
 <tr>
 <td><code>.vscode/launch.json</code>, <code>.vscode/settings.json</code></td>
-<td><code>odpm --skip-start</code> when <code>ODPM_IDE=vscode</code> or <code>both</code> and <code>ODPM_DEBUGGER_BACKEND=debugpy_listen</code>; <code>settings.json</code> includes <code>python.analysis.extraPaths</code> for platform, developing, and dependencies</td>
+<td><code>odpm prepare</code> when <code>ODPM_IDE=vscode</code> or <code>both</code> and <code>ODPM_DEBUGGER_BACKEND=debugpy_listen</code>; <code>settings.json</code> includes <code>python.analysis.extraPaths</code> for platform, developing, and dependencies</td>
 </tr>
 <tr>
 <td><code>.run/Odoo Remote Attach.run.xml</code></td>
-<td><code>odpm --skip-start</code> when <code>ODPM_IDE=pycharm</code> or <code>both</code> and <strong><code>debugpy_listen</code></strong> (PyCharm Attach to DAP)</td>
+<td><code>odpm prepare</code> when <code>ODPM_IDE=pycharm</code> or <code>both</code> and <strong><code>debugpy_listen</code></strong> (PyCharm Attach to DAP)</td>
 </tr>
 <tr>
 <td><code>.run/Odoo Debug Server.run.xml</code></td>
-<td><code>odpm --skip-start</code> when <code>ODPM_IDE=pycharm</code> or <code>both</code> and <strong><code>pydevd_connect</code></strong> (PyCharm Debug Server, Pro)</td>
+<td><code>odpm prepare</code> when <code>ODPM_IDE=pycharm</code> or <code>both</code> and <strong><code>pydevd_connect</code></strong> (PyCharm Debug Server, Pro)</td>
 </tr>
 <tr>
 <td><code>Dockerfile</code> (project root)</td>
@@ -2077,7 +2077,7 @@
 <p>File <strong><code>odoo.conf</code></strong> (or <code>{platform_name}.conf</code>) is <strong>edited by the user</strong>, but odpm recalculates addon paths and data directory for the container on prepare. See <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="why-it-works-this-way">Why it works this way<a class="headerlink" href="#why-it-works-this-way" title="Permanent link">&para;</a></h2>
 <p>Manual editing of <code>docker-compose.yml</code> breaks the <strong>single contract</strong> between host and container (ports, entrypoint, configuration handoff). odpm generates compose from scenario and command-line parameters so developer, administrator, and build stay on one project description.</p>
-<p>After an odpm version upgrade or <code>ODPM_SCENARIO</code> change, run <strong><code>odpm --skip-start</code></strong> and restart containers.</p>
+<p>After an odpm version upgrade or <code>ODPM_SCENARIO</code> change, run <strong><code>odpm prepare</code></strong> and restart containers.</p>
 
 
 

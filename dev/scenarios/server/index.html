@@ -2101,10 +2101,10 @@
 <li>Для фиксации версии платформы используйте <code>odoo_build_date</code> / <code>--odoo-build-date</code> (git checkout по дате), а не отдельную загрузку архива.</li>
 </ul>
 <h2 id="_4">Типичные команды администратора<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>prepare
 docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
-odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--db-backup
-odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>-u
+odpm<span class="w"> </span>database<span class="w"> </span>backup<span class="w"> </span>-d<span class="w"> </span>prod_db
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>-u
 </code></pre></div>
 <p>Для обновления модулей по git-диффу на <strong>server</strong> предпочтительно:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db

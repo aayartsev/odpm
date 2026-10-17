@@ -2005,16 +2005,16 @@
 <h2 id="_1">Рекомендуемый порядок<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Сохраните базу данных</strong> из окружения 3.0:</li>
-<li>командой <code>odpm --db-backup</code> (если ещё доступен старый odpm), или</li>
+<li>командой <code>odpm database backup</code> / <code>odpm up --db-backup</code> (если ещё доступен старый odpm — <code>odpm --db-backup</code>), или</li>
 <li>средствами PostgreSQL (<code>pg_dump</code>).</li>
 <li>Создайте <strong>новый каталог</strong> odpm-окружения (например <code>project-19-v4/</code>).</li>
 <li>Установите <strong>odpm 4.x</strong> — <a href="../../install/">установка</a>.</li>
-<li>Выполните <code>odpm --init</code> с актуальным репозиторием и <code>odpm.json</code> формата 4.x.</li>
+<li>Выполните <code>odpm init</code> с актуальным репозиторием и <code>odpm.json</code> формата 4.x.</li>
 <li>Поднимите окружение и <strong>восстановите базу</strong>:
-   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>имя_базы<span class="w"> </span>--db-restore<span class="w"> </span>имя_архива
+   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>имя_базы<span class="w"> </span>--db-restore<span class="w"> </span>имя_архива
 </code></pre></div></li>
 <li>Обновите модули под новую версию Odoo:
-   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>имя_базы<span class="w"> </span>-u
+   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>имя_базы<span class="w"> </span>-u
 </code></pre></div></li>
 </ol>
 <p>Старый каталог 3.0 можно сохранить для справки до полного перехода команды.</p>

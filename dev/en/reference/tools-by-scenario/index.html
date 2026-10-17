@@ -1928,40 +1928,40 @@
 </thead>
 <tbody>
 <tr>
-<td>Initialization <code>odpm --init</code></td>
+<td>Initialization <code>odpm init</code></td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
 </tr>
 <tr>
-<td>Prepare <code>odpm</code> / <code>--skip-start</code></td>
+<td>Prepare <code>odpm prepare</code> / <code>odpm up</code></td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
-<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><code>prepare</code> yes; <code>up</code> <strong>forbidden</strong> (ADR-017)</td>
 </tr>
 <tr>
-<td>Start <code>docker compose up</code></td>
+<td>Start stack</td>
+<td style="text-align: center;"><code>odpm up</code> / <code>docker compose up</code></td>
 <td style="text-align: center;">yes</td>
-<td style="text-align: center;">yes</td>
-<td style="text-align: center;">via <code>docker compose</code> after <code>--skip-start</code> / <code>--build-image</code> (bare <code>odpm</code> in ci rejected, ADR-017)</td>
+<td style="text-align: center;"><code>docker compose</code> only after <code>prepare</code> / <code>build</code></td>
 </tr>
 <tr>
-<td>Database and modules <code>-d -i -u</code></td>
+<td>Database and modules <code>odpm up -d -i -u</code></td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
-<td style="text-align: center;">after <code>compose up</code> via <code>compose exec</code> (not bare <code>odpm</code>)</td>
+<td style="text-align: center;">after <code>compose up</code> via <code>compose exec</code> (not <code>odpm up</code>)</td>
 </tr>
 <tr>
-<td>Module tests <code>-t</code></td>
+<td>Module tests <code>-t</code> (on <code>up</code>)</td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">rarely</td>
 <td style="text-align: center;">yes</td>
 </tr>
 <tr>
-<td>Database backup and restore</td>
+<td>Backup / restore (<code>odpm database …</code> / <code>odpm up --db-*</code>)</td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
-<td style="text-align: center;">yes</td>
+<td style="text-align: center;">stack <code>database</code> <strong>forbidden</strong> in ci</td>
 </tr>
 <tr>
 <td>Admin password change, translations</td>
@@ -1973,7 +1973,7 @@
 <td>Module scaffold <code>scaffold</code></td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">no</td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;"><strong>forbidden</strong> in ci</td>
 </tr>
 <tr>
 <td>VS Code debugging</td>
@@ -1985,7 +1985,7 @@
 <td>Module secrets (<code>--secrets-file</code>, <code>/run/odpm/secrets.json</code>)</td>
 <td style="text-align: center;">yes</td>
 <td style="text-align: center;">yes</td>
-<td style="text-align: center;">no</td>
+<td style="text-align: center;">no (host mount)</td>
 </tr>
 <tr>
 <td>Run pre-commit in container</td>
@@ -2000,13 +2000,13 @@
 <td style="text-align: center;">yes</td>
 </tr>
 <tr>
-<td>Lock update <code>--update-lock</code></td>
+<td>Lock update <code>odpm prepare --update-lock</code></td>
 <td style="text-align: center;">coordinator</td>
 <td style="text-align: center;">read</td>
 <td style="text-align: center;">strict</td>
 </tr>
 <tr>
-<td>Image build <code>--build-image</code></td>
+<td>Image build <code>odpm build</code></td>
 <td style="text-align: center;"><strong>no</strong></td>
 <td style="text-align: center;"><strong>no</strong></td>
 <td style="text-align: center;"><strong>yes</strong></td>

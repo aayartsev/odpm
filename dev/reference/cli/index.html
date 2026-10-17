@@ -1553,7 +1553,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Инициализация проекта
+        Дерево команд
       
     </span>
   </a>
@@ -1564,7 +1564,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Подготовка окружения и образ
+        Инициализация проекта
       
     </span>
   </a>
@@ -1573,6 +1573,17 @@
       
         <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подготовка окружения и образ
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         План изменений (пробный прогон)
@@ -1616,10 +1627,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#odpm-up" class="md-nav__link">
     <span class="md-ellipsis">
       
-        База данных и модули
+        База данных и модули (odpm up)
       
     </span>
   </a>
@@ -1675,6 +1686,17 @@
     <span class="md-ellipsis">
       
         Подкоманда scaffold
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Устарело в 4.8
       
     </span>
   </a>
@@ -2068,7 +2090,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Инициализация проекта
+        Дерево команд
       
     </span>
   </a>
@@ -2079,7 +2101,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Подготовка окружения и образ
+        Инициализация проекта
       
     </span>
   </a>
@@ -2088,6 +2110,17 @@
       
         <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Подготовка окружения и образ
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         План изменений (пробный прогон)
@@ -2131,10 +2164,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#odpm-up" class="md-nav__link">
     <span class="md-ellipsis">
       
-        База данных и модули
+        База данных и модули (odpm up)
       
     </span>
   </a>
@@ -2196,6 +2229,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Устарело в 4.8
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2222,9 +2266,67 @@
 
 
 <h1 id="_1">Параметры командной строки<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>Команда <strong><code>odpm</code></strong> (или <code>python3 …/odpm.py</code>) принимает параметры, которые задают <strong>одноразовое</strong> поведение: инициализацию, работу с базой, сборку образа, план изменений. Полный список с краткими подсказками на английском: <code>odpm --help</code>.</p>
-<p>Ниже — справочник по группам на русском языке. Имена флагов приведены <strong>как в программе</strong> (латиница).</p>
-<h2 id="_2">Инициализация проекта<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>Команда <strong><code>odpm</code></strong> (или <code>python3 …/odpm.py</code>) принимает <strong>подкоманды</strong> и флаги для одноразового поведения: подъём стека, подготовка файлов, init, сборка образа, работа с базой. Полный список: <code>odpm --help</code> или <code>odpm -V</code> / <code>odpm --version</code> для версии.</p>
+<p>Ниже — справочник по группам. Имена флагов <strong>как в программе</strong> (латиница).</p>
+<h2 id="_2">Дерево команд<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Команда</th>
+<th>Смысл</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>odpm up</code></td>
+<td>Подготовить файлы и поднять compose-стек (в т.ч. <code>-i</code>/<code>-u</code>, комбо <code>--db-restore</code>)</td>
+</tr>
+<tr>
+<td><code>odpm prepare</code></td>
+<td>Только файлы / lock, <strong>без</strong> контейнеров (вместо <code>--skip-start</code>)</td>
+</tr>
+<tr>
+<td><code>odpm init URL</code></td>
+<td>Инициализация проекта (вместо <code>--init</code>)</td>
+</tr>
+<tr>
+<td><code>odpm build</code></td>
+<td>Сборка CI-образа (вместо <code>--build-image</code>)</td>
+</tr>
+<tr>
+<td><code>odpm plan</code></td>
+<td>Пробный прогон шагов</td>
+</tr>
+<tr>
+<td><code>odpm database …</code></td>
+<td>Host: <code>status</code> / <code>ensure-role</code> / <code>pull</code>. Стек: <code>backup</code> / <code>restore</code> / <code>drop</code> / <code>list</code></td>
+</tr>
+<tr>
+<td><code>odpm modules …</code></td>
+<td>Diff / record-applied</td>
+</tr>
+<tr>
+<td><code>odpm run …</code></td>
+<td>Рецепты</td>
+</tr>
+<tr>
+<td><code>odpm manifest …</code></td>
+<td>migrate / validate</td>
+</tr>
+<tr>
+<td><code>odpm scaffold …</code></td>
+<td>Каркас модуля</td>
+</tr>
+<tr>
+<td><code>-V</code>, <code>--version</code></td>
+<td>Версия odpm (глобально)</td>
+</tr>
+</tbody>
+</table>
+<p>В <strong>4.8</strong> голый <code>odpm</code> и старые корневые флаги ещё работают с <strong>предупреждением</strong>. В <strong>5.0</strong> голый <code>odpm</code> покажет справку по подкомандам (без подъёма стека). См. <a href="#устарело-в-48">Устарело в 4.8</a>.</p>
+<h2 id="_3">Инициализация проекта<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>Предпочтительно: <strong><code>odpm init URL</code></strong>. Устаревший синоним: <code>--init ССЫЛКА</code>.</p>
+<p><code>odpm init</code> по умолчанию <strong>поднимает стек</strong> (как полный прогон). Чтобы только инициализировать файлы без compose up, в <strong>4.8</strong> используйте legacy-комбо <code>odpm --init URL --skip-start</code> (у подкоманды <code>init</code> флага <code>--skip-start</code> нет).</p>
 <table>
 <thead>
 <tr>
@@ -2234,7 +2336,7 @@
 </thead>
 <tbody>
 <tr>
-<td><code>--init ССЫЛКА</code></td>
+<td><code>odpm init ССЫЛКА</code> / <code>--init ССЫЛКА</code></td>
 <td>Сделать текущий каталог odpm-проектом. Ссылка: HTTPS, <code>git@…</code>, <code>file:///…</code></td>
 </tr>
 <tr>
@@ -2288,31 +2390,31 @@
 </tbody>
 </table>
 <p>Пример:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/aayartsev/odoo_demo_project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>https://github.com/aayartsev/odoo_demo_project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--odoo-version<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span>--python-version<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>--distro-version<span class="w"> </span><span class="m">12</span>
 </code></pre></div>
 <p>Импорт секретов при развёртывании:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>file:///path/to/my_addons<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>file:///path/to/my_addons<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--secrets-file<span class="w"> </span>/secure/client-secrets.json
 
 <span class="c1"># ротация ключей на существующем проекте</span>
-odpm<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.json<span class="w"> </span>--skip-start
+odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.json
 </code></pre></div>
-<h2 id="_3">Подготовка окружения и образ<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h2 id="_4">Подготовка окружения и образ<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Параметр</th>
+<th>Команда / параметр</th>
 <th>Описание</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>--skip-start</code></td>
-<td>Пересоздать Docker-файлы и compose <strong>без</strong> запуска контейнеров; при наличии lock — выбор ревизий по файлу фиксации</td>
+<td><code>odpm prepare</code></td>
+<td>Пересоздать Docker-файлы и compose <strong>без</strong> запуска контейнеров</td>
 </tr>
 <tr>
-<td><code>--update-lock</code></td>
+<td><code>odpm prepare --update-lock</code></td>
 <td>Записать <code>.odpm/deps.lock.json</code> и завершить работу</td>
 </tr>
 <tr>
@@ -2320,32 +2422,33 @@ odpm<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.
 <td>Не трогать git; lock <strong>не читается</strong>; каталоги должны уже существовать</td>
 </tr>
 <tr>
-<td><code>--build-image</code></td>
+<td><code>odpm build</code></td>
 <td>Собрать образ для сценария <strong><code>ci</code></strong> (иначе ошибка)</td>
 </tr>
 <tr>
 <td><code>--image-tag МЕТКА</code></td>
-<td>Имя и тег образа Docker для <code>--build-image</code></td>
+<td>Имя и тег образа Docker для <code>odpm build</code></td>
 </tr>
 <tr>
 <td><code>--image-builder {docker,kaniko}</code></td>
-<td>Бэкенд сборки CI-образа (по умолчанию <code>docker</code>; перекрывает <code>ODPM_CI_IMAGE_BUILDER</code>)</td>
+<td>Бэкенд сборки CI-образа (по умолчанию <code>docker</code>)</td>
 </tr>
 <tr>
 <td><code>--image-push</code></td>
-<td>После сборки опубликовать образ (<code>docker push</code> / kaniko <code>--destination</code>)</td>
+<td>После сборки опубликовать образ</td>
 </tr>
 <tr>
-<td><code>--version</code></td>
+<td><code>-V</code>, <code>--version</code></td>
 <td>Показать версию odpm</td>
 </tr>
 </tbody>
 </table>
-<h2 id="_4">План изменений (пробный прогон)<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>Устаревшие синонимы: <code>--skip-start</code> → <code>odpm prepare</code>; <code>--build-image</code> → <code>odpm build</code>.</p>
+<h2 id="_5">План изменений (пробный прогон)<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>Показывает, какие шаги подготовки выполнились бы, <strong>без</strong> изменения git, записи файлов и <code>docker compose up</code>.</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan
 odpm<span class="w"> </span>plan<span class="w"> </span>--plan-format<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--skip-start
+odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--update-lock
 </code></pre></div>
 <p>Устаревший синоним: <code>--plan</code> (лучше подкоманда <code>plan</code>).</p>
 <table>
@@ -2376,11 +2479,16 @@ odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span cl
 </table>
 <p>Среди шагов подготовки есть <strong><code>database.drift</code></strong> — сравнение конфигурации PostgreSQL со снимком <code>last_run.json</code>. См. <a href="../database-state/">состояние PostgreSQL</a>.</p>
 <h2 id="database">Подкоманда <code>database</code><a class="headerlink" href="#database" title="Permanent link">&para;</a></h2>
-<p>Инспекция локального <strong>кластера PostgreSQL</strong>, роли приложения и <strong>скачивание remote backup</strong> через Odoo manager:</p>
+<p><strong>На хосте</strong> (без подъёма стека): инспекция кластера PostgreSQL, роль приложения, скачивание remote backup.</p>
+<p><strong>Через стек</strong> (prepare + compose up + контейнер): <code>backup</code> / <code>restore</code> / <code>drop</code> / <code>list</code>. Комбо restore+модули — только через <code>odpm up</code>.</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>status
 odpm<span class="w"> </span>database<span class="w"> </span>status<span class="w"> </span>--format<span class="w"> </span>json
 odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span><span class="w"> </span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod
+odpm<span class="w"> </span>database<span class="w"> </span>list
+odpm<span class="w"> </span>database<span class="w"> </span>backup<span class="w"> </span>-d<span class="w"> </span>test_db
+odpm<span class="w"> </span>database<span class="w"> </span>restore<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>archive.zip
+odpm<span class="w"> </span>database<span class="w"> </span>drop<span class="w"> </span>-d<span class="w"> </span>test_db
 </code></pre></div>
 <table>
 <thead>
@@ -2404,14 +2512,30 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 </tr>
 <tr>
 <td><code>database pull</code></td>
-<td>Скачать zip с <code>{URL}/web/database/backup</code> в <code>BACKUP_DIR</code> (пароль только из env <code>ODPM_REMOTE_DB_MASTER_PWD</code>)</td>
+<td>Скачать zip с <code>{URL}/web/database/backup</code> в <code>BACKUP_DIR</code> (пароль из <code>ODPM_REMOTE_DB_MASTER_PWD</code>)</td>
+</tr>
+<tr>
+<td><code>database list</code></td>
+<td>Список Odoo-баз через стек</td>
+</tr>
+<tr>
+<td><code>database backup -d …</code></td>
+<td>Резервная копия через стек</td>
+</tr>
+<tr>
+<td><code>database restore -d … АРХИВ</code></td>
+<td>Восстановление через стек (без <code>-i</code>/<code>-u</code>)</td>
+</tr>
+<tr>
+<td><code>database drop -d …</code></td>
+<td>Удаление базы через стек</td>
 </tr>
 </tbody>
 </table>
-<p><code>database pull</code> — <strong>примитив</strong>: нужен каталог проекта odpm с <code>BACKUP_DIR</code> в <code>.env</code>; compose up для download не требуется. Сначала <code>/web/database/list</code> (если доступен), затем backup; логи auth/progress — в stderr, <strong>на stdout только имя архива</strong> (basename в <code>BACKUP_DIR</code>). Дальше пайплайн собираете сами (shell / CI), например:</p>
+<p><code>database pull</code> — <strong>примитив</strong>: compose up для download не требуется. Логи — в stderr, <strong>на stdout только имя архива</strong>. Пример полного пайплайна:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span>
 <span class="nv">ARCHIVE</span><span class="o">=</span><span class="k">$(</span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod<span class="k">)</span>
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
 </code></pre></div>
 <p>Shortcut pull+restore без своих шагов: builtin <a href="../recipes/#builtin-pull-remote-db"><code>odpm run pull-remote-db</code></a>. YAML-рецепты <strong>не</strong> подставляют stdout предыдущего шага — для цепочек с именем архива используйте shell. Предназначено для <strong>developer</strong> / <strong>server</strong>, не для типичного CI.</p>
 <p>Флаг <strong><code>--accept-database-drift=KIND</code></strong> (повторяемый) — принять drift без интерактивного prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
@@ -2448,7 +2572,8 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--dry-run
 </code></pre></div>
 <p>Подробнее: <a href="../recipes/">рецепты</a>, <a href="../deploy-marker/">маркер деплоя</a>.</p>
-<h2 id="_5">База данных и модули<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h2 id="odpm-up">База данных и модули (<code>odpm up</code>)<a class="headerlink" href="#odpm-up" title="Permanent link">&para;</a></h2>
+<p>Флаги ниже — на <strong><code>odpm up</code></strong> (и пока на голом <code>odpm</code> с предупреждением в 4.8).</p>
 <table>
 <thead>
 <tr>
@@ -2463,11 +2588,11 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 </tr>
 <tr>
 <td><code>-i [МОДУЛИ]</code></td>
-<td>Без значения — модули из <code>init_modules</code>; с CSV (напр. <code>sale,crm</code>) — список с CLI (приоритет над settings)</td>
+<td>Без значения — модули из <code>init_modules</code>; с CSV (напр. <code>sale,crm</code>) — список с CLI</td>
 </tr>
 <tr>
 <td><code>-u [МОДУЛИ]</code></td>
-<td>Без значения — модули из <code>update_modules</code>; с CSV — список с CLI (приоритет над settings)</td>
+<td>Без значения — модули из <code>update_modules</code>; с CSV — список с CLI</td>
 </tr>
 <tr>
 <td><code>-t</code>, <code>--test</code></td>
@@ -2483,9 +2608,9 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <h2 id="_6">Дата ночной сборки платформы<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <table>
@@ -2503,6 +2628,7 @@ odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </
 </tbody>
 </table>
 <h2 id="_7">Обслуживание базы<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<p>Предпочтительно подкоманды <code>odpm database …</code>. На <strong><code>odpm up</code></strong> флаги ниже нужны для <strong>комбо</strong> (несколько операций и/или <code>-i</code>/<code>-u</code>).</p>
 <table>
 <thead>
 <tr>
@@ -2513,19 +2639,19 @@ odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </
 <tbody>
 <tr>
 <td><code>--get-dbs-list</code></td>
-<td>Список баз</td>
+<td>Список баз (или <code>odpm database list</code>)</td>
 </tr>
 <tr>
 <td><code>--db-backup [АРХИВ]</code></td>
-<td>Резервная копия базы <code>-d</code> в <code>BACKUP_DIR</code></td>
+<td>Резервная копия базы <code>-d</code> (или <code>odpm database backup</code>)</td>
 </tr>
 <tr>
 <td><code>--db-restore АРХИВ</code></td>
-<td>Восстановить архив в базу <code>-d</code></td>
+<td>Восстановить архив в базу <code>-d</code> (или <code>odpm database restore</code>); с <code>-i</code>/<code>-u</code> — только через <code>odpm up</code></td>
 </tr>
 <tr>
 <td><code>--db-drop</code></td>
-<td>Удалить Odoo-базу <code>-d</code>; с <code>-i</code>/<code>-u</code> — пересоздать и установить модули. На legacy-кластере с чужим PostgreSQL-owner odpm выполняет прямой <code>DROP DATABASE</code></td>
+<td>Удалить Odoo-базу <code>-d</code>; с <code>-i</code>/<code>-u</code> — пересоздать и установить модули</td>
 </tr>
 </tbody>
 </table>
@@ -2595,6 +2721,51 @@ odpm<span class="w"> </span>scaffold<span class="w"> </span>имя_модуля<
 </tbody>
 </table>
 <p>Фиксация версий git: <a href="../deps-lock/">deps.lock.json</a>.</p>
+<h2 id="48">Устарело в 4.8<a class="headerlink" href="#48" title="Permanent link">&para;</a></h2>
+<p>Старые вызовы ещё работают и печатают предупреждение. Предпочтительные формы:</p>
+<table>
+<thead>
+<tr>
+<th>Устарело</th>
+<th>Новое</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>голый <code>odpm</code></td>
+<td><code>odpm up</code> (в <strong>5.0</strong> голый <code>odpm</code> → справка по подкомандам)</td>
+</tr>
+<tr>
+<td><code>odpm -d … -i …</code></td>
+<td><code>odpm up -d … -i …</code></td>
+</tr>
+<tr>
+<td><code>odpm --skip-start</code></td>
+<td><code>odpm prepare</code></td>
+</tr>
+<tr>
+<td><code>odpm --init URL</code></td>
+<td><code>odpm init URL</code></td>
+</tr>
+<tr>
+<td><code>odpm --build-image</code></td>
+<td><code>odpm build</code></td>
+</tr>
+<tr>
+<td><code>odpm --plan</code></td>
+<td><code>odpm plan</code></td>
+</tr>
+<tr>
+<td>один <code>--db-backup</code> / <code>--db-restore</code> / <code>--db-drop</code> / <code>--get-dbs-list</code></td>
+<td><code>odpm database backup\|restore\|drop\|list</code></td>
+</tr>
+<tr>
+<td><code>--db-drop --db-restore …</code> или restore+<code>-i</code></td>
+<td><code>odpm up …</code></td>
+</tr>
+</tbody>
+</table>
+<p>Контракт: <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md">ADR-026</a>.</p>
 
 
 

@@ -2539,7 +2539,7 @@
 <li>В <strong><code>.odpm/runtime/debug-profile.json</code></strong> — IDE-neutral профиль (<code>schema_version: 2</code>): <code>backend</code>, <code>direction</code>, <code>protocol</code>, host/port, <code>path_mappings</code>.</li>
 <li>По <strong><code>ODPM_IDE</code></strong>: <code>vscode</code> / <code>both</code> → <code>.vscode/</code>; <code>pycharm</code> / <code>both</code> → <code>.run/*.run.xml</code> (какой файл — зависит от backend); <code>none</code> — создаст только <code>debug-profile.json</code>.</li>
 </ul>
-<p>Перегенерация: <code>odpm</code> или <code>odpm --skip-start</code>. Шаги плана: <code>ide.debug_profile</code>, <code>pycharm.settings</code>; diff — <code>odpm plan --plan-show-diff</code>.</p>
+<p>Перегенерация: <code>odpm up</code> или <code>odpm prepare</code>. Шаги плана: <code>ide.debug_profile</code>, <code>pycharm.settings</code>; diff — <code>odpm plan --plan-show-diff</code>.</p>
 <hr />
 <h2 id="debugpy_listen-vs-code-pycharm-attach-to-dap"><code>debugpy_listen</code> — VS Code / PyCharm Attach to DAP<a class="headerlink" href="#debugpy_listen-vs-code-pycharm-attach-to-dap" title="Permanent link">&para;</a></h2>
 <h3 id="_1">Профиль (пример)<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
@@ -2589,7 +2589,7 @@
 <p>Интерактивный wizard в <code>developer</code> спрашивает <code>connect_host</code> и <code>suspend</code> только при выборе <code>pydevd_connect</code>.</p>
 <h3 id="_2">Порядок работы (важен порядок шагов)<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <ol>
-<li><code>odpm --skip-start</code> — директива обновит <code>docker-compose.yml</code>, <code>config.json</code>, <strong><code>.run/Odoo Debug Server.run.xml</code></strong>.</li>
+<li><code>odpm prepare</code> — директива обновит <code>docker-compose.yml</code>, <code>config.json</code>, <strong><code>.run/Odoo Debug Server.run.xml</code></strong>.</li>
 <li>В PyCharm: <strong>Run</strong> (не Attach) конфигурацию <strong>Odoo Debug Server</strong> — в окне Debug: <em>Waiting for process connection...</em></li>
 <li><code>odpm</code> или <code>docker compose up</code> — контейнер вызывает <code>pydevd_pycharm.settrace(connect_host, port, suspend=...)</code>.</li>
 <li>При <code>ODPM_DEBUGGER_SUSPEND=1</code> — в PyCharm нажмите <strong>Resume</strong>, затем breakpoints в addon.</li>
@@ -2628,15 +2628,15 @@
 <p>Пакет: <code>pydevd-pycharm</code> (версия pin в odpm, см. ниже).</p>
 <hr />
 <h2 id="backend">Смена backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h2>
-<p>После смены <code>ODPM_DEBUGGER_BACKEND</code> выполните <code>odpm --skip-start</code> и перезапустите контейнеры.</p>
-<p>При смене <code>ODPM_DEBUGGER_BACKEND</code> odpm при <code>odpm --skip-start</code> <strong>удаляет</strong> неактуальный odpm-файл (<code>.run/Odoo Remote Attach.run.xml</code> или <code>.run/Odoo Debug Server.run.xml</code>). Пользовательские конфигурации в <code>.run/</code> не затрагиваются.</p>
+<p>После смены <code>ODPM_DEBUGGER_BACKEND</code> выполните <code>odpm prepare</code> и перезапустите контейнеры.</p>
+<p>При смене <code>ODPM_DEBUGGER_BACKEND</code> odpm при <code>odpm prepare</code> <strong>удаляет</strong> неактуальный odpm-файл (<code>.run/Odoo Remote Attach.run.xml</code> или <code>.run/Odoo Debug Server.run.xml</code>). Пользовательские конфигурации в <code>.run/</code> не затрагиваются.</p>
 <p>При смене backend venv пересобирается с нужным pip-пакетом (<code>debugpy</code> ↔ <code>pydevd-pycharm</code>).</p>
 <hr />
 <h2 id="create_module_links">Символические ссылки (<code>create_module_links</code>)<a class="headerlink" href="#create_module_links" title="Permanent link">&para;</a></h2>
 <p>Если в <code>user_settings.json</code> указано <strong><code>"create_module_links": true</code></strong>, odpm создаёт симлинки на platform, developing project и зависимости. Это помогает согласовать пути в отладчике: в <code>launch.json</code> и PyCharm path mappings учитываются и <code>~/odoo_projects/...</code>, и пути через дерево odpm-проекта.</p>
 <p>По умолчанию опция <strong>выключена</strong>.</p>
 <h2 id="pylance-pyright">Импорты и анализ кода (Pylance / Pyright)<a class="headerlink" href="#pylance-pyright" title="Permanent link">&para;</a></h2>
-<p>При <code>odpm --skip-start</code> (сценарий <code>developer</code>, <code>ODPM_IDE=vscode</code> или <code>both</code>) odpm генерирует <code>.vscode/settings.json</code> с <strong><code>python.analysis.extraPaths</code></strong> из того же графа репозиториев, что использует prepare:</p>
+<p>При <code>odpm prepare</code> (сценарий <code>developer</code>, <code>ODPM_IDE=vscode</code> или <code>both</code>) odpm генерирует <code>.vscode/settings.json</code> с <strong><code>python.analysis.extraPaths</code></strong> из того же графа репозиториев, что использует prepare:</p>
 <ul>
 <li>корень <strong>platform</strong> (<code>odoo_src_dir</code>);</li>
 <li><strong>developing</strong> project;</li>
@@ -2651,7 +2651,7 @@
 <li>Stubs покрывают <strong>ядро</strong> <code>odoo</code>, не <code>odoo.addons.*</code> (namespace addons создаётся в рантайме).</li>
 <li>Расширение <a href="https://marketplace.visualstudio.com/items?itemName=trinhanhngoc.vscode-odoo">vscode-odoo</a> уже содержит свои stubs — дублирование безвредно.</li>
 <li>На <strong>server</strong> / <strong>ci</strong> <code>odoo-stubs</code> в <code>odpm.json</code> удаляется (как debugger-пакеты).</li>
-<li>файл <strong>перезаписывается</strong> при каждом <code>odpm --skip-start</code> — не правьте <code>extraPaths</code> вручную в <code>.vscode/settings.json</code>.</li>
+<li>файл <strong>перезаписывается</strong> при каждом <code>odpm prepare</code> — не правьте <code>extraPaths</code> вручную в <code>.vscode/settings.json</code>.</li>
 </ul>
 <hr />
 <h2 id="_4">Устранение неполадок<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
@@ -2662,7 +2662,7 @@
 <h3 id="odoo-debug-server">Odoo стартует до Debug Server<a class="headerlink" href="#odoo-debug-server" title="Permanent link">&para;</a></h3>
 <p>Используйте <code>ODPM_DEBUGGER_SUSPEND=1</code> и <strong>сначала</strong> запустите Debug Server в PyCharm, <strong>затем</strong> контейнер.</p>
 <h3 id="_5">Проверка без полноценного запуска (генерация)<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
-<p>После <code>odpm --skip-start</code> при <code>pydevd_connect</code>:</p>
+<p>После <code>odpm prepare</code> при <code>pydevd_connect</code>:</p>
 <ul>
 <li><code>config.json</code>: <code>"backend": "pydevd_connect"</code>;</li>
 <li>compose: <code>extra_hosts</code>, нет <code>DEBUGGER_PORT:DEBUGGER_PORT</code>;</li>

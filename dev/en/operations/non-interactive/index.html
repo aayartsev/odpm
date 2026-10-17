@@ -2134,28 +2134,29 @@
 <p>Without a TTY, odpm <strong>does not ask</strong> about PostgreSQL configuration drift. If blocking drift is detected (<code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, etc.), the run fails with an error.</p>
 <p>Options:</p>
 <ol>
-<li>Allow drift once from an interactive terminal (<code>odpm</code> or <code>odpm plan</code>).</li>
+<li>Allow drift once from an interactive terminal (<code>odpm up</code> or <code>odpm plan</code>).</li>
 <li>Explicitly accept drift kind: <strong><code>--accept-database-drift=KIND</code></strong> (repeat the flag for multiple KIND values).</li>
 <li>Restore the role before the stack: <code>odpm database ensure-role</code> (postgres must be running).</li>
 </ol>
 <p>Example on a demo wrapper (<code>$ODPM_DEMO_19</code>): <a href="https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/demo-projects.md#s6--non-interactive-и-drift">demo-projects § S6</a>.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--accept-database-drift<span class="o">=</span>odpm_scenario<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>prepare<span class="w"> </span>--accept-database-drift<span class="o">=</span>odpm_scenario
 odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
 </code></pre></div>
 <p>More detail: <a href="../../reference/database-state/">PostgreSQL state</a>.</p>
 <h2 id="docker-compose-and-postgresql-volume">Docker Compose and PostgreSQL volume<a class="headerlink" href="#docker-compose-and-postgresql-volume" title="Permanent link">&para;</a></h2>
 <p>On <strong>first adoption baseline</strong> (no <code>.odpm/database/last_run.json</code>), odpm runs <code>docker compose up -d -y</code> for the PostgreSQL service. The <strong><code>--yes</code></strong> flag prevents Compose from asking an interactive question about recreating the volume (e.g. after changing the bind-mount path from <code>data/postgres/...</code> to <code>data/postgresql/...</code>).</p>
 <p>If you <strong>re-initialize</strong> an odpm 3.x directory for 4.x at the same path and init hangs on postgres, remove the old volume and run again:</p>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>volume<span class="w"> </span>rm<span class="w"> </span>PROJECT_NAME_postgres-data
-odpm
+odpm<span class="w"> </span>up
 </code></pre></div>
 <p>The volume name matches the project directory prefix (e.g. <code>odoo_demo_project-19_postgres-data</code>). More on directory migration: <a href="../migration-3-to-4/">migrating from 3.0</a>.</p>
 <h2 id="example-for-image-build-scenario">Example for image build scenario<a class="headerlink" href="#example-for-image-build-scenario" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODOO_PROJECTS_DIR</span><span class="o">=</span>/data/odoo_projects
 <span class="nb">export</span><span class="w"> </span><span class="nv">BACKUP_DIR</span><span class="o">=</span>/data/backups
+<span class="c1"># init without compose up (4.8 legacy combo; odpm init has no --skip-start)</span>
 odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/aayartsev/odoo_demo_project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span>--skip-start
 </code></pre></div>
 

@@ -2189,16 +2189,16 @@
 <p>Откройте созданный каталог в <strong>Visual Studio Code</strong> (меню «Файл → Открыть папку»). Встроенный терминал редактора удобен для всех команд odpm.</p>
 <p><strong>Важно:</strong> не оборачивайте запуск <code>odpm</code> в виртуальное окружение Python на хосте. Утилита рассчитана на запуск системным <code>python3</code> или командой <code>odpm</code> из пакета; изолированное окружение Python для Odoo создаётся <strong>внутри контейнера</strong>.</p>
 <h2 id="git-">Инициализация из git-репозитория<a class="headerlink" href="#git-" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">20</span>.0
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>https://github.com/your-org/your-odoo-project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">20</span>.0
 </code></pre></div>
 <p>Параметр <code>--branch</code> задаёт ветку <strong>разрабатываемого</strong> репозитория. Если ветку не указать, будет использована ветка по умолчанию на сервере git.</p>
 <h2 id="_3">Инициализация с локального каталога<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>Если вы пока не используете удалённый git:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>file:///home/user/path/to/my_addons
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>file:///home/user/path/to/my_addons
 </code></pre></div>
 <p>Подробно о формате <code>file://</code> и трёх слэшах — в статье <a href="../../reference/git-links/">Ссылки на репозитории</a>.</p>
 <h2 id="_4">Что происходит при первом запуске<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<p>При первом вызове <code>odpm --init</code> (и при последующих полных прогонах подготовки) утилита последовательно:</p>
+<p>При первом вызове <code>odpm init</code> (и при последующих полных прогонах подготовки) утилита последовательно:</p>
 <ol>
 <li>Задаёт вопросы мастера настройки и сохраняет ответы в <code>.env</code> (каталог резервных копий, каталог клонов git, порты, <strong>сценарий</strong> <code>developer</code> / <code>server</code> / <code>ci</code>).</li>
 <li>При развёртывании «с нуля» уточняет версию Odoo, если её нет в <code>odpm.json</code> разрабатываемого проекта.</li>
@@ -2214,7 +2214,7 @@
 <p>Остановить интерактивный процесс на переднем плане: <strong>Ctrl+C</strong>. Контейнеры при необходимости останавливают отдельно: <code>docker compose down</code>.</p>
 <h2 id="_5">Первая база данных и модули<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>После успешной подготовки:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
 </code></pre></div>
 <ul>
 <li><code>-d test_db</code> — имя базы; если базы нет, она создаётся с параметрами из <code>db_creation_data</code> в <code>user_settings.json</code>.</li>
@@ -2253,19 +2253,19 @@
 <tbody>
 <tr>
 <td>Перезапустить окружение после смены настроек</td>
-<td><code>odpm</code> или <code>odpm --skip-start</code>, затем при необходимости <code>docker compose up -d</code></td>
+<td><code>odpm up</code> или <code>odpm prepare</code>, затем при необходимости <code>docker compose up -d</code></td>
 </tr>
 <tr>
 <td>Обновить модуль после правки кода</td>
-<td><code>odpm -d test_db -u</code></td>
+<td><code>odpm up -d test_db -u</code></td>
 </tr>
 <tr>
 <td>Резервная копия базы</td>
-<td><code>odpm -d test_db --db-backup</code></td>
+<td><code>odpm database backup -d test_db</code></td>
 </tr>
 <tr>
 <td>Восстановление из архива</td>
-<td><code>odpm -d test_db --db-restore имя_архива</code></td>
+<td><code>odpm database restore -d test_db имя_архива</code></td>
 </tr>
 <tr>
 <td>Новый модуль</td>
@@ -2283,13 +2283,13 @@
 </table>
 <h2 id="_8">Секреты для модулей (опционально)<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
 <p>Если модули обращаются к внешним API, подготовьте файл секретов <strong>до</strong> или <strong>после</strong> init:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># из шаблона (после odpm --init)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># из шаблона (после odpm init)</span>
 cp<span class="w"> </span>.odpm/secrets.example.json<span class="w"> </span>.odpm/secrets.json
 <span class="c1"># отредактируйте ключи, затем:</span>
-odpm<span class="w"> </span>--skip-start
+odpm<span class="w"> </span>prepare
 </code></pre></div>
-<p>Или при init: <code>odpm --init … --secrets-file /path/to/secrets.json</code>.</p>
-<p>После смены значений снова <code>odpm --skip-start</code> и при необходимости <code>docker compose up -d</code>. Подробно — <a href="../../operations/secrets/">локальные секреты</a>.</p>
+<p>Или при init: <code>odpm init … --secrets-file /path/to/secrets.json</code>.</p>
+<p>После смены значений снова <code>odpm prepare</code> и при необходимости <code>docker compose up -d</code>. Подробно — <a href="../../operations/secrets/">локальные секреты</a>.</p>
 <h2 id="dockerignore">Шаблон <code>.dockerignore</code><a class="headerlink" href="#dockerignore" title="Permanent link">&para;</a></h2>
 <p>Правила исключения файлов при сборке образа правят в <strong><code>.odpm/dockerignore</code></strong>. Корневой <code>.dockerignore</code> odpm пересоздаёт при каждом запуске — его не редактируют вручную. Чтобы вернуть шаблон к заводским значениям odpm, удалите <code>.odpm/dockerignore</code> и снова запустите odpm.</p>
 

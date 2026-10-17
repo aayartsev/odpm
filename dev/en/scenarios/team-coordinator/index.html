@@ -2080,7 +2080,7 @@
 <h2 id="how-to-change-a-dependency">How to change a dependency<a class="headerlink" href="#how-to-change-a-dependency" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Discussion and pull request with changes to <code>dependencies</code>, <code>requirements_txt</code>, or <code>oca_dependencies.txt</code>.</li>
-<li>On the coordinator's machine: <code>odpm --update-lock --skip-start</code>.</li>
+<li>On the coordinator's machine: <code>odpm prepare --update-lock</code>.</li>
 <li>Commit the <strong>lock file</strong> together with the manifest changes.</li>
 <li>In automated checks: <code>odpm plan --strict</code>.</li>
 </ol>
@@ -2089,9 +2089,9 @@
 <p>If git stores a manifest with <code>${VAR}</code> (e.g. <code>file://${ODOO_PLATFORM_DIR}</code>), the coordinator lists <strong>required</strong> variables in the project README, project <code>.env.example</code>, or CI instructions. Values are not committed in <code>odpm.json</code> — only in <code>.env</code> (locally) or runner secrets / <code>export</code> (CI).</p>
 <h2 id="common-language-odpm-plan">Common language — <code>odpm plan</code><a class="headerlink" href="#common-language-odpm-plan" title="Permanent link">&para;</a></h2>
 <p>The team sees the same preparation plan:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--skip-start
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-strict<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan
+odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff
+odpm<span class="w"> </span>plan<span class="w"> </span>--plan-strict
 </code></pre></div>
 <p>This reduces "my compose is different" disputes before release.</p>
 

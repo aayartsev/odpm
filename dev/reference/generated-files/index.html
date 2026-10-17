@@ -2013,7 +2013,7 @@
 <tbody>
 <tr>
 <td><code>docker-compose.yml</code></td>
-<td><code>odpm</code> или <code>odpm --skip-start</code></td>
+<td><code>odpm up</code> или <code>odpm prepare</code></td>
 </tr>
 <tr>
 <td>корневой <code>.dockerignore</code></td>
@@ -2049,15 +2049,15 @@
 </tr>
 <tr>
 <td><code>.vscode/launch.json</code>, <code>.vscode/settings.json</code></td>
-<td><code>odpm --skip-start</code> при <code>ODPM_IDE=vscode</code> или <code>both</code> и <code>ODPM_DEBUGGER_BACKEND=debugpy_listen</code>; <code>settings.json</code> включает <code>python.analysis.extraPaths</code> для platform, developing и зависимостей</td>
+<td><code>odpm prepare</code> при <code>ODPM_IDE=vscode</code> или <code>both</code> и <code>ODPM_DEBUGGER_BACKEND=debugpy_listen</code>; <code>settings.json</code> включает <code>python.analysis.extraPaths</code> для platform, developing и зависимостей</td>
 </tr>
 <tr>
 <td><code>.run/Odoo Remote Attach.run.xml</code></td>
-<td><code>odpm --skip-start</code> при <code>ODPM_IDE=pycharm</code> или <code>both</code> и <strong><code>debugpy_listen</code></strong> (PyCharm Attach to DAP)</td>
+<td><code>odpm prepare</code> при <code>ODPM_IDE=pycharm</code> или <code>both</code> и <strong><code>debugpy_listen</code></strong> (PyCharm Attach to DAP)</td>
 </tr>
 <tr>
 <td><code>.run/Odoo Debug Server.run.xml</code></td>
-<td><code>odpm --skip-start</code> при <code>ODPM_IDE=pycharm</code> или <code>both</code> и <strong><code>pydevd_connect</code></strong> (PyCharm Debug Server, Pro)</td>
+<td><code>odpm prepare</code> при <code>ODPM_IDE=pycharm</code> или <code>both</code> и <strong><code>pydevd_connect</code></strong> (PyCharm Debug Server, Pro)</td>
 </tr>
 <tr>
 <td><code>Dockerfile</code> (корень проекта)</td>
@@ -2074,7 +2074,7 @@
 <p>Файл <strong><code>odoo.conf</code></strong> (или <code>{platform_name}.conf</code>) <strong>редактируется пользователем</strong>, но odpm при подготовке пересчитывает пути к дополнениям и каталог данных под контейнер. См. <a href="../odoo-conf/">odoo.conf</a>.</p>
 <h2 id="_2">Зачем так устроено<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>Ручное редактирование <code>docker-compose.yml</code> ломает <strong>единый контракт</strong> между хостом и контейнером (порты, точка входа, передача конфигурации). odpm генерирует compose из сценария и параметров командной строки, чтобы разработчик, администратор и сборка оставались на одном описании проекта.</p>
-<p>После обновления версии odpm или смены <code>ODPM_SCENARIO</code> выполните <strong><code>odpm --skip-start</code></strong> и перезапустите контейнеры.</p>
+<p>После обновления версии odpm или смены <code>ODPM_SCENARIO</code> выполните <strong><code>odpm prepare</code></strong> и перезапустите контейнеры.</p>
 
 
 

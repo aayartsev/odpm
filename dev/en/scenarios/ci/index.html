@@ -2108,7 +2108,7 @@
 <tbody>
 <tr>
 <td><strong>Image</strong></td>
-<td>Created with <code>odpm --build-image</code> (available <strong>only</strong> in this scenario). Backend: <code>docker</code> (default) or <code>kaniko</code> — see <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
+<td>Created with <code>odpm build</code> (available <strong>only</strong> in this scenario). Backend: <code>docker</code> (default) or <code>kaniko</code> — see <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
 </tr>
 <tr>
 <td><strong>Sources</strong></td>
@@ -2143,8 +2143,8 @@
 <h2 id="typical-pipeline">Typical pipeline<a class="headerlink" href="#typical-pipeline" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>git push → build machine
   → ODPM_SCENARIO=ci
-  → odpm --skip-start
-  → odpm --build-image [--image-tag registry/project:tag] [--image-builder docker|kaniko] [--image-push]
+  → odpm prepare
+  → odpm build [--image-tag registry/project:tag] [--image-builder docker|kaniko] [--image-push]
   → publish image (or --image-push / kaniko tar artifact)
   → deploy (your tools)
 </code></pre></div>
@@ -2157,21 +2157,21 @@
 </ol>
 <h2 id="command-examples">Command examples<a class="headerlink" href="#command-examples" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
-odpm<span class="w"> </span>--skip-start
-<span class="c1"># optional: odpm --secrets-file /secure/ephemeral.json --skip-start</span>
+odpm<span class="w"> </span>prepare
+<span class="c1"># optional: odpm prepare --secrets-file /secure/ephemeral.json</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_BAKE_SECRETS</span><span class="o">=</span><span class="m">1</span><span class="w">   </span><span class="c1"># bake module secrets into image when secrets.json exists</span>
-odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0
-odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-builder<span class="w"> </span>kaniko<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
+odpm<span class="w"> </span>build<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0
+odpm<span class="w"> </span>build<span class="w"> </span>--image-builder<span class="w"> </span>kaniko<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 <span class="nv">ODPM_CI_IMAGE_BUILDER</span><span class="o">=</span>kaniko<span class="w"> </span><span class="nv">ODPM_KANIKO_EXECUTOR_MODE</span><span class="o">=</span>direct<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span><span class="nv">ODPM_BASE_IMAGE_REGISTRY</span><span class="o">=</span>registry.example.com/odpm<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>odpm<span class="w"> </span>--build-image<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
+<span class="w">  </span>odpm<span class="w"> </span>build<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
-<span class="c1"># Module install after stack is up (bare odpm -d/-i is rejected in ci).</span>
+<span class="c1"># Module install after stack is up (bare `odpm up -d/-i` / legacy root flags is rejected in ci).</span>
 <span class="c1"># Physical odoo key from docker-compose.yml (odoo / acme-odoo / odoo-dev / …):</span>
 <span class="nv">ODOO_SVC</span><span class="o">=</span>odoo
 docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span><span class="s2">"</span><span class="nv">$ODOO_SVC</span><span class="s2">"</span><span class="w"> </span>odoo-bin<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>base<span class="w"> </span>--stop-after-init
 </code></pre></div>
-<p>In the <code>ci</code> scenario, bare <code>odpm</code> without <code>--skip-start</code> / <code>--build-image</code> (and without the allowlist: <code>plan</code>, <code>manifest</code>, <code>database</code>, <code>--update-lock</code>, <code>--init</code>, …) fails — see <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>.</p>
+<p>In the <code>ci</code> scenario, <code>odpm up</code>, <code>scaffold</code>, and stack <code>database backup|restore|drop|list</code> are rejected. Allowed: <code>prepare</code> / <code>build</code> / <code>init</code> / <code>plan</code> / <code>manifest</code> / <code>modules</code> / <code>run</code> / host-<code>database</code> / <code>--version</code>/<code>-V</code> (plus legacy synonyms) — see <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>, <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md">ADR-026</a>.</p>
 <h2 id="external-postgresql-in-ci-adr-022">External PostgreSQL in <code>ci</code> (ADR-022)<a class="headerlink" href="#external-postgresql-in-ci-adr-022" title="Permanent link">&para;</a></h2>
 <p>The effective <code>ci</code> slice may set <code>db_*</code> in <code>odoo_conf.options</code> (still forbidden in <code>developer</code> / <code>server</code>). Prefer <code>${@secret:…}</code> for credentials:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2197,6 +2197,7 @@ docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">ex
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODOO_PROJECTS_DIR</span><span class="o">=</span>/data/odoo_projects
 <span class="nb">export</span><span class="w"> </span><span class="nv">BACKUP_DIR</span><span class="o">=</span>/data/backups
+<span class="c1"># init without compose up (4.8 legacy combo; plain odpm init starts the stack)</span>
 odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/aayartsev/odoo_demo_project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span>--skip-start
 </code></pre></div>
 <p>See <a href="../../operations/non-interactive/">non-interactive runs</a>.</p>

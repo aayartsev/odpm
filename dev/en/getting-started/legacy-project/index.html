@@ -2197,7 +2197,7 @@
 <h2 id="prepare-the-environment-directory">Prepare the environment directory<a class="headerlink" href="#prepare-the-environment-directory" title="Permanent link">&para;</a></h2>
 <p>As with a new project, create a <strong>separate</strong> odpm environment directory (e.g. <code>client_addons-19</code>) and init from git:</p>
 <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>client_addons-19<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>client_addons-19
-odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
+odpm<span class="w"> </span>init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
 </code></pre></div>
 <p>If the developing repo root already has <strong><code>odpm.json</code></strong>, odpm picks up versions and dependencies from it. If not, pass <code>--odoo-version</code> on <code>--init</code> or add <code>odoo_version</code> to the repo before connecting.</p>
 <h2 id="reading-error-messages">Reading error messages<a class="headerlink" href="#reading-error-messages" title="Permanent link">&para;</a></h2>
@@ -2215,13 +2215,13 @@ odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organiz
 <p>Link formats: <a href="../../reference/git-links/">git, https, file</a>.</p>
 <h2 id="dry-run-before-applying-changes">Dry-run before applying changes<a class="headerlink" href="#dry-run-before-applying-changes" title="Permanent link">&para;</a></h2>
 <p>Before risky edits:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan
+odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff
 </code></pre></div>
 <p>Shows which prepare steps would run and how <code>docker-compose.yml</code> and runtime config would change — <strong>without</strong> writing disk or starting containers.</p>
 <h2 id="version-lock-for-the-whole-team">Version lock for the whole team<a class="headerlink" href="#version-lock-for-the-whole-team" title="Permanent link">&para;</a></h2>
 <p>After dependencies are agreed, the coordinator runs:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--update-lock<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>prepare<span class="w"> </span>--update-lock
 </code></pre></div>
 <p>and commits <strong><code>.odpm/deps.lock.json</code></strong>. See <a href="../../reference/deps-lock/">deps.lock.json</a> and <a href="../../scenarios/team-coordinator/">team coordinator</a>.</p>
 <h2 id="inherited-postgresql-data-directory">Inherited PostgreSQL data directory<a class="headerlink" href="#inherited-postgresql-data-directory" title="Permanent link">&para;</a></h2>
@@ -2233,7 +2233,7 @@ odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span cl
 </ol>
 <p>Diagnostics:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>status
-odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
+odpm<span class="w"> </span>plan
 </code></pre></div>
 <p>If the role is missing and adoption has not run yet:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>ensure-role

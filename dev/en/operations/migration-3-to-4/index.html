@@ -2008,20 +2008,20 @@
 <h2 id="recommended-order">Recommended order<a class="headerlink" href="#recommended-order" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Back up the database</strong> from the 3.0 environment:</li>
-<li>with <code>odpm --db-backup</code> (if the old odpm is still available), or</li>
+<li>with <code>odpm database backup</code> / <code>odpm up --db-backup</code> (or legacy <code>odpm --db-backup</code> if an older odpm is still available), or</li>
 <li>with PostgreSQL tools (<code>pg_dump</code>).</li>
 <li>Create a <strong>new</strong> odpm environment directory (e.g. <code>project-19-v4/</code>).</li>
 <li>Install <strong>odpm 4.x</strong> — <a href="../../install/">installation</a>.</li>
-<li>Run <code>odpm --init</code> with the current repository and 4.x-format <code>odpm.json</code>.</li>
+<li>Run <code>odpm init</code> with the current repository and 4.x-format <code>odpm.json</code>.</li>
 <li>Bring up the environment and <strong>restore the database</strong>:
-   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>database_name<span class="w"> </span>--db-restore<span class="w"> </span>archive_name
+   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>database_name<span class="w"> </span>--db-restore<span class="w"> </span>archive_name
 </code></pre></div></li>
 <li>Update modules for the new Odoo version:
-   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>database_name<span class="w"> </span>-u
+   <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>database_name<span class="w"> </span>-u
 </code></pre></div></li>
 </ol>
 <p>Keep the old 3.0 directory for reference until the team fully switches.</p>
-<p>If you <strong>repeat</strong> <code>odpm --init</code> in the same environment directory (not recommended for production), the old Docker volume <code>*_postgres-data</code> may point at an outdated <code>data/postgres/...</code> path. Remove the volume before starting: <code>docker volume rm &lt;project&gt;_postgres-data</code> — see <a href="../non-interactive/">non-interactive runs</a>.</p>
+<p>If you <strong>repeat</strong> <code>odpm init</code> in the same environment directory (not recommended for production), the old Docker volume <code>*_postgres-data</code> may point at an outdated <code>data/postgres/...</code> path. Remove the volume before starting: <code>docker volume rm &lt;project&gt;_postgres-data</code> — see <a href="../non-interactive/">non-interactive runs</a>.</p>
 <h2 id="what-changed-fundamentally">What changed fundamentally<a class="headerlink" href="#what-changed-fundamentally" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Scenarios <strong><code>developer</code></strong>, <strong><code>server</code></strong>, <strong><code>ci</code></strong> instead of a single behavior.</li>

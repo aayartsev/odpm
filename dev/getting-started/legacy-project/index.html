@@ -2194,7 +2194,7 @@
 <h2 id="_2">Подготовка каталога окружения<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>Как и при новом проекте, создайте <strong>отдельный каталог</strong> odpm-окружения (например <code>client_addons-19</code>) и инициализируйте его ссылкой на git:</p>
 <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>client_addons-19<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>client_addons-19
-odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
+odpm<span class="w"> </span>init<span class="w"> </span>git@github.com:organization/client_addons.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0
 </code></pre></div>
 <p>Если в корне разрабатываемого репозитория уже есть <strong><code>odpm.json</code></strong>, odpm подхватит версии и зависимости оттуда. Если файла нет — укажите <code>--odoo-version</code> при <code>--init</code> или добавьте <code>odoo_version</code> в репозиторий до подключения.</p>
 <h2 id="_3">Как читать сообщения при ошибках<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
@@ -2212,13 +2212,13 @@ odpm<span class="w"> </span>--init<span class="w"> </span>git@github.com:organiz
 <p>Форматы ссылок: <a href="../../reference/git-links/">git, https, file</a>.</p>
 <h2 id="_5">Проверка без применения изменений<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>Перед рискованными правками:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan
+odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff
 </code></pre></div>
 <p>Будет показано, какие шаги подготовки выполнились бы и как изменятся <code>docker-compose.yml</code> и служебная конфигурация — <strong>без</strong> записи на диск и без запуска контейнеров.</p>
 <h2 id="_6">Фиксация версий для всей команды<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <p>После согласования зависимостей ответственный разработчик (координатор) выполняет:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--update-lock<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>prepare<span class="w"> </span>--update-lock
 </code></pre></div>
 <p>и коммитит <strong><code>.odpm/deps.lock.json</code></strong> в репозиторий. Подробнее: <a href="../../reference/deps-lock/">deps.lock.json</a> и <a href="../../scenarios/team-coordinator/">роль координатора</a>.</p>
 <h2 id="data-dir-postgresql">Унаследованный data dir PostgreSQL<a class="headerlink" href="#data-dir-postgresql" title="Permanent link">&para;</a></h2>
@@ -2230,7 +2230,7 @@ odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span cl
 </ol>
 <p>Диагностика:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>status
-odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
+odpm<span class="w"> </span>plan
 </code></pre></div>
 <p>Если роль отсутствует, а adoption ещё не сработал:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>database<span class="w"> </span>ensure-role

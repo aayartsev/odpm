@@ -2106,25 +2106,25 @@
 </tr>
 <tr>
 <td><strong>Сборка CI-образа</strong></td>
-<td>Команда <code>--build-image</code> <strong>недоступна</strong> (только сценарий <code>ci</code>).</td>
+<td>Команда <code>odpm build</code> / <code>--build-image</code> <strong>недоступна</strong> (только сценарий <code>ci</code>).</td>
 </tr>
 </tbody>
 </table>
 <h2 id="odoo-dev_mode">Режим разработки Odoo (<code>dev_mode</code>)<a class="headerlink" href="#odoo-dev_mode" title="Permanent link">&para;</a></h2>
 <p>В <code>user_settings.json</code> поле <strong><code>dev_mode</code></strong> задаёт флаги Odoo <code>--dev</code> (например <code>reload</code>, <code>xml</code>, <code>all</code> — см. документацию Odoo). Работает <strong>только</strong> в этом сценарии. При значениях <code>reload</code> или <code>all</code> odpm добавляет пакет <code>inotify</code> в требования Python для автоперезагрузки кода.</p>
-<p>После изменения <code>dev_mode</code> пересоздайте compose: <code>odpm --skip-start</code>.</p>
+<p>После изменения <code>dev_mode</code> пересоздайте compose: <code>odpm prepare</code>.</p>
 <h2 id="_3">Типичный день<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>odpm</code> — подготовка и запуск контейнеров.</li>
-<li><code>odpm -d dev_db -u</code> — обновить модули после правок.</li>
+<li><code>odpm up -d dev_db -u</code> — обновить модули после правок.</li>
 <li>Отладчик в VS Code — по необходимости.</li>
 <li><code>http://127.0.0.1:8069</code> — проверка в браузере.</li>
 </ol>
-<p>После смены <code>POSTGRES_SERVICE_NAME</code> или порта в <code>.env</code> — <code>odpm database status</code> и <code>odpm plan --skip-start</code> перед полным перезапуском.</p>
+<p>После смены <code>POSTGRES_SERVICE_NAME</code> или порта в <code>.env</code> — <code>odpm database status</code> и <code>odpm plan</code> перед полным перезапуском.</p>
 <h2 id="_4">Смена на другой сценарий<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Измените <code>ODPM_SCENARIO</code> в <code>.env</code> <strong>каталога проекта</strong> (он важнее файла в <code>~/.odpm/</code>).</li>
-<li>Выполните <code>odpm --skip-start</code>.</li>
+<li>Выполните <code>odpm prepare</code>.</li>
 <li>Перезапустите контейнеры: <code>docker compose up -d</code> или снова <code>odpm</code>.</li>
 </ol>
 <p>Сравнение сценариев: <a href="../scaling/">масштабирование</a>.</p>

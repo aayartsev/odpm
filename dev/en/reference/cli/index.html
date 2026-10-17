@@ -1550,6 +1550,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#command-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#project-initialization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1686,6 +1697,17 @@
     <span class="md-ellipsis">
       
         scaffold subcommand
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated-in-48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated in 4.8
       
     </span>
   </a>
@@ -2076,6 +2098,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#command-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#project-initialization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2218,6 +2251,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#deprecated-in-48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated in 4.8
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2247,9 +2291,66 @@
 <blockquote>
 <p><strong>AI-translated</strong> from Russian.</p>
 </blockquote>
-<p>The <strong><code>odpm</code></strong> command (or <code>python3 …/odpm.py</code>) accepts parameters that set <strong>one-off</strong> behaviour: initialization, database work, image build, change plan. Full list with brief English hints: <code>odpm --help</code>.</p>
-<p>Below is a reference by group. Flag names are <strong>as in the program</strong> (Latin).</p>
+<p>The <strong><code>odpm</code></strong> command (or <code>python3 …/odpm.py</code>) accepts <strong>subcommands</strong> and flags for one-off behaviour: stack up, prepare files, init, image build, database ops. Full list: <code>odpm --help</code>. Version: <code>odpm -V</code> / <code>odpm --version</code>.</p>
+<h2 id="command-tree">Command tree<a class="headerlink" href="#command-tree" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>odpm up</code></td>
+<td>Prepare files and start the compose stack (incl. <code>-i</code>/<code>-u</code>, combined <code>--db-restore</code>)</td>
+</tr>
+<tr>
+<td><code>odpm prepare</code></td>
+<td>Files / lock only, <strong>no</strong> containers (replaces <code>--skip-start</code>)</td>
+</tr>
+<tr>
+<td><code>odpm init URL</code></td>
+<td>Project init (replaces <code>--init</code>)</td>
+</tr>
+<tr>
+<td><code>odpm build</code></td>
+<td>CI image build (replaces <code>--build-image</code>)</td>
+</tr>
+<tr>
+<td><code>odpm plan</code></td>
+<td>Dry-run of prepare steps</td>
+</tr>
+<tr>
+<td><code>odpm database …</code></td>
+<td>Host: <code>status</code> / <code>ensure-role</code> / <code>pull</code>. Stack: <code>backup</code> / <code>restore</code> / <code>drop</code> / <code>list</code></td>
+</tr>
+<tr>
+<td><code>odpm modules …</code></td>
+<td>Diff / record-applied</td>
+</tr>
+<tr>
+<td><code>odpm run …</code></td>
+<td>Recipes</td>
+</tr>
+<tr>
+<td><code>odpm manifest …</code></td>
+<td>migrate / validate</td>
+</tr>
+<tr>
+<td><code>odpm scaffold …</code></td>
+<td>Module scaffold</td>
+</tr>
+<tr>
+<td><code>-V</code>, <code>--version</code></td>
+<td>odpm version (global)</td>
+</tr>
+</tbody>
+</table>
+<p>In <strong>4.8</strong>, bare <code>odpm</code> and legacy root flags still work with a <strong>warning</strong>. In <strong>5.0</strong>, bare <code>odpm</code> prints subcommand help (no stack up). See <a href="#deprecated-in-48">Deprecated in 4.8</a>.</p>
 <h2 id="project-initialization">Project initialization<a class="headerlink" href="#project-initialization" title="Permanent link">&para;</a></h2>
+<p>Preferred: <strong><code>odpm init URL</code></strong>. Deprecated synonym: <code>--init LINK</code>.</p>
+<p><code>odpm init</code> <strong>starts the stack</strong> by default (full run). For files-only init without compose up, use the <strong>4.8</strong> legacy combo <code>odpm --init URL --skip-start</code> (the <code>init</code> subcommand has no <code>--skip-start</code> flag).</p>
 <table>
 <thead>
 <tr>
@@ -2259,7 +2360,7 @@
 </thead>
 <tbody>
 <tr>
-<td><code>--init LINK</code></td>
+<td><code>odpm init LINK</code> / <code>--init LINK</code></td>
 <td>Make the current directory an odpm project. Link: HTTPS, <code>git@…</code>, <code>file:///…</code></td>
 </tr>
 <tr>
@@ -2313,31 +2414,31 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/aayartsev/odoo_demo_project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>https://github.com/aayartsev/odoo_demo_project.git<span class="w"> </span>--branch<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--odoo-version<span class="w"> </span><span class="m">19</span>.0<span class="w"> </span>--python-version<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>--distro-version<span class="w"> </span><span class="m">12</span>
 </code></pre></div>
 <p>Import secrets on deploy:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--init<span class="w"> </span>file:///path/to/my_addons<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>init<span class="w"> </span>file:///path/to/my_addons<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--secrets-file<span class="w"> </span>/secure/client-secrets.json
 
 <span class="c1"># key rotation on an existing project</span>
-odpm<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.json<span class="w"> </span>--skip-start
+odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.json
 </code></pre></div>
 <h2 id="environment-prepare-and-image">Environment prepare and image<a class="headerlink" href="#environment-prepare-and-image" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Parameter</th>
+<th>Command / parameter</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>--skip-start</code></td>
-<td>Regenerate Docker files and compose <strong>without</strong> starting containers; with a lock — select revisions from the lock file</td>
+<td><code>odpm prepare</code></td>
+<td>Regenerate Docker files and compose <strong>without</strong> starting containers</td>
 </tr>
 <tr>
-<td><code>--update-lock</code></td>
+<td><code>odpm prepare --update-lock</code></td>
 <td>Write <code>.odpm/deps.lock.json</code> and exit</td>
 </tr>
 <tr>
@@ -2345,27 +2446,28 @@ odpm<span class="w"> </span>--secrets-file<span class="w"> </span>~/new-secrets.
 <td>Do not touch git; lock is <strong>not read</strong>; directories must already exist</td>
 </tr>
 <tr>
-<td><code>--build-image</code></td>
+<td><code>odpm build</code></td>
 <td>Build image for <strong><code>ci</code></strong> scenario (error otherwise)</td>
 </tr>
 <tr>
 <td><code>--image-tag TAG</code></td>
-<td>Docker image name and tag for <code>--build-image</code></td>
+<td>Docker image name and tag for <code>odpm build</code></td>
 </tr>
 <tr>
 <td><code>--image-builder {docker,kaniko}</code></td>
-<td>CI image build backend (default <code>docker</code>; overrides <code>ODPM_CI_IMAGE_BUILDER</code>)</td>
+<td>CI image build backend (default <code>docker</code>)</td>
 </tr>
 <tr>
 <td><code>--image-push</code></td>
-<td>After build, publish the image (<code>docker push</code> / kaniko <code>--destination</code>)</td>
+<td>After build, publish the image</td>
 </tr>
 <tr>
-<td><code>--version</code></td>
+<td><code>-V</code>, <code>--version</code></td>
 <td>Show odpm version</td>
 </tr>
 </tbody>
 </table>
+<p>Deprecated synonyms: <code>--skip-start</code> → <code>odpm prepare</code>; <code>--build-image</code> → <code>odpm build</code>.</p>
 <h2 id="change-plan-dry-run">Change plan (dry run)<a class="headerlink" href="#change-plan-dry-run" title="Permanent link">&para;</a></h2>
 <p>Shows which prepare steps would run <strong>without</strong> changing git, writing files, or <code>docker compose up</code>.</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
@@ -2436,7 +2538,7 @@ odpm<span class="w"> </span>database<span class="w"> </span>ensure-role
 <p><code>database pull</code> is a <strong>primitive</strong>: needs an odpm project with <code>BACKUP_DIR</code> in <code>.env</code>; compose up is not required for the download. It calls <code>/web/database/list</code> when available, then the backup; auth/progress logs go to stderr, <strong>stdout is only the archive file name</strong> (basename under <code>BACKUP_DIR</code>). Compose further steps yourself (shell / CI), for example:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_REMOTE_DB_MASTER_PWD</span><span class="o">=</span><span class="s1">'…'</span>
 <span class="nv">ARCHIVE</span><span class="o">=</span><span class="k">$(</span>odpm<span class="w"> </span>database<span class="w"> </span>pull<span class="w"> </span>--url<span class="w"> </span>https://client.example.com<span class="w"> </span>--remote-db<span class="w"> </span>prod<span class="k">)</span>
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>--db-restore<span class="w"> </span><span class="s2">"</span><span class="nv">$ARCHIVE</span><span class="s2">"</span><span class="w"> </span>-i<span class="w"> </span>-u<span class="w"> </span>--set-admin-pass
 </code></pre></div>
 <p>Shortcut for pull+restore without custom steps: builtin <a href="../recipes/#builtin-pull-remote-db"><code>odpm run pull-remote-db</code></a>. YAML recipes <strong>cannot</strong> substitute a previous step’s stdout — use shell for archive-name chains. Intended for <strong>developer</strong> / <strong>server</strong>, not typical CI.</p>
 <p>Flag <strong><code>--accept-database-drift=KIND</code></strong> (repeatable) — accept drift without an interactive prompt. KIND: <code>data_path</code>, <code>postgres_major</code>, <code>app_role_missing</code>, <code>odpm_scenario</code>, <code>data_dir_empty_changed</code>.</p>
@@ -2537,9 +2639,9 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
-odpm<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>-u
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
 <h2 id="platform-nightly-build-date">Platform nightly build date<a class="headerlink" href="#platform-nightly-build-date" title="Permanent link">&para;</a></h2>
 <table>
@@ -2649,6 +2751,51 @@ odpm<span class="w"> </span>scaffold<span class="w"> </span>module_name<span cla
 </tbody>
 </table>
 <p>Git version pinning: <a href="../deps-lock/">deps.lock.json</a>.</p>
+<h2 id="deprecated-in-48">Deprecated in 4.8<a class="headerlink" href="#deprecated-in-48" title="Permanent link">&para;</a></h2>
+<p>Legacy invocations still work and print a warning. Preferred forms:</p>
+<table>
+<thead>
+<tr>
+<th>Deprecated</th>
+<th>Preferred</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bare <code>odpm</code></td>
+<td><code>odpm up</code> (in <strong>5.0</strong> bare <code>odpm</code> → subcommand help)</td>
+</tr>
+<tr>
+<td><code>odpm -d … -i …</code></td>
+<td><code>odpm up -d … -i …</code></td>
+</tr>
+<tr>
+<td><code>odpm --skip-start</code></td>
+<td><code>odpm prepare</code></td>
+</tr>
+<tr>
+<td><code>odpm --init URL</code></td>
+<td><code>odpm init URL</code></td>
+</tr>
+<tr>
+<td><code>odpm --build-image</code></td>
+<td><code>odpm build</code></td>
+</tr>
+<tr>
+<td><code>odpm --plan</code></td>
+<td><code>odpm plan</code></td>
+</tr>
+<tr>
+<td>single <code>--db-backup</code> / <code>--db-restore</code> / <code>--db-drop</code> / <code>--get-dbs-list</code></td>
+<td><code>odpm database backup\|restore\|drop\|list</code></td>
+</tr>
+<tr>
+<td><code>--db-drop --db-restore …</code> or restore+<code>-i</code></td>
+<td><code>odpm up …</code></td>
+</tr>
+</tbody>
+</table>
+<p>Contract: <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md">ADR-026</a> (Russian).</p>
 
 
 

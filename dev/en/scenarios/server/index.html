@@ -2108,10 +2108,10 @@
 <li>To pin the platform version use <code>odoo_build_date</code> / <code>--odoo-build-date</code> (git checkout by date), not a separate archive download.</li>
 </ul>
 <h2 id="typical-administrator-commands">Typical administrator commands<a class="headerlink" href="#typical-administrator-commands" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>prepare
 docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
-odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>--db-backup
-odpm<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>-u
+odpm<span class="w"> </span>database<span class="w"> </span>backup<span class="w"> </span>-d<span class="w"> </span>prod_db
+odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>prod_db<span class="w"> </span>-u
 </code></pre></div>
 <p>For module updates from git on <strong>server</strong>, prefer:</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<span class="w"> </span>-d<span class="w"> </span>prod_db

@@ -2151,7 +2151,7 @@
 </tr>
 <tr>
 <td><code>sidecars</code></td>
-<td>Локальные переключатели compose-sidecar: имя → <code>true</code>/<code>false</code>. <code>false</code> исключает сервис из plan, fragments и <code>docker-compose.yml</code>; отсутствие ключа или <code>true</code> — оставить. Нельзя указывать <code>db</code>/<code>odoo</code>. После смены — <code>odpm --skip-start</code>. См. ниже</td>
+<td>Локальные переключатели compose-sidecar: имя → <code>true</code>/<code>false</code>. <code>false</code> исключает сервис из plan, fragments и <code>docker-compose.yml</code>; отсутствие ключа или <code>true</code> — оставить. Нельзя указывать <code>db</code>/<code>odoo</code>. После смены — <code>odpm prepare</code>. См. ниже</td>
 </tr>
 </tbody>
 </table>
@@ -2165,7 +2165,7 @@
 </code></pre></div>
 <p>Остальные поля <code>user_settings.json</code> подстановку <strong>не</strong> получают.</p>
 <h2 id="odoo-dev_mode">Режим разработки Odoo (<code>dev_mode</code>)<a class="headerlink" href="#odoo-dev_mode" title="Permanent link">&para;</a></h2>
-<p>Строка с флагами Odoo: <code>reload</code>, <code>qweb</code>, <code>werkzeug</code>, <code>xml</code>, <code>access</code>, <code>all</code> (см. документацию Odoo). В сценариях <code>server</code> и <code>ci</code> <strong>игнорируется</strong>. После изменения — <code>odpm --skip-start</code>.</p>
+<p>Строка с флагами Odoo: <code>reload</code>, <code>qweb</code>, <code>werkzeug</code>, <code>xml</code>, <code>access</code>, <code>all</code> (см. документацию Odoo). В сценариях <code>server</code> и <code>ci</code> <strong>игнорируется</strong>. После изменения — <code>odpm prepare</code>.</p>
 <h2 id="check_system">Проверка системы (<code>check_system</code>)<a class="headerlink" href="#check_system" title="Permanent link">&para;</a></h2>
 <p>При <code>true</code> выполняются базовые проверки git и Docker. Не отключает валидацию compose. Освобождение занятых портов в режиме разработчика — отдельная логика.</p>
 <h2 id="create_module_links">Символические ссылки (<code>create_module_links</code>)<a class="headerlink" href="#create_module_links" title="Permanent link">&para;</a></h2>
@@ -2184,7 +2184,7 @@
 <li>отсутствие ключа или <code>true</code> — сервис остаётся.</li>
 <li>Только JSON boolean; строки вроде <code>"false"</code> — ошибка.</li>
 <li>Личные <code>false</code> в закоммиченном <code>user_settings.json</code> могут удивить команду/CI — согласовывайте или держите override локально.</li>
-<li>После изменения: <code>odpm --skip-start</code> (как после смены <code>dev_mode</code>). Подробнее: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md">ADR-025</a>.</li>
+<li>После изменения: <code>odpm prepare</code> (как после смены <code>dev_mode</code>). Подробнее: <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-025-local-sidecar-gates.md">ADR-025</a>.</li>
 </ul>
 
 

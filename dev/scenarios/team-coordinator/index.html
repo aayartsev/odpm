@@ -2077,7 +2077,7 @@
 <h2 id="_3">Как вносить изменение зависимостей<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Обсуждение и pull request с правкой <code>dependencies</code>, <code>requirements_txt</code> или <code>oca_dependencies.txt</code>.</li>
-<li>На машине координатора: <code>odpm --update-lock --skip-start</code>.</li>
+<li>На машине координатора: <code>odpm prepare --update-lock</code>.</li>
 <li>Коммит <strong>lock-файла</strong> вместе с описанием.</li>
 <li>В автоматической проверке: <code>odpm plan --strict</code>.</li>
 </ol>
@@ -2086,9 +2086,9 @@
 <p>Если в git хранится manifest с <code>${VAR}</code> (например <code>file://${ODOO_PLATFORM_DIR}</code>), координатор перечисляет <strong>обязательные</strong> переменные в README проекта, в project <code>.env.example</code> или в инструкции CI. Значения не коммитят в <code>odpm.json</code> — только в <code>.env</code> (локально) или в secrets runner / <code>export</code> (CI).</p>
 <h2 id="odpm-plan">Общий язык — <code>odpm plan</code><a class="headerlink" href="#odpm-plan" title="Permanent link">&para;</a></h2>
 <p>Команда видит одинаковый план подготовки:</p>
-<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--skip-start
-odpm<span class="w"> </span>plan<span class="w"> </span>--plan-strict<span class="w"> </span>--skip-start
+<div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan
+odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff
+odpm<span class="w"> </span>plan<span class="w"> </span>--plan-strict
 </code></pre></div>
 <p>Это снижает споры «у меня compose другой» перед релизом.</p>
 
