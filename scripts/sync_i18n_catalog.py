@@ -20,8 +20,8 @@ EN_US_PO = I18N_DIR / "en_US" / "LC_MESSAGES" / "main.po"
 
 # msgid (English) -> msgstr (Russian). Keep sorted by msgid for review.
 RU_MESSAGES: dict[str, str] = {
-    "--build-image is only allowed when ODPM_SCENARIO=ci in .env": (
-        "--build-image доступен только при ODPM_SCENARIO=ci в .env"
+    "odpm build is only allowed when ODPM_SCENARIO=ci in .env": (
+        "odpm build доступен только при ODPM_SCENARIO=ci в .env"
     ),
     "--sync-manifest-locks is only supported in developer scenario; "
     "manifest locks.git unchanged": (
@@ -668,10 +668,10 @@ RU_MESSAGES: dict[str, str] = {
     "Interactive input is not available in non-interactive mode.": (
         "Интерактивный ввод недоступен в неинтерактивном режиме."
     ),
-    "In the ci scenario use --skip-start or --build-image "
-    "(bare odpm compose up is not allowed).": (
-        "В сценарии ci используйте --skip-start или --build-image "
-        "(обычный odpm compose up запрещён)."
+    "In the ci scenario use odpm prepare or odpm build "
+    "(odpm up / bare compose up is not allowed).": (
+        "В сценарии ci используйте odpm prepare или odpm build "
+        "(odpm up / обычный compose up запрещён)."
     ),
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
@@ -1269,8 +1269,8 @@ RU_MESSAGES: dict[str, str] = {
     "Compose stack is healthy; reusing existing containers without --force-recreate": (
         "Стек compose в порядке; перезапуск без --force-recreate"
     ),
-    "Container start skipped (--skip-start).": (
-        "Запуск контейнеров пропущен (--skip-start)."
+    "Container start skipped (odpm prepare).": (
+        "Запуск контейнеров пропущен (odpm prepare)."
     ),
     "Control+C pressed; stopping.": "Нажато Control+C; остановка.",
     "Git dependency lock updated; container start skipped.": (

@@ -16,7 +16,7 @@ odpm даёт отдельный контракт: вы храните знач�
 | `.odpm/secrets.json` | нет | вы, `--secrets-file` или `secrets.fetch` (Infisical / плагин) | **source** — единственное место правки на хосте |
 | `.odpm/runtime/secrets.json` | нет | odpm (`secrets.materialize`) | **runtime** — монтируется в контейнер |
 
-При `odpm --init` копируется только **`secrets.example.json`**. Файл **`secrets.json`** создаётся вручную, копированием из example, или импортом через CLI.
+При `odpm init` копируется только **`secrets.example.json`**. Файл **`secrets.json`** создаётся вручную, копированием из example, или импортом через CLI.
 
 Структура каталога: [project-layout](../reference/project-layout.md). Сгенерированные артефакты: [generated-files](../reference/generated-files.md).
 
@@ -49,7 +49,7 @@ odpm даёт отдельный контракт: вы храните знач�
 
 Ключи можно не дублировать — достаточно `"required": true`: odpm проверит **наличие** `.odpm/secrets.json`. Список ключей в сообщении об ошибке берётся из `secrets.example.json` только как подсказка. Для строгой проверки конкретных ключей укажите `keys` в manifest.
 
-odpm предупредит на `odpm manifest validate` и `odpm plan`, а при полном запуске (`odpm` без `--skip-start`) остановится **до** развёртывания базы и compose, если `.odpm/secrets.json` отсутствует или содержит заглушки. См. [поля `secrets`](../reference/odpm-json.md#блок-secrets-обязательные-локальные-секреты-47).
+odpm предупредит на `odpm manifest validate` и `odpm plan`, а при полном запуске (`odpm up`, не `odpm prepare`) остановится **до** развёртывания базы и compose, если `.odpm/secrets.json` отсутствует или содержит заглушки. См. [поля `secrets`](../reference/odpm-json.md#блок-secrets-обязательные-локальные-секреты-47).
 
 ## Провайдеры источника (4.7+, ADR-021)
 
@@ -78,7 +78,7 @@ INFISICAL_CLIENT_SECRET=…
 В `odpm.json` — `secrets.provider` с ровно одним из `project_id` / `project_slug` и обязательным `environment_slug`. Overlay `scenarios.*.secrets.provider` **заменяет** весь объект. Затем:
 
 ```bash
-odpm --skip-start
+odpm prepare
 ```
 
 Нужен сетевой доступ к Infisical API; дополнительных pip-зависимостей нет.
@@ -112,22 +112,22 @@ odpm --skip-start
 ```bash
 cp .odpm/secrets.example.json .odpm/secrets.json
 # отредактируйте значения в .odpm/secrets.json
-odpm --skip-start
+odpm prepare
 docker compose up -d
 ```
 
 ### Вариант B: import при инициализации
 
 ```bash
-odpm --init file:///path/to/developing-project \
+odpm init file:///path/to/developing-project \
      --secrets-file /secure/vault/client-secrets.json
-odpm --skip-start
+odpm prepare
 ```
 
 ### Вариант C: import на существующем проекте
 
 ```bash
-odpm --secrets-file ~/Downloads/new-secrets.json --skip-start
+odpm prepare --secrets-file ~/Downloads/new-secrets.json
 docker compose up -d
 ```
 
@@ -136,7 +136,7 @@ docker compose up -d
 ## Полный цикл после изменения секретов
 
 1. Отредактируйте **`.odpm/secrets.json`** (или снова вызовите `--secrets-file`).
-2. Запустите **`odpm --skip-start`** — шаг **`secrets.materialize`** обновит `.odpm/runtime/secrets.json` и пересоберёт `docker-compose.yml` при необходимости.
+2. Запустите **`odpm prepare`** — шаг **`secrets.materialize`** обновит `.odpm/runtime/secrets.json` и пересоберёт `docker-compose.yml` при необходимости.
 3. Перезапустите контейнер Odoo: **`docker compose up -d`** (или полный `odpm`).
 4. Проверьте mount (см. ниже).
 
@@ -187,8 +187,8 @@ def load_odpm_secrets() -> dict[str, str]:
 Пример:
 
 ```bash
-odpm plan --skip-start
-odpm plan --skip-start --plan-show-diff
+odpm plan
+odpm plan --plan-show-diff
 ```
 
 ## Безопасность
@@ -209,7 +209,7 @@ odpm plan --skip-start --plan-show-diff
 
 ### CI (GitHub Actions, developer/server pipeline)
 
-В сценарии **`ci`** (`odpm --build-image`) mount secrets с хоста **по-прежнему отключён** — секреты в образ этим механизмом не попадают.
+В сценарии **`ci`** (`odpm build`) mount secrets с хоста **по-прежнему отключён** — секреты в образ этим механизмом не попадают.
 
 Для **локального developer/server pipeline** в Actions используйте ephemeral JSON и `--secrets-file`:
 
@@ -220,7 +220,7 @@ odpm plan --skip-start --plan-show-diff
     {"schema_version":1,"secrets":{"payment.api_key":"${{ secrets.MODULE_PAYMENT_API_KEY }}"}}
     EOF
     chmod 600 /tmp/odpm-ci-secrets.json
-    odpm --secrets-file /tmp/odpm-ci-secrets.json --skip-start
+    odpm prepare --secrets-file /tmp/odpm-ci-secrets.json
   working-directory: /path/to/odpm-project
 ```
 
@@ -247,9 +247,9 @@ odpm plan --skip-start --plan-show-diff
 
 | Симптом | Что проверить |
 |---------|----------------|
-| `/run/odpm/secrets.json` нет в контейнере | Есть ли `.odpm/secrets.json`? Запускали `odpm --skip-start`? Сценарий не `ci`? |
-| Старые значения после правки | `odpm --skip-start` + `docker compose up -d` |
+| `/run/odpm/secrets.json` нет в контейнере | Есть ли `.odpm/secrets.json`? Запускали `odpm prepare`? Сценарий не `ci`? |
+| Старые значения после правки | `odpm prepare` + `docker compose up -d` |
 | Ошибка schema | `schema_version: 1`, все значения — строки |
-| Compose без volume | Удалите source и перегенерируйте compose; или добавьте source и снова `odpm --skip-start` |
+| Compose без volume | Удалите source и перегенерируйте compose; или добавьте source и снова `odpm prepare` |
 
 Параметр CLI: [`--secrets-file`](../reference/cli.md).

@@ -26,6 +26,8 @@ In **4.8**, bare `odpm` and legacy root flags still work with a **warning**. In 
 
 Preferred: **`odpm init URL`**. Deprecated synonym: `--init LINK`.
 
+`odpm init` **starts the stack** by default (full run). For files-only init without compose up, use the **4.8** legacy combo `odpm --init URL --skip-start` (the `init` subcommand has no `--skip-start` flag).
+
 | Parameter | Description |
 |-----------|-------------|
 | `odpm init LINK` / `--init LINK` | Make the current directory an odpm project. Link: HTTPS, `git@…`, `file:///…` |

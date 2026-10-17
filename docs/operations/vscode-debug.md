@@ -23,7 +23,7 @@
 - В **`.odpm/runtime/debug-profile.json`** — IDE-neutral профиль (`schema_version: 2`): `backend`, `direction`, `protocol`, host/port, `path_mappings`.
 - По **`ODPM_IDE`**: `vscode` / `both` → `.vscode/`; `pycharm` / `both` → `.run/*.run.xml` (какой файл — зависит от backend); `none` — создаст только `debug-profile.json`.
 
-Перегенерация: `odpm` или `odpm --skip-start`. Шаги плана: `ide.debug_profile`, `pycharm.settings`; diff — `odpm plan --plan-show-diff`.
+Перегенерация: `odpm up` или `odpm prepare`. Шаги плана: `ide.debug_profile`, `pycharm.settings`; diff — `odpm plan --plan-show-diff`.
 
 ---
 
@@ -87,7 +87,7 @@ ODPM_DEBUGGER_SUSPEND=1
 
 ### Порядок работы (важен порядок шагов)
 
-1. `odpm --skip-start` — директива обновит `docker-compose.yml`, `config.json`, **`.run/Odoo Debug Server.run.xml`**.
+1. `odpm prepare` — директива обновит `docker-compose.yml`, `config.json`, **`.run/Odoo Debug Server.run.xml`**.
 2. В PyCharm: **Run** (не Attach) конфигурацию **Odoo Debug Server** — в окне Debug: *Waiting for process connection...*
 3. `odpm` или `docker compose up` — контейнер вызывает `pydevd_pycharm.settrace(connect_host, port, suspend=...)`.
 4. При `ODPM_DEBUGGER_SUSPEND=1` — в PyCharm нажмите **Resume**, затем breakpoints в addon.
@@ -137,9 +137,9 @@ pydevd_pycharm.settrace(
 
 ## Смена backend
 
-После смены `ODPM_DEBUGGER_BACKEND` выполните `odpm --skip-start` и перезапустите контейнеры.
+После смены `ODPM_DEBUGGER_BACKEND` выполните `odpm prepare` и перезапустите контейнеры.
 
-При смене `ODPM_DEBUGGER_BACKEND` odpm при `odpm --skip-start` **удаляет** неактуальный odpm-файл (`.run/Odoo Remote Attach.run.xml` или `.run/Odoo Debug Server.run.xml`). Пользовательские конфигурации в `.run/` не затрагиваются.
+При смене `ODPM_DEBUGGER_BACKEND` odpm при `odpm prepare` **удаляет** неактуальный odpm-файл (`.run/Odoo Remote Attach.run.xml` или `.run/Odoo Debug Server.run.xml`). Пользовательские конфигурации в `.run/` не затрагиваются.
 
 При смене backend venv пересобирается с нужным pip-пакетом (`debugpy` ↔ `pydevd-pycharm`).
 
@@ -153,7 +153,7 @@ pydevd_pycharm.settrace(
 
 ## Импорты и анализ кода (Pylance / Pyright)
 
-При `odpm --skip-start` (сценарий `developer`, `ODPM_IDE=vscode` или `both`) odpm генерирует `.vscode/settings.json` с **`python.analysis.extraPaths`** из того же графа репозиториев, что использует prepare:
+При `odpm prepare` (сценарий `developer`, `ODPM_IDE=vscode` или `both`) odpm генерирует `.vscode/settings.json` с **`python.analysis.extraPaths`** из того же графа репозиториев, что использует prepare:
 
 - корень **platform** (`odoo_src_dir`);
 - **developing** project;
@@ -169,7 +169,7 @@ pydevd_pycharm.settrace(
 - Stubs покрывают **ядро** `odoo`, не `odoo.addons.*` (namespace addons создаётся в рантайме).
 - Расширение [vscode-odoo](https://marketplace.visualstudio.com/items?itemName=trinhanhngoc.vscode-odoo) уже содержит свои stubs — дублирование безвредно.
 - На **server** / **ci** `odoo-stubs` в `odpm.json` удаляется (как debugger-пакеты).
-- файл **перезаписывается** при каждом `odpm --skip-start` — не правьте `extraPaths` вручную в `.vscode/settings.json`.
+- файл **перезаписывается** при каждом `odpm prepare` — не правьте `extraPaths` вручную в `.vscode/settings.json`.
 
 ---
 
@@ -189,7 +189,7 @@ odpm использует **`pydevd-pycharm==243.25659.43`** (ориентир -
 
 ### Проверка без полноценного запуска (генерация)
 
-После `odpm --skip-start` при `pydevd_connect`:
+После `odpm prepare` при `pydevd_connect`:
 
 - `config.json`: `"backend": "pydevd_connect"`;
 - compose: `extra_hosts`, нет `DEBUGGER_PORT:DEBUGGER_PORT`;

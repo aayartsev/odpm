@@ -37,7 +37,7 @@ Without a TTY, odpm **does not ask** about PostgreSQL configuration drift. If bl
 
 Options:
 
-1. Allow drift once from an interactive terminal (`odpm` or `odpm plan`).
+1. Allow drift once from an interactive terminal (`odpm up` or `odpm plan`).
 2. Explicitly accept drift kind: **`--accept-database-drift=KIND`** (repeat the flag for multiple KIND values).
 3. Restore the role before the stack: `odpm database ensure-role` (postgres must be running).
 
@@ -46,9 +46,9 @@ Example on a demo wrapper (`$ODPM_DEMO_19`): [demo-projects § S6](https://githu
 Example:
 
 ```bash
-odpm --accept-database-drift=odpm_scenario --skip-start
+odpm prepare --accept-database-drift=odpm_scenario
 odpm database ensure-role
-odpm -d test_db -i -u
+odpm up -d test_db -i -u
 ```
 
 More detail: [PostgreSQL state](../reference/database-state.md).
@@ -61,7 +61,7 @@ If you **re-initialize** an odpm 3.x directory for 4.x at the same path and init
 
 ```bash
 docker volume rm PROJECT_NAME_postgres-data
-odpm
+odpm up
 ```
 
 The volume name matches the project directory prefix (e.g. `odoo_demo_project-19_postgres-data`). More on directory migration: [migrating from 3.0](migration-3-to-4.md).
@@ -72,5 +72,6 @@ The volume name matches the project directory prefix (e.g. `odoo_demo_project-19
 export ODPM_SCENARIO=ci
 export ODOO_PROJECTS_DIR=/data/odoo_projects
 export BACKUP_DIR=/data/backups
+# init without compose up (4.8 legacy combo; odpm init has no --skip-start)
 odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0 --skip-start
 ```

@@ -63,7 +63,7 @@ ODOO_SVC=odoo
 docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 
-В сценарии `ci` запрещены `odpm up`, `scaffold` и стековые `database backup|restore|drop|list`. Разрешены `prepare` / `build` / `init` / `plan` / `manifest` / `modules` / `run` / host-`database` / `--version`/`-V` (и legacy-синонимы) — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md), [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md).
+В сценарии `ci` запрещены `odpm up`, `scaffold` и стековые `database backup|restore|drop|list`. Разрешены `prepare` / `build` / `init` / `plan` / `manifest` / `modules` / `run` / host-`database` / `--version`/`-V` (и legacy-синонимы) — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md), [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md).
 
 ## Внешняя PostgreSQL в `ci` (ADR-022)
 

@@ -6,7 +6,7 @@ Some files in the project directory are **created and updated by odpm**. Do not 
 
 | File | How to update |
 |------|---------------|
-| `docker-compose.yml` | `odpm` or `odpm --skip-start` |
+| `docker-compose.yml` | `odpm up` or `odpm prepare` |
 | root `.dockerignore` | from `.odpm/dockerignore` template; reset template — delete `.odpm/dockerignore` and run odpm again |
 | `.odpm/runtime/config.json` | automatically; in project gitignore |
 | `.odpm/database/last_run.json` | on adoption and after successful checker; mounted in container; see [database-state.md](database-state.md) |
@@ -15,9 +15,9 @@ Some files in the project directory are **created and updated by odpm**. Do not 
 | `.odpm/secrets.example.json` | template on init; in git |
 | `.odpm/secrets.json` | manually or `--secrets-file`; in `.odpm/.gitignore` |
 | `.odpm/runtime/secrets.json` | step `secrets.materialize`; mounted in container; in gitignore; see [secrets](../operations/secrets.md) |
-| `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` when `ODPM_IDE=vscode` or `both` and `ODPM_DEBUGGER_BACKEND=debugpy_listen`; `settings.json` includes `python.analysis.extraPaths` for platform, developing, and dependencies |
-| `.run/Odoo Remote Attach.run.xml` | `odpm --skip-start` when `ODPM_IDE=pycharm` or `both` and **`debugpy_listen`** (PyCharm Attach to DAP) |
-| `.run/Odoo Debug Server.run.xml` | `odpm --skip-start` when `ODPM_IDE=pycharm` or `both` and **`pydevd_connect`** (PyCharm Debug Server, Pro) |
+| `.vscode/launch.json`, `.vscode/settings.json` | `odpm prepare` when `ODPM_IDE=vscode` or `both` and `ODPM_DEBUGGER_BACKEND=debugpy_listen`; `settings.json` includes `python.analysis.extraPaths` for platform, developing, and dependencies |
+| `.run/Odoo Remote Attach.run.xml` | `odpm prepare` when `ODPM_IDE=pycharm` or `both` and **`debugpy_listen`** (PyCharm Attach to DAP) |
+| `.run/Odoo Debug Server.run.xml` | `odpm prepare` when `ODPM_IDE=pycharm` or `both` and **`pydevd_connect`** (PyCharm Debug Server, Pro) |
 | `Dockerfile` (project root) | from `.odpm/{distro}_{ver}_dockerfile_{profile}`; profile from `ODPM_SCENARIO` or override `ODPM_BASE_IMAGE_PROFILE` (ADR-007) |
 | `.odpm/base_image_identity.json` | after a successful base image `docker build`; in `.odpm/.gitignore`; fields `base_image_profile`, `dockerfile_sha256` — see ADR-007 |
 
@@ -31,4 +31,4 @@ File **`odoo.conf`** (or `{platform_name}.conf`) is **edited by the user**, but 
 
 Manual editing of `docker-compose.yml` breaks the **single contract** between host and container (ports, entrypoint, configuration handoff). odpm generates compose from scenario and command-line parameters so developer, administrator, and build stay on one project description.
 
-After an odpm version upgrade or `ODPM_SCENARIO` change, run **`odpm --skip-start`** and restart containers.
+After an odpm version upgrade or `ODPM_SCENARIO` change, run **`odpm prepare`** and restart containers.

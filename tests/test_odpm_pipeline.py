@@ -457,7 +457,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
         mock_prepare.assert_not_called()
         mock_exit.assert_called_once_with(1)
         self.assertTrue(mock_logger.error.called)
-        self.assertIn("--skip-start", mock_logger.error.call_args[0][1])
+        self.assertIn("odpm prepare", mock_logger.error.call_args[0][1])
 
     @patch("dev_project.odpm_pipeline.RuntimeCoordinator")
     @patch("dev_project.odpm_pipeline.OdpmPipeline.prepare_project_files")

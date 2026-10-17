@@ -20,6 +20,7 @@ Accepted (4.8).
 8. **Голый `odpm`:**
    - **4.8:** предупреждение + поведение как `odpm up`;
    - **5.0:** справка по подкомандам, exit 0, без prepare/up.
+9. **`odpm init`:** по умолчанию полный прогон со стеком. Init **без** compose up в 4.8 — только legacy `odpm --init URL --skip-start` (на подкоманде `init` нет `--skip-start`).
 
 ## Consequences
 

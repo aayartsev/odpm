@@ -12,8 +12,8 @@ msgstr " \"config.json\" is deprecated. Please read documentation"
 msgid "(none)"
 msgstr "(none)"
 
-msgid "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
-msgstr "--build-image is only allowed when ODPM_SCENARIO=ci in .env"
+msgid "odpm build is only allowed when ODPM_SCENARIO=ci in .env"
+msgstr "odpm build is only allowed when ODPM_SCENARIO=ci in .env"
 
 msgid "--no-git-update requires existing service_sources directories: {PATHS}"
 msgstr "--no-git-update requires existing service_sources directories: {PATHS}"
@@ -222,8 +222,8 @@ msgstr "Configuration references secrets (@secret) but .odpm/secrets.json is mis
 msgid "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
 msgstr "Configuration references secrets (@secret) but .odpm/secrets.json is missing; create it or pass --secrets-file (required keys: {KEYS})"
 
-msgid "Container start skipped (--skip-start)."
-msgstr "Container start skipped (--skip-start)."
+msgid "Container start skipped (odpm prepare)."
+msgstr "Container start skipped (odpm prepare)."
 
 msgid "Control+C pressed; stopping."
 msgstr "Control+C pressed; stopping."
@@ -381,8 +381,8 @@ msgstr "Host port: {PORT}"
 msgid "If you want drop this file to default values, just delete it"
 msgstr "If you want drop this file to default values, just delete it"
 
-msgid "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
-msgstr "In the ci scenario use --skip-start or --build-image (bare odpm compose up is not allowed)."
+msgid "In the ci scenario use odpm prepare or odpm build (odpm up / bare compose up is not allowed)."
+msgstr "In the ci scenario use odpm prepare or odpm build (odpm up / bare compose up is not allowed)."
 
 msgid "Infisical HTTP {STATUS} for {PATH}"
 msgstr "Infisical HTTP {STATUS} for {PATH}"

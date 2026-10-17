@@ -57,7 +57,7 @@ class RuntimeCoordinator:
         if not self.cli_args.build_image:
             return False
         if not self.host_ctx.policy.allow_build_image:
-            message = _('--build-image is only allowed when ODPM_SCENARIO=ci in .env')
+            message = _('odpm build is only allowed when ODPM_SCENARIO=ci in .env')
             _logger.error(message)
             raise PipelineError(message, exit_code=1)
 

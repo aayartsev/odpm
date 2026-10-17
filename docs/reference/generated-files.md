@@ -4,7 +4,7 @@
 
 | Файл | Как обновить |
 |------|----------------|
-| `docker-compose.yml` | `odpm` или `odpm --skip-start` |
+| `docker-compose.yml` | `odpm up` или `odpm prepare` |
 | корневой `.dockerignore` | из шаблона `.odpm/dockerignore`; сброс шаблона — удалить `.odpm/dockerignore` и снова запустить odpm |
 | `.odpm/runtime/config.json` | автоматически; в gitignore проекта |
 | `.odpm/database/last_run.json` | при adoption и после успешной проверки checker; mount в контейнер; см. [database-state.md](database-state.md) |
@@ -13,9 +13,9 @@
 | `.odpm/secrets.example.json` | шаблон при init; в git |
 | `.odpm/secrets.json` | вручную или `--secrets-file`; в `.odpm/.gitignore` |
 | `.odpm/runtime/secrets.json` | шаг `secrets.materialize`; mount в контейнер; в gitignore; см. [секреты](../operations/secrets.md) |
-| `.vscode/launch.json`, `.vscode/settings.json` | `odpm --skip-start` при `ODPM_IDE=vscode` или `both` и `ODPM_DEBUGGER_BACKEND=debugpy_listen`; `settings.json` включает `python.analysis.extraPaths` для platform, developing и зависимостей |
-| `.run/Odoo Remote Attach.run.xml` | `odpm --skip-start` при `ODPM_IDE=pycharm` или `both` и **`debugpy_listen`** (PyCharm Attach to DAP) |
-| `.run/Odoo Debug Server.run.xml` | `odpm --skip-start` при `ODPM_IDE=pycharm` или `both` и **`pydevd_connect`** (PyCharm Debug Server, Pro) |
+| `.vscode/launch.json`, `.vscode/settings.json` | `odpm prepare` при `ODPM_IDE=vscode` или `both` и `ODPM_DEBUGGER_BACKEND=debugpy_listen`; `settings.json` включает `python.analysis.extraPaths` для platform, developing и зависимостей |
+| `.run/Odoo Remote Attach.run.xml` | `odpm prepare` при `ODPM_IDE=pycharm` или `both` и **`debugpy_listen`** (PyCharm Attach to DAP) |
+| `.run/Odoo Debug Server.run.xml` | `odpm prepare` при `ODPM_IDE=pycharm` или `both` и **`pydevd_connect`** (PyCharm Debug Server, Pro) |
 | `Dockerfile` (корень проекта) | из шаблона `.odpm/{distro}_{ver}_dockerfile_{profile}`; профиль — из `ODPM_SCENARIO` или override `ODPM_BASE_IMAGE_PROFILE` (ADR-007) |
 | `.odpm/base_image_identity.json` | после успешного `docker build` base image; в `.odpm/.gitignore`; поля `base_image_profile`, `dockerfile_sha256` — см. ADR-007 |
 
@@ -29,4 +29,4 @@
 
 Ручное редактирование `docker-compose.yml` ломает **единый контракт** между хостом и контейнером (порты, точка входа, передача конфигурации). odpm генерирует compose из сценария и параметров командной строки, чтобы разработчик, администратор и сборка оставались на одном описании проекта.
 
-После обновления версии odpm или смены `ODPM_SCENARIO` выполните **`odpm --skip-start`** и перезапустите контейнеры.
+После обновления версии odpm или смены `ODPM_SCENARIO` выполните **`odpm prepare`** и перезапустите контейнеры.

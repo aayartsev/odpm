@@ -35,16 +35,16 @@
 
 Варианты:
 
-1. Один раз разрешить drift из интерактивного терминала (`odpm` или `odpm plan`).
+1. Один раз разрешить drift из интерактивного терминала (`odpm up` или `odpm plan`).
 2. Явно принять вид drift: **`--accept-database-drift=KIND`** (флаг можно повторять для нескольких KIND).
 3. Перед стеком восстановить роль: `odpm database ensure-role` (postgres должен быть запущен).
 
 Пример:
 
 ```bash
-odpm --accept-database-drift=odpm_scenario --skip-start
+odpm prepare --accept-database-drift=odpm_scenario
 odpm database ensure-role
-odpm -d test_db -i -u
+odpm up -d test_db -i -u
 ```
 
 Подробнее: [состояние PostgreSQL](../reference/database-state.md).
@@ -55,5 +55,6 @@ odpm -d test_db -i -u
 export ODPM_SCENARIO=ci
 export ODOO_PROJECTS_DIR=/data/odoo_projects
 export BACKUP_DIR=/data/backups
+# init без compose up (4.8: legacy-комбо; у odpm init нет --skip-start)
 odpm --init https://github.com/example/demo.git --skip-start
 ```

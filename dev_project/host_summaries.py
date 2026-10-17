@@ -20,7 +20,7 @@ MSG_CONTAINER_LOGS_ENGLISH = (
 )
 MSG_ODOO_URL_HINT = "When Odoo is ready, open http://localhost:{ODOO_PORT}"
 MSG_UPDATE_LOCK_SKIP = "Git dependency lock updated; container start skipped."
-MSG_SKIP_START = "Container start skipped (--skip-start)."
+MSG_SKIP_START = "Container start skipped (odpm prepare)."
 MSG_COMPOSE_FAILED = "docker compose up failed with exit code {EXIT_CODE}"
 MSG_COMPOSE_FAILED_HINT = (
     "Check `docker compose ps` and the English log output above for details."

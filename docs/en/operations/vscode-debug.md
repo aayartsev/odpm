@@ -27,7 +27,7 @@ The meaning of **`DEBUGGER_PORT`** depends on the backend:
 - In **`.odpm/runtime/debug-profile.json`** — an IDE-neutral profile (`schema_version: 2`): `backend`, `direction`, `protocol`, host/port, `path_mappings`.
 - By **`ODPM_IDE`**: `vscode` / `both` → `.vscode/`; `pycharm` / `both` → `.run/*.run.xml` (which file depends on the backend); `none` — only `debug-profile.json` is created.
 
-Regeneration: `odpm` or `odpm --skip-start`. Plan steps: `ide.debug_profile`, `pycharm.settings`; diff — `odpm plan --plan-show-diff`.
+Regeneration: `odpm up` or `odpm prepare`. Plan steps: `ide.debug_profile`, `pycharm.settings`; diff — `odpm plan --plan-show-diff`.
 
 ---
 
@@ -91,7 +91,7 @@ The interactive wizard in `developer` asks for `connect_host` and `suspend` only
 
 ### Workflow (step order matters)
 
-1. `odpm --skip-start` — the directive updates `docker-compose.yml`, `config.json`, **`.run/Odoo Debug Server.run.xml`**.
+1. `odpm prepare` — the directive updates `docker-compose.yml`, `config.json`, **`.run/Odoo Debug Server.run.xml`**.
 2. In PyCharm: **Run** (not Attach) the **Odoo Debug Server** configuration — in the Debug window: *Waiting for process connection...*
 3. `odpm` or `docker compose up` — the container calls `pydevd_pycharm.settrace(connect_host, port, suspend=...)`.
 4. With `ODPM_DEBUGGER_SUSPEND=1` — in PyCharm press **Resume**, then set breakpoints in addons.
@@ -141,9 +141,9 @@ Package: `pydevd-pycharm` (version pinned in odpm, see below).
 
 ## Switching backend
 
-After changing `ODPM_DEBUGGER_BACKEND`, run `odpm --skip-start` and restart the containers.
+After changing `ODPM_DEBUGGER_BACKEND`, run `odpm prepare` and restart the containers.
 
-When `ODPM_DEBUGGER_BACKEND` changes, odpm on `odpm --skip-start` **removes** the outdated odpm file (`.run/Odoo Remote Attach.run.xml` or `.run/Odoo Debug Server.run.xml`). User configurations in `.run/` are not affected.
+When `ODPM_DEBUGGER_BACKEND` changes, odpm on `odpm prepare` **removes** the outdated odpm file (`.run/Odoo Remote Attach.run.xml` or `.run/Odoo Debug Server.run.xml`). User configurations in `.run/` are not affected.
 
 When the backend changes, the venv is rebuilt with the required pip package (`debugpy` ↔ `pydevd-pycharm`).
 
@@ -157,7 +157,7 @@ The option is **off** by default.
 
 ## Imports and code analysis (Pylance / Pyright)
 
-On `odpm --skip-start` (`developer` scenario, `ODPM_IDE=vscode` or `both`), odpm generates `.vscode/settings.json` with **`python.analysis.extraPaths`** from the same repository graph that prepare uses:
+On `odpm prepare` (`developer` scenario, `ODPM_IDE=vscode` or `both`), odpm generates `.vscode/settings.json` with **`python.analysis.extraPaths`** from the same repository graph that prepare uses:
 
 - **platform** root (`odoo_src_dir`);
 - **developing** project;
@@ -173,7 +173,7 @@ Limitations:
 - Stubs cover the **`odoo` core**, not `odoo.addons.*` (the addons namespace is created at runtime).
 - The [vscode-odoo](https://marketplace.visualstudio.com/items?itemName=trinhanhngoc.vscode-odoo) extension already includes its own stubs — duplication is harmless.
 - On **server** / **ci**, `odoo-stubs` is removed from `odpm.json` (like debugger packages).
-- The file is **overwritten** on every `odpm --skip-start` — do not edit `extraPaths` manually in `.vscode/settings.json`.
+- The file is **overwritten** on every `odpm prepare` — do not edit `extraPaths` manually in `.vscode/settings.json`.
 
 ---
 
@@ -193,7 +193,7 @@ Use `ODPM_DEBUGGER_SUSPEND=1` and **first** start Debug Server in PyCharm, **the
 
 ### Verification without a full run (generation)
 
-After `odpm --skip-start` with `pydevd_connect`:
+After `odpm prepare` with `pydevd_connect`:
 
 - `config.json`: `"backend": "pydevd_connect"`;
 - compose: `extra_hosts`, no `DEBUGGER_PORT:DEBUGGER_PORT`;

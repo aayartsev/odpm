@@ -18,7 +18,7 @@ odpm provides a separate contract: you store values in `.odpm/secrets.json` on t
 | `.odpm/secrets.json` | no | you, `--secrets-file`, or `secrets.fetch` (Infisical / plugin) | **source** — the only place to edit on the host |
 | `.odpm/runtime/secrets.json` | no | odpm (`secrets.materialize`) | **runtime** — mounted into the container |
 
-On `odpm --init`, only **`secrets.example.json`** is copied. **`secrets.json`** is created manually, by copying from the example, or via CLI import.
+On `odpm init`, only **`secrets.example.json`** is copied. **`secrets.json`** is created manually, by copying from the example, or via CLI import.
 
 Directory layout: [project-layout](../reference/project-layout.md). Generated artifacts: [generated-files](../reference/generated-files.md).
 
@@ -51,7 +51,7 @@ When modules **cannot run** without API keys, declare it in manifest v2:
 
 You may omit `keys` — with `"required": true` odpm checks **file presence** only. Key names in the error message may come from `secrets.example.json` as a hint. Use manifest `keys` for strict per-key validation.
 
-odpm warns on `odpm manifest validate` and `odpm plan`, and on a full run (`odpm` without `--skip-start`) stops **before** database deploy and compose when `.odpm/secrets.json` is missing or still contains placeholders. See [`secrets` fields](../reference/odpm-json.md#secrets-block-required-local-secrets-47).
+odpm warns on `odpm manifest validate` and `odpm plan`, and on a full run (`odpm up`, not `odpm prepare`) stops **before** database deploy and compose when `.odpm/secrets.json` is missing or still contains placeholders. See [`secrets` fields](../reference/odpm-json.md#secrets-block-required-local-secrets-47).
 
 ## Source providers (4.7+, ADR-021)
 
@@ -80,7 +80,7 @@ INFISICAL_CLIENT_SECRET=…
 In `odpm.json` set `secrets.provider` with exactly one of `project_id` / `project_slug` and a required `environment_slug`. Overlay `scenarios.*.secrets.provider` **replaces** the whole object. Then:
 
 ```bash
-odpm --skip-start
+odpm prepare
 ```
 
 Network access to the Infisical API is required; no extra pip dependencies.
@@ -114,22 +114,22 @@ For **auxiliary** services (emulators, proxies), inject values from `.odpm/secre
 ```bash
 cp .odpm/secrets.example.json .odpm/secrets.json
 # edit values in .odpm/secrets.json
-odpm --skip-start
+odpm prepare
 docker compose up -d
 ```
 
 ### Option B: import on init
 
 ```bash
-odpm --init file:///path/to/developing-project \
+odpm init file:///path/to/developing-project \
      --secrets-file /secure/vault/client-secrets.json
-odpm --skip-start
+odpm prepare
 ```
 
 ### Option C: import on existing project
 
 ```bash
-odpm --secrets-file ~/Downloads/new-secrets.json --skip-start
+odpm prepare --secrets-file ~/Downloads/new-secrets.json
 docker compose up -d
 ```
 
@@ -138,7 +138,7 @@ Content is copied to `.odpm/secrets.json` with permissions **`0600`**. The sourc
 ## Full cycle after changing secrets
 
 1. Edit **`.odpm/secrets.json`** (or call `--secrets-file` again).
-2. Run **`odpm --skip-start`** — step **`secrets.materialize`** updates `.odpm/runtime/secrets.json` and rebuilds `docker-compose.yml` if needed.
+2. Run **`odpm prepare`** — step **`secrets.materialize`** updates `.odpm/runtime/secrets.json` and rebuilds `docker-compose.yml` if needed.
 3. Restart the Odoo container: **`docker compose up -d`** (or full `odpm`).
 4. Verify the mount (see below).
 
@@ -189,8 +189,8 @@ Typical usage: write to `ir.config_parameter` on module install, or read on each
 Example:
 
 ```bash
-odpm plan --skip-start
-odpm plan --skip-start --plan-show-diff
+odpm plan
+odpm plan --plan-show-diff
 ```
 
 ## Security
@@ -211,7 +211,7 @@ odpm plan --skip-start --plan-show-diff
 
 ### CI (GitHub Actions, developer/server pipeline)
 
-In the **`ci`** scenario (`odpm --build-image`) host secret mount is **still disabled** — secrets do not enter the image through this mechanism.
+In the **`ci`** scenario (`odpm build`) host secret mount is **still disabled** — secrets do not enter the image through this mechanism.
 
 For a **local developer/server pipeline** in Actions, use ephemeral JSON and `--secrets-file`:
 
@@ -222,13 +222,13 @@ For a **local developer/server pipeline** in Actions, use ephemeral JSON and `--
     {"schema_version":1,"secrets":{"payment.api_key":"${{ secrets.MODULE_PAYMENT_API_KEY }}"}}
     EOF
     chmod 600 /tmp/odpm-ci-secrets.json
-    odpm --secrets-file /tmp/odpm-ci-secrets.json --skip-start
+    odpm prepare --secrets-file /tmp/odpm-ci-secrets.json
   working-directory: /path/to/odpm-project
 ```
 
 The odpm repository verifies the contract in **`tests/test_ci_secrets_smoke.py`** (job `compose-smoke` in `ci-docker.yml`). Do not print secret values in logs.
 
-**Follow-up (Phase B, 4.4.1):** bake secrets into the CI image with `ODPM_BAKE_SECRETS=1` during `odpm --build-image` — see [ADR-002](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-002-ci-secrets-bake.md).
+**Follow-up (Phase B, 4.4.1):** bake secrets into the CI image with `ODPM_BAKE_SECRETS=1` during `odpm build` — see [ADR-002](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-002-ci-secrets-bake.md).
 
 ### CI image bake (`ODPM_BAKE_SECRETS=1`)
 
@@ -240,11 +240,11 @@ cat > /tmp/odpm-ci-secrets.json <<'EOF'
 {"schema_version":1,"secrets":{"payment.api_key":"${{ secrets.MODULE_PAYMENT_API_KEY }}"}}
 EOF
 chmod 600 /tmp/odpm-ci-secrets.json
-odpm --secrets-file /tmp/odpm-ci-secrets.json --skip-start
+odpm prepare --secrets-file /tmp/odpm-ci-secrets.json
 
 # 2. Bake into the image (explicit opt-in)
 export ODPM_BAKE_SECRETS=1
-odpm --build-image --image-tag myregistry/client-odoo:19.0
+odpm build --image-tag myregistry/client-odoo:19.0
 ```
 
 The image gets `COPY runtime/secrets.json → /run/odpm/secrets.json` and `ENV ODPM_SECRETS_PATH`. Without the flag or without `.odpm/secrets.json`, bake does not run.
@@ -268,9 +268,9 @@ The image gets `COPY runtime/secrets.json → /run/odpm/secrets.json` and `ENV O
 
 | Symptom | What to check |
 |---------|---------------|
-| No `/run/odpm/secrets.json` in container | Is `.odpm/secrets.json` present? Did you run `odpm --skip-start`? Scenario not `ci`? |
-| Stale values after edit | `odpm --skip-start` + `docker compose up -d` |
+| No `/run/odpm/secrets.json` in container | Is `.odpm/secrets.json` present? Did you run `odpm prepare`? Scenario not `ci`? |
+| Stale values after edit | `odpm prepare` + `docker compose up -d` |
 | Schema error | `schema_version: 1`, all values are strings |
-| Compose without volume | Remove source and regenerate compose; or add source and run `odpm --skip-start` again |
+| Compose without volume | Remove source and regenerate compose; or add source and run `odpm prepare` again |
 
 CLI flag: [`--secrets-file`](../reference/cli.md).

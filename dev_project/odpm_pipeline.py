@@ -206,8 +206,8 @@ class OdpmPipeline:
         if cli_allows_ci_explicit_mode(self.cli_args):
             return
         message = _(
-            "In the ci scenario use --skip-start or --build-image "
-            "(bare odpm compose up is not allowed)."
+            "In the ci scenario use odpm prepare or odpm build "
+            "(odpm up / bare compose up is not allowed)."
         )
         raise ConfigError(message)
 
