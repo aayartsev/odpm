@@ -10,7 +10,6 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.errors import PipelineError
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.base_image import BaseImageBuilder
-from dev_project.project_env.ci_image import CiImageBuilder
 from dev_project.project_env.services import (
     BaseImageService,
     CiImageBuildService,

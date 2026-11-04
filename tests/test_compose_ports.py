@@ -6,7 +6,6 @@ import os
 import unittest
 from unittest.mock import MagicMock
 
-from dev_project import constants
 from dev_project.compose.compose_document import build_compose_document
 from dev_project.compose.ports import (
     apply_host_port_offset,

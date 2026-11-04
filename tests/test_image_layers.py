@@ -13,7 +13,6 @@ from dev_project.image_layers.ensure import (
     _copy_deps_extra_addons,
     developing_project_path,
     ensure_deps,
-    ensure_platform,
     run_layered_build,
 )
 from dev_project.image_layers.family import (

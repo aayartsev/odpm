@@ -80,25 +80,33 @@ def apply_stack_database_flags(args: OdpmCliArgs) -> OdpmCliArgs:
     return args
 
 
-def normalize_cli_args(args: OdpmCliArgs) -> tuple[OdpmCliArgs, str | None]:
-    """Return ``(normalized_args, deprecation_warning_or_none)``."""
-    if args.command == params.DATABASE_SUBCOMMAND:
-        if args.database_subcommand in params.DATABASE_STACK_SUBCOMMANDS:
-            if _has_module_extras(args):
-                raise CliNormalizeError(
-                    'Module flags (-i/-u/…) are not allowed with '
-                    f'"odpm database {args.database_subcommand}". '
-                    'Use "odpm up --db-restore … -i …" for combined flows.'
-                )
-            return apply_stack_database_flags(args), None
-        if args.database_subcommand in params.DATABASE_HOST_SUBCOMMANDS:
-            if _has_module_extras(args) or _has_stack_db_flag(args):
-                raise CliNormalizeError(
-                    'Runtime/database flags are not allowed with '
-                    f'"odpm database {args.database_subcommand}".'
-                )
-            return args, None
+def _normalize_database_command(
+    args: OdpmCliArgs,
+) -> tuple[OdpmCliArgs, str | None]:
+    if args.database_subcommand in params.DATABASE_STACK_SUBCOMMANDS:
+        if _has_module_extras(args):
+            raise CliNormalizeError(
+                'Module flags (-i/-u/…) are not allowed with '
+                f'"odpm database {args.database_subcommand}". '
+                'Use "odpm up --db-restore … -i …" for combined flows.'
+            )
+        return apply_stack_database_flags(args), None
+    if args.database_subcommand in params.DATABASE_HOST_SUBCOMMANDS:
+        if _has_module_extras(args) or _has_stack_db_flag(args):
+            raise CliNormalizeError(
+                'Runtime/database flags are not allowed with '
+                f'"odpm database {args.database_subcommand}".'
+            )
         return args, None
+    return args, None
+
+
+def _normalize_explicit_command(
+    args: OdpmCliArgs,
+) -> tuple[OdpmCliArgs, str | None] | None:
+    """Handle args that already have ``command`` set. ``None`` → legacy path."""
+    if args.command == params.DATABASE_SUBCOMMAND:
+        return _normalize_database_command(args)
 
     if args.command in _HOST_TOOL_COMMANDS:
         if _has_module_extras(args) or _has_stack_db_flag(args):
@@ -107,33 +115,84 @@ def normalize_cli_args(args: OdpmCliArgs) -> tuple[OdpmCliArgs, str | None]:
             )
         return args, None
 
-    if args.command is not None:
-        if args.command == params.PREPARE_SUBCOMMAND:
-            if _has_stack_db_flag(args):
-                raise CliNormalizeError(
-                    'Stack database flags cannot be combined with "odpm prepare".'
-                )
-            return replace(args, skip_start=True), None
-        if args.command == params.BUILD_SUBCOMMAND:
-            if _has_stack_db_flag(args):
-                raise CliNormalizeError(
-                    'Stack database flags cannot be combined with "odpm build".'
-                )
-            return replace(args, build_image=True), None
-        if args.command == params.INIT_SUBCOMMAND:
-            if _has_stack_db_flag(args):
-                raise CliNormalizeError(
-                    'Stack database flags cannot be combined with "odpm init".'
-                )
-            return args, None
-        if args.command in {
-            params.UP_SUBCOMMAND,
-            params.SCAFFOLD_SUBPARSER_PARAM,
-        }:
-            return args, None
-        return args, None
+    if args.command is None:
+        return None
 
-    # --- No explicit subcommand: legacy / bare path (4.8) ---
+    if args.command == params.PREPARE_SUBCOMMAND:
+        if _has_stack_db_flag(args):
+            raise CliNormalizeError(
+                'Stack database flags cannot be combined with "odpm prepare".'
+            )
+        return replace(args, skip_start=True), None
+    if args.command == params.BUILD_SUBCOMMAND:
+        if _has_stack_db_flag(args):
+            raise CliNormalizeError(
+                'Stack database flags cannot be combined with "odpm build".'
+            )
+        return replace(args, build_image=True), None
+    if args.command == params.INIT_SUBCOMMAND:
+        if _has_stack_db_flag(args):
+            raise CliNormalizeError(
+                'Stack database flags cannot be combined with "odpm init".'
+            )
+        return args, None
+    if args.command in {
+        params.UP_SUBCOMMAND,
+        params.SCAFFOLD_SUBPARSER_PARAM,
+    }:
+        return args, None
+    return args, None
+
+
+def _legacy_stack_db_as_subcommand(
+    args: OdpmCliArgs,
+    warning: str,
+) -> tuple[OdpmCliArgs, str | None] | None:
+    if args.get_dbs_list is not None:
+        return (
+            replace(
+                args,
+                command=params.DATABASE_SUBCOMMAND,
+                database_subcommand=params.DATABASE_LIST_SUBCOMMAND,
+                get_dbs_list=args.get_dbs_list or "1",
+            ),
+            warning,
+        )
+    if args.db_backup is not None:
+        return (
+            replace(
+                args,
+                command=params.DATABASE_SUBCOMMAND,
+                database_subcommand=params.DATABASE_BACKUP_SUBCOMMAND,
+            ),
+            warning,
+        )
+    if args.db_restore:
+        return (
+            replace(
+                args,
+                command=params.DATABASE_SUBCOMMAND,
+                database_subcommand=params.DATABASE_RESTORE_SUBCOMMAND,
+            ),
+            warning,
+        )
+    if args.db_drop:
+        return (
+            replace(
+                args,
+                command=params.DATABASE_SUBCOMMAND,
+                database_subcommand=params.DATABASE_DROP_SUBCOMMAND,
+                db_drop=True,
+            ),
+            warning,
+        )
+    return None
+
+
+def _normalize_legacy_bare(
+    args: OdpmCliArgs,
+) -> tuple[OdpmCliArgs, str | None]:
+    """No explicit subcommand: 4.8 compatibility shim."""
     if args.version:
         return args, None
 
@@ -170,46 +229,11 @@ def normalize_cli_args(args: OdpmCliArgs) -> tuple[OdpmCliArgs, str | None]:
     if stack_count == 1 and not extras:
         warning = (
             "Legacy root database flags are deprecated; "
-            "use the matching \"odpm database …\" subcommand."
+            'use the matching "odpm database …" subcommand.'
         )
-        if args.get_dbs_list is not None:
-            return (
-                replace(
-                    args,
-                    command=params.DATABASE_SUBCOMMAND,
-                    database_subcommand=params.DATABASE_LIST_SUBCOMMAND,
-                    get_dbs_list=args.get_dbs_list or "1",
-                ),
-                warning,
-            )
-        if args.db_backup is not None:
-            return (
-                replace(
-                    args,
-                    command=params.DATABASE_SUBCOMMAND,
-                    database_subcommand=params.DATABASE_BACKUP_SUBCOMMAND,
-                ),
-                warning,
-            )
-        if args.db_restore:
-            return (
-                replace(
-                    args,
-                    command=params.DATABASE_SUBCOMMAND,
-                    database_subcommand=params.DATABASE_RESTORE_SUBCOMMAND,
-                ),
-                warning,
-            )
-        if args.db_drop:
-            return (
-                replace(
-                    args,
-                    command=params.DATABASE_SUBCOMMAND,
-                    database_subcommand=params.DATABASE_DROP_SUBCOMMAND,
-                    db_drop=True,
-                ),
-                warning,
-            )
+        mapped = _legacy_stack_db_as_subcommand(args, warning)
+        if mapped is not None:
+            return mapped
 
     bare_only = not (
         stack
@@ -228,3 +252,11 @@ def normalize_cli_args(args: OdpmCliArgs) -> tuple[OdpmCliArgs, str | None]:
     else:
         warning = 'Running without a subcommand is deprecated; use "odpm up …".'
     return replace(args, command=params.UP_SUBCOMMAND), warning
+
+
+def normalize_cli_args(args: OdpmCliArgs) -> tuple[OdpmCliArgs, str | None]:
+    """Return ``(normalized_args, deprecation_warning_or_none)``."""
+    explicit = _normalize_explicit_command(args)
+    if explicit is not None:
+        return explicit
+    return _normalize_legacy_bare(args)
