@@ -5,6 +5,7 @@ The site hosts several **documentation versions**. Use the version switcher in t
 | Version | Audience | Installing odpm |
 |---------|----------|-----------------|
 | **stable** (recommended) | production, new users | APT `stable` suite (**4.7.0**), [v4.7.0 release](https://github.com/aayartsev/odpm/releases/tag/v4.7.0) |
+| **4.8.0-beta** | 4.8 pre-release | APT/YUM **`testing`**, [v4.8.0-beta release](https://github.com/aayartsev/odpm/releases/tag/v4.8.0-beta) |
 | **4.7.0-beta** | archived 4.7 pre-release | APT/YUM **`testing`**, [v4.7.0-beta release](https://github.com/aayartsev/odpm/releases/tag/v4.7.0-beta) |
 | **4.6.0** / **4.6.0-beta** | archived 4.6 line | [v4.6.0](https://github.com/aayartsev/odpm/releases/tag/v4.6.0), [v4.6.0-beta](https://github.com/aayartsev/odpm/releases/tag/v4.6.0-beta) |
 | **4.5.0-beta** | archived 4.5 pre-release | APT/YUM **`testing`**, [v4.5.0-beta release](https://github.com/aayartsev/odpm/releases/tag/v4.5.0-beta) |
@@ -14,6 +15,7 @@ The site hosts several **documentation versions**. Use the version switcher in t
 ## Quick links
 
 - Stable install hub: `/stable/install/` (alias **stable**, currently **4.7.0**)
+- 4.8 beta: `/4.8.0-beta/install/`
 - Archived 4.7 beta: `/4.7.0-beta/install/`
 - Archived 4.6: `/4.6.0/install/` · `/4.6.0-beta/install/`
 - Archived 4.3: `/4.3.0/install/` (alias **4.3** in the switcher)

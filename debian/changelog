@@ -1,3 +1,11 @@
+odpm (4.8.0~beta-1) unstable; urgency=medium
+
+  * Pre-release 4.8.0-beta on branch 4.8.0-dev (layered CI images ADR-027,
+    explicit CLI verbs ADR-026, compose suffix/port offset, remote DB pull;
+    see CHANGELOG.md [4.8.0-beta] and .github/release-notes/4.8.0-beta.md).
+
+ -- odpm maintainers <odpm-maintainers@noreply.github.com>  Wed, 04 Nov 2026 20:00:00 +0000
+
 odpm (4.8.0~dev-1) unstable; urgency=medium
 
   * Development line 4.8.0-dev (remote DB pull, version display with git

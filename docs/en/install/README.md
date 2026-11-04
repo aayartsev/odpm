@@ -2,7 +2,7 @@
 
 !!! info "Use stable for production"
     For production, read **[stable](https://aayartsev.github.io/odpm/stable/en/install/)** docs (currently odpm **4.7.0**) and the APT/YUM **`stable`** suite.
-    Archived betas: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/), [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/), [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/), [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/), [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/).
+    Pre-release **4.8.0-beta** (APT/YUM **`testing`**): [4.8.0-beta](https://aayartsev.github.io/odpm/4.8.0-beta/en/install/). Archived betas: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/), [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/), [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/), [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/), [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/).
     See [Which docs to read](../getting-started/documentation-versions.md).
 
 Choose how to install **odpm** on the host (not the same as deploying an Odoo project with `odpm --init`).

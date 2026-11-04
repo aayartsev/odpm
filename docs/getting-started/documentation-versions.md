@@ -5,6 +5,7 @@
 | Версия | Кому | Установка odpm |
 |--------|------|----------------|
 | **stable** (рекомендуется) | production, новые пользователи | APT/YUM ветка `stable` (**4.7.0**), [релиз v4.7.0](https://github.com/aayartsev/odpm/releases/tag/v4.7.0) |
+| **4.8.0-beta** | предварительная версия 4.8 | APT/YUM **`testing`**, [релиз v4.8.0-beta](https://github.com/aayartsev/odpm/releases/tag/v4.8.0-beta) |
 | **4.7.0-beta** | архив предварительной версии 4.7 | APT/YUM **`testing`**, [релиз v4.7.0-beta](https://github.com/aayartsev/odpm/releases/tag/v4.7.0-beta) |
 | **4.6.0** / **4.6.0-beta** | архив линии 4.6 | [v4.6.0](https://github.com/aayartsev/odpm/releases/tag/v4.6.0), [v4.6.0-beta](https://github.com/aayartsev/odpm/releases/tag/v4.6.0-beta) |
 | **4.5.0-beta** | архив предварительной версии 4.5 | APT/YUM **`testing`**, [релиз v4.5.0-beta](https://github.com/aayartsev/odpm/releases/tag/v4.5.0-beta) |
@@ -14,6 +15,7 @@
 ## Быстрые ссылки
 
 - Стабильная установка: `/stable/install/` (alias **stable**, сейчас **4.7.0**)
+- Beta 4.8: `/4.8.0-beta/install/` · [инструкция APT](https://aayartsev.github.io/odpm/4.8.0-beta/install/linux-deb/)
 - Архив beta 4.7: `/4.7.0-beta/install/` · [инструкция APT](https://aayartsev.github.io/odpm/4.7.0-beta/install/linux-deb/)
 - Архив 4.6: `/4.6.0/install/` · `/4.6.0-beta/install/`
 - Архив 4.3: `/4.3.0/install/` (alias **4.3** в переключателе)

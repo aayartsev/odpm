@@ -34,9 +34,9 @@ odpm --version
 
 ### Предварительные версии (архив)
 
-Архив инструкций для beta: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/install/fedora-rpm/) · [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/).
+Текущая beta: [4.8.0-beta](https://aayartsev.github.io/odpm/4.8.0-beta/install/fedora-rpm/). Архив инструкций для beta: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/install/fedora-rpm/) · [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/).
 
-Ветка **`testing`** в YUM содержит архивные pre-release (в т.ч. **4.7.0-beta**) (`https://aayartsev.github.io/odpm/yum/odpm-testing.repo`).
+Ветка **`testing`** в YUM содержит pre-release (сейчас **4.8.0-beta**; архив **4.7.0-beta**) (`https://aayartsev.github.io/odpm/yum/odpm-testing.repo`).
 
 > Если `odpm-archive-keyring.asc` ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:
 >
@@ -55,7 +55,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Установка вручную (.rpm с GitHub Releases)
 
-Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для тега `v4.7.0` (stable), `v4.7.0-beta` (архив testing), `v4.6.0` (архив stable), `v4.6.0-beta` (архив testing), `v4.5.0` (архив stable), `v4.5.0-beta` (архив testing), `v4.4.3` (архив stable), `v4.4.3-beta` (архив testing) или `v4.4.2-beta` (архив beta), или соберите локально:
+Скачайте `odpm-*.rpm` из [GitHub Releases](https://github.com/aayartsev/odpm/releases) для тега `v4.7.0` (stable), `v4.8.0-beta` (testing), `v4.7.0-beta` (архив testing), `v4.6.0` (архив stable), `v4.6.0-beta` (архив testing), `v4.5.0` (архив stable), `v4.5.0-beta` (архив testing), `v4.4.3` (архив stable), `v4.4.3-beta` (архив testing) или `v4.4.2-beta` (архив beta), или соберите локально:
 
 ```bash
 ./scripts/build_rpm.sh

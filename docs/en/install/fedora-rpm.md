@@ -34,9 +34,9 @@ odpm --version
 
 ### Pre-release (archived)
 
-Archived beta guides: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/fedora-rpm/) · [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
+Current beta: [4.8.0-beta](https://aayartsev.github.io/odpm/4.8.0-beta/en/install/fedora-rpm/). Archived beta guides: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/fedora-rpm/) · [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/fedora-rpm/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/fedora-rpm/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/fedora-rpm/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/fedora-rpm/).
 
-The YUM **`testing`** suite contains archived pre-releases (including **4.7.0-beta**) (`https://aayartsev.github.io/odpm/yum/odpm-testing.repo`).
+The YUM **`testing`** suite contains pre-releases (currently **4.8.0-beta**; archived **4.7.0-beta**) (`https://aayartsev.github.io/odpm/yum/odpm-testing.repo`).
 
 > If `odpm-archive-keyring.asc` is not on Pages yet after a release, import from the APT binary keyring:
 >
@@ -57,7 +57,7 @@ sudo dnf makecache && sudo dnf upgrade odpm
 
 ## Manual install (.rpm from GitHub Releases)
 
-Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.7.0` (stable), `v4.7.0-beta` (archived testing), `v4.6.0` (archived stable), `v4.6.0-beta` (archived testing), `v4.5.0` (archived stable), `v4.5.0-beta` (archived testing), `v4.4.3` (archived stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
+Download `odpm-*.rpm` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for tag `v4.7.0` (stable), `v4.8.0-beta` (testing), `v4.7.0-beta` (archived testing), `v4.6.0` (archived stable), `v4.6.0-beta` (archived testing), `v4.5.0` (archived stable), `v4.5.0-beta` (archived testing), `v4.4.3` (archived stable), `v4.4.3-beta` (archived testing), or `v4.4.2-beta` (archived beta), or build locally:
 
 ```bash
 ./scripts/build_rpm.sh

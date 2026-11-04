@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.8.0-beta] - 2026-11-04
+
+**Pre-release 4.8.0-beta** on branch `4.8.0-dev`; stable line remains **4.7.0** (`LATEST_STABLE_RELEASE`). Layered CI images, explicit CLI verbs, compose suffix/port offset, remote DB pull. No breaking changes for v1 flat `odpm.json`; 4.8 features remain opt-in except the CI image build path (ADR-027).
+
 ### Breaking
 
 - **Layered CI images only** — `odpm build` / `odpm image … ensure` build via stages `base → platform → [deps] → app` (lint separate FROM platform). Monolithic final `dockerfile_ci` bake-in-app path is no longer the build path; venv lives in **platform**. Optional **deps** when lock/manifest has `dependencies`. Registry tag families **dev** (`ODPM_BASE_IMAGE_PROFILE=full`) and **runtime** (`medium`); scenario `ci` and base profile `ci` are **not** renamed. Flow: `prepare --stop-after sources` → plan miss → ensure. `odpm image` uses scoped prepare (sources + secrets). Remote presence / publish-tag alias after kaniko need `crane`. ADR-027. Tests: `test_image_layers`, `test_cli_image`. Docs: `cli.md`, `scenarios/ci.md`, CHANGELOG.
@@ -20,10 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Compose suffix + port offset** — optional `ODPM_COMPOSE_SUFFIX` is a full peer of `ODPM_COMPOSE_PREFIX` for physical stack naming (`db-dev`, `acme-odoo-dev`, `-p`); `ODPM_PORT_OFFSET` shifts host publish ports and host-facing core ports (`effective_*`), including debugger under `pydevd_connect`. Fragments on disk stay unoffset; database status shows effective postgres port while snapshot keeps raw. Docs: `env-dotenv.md`, ADR-012/014. Tests: `test_compose_service_names`, `test_compose_ports`, `test_compose_network`.
 - **Remote DB pull** — `odpm database pull` downloads a zip from a remote Odoo `/web/database/backup` into `BACKUP_DIR` (master password via env `ODPM_REMOTE_DB_MASTER_PWD` only). Builtin recipe `odpm run pull-remote-db` is a pull+restore **shortcut** only; full pipelines (restore + `-i`/`-u`/`--set-admin-pass`) are composed in shell from the pull primitive. Host HTTP helper in `dev_project/tools/http_download.py`. Intended for developer/server. Docs: `cli.md`, `recipes.md`. Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **Remote pull UX** — preflight `/web/database/list` (DB found / missing); logs for auth success and download start; MiB progress heartbeats via logger; recipe `capture` keeps stderr live (stdout-only pipe). Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
-- **Dev version line + git build stamp** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` remains `4.7.0`). `odpm --version` prints `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` when sources sit in a git checkout; installed packages without `.git` print the version only. CI/docs workflows and `mkdocs` `edit_uri` target `4.8.0-dev`. Docs: `release-lines.md`, `packaging.md`. Tests: `test_version_info`, `test_release_packaging`.
+- **Dev version line + git build stamp** — development line started as `4.8.0-dev` (`LATEST_STABLE_RELEASE` remains `4.7.0`). `odpm --version` prints `odpm version: … (sha, YYYY-MM-DD)` when sources sit in a git checkout; installed packages without `.git` print the version only. CI/docs workflows and `mkdocs` `edit_uri` target `4.8.0-dev`. Docs: `release-lines.md`, `packaging.md`. Tests: `test_version_info`, `test_release_packaging`.
 
 ### Changed
 
+- **Release gate (R8 / 4.8.0-dev)** — `RELEASE_VERSION` → `4.8.0-beta`; `LATEST_STABLE_RELEASE` remains `4.7.0`; deb/rpm pre-release packaging synced; install docs and documentation-versions hub list **4.8.0-beta** in APT/YUM **testing**.
 - **Golden-path major from project catalog** — schema/`refresh` match installed `base` to the numeric major of that directory’s `odpm.json` (one catalog per Odoo major); no longer hard-fail unless version is exactly `19.x`. Docs: `demo-projects.md`, `ci.md`, ADR-006. Tests: `test_golden_path`.
 - **Golden-path ephemeral `/tmp` wrapper** — CI bootstraps a fresh project under `/tmp` (`bootstrap_golden_path_project.sh`); git clones / images stay in the runner home. Secret `ODPM_GOLDEN_PATH_PROJECT` is optional override; `ODPM_GOLDEN_PATH_MAJOR` selects the demo branch. Job timeout 15 min. Docs: `ci.md`, ADR-006. Tests: `test_ci_docker_workflow`, `test_release_packaging`.
 

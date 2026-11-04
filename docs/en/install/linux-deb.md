@@ -39,9 +39,9 @@ odpm --version
 
 ### Pre-release (archived)
 
-Archived beta guides: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/linux-deb/) · [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/linux-deb/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/).
+Current beta: [4.8.0-beta](https://aayartsev.github.io/odpm/4.8.0-beta/en/install/linux-deb/). Archived beta guides: [4.7.0-beta](https://aayartsev.github.io/odpm/4.7.0-beta/en/install/linux-deb/) · [4.6.0-beta](https://aayartsev.github.io/odpm/4.6.0-beta/en/install/linux-deb/) · [4.5.0-beta](https://aayartsev.github.io/odpm/4.5.0-beta/en/install/linux-deb/) · [4.4.3-beta](https://aayartsev.github.io/odpm/4.4.3-beta/en/install/linux-deb/) · [4.4.2-beta](https://aayartsev.github.io/odpm/4.4.2-beta/en/install/linux-deb/).
 
-The APT **`testing`** suite contains archived pre-releases (including **4.7.0-beta**).
+The APT **`testing`** suite contains pre-releases (currently **4.8.0-beta**; archived **4.7.0-beta**).
 
 Updates on later releases:
 
@@ -51,7 +51,7 @@ sudo apt update && sudo apt upgrade odpm
 
 ## Manual install (.deb from GitHub Releases)
 
-Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.7.0` — stable, `v4.7.0-beta` — archived testing, `v4.6.0` — archived stable, `v4.6.0-beta` — archived testing, `v4.5.0` — archived stable, `v4.5.0-beta` — archived testing, `v4.4.3` — archived stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta), or build locally:
+Download `odpm_*_all.deb` from [GitHub Releases](https://github.com/aayartsev/odpm/releases) for the tag you need (`v4.7.0` — stable, `v4.8.0-beta` — testing, `v4.7.0-beta` — archived testing, `v4.6.0` — archived stable, `v4.6.0-beta` — archived testing, `v4.5.0` — archived stable, `v4.5.0-beta` — archived testing, `v4.4.3` — archived stable, `v4.4.3-beta` — archived testing, `v4.4.2-beta` — archived beta), or build locally:
 
 ```bash
 ./scripts/build_deb.sh

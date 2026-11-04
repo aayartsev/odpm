@@ -39,6 +39,7 @@ class InstallDocsP2Tests(unittest.TestCase):
         stable_ver = constants.LATEST_STABLE_RELEASE
         self.assertIn(f"odpm version: {stable_ver}", text)
         self.assertIn(stable_ver, text)
+        self.assertIn("4.8.0-beta", text)
         self.assertIn("4.7.0-beta", text)
 
     def test_fedora_rpm_uses_pages_repo_files_en(self):
@@ -54,8 +55,10 @@ class InstallDocsP2Tests(unittest.TestCase):
         for rel in ("docs/install/README.md", "docs/en/install/README.md"):
             text = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
             self.assertIn(stable_ver, text)
+            self.assertIn("4.8.0-beta", text)
             self.assertIn("4.7.0-beta", text)
             self.assertIn("/odpm/stable/", text)
+            self.assertIn("/4.8.0-beta/", text)
             self.assertIn("/4.7.0-beta/", text)
             self.assertIn("/4.6.0-beta/", text)
             if rel.startswith("docs/install/"):
@@ -77,9 +80,11 @@ class InstallDocsP2Tests(unittest.TestCase):
             with self.subTest(doc=rel):
                 self.assertIn(stable_ver, text)
                 self.assertIn(f"odpm version: {stable_ver}", text)
+                self.assertIn("4.8.0-beta", text)
                 self.assertIn("4.7.0-beta", text)
                 self.assertIn("4.6.0-beta", text)
                 self.assertIn("/4.6.0-beta/", text)
+                self.assertIn("/4.8.0-beta/", text)
                 self.assertIn("/4.7.0-beta/", text)
 
     def test_release_notes_use_versioned_doc_urls(self):
@@ -138,6 +143,19 @@ class InstallDocsP2Tests(unittest.TestCase):
         self.assertIn("/4.7.0-beta/en/install/fedora-rpm/", beta47)
         self.assertIn("/4.7.0-beta/install/", beta47)
         self.assertIn("/4.7.0-beta/en/install/", beta47)
+        beta48 = (notes_dir / "4.8.0-beta.md").read_text(encoding="utf-8")
+        self.assertIn("/odpm/stable/", beta48)
+        self.assertIn("/odpm/4.8.0-beta/", beta48)
+        self.assertIn("odpm_4.8.0~beta-1_all.deb", beta48)
+        self.assertIn("odpm-4.8.0-beta.fc", beta48)
+        self.assertIn("odpm==4.8.0-beta", beta48)
+        self.assertIn("github.com/aayartsev/odpm/blob/v4.8.0-beta/CHANGELOG.md", beta48)
+        self.assertIn("/4.8.0-beta/install/linux-deb/", beta48)
+        self.assertIn("/4.8.0-beta/en/install/linux-deb/", beta48)
+        self.assertIn("/4.8.0-beta/install/fedora-rpm/", beta48)
+        self.assertIn("/4.8.0-beta/en/install/fedora-rpm/", beta48)
+        self.assertIn("/4.8.0-beta/install/", beta48)
+        self.assertIn("/4.8.0-beta/en/install/", beta48)
 
     def test_mkdocs_edit_uri_targets_active_dev_branch(self):
         text = (PROJECT_ROOT / "mkdocs.yml").read_text(encoding="utf-8")
