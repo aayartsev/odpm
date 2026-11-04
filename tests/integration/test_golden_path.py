@@ -1,4 +1,4 @@
-"""Opt-in golden-path E2E: docker compose up + host-side HTTP 200 on /web."""
+"""Opt-in golden-path E2E: docker compose up + host-side HTTP ready (path from odpm.json)."""
 
 from __future__ import annotations
 
@@ -14,6 +14,11 @@ from tests.integration.compose_golden_patch import (
     find_free_port,
     patch_compose_for_golden_path,
     postgres_service_name_from_compose,
+)
+from tests.integration.golden_path_odoo_version import (
+    golden_path_http_probe,
+    odoo_major_from_version,
+    odoo_version_from_project,
 )
 from tests.integration.helpers import compose_service_logs, write_compose_debug_bundle
 from tests.integration.http_wait import HttpWaitTimeoutError, wait_for_http_ok
@@ -169,9 +174,16 @@ class GoldenPathIntegrationTests(unittest.TestCase):
                 f"--- stdout ---\n{up.stdout}\n\n"
                 f"--- stderr ---\n{up.stderr}"
             )
-        url = f"http://127.0.0.1:{self.odoo_host_port}/web"
+        odoo_version = odoo_version_from_project(self.project_dir)
+        major = odoo_major_from_version(odoo_version)
+        probe_path, accept_codes = golden_path_http_probe(major)
+        url = f"http://127.0.0.1:{self.odoo_host_port}{probe_path}"
         try:
-            wait_for_http_ok(url, timeout=GOLDEN_PATH_TIMEOUT)
+            wait_for_http_ok(
+                url,
+                timeout=GOLDEN_PATH_TIMEOUT,
+                accept_status_codes=accept_codes,
+            )
         except HttpWaitTimeoutError as error:
             if DEBUG_BUNDLE_DIR:
                 write_compose_debug_bundle(
@@ -191,8 +203,12 @@ class GoldenPathIntegrationTests(unittest.TestCase):
             )
             hint = golden_path_maintenance_hint(odoo_logs=odoo_logs, db_logs=db_logs)
             hint_block = f"\n\n--- maintenance ---\n{hint}" if hint else ""
+            version_line = (
+                f"odpm.json odoo_version={odoo_version!r} major={major!r} "
+                f"probe={probe_path} accept={sorted(accept_codes)}\n\n"
+            )
             raise AssertionError(
-                f"{error}\n\n--- odoo logs (tail) ---\n{odoo_logs}\n\n"
+                f"{version_line}{error}\n\n--- odoo logs (tail) ---\n{odoo_logs}\n\n"
                 f"--- {self.postgres_service} logs (tail) ---\n{db_logs}"
                 f"{hint_block}"
             ) from error
@@ -200,6 +216,29 @@ class GoldenPathIntegrationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GoldenPathOdooVersionProbeTests(unittest.TestCase):
+    def test_probe_path_follows_odpm_json_major(self) -> None:
+        self.assertEqual(odoo_major_from_version("19.0"), 19)
+        self.assertEqual(odoo_major_from_version("20.0"), 20)
+        self.assertIsNone(odoo_major_from_version(None))
+        self.assertEqual(golden_path_http_probe(19), ("/web", {200, 303}))
+        self.assertEqual(golden_path_http_probe(20), ("/web/login", {200}))
+        self.assertEqual(golden_path_http_probe(None), ("/web", {200, 303}))
+
+    def test_odoo_version_from_project_reads_odpm_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "odpm.json").write_text(
+                '{"odoo_version": "20.0"}',
+                encoding="utf-8",
+            )
+            self.assertEqual(odoo_version_from_project(root), "20.0")
+            self.assertEqual(
+                golden_path_http_probe(odoo_major_from_version("20.0")),
+                ("/web/login", {200}),
+            )
 
 
 class GoldenPathMaintenanceHintTests(unittest.TestCase):
@@ -270,6 +309,12 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("needs a numeric odpm.json odoo_version", refresh)
         self.assertIn("one directory per Odoo major", refresh)
         self.assertIn("golden-path schema major=", refresh)
+        # HTTP probe path is chosen from project odpm.json (see golden_path_odoo_version).
+        self.assertIn("golden_path_http_probe", Path(__file__).read_text(encoding="utf-8"))
+        self.assertIn(
+            "odoo_version_from_project",
+            Path(__file__).read_text(encoding="utf-8"),
+        )
         bootstrap = (root / "scripts" / "bootstrap_golden_path_project.sh").read_text(
             encoding="utf-8"
         )

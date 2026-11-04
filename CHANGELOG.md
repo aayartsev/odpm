@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Golden-path HTTP probe from `odpm.json`** — readiness URL follows project `odoo_version` major: **≥ 20** → `/web/login` (200); older → `/web` (200/303). Avoids false FAIL on Odoo 20 where unauthenticated `/web` returns 403. Docs: `ci.md`, ADR-006. Tests: `test_golden_path`, `golden_path_odoo_version`.
 - **Golden-path remedi ate ensures app role** — after postgres volume wipe the official image only creates the admin role; remedi ate now runs `odpm database ensure-role` (ready check via `POSTGRES_ADMIN_USER`) before `odpm up -i`, so Odoo no longer fails with `Role "odoo" does not exist`. Docs: `ci.md`. Tests: `test_golden_path`.
 - **`database pull` remote-db path safety** — `--remote-db` must be a single path segment (no `/`, `\`, or null bytes); archive path is resolved under `BACKUP_DIR`. Tests: `test_http_download`, `test_database_pull_cli`.
 - **Empty git URL → ConfigError** — `normalize_repo_url` / `repo_url_for_link` no longer raise `IndexError` on empty/whitespace URLs; host `odoo_git_link` and `dependencies[i]` are validated at bootstrap. Tests: `test_deps_lock`, `test_host_config`.

@@ -63,7 +63,7 @@ ODPM_COMPOSE_SMOKE_MAILPIT=1 ./scripts/run_compose_smoke_mailpit_test.sh
 
 По умолчанию CI создаёт **эфемерную обёртку** в `/tmp` (`scripts/bootstrap_golden_path_project.sh` → `odpm init` demo на branch `${MAJOR}.0`). Клоны platform/deps и Docker-образы остаются в **home** runner (`ODOO_PROJECTS_DIR` / docker). БД в обёртке сбрасывается между прогонами (чистый init при remedi ate) — это ожидаемо.
 
-Дальше: `refresh_golden_path_project.sh` → `odpm prepare` (+ remedi ate при `AUTO_REMEDIATE=1`) → `preflight_golden_path_project.sh` → unittest `docker compose up` + HTTP 200 на `/web`. Pre-release additionally installs the built `.deb` on the runner host. Job budget ≈ **15** мин.
+Дальше: `refresh_golden_path_project.sh` → `odpm prepare` (+ remedi ate при `AUTO_REMEDIATE=1`) → `preflight_golden_path_project.sh` → unittest `docker compose up` + HTTP ready. Путь probe берётся из **`odpm.json` `odoo_version`**: major **≥ 20** → `/web/login` (200); иначе → `/web` (200/303). Pre-release additionally installs the built `.deb` on the runner host. Job budget ≈ **15** мин.
 
 Пропуск refresh локально (если проект уже освежён): `ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ./scripts/run_golden_path_test.sh`.  
 Офлайн / без git на runner: `ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1` (как раньше `--no-git-update`; не чинит drift ветки платформы на `master`).
@@ -82,6 +82,7 @@ ODPM_COMPOSE_SMOKE_MAILPIT=1 ./scripts/run_compose_smoke_mailpit_test.sh
 | HTTP 500, в odoo: `res.lang` / `_get_data` / `QWebException` на `/web/login` | Часто та же причина: БД или addons не соответствуют Odoo 19 на диске runner. Пересоздать `test_db` как в строке выше; затем `docker compose down` и повторить golden-path. |
 | Postgres did not become ready после accept `postgres_major` | Accept обновляет только `last_run.json`, не data dir. Старый `PG_VERSION` ломает новый image. Refresh с `AUTO_REMEDIATE=1` теперь wipe+remediate; вручную: wipe через alpine (см. выше) + `odpm -d test_db --skip-start --accept-database-drift=postgres_major`. |
 | Odoo: `Role "odoo" does not exist` / password authentication failed | После wipe тома образ Postgres создаёт только админа (`POSTGRES_ADMIN_USER`). Remedi ate вызывает `odpm database ensure-role` перед `odpm up`. Вручную: `docker compose up -d db` → `odpm database ensure-role` → снова golden-path. |
+| HTTP 403 на `/web` при Odoo 20+ | Unauthenticated `/web` may return 403; unittest читает major из `odpm.json` и для **≥ 20** ждёт `/web/login`. Проверьте `odoo_version` в манифесте каталога и `ODPM_GOLDEN_PATH_MAJOR` при bootstrap. |
 | `odpm.json odoo_version` отсутствует / без numeric major | Битый манифест после bootstrap или переопределённый secret на неверный путь. Задайте `ODPM_GOLDEN_PATH_MAJOR` / проверьте demo init — [demo-projects.md](demo-projects.md). |
 | Долгий cold start / timeout | Убедитесь, что `~/.odpm/.env` на runner задаёт `ODOO_PROJECTS_DIR` в home (клоны уже есть); images в Docker cache. |
 | `no such service: db-dev` после remedi ate / refresh | Имя postgres-сервиса в старом compose/`.env` (`POSTGRES_SERVICE_NAME=db-dev`) не совпадает с перегенерированным compose (дефолт `db`). Refresh перечитывает сервис из compose после каждого `odpm`; на runner всё равно выровняйте `.env` (`POSTGRES_SERVICE_NAME=db` или уберите переменную) и сделайте `odpm --skip-start --no-git-update`. |
