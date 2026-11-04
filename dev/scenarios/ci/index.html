@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -35,10 +35,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2105,15 +2105,19 @@
 <tbody>
 <tr>
 <td><strong>Образ</strong></td>
-<td>Создаётся командой <code>odpm build</code> (доступна <strong>только</strong> в этом сценарии). Бэкенд: <code>docker</code> (по умолчанию) или <code>kaniko</code> — см. <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
+<td>Слоистая сборка (ADR-027): <code>odpm prepare --stop-after sources</code> → анализ miss → <code>odpm image &lt;слой&gt; ensure</code> или ярлык <code>odpm build</code> (base → platform → deps? → app). Доступно <strong>только</strong> в этом сценарии. Бэкенд: <code>docker</code> / <code>kaniko</code> — <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
+</tr>
+<tr>
+<td><strong>Семейства слоёв</strong></td>
+<td>Теги registry: <strong>dev</strong> ↔ профиль base <code>full</code> (браузер); <strong>runtime</strong> ↔ <code>medium</code> (wkhtml, без браузера). Задаётся <code>ODPM_BASE_IMAGE_PROFILE</code>. Сценарий <code>ci</code> и профиль <code>ci</code> <strong>не</strong> переименовываются.</td>
 </tr>
 <tr>
 <td><strong>Исходники</strong></td>
-<td>Внутри образа, без подключения с хоста.</td>
+<td>Сначала слепок на хосте (<code>--stop-after sources</code>); в финальном образе — без mount с хоста.</td>
 </tr>
 <tr>
 <td><strong>Окружение Python</strong></td>
-<td>Собрано при сборке образа, не пересоздаётся при каждом <code>up</code>.</td>
+<td>Bake venv в слое <strong>platform</strong>, не в app.</td>
 </tr>
 <tr>
 <td><strong>Отладчик</strong></td>
@@ -2136,11 +2140,19 @@
 <h2 id="_3">Типичный конвейер<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>отправка в git → машина сборки
   → ODPM_SCENARIO=ci
-  → odpm prepare
-  → odpm build [--image-tag реестр/проект:метка] [--image-builder docker|kaniko] [--image-push]
-  → публикация образа (или --image-push / артефакт tar для kaniko)
+  → ODPM_BASE_IMAGE_PROFILE=full   # семейство dev; или medium → runtime
+  → odpm prepare --stop-after sources
+  → odpm plan                      # отпечатки / hit-miss слоёв
+  → odpm image base ensure
+  → odpm image platform ensure
+  → odpm image deps ensure         # noop, если нет dependencies
+  → odpm image app ensure --image-tag реестр/проект:метка [--image-push]
+  # либо ярлык:
+  → odpm build [--image-tag …] [--image-builder docker|kaniko] [--image-push]
+  → опционально: odpm image lint ensure
   → развёртывание (ваши инструменты)
 </code></pre></div>
+<p>Для проверки наличия слоёв в remote registry нужен <strong><code>crane digest</code></strong> (иначе fail-fast). Для публикации alias publish-тега после kaniko (<code>--image-push</code> / <code>ODPM_CI_IMAGE_PUSH</code>, когда fingerprint-cache не в локальном Docker) нужен <strong><code>crane copy</code></strong>. Принудительная пересборка текущего слоя: <code>ODPM_IMAGE_FORCE_REBUILD=1</code>.</p>
 <h2 id="_4">Чеклист<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ol>
 <li>В git: <code>odpm.json</code> и закоммиченный <code>.odpm/deps.lock.json</code>.</li>
@@ -2158,7 +2170,12 @@
 <span class="c1"># ODPM_CI_IMAGE_PUSH=1</span>
 
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_SCENARIO</span><span class="o">=</span>ci
-odpm<span class="w"> </span>prepare
+<span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_BASE_IMAGE_PROFILE</span><span class="o">=</span>full<span class="w">   </span><span class="c1"># семейство dev</span>
+odpm<span class="w"> </span>prepare<span class="w"> </span>--stop-after<span class="w"> </span>sources
+odpm<span class="w"> </span>plan
+odpm<span class="w"> </span>image<span class="w"> </span>platform<span class="w"> </span>ensure
+odpm<span class="w"> </span>image<span class="w"> </span>app<span class="w"> </span>ensure<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
+<span class="c1"># ярлык всей цепочки без lint:</span>
 odpm<span class="w"> </span>build<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0
 odpm<span class="w"> </span>build<span class="w"> </span>--image-builder<span class="w"> </span>kaniko<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 <span class="nv">ODPM_CI_IMAGE_BUILDER</span><span class="o">=</span>kaniko<span class="w"> </span><span class="nv">ODPM_KANIKO_EXECUTOR_MODE</span><span class="o">=</span>direct<span class="w"> </span><span class="se">\</span>
@@ -2170,7 +2187,7 @@ docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> 
 <span class="nv">ODOO_SVC</span><span class="o">=</span>odoo
 docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span><span class="s2">"</span><span class="nv">$ODOO_SVC</span><span class="s2">"</span><span class="w"> </span>odoo-bin<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>base<span class="w"> </span>--stop-after-init
 </code></pre></div>
-<p>В сценарии <code>ci</code> запрещены <code>odpm up</code>, <code>scaffold</code> и стековые <code>database backup|restore|drop|list</code>. Разрешены <code>prepare</code> / <code>build</code> / <code>init</code> / <code>plan</code> / <code>manifest</code> / <code>modules</code> / <code>run</code> / host-<code>database</code> / <code>--version</code>/<code>-V</code> (и legacy-синонимы) — см. <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>, <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md">ADR-026</a>.</p>
+<p>В сценарии <code>ci</code> запрещены <code>odpm up</code>, <code>scaffold</code> и стековые <code>database backup|restore|drop|list</code>. Разрешены <code>prepare</code> / <code>build</code> / <strong><code>image</code></strong> / <code>init</code> / <code>plan</code> / <code>manifest</code> / <code>modules</code> / <code>run</code> / host-<code>database</code> / <code>--version</code>/<code>-V</code> (и legacy-синонимы) — см. <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md">ADR-017</a>, <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md">ADR-026</a>, <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md">ADR-027</a>.</p>
 <h2 id="postgresql-ci-adr-022">Внешняя PostgreSQL в <code>ci</code> (ADR-022)<a class="headerlink" href="#postgresql-ci-adr-022" title="Permanent link">&para;</a></h2>
 <p>В effective slice <code>ci</code> можно задать <code>db_*</code> в <code>odoo_conf.options</code> (в <code>developer</code> / <code>server</code> эти ключи по-прежнему запрещены). Credentials лучше через <code>${@secret:…}</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2255,10 +2272,10 @@ odpm<span class="w"> </span>--init<span class="w"> </span>https://github.com/exa
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

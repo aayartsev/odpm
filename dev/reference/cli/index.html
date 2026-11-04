@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -35,10 +35,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2291,7 +2291,11 @@
 </tr>
 <tr>
 <td><code>odpm build</code></td>
-<td>Сборка CI-образа (вместо <code>--build-image</code>)</td>
+<td>Сборка финального CI-образа слоями (вместо <code>--build-image</code>)</td>
+</tr>
+<tr>
+<td><code>odpm image …</code></td>
+<td>Один слой: <code>base</code> / <code>platform</code> / <code>deps</code> / <code>app</code> / <code>lint</code> + <code>ensure</code></td>
 </tr>
 <tr>
 <td><code>odpm plan</code></td>
@@ -2414,6 +2418,10 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 <td>Пересоздать Docker-файлы и compose <strong>без</strong> запуска контейнеров</td>
 </tr>
 <tr>
+<td><code>odpm prepare --stop-after sources</code></td>
+<td>Только слепок исходников (git / links); без Docker, compose и секретов</td>
+</tr>
+<tr>
 <td><code>odpm prepare --update-lock</code></td>
 <td>Записать <code>.odpm/deps.lock.json</code> и завершить работу</td>
 </tr>
@@ -2422,12 +2430,20 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 <td>Не трогать git; lock <strong>не читается</strong>; каталоги должны уже существовать</td>
 </tr>
 <tr>
+<td><code>odpm image &lt;слой&gt; ensure</code></td>
+<td>Обеспечить слой CI-образа: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); перед сборкой — узкий prepare (исходники + секреты, без compose/шаблонов)</td>
+</tr>
+<tr>
+<td><code>odpm image … --from REF</code></td>
+<td>Явный родитель для <code>deps</code> / <code>app</code> (иначе platform или deps)</td>
+</tr>
+<tr>
 <td><code>odpm build</code></td>
-<td>Собрать образ для сценария <strong><code>ci</code></strong> (иначе ошибка)</td>
+<td>Ярлык цепочки слоёв для сценария <strong><code>ci</code></strong>: base → platform → deps? → app (иначе ошибка)</td>
 </tr>
 <tr>
 <td><code>--image-tag МЕТКА</code></td>
-<td>Имя и тег образа Docker для <code>odpm build</code></td>
+<td>Имя и тег финального образа для <code>build</code> / <code>image app ensure</code></td>
 </tr>
 <tr>
 <td><code>--image-builder {docker,kaniko}</code></td>
@@ -2435,7 +2451,7 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 </tr>
 <tr>
 <td><code>--image-push</code></td>
-<td>После сборки опубликовать образ</td>
+<td>После сборки опубликовать образ (alias publish-тега после kaniko — через <code>crane copy</code>)</td>
 </tr>
 <tr>
 <td><code>-V</code>, <code>--version</code></td>
@@ -2443,7 +2459,8 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 </tr>
 </tbody>
 </table>
-<p>Устаревшие синонимы: <code>--skip-start</code> → <code>odpm prepare</code>; <code>--build-image</code> → <code>odpm build</code>.</p>
+<p>Поток CI: <code>prepare --stop-after sources</code> → <code>plan</code> (hit/miss слоёв) → <code>image … ensure</code> или <code>build</code>. Семейства тегов registry: <strong>dev</strong> (профиль <code>full</code>) и <strong>runtime</strong> (профиль <code>medium</code>) через <code>ODPM_BASE_IMAGE_PROFILE</code>. Сценарий <code>ci</code> и профиль base <code>ci</code> <strong>не</strong> переименовываются. Подробнее: <a href="../../scenarios/ci/">сценарий ci</a>, <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md">ADR-027</a>.</p>
+<p>Устаревшие синонимы: <code>--skip-start</code> → <code>odpm prepare</code>; <code>--build-image</code> → <code>odpm build</code> (слоистая цепочка).</p>
 <h2 id="_5">План изменений (пробный прогон)<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>Показывает, какие шаги подготовки выполнились бы, <strong>без</strong> изменения git, записи файлов и <code>docker compose up</code>.</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan
@@ -2821,10 +2838,10 @@ odpm<span class="w"> </span>scaffold<span class="w"> </span>имя_модуля<
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>
