@@ -18,13 +18,15 @@ Accepted (4.8-dev track).
 
 4. **Fingerprints (schema v1)** after sources: platform includes Odoo pin, extras, **platform** git SHA only, profile, dockerfile sha, python/distro/arch/venv; deps includes dependency SHAs + platform-ref; lint includes pre-commit config hashes; app includes `developing_git_sha` + parent-ref. `service_sources` never enter image fingerprints.
 
-5. **Presence:** base per ADR-019 (stamp); platform/deps/app/lint remote refs via `crane digest` (fail-fast if missing); local via `docker image inspect`. `ODPM_IMAGE_FORCE_REBUILD=1` forces the current layer only.
+5. **Presence:** base per ADR-019 (stamp); platform/deps/app/lint remote refs via `crane digest` (fail-fast if missing); local via `docker image inspect`. `ODPM_IMAGE_FORCE_REBUILD=1` forces the current layer only. Publish-tag alias after kaniko (`--image-push`) uses `crane copy` when the fingerprint cache ref is not local.
 
-6. **CLI:** `odpm image {base|platform|deps|app|lint} ensure`; shared `--image-tag` / `--image-push` / `--image-builder` / `--from` where applicable. Allowlisted under scenario `ci` (extends ADR-017).
+6. **CLI:** `odpm image {base|platform|deps|app|lint} ensure`; shared `--image-tag` / `--image-push` / `--image-builder` / `--from` where applicable. Allowlisted under scenario `ci` (extends ADR-017). `odpm image … ensure` runs a scoped prepare (sources + secrets only), not full compose/template materialization.
 
-7. **`odpm build`:** only layered path (base → platform → deps? → app). Monolithic final `dockerfile_ci` bake-in-app path removed.
+7. **Deps context:** exclude developing by absolute mapped path (never basename-only), so dependency trees that share a folder name with the app are kept.
 
-8. **Templates:** `dev_project/templates/dockerfile_{platform,deps,app,lint}` + matching `dockerignore_*`.
+8. **`odpm build`:** only layered path (base → platform → deps? → app). Monolithic final `dockerfile_ci` bake-in-app path removed.
+
+9. **Templates:** `dev_project/templates/dockerfile_{platform,deps,app,lint}` + matching `dockerignore_*`.
 
 ## Consequences
 

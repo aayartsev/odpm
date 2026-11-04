@@ -1139,6 +1139,9 @@ msgstr "crane copy не удался ({SRC} → {DST}): {ERR}"
 msgid "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
 msgstr "для проверки наличия слоистого CI-образа в registry нужен crane (установите crane или собирайте без push в registry)."
 
+msgid "crane is required to publish layered CI image alias ({SRC} → {DST}) when the cache image is not available locally (typical after kaniko builds)"
+msgstr "для публикации alias слоистого CI-образа ({SRC} → {DST}) нужен crane, если cache-образ недоступен локально (типично после сборки kaniko)"
+
 msgid "crane is required to retag remote layered CI images ({SRC} → {DST})"
 msgstr "для переименования remote слоистых CI-образов нужен crane ({SRC} → {DST})"
 
@@ -1498,6 +1501,9 @@ msgstr "service_sources.{NAME} должно быть непустой git-ссы
 
 msgid "skipped by --stop-after sources"
 msgstr "пропущено из‑за --stop-after sources"
+
+msgid "skipped for odpm image ensure prepare"
+msgstr "пропущено для узкого prepare при odpm image ensure"
 
 msgid "skipped with --no-git-update"
 msgstr "пропущено с --no-git-update"

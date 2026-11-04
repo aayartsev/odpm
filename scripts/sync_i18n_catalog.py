@@ -720,6 +720,12 @@ RU_MESSAGES: dict[str, str] = {
     "crane is required to retag remote layered CI images ({SRC} → {DST})": (
         "для переименования remote слоистых CI-образов нужен crane ({SRC} → {DST})"
     ),
+    "crane is required to publish layered CI image alias "
+    "({SRC} → {DST}) when the cache image is not available "
+    "locally (typical after kaniko builds)": (
+        "для публикации alias слоистого CI-образа ({SRC} → {DST}) нужен crane, "
+        "если cache-образ недоступен локально (типично после сборки kaniko)"
+    ),
     "docker is required to retag local layered CI images": (
         "для переименования локальных слоистых CI-образов нужен docker"
     ),

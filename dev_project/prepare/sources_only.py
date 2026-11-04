@@ -18,8 +18,26 @@ SOURCES_ONLY_STEP_IDS: frozenset[str] = frozenset(
     }
 )
 
+# ``odpm image … ensure`` needs sources plus secrets for optional app bake;
+# skip docker/compose/template steps.
+IMAGE_ENSURE_STEP_IDS: frozenset[str] = SOURCES_ONLY_STEP_IDS | frozenset(
+    {
+        "secrets.fetch",
+        "secrets.materialize",
+    }
+)
+
 
 def is_sources_only_prepare(stop_after: str | None) -> bool:
     from ..host.cli import params as cli_params
 
     return stop_after == cli_params.STOP_AFTER_SOURCES
+
+
+def is_image_ensure_prepare(arguments) -> bool:
+    """True when prepare runs under ``odpm image`` without an explicit stop-after."""
+    from ..host.cli import params as cli_params
+
+    if getattr(arguments, "stop_after", None):
+        return False
+    return getattr(arguments, "command", None) == cli_params.IMAGE_SUBCOMMAND

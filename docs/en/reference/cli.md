@@ -70,12 +70,12 @@ odpm prepare --secrets-file ~/new-secrets.json
 | `odpm prepare --stop-after sources` | Sources snapshot only (git / links); no Docker, compose, or secrets |
 | `odpm prepare --update-lock` | Write `.odpm/deps.lock.json` and exit |
 | `--no-git-update` | Do not touch git; lock is **not read**; directories must already exist |
-| `odpm image <layer> ensure` | Ensure a CI image layer: `base`, `platform`, `deps`, `app`, `lint` (ADR-027) |
+| `odpm image <layer> ensure` | Ensure a CI image layer: `base`, `platform`, `deps`, `app`, `lint` (ADR-027); scoped prepare first (sources + secrets, no compose/templates) |
 | `odpm image … --from REF` | Explicit parent for `deps` / `app` (else platform or deps) |
 | `odpm build` | Layered shortcut for **`ci`**: base → platform → deps? → app (error otherwise) |
 | `--image-tag TAG` | Final image name/tag for `build` / `image app ensure` |
 | `--image-builder {docker,kaniko}` | CI image build backend (default `docker`) |
-| `--image-push` | After build, publish the image |
+| `--image-push` | After build, publish the image (publish-tag alias after kaniko via `crane copy`) |
 | `-V`, `--version` | Show odpm version |
 
 CI flow: `prepare --stop-after sources` → `plan` (layer hit/miss) → `image … ensure` or `build`. Registry tag families: **dev** (profile `full`) and **runtime** (profile `medium`) via `ODPM_BASE_IMAGE_PROFILE`. Scenario `ci` and base profile `ci` are **not** renamed. See [ci scenario](../scenarios/ci.md), [ADR-027](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md).

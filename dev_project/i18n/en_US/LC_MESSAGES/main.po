@@ -1140,6 +1140,9 @@ msgstr "crane copy failed ({SRC} → {DST}): {ERR}"
 msgid "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
 msgstr "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
 
+msgid "crane is required to publish layered CI image alias ({SRC} → {DST}) when the cache image is not available locally (typical after kaniko builds)"
+msgstr "crane is required to publish layered CI image alias ({SRC} → {DST}) when the cache image is not available locally (typical after kaniko builds)"
+
 msgid "crane is required to retag remote layered CI images ({SRC} → {DST})"
 msgstr "crane is required to retag remote layered CI images ({SRC} → {DST})"
 
@@ -1499,6 +1502,9 @@ msgstr "service_sources.{NAME} must be a non-empty git link."
 
 msgid "skipped by --stop-after sources"
 msgstr "skipped by --stop-after sources"
+
+msgid "skipped for odpm image ensure prepare"
+msgstr "skipped for odpm image ensure prepare"
 
 msgid "skipped with --no-git-update"
 msgstr "skipped with --no-git-update"

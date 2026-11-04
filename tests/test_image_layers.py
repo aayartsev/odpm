@@ -216,6 +216,36 @@ class DepsExcludeDevelopingTests(unittest.TestCase):
             self.assertTrue((dest / "oca_web").is_dir())
             self.assertFalse((dest / "my_app").exists())
 
+    def test_copy_deps_fallback_keeps_same_basename_dependency(self):
+        """Basename-only skip must not drop an OCA tree named like developing."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            developing = root / "elsewhere" / "web"
+            developing.mkdir(parents=True)
+            ctx_addons = root / "ctx" / "extra-addons"
+            ctx_addons.mkdir(parents=True)
+            oca_web = ctx_addons / "web"
+            oca_web.mkdir()
+            (oca_web / "module").mkdir()
+
+            config = MagicMock()
+            config.docker_extra_addons = "/home/odoo/extra-addons"
+            developing_link = MagicMock()
+            developing_link.project_path = str(developing)
+            config.developing_project = developing_link
+            config.bootstrap = MagicMock()
+            config.bootstrap.developing_project = developing_link
+
+            env = MagicMock()
+            env.config = config
+            env.mapped_folders = []
+            dest = root / "deps" / "extra-addons"
+            copied = _copy_deps_extra_addons(
+                env, full_ctx=root / "ctx", dest_addons=dest
+            )
+            self.assertEqual(copied, 1)
+            self.assertTrue((dest / "web" / "module").is_dir())
+
     def test_developing_project_path_resolves(self):
         with tempfile.TemporaryDirectory() as tmp:
             developing = Path(tmp) / "app"
@@ -288,6 +318,86 @@ class ForceRebuildScopeTests(unittest.TestCase):
         mock_write.assert_called_once()
 
 
+class PublishAliasTests(unittest.TestCase):
+    def test_push_without_crane_and_nonlocal_cache_raises(self):
+        from dev_project.image_layers.ensure import _publish_alias
+
+        with (
+            patch(
+                "dev_project.image_layers.ensure.shutil.which",
+                return_value=None,
+            ),
+            patch(
+                "dev_project.image_layers.ensure.image_ref_exists",
+                return_value=False,
+            ),
+        ):
+            with self.assertRaises(ConfigError) as ctx:
+                _publish_alias(
+                    cache_ref="reg/cache:fp",
+                    publish_tag="reg/app:final",
+                    push=True,
+                )
+        msg = str(ctx.exception)
+        self.assertIn("crane", msg.lower())
+        self.assertIn("reg/cache:fp", msg)
+        self.assertIn("reg/app:final", msg)
+
+    def test_push_without_crane_uses_local_docker_when_cache_local(self):
+        from dev_project.image_layers.ensure import _publish_alias
+
+        with (
+            patch(
+                "dev_project.image_layers.ensure.shutil.which",
+                return_value=None,
+            ),
+            patch(
+                "dev_project.image_layers.ensure.image_ref_exists",
+                return_value=True,
+            ),
+            patch(
+                "dev_project.image_layers.ensure.retag_image"
+            ) as mock_retag,
+            patch(
+                "dev_project.image_layers.ensure._docker_push_or_raise"
+            ) as mock_push,
+        ):
+            _publish_alias(
+                cache_ref="reg/cache:fp",
+                publish_tag="reg/app:final",
+                push=True,
+            )
+        mock_retag.assert_called_once_with(
+            "reg/cache:fp", "reg/app:final", remote=False
+        )
+        mock_push.assert_called_once_with("reg/app:final")
+
+    def test_push_with_crane_copies_remote(self):
+        from dev_project.image_layers.ensure import _publish_alias
+
+        with (
+            patch(
+                "dev_project.image_layers.ensure.shutil.which",
+                return_value="/usr/bin/crane",
+            ),
+            patch(
+                "dev_project.image_layers.ensure.retag_image"
+            ) as mock_retag,
+            patch(
+                "dev_project.image_layers.ensure._docker_push_or_raise"
+            ) as mock_push,
+        ):
+            _publish_alias(
+                cache_ref="reg/cache:fp",
+                publish_tag="reg/app:final",
+                push=True,
+            )
+        mock_retag.assert_called_once_with(
+            "reg/cache:fp", "reg/app:final", remote=True
+        )
+        mock_push.assert_not_called()
+
+
 class PushPolicyTests(unittest.TestCase):
     def test_want_push_ignores_registry_env_alone(self):
         from dev_project.image_layers.ensure import _want_push
@@ -345,7 +455,9 @@ class PushPolicyTests(unittest.TestCase):
         ):
             with self.assertRaises(ConfigError) as ctx:
                 _docker_push_or_raise("reg/app:tag")
-        self.assertIn("docker push failed", str(ctx.exception))
+        msg = str(ctx.exception)
+        self.assertIn("reg/app:tag", msg)
+        self.assertIn("denied", msg)
 
 
 class DepsMissingTreesTests(unittest.TestCase):

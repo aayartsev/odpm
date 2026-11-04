@@ -10,7 +10,9 @@ from dev_project.host.cli import params
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.plan.cli import is_image_mode
 from dev_project.prepare.sources_only import (
+    IMAGE_ENSURE_STEP_IDS,
     SOURCES_ONLY_STEP_IDS,
+    is_image_ensure_prepare,
     is_sources_only_prepare,
 )
 from dev_project.system_check_policy import cli_allows_ci_explicit_mode
@@ -76,6 +78,26 @@ class ImageCliParseTests(unittest.TestCase):
         self.assertNotIn("docker.engine_check", SOURCES_ONLY_STEP_IDS)
         self.assertNotIn("compose.validate", SOURCES_ONLY_STEP_IDS)
         self.assertNotIn("secrets.materialize", SOURCES_ONLY_STEP_IDS)
+
+    def test_image_ensure_prepare_includes_secrets(self):
+        self.assertTrue(SOURCES_ONLY_STEP_IDS <= IMAGE_ENSURE_STEP_IDS)
+        self.assertIn("secrets.fetch", IMAGE_ENSURE_STEP_IDS)
+        self.assertIn("secrets.materialize", IMAGE_ENSURE_STEP_IDS)
+        self.assertNotIn("docker.engine_check", IMAGE_ENSURE_STEP_IDS)
+        self.assertNotIn("compose.validate", IMAGE_ENSURE_STEP_IDS)
+        args = OdpmCliArgs(command=params.IMAGE_SUBCOMMAND, image_layer="app")
+        self.assertTrue(is_image_ensure_prepare(args))
+        self.assertFalse(
+            is_image_ensure_prepare(
+                OdpmCliArgs(
+                    command=params.IMAGE_SUBCOMMAND,
+                    stop_after=params.STOP_AFTER_SOURCES,
+                )
+            )
+        )
+        self.assertFalse(
+            is_image_ensure_prepare(OdpmCliArgs(command=params.PREPARE_SUBCOMMAND))
+        )
 
 
 if __name__ == "__main__":

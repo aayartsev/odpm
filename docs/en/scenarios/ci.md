@@ -42,7 +42,7 @@ git push → build machine
   → deploy (your tools)
 ```
 
-Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`.
+Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Publishing a publish-tag alias after kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, when the fingerprint cache image is not in the local Docker daemon) requires **`crane copy`**. Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`.
 
 ## Checklist
 

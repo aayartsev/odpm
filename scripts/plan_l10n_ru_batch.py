@@ -31,6 +31,9 @@ PLAN_L10N_RU: dict[str, str] = {
     "skipped by --stop-after sources": (
         "пропущено из‑за --stop-after sources"
     ),
+    "skipped for odpm image ensure prepare": (
+        "пропущено для узкого prepare при odpm image ensure"
+    ),
     "hit {REF}": "есть в registry/локально {REF}",
     "miss {REF}": "нет в registry/локально {REF}",
     "presence check failed: {ERR}": (

@@ -39,7 +39,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
   → развёртывание (ваши инструменты)
 ```
 
-Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`.
+Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Для публикации alias publish-тега после kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, когда fingerprint-cache не в локальном Docker) нужен **`crane copy`**. Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`.
 
 ## Чеклист
 

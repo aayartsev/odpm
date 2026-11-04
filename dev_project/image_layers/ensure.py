@@ -195,9 +195,6 @@ def _copy_deps_extra_addons(
     """Copy dependency trees into deps context, excluding developing."""
     config = project_env.config
     developing = developing_project_path(config)
-    developing_names = set()
-    if developing is not None:
-        developing_names.add(developing.name)
     src_root = full_ctx / "extra-addons"
     if not src_root.is_dir():
         return 0
@@ -231,13 +228,19 @@ def _copy_deps_extra_addons(
             used_mapped = True
     if used_mapped:
         return copied
-    # Fallback: filter context children by developing basename.
+    # Fallback: copy context children, skipping only path-identical developing
+    # (never basename-only — avoids dropping OCA trees with the same folder name).
     for child in sorted(src_root.iterdir()):
-        if child.name in developing_names:
-            _logger.info(
-                "image deps ensure: skipping developing dir name %s", child.name
-            )
-            continue
+        if developing is not None:
+            try:
+                if child.resolve() == developing:
+                    _logger.info(
+                        "image deps ensure: skipping developing path %s",
+                        child,
+                    )
+                    continue
+            except OSError:
+                pass
         if child.is_dir():
             shutil.copytree(child, dest_addons / child.name, dirs_exist_ok=True)
             copied += 1
@@ -257,8 +260,9 @@ def _publish_alias(
 
     Without ``push``, only a local ``docker tag`` is attempted (and skipped
     quietly when the cache image is not local). With ``push``, prefer
-    ``crane copy`` into the registry; fall back to ``docker tag`` + ``docker
-    push`` (fail-fast on push errors).
+    ``crane copy`` (required when the cache image is not local — typical
+    after Kaniko). Fall back to ``docker tag`` + ``docker push`` only when
+    the cache ref exists in the local daemon.
     """
     if not publish_tag or publish_tag == cache_ref:
         return
@@ -267,9 +271,17 @@ def _publish_alias(
         if crane:
             retag_image(cache_ref, publish_tag, remote=True)
             return
-        retag_image(cache_ref, publish_tag, remote=False)
-        _docker_push_or_raise(publish_tag)
-        return
+        if image_ref_exists(cache_ref, remote=False, force=False):
+            retag_image(cache_ref, publish_tag, remote=False)
+            _docker_push_or_raise(publish_tag)
+            return
+        raise ConfigError(
+            _(
+                "crane is required to publish layered CI image alias "
+                "({SRC} → {DST}) when the cache image is not available "
+                "locally (typical after kaniko builds)"
+            ).format(SRC=cache_ref, DST=publish_tag)
+        )
     if not image_ref_exists(cache_ref, remote=False, force=False):
         _logger.info(
             "image app ensure: skip local publish alias %s "

@@ -166,25 +166,37 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     return tuple(warnings)
 
 
-def _apply_stop_after_sources(ctx: PrepareContext, step: PlanStep) -> PlanStep:
-    from .sources_only import SOURCES_ONLY_STEP_IDS, is_sources_only_prepare
+def _apply_prepare_scope(ctx: PrepareContext, step: PlanStep) -> PlanStep:
+    from .sources_only import (
+        IMAGE_ENSURE_STEP_IDS,
+        SOURCES_ONLY_STEP_IDS,
+        is_image_ensure_prepare,
+        is_sources_only_prepare,
+    )
 
-    if not is_sources_only_prepare(getattr(ctx.host_ctx.arguments, "stop_after", None)):
+    args = ctx.host_ctx.arguments
+    if is_sources_only_prepare(getattr(args, "stop_after", None)):
+        allowed = SOURCES_ONLY_STEP_IDS
+        skip_reason = plan_msg("skipped by --stop-after sources")
+    elif is_image_ensure_prepare(args):
+        allowed = IMAGE_ENSURE_STEP_IDS
+        skip_reason = plan_msg("skipped for odpm image ensure prepare")
+    else:
         return step
-    if step.id in SOURCES_ONLY_STEP_IDS:
+    if step.id in allowed:
         return step
     return PlanStep(
         step.id,
         step.description,
         "skip",
         False,
-        plan_msg("skipped by --stop-after sources"),
+        skip_reason,
     )
 
 
 def evaluate_prepare_plan(ctx: PrepareContext) -> tuple[PlanStep, ...]:
     return tuple(
-        _apply_stop_after_sources(ctx, step_def.evaluate(ctx))
+        _apply_prepare_scope(ctx, step_def.evaluate(ctx))
         for step_def in get_prepare_steps()
     )
 
@@ -274,7 +286,7 @@ def execute_prepare(ctx: PrepareContext) -> None:
     )
     ctx.lock_manager = ctx.ports.bootstrap.new_lock_manager()
     for step_def in get_prepare_steps():
-        outcome = _apply_stop_after_sources(ctx, step_def.evaluate(ctx))
+        outcome = _apply_prepare_scope(ctx, step_def.evaluate(ctx))
         if outcome.should_execute():
             step_def.execute(ctx)
 
