@@ -317,8 +317,17 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("file://", lib)
         self.assertIn("regenerating compose for long-running start", lib)
         self.assertIn("odpm prepare --no-git-update", lib)
+        self.assertIn("golden_path_ensure_app_role", lib)
+        self.assertIn("odpm database ensure-role", lib)
+        self.assertIn("POSTGRES_ADMIN_USER", lib)
         self.assertIn('odpm up -d "${db_name}"', lib)
         self.assertIn('"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"', lib)
+        # ensure-role must run before remedi ate odpm up (empty cluster after wipe).
+        remediate = lib.split("golden_path_remediate_database()", 1)[1]
+        self.assertLess(
+            remediate.index("golden_path_ensure_app_role"),
+            remediate.index('odpm up -d "${db_name}"'),
+        )
         self.assertIn(
             'postgres_service="$(golden_path_postgres_service "${project}" "${repo_root}")"',
             lib,

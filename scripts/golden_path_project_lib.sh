@@ -78,6 +78,23 @@ golden_path_ensure_postgres_up() {
     return 1
 }
 
+# After a volume wipe the cluster only has POSTGRES_ADMIN_USER (usually postgres);
+# Odoo needs the application role. Start postgres with the admin user for readiness
+# (role odoo may not exist yet), then ``odpm database ensure-role``.
+golden_path_ensure_app_role() {
+    local project="$1"
+    local postgres_service="$2"
+    local admin_user
+
+    admin_user="$(golden_path_read_env "${project}" POSTGRES_ADMIN_USER postgres)"
+    golden_path_ensure_postgres_up "${project}" "${postgres_service}" "${admin_user}"
+    echo "Golden-path: ensuring PostgreSQL application role (odpm database ensure-role)..."
+    (
+        cd "${project}"
+        odpm database ensure-role
+    )
+}
+
 golden_path_database_exists() {
     local postgres_service="$1"
     local pguser="$2"
@@ -526,6 +543,10 @@ golden_path_remediate_database() {
         golden_path_sql_drop_database "${postgres_service}" "${pguser}" "${db_name}"
         docker compose down --remove-orphans 2>/dev/null || true
     fi
+
+    # Wipe (and a missing last_run adopt race) leaves only the admin role from the
+    # official image. Create/update application role before Odoo connects.
+    golden_path_ensure_app_role "${project}" "${postgres_service}"
 
     echo "Golden-path: initializing Odoo database ${db_name} (modules=${init_modules})..."
     # Pass -i MODULES via --odoo-bin only: user_settings.init_modules may be empty and
