@@ -7,7 +7,7 @@ Related: unit local/CI parity and host quirks — [ADR-023](adr-023-local-unit-p
 
 ## Context
 
-odpm 4.4 established a **fast** mandatory gate (`compose-smoke` on `ubuntu-latest`) and an **opt-in** full golden-path (`init` → `docker compose up` → HTTP ready) on a self-hosted runner. From 4.8 the default project wrapper is **ephemeral under `/tmp`** (`bootstrap_golden_path_project.sh`); git clones and images stay in the runner home. Optional secret `ODPM_GOLDEN_PATH_PROJECT` still overrides. HTTP probe path follows project `odpm.json` `odoo_version` (Odoo 20+ → `/web/login`).
+odpm 4.4 established a **fast** mandatory gate (`compose-smoke` on `ubuntu-latest`) and an **opt-in** full golden-path (`init` → `docker compose up` → HTTP ready on `/web/login`) on a self-hosted runner. From 4.8 the default project wrapper is **ephemeral under `/tmp`** (`bootstrap_golden_path_project.sh`); git clones and images stay in the runner home. Optional secret `ODPM_GOLDEN_PATH_PROJECT` still overrides. Remedi ate regenerates compose with `-d` so Odoo loads the remedi ated database on start.
 
 Phase I1 (4.5) requires a **mandatory integration gate on every PR** to `4.5-dev` without depending on a single maintainer machine, while keeping compose-smoke under ~5 minutes as the primary fast check.
 

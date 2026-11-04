@@ -219,13 +219,14 @@ if __name__ == "__main__":
 
 
 class GoldenPathOdooVersionProbeTests(unittest.TestCase):
-    def test_probe_path_follows_odpm_json_major(self) -> None:
+    def test_probe_uses_web_login_for_all_majors(self) -> None:
         self.assertEqual(odoo_major_from_version("19.0"), 19)
         self.assertEqual(odoo_major_from_version("20.0"), 20)
         self.assertIsNone(odoo_major_from_version(None))
-        self.assertEqual(golden_path_http_probe(19), ("/web", {200, 303}))
-        self.assertEqual(golden_path_http_probe(20), ("/web/login", {200}))
-        self.assertEqual(golden_path_http_probe(None), ("/web", {200, 303}))
+        expected = ("/web/login", {200, 303})
+        self.assertEqual(golden_path_http_probe(19), expected)
+        self.assertEqual(golden_path_http_probe(20), expected)
+        self.assertEqual(golden_path_http_probe(None), expected)
 
     def test_odoo_version_from_project_reads_odpm_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -237,7 +238,7 @@ class GoldenPathOdooVersionProbeTests(unittest.TestCase):
             self.assertEqual(odoo_version_from_project(root), "20.0")
             self.assertEqual(
                 golden_path_http_probe(odoo_major_from_version("20.0")),
-                ("/web/login", {200}),
+                ("/web/login", {200, 303}),
             )
 
 
@@ -361,7 +362,7 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("docker-compose.yml", lib)
         self.assertIn("file://", lib)
         self.assertIn("regenerating compose for long-running start", lib)
-        self.assertIn("odpm prepare --no-git-update", lib)
+        self.assertIn("odpm prepare --no-git-update -d \"${db_name}\"", lib)
         self.assertIn("golden_path_ensure_app_role", lib)
         self.assertIn("odpm database ensure-role", lib)
         self.assertIn("POSTGRES_ADMIN_USER", lib)

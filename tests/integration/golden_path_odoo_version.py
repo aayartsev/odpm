@@ -31,14 +31,12 @@ def odoo_major_from_version(version: str | None) -> int | None:
     return int(major_text)
 
 
-def golden_path_http_probe(major: int | None) -> tuple[str, set[int]]:
+def golden_path_http_probe(_major: int | None = None) -> tuple[str, set[int]]:
     """
     HTTP path and accepted status codes for golden-path readiness.
 
-    Driven by ``odpm.json`` ``odoo_version`` major:
-    - Odoo **20+**: probe ``/web/login`` (unauthenticated ``/web`` may return 403).
-    - Older / unknown: probe ``/web`` and accept 200 or redirect 303.
+    Always probe ``/web/login`` (available on all supported Odoo majors).
+    ``_major`` is accepted for callers that already resolved ``odpm.json``
+    ``odoo_version``; it does not change the path.
     """
-    if major is not None and major >= 20:
-        return "/web/login", {200}
-    return "/web", {200, 303}
+    return "/web/login", {200, 303}

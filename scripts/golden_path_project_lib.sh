@@ -559,8 +559,10 @@ golden_path_remediate_database() {
     docker compose down --remove-orphans 2>/dev/null || true
     # Init bakes -i / --stop-after-init into docker-compose.yml; restore a long-running
     # start command before golden-path `compose up` (otherwise Odoo exits after load).
+    # Keep -d so compose starts Odoo against the remedi ated DB (empty db_name → multi-db
+    # idle HTTP and 403 on /web/login without a selected database).
     echo "Golden-path: regenerating compose for long-running start (db=${db_name})..."
-    odpm prepare --no-git-update \
+    odpm prepare --no-git-update -d "${db_name}" \
         "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
     # Callers must re-read via golden_path_postgres_service before the next compose up:
     # odpm may have renamed the postgres service again.
