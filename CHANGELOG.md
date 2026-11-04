@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Remote pull UX** — preflight `/web/database/list` (DB found / missing); logs for auth success and download start; MiB progress heartbeats via logger; recipe `capture` keeps stderr live (stdout-only pipe). Tests: `test_http_download`, `test_database_pull_cli`, `test_recipes`.
 - **Dev version line + git build stamp** — `RELEASE_VERSION` → `4.8.0-dev` (`LATEST_STABLE_RELEASE` remains `4.7.0`). `odpm --version` prints `odpm version: 4.8.0-dev (sha, YYYY-MM-DD)` when sources sit in a git checkout; installed packages without `.git` print the version only. CI/docs workflows and `mkdocs` `edit_uri` target `4.8.0-dev`. Docs: `release-lines.md`, `packaging.md`. Tests: `test_version_info`, `test_release_packaging`.
 
+### Changed
+
+- **Golden-path major from project catalog** — schema/`refresh` match installed `base` to the numeric major of that directory’s `odpm.json` (one long-lived demo catalog per Odoo major, e.g. `odoo_demo_project-19` / `-20`); no longer hard-fail unless version is exactly `19.x`. Docs: `demo-projects.md`, `ci.md`, ADR-006. Tests: `test_golden_path`.
+
 ### Fixed
 
 - **`database pull` remote-db path safety** — `--remote-db` must be a single path segment (no `/`, `\`, or null bytes); archive path is resolved under `BACKUP_DIR`. Tests: `test_http_download`, `test_database_pull_cli`.

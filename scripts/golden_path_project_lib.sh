@@ -302,29 +302,38 @@ golden_path_schema_status_line() {
     echo "base=${base_version:-missing} web=${web_state} short_time_format=${short_time}"
 }
 
-# Odoo 19 golden-path: base 19.x installed + web installed.
-# Do not require res_lang.short_time_format by default — removed in Odoo 19 datetime remake.
-# When mounted Odoo source still defines the field, require the column (code/DB sync).
-# Do not use ir_model_fields.translate SQL type — on Odoo 19 it stays character varying.
+# Golden-path schema: installed ``base`` major matches this project's
+# ``odpm.json`` odoo_version major + ``web`` installed.
+# One long-lived directory per Odoo major (see docs/contributing/demo-projects.md);
+# do not flip major in-place on the same data volume.
+# Do not require res_lang.short_time_format by default (removed in Odoo 19
+# datetime remake; still absent on 20+). When mounted Odoo source still defines
+# the field, require the column (code/DB sync).
 golden_path_schema_compatible() {
     local postgres_service="$1"
     local pguser="$2"
     local db_name="$3"
     local project="${4:-${ODPM_GOLDEN_PATH_PROJECT:-}}"
-    local base_version
+    local base_version major
 
     if ! golden_path_db_has_odoo_tables "${postgres_service}" "${pguser}" "${db_name}"; then
         return 1
     fi
+    major="$(golden_path_odoo_major_from_project "${project}" || true)"
+    if [[ -z "${major}" ]]; then
+        echo "Golden-path: cannot read numeric odoo_version major from odpm.json." >&2
+        return 1
+    fi
     base_version="$(golden_path_base_module_version "${postgres_service}" "${pguser}" "${db_name}")"
-    [[ -n "${base_version}" && "${base_version}" == 19* ]] || return 1
+    [[ -n "${base_version}" && "${base_version}" == "${major}"* ]] || return 1
     golden_path_module_is_installed "${postgres_service}" "${pguser}" "${db_name}" web || return 1
     if golden_path_code_expects_short_time_format "${project}"; then
         golden_path_column_exists "${postgres_service}" "${pguser}" "${db_name}" \
             res_lang short_time_format || return 1
     elif ! golden_path_platform_dir "${project}" >/dev/null 2>&1; then
         # Cannot verify mounted Odoo source. Absent column + old code is the
-        # common CI failure mode; force remedi ate rather than skip the gate.
+        # common CI failure mode on 19 transition; force remedi ate rather than
+        # skip the gate when platform is unknown.
         if ! golden_path_column_exists "${postgres_service}" "${pguser}" "${db_name}" \
             res_lang short_time_format; then
             echo "Golden-path: platform dir unknown and short_time_format absent; treating schema as incompatible." >&2
@@ -410,22 +419,45 @@ for rel in ("odpm.json", "developing/odpm.json"):
 PY
 }
 
+# Major from ``odoo_version`` (``19.0`` → ``19``, ``20.0`` → ``20``).
+golden_path_odoo_major() {
+    local version="${1:-}"
+    local major
+    if [[ -z "${version}" ]]; then
+        return 1
+    fi
+    major="${version%%.*}"
+    if [[ ! "${major}" =~ ^[0-9]+$ ]]; then
+        return 1
+    fi
+    echo "${major}"
+}
+
+golden_path_odoo_major_from_project() {
+    local project="$1"
+    local version
+    version="$(golden_path_odoo_version_from_manifest "${project}" || true)"
+    golden_path_odoo_major "${version}"
+}
+
 golden_path_emit_schema_failure() {
     local project="$1"
     local db_name="$2"
     local postgres_service="$3"
     local pguser="$4"
-    local status_line init_modules odoo_version base_version
+    local status_line init_modules odoo_version base_version major
 
     status_line="$(golden_path_schema_status_line "${postgres_service}" "${pguser}" "${db_name}")"
     init_modules="$(golden_path_init_modules)"
     odoo_version="$(golden_path_odoo_version_from_manifest "${project}" || true)"
+    major="$(golden_path_odoo_major "${odoo_version}" || true)"
     base_version="${status_line#*base=}"
     base_version="${base_version%% web=*}"
 
-    echo "::error::Golden-path DB ${db_name} not ready for Odoo 19 golden-path (${status_line})." >&2
-    if [[ -n "${base_version}" && "${base_version}" != missing && "${base_version}" != 19* ]]; then
-        echo "Installed base module is ${base_version}; expected 19.x (stale DB from older Odoo major)." >&2
+    echo "::error::Golden-path DB ${db_name} not ready (${status_line}; odpm.json odoo_version=${odoo_version:-missing})." >&2
+    if [[ -n "${major}" && -n "${base_version}" && "${base_version}" != missing && "${base_version}" != "${major}"* ]]; then
+        echo "Installed base module is ${base_version}; expected ${major}.x matching odpm.json (stale DB / wrong major directory)." >&2
+        echo "Use a separate demo catalog per Odoo major (docs/contributing/demo-projects.md); do not flip odoo_version in-place." >&2
     elif [[ "${status_line}" == *"web=missing"* ]]; then
         echo "Module web is not installed; golden-path needs /web." >&2
         echo "Run: odpm up -d ${db_name} --odoo-bin -i ${init_modules} --stop-after-init" >&2
@@ -434,11 +466,13 @@ golden_path_emit_schema_failure() {
     elif [[ "${status_line}" == *"short_time_format=absent"* ]] \
         && golden_path_code_expects_short_time_format "${project}"; then
         echo "Mounted Odoo still defines res.lang.short_time_format but the column is missing." >&2
-        echo "Prefer: git pull Odoo 19.0 past the datetime remake; or remedi ate DB to match mounted source." >&2
+        echo "Prefer: git pull the platform branch past the datetime remake; or remedi ate DB to match mounted source." >&2
         echo "Run: ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1 bash scripts/refresh_golden_path_project.sh" >&2
     fi
-    if [[ -n "${odoo_version}" && "${odoo_version}" != 19* ]]; then
-        echo "odpm.json reports odoo_version=${odoo_version}; golden-path expects 19.0." >&2
+    if [[ -z "${odoo_version}" ]]; then
+        echo "odpm.json missing odoo_version; set it on this major's golden-path directory." >&2
+    elif [[ -z "${major}" ]]; then
+        echo "odpm.json odoo_version=${odoo_version} has no numeric major (expected e.g. 19.0 or 20.0)." >&2
     fi
     echo "Manual wipe (postgres data is often root-owned from Docker):" >&2
     echo "  cd ${project} && docker compose down" >&2

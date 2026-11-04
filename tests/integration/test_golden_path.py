@@ -267,7 +267,9 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
             refresh,
         )
         self.assertIn("[golden-path refresh", refresh)
-        self.assertIn("expects odpm.json odoo_version 19.x", refresh)
+        self.assertIn("needs a numeric odpm.json odoo_version", refresh)
+        self.assertIn("one directory per Odoo major", refresh)
+        self.assertIn("golden-path schema major=", refresh)
         self.assertIn("Postgres not ready after refresh; wiping postgres volume", refresh)
         self.assertIn("golden_path_remediate_database", refresh)
         # Re-resolve postgres service after odpm regenerates compose (db-dev → db).
@@ -295,6 +297,9 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("golden_path_wipe_postgres_data", lib)
         self.assertIn("ir_module_module", lib)
         self.assertIn("golden_path_schema_compatible", lib)
+        self.assertIn("golden_path_odoo_major", lib)
+        self.assertIn("golden_path_odoo_major_from_project", lib)
+        self.assertIn('"${base_version}" == "${major}"*', lib)
         self.assertIn("golden_path_column_exists", lib)
         self.assertIn("golden_path_code_expects_short_time_format", lib)
         self.assertIn("golden_path_log_short_time_gate", lib)

@@ -1,16 +1,17 @@
 # Demo-проекты для ручного тестирования
 
-Публичный репозиторий **[odoo_demo_project](https://github.com/aayartsev/odoo_demo_project)** — минимальный набор модулей Odoo с `odpm.json`. В **остальной документации odpm** в примерах используется только **Odoo 19.0** (`--branch 19.0`, каталог `odoo_demo_project-19`). Обёртки для **17.0** и **18.0** и матрица сценариев — **только в этой статье**.
+Публичный репозиторий **[odoo_demo_project](https://github.com/aayartsev/odoo_demo_project)** — минимальный набор модулей Odoo с `odpm.json`. В **остальной документации odpm** в примерах по умолчанию **Odoo 19.0** (`--branch 19.0`, каталог `odoo_demo_project-19`). Обёртки для других major и матрица сценариев — **в этой статье**.
 
 Для **полного** E2E (клон платформы Odoo, образы, HTTP `/web`) одного git-репозитория недостаточно: нужен **каталог окружения odpm** на диске — тот же паттерн, что в [локальной разработке с нуля](../getting-started/local-dev-from-scratch.md).
 
-Maintainer’ы odpm держат **три обёртки** — по одной на major-версию Odoo:
+**Правило:** под каждый major Odoo — **свой** каталог-обёртка. Не меняйте `odoo_version` в уже живом каталоге (volume/БД другого major); заведите соседний каталог по шаблону.
 
-| Odoo | Каталог-обёртка (пример) | Ветка модулей |
-|------|--------------------------|---------------|
-| 17.0 | `odoo_demo_project-17` | `17.0` |
-| 18.0 | `odoo_demo_project-18` | `18.0` |
-| 19.0 | `odoo_demo_project-19` | `19.0` |
+| Odoo | Каталог-обёртка (пример) | Ветка модулей | Переменная |
+|------|--------------------------|---------------|------------|
+| 17.0 | `odoo_demo_project-17` | `17.0` | `ODPM_DEMO_17` |
+| 18.0 | `odoo_demo_project-18` | `18.0` | `ODPM_DEMO_18` |
+| 19.0 | `odoo_demo_project-19` | `19.0` | `ODPM_DEMO_19` |
+| 20.0 | `odoo_demo_project-20` | `20.0` | `ODPM_DEMO_20` |
 
 Каталоги **не коммитятся** в репозиторий odpm: это локальные (или self-hosted CI) площадки. В документации пути задаются через переменные окружения, а не через `$HOME` конкретного разработчика.
 
@@ -23,24 +24,28 @@ export ODPM_DEMO_ROOT="${ODPM_DEMO_ROOT:-$HOME/projects}"
 export ODPM_DEMO_17="${ODPM_DEMO_17:-$ODPM_DEMO_ROOT/odoo_demo_project-17}"
 export ODPM_DEMO_18="${ODPM_DEMO_18:-$ODPM_DEMO_ROOT/odoo_demo_project-18}"
 export ODPM_DEMO_19="${ODPM_DEMO_19:-$ODPM_DEMO_ROOT/odoo_demo_project-19}"
+export ODPM_DEMO_20="${ODPM_DEMO_20:-$ODPM_DEMO_ROOT/odoo_demo_project-20}"
 ```
 
-Для golden-path и скриптов odpm:
+Для golden-path укажите **один** каталог нужного major (secret `ODPM_GOLDEN_PATH_PROJECT` на runner — тот же путь). Gate сверяет major `base` в БД с `odpm.json` этого каталога:
 
 ```bash
 export ODPM_GOLDEN_PATH_PROJECT="${ODPM_GOLDEN_PATH_PROJECT:-$ODPM_DEMO_19}"
+# или Odoo 20:
+# export ODPM_GOLDEN_PATH_PROJECT="$ODPM_DEMO_20"
 ```
 
-## Создание обёртки с нуля (19.0 — канонический пример в доке)
+## Создание обёртки с нуля (шаблон)
 
 ```bash
+MAJOR=19   # или 17 / 18 / 20
 mkdir -p "$ODPM_DEMO_ROOT"
 cd "$ODPM_DEMO_ROOT"
-mkdir odoo_demo_project-19 && cd odoo_demo_project-19
-odpm --init https://github.com/aayartsev/odoo_demo_project.git --branch 19.0
+mkdir "odoo_demo_project-${MAJOR}" && cd "odoo_demo_project-${MAJOR}"
+odpm init "https://github.com/aayartsev/odoo_demo_project.git" --branch "${MAJOR}.0"
 ```
 
-Для **17.0** / **18.0** замените суффикс каталога и `--branch` по таблице выше.
+Канонический пример в остальной доке — **19.0** (`MAJOR=19`).
 
 ## Отличие от CI fixture
 
@@ -192,9 +197,9 @@ odpm plan --skip-start --accept-database-drift=postgres_major
 
 ## Golden-path в CI
 
-Self-hosted runner может использовать одну из обёрток:
+Self-hosted runner указывает secret `ODPM_GOLDEN_PATH_PROJECT` на **один** каталог выбранного major:
 
-- secret / variable `ODPM_GOLDEN_PATH_PROJECT` → путь к `$ODPM_DEMO_19` (или `$ODPM_DEMO_17` / `$ODPM_DEMO_18` для регрессий по major);
+- типично `$ODPM_DEMO_19` или `$ODPM_DEMO_20` (не смешивать major в одном пути);
 - nightly / label `run-docker` — см. [ci.md](ci.md).
 
 Demo-обёртки **не делают** golden-path обязательным на каждый PR.

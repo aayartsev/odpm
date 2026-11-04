@@ -74,11 +74,14 @@ if [[ "${AUTO_REMEDIATE}" == "0" || "${AUTO_REMEDIATE}" == "false" ]]; then
     exit 0
 fi
 
-if [[ -z "${ODOO_MANIFEST_VERSION}" || "${ODOO_MANIFEST_VERSION}" != 19* ]]; then
-    echo "::error::Golden-path expects odpm.json odoo_version 19.x; got '${ODOO_MANIFEST_VERSION:-missing}'." >&2
+ODOO_MAJOR="$(golden_path_odoo_major "${ODOO_MANIFEST_VERSION}" || true)"
+if [[ -z "${ODOO_MANIFEST_VERSION}" || -z "${ODOO_MAJOR}" ]]; then
+    echo "::error::Golden-path needs a numeric odpm.json odoo_version (e.g. 19.0 or 20.0); got '${ODOO_MANIFEST_VERSION:-missing}'." >&2
+    echo "Use one directory per Odoo major (docs/contributing/demo-projects.md)." >&2
     echo "Fix ODPM_GOLDEN_PATH_PROJECT (or its odpm.json) on the self-hosted runner." >&2
     exit 1
 fi
+log "golden-path schema major=${ODOO_MAJOR} (from odpm.json; one catalog per major)"
 
 log "ensure postgres up (service=${POSTGRES_SERVICE}) ..."
 if ! golden_path_ensure_postgres_up "${PROJECT}" "${POSTGRES_SERVICE}" "${PGUSER}"; then
