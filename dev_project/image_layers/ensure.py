@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from .. import constants
 from ..errors import ConfigError, PipelineError
@@ -26,7 +26,11 @@ from .fingerprint import (
     compute_platform_fingerprint,
     layer_image_ref,
 )
-from .registry import image_ref_exists
+from .registry import (
+    force_rebuild_requested,
+    image_ref_exists,
+    retag_image,
+)
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -47,6 +51,12 @@ def _remote_target(args: OdpmCliArgs, config: Config) -> bool:
         "CI_REGISTRY_IMAGE", ""
     )
     return bool(push or registry)
+
+
+def _force_this_layer(force: bool | None) -> bool:
+    if force is not None:
+        return force
+    return force_rebuild_requested()
 
 
 def _build_image(
@@ -80,6 +90,155 @@ def _copy_template(program_dir: str, name: str, dest: Path) -> None:
     dest.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
 
 
+def _rewrite_from_line(text: str, *, arg_name: str, image_ref: str) -> str:
+    """Replace ``ARG X`` + ``FROM ${X}`` with a concrete ``FROM`` line."""
+    needle = f"ARG {arg_name}\nFROM ${{{arg_name}}}"
+    if needle not in text:
+        raise ConfigError(
+            _(
+                "layered Dockerfile missing expected FROM stub "
+                "ARG {ARG} / FROM ${{{ARG}}}"
+            ).format(ARG=arg_name)
+        )
+    return text.replace(needle, f"FROM {image_ref}", 1)
+
+
+def developing_project_path(config: Config) -> Path | None:
+    """Resolve the developing checkout path when available."""
+    developing = getattr(config, "developing_project", None)
+    if developing is None:
+        bootstrap = getattr(config, "bootstrap", None)
+        developing = (
+            getattr(bootstrap, "developing_project", None)
+            if bootstrap is not None
+            else None
+        )
+    if developing is None:
+        return None
+    if isinstance(developing, str) and developing.strip():
+        # Unresolved link string — not a filesystem path.
+        return None
+    path = getattr(developing, "project_path", None) or getattr(
+        developing, "path", None
+    )
+    if not path:
+        return None
+    return Path(str(path)).resolve()
+
+
+def _developing_git_sha(config: Config) -> str:
+    root = developing_project_path(config)
+    if root is None or not (root / ".git").exists():
+        raise ConfigError(
+            _(
+                "developing project must be a git repository for image app "
+                "ensure (git rev-parse HEAD)"
+            )
+        )
+    completed = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        raise ConfigError(
+            _("git rev-parse HEAD failed in {PATH}: {ERR}").format(
+                PATH=root, ERR=(completed.stderr or "").strip()
+            )
+        )
+    return (completed.stdout or "").strip()
+
+
+def _copy_deps_extra_addons(
+    project_env: CreateProjectEnvironment,
+    *,
+    full_ctx: Path,
+    dest_addons: Path,
+) -> int:
+    """Copy dependency trees into deps context, excluding developing."""
+    config = project_env.config
+    developing = developing_project_path(config)
+    developing_names = set()
+    if developing is not None:
+        developing_names.add(developing.name)
+    src_root = full_ctx / "extra-addons"
+    if not src_root.is_dir():
+        return 0
+    dest_addons.mkdir(parents=True, exist_ok=True)
+    copied = 0
+    # Prefer mapped_folders so we skip by absolute developing path.
+    mapped = list(getattr(project_env, "mapped_folders", None) or [])
+    docker_extra = str(getattr(config, "docker_extra_addons", "") or "")
+    used_mapped = False
+    for item in mapped:
+        local = getattr(item, "local", None)
+        docker = str(getattr(item, "docker", "") or "")
+        if not local or not docker_extra:
+            continue
+        if docker != docker_extra and not docker.startswith(f"{docker_extra}/"):
+            continue
+        if docker == docker_extra:
+            continue
+        local_path = Path(str(local)).resolve()
+        if developing is not None and local_path == developing:
+            _logger.info(
+                "image deps ensure: skipping developing tree %s", local_path
+            )
+            continue
+        rel = Path(docker).relative_to(Path(docker_extra))
+        dest = dest_addons / rel
+        if local_path.is_dir():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(local_path, dest, dirs_exist_ok=True)
+            copied += 1
+            used_mapped = True
+    if used_mapped:
+        return copied
+    # Fallback: filter context children by developing basename.
+    for child in sorted(src_root.iterdir()):
+        if child.name in developing_names:
+            _logger.info(
+                "image deps ensure: skipping developing dir name %s", child.name
+            )
+            continue
+        if child.is_dir():
+            shutil.copytree(child, dest_addons / child.name, dirs_exist_ok=True)
+            copied += 1
+        elif child.is_file():
+            shutil.copy2(child, dest_addons / child.name)
+            copied += 1
+    return copied
+
+
+def _publish_alias(
+    *,
+    cache_ref: str,
+    publish_tag: str | None,
+    remote: bool,
+    push: bool,
+) -> None:
+    if not publish_tag or publish_tag == cache_ref:
+        return
+    # After a remote push of cache_ref, crane copy publishes the alias.
+    # Locally (or after docker build without push), docker tag is enough;
+    # push of alias needs an extra docker push when push=True and not remote
+    # crane path — for remote we always use crane copy which pushes dest.
+    if remote or push:
+        retag_image(cache_ref, publish_tag, remote=True if remote else False)
+        if push and not remote:
+            docker = shutil.which("docker")
+            if docker:
+                subprocess.run(
+                    [docker, "push", publish_tag],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+        return
+    retag_image(cache_ref, publish_tag, remote=False)
+
+
 def ensure_base(project_env: CreateProjectEnvironment) -> str:
     from ..project_env.base_image import BaseImageBuilder
     from ..project_env.services import BaseImageService
@@ -91,13 +250,17 @@ def ensure_base(project_env: CreateProjectEnvironment) -> str:
 def ensure_platform(
     project_env: CreateProjectEnvironment,
     args: OdpmCliArgs,
+    *,
+    force: bool | None = None,
 ) -> str:
     config = project_env.config
     program_dir = _program_dir(config)
     fp = compute_platform_fingerprint(config, program_dir=program_dir)
     ref = layer_image_ref(config, layer="platform", fingerprint=fp)
     remote = _remote_target(args, config)
-    if image_ref_exists(ref, remote=remote):
+    if image_ref_exists(
+        ref, remote=remote, force=_force_this_layer(force)
+    ):
         _logger.info("image platform ensure: skip (exists) %s", ref)
         return ref
 
@@ -122,9 +285,10 @@ def ensure_platform(
         shutil.copytree(src, context_dir / name, dirs_exist_ok=True)
     dockerfile = context_dir / "Dockerfile.platform"
     _copy_template(program_dir, "dockerfile_platform", dockerfile)
-    text = dockerfile.read_text(encoding="utf-8")
-    text = text.replace(
-        "ARG BASE_IMAGE\nFROM ${BASE_IMAGE}", f"FROM {base_ref}"
+    text = _rewrite_from_line(
+        dockerfile.read_text(encoding="utf-8"),
+        arg_name="BASE_IMAGE",
+        image_ref=base_ref,
     )
     dockerfile.write_text(text, encoding="utf-8")
     _copy_template(
@@ -151,12 +315,14 @@ def ensure_deps(
     args: OdpmCliArgs,
     *,
     platform_ref: str | None = None,
+    force: bool | None = None,
 ) -> str | None:
     config = project_env.config
     program_dir = _program_dir(config)
     parent = platform_ref or args.image_from
     if not parent:
-        parent = ensure_platform(project_env, args)
+        # Parent ensure never inherits FORCE for this layer.
+        parent = ensure_platform(project_env, args, force=False)
     fp = compute_deps_fingerprint(
         config, program_dir=program_dir, platform_ref=parent
     )
@@ -165,7 +331,9 @@ def ensure_deps(
         return None
     ref = layer_image_ref(config, layer="deps", fingerprint=fp)
     remote = _remote_target(args, config)
-    if image_ref_exists(ref, remote=remote):
+    if image_ref_exists(
+        ref, remote=remote, force=_force_this_layer(force)
+    ):
         _logger.info("image deps ensure: skip (exists) %s", ref)
         return ref
 
@@ -175,22 +343,29 @@ def ensure_deps(
     builder = CiImageBuilder(project_env)
     builder.prepare_ci_build_context()
     full_ctx = Path(config.ci_build_context_dir)
-    addons_src = full_ctx / "extra-addons"
-    if not addons_src.is_dir():
-        _logger.info(
-            "image deps ensure: no extra-addons in context — treating as noop"
-        )
-        return None
     context_dir = Path(config.project_dir) / ".odpm" / "deps-build-context"
     if context_dir.exists():
         shutil.rmtree(context_dir)
     context_dir.mkdir(parents=True)
-    shutil.copytree(addons_src, context_dir / "extra-addons")
+    copied = _copy_deps_extra_addons(
+        project_env,
+        full_ctx=full_ctx,
+        dest_addons=context_dir / "extra-addons",
+    )
+    if copied == 0:
+        raise ConfigError(
+            _(
+                "image deps ensure: dependencies are declared in the lock but "
+                "no dependency trees remain after excluding developing; "
+                "run prepare --stop-after sources first"
+            )
+        )
     dockerfile = context_dir / "Dockerfile.deps"
     _copy_template(program_dir, "dockerfile_deps", dockerfile)
-    text = dockerfile.read_text(encoding="utf-8")
-    text = text.replace(
-        "ARG PLATFORM_IMAGE\nFROM ${PLATFORM_IMAGE}", f"FROM {parent}"
+    text = _rewrite_from_line(
+        dockerfile.read_text(encoding="utf-8"),
+        arg_name="PLATFORM_IMAGE",
+        image_ref=parent,
     )
     dockerfile.write_text(text, encoding="utf-8")
     _copy_template(
@@ -210,65 +385,24 @@ def ensure_deps(
     return ref
 
 
-def _developing_git_sha(config: Config) -> str:
-    developing = getattr(config.bootstrap, "developing_project", None)
-    path = None
-    if developing is not None:
-        path = getattr(developing, "path", None) or getattr(
-            developing, "project_path", None
-        )
-    if not path:
-        # Fallback: common developing checkout location
-        candidate = Path(config.project_dir) / "extra-addons"
-        # Prefer explicit git at project developing link
-        path = config.project_dir
-    root = Path(str(path))
-    if not (root / ".git").exists():
-        # try nested developing folder names used by odpm
-        for name in ("developing", "aktta"):
-            alt = Path(config.project_dir) / name
-            if (alt / ".git").is_dir():
-                root = alt
-                break
-    if not (root / ".git").exists():
-        raise ConfigError(
-            _(
-                "developing project must be a git repository for image app "
-                "ensure (git rev-parse HEAD)"
-            )
-        )
-    completed = subprocess.run(
-        ["git", "-C", str(root), "rev-parse", "HEAD"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if completed.returncode != 0:
-        raise ConfigError(
-            _("git rev-parse HEAD failed in {PATH}: {ERR}").format(
-                PATH=root, ERR=(completed.stderr or "").strip()
-            )
-        )
-    return (completed.stdout or "").strip()
-
-
 def ensure_app(
     project_env: CreateProjectEnvironment,
     args: OdpmCliArgs,
     *,
     parent_ref: str | None = None,
+    force: bool | None = None,
 ) -> str:
     config = project_env.config
     program_dir = _program_dir(config)
     developing_sha = _developing_git_sha(config)
     parent = parent_ref or args.image_from
     if not parent:
-        deps_ref = ensure_deps(project_env, args)
-        parent = deps_ref or ensure_platform(project_env, args)
+        deps_ref = ensure_deps(project_env, args, force=False)
+        parent = deps_ref or ensure_platform(project_env, args, force=False)
 
     environ = environ_from_config(config)
     push = resolve_ci_image_push(args, environ=environ)
-    tag = args.image_tag or config.odoo_ci_image_name
+    publish_tag = args.image_tag or config.odoo_ci_image_name
     remote = bool(push) or bool(
         os.environ.get("ODPM_BASE_IMAGE_REGISTRY")
         or os.environ.get("CI_REGISTRY_IMAGE")
@@ -285,14 +419,21 @@ def ensure_app(
         secrets_baked=secrets_baked,
     )
     cache_ref = layer_image_ref(config, layer="app", fingerprint=app_fp)
-    if image_ref_exists(cache_ref, remote=remote):
+    force_this = _force_this_layer(force)
+    if image_ref_exists(cache_ref, remote=remote, force=force_this):
         _logger.info("image app ensure: skip (exists) %s", cache_ref)
-        return tag or cache_ref
+        _publish_alias(
+            cache_ref=cache_ref,
+            publish_tag=publish_tag,
+            remote=remote,
+            push=bool(push),
+        )
+        return publish_tag or cache_ref
 
     _logger.info(
-        "image app ensure: miss — building %s (cache %s) FROM %s",
-        tag,
+        "image app ensure: miss — building cache %s (publish %s) FROM %s",
         cache_ref,
+        publish_tag,
         parent,
     )
     from ..project_env.ci_image import CiImageBuilder
@@ -307,9 +448,10 @@ def ensure_app(
             shutil.rmtree(target)
     dockerfile = full_ctx / "Dockerfile.app"
     _copy_template(program_dir, "dockerfile_app", dockerfile)
-    text = dockerfile.read_text(encoding="utf-8")
-    text = text.replace(
-        "ARG PLATFORM_IMAGE\nFROM ${PLATFORM_IMAGE}", f"FROM {parent}"
+    text = _rewrite_from_line(
+        dockerfile.read_text(encoding="utf-8"),
+        arg_name="PLATFORM_IMAGE",
+        image_ref=parent,
     )
     secrets_src = full_ctx / "runtime" / "secrets.json"
     if secrets_src.is_file():
@@ -326,27 +468,27 @@ def ensure_app(
     _copy_template(
         program_dir, "dockerignore_app", full_ctx / ".dockerignore"
     )
-    build_tag = tag or cache_ref
+    # Always build/push the fingerprint cache ref so remote hits work next run.
     _build_image(
         config=config,
         args=args,
         context_dir=full_ctx,
         dockerfile=dockerfile,
-        tag=build_tag,
-        push=push,
+        tag=cache_ref,
+        push=bool(push) or remote,
     )
-    if tag and tag != cache_ref and not remote:
-        # Retag local cache alias for fingerprint-based hits next run.
-        docker = shutil.which("docker")
-        if docker:
-            subprocess.run(
-                [docker, "tag", build_tag, cache_ref],
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-    _logger.info("image app ensure: done %s", build_tag)
-    return build_tag
+    _publish_alias(
+        cache_ref=cache_ref,
+        publish_tag=publish_tag,
+        remote=remote,
+        push=bool(push),
+    )
+    _logger.info(
+        "image app ensure: done cache=%s publish=%s",
+        cache_ref,
+        publish_tag or cache_ref,
+    )
+    return publish_tag or cache_ref
 
 
 def ensure_lint(
@@ -354,6 +496,7 @@ def ensure_lint(
     args: OdpmCliArgs,
     *,
     platform_ref: str | None = None,
+    force: bool | None = None,
 ) -> str:
     config = project_env.config
     program_dir = _program_dir(config)
@@ -366,13 +509,17 @@ def ensure_lint(
             )
         )
     platform_fp = compute_platform_fingerprint(config, program_dir=program_dir)
-    parent = platform_ref or args.image_from or ensure_platform(project_env, args)
+    parent = platform_ref or args.image_from
+    if not parent:
+        parent = ensure_platform(project_env, args, force=False)
     fp = compute_lint_fingerprint(
         config, program_dir=program_dir, platform_fp=platform_fp
     )
     ref = layer_image_ref(config, layer="lint", fingerprint=fp)
     remote = _remote_target(args, config)
-    if image_ref_exists(ref, remote=remote):
+    if image_ref_exists(
+        ref, remote=remote, force=_force_this_layer(force)
+    ):
         _logger.info("image lint ensure: skip (exists) %s", ref)
         return ref
 
@@ -383,14 +530,25 @@ def ensure_lint(
     context_dir.mkdir(parents=True)
     shutil.copy2(pre_commit, context_dir / ".pre-commit-config.yaml")
     hooks = Path(config.project_dir) / ".pre-commit-hooks.yaml"
-    if hooks.is_file():
+    has_hooks = hooks.is_file()
+    if has_hooks:
         shutil.copy2(hooks, context_dir / ".pre-commit-hooks.yaml")
     dockerfile = context_dir / "Dockerfile.lint"
     _copy_template(program_dir, "dockerfile_lint", dockerfile)
-    text = dockerfile.read_text(encoding="utf-8")
-    text = text.replace(
-        "ARG PLATFORM_IMAGE\nFROM ${PLATFORM_IMAGE}", f"FROM {parent}"
+    text = _rewrite_from_line(
+        dockerfile.read_text(encoding="utf-8"),
+        arg_name="PLATFORM_IMAGE",
+        image_ref=parent,
     )
+    if has_hooks:
+        text = text.replace(
+            "COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} "
+            ".pre-commit-config.yaml .pre-commit-config.yaml\n",
+            "COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} "
+            ".pre-commit-config.yaml .pre-commit-config.yaml\n"
+            "COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} "
+            ".pre-commit-hooks.yaml .pre-commit-hooks.yaml\n",
+        )
     dockerfile.write_text(text, encoding="utf-8")
     _copy_template(
         program_dir, "dockerignore_lint", context_dir / ".dockerignore"
@@ -414,16 +572,18 @@ def ensure_image_layer(
     args: OdpmCliArgs,
 ) -> str | None:
     layer = args.image_layer
+    # Top-level ensure: FORCE applies only to this layer.
+    force = force_rebuild_requested()
     if layer == cli_params.IMAGE_BASE_LAYER:
         return ensure_base(project_env)
     if layer == cli_params.IMAGE_PLATFORM_LAYER:
-        return ensure_platform(project_env, args)
+        return ensure_platform(project_env, args, force=force)
     if layer == cli_params.IMAGE_DEPS_LAYER:
-        return ensure_deps(project_env, args)
+        return ensure_deps(project_env, args, force=force)
     if layer == cli_params.IMAGE_APP_LAYER:
-        return ensure_app(project_env, args)
+        return ensure_app(project_env, args, force=force)
     if layer == cli_params.IMAGE_LINT_LAYER:
-        return ensure_lint(project_env, args)
+        return ensure_lint(project_env, args, force=force)
     raise ConfigError(
         _("unknown image layer {LAYER}").format(LAYER=layer)
     )
@@ -433,10 +593,19 @@ def run_layered_build(
     project_env: CreateProjectEnvironment,
     args: OdpmCliArgs,
 ) -> str:
-    """Shortcut used by ``odpm build``: base → platform → deps? → app."""
+    """Shortcut used by ``odpm build``: base → platform → deps? → app.
+
+    ``ODPM_IMAGE_FORCE_REBUILD`` forces only the **app** layer here so parents
+    are not rebuilt «along with» the final image (ADR-027).
+    """
     ensure_base(project_env)
-    platform_ref = ensure_platform(project_env, args)
-    deps_ref = ensure_deps(project_env, args, platform_ref=platform_ref)
+    platform_ref = ensure_platform(project_env, args, force=False)
+    deps_ref = ensure_deps(
+        project_env, args, platform_ref=platform_ref, force=False
+    )
     return ensure_app(
-        project_env, args, parent_ref=deps_ref or platform_ref
+        project_env,
+        args,
+        parent_ref=deps_ref or platform_ref,
+        force=force_rebuild_requested(),
     )

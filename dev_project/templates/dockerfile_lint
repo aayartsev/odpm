@@ -10,6 +10,7 @@ RUN python3 -m pip install --no-cache-dir 'pre-commit>=3,<5'
 WORKDIR /home/odoo
 
 COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} .pre-commit-config.yaml .pre-commit-config.yaml
+# Optional .pre-commit-hooks.yaml is injected by ensure_lint when present.
 
 USER ${CONTAINER_USER}
 RUN pre-commit install-hooks

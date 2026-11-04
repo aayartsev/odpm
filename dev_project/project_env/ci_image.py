@@ -15,20 +15,12 @@ from ..bake_venv import (
 from ..config.payload import write_runtime_config_to_path
 from ..logging import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
-from .image_build import (
-    ImageBuildSpec,
-    get_ci_image_build_backend,
-    resolve_ci_image_builder,
-    resolve_ci_image_push,
-)
 from .base_image import BaseImageBuilder
-from .services.docker_base_image import BaseImageService
 from .types import MappedPath
 
 if TYPE_CHECKING:
     from .environment import CreateProjectEnvironment
 from .secrets import prepare_secrets_for_ci_bake, secrets_runtime_path
-from ..system_check_policy import environ_from_config
 
 
 _logger = get_module_logger(__name__)
@@ -224,6 +216,10 @@ class CiImageBuilder:
         )
 
     def generate_ci_dockerfile(self) -> str:
+        """Deprecated: monolithic ``dockerfile_ci`` helper for legacy tests.
+
+        Production builds use :mod:`dev_project.image_layers` (ADR-027).
+        """
         template_path = os.path.join(
             self.config.program_dir, constants.CI_DOCKERFILE_TEMPLATE
         )
@@ -252,32 +248,7 @@ class CiImageBuilder:
         return dockerfile_path
 
     def build_ci_image(self) -> None:
+        """Build the final CI image via layered stages (ADR-027)."""
+        from ..image_layers import run_layered_build
 
-        environ = environ_from_config(self.config)
-        builder_name = resolve_ci_image_builder(self.config.arguments, environ=environ)
-        push = resolve_ci_image_push(self.config.arguments, environ=environ)
-        base_ref = BaseImageBuilder(self.env).resolve_base_image_ref()
-        BaseImageService(self.env).ensure_base_image()
-        self.prepare_ci_build_context()
-        ci_dockerfile = self.generate_ci_dockerfile()
-        context_dir = self.config.ci_build_context_dir
-        _logger.info(
-            "build_ci_image: building %s from %s (base %s, builder %s, push %s)",
-            self.config.odoo_ci_image_name,
-            ci_dockerfile,
-            base_ref,
-            builder_name,
-            push,
-        )
-        spec = ImageBuildSpec(
-            context_dir=context_dir,
-            dockerfile=ci_dockerfile,
-            tag=self.config.odoo_ci_image_name,
-            platform=f"linux/{self.config.arch}",
-            push=push,
-            project_dir=self.config.project_dir,
-        )
-        get_ci_image_build_backend(builder_name).build(spec)
-        _logger.info(
-            "build_ci_image: finished %s", self.config.odoo_ci_image_name
-        )
+        run_layered_build(self.env, self.config.arguments)

@@ -320,82 +320,23 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
         with self.assertRaises(PipelineError):
             get_ci_image_build_backend("buildah")
 
-    @patch("dev_project.project_env.ci_image.get_ci_image_build_backend")
-    @patch("dev_project.project_env.ci_image.BaseImageService")
-    @patch("dev_project.project_env.ci_image.BaseImageBuilder")
-    def test_ci_image_builder_uses_docker_backend_and_ensures_base(
-        self, mock_base_builder_cls, mock_base_svc, mock_get_backend
-    ):
-
-        backend = MagicMock()
-        mock_get_backend.return_value = backend
-        mock_base_builder_cls.return_value.resolve_base_image_ref.return_value = (
-            "base:tag"
-        )
+    @patch("dev_project.image_layers.run_layered_build")
+    def test_ci_image_builder_uses_layered_build(self, mock_layered):
         env = MagicMock()
         config = MagicMock()
         config.arguments = OdpmCliArgs(image_builder="docker", image_push=False)
-        config.odoo_ci_image_name = "ci:tag"
-        config.odoo_image_name = "base:tag"
-        config.ci_build_context_dir = "/tmp/ctx"
-        config.arch = "amd64"
-        config.project_dir = "/tmp/project"
-        config.program_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(__file__))
-        )
-        config.user_env = MagicMock()
-        config.user_env.project_dotenv_dict.return_value = {}
         env.config = config
-        builder = CiImageBuilder(env)
-        builder.prepare_ci_build_context = MagicMock()
-        builder.generate_ci_dockerfile = MagicMock(return_value="/tmp/ctx/Dockerfile.ci")
+        CiImageBuilder(env).build_ci_image()
+        mock_layered.assert_called_once_with(env, config.arguments)
 
-        builder.build_ci_image()
-
-        mock_base_svc.return_value.ensure_base_image.assert_called_once()
-        mock_get_backend.assert_called_once_with("docker")
-        backend.build.assert_called_once()
-        spec = backend.build.call_args.args[0]
-        self.assertEqual(spec.tag, "ci:tag")
-        self.assertFalse(spec.push)
-
-    @patch("dev_project.project_env.ci_image.get_ci_image_build_backend")
-    @patch("dev_project.project_env.ci_image.BaseImageService")
-    @patch("dev_project.project_env.ci_image.BaseImageBuilder")
-    def test_ci_image_builder_kaniko_ensures_base(
-        self, mock_base_builder_cls, mock_base_svc, mock_get_backend
-    ):
-
-        backend = MagicMock()
-        mock_get_backend.return_value = backend
-        mock_base_builder_cls.return_value.resolve_base_image_ref.return_value = (
-            "registry.example.com/odpm/base:latest"
-        )
+    @patch("dev_project.image_layers.run_layered_build")
+    def test_ci_image_builder_layered_build_passes_kaniko_args(self, mock_layered):
         env = MagicMock()
         config = MagicMock()
         config.arguments = OdpmCliArgs(image_builder="kaniko", image_push=True)
-        config.odoo_ci_image_name = "registry/app:1"
-        config.odoo_image_name = "registry/base:1"
-        config.ci_build_context_dir = "/tmp/ctx"
-        config.arch = "arm64"
-        config.project_dir = "/tmp/project"
-        config.user_env = MagicMock()
-        config.user_env.project_dotenv_dict.return_value = {
-            constants.ODPM_BASE_IMAGE_REGISTRY_ENV: "registry.example.com/odpm",
-            constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko",
-        }
         env.config = config
-        builder = CiImageBuilder(env)
-        builder.prepare_ci_build_context = MagicMock()
-        builder.generate_ci_dockerfile = MagicMock(return_value="/tmp/ctx/Dockerfile.ci")
-
-        builder.build_ci_image()
-
-        mock_base_svc.return_value.ensure_base_image.assert_called_once()
-        mock_get_backend.assert_called_once_with("kaniko")
-        spec = backend.build.call_args.args[0]
-        self.assertTrue(spec.push)
-        self.assertEqual(spec.platform, "linux/arm64")
+        CiImageBuilder(env).build_ci_image()
+        mock_layered.assert_called_once_with(env, config.arguments)
 
 
 class CliImageBuilderFlagTests(unittest.TestCase):

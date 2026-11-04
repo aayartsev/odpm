@@ -1133,8 +1133,14 @@ msgstr "шаблон compose актуален"
 msgid "compose validation disabled by policy"
 msgstr "валидация compose отключена политикой"
 
+msgid "crane copy failed ({SRC} → {DST}): {ERR}"
+msgstr "crane copy не удался ({SRC} → {DST}): {ERR}"
+
 msgid "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
 msgstr "для проверки наличия слоистого CI-образа в registry нужен crane (установите crane или собирайте без push в registry)."
+
+msgid "crane is required to retag remote layered CI images ({SRC} → {DST})"
+msgstr "для переименования remote слоистых CI-образов нужен crane ({SRC} → {DST})"
 
 msgid "database configuration drift detected: {KINDS}"
 msgstr "обнаружен дрейф конфигурации БД: {KINDS}"
@@ -1181,8 +1187,14 @@ msgstr "docker build завершился с кодом {EXIT_CODE}"
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
+msgid "docker is required to retag local layered CI images"
+msgstr "для переименования локальных слоистых CI-образов нужен docker"
+
 msgid "docker push failed with exit code {EXIT_CODE}"
 msgstr "docker push завершился с кодом {EXIT_CODE}"
+
+msgid "docker tag failed ({SRC} → {DST}): {ERR}"
+msgstr "docker tag не удался ({SRC} → {DST}): {ERR}"
 
 msgid "docker-compose.yml differs from preview"
 msgstr "docker-compose.yml отличается от preview"
@@ -1250,6 +1262,9 @@ msgstr "ensure слоя base"
 msgid "image deps ensure"
 msgstr "ensure слоя deps"
 
+msgid "image deps ensure: dependencies are declared in the lock but no dependency trees remain after excluding developing; run prepare --stop-after sources first"
+msgstr "image deps ensure: в lock есть dependencies, но после исключения developing не осталось деревьев; сначала выполните prepare --stop-after sources"
+
 msgid "image layer analysis"
 msgstr "анализ слоёв образа"
 
@@ -1276,6 +1291,9 @@ msgstr "сборка kaniko завершилась с кодом {EXIT_CODE}"
 
 msgid "layer analysis unavailable: {ERR}"
 msgstr "анализ слоёв недоступен: {ERR}"
+
+msgid "layered Dockerfile missing expected FROM stub ARG {ARG} / FROM ${{{ARG}}}"
+msgstr "в слоистом Dockerfile нет ожидаемого FROM-шаблона ARG {ARG} / FROM ${{{ARG}}}"
 
 msgid "layered build shortcut (odpm build)"
 msgstr "ярлык слоистой сборки (odpm build)"

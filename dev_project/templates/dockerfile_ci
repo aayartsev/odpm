@@ -1,3 +1,6 @@
+# Deprecated monolithic final CI image (kept for legacy helper/tests).
+# Production builds use dockerfile_platform / dockerfile_deps / dockerfile_app
+# via odpm image … ensure / odpm build (ADR-027).
 # #MESSAGE#
 FROM {BASE_IMAGE}
 

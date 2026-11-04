@@ -714,6 +714,30 @@ RU_MESSAGES: dict[str, str] = {
     "unknown image layer {LAYER}": (
         "неизвестный слой образа {LAYER}"
     ),
+    "crane copy failed ({SRC} → {DST}): {ERR}": (
+        "crane copy не удался ({SRC} → {DST}): {ERR}"
+    ),
+    "crane is required to retag remote layered CI images ({SRC} → {DST})": (
+        "для переименования remote слоистых CI-образов нужен crane ({SRC} → {DST})"
+    ),
+    "docker is required to retag local layered CI images": (
+        "для переименования локальных слоистых CI-образов нужен docker"
+    ),
+    "docker tag failed ({SRC} → {DST}): {ERR}": (
+        "docker tag не удался ({SRC} → {DST}): {ERR}"
+    ),
+    "image deps ensure: dependencies are declared in the lock but "
+    "no dependency trees remain after excluding developing; "
+    "run prepare --stop-after sources first": (
+        "image deps ensure: в lock есть dependencies, но после исключения "
+        "developing не осталось деревьев; сначала выполните "
+        "prepare --stop-after sources"
+    ),
+    "layered Dockerfile missing expected FROM stub "
+    "ARG {ARG} / FROM ${{{ARG}}}": (
+        "в слоистом Dockerfile нет ожидаемого FROM-шаблона "
+        "ARG {ARG} / FROM ${{{ARG}}}"
+    ),
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"
     ),

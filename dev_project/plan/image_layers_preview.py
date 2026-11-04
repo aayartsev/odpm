@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from ..host.cli import params as cli_params
 from ..image_layers.fingerprint import (
+    compute_app_fingerprint,
     compute_deps_fingerprint,
     compute_lint_fingerprint,
     compute_platform_fingerprint,
@@ -66,7 +67,8 @@ def _presence_step(
         )
     assert ref is not None
     try:
-        exists = image_ref_exists(ref, remote=remote)
+        # Plan never forces rebuild; FORCE is for ensure only.
+        exists = image_ref_exists(ref, remote=remote, force=False)
     except Exception as exc:  # noqa: BLE001 — plan must stay soft
         return PlanStep(
             step_id,
@@ -184,21 +186,58 @@ def _build_image_layer_plan_steps_inner(
         )
         parent_ref = deps_ref
 
-    if args.image_tag:
-        app_reason = plan_msg("app FROM {PARENT}; publish tag {TAG}").format(
-            PARENT=parent_ref, TAG=args.image_tag
+    try:
+        from ..image_layers.ensure import _developing_git_sha  # noqa: PLC0415
+        import os
+
+        developing_sha = _developing_git_sha(config)
+        secrets_baked = os.environ.get("ODPM_BAKE_SECRETS", "").strip() in {
+            "1",
+            "true",
+            "True",
+            "yes",
+            "YES",
+        }
+        app_fp = compute_app_fingerprint(
+            config,
+            program_dir=program_dir,
+            parent_ref=parent_ref,
+            developing_git_sha=developing_sha,
+            secrets_baked=secrets_baked,
         )
-    else:
-        app_reason = plan_msg("app FROM {PARENT}").format(PARENT=parent_ref)
-    steps.append(
-        PlanStep(
-            "image.app",
-            _layer_description("app"),
-            "run",
-            True,
-            app_reason,
+        app_ref = layer_image_ref(config, layer="app", fingerprint=app_fp)
+        steps.append(
+            _presence_step(
+                step_id="image.app",
+                layer="app",
+                ref=app_ref,
+                remote=remote,
+                required=True,
+            )
         )
-    )
+        if args.image_tag:
+            steps.append(
+                PlanStep(
+                    "image.app.publish",
+                    _layer_description("app"),
+                    "noop",
+                    False,
+                    plan_msg("app FROM {PARENT}; publish tag {TAG}").format(
+                        PARENT=parent_ref, TAG=args.image_tag
+                    ),
+                )
+            )
+    except Exception as exc:  # noqa: BLE001 — soft
+        steps.append(
+            PlanStep(
+                "image.app",
+                _layer_description("app"),
+                "run",
+                True,
+                plan_msg("app FROM {PARENT}").format(PARENT=parent_ref)
+                + f" ({exc})",
+            )
+        )
 
     from pathlib import Path
 

@@ -1134,8 +1134,14 @@ msgstr "compose template up to date"
 msgid "compose validation disabled by policy"
 msgstr "compose validation disabled by policy"
 
+msgid "crane copy failed ({SRC} → {DST}): {ERR}"
+msgstr "crane copy failed ({SRC} → {DST}): {ERR}"
+
 msgid "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
 msgstr "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
+
+msgid "crane is required to retag remote layered CI images ({SRC} → {DST})"
+msgstr "crane is required to retag remote layered CI images ({SRC} → {DST})"
 
 msgid "database configuration drift detected: {KINDS}"
 msgstr "database configuration drift detected: {KINDS}"
@@ -1182,8 +1188,14 @@ msgstr "docker build failed with exit code {EXIT_CODE}"
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up failed with exit code {EXIT_CODE}"
 
+msgid "docker is required to retag local layered CI images"
+msgstr "docker is required to retag local layered CI images"
+
 msgid "docker push failed with exit code {EXIT_CODE}"
 msgstr "docker push failed with exit code {EXIT_CODE}"
+
+msgid "docker tag failed ({SRC} → {DST}): {ERR}"
+msgstr "docker tag failed ({SRC} → {DST}): {ERR}"
 
 msgid "docker-compose.yml differs from preview"
 msgstr "docker-compose.yml differs from preview"
@@ -1251,6 +1263,9 @@ msgstr "image base ensure"
 msgid "image deps ensure"
 msgstr "image deps ensure"
 
+msgid "image deps ensure: dependencies are declared in the lock but no dependency trees remain after excluding developing; run prepare --stop-after sources first"
+msgstr "image deps ensure: dependencies are declared in the lock but no dependency trees remain after excluding developing; run prepare --stop-after sources first"
+
 msgid "image layer analysis"
 msgstr "image layer analysis"
 
@@ -1277,6 +1292,9 @@ msgstr "kaniko build failed with exit code {EXIT_CODE}"
 
 msgid "layer analysis unavailable: {ERR}"
 msgstr "layer analysis unavailable: {ERR}"
+
+msgid "layered Dockerfile missing expected FROM stub ARG {ARG} / FROM ${{{ARG}}}"
+msgstr "layered Dockerfile missing expected FROM stub ARG {ARG} / FROM ${{{ARG}}}"
 
 msgid "layered build shortcut (odpm build)"
 msgstr "layered build shortcut (odpm build)"

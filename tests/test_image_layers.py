@@ -7,6 +7,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from dev_project.errors import ConfigError
+from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.image_layers.ensure import (
+    _copy_deps_extra_addons,
+    developing_project_path,
+    ensure_deps,
+    ensure_platform,
+    run_layered_build,
+)
 from dev_project.image_layers.family import (
     FAMILY_DEV,
     FAMILY_RUNTIME,
@@ -18,8 +27,12 @@ from dev_project.image_layers.fingerprint import (
     compute_platform_fingerprint,
     layer_image_ref,
 )
-from dev_project.image_layers.registry import image_ref_exists
+from dev_project.image_layers.registry import (
+    force_rebuild_requested,
+    image_ref_exists,
+)
 from dev_project.prepare.sources_only import SOURCES_ONLY_STEP_IDS
+from dev_project.project_env.types import MappedPath
 
 
 class FamilyTests(unittest.TestCase):
@@ -141,16 +154,145 @@ class FingerprintTests(unittest.TestCase):
 
 
 class RegistryPresenceTests(unittest.TestCase):
-    @patch.dict("os.environ", {"ODPM_IMAGE_FORCE_REBUILD": "1"}, clear=False)
-    def test_force_rebuild_is_miss(self):
-        self.assertFalse(image_ref_exists("any:tag", remote=False))
+    def test_force_flag_is_miss_env_alone_is_not(self):
+        with patch.dict("os.environ", {"ODPM_IMAGE_FORCE_REBUILD": "1"}, clear=False):
+            self.assertTrue(force_rebuild_requested())
+            # Nested parent checks must pass force=False explicitly.
+            with patch(
+                "dev_project.image_layers.registry._docker_image_exists",
+                return_value=True,
+            ):
+                self.assertTrue(
+                    image_ref_exists("any:tag", remote=False, force=False)
+                )
+            self.assertFalse(
+                image_ref_exists("any:tag", remote=False, force=True)
+            )
 
     @patch("dev_project.image_layers.registry.shutil.which", return_value=None)
     def test_remote_without_crane_raises(self, _which):
-        from dev_project.errors import ConfigError
-
         with self.assertRaises(ConfigError):
             image_ref_exists("reg/img:tag", remote=True)
+
+
+class DepsExcludeDevelopingTests(unittest.TestCase):
+    def test_copy_deps_skips_developing_mapped_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            oca = root / "oca_web"
+            oca.mkdir()
+            (oca / "mod").mkdir()
+            developing = root / "my_app"
+            developing.mkdir()
+            (developing / "mod").mkdir()
+            ctx = root / "ctx"
+            (ctx / "extra-addons").mkdir(parents=True)
+
+            config = MagicMock()
+            config.docker_extra_addons = "/home/odoo/extra-addons"
+            developing_link = MagicMock()
+            developing_link.project_path = str(developing)
+            config.developing_project = developing_link
+            config.bootstrap = MagicMock()
+            config.bootstrap.developing_project = developing_link
+
+            env = MagicMock()
+            env.config = config
+            env.mapped_folders = [
+                MappedPath(
+                    local=str(oca),
+                    docker="/home/odoo/extra-addons/oca_web",
+                ),
+                MappedPath(
+                    local=str(developing),
+                    docker="/home/odoo/extra-addons/my_app",
+                ),
+            ]
+            dest = root / "deps" / "extra-addons"
+            copied = _copy_deps_extra_addons(
+                env, full_ctx=ctx, dest_addons=dest
+            )
+            self.assertEqual(copied, 1)
+            self.assertTrue((dest / "oca_web").is_dir())
+            self.assertFalse((dest / "my_app").exists())
+
+    def test_developing_project_path_resolves(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            developing = Path(tmp) / "app"
+            developing.mkdir()
+            config = MagicMock()
+            link = MagicMock()
+            link.project_path = str(developing)
+            config.developing_project = link
+            self.assertEqual(
+                developing_project_path(config), developing.resolve()
+            )
+
+
+class ForceRebuildScopeTests(unittest.TestCase):
+    @patch.dict("os.environ", {"ODPM_IMAGE_FORCE_REBUILD": "1"}, clear=False)
+    @patch("dev_project.image_layers.ensure.ensure_app")
+    @patch("dev_project.image_layers.ensure.ensure_deps", return_value=None)
+    @patch(
+        "dev_project.image_layers.ensure.ensure_platform",
+        return_value="reg:platform",
+    )
+    @patch("dev_project.image_layers.ensure.ensure_base", return_value="reg:base")
+    def test_layered_build_forces_only_app(
+        self, _base, mock_platform, mock_deps, mock_app
+    ):
+        env = MagicMock()
+        args = OdpmCliArgs()
+        mock_app.return_value = "reg:app"
+        run_layered_build(env, args)
+        mock_platform.assert_called_once_with(env, args, force=False)
+        mock_deps.assert_called_once_with(
+            env, args, platform_ref="reg:platform", force=False
+        )
+        mock_app.assert_called_once()
+        self.assertTrue(mock_app.call_args.kwargs.get("force"))
+
+
+class DepsMissingTreesTests(unittest.TestCase):
+    @patch(
+        "dev_project.image_layers.ensure.compute_deps_fingerprint",
+        return_value="deadbeef",
+    )
+    @patch(
+        "dev_project.image_layers.ensure.image_ref_exists",
+        return_value=False,
+    )
+    @patch("dev_project.image_layers.ensure._copy_deps_extra_addons", return_value=0)
+    @patch.object(
+        __import__(
+            "dev_project.project_env.ci_image", fromlist=["CiImageBuilder"]
+        ).CiImageBuilder,
+        "prepare_ci_build_context",
+    )
+    def test_deps_raises_when_no_trees_after_filter(
+        self, _prepare, _copy, _exists, _fp
+    ):
+        config = MagicMock()
+        config.program_dir = str(Path(__file__).resolve().parents[1])
+        config.project_dir = "/tmp/proj"
+        config.project_name = "demo"
+        config.odoo_version = "19.0"
+        config.odoo_build_date = "2026-01-01"
+        config.arch = "amd64"
+        config.ci_build_context_dir = "/tmp/proj/.odpm/ci-build-context"
+        config.policy = MagicMock()
+        config.policy.base_image_profile = "full"
+        config.arguments = OdpmCliArgs()
+        env = MagicMock()
+        env.config = config
+        with self.assertRaises(ConfigError) as ctx:
+            ensure_deps(
+                env,
+                OdpmCliArgs(),
+                platform_ref="reg:platform",
+                force=False,
+            )
+        self.assertIn("no dependency trees", str(ctx.exception))
 
 
 class SourcesOnlyIdsTests(unittest.TestCase):
