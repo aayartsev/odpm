@@ -1188,8 +1188,14 @@ msgstr "docker build failed with exit code {EXIT_CODE}"
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up failed with exit code {EXIT_CODE}"
 
+msgid "docker is required to push layered CI image {REF}"
+msgstr "docker is required to push layered CI image {REF}"
+
 msgid "docker is required to retag local layered CI images"
 msgstr "docker is required to retag local layered CI images"
+
+msgid "docker push failed for {REF}: {ERR}"
+msgstr "docker push failed for {REF}: {ERR}"
 
 msgid "docker push failed with exit code {EXIT_CODE}"
 msgstr "docker push failed with exit code {EXIT_CODE}"

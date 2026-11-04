@@ -239,18 +239,113 @@ class ForceRebuildScopeTests(unittest.TestCase):
     )
     @patch("dev_project.image_layers.ensure.ensure_base", return_value="reg:base")
     def test_layered_build_forces_only_app(
-        self, _base, mock_platform, mock_deps, mock_app
+        self, mock_base, mock_platform, mock_deps, mock_app
     ):
         env = MagicMock()
         args = OdpmCliArgs()
         mock_app.return_value = "reg:app"
         run_layered_build(env, args)
+        mock_base.assert_called_once_with(env, force=False)
         mock_platform.assert_called_once_with(env, args, force=False)
         mock_deps.assert_called_once_with(
             env, args, platform_ref="reg:platform", force=False
         )
         mock_app.assert_called_once()
         self.assertTrue(mock_app.call_args.kwargs.get("force"))
+
+    def test_ensure_base_force_rebuilds(self):
+        from dev_project.image_layers.ensure import ensure_base
+
+        env = MagicMock()
+        env.config.project_dir = "/tmp/proj"
+        builder = MagicMock()
+        builder.resolve_base_image_ref.return_value = "base:tag"
+        with (
+            patch(
+                "dev_project.project_env.base_image.BaseImageBuilder",
+                return_value=builder,
+            ),
+            patch(
+                "dev_project.project_env.services.BaseImageService"
+            ) as mock_svc,
+            patch(
+                "dev_project.project_env.base_image_identity.base_image_identity_path",
+                return_value="/tmp/proj/.odpm/base_image_identity.json",
+            ),
+            patch(
+                "dev_project.project_env.base_image_identity.expected_base_image_identity",
+                return_value={"uid": "1"},
+            ),
+            patch(
+                "dev_project.project_env.base_image_identity.write_base_image_identity"
+            ) as mock_write,
+            patch.object(Path, "is_file", return_value=False),
+        ):
+            ref = ensure_base(env, force=True)
+        self.assertEqual(ref, "base:tag")
+        builder.build_base_image.assert_called_once()
+        mock_svc.assert_not_called()
+        mock_write.assert_called_once()
+
+
+class PushPolicyTests(unittest.TestCase):
+    def test_want_push_ignores_registry_env_alone(self):
+        from dev_project.image_layers.ensure import _want_push
+
+        config = MagicMock()
+        args = OdpmCliArgs(image_push=False)
+        with (
+            patch.dict(
+                "os.environ",
+                {"CI_REGISTRY_IMAGE": "registry.example.com/proj"},
+                clear=False,
+            ),
+            patch(
+                "dev_project.image_layers.ensure.resolve_ci_image_push",
+                return_value=False,
+            ),
+            patch(
+                "dev_project.image_layers.ensure.environ_from_config",
+                return_value={},
+            ),
+        ):
+            self.assertFalse(_want_push(args, config))
+
+    def test_want_push_true_when_flag_set(self):
+        from dev_project.image_layers.ensure import _want_push
+
+        config = MagicMock()
+        args = OdpmCliArgs(image_push=True)
+        with (
+            patch(
+                "dev_project.image_layers.ensure.resolve_ci_image_push",
+                return_value=True,
+            ),
+            patch(
+                "dev_project.image_layers.ensure.environ_from_config",
+                return_value={},
+            ),
+        ):
+            self.assertTrue(_want_push(args, config))
+
+    def test_docker_push_or_raise_fails_fast(self):
+        from dev_project.image_layers.ensure import _docker_push_or_raise
+
+        with (
+            patch(
+                "dev_project.image_layers.ensure.shutil.which",
+                return_value="/usr/bin/docker",
+            ),
+            patch(
+                "dev_project.image_layers.ensure.subprocess.run",
+                return_value=MagicMock(
+                    returncode=1, stderr="denied", stdout=""
+                ),
+            ),
+        ):
+            with self.assertRaises(ConfigError) as ctx:
+                _docker_push_or_raise("reg/app:tag")
+        self.assertIn("docker push failed", str(ctx.exception))
 
 
 class DepsMissingTreesTests(unittest.TestCase):
@@ -292,7 +387,7 @@ class DepsMissingTreesTests(unittest.TestCase):
                 platform_ref="reg:platform",
                 force=False,
             )
-        self.assertIn("no dependency trees", str(ctx.exception))
+        self.assertIn("dependencies", str(ctx.exception).lower())
 
 
 class SourcesOnlyIdsTests(unittest.TestCase):

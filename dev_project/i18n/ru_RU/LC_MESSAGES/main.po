@@ -1187,8 +1187,14 @@ msgstr "docker build завершился с кодом {EXIT_CODE}"
 msgid "docker compose up failed with exit code {EXIT_CODE}"
 msgstr "docker compose up завершился с кодом {EXIT_CODE}"
 
+msgid "docker is required to push layered CI image {REF}"
+msgstr "для push слоистого CI-образа {REF} нужен docker"
+
 msgid "docker is required to retag local layered CI images"
 msgstr "для переименования локальных слоистых CI-образов нужен docker"
+
+msgid "docker push failed for {REF}: {ERR}"
+msgstr "docker push не удался для {REF}: {ERR}"
 
 msgid "docker push failed with exit code {EXIT_CODE}"
 msgstr "docker push завершился с кодом {EXIT_CODE}"

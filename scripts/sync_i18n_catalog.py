@@ -726,6 +726,12 @@ RU_MESSAGES: dict[str, str] = {
     "docker tag failed ({SRC} → {DST}): {ERR}": (
         "docker tag не удался ({SRC} → {DST}): {ERR}"
     ),
+    "docker is required to push layered CI image {REF}": (
+        "для push слоистого CI-образа {REF} нужен docker"
+    ),
+    "docker push failed for {REF}: {ERR}": (
+        "docker push не удался для {REF}: {ERR}"
+    ),
     "image deps ensure: dependencies are declared in the lock but "
     "no dependency trees remain after excluding developing; "
     "run prepare --stop-after sources first": (

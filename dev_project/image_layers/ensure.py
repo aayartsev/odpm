@@ -45,6 +45,11 @@ def _program_dir(config: Config) -> str:
 
 
 def _remote_target(args: OdpmCliArgs, config: Config) -> bool:
+    """Whether presence checks should use the remote registry (crane).
+
+    Registry env alone is enough to *probe* remote hits; it does **not**
+    imply a push (see :func:`_want_push`).
+    """
     environ = environ_from_config(config)
     push = resolve_ci_image_push(args, environ=environ)
     registry = os.environ.get("ODPM_BASE_IMAGE_REGISTRY") or os.environ.get(
@@ -53,10 +58,41 @@ def _remote_target(args: OdpmCliArgs, config: Config) -> bool:
     return bool(push or registry)
 
 
+def _want_push(args: OdpmCliArgs, config: Config) -> bool:
+    """Explicit push only (``--image-push`` / ``ODPM_CI_IMAGE_PUSH``)."""
+    return bool(
+        resolve_ci_image_push(args, environ=environ_from_config(config))
+    )
+
+
 def _force_this_layer(force: bool | None) -> bool:
     if force is not None:
         return force
     return force_rebuild_requested()
+
+
+def _docker_push_or_raise(ref: str) -> None:
+    docker = shutil.which("docker")
+    if not docker:
+        raise ConfigError(
+            _("docker is required to push layered CI image {REF}").format(
+                REF=ref
+            )
+        )
+    completed = subprocess.run(
+        [docker, "push", ref],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        raise ConfigError(
+            _("docker push failed for {REF}: {ERR}").format(
+                REF=ref,
+                ERR=(completed.stderr or completed.stdout or "").strip(),
+            )
+        )
+    _logger.info("pushed local image %s", ref)
 
 
 def _build_image(
@@ -215,36 +251,70 @@ def _publish_alias(
     *,
     cache_ref: str,
     publish_tag: str | None,
-    remote: bool,
     push: bool,
 ) -> None:
+    """Alias fingerprint cache ref as the publish tag.
+
+    Without ``push``, only a local ``docker tag`` is attempted (and skipped
+    quietly when the cache image is not local). With ``push``, prefer
+    ``crane copy`` into the registry; fall back to ``docker tag`` + ``docker
+    push`` (fail-fast on push errors).
+    """
     if not publish_tag or publish_tag == cache_ref:
         return
-    # After a remote push of cache_ref, crane copy publishes the alias.
-    # Locally (or after docker build without push), docker tag is enough;
-    # push of alias needs an extra docker push when push=True and not remote
-    # crane path — for remote we always use crane copy which pushes dest.
-    if remote or push:
-        retag_image(cache_ref, publish_tag, remote=True if remote else False)
-        if push and not remote:
-            docker = shutil.which("docker")
-            if docker:
-                subprocess.run(
-                    [docker, "push", publish_tag],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
+    if push:
+        crane = shutil.which("crane")
+        if crane:
+            retag_image(cache_ref, publish_tag, remote=True)
+            return
+        retag_image(cache_ref, publish_tag, remote=False)
+        _docker_push_or_raise(publish_tag)
+        return
+    if not image_ref_exists(cache_ref, remote=False, force=False):
+        _logger.info(
+            "image app ensure: skip local publish alias %s "
+            "(cache %s not present locally; use --image-push to publish)",
+            publish_tag,
+            cache_ref,
+        )
         return
     retag_image(cache_ref, publish_tag, remote=False)
 
 
-def ensure_base(project_env: CreateProjectEnvironment) -> str:
+def ensure_base(
+    project_env: CreateProjectEnvironment,
+    *,
+    force: bool | None = None,
+) -> str:
     from ..project_env.base_image import BaseImageBuilder
+    from ..project_env.base_image_identity import (
+        base_image_identity_path,
+        expected_base_image_identity,
+        write_base_image_identity,
+    )
     from ..project_env.services import BaseImageService
 
+    builder = BaseImageBuilder(project_env)
+    if _force_this_layer(force):
+        stamp = Path(base_image_identity_path(project_env.config.project_dir))
+        if stamp.is_file():
+            stamp.unlink()
+            _logger.info(
+                "ODPM_IMAGE_FORCE_REBUILD: removed base identity stamp %s",
+                stamp,
+            )
+        _logger.info("image base ensure: force rebuild")
+        image_ref = builder.resolve_base_image_ref()
+        builder.build_base_image()
+        write_base_image_identity(
+            project_env.config.project_dir,
+            expected_base_image_identity(
+                project_env.config, image_ref=image_ref
+            ),
+        )
+        return image_ref
     BaseImageService(project_env).ensure_base_image()
-    return BaseImageBuilder(project_env).resolve_base_image_ref()
+    return builder.resolve_base_image_ref()
 
 
 def ensure_platform(
@@ -265,7 +335,8 @@ def ensure_platform(
         return ref
 
     _logger.info("image platform ensure: miss — building %s", ref)
-    base_ref = ensure_base(project_env)
+    # Parent base ensure never inherits FORCE for this layer.
+    base_ref = ensure_base(project_env, force=False)
     from ..project_env.ci_image import CiImageBuilder
 
     builder = CiImageBuilder(project_env)
@@ -296,8 +367,7 @@ def ensure_platform(
         "dockerignore_platform",
         context_dir / ".dockerignore",
     )
-    environ = environ_from_config(config)
-    push = resolve_ci_image_push(args, environ=environ) or remote
+    push = _want_push(args, config)
     _build_image(
         config=config,
         args=args,
@@ -371,8 +441,7 @@ def ensure_deps(
     _copy_template(
         program_dir, "dockerignore_deps", context_dir / ".dockerignore"
     )
-    environ = environ_from_config(config)
-    push = resolve_ci_image_push(args, environ=environ) or remote
+    push = _want_push(args, config)
     _build_image(
         config=config,
         args=args,
@@ -400,13 +469,9 @@ def ensure_app(
         deps_ref = ensure_deps(project_env, args, force=False)
         parent = deps_ref or ensure_platform(project_env, args, force=False)
 
-    environ = environ_from_config(config)
-    push = resolve_ci_image_push(args, environ=environ)
+    push = _want_push(args, config)
     publish_tag = args.image_tag or config.odoo_ci_image_name
-    remote = bool(push) or bool(
-        os.environ.get("ODPM_BASE_IMAGE_REGISTRY")
-        or os.environ.get("CI_REGISTRY_IMAGE")
-    )
+    remote = _remote_target(args, config)
     secrets_baked = bool(
         os.environ.get("ODPM_BAKE_SECRETS", "").strip()
         in {"1", "true", "True", "yes", "YES"}
@@ -425,8 +490,7 @@ def ensure_app(
         _publish_alias(
             cache_ref=cache_ref,
             publish_tag=publish_tag,
-            remote=remote,
-            push=bool(push),
+            push=push,
         )
         return publish_tag or cache_ref
 
@@ -468,20 +532,19 @@ def ensure_app(
     _copy_template(
         program_dir, "dockerignore_app", full_ctx / ".dockerignore"
     )
-    # Always build/push the fingerprint cache ref so remote hits work next run.
+    # Push only when explicitly requested; registry env alone is for presence.
     _build_image(
         config=config,
         args=args,
         context_dir=full_ctx,
         dockerfile=dockerfile,
         tag=cache_ref,
-        push=bool(push) or remote,
+        push=push,
     )
     _publish_alias(
         cache_ref=cache_ref,
         publish_tag=publish_tag,
-        remote=remote,
-        push=bool(push),
+        push=push,
     )
     _logger.info(
         "image app ensure: done cache=%s publish=%s",
@@ -553,8 +616,7 @@ def ensure_lint(
     _copy_template(
         program_dir, "dockerignore_lint", context_dir / ".dockerignore"
     )
-    environ = environ_from_config(config)
-    push = resolve_ci_image_push(args, environ=environ) or remote
+    push = _want_push(args, config)
     _build_image(
         config=config,
         args=args,
@@ -575,7 +637,7 @@ def ensure_image_layer(
     # Top-level ensure: FORCE applies only to this layer.
     force = force_rebuild_requested()
     if layer == cli_params.IMAGE_BASE_LAYER:
-        return ensure_base(project_env)
+        return ensure_base(project_env, force=force)
     if layer == cli_params.IMAGE_PLATFORM_LAYER:
         return ensure_platform(project_env, args, force=force)
     if layer == cli_params.IMAGE_DEPS_LAYER:
@@ -598,7 +660,7 @@ def run_layered_build(
     ``ODPM_IMAGE_FORCE_REBUILD`` forces only the **app** layer here so parents
     are not rebuilt «along with» the final image (ADR-027).
     """
-    ensure_base(project_env)
+    ensure_base(project_env, force=False)
     platform_ref = ensure_platform(project_env, args, force=False)
     deps_ref = ensure_deps(
         project_env, args, platform_ref=platform_ref, force=False
