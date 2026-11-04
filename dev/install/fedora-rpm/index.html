@@ -2145,8 +2145,8 @@ odpm<span class="w"> </span>--version
 <span class="c1"># ожидается: odpm version: 4.7.0</span>
 </code></pre></div>
 <h3 id="_2">Предварительные версии (архив)<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
-<p>Архив инструкций для beta: <a href="https://aayartsev.github.io/odpm/4.7.0-beta/install/fedora-rpm/">4.7.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/">4.6.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/">4.5.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/">4.4.2-beta</a>.</p>
-<p>Ветка <strong><code>testing</code></strong> в YUM содержит архивные pre-release (в т.ч. <strong>4.7.0-beta</strong>) (<code>https://aayartsev.github.io/odpm/yum/odpm-testing.repo</code>).</p>
+<p>Текущая beta: <a href="https://aayartsev.github.io/odpm/4.8.0-beta/install/fedora-rpm/">4.8.0-beta</a>. Архив инструкций для beta: <a href="https://aayartsev.github.io/odpm/4.7.0-beta/install/fedora-rpm/">4.7.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.6.0-beta/install/fedora-rpm/">4.6.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.5.0-beta/install/fedora-rpm/">4.5.0-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.3-beta/install/fedora-rpm/">4.4.3-beta</a> · <a href="https://aayartsev.github.io/odpm/4.4.2-beta/install/fedora-rpm/">4.4.2-beta</a>.</p>
+<p>Ветка <strong><code>testing</code></strong> в YUM содержит pre-release (сейчас <strong>4.8.0-beta</strong>; архив <strong>4.7.0-beta</strong>) (<code>https://aayartsev.github.io/odpm/yum/odpm-testing.repo</code>).</p>
 <blockquote>
 <p>Если <code>odpm-archive-keyring.asc</code> ещё не опубликован на Pages после релиза, импортируйте ключ из бинарного keyring APT:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://aayartsev.github.io/odpm/apt/odpm-archive-keyring.gpg<span class="w"> </span>-o<span class="w"> </span>/tmp/odpm-key.gpg
@@ -2158,7 +2158,7 @@ gpg<span class="w"> </span>--no-default-keyring<span class="w"> </span>--keyring
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>makecache<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>dnf<span class="w"> </span>upgrade<span class="w"> </span>odpm
 </code></pre></div>
 <h2 id="rpm-github-releases">Установка вручную (.rpm с GitHub Releases)<a class="headerlink" href="#rpm-github-releases" title="Permanent link">&para;</a></h2>
-<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.7.0</code> (stable), <code>v4.7.0-beta</code> (архив testing), <code>v4.6.0</code> (архив stable), <code>v4.6.0-beta</code> (архив testing), <code>v4.5.0</code> (архив stable), <code>v4.5.0-beta</code> (архив testing), <code>v4.4.3</code> (архив stable), <code>v4.4.3-beta</code> (архив testing) или <code>v4.4.2-beta</code> (архив beta), или соберите локально:</p>
+<p>Скачайте <code>odpm-*.rpm</code> из <a href="https://github.com/aayartsev/odpm/releases">GitHub Releases</a> для тега <code>v4.7.0</code> (stable), <code>v4.8.0-beta</code> (testing), <code>v4.7.0-beta</code> (архив testing), <code>v4.6.0</code> (архив stable), <code>v4.6.0-beta</code> (архив testing), <code>v4.5.0</code> (архив stable), <code>v4.5.0-beta</code> (архив testing), <code>v4.4.3</code> (архив stable), <code>v4.4.3-beta</code> (архив testing) или <code>v4.4.2-beta</code> (архив beta), или соберите локально:</p>
 <div class="highlight"><pre><span></span><code>./scripts/build_rpm.sh
 sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>./dist/odpm-*.rpm
 odpm<span class="w"> </span>--version
