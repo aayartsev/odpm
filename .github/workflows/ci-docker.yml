@@ -3,8 +3,9 @@
 #   pipeline validated via tests.test_ci_secrets_smoke (developer mount + ci bake).
 # - compose-smoke-mailpit: manifest v2 + services.mailpit (ODPM_COMPOSE_SMOKE_MAILPIT=1).
 # - http-smoke: required PR gate (T2) — ephemeral GHA; Mailpit compose up + HTTP 200.
-# - golden-path: opt-in T3 on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED +
-#   secret ODPM_GOLDEN_PATH_PROJECT; nightly / workflow_dispatch / PR label run-docker.
+# - golden-path: opt-in T3 on self-hosted runner; vars.ODPM_GOLDEN_PATH_ENABLED;
+#   ephemeral /tmp wrapper (bootstrap_golden_path_project.sh); optional secret
+#   ODPM_GOLDEN_PATH_PROJECT override; nightly / workflow_dispatch / PR label run-docker.
 name: CI Docker
 
 on:
@@ -180,27 +181,10 @@ jobs:
         )
       )
     runs-on: [self-hosted, Linux, X64]
-    # Warm long-lived project; allow remedi ate budget when refresh runs separately.
-    timeout-minutes: 9
+    # Ephemeral /tmp wrapper + home git/image cache; allow init/remediate budget.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-
-      - name: Require golden-path secret and project directory
-        run: |
-          if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
-            echo "::error::ODPM_GOLDEN_PATH_PROJECT secret is not configured"
-            exit 1
-          fi
-          if [[ ! -d "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
-            echo "::error::Project directory not found on the self-hosted runner"
-            exit 1
-          fi
-          if [[ ! -f "${ODPM_GOLDEN_PATH_PROJECT}/docker-compose.yml" ]]; then
-            echo "::error::Missing docker-compose.yml in project directory"
-            exit 1
-          fi
-        env:
-          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
 
       # Self-hosted OS (e.g. Linux Mint) may be absent from setup-python manifests.
       - name: Verify Python 3.12 on runner
@@ -216,9 +200,21 @@ jobs:
           python3.12 -m venv .ci-golden-venv
           .ci-golden-venv/bin/pip install -e .
 
-      - name: Refresh golden-path project
+      - name: Bootstrap ephemeral golden-path project
         env:
           ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+          ODPM_GOLDEN_PATH_MAJOR: ${{ vars.ODPM_GOLDEN_PATH_MAJOR }}
+          PATH: ${{ github.workspace }}/.ci-golden-venv/bin:/usr/local/bin:/usr/bin:/bin
+        run: |
+          set -euo pipefail
+          MAJOR="${ODPM_GOLDEN_PATH_MAJOR:-19}"
+          export ODPM_GOLDEN_PATH_MAJOR="${MAJOR}"
+          PROJECT="$(bash "${{ github.workspace }}/scripts/bootstrap_golden_path_project.sh")"
+          echo "ODPM_GOLDEN_PATH_PROJECT=${PROJECT}" >> "${GITHUB_ENV}"
+          echo "[golden-path] using project ${PROJECT}"
+
+      - name: Refresh golden-path project
+        env:
           ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
           PATH: ${{ github.workspace }}/.ci-golden-venv/bin:/usr/local/bin:/usr/bin:/bin
         run: |
@@ -227,8 +223,6 @@ jobs:
           echo "[golden-path $(date -u +%Y-%m-%dT%H:%M:%SZ)] refresh finished"
 
       - name: Preflight golden-path Postgres schema
-        env:
-          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
         run: |
           echo "[golden-path $(date -u +%Y-%m-%dT%H:%M:%SZ)] preflight_golden_path_project.sh ..."
           bash "${{ github.workspace }}/scripts/preflight_golden_path_project.sh"
@@ -237,7 +231,6 @@ jobs:
       - name: Run golden-path integration test
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
-          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
           ODPM_GOLDEN_PATH_TIMEOUT: "60"
           ODPM_COMPOSE_DEBUG_DIR: /tmp/odpm-compose-debug
         run: .ci-golden-venv/bin/python -m unittest tests.integration.test_golden_path -v

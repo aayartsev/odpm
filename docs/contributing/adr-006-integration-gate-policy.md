@@ -7,7 +7,7 @@ Related: unit local/CI parity and host quirks — [ADR-023](adr-023-local-unit-p
 
 ## Context
 
-odpm 4.4 established a **fast** mandatory gate (`compose-smoke` on `ubuntu-latest`) and an **opt-in** full golden-path (`init` → `docker compose up` → HTTP 200 `/web`) on a self-hosted runner with secret `ODPM_GOLDEN_PATH_PROJECT`.
+odpm 4.4 established a **fast** mandatory gate (`compose-smoke` on `ubuntu-latest`) and an **opt-in** full golden-path (`init` → `docker compose up` → HTTP 200 `/web`) on a self-hosted runner. From 4.8 the default project wrapper is **ephemeral under `/tmp`** (`bootstrap_golden_path_project.sh`); git clones and images stay in the runner home. Optional secret `ODPM_GOLDEN_PATH_PROJECT` still overrides.
 
 Phase I1 (4.5) requires a **mandatory integration gate on every PR** to `4.5-dev` without depending on a single maintainer machine, while keeping compose-smoke under ~5 minutes as the primary fast check.
 
@@ -35,7 +35,8 @@ T2 is the **ephemeral GHA** substitute for mandatory golden-path on PRs. T3 rema
 | `ODPM_RUN_FIXTURE_GOLDEN_PATH=1` | weekly | in-repo fixture Odoo `/web` |
 | `ODPM_RUN_DOCKER_INTEGRATION=1` | golden-path / weekly | enable full golden-path / CI image build |
 | `ODPM_GOLDEN_PATH_ENABLED` | repo variable | gate self-hosted golden-path jobs |
-| `ODPM_GOLDEN_PATH_PROJECT` | secret | path to real project on self-hosted runner |
+| `ODPM_GOLDEN_PATH_MAJOR` | repo variable | Odoo major for ephemeral wrapper (default `19`) |
+| `ODPM_GOLDEN_PATH_PROJECT` | secret (optional) | prepared project override; else `/tmp` bootstrap |
 
 ### Branch protection (`4.5-dev`)
 
@@ -59,7 +60,7 @@ Not used in 4.5.0 — integration jobs run on every PR to `4.5-dev`. Future opti
 |-----|----------------------|-------------|-------|
 | `compose-smoke` | 20 | `ODPM_COMPOSE_SMOKE_TIMEOUT=900` | T1 fast gate |
 | `http-smoke` | 25 | `ODPM_HTTP_SMOKE_TIMEOUT=600` | T2 Mailpit HTTP |
-| `golden-path` | 9 | `ODPM_GOLDEN_PATH_TIMEOUT=60` | T3 self-hosted; remedi ate only if schema incompatible; accept baseline drift; wipe if Postgres not ready after major bump; `base` major must match `odpm.json` (one long-lived directory per Odoo major) |
+| `golden-path` | 15 | `ODPM_GOLDEN_PATH_TIMEOUT=60` | T3 self-hosted; ephemeral `/tmp` wrapper + home git/image cache; remedi ate if schema incompatible; `base` major must match `odpm.json` |
 | `fixture-golden-path` (weekly) | 45 | `ODPM_FIXTURE_GOLDEN_TIMEOUT=900` | I2 in-repo `/web` |
 
 ### I2 — extended matrix (weekly + PR steps)

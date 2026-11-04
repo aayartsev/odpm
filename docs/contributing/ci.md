@@ -31,7 +31,8 @@ ODPM_COMPOSE_SMOKE_MAILPIT=1 ./scripts/run_compose_smoke_mailpit_test.sh
 ./scripts/run_compose_smoke_extended_test.sh   # plugin + hooks E2E
 ./scripts/run_http_smoke_test.sh
 ./scripts/run_fixture_golden_path_test.sh      # weekly matrix
-ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
+./scripts/run_golden_path_test.sh
+# optional: ODPM_GOLDEN_PATH_MAJOR=20 ./scripts/run_golden_path_test.sh
 ```
 
 ### Переменные integration (parity с CI)
@@ -55,11 +56,14 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 | Имя | Тип | Назначение |
 |-----|-----|------------|
 | `ODPM_GOLDEN_PATH_ENABLED` | variable | `true` — включить job |
-| `ODPM_GOLDEN_PATH_PROJECT` | secret | Путь к odpm-проекту на self-hosted runner |
+| `ODPM_GOLDEN_PATH_MAJOR` | variable | Major Odoo для обёртки (по умолчанию `19`) |
+| `ODPM_GOLDEN_PATH_PROJECT` | secret (опц.) | Готовый каталог с `docker-compose.yml`; если пусто — ephemeral `/tmp` через `bootstrap_golden_path_project.sh` |
 
-### Обслуживание golden-path проекта (self-hosted)
+### Обслуживание golden-path (self-hosted)
 
-Проект в `ODPM_GOLDEN_PATH_PROJECT` — **долгоживущее окружение** на runner. Job **не** делает полный `odpm init` с нуля: перед HTTP-тестом CI (и локальный `scripts/run_golden_path_test.sh`) гоняют `scripts/refresh_golden_path_project.sh` → **`odpm --skip-start`** (с git materialize/checkout по `odoo_version`, пересчёт `venv_lock_hash` / runtime / compose), затем `preflight_golden_path_project.sh`, и только потом unittest делает `docker compose up` + HTTP 200 на `/web`. Новый `.deb` из pre-release тега ставится отдельным шагом; data volume остаётся на диске runner.
+По умолчанию CI создаёт **эфемерную обёртку** в `/tmp` (`scripts/bootstrap_golden_path_project.sh` → `odpm init` demo на branch `${MAJOR}.0`). Клоны platform/deps и Docker-образы остаются в **home** runner (`ODOO_PROJECTS_DIR` / docker). БД в обёртке сбрасывается между прогонами (чистый init при remedi ate) — это ожидаемо.
+
+Дальше: `refresh_golden_path_project.sh` → `odpm prepare` (+ remedi ate при `AUTO_REMEDIATE=1`) → `preflight_golden_path_project.sh` → unittest `docker compose up` + HTTP 200 на `/web`. Pre-release additionally installs the built `.deb` on the runner host. Job budget ≈ **15** мин.
 
 Пропуск refresh локально (если проект уже освежён): `ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ./scripts/run_golden_path_test.sh`.  
 Офлайн / без git на runner: `ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1` (как раньше `--no-git-update`; не чинит drift ветки платформы на `master`).
@@ -77,24 +81,19 @@ ODPM_GOLDEN_PATH_PROJECT=/path/to/project ./scripts/run_golden_path_test.sh
 | Connection refused на `/web`, в odoo: `Initiating shutdown` сразу после `Registry loaded` | Обычно в `docker-compose.yml` остался `--stop-after-init` после remedi ate/init. Перегенерировать: `odpm -d test_db --skip-start --no-git-update`, затем `docker compose down` и повторить golden-path. |
 | HTTP 500, в odoo: `res.lang` / `_get_data` / `QWebException` на `/web/login` | Часто та же причина: БД или addons не соответствуют Odoo 19 на диске runner. Пересоздать `test_db` как в строке выше; затем `docker compose down` и повторить golden-path. |
 | Postgres did not become ready после accept `postgres_major` | Accept обновляет только `last_run.json`, не data dir. Старый `PG_VERSION` ломает новый image. Refresh с `AUTO_REMEDIATE=1` теперь wipe+remediate; вручную: wipe через alpine (см. выше) + `odpm -d test_db --skip-start --accept-database-drift=postgres_major`. |
-| `odpm.json odoo_version` отсутствует / без numeric major | Secret `ODPM_GOLDEN_PATH_PROJECT` указывает не на demo-обёртку или битый манифест. Нужен каталог **на один** major (`odoo_demo_project-19` / `-20`, …) — [demo-projects.md](demo-projects.md). |
-| Сменили major в том же каталоге / stale `base` | Не переключайте `odoo_version` in-place. Новый major → новый каталог; иначе remedi ate/wipe volume или укажите другой путь в secret. |
+| `odpm.json odoo_version` отсутствует / без numeric major | Битый манифест после bootstrap или переопределённый secret на неверный путь. Задайте `ODPM_GOLDEN_PATH_MAJOR` / проверьте demo init — [demo-projects.md](demo-projects.md). |
+| Долгий cold start / timeout | Убедитесь, что `~/.odpm/.env` на runner задаёт `ODOO_PROJECTS_DIR` в home (клоны уже есть); images в Docker cache. |
 | `no such service: db-dev` после remedi ate / refresh | Имя postgres-сервиса в старом compose/`.env` (`POSTGRES_SERVICE_NAME=db-dev`) не совпадает с перегенерированным compose (дефолт `db`). Refresh перечитывает сервис из compose после каждого `odpm`; на runner всё равно выровняйте `.env` (`POSTGRES_SERVICE_NAME=db` или уберите переменную) и сделайте `odpm --skip-start --no-git-update`. |
-| После падения golden-path | `docker compose down` в каталоге проекта; смотреть artifact `golden-path-compose-logs`. HTTP wait: `ODPM_GOLDEN_PATH_TIMEOUT=60` внутри job `timeout-minutes: 9`. |
+| После падения golden-path | `docker compose down` в каталоге проекта; смотреть artifact `golden-path-compose-logs`. HTTP wait: `ODPM_GOLDEN_PATH_TIMEOUT=60` внутри job `timeout-minutes: 15`. |
 
 **Минимальная проверка на runner**
 
 ```bash
-export PROJECT=/path/from/ODPM_GOLDEN_PATH_PROJECT
-# Полный путь как в CI (refresh → preflight → compose up + /web):
-ODPM_GOLDEN_PATH_PROJECT="$PROJECT" ./scripts/run_golden_path_test.sh
-# Или по шагам:
-cd "$PROJECT"
-docker compose down
-odpm --plan    # platform checkout + venv_lock_hash
-odpm --skip-start
-ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ODPM_GOLDEN_PATH_PROJECT="$PROJECT" \
-  ./scripts/run_golden_path_test.sh
+# Ephemeral /tmp wrapper (default), same as CI:
+./scripts/run_golden_path_test.sh
+# Or pin major / reuse a prepared tree:
+# ODPM_GOLDEN_PATH_MAJOR=20 ./scripts/run_golden_path_test.sh
+# ODPM_GOLDEN_PATH_PROJECT=/path/to/prepared ./scripts/run_golden_path_test.sh
 ```
 
 **Проверка venv внутри контейнера** (после `compose up`):
@@ -132,9 +131,9 @@ sudo -n /usr/bin/dpkg --version   # must print version without password
 1. проверяет **собранный .deb** в чистом `ubuntu:24.04` (Docker, без `sudo` на runner);
 2. **fail-fast** `sudo -n /usr/bin/dpkg`, затем `timeout 60 sudo -n dpkg -i` + `scripts/refresh_golden_path_project.sh` с **`ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1`** (`odpm prepare`; remedi ate **только** при несовместимой схеме; non-interactive `--accept-database-drift` для `postgres_major` / `odpm_scenario` / `data_dir_empty_changed`; при неподъёме Postgres после major-bump — wipe volume + re-init; fail-fast если в `odpm.json` нет numeric `odoo_version`; schema `base` major должен совпадать с манифестом каталога);
 3. `scripts/preflight_golden_path_project.sh` — fail-fast, если схема всё ещё несовместима с major из `odpm.json` каталога;
-4. гоняет `tests.integration.test_golden_path` на `ODPM_GOLDEN_PATH_PROJECT` (`ODPM_GOLDEN_PATH_TIMEOUT=60`).
+4. bootstrap ephemeral project (или optional secret) → refresh → preflight → `tests.integration.test_golden_path` (`ODPM_GOLDEN_PATH_TIMEOUT=60`).
 
-Remedi ate в gate ограничен несовместимой схемой (не wipe на каждом run). Без TTY refresh/remediate передаёт `--accept-database-drift` для baseline-видов выше (не `data_path` / `app_role_missing`). Accept `postgres_major` **не** мигрирует data dir — если Postgres не становится ready, refresh делает wipe + remedi ate. Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуются `ODPM_GOLDEN_PATH_ENABLED=true` и secret `ODPM_GOLDEN_PATH_PROJECT` (иначе workflow падает явно, без ложного зелёного).
+Remedi ate в gate ограничен несовместимой схемой. Без TTY refresh/remediate передаёт `--accept-database-drift` для baseline-видов выше (не `data_path` / `app_role_missing`). Accept `postgres_major` **не** мигрирует data dir — если Postgres не становится ready, refresh делает wipe + remedi ate. Пока job красный, **publish** / PyPI / Pages **не стартуют**. Требуется `ODPM_GOLDEN_PATH_ENABLED=true` (иначе workflow падает явно, без ложного зелёного).
 
 ## Branch protection
 

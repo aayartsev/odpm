@@ -104,9 +104,10 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertIn("grep -Fq", golden)
         self.assertNotIn("sudo apt-get", golden)
         self.assertIn("tests.integration.test_golden_path", golden)
+        self.assertIn("bootstrap_golden_path_project.sh", golden)
         self.assertIn("refresh_golden_path_project.sh", golden)
         self.assertIn("preflight_golden_path_project.sh", golden)
-        self.assertIn("timeout-minutes: 9", golden)
+        self.assertIn("timeout-minutes: 15", golden)
         self.assertIn('ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"', golden)
         self.assertNotIn('ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "0"', golden)
         self.assertIn('ODPM_GOLDEN_PATH_TIMEOUT: "60"', golden)
@@ -114,6 +115,9 @@ class ReleasePackagingVersionTests(unittest.TestCase):
         self.assertIn("timeout 60 sudo -n /usr/bin/dpkg", golden)
         self.assertNotIn("sudo -n -E", golden)
         self.assertIn("github-actions-runner-sudoers.example", golden)
+        self.assertNotIn(
+            "ODPM_GOLDEN_PATH_PROJECT secret is not configured", golden
+        )
         self.assertIn("needs: [deb, rpm, golden-path]", workflow)
         self.assertIn("needs.golden-path.result == 'skipped'", workflow)
         for job in ("publish-pypi:", "publish-pages:"):

@@ -27,12 +27,13 @@ export ODPM_DEMO_19="${ODPM_DEMO_19:-$ODPM_DEMO_ROOT/odoo_demo_project-19}"
 export ODPM_DEMO_20="${ODPM_DEMO_20:-$ODPM_DEMO_ROOT/odoo_demo_project-20}"
 ```
 
-Для golden-path укажите **один** каталог нужного major (secret `ODPM_GOLDEN_PATH_PROJECT` на runner — тот же путь). Gate сверяет major `base` в БД с `odpm.json` этого каталога:
+CI golden-path по умолчанию **не** требует этих обёрток: создаёт ephemeral каталог в `/tmp` (`bootstrap_golden_path_project.sh`) при `ODOO_PROJECTS_DIR` в home. Для ручного прогона можно указать готовый каталог:
 
 ```bash
+./scripts/run_golden_path_test.sh
+# или:
 export ODPM_GOLDEN_PATH_PROJECT="${ODPM_GOLDEN_PATH_PROJECT:-$ODPM_DEMO_19}"
-# или Odoo 20:
-# export ODPM_GOLDEN_PATH_PROJECT="$ODPM_DEMO_20"
+ODPM_GOLDEN_PATH_PROJECT="$ODPM_GOLDEN_PATH_PROJECT" ./scripts/run_golden_path_test.sh
 ```
 
 ## Создание обёртки с нуля (шаблон)
@@ -197,10 +198,7 @@ odpm plan --skip-start --accept-database-drift=postgres_major
 
 ## Golden-path в CI
 
-Self-hosted runner указывает secret `ODPM_GOLDEN_PATH_PROJECT` на **один** каталог выбранного major:
-
-- типично `$ODPM_DEMO_19` или `$ODPM_DEMO_20` (не смешивать major в одном пути);
-- nightly / label `run-docker` — см. [ci.md](ci.md).
+Self-hosted CI: variable `ODPM_GOLDEN_PATH_ENABLED=true`, опционально `ODPM_GOLDEN_PATH_MAJOR` и secret override `ODPM_GOLDEN_PATH_PROJECT`. Nightly / label `run-docker` — см. [ci.md](ci.md).
 
 Demo-обёртки **не делают** golden-path обязательным на каждый PR.
 

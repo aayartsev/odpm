@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Refresh long-lived ODPM_GOLDEN_PATH_PROJECT (odpm prepare).
+# Refresh ODPM_GOLDEN_PATH_PROJECT (odpm prepare).
+# Project may be a long-lived path or an ephemeral /tmp wrapper from
+# bootstrap_golden_path_project.sh (git/images stay under the runner home).
 # With ODPM_GOLDEN_PATH_AUTO_REMEDIATE=1, remedi ate only when schema is incompatible
-# (odpm -i / wipe on failure). Pre-release CI enables this; job budget ≈9 min.
+# (odpm -i / wipe on failure). Pre-release CI enables this; job budget ≈15 min.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

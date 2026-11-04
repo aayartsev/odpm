@@ -50,8 +50,12 @@ class CiDockerWorkflowContractTests(unittest.TestCase):
         self.assertIn("ODPM_GOLDEN_PATH_ENABLED", golden_block)
         self.assertIn("run-docker", golden_block)
         self.assertIn("needs: compose-smoke", golden_block)
-        self.assertIn("timeout-minutes: 9", golden_block)
+        self.assertIn("timeout-minutes: 15", golden_block)
+        self.assertIn("bootstrap_golden_path_project.sh", golden_block)
         self.assertIn('ODPM_GOLDEN_PATH_TIMEOUT: "60"', golden_block)
+        self.assertNotIn(
+            "ODPM_GOLDEN_PATH_PROJECT secret is not configured", golden_block
+        )
 
 
 if __name__ == "__main__":

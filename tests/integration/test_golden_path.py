@@ -270,6 +270,16 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("needs a numeric odpm.json odoo_version", refresh)
         self.assertIn("one directory per Odoo major", refresh)
         self.assertIn("golden-path schema major=", refresh)
+        bootstrap = (root / "scripts" / "bootstrap_golden_path_project.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("mktemp -d", bootstrap)
+        self.assertIn("odpm init", bootstrap)
+        self.assertIn("ODPM_GOLDEN_PATH_MAJOR", bootstrap)
+        self.assertTrue(
+            (root / "scripts" / "bootstrap_golden_path_project.sh").stat().st_mode
+            & 0o111
+        )
         self.assertIn("Postgres not ready after refresh; wiping postgres volume", refresh)
         self.assertIn("golden_path_remediate_database", refresh)
         # Re-resolve postgres service after odpm regenerates compose (db-dev → db).

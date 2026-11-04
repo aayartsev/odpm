@@ -24,7 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Golden-path major from project catalog** — schema/`refresh` match installed `base` to the numeric major of that directory’s `odpm.json` (one long-lived demo catalog per Odoo major, e.g. `odoo_demo_project-19` / `-20`); no longer hard-fail unless version is exactly `19.x`. Docs: `demo-projects.md`, `ci.md`, ADR-006. Tests: `test_golden_path`.
+- **Golden-path major from project catalog** — schema/`refresh` match installed `base` to the numeric major of that directory’s `odpm.json` (one catalog per Odoo major); no longer hard-fail unless version is exactly `19.x`. Docs: `demo-projects.md`, `ci.md`, ADR-006. Tests: `test_golden_path`.
+- **Golden-path ephemeral `/tmp` wrapper** — CI bootstraps a fresh project under `/tmp` (`bootstrap_golden_path_project.sh`); git clones / images stay in the runner home. Secret `ODPM_GOLDEN_PATH_PROJECT` is optional override; `ODPM_GOLDEN_PATH_MAJOR` selects the demo branch. Job timeout 15 min. Docs: `ci.md`, ADR-006. Tests: `test_ci_docker_workflow`, `test_release_packaging`.
 
 ### Fixed
 

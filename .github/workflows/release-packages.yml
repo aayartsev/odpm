@@ -2,7 +2,8 @@
 # attach assets to GitHub Release on version tags (v*) only.
 # Stable tags (v*) also publish wheel/sdist to production PyPI; pre-release tags to TestPyPI.
 # Pre-release tags (v*-beta/*-rc*/*-alpha): golden-path on self-hosted runner gates publish
-# (vars.ODPM_GOLDEN_PATH_ENABLED + secret ODPM_GOLDEN_PATH_PROJECT; .deb install smoke in Docker).
+# (vars.ODPM_GOLDEN_PATH_ENABLED; ephemeral /tmp wrapper; optional secret override;
+# .deb install smoke in Docker).
 name: Release packages
 
 on:
@@ -135,8 +136,8 @@ jobs:
         || contains(github.ref, '-alpha')
       )
     runs-on: [self-hosted, Linux, X64]
-    # Gate: warm project + HTTP; remedi ate DB only when schema is incompatible.
-    timeout-minutes: 9
+    # Gate: ephemeral /tmp wrapper + HTTP; remedi ate when schema incompatible.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
@@ -148,23 +149,6 @@ jobs:
           fi
         env:
           ODPM_GOLDEN_PATH_ENABLED: ${{ vars.ODPM_GOLDEN_PATH_ENABLED }}
-
-      - name: Require golden-path secret and project directory
-        run: |
-          if [[ -z "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
-            echo "::error::ODPM_GOLDEN_PATH_PROJECT secret is not configured"
-            exit 1
-          fi
-          if [[ ! -d "${ODPM_GOLDEN_PATH_PROJECT}" ]]; then
-            echo "::error::Project directory not found on the self-hosted runner"
-            exit 1
-          fi
-          if [[ ! -f "${ODPM_GOLDEN_PATH_PROJECT}/docker-compose.yml" ]]; then
-            echo "::error::Missing docker-compose.yml in project directory"
-            exit 1
-          fi
-        env:
-          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
 
       - name: Verify Python 3.12 on runner
         run: |
@@ -208,11 +192,7 @@ jobs:
               echo \"deb install smoke OK: \${expected}\"
             "
 
-      - name: Install built odpm on runner and refresh golden-path project
-        env:
-          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
-          # Remedi ate only if schema incompatible (base major from odpm.json + web).
-          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
+      - name: Install built odpm on runner
         run: |
           set -euo pipefail
           # Narrow NOPASSWD for /usr/bin/dpkg (see docs/contributing/ci.md).
@@ -231,13 +211,31 @@ jobs:
           fi
           echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] timeout 60 sudo -n dpkg -i ${debs[0]} ..."
           timeout 60 sudo -n /usr/bin/dpkg -i "${debs[0]}"
-          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] dpkg done; refresh_golden_path_project.sh ..."
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] dpkg done"
+
+      - name: Bootstrap ephemeral golden-path project
+        env:
+          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
+          ODPM_GOLDEN_PATH_MAJOR: ${{ vars.ODPM_GOLDEN_PATH_MAJOR }}
+        run: |
+          set -euo pipefail
+          MAJOR="${ODPM_GOLDEN_PATH_MAJOR:-19}"
+          export ODPM_GOLDEN_PATH_MAJOR="${MAJOR}"
+          PROJECT="$(bash "${{ github.workspace }}/scripts/bootstrap_golden_path_project.sh")"
+          echo "ODPM_GOLDEN_PATH_PROJECT=${PROJECT}" >> "${GITHUB_ENV}"
+          echo "[golden-path gate] using project ${PROJECT}"
+
+      - name: Refresh golden-path project
+        env:
+          # Remedi ate only if schema incompatible (base major from odpm.json + web).
+          ODPM_GOLDEN_PATH_AUTO_REMEDIATE: "1"
+        run: |
+          set -euo pipefail
+          echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] refresh_golden_path_project.sh ..."
           bash "${{ github.workspace }}/scripts/refresh_golden_path_project.sh"
           echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] refresh finished"
 
       - name: Preflight golden-path Postgres schema
-        env:
-          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
         run: |
           set -euo pipefail
           echo "[golden-path gate $(date -u +%Y-%m-%dT%H:%M:%SZ)] preflight_golden_path_project.sh ..."
@@ -247,7 +245,6 @@ jobs:
       - name: Run golden-path integration test
         env:
           ODPM_RUN_DOCKER_INTEGRATION: "1"
-          ODPM_GOLDEN_PATH_PROJECT: ${{ secrets.ODPM_GOLDEN_PATH_PROJECT }}
           ODPM_GOLDEN_PATH_TIMEOUT: "60"
         run: python3.12 -m unittest tests.integration.test_golden_path -v
 
