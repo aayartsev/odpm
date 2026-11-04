@@ -15,6 +15,7 @@ from .args_modules import register_modules_subparser
 from .args_plan import register_plan_subparser
 from .args_run import register_run_subparser
 from .args_scaffold import register_scaffold_subparser
+from .args_image import register_image_subparser
 from .args_verbs import (
     register_build_subparser,
     register_init_subparser,
@@ -41,6 +42,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     register_prepare_subparser(command_subparsers, global_parser)
     register_init_subparser(command_subparsers, global_parser)
     register_build_subparser(command_subparsers, global_parser)
+    register_image_subparser(command_subparsers, global_parser)
     register_plan_subparser(command_subparsers, global_parser)
     register_database_subparser(command_subparsers, global_parser)
     register_manifest_subparser(command_subparsers, global_parser)

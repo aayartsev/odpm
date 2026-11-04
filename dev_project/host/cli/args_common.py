@@ -57,6 +57,16 @@ def add_prepare_arguments(parser: argparse.ArgumentParser) -> None:
         help="""With --update-lock on manifest v2 (developer scenario), also write locks.git in odpm.json.""",
         action="store_true",
     )
+    parser.add_argument(
+        params.STOP_AFTER_PARAM,
+        dest="stop_after",
+        choices=[params.STOP_AFTER_SOURCES],
+        help=(
+            "Stop prepare after the given stage. "
+            f"{params.STOP_AFTER_SOURCES}: git materialize and host links only "
+            "(no compose, docker ensure, secrets, or images)."
+        ),
+    )
 
 
 # Re-export for callers that still expect the old name during transition.

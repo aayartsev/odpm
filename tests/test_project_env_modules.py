@@ -363,26 +363,19 @@ class CiImageBuildServiceTests(unittest.TestCase):
         env.mapped_folders = []
         return CiImageBuildService(env)
 
-    @patch("dev_project.project_env.ci_image.BaseImageService")
     @patch(
-        "dev_project.project_env.image_build.docker_backend.run_logged",
-        return_value=2,
+        "dev_project.image_layers.run_layered_build",
+        side_effect=PipelineError("layered build failed", exit_code=2),
     )
-    @patch.object(CiImageBuilder, "generate_ci_dockerfile", return_value="/ctx/Dockerfile.ci")
-    @patch.object(CiImageBuilder, "prepare_ci_build_context")
     def test_build_ci_image_raises_pipeline_error_on_failure(
         self,
-        _mock_prepare,
-        _mock_dockerfile,
-        _mock_logged,
-        mock_base_image_service,
+        mock_layered,
     ):
         service = self._service()
         with self.assertRaises(PipelineError) as ctx:
             service.build_ci_image()
         self.assertEqual(ctx.exception.exit_code, 2)
-        mock_base_image_service.assert_called_once_with(service.env)
-        mock_base_image_service.return_value.ensure_base_image.assert_called_once()
+        mock_layered.assert_called_once_with(service.env, service.env.config.arguments)
 
 
 if __name__ == "__main__":

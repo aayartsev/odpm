@@ -72,6 +72,10 @@ class OdpmCliArgs:
     run_diff_base: str | None = None
     run_remote_url: str | None = None
     run_remote_db: str | None = None
+    stop_after: str | None = None
+    image_layer: str | None = None
+    image_ensure: bool = False
+    image_from: str | None = None
 
     @classmethod
     def from_namespace(cls, ns: Namespace) -> OdpmCliArgs:

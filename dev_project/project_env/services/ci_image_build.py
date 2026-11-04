@@ -27,7 +27,10 @@ class CiImageBuildService:
         return self._builder.generate_ci_dockerfile()
 
     def build_ci_image(self) -> None:
-        self._builder.build_ci_image()
+        """Build final CI image via layered stages (ADR-027)."""
+        from ...image_layers import run_layered_build
+
+        run_layered_build(self.env, self.env.config.arguments)
 
     def read_ci_dockerignore_template(self) -> str:
         return self._builder._read_ci_dockerignore_template()

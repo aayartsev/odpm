@@ -45,6 +45,9 @@ msgstr ".odpm/secrets.json has placeholder values for keys: {KEYS}"
 msgid ".odpm/secrets.json is missing required keys: {KEYS}"
 msgstr ".odpm/secrets.json is missing required keys: {KEYS}"
 
+msgid ".pre-commit-config.yaml absent — lint ensure would fail"
+msgstr ".pre-commit-config.yaml absent — lint ensure would fail"
+
 msgid "Accepted database drift: {KIND}"
 msgstr "Accepted database drift: {KIND}"
 
@@ -99,14 +102,14 @@ msgstr "Blocking database configuration drift remains after resolution: {KINDS}"
 msgid "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
 msgstr "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
 
-msgid "Build CI Docker image from prepared context"
-msgstr "Build CI Docker image from prepared context"
-
 msgid "Build compose start command and write .odpm/runtime/config.json when stale"
 msgstr "Build compose start command and write .odpm/runtime/config.json when stale"
 
 msgid "Build docker volume mapping for Odoo, venv, and addons"
 msgstr "Build docker volume mapping for Odoo, venv, and addons"
+
+msgid "Build layered CI image (base → platform → deps? → app; ADR-027)"
+msgstr "Build layered CI image (base → platform → deps? → app; ADR-027)"
 
 msgid "CI kaniko direct prepare-only; Docker daemon check skipped"
 msgstr "CI kaniko direct prepare-only; Docker daemon check skipped"
@@ -378,8 +381,8 @@ msgstr "Host port: {PORT}"
 msgid "If you want drop this file to default values, just delete it"
 msgstr "If you want drop this file to default values, just delete it"
 
-msgid "In the ci scenario use odpm prepare or odpm build (odpm up / bare compose up is not allowed)."
-msgstr "In the ci scenario use odpm prepare or odpm build (odpm up / bare compose up is not allowed)."
+msgid "In the ci scenario use odpm prepare, odpm build, or odpm image (odpm up / bare compose up is not allowed)."
+msgstr "In the ci scenario use odpm prepare, odpm build, or odpm image (odpm up / bare compose up is not allowed)."
 
 msgid "Infisical HTTP {STATUS} for {PATH}"
 msgstr "Infisical HTTP {STATUS} for {PATH}"
@@ -1071,14 +1074,20 @@ msgstr "You selected this locale for odpm messages: {SELECTED_LOCALE}\n"
 msgid "already fetched this run ({COUNT} keys)"
 msgstr "already fetched this run ({COUNT} keys)"
 
+msgid "app FROM {PARENT}"
+msgstr "app FROM {PARENT}"
+
+msgid "app FROM {PARENT}; publish tag {TAG}"
+msgstr "app FROM {PARENT}; publish tag {TAG}"
+
 msgid "apply pinned commits from {SOURCE}"
 msgstr "apply pinned commits from {SOURCE}"
 
+msgid "base ensure (ADR-019 stamp / rebuild if stale)"
+msgstr "base ensure (ADR-019 stamp / rebuild if stale)"
+
 msgid "base image identity mismatch"
 msgstr "base image identity mismatch"
-
-msgid "build CI image from prepared context"
-msgstr "build CI image from prepared context"
 
 msgid "build compose service for compose.generate ({REASON})"
 msgstr "build compose service for compose.generate ({REASON})"
@@ -1125,6 +1134,9 @@ msgstr "compose template up to date"
 msgid "compose validation disabled by policy"
 msgstr "compose validation disabled by policy"
 
+msgid "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
+msgstr "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
+
 msgid "database configuration drift detected: {KINDS}"
 msgstr "database configuration drift detected: {KINDS}"
 
@@ -1160,6 +1172,9 @@ msgstr "deps.lock will be updated; manifest locks.git unchanged (use --sync-mani
 
 msgid "deps.lock.json"
 msgstr "deps.lock.json"
+
+msgid "developing project must be a git repository for image app ensure (git rev-parse HEAD)"
+msgstr "developing project must be a git repository for image app ensure (git rev-parse HEAD)"
 
 msgid "docker build failed with exit code {EXIT_CODE}"
 msgstr "docker build failed with exit code {EXIT_CODE}"
@@ -1203,6 +1218,9 @@ msgstr "dry-run skip: {ARGV}"
 msgid "extensions.local must be a list of module names"
 msgstr "extensions.local must be a list of module names"
 
+msgid "failed to run crane digest: {ERR}"
+msgstr "failed to run crane digest: {ERR}"
+
 msgid "file provider uses existing source"
 msgstr "file provider uses existing source"
 
@@ -1218,6 +1236,33 @@ msgstr "git diff failed in {PATH}: {ERROR}"
 msgid "git repos will be materialized"
 msgstr "git repos will be materialized"
 
+msgid "git rev-parse HEAD failed in {PATH}: {ERR}"
+msgstr "git rev-parse HEAD failed in {PATH}: {ERR}"
+
+msgid "hit {REF}"
+msgstr "hit {REF}"
+
+msgid "image app ensure"
+msgstr "image app ensure"
+
+msgid "image base ensure"
+msgstr "image base ensure"
+
+msgid "image deps ensure"
+msgstr "image deps ensure"
+
+msgid "image layer analysis"
+msgstr "image layer analysis"
+
+msgid "image lint ensure"
+msgstr "image lint ensure"
+
+msgid "image lint ensure requires .pre-commit-config.yaml in the project root after sources prepare"
+msgstr "image lint ensure requires .pre-commit-config.yaml in the project root after sources prepare"
+
+msgid "image platform ensure"
+msgstr "image platform ensure"
+
 msgid "import --secrets-file"
 msgstr "import --secrets-file"
 
@@ -1229,6 +1274,12 @@ msgstr "invalid JSON in secrets file {PATH}: {DETAIL}"
 
 msgid "kaniko build failed with exit code {EXIT_CODE}"
 msgstr "kaniko build failed with exit code {EXIT_CODE}"
+
+msgid "layer analysis unavailable: {ERR}"
+msgstr "layer analysis unavailable: {ERR}"
+
+msgid "layered build shortcut (odpm build)"
+msgstr "layered build shortcut (odpm build)"
 
 msgid "load git lock from {SOURCE} before checkout"
 msgstr "load git lock from {SOURCE} before checkout"
@@ -1275,6 +1326,12 @@ msgstr "manifest_schema 2 requires requires_odpm (minimum odpm manager version).
 msgid "materialize repos before writing deps.lock"
 msgstr "materialize repos before writing deps.lock"
 
+msgid "miss {REF}"
+msgstr "miss {REF}"
+
+msgid "missing layered image template {NAME}"
+msgstr "missing layered image template {NAME}"
+
 msgid "modules diff JSON must be an object."
 msgstr "modules diff JSON must be an object."
 
@@ -1289,6 +1346,9 @@ msgstr "modules diff step was skipped unexpectedly."
 
 msgid "modules subcommand required: use \"odpm modules diff\" or \"odpm modules record-applied\"."
 msgstr "modules subcommand required: use \"odpm modules diff\" or \"odpm modules record-applied\"."
+
+msgid "no dependencies — layer not required"
+msgstr "no dependencies — layer not required"
 
 msgid "no git lock source available"
 msgstr "no git lock source available"
@@ -1326,11 +1386,17 @@ msgstr "only used with --update-lock"
 msgid "patch keys: {KEYS}"
 msgstr "patch keys: {KEYS}"
 
+msgid "platform context missing {PATH}"
+msgstr "platform context missing {PATH}"
+
 msgid "plugins: {PLUGIN_LIST}"
 msgstr "plugins: {PLUGIN_LIST}"
 
 msgid "port release runs only in developer scenario"
 msgstr "port release runs only in developer scenario"
+
+msgid "presence check failed: {ERR}"
+msgstr "presence check failed: {ERR}"
 
 msgid "psycopg2 is required."
 msgstr "psycopg2 is required."
@@ -1407,6 +1473,9 @@ msgstr "service_sources up to date"
 msgid "service_sources.{NAME} must be a non-empty git link."
 msgstr "service_sources.{NAME} must be a non-empty git link."
 
+msgid "skipped by --stop-after sources"
+msgstr "skipped by --stop-after sources"
+
 msgid "skipped with --no-git-update"
 msgstr "skipped with --no-git-update"
 
@@ -1430,6 +1499,9 @@ msgstr "sync project service-sources links"
 
 msgid "unable to preview debug profile"
 msgstr "unable to preview debug profile"
+
+msgid "unknown image layer {LAYER}"
+msgstr "unknown image layer {LAYER}"
 
 msgid "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
 msgstr "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"

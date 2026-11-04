@@ -11,7 +11,9 @@ from dev_project import constants
 from tests.ci_build_context import write_minimal_ci_build_context
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DOCKERFILE_CI = PROJECT_ROOT / "dev_project" / "templates" / "dockerfile_ci"
+DOCKERFILE_PLATFORM = (
+    PROJECT_ROOT / "dev_project" / "templates" / "dockerfile_platform"
+)
 
 
 def _write_ci_context(context_dir: str) -> Path:
@@ -81,21 +83,19 @@ import dev_project.inside_docker_app.container_bootstrap
 
 
 class CiDockerfileTests(unittest.TestCase):
-    def test_dockerfile_ci_uses_module_invocation(self):
-        content = DOCKERFILE_CI.read_text(encoding="utf-8")
+    def test_dockerfile_platform_uses_module_invocation(self):
+        content = DOCKERFILE_PLATFORM.read_text(encoding="utf-8")
         self.assertIn("python3 -m dev_project.bake_venv", content)
-        self.assertIn("{CI_VENV_INSTALL_JSON}", content)
+        self.assertIn("ci/venv_install.json", content)
         self.assertNotIn("bake.bake_venv", content)
         self.assertNotIn("bake_venv.py --config", content)
 
-    def test_dockerfile_ci_creates_runtime_dir_as_root(self):
-        content = DOCKERFILE_CI.read_text(encoding="utf-8")
-        root_idx = content.index("USER root")
-        mkdir_idx = content.index("RUN mkdir -p /run/odpm")
-        bake_idx = content.index("python3 -m dev_project.bake_venv")
-        self.assertLess(root_idx, mkdir_idx)
-        self.assertLess(mkdir_idx, bake_idx)
-        self.assertIn("chown {CONTAINER_USER}:{CONTAINER_USER} /run/odpm", content)
+    def test_dockerfile_app_has_no_bake_venv(self):
+        app = (
+            PROJECT_ROOT / "dev_project" / "templates" / "dockerfile_app"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("bake_venv", app)
+        self.assertIn("runtime/config.json", app)
 
 
 if __name__ == "__main__":

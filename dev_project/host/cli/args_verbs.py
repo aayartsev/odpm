@@ -81,7 +81,10 @@ def register_build_subparser(
         params.BUILD_SUBCOMMAND,
         parents=[global_parser],
         help="Build the CI image. Example: odpm build --image-tag my/image:tag",
-        description="Build CI image with platform sources, extra-addons, venv, and odoo.conf.",
+        description=(
+            "Build the final CI app image via layered stages "
+            "(base → platform → optional deps → app; ADR-027)."
+        ),
     )
     parser.add_argument(
         params.IMAGE_TAG_PARAM,

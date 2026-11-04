@@ -11,7 +11,8 @@
 | `odpm up` | Подготовить файлы и поднять compose-стек (в т.ч. `-i`/`-u`, комбо `--db-restore`) |
 | `odpm prepare` | Только файлы / lock, **без** контейнеров (вместо `--skip-start`) |
 | `odpm init URL` | Инициализация проекта (вместо `--init`) |
-| `odpm build` | Сборка CI-образа (вместо `--build-image`) |
+| `odpm build` | Сборка финального CI-образа слоями (вместо `--build-image`) |
+| `odpm image …` | Один слой: `base` / `platform` / `deps` / `app` / `lint` + `ensure` |
 | `odpm plan` | Пробный прогон шагов |
 | `odpm database …` | Host: `status` / `ensure-role` / `pull`. Стек: `backup` / `restore` / `drop` / `list` |
 | `odpm modules …` | Diff / record-applied |
@@ -66,15 +67,20 @@ odpm prepare --secrets-file ~/new-secrets.json
 | Команда / параметр | Описание |
 |--------------------|----------|
 | `odpm prepare` | Пересоздать Docker-файлы и compose **без** запуска контейнеров |
+| `odpm prepare --stop-after sources` | Только слепок исходников (git / links); без Docker, compose и секретов |
 | `odpm prepare --update-lock` | Записать `.odpm/deps.lock.json` и завершить работу |
 | `--no-git-update` | Не трогать git; lock **не читается**; каталоги должны уже существовать |
-| `odpm build` | Собрать образ для сценария **`ci`** (иначе ошибка) |
-| `--image-tag МЕТКА` | Имя и тег образа Docker для `odpm build` |
+| `odpm image <слой> ensure` | Обеспечить слой CI-образа: `base`, `platform`, `deps`, `app`, `lint` (ADR-027) |
+| `odpm image … --from REF` | Явный родитель для `deps` / `app` (иначе platform или deps) |
+| `odpm build` | Ярлык цепочки слоёв для сценария **`ci`**: base → platform → deps? → app (иначе ошибка) |
+| `--image-tag МЕТКА` | Имя и тег финального образа для `build` / `image app ensure` |
 | `--image-builder {docker,kaniko}` | Бэкенд сборки CI-образа (по умолчанию `docker`) |
 | `--image-push` | После сборки опубликовать образ |
 | `-V`, `--version` | Показать версию odpm |
 
-Устаревшие синонимы: `--skip-start` → `odpm prepare`; `--build-image` → `odpm build`.
+Поток CI: `prepare --stop-after sources` → `plan` (hit/miss слоёв) → `image … ensure` или `build`. Семейства тегов registry: **dev** (профиль `full`) и **runtime** (профиль `medium`) через `ODPM_BASE_IMAGE_PROFILE`. Сценарий `ci` и профиль base `ci` **не** переименовываются. Подробнее: [сценарий ci](../scenarios/ci.md), [ADR-027](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md).
+
+Устаревшие синонимы: `--skip-start` → `odpm prepare`; `--build-image` → `odpm build` (слоистая цепочка).
 
 ## План изменений (пробный прогон)
 

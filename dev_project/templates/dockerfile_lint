@@ -1,0 +1,15 @@
+# Lint layer: FROM platform; pre-commit runner + project config; no developing tree.
+ARG PLATFORM_IMAGE
+FROM ${PLATFORM_IMAGE}
+
+ARG CONTAINER_USER=odoo
+
+USER root
+RUN python3 -m pip install --no-cache-dir 'pre-commit>=3,<5'
+
+WORKDIR /home/odoo
+
+COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} .pre-commit-config.yaml .pre-commit-config.yaml
+
+USER ${CONTAINER_USER}
+RUN pre-commit install-hooks

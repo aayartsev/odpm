@@ -18,16 +18,23 @@ from .helpers import make_plan_step
 
 
 def evaluate_runtime_ci_build_image(runtime: RuntimePorts) -> PlanStep | None:
+    """Legacy single-step marker when ``odpm build`` is requested.
+
+    Prefer detailed ``image.*`` steps from
+    :func:`build_image_layer_plan_steps_for_runtime` (ADR-027).
+    """
     if not runtime.args.build_image:
         return None
     if not runtime.host_ctx.policy.allow_build_image:
         return None
     return make_plan_step(
         "ci.build_image",
-        plan_msg("Build CI Docker image from prepared context"),
+        plan_msg(
+            "Build layered CI image (base → platform → deps? → app; ADR-027)"
+        ),
         "run",
         True,
-        plan_msg("build CI image from prepared context"),
+        plan_msg("layered build shortcut (odpm build)"),
     )
 
 
@@ -130,7 +137,12 @@ def build_runtime_plan_steps(
     runtime: RuntimePorts,
     project_env: CreateProjectEnvironment | None = None,
 ) -> tuple[PlanStep, ...]:
+    from ..plan.image_layers_preview import (  # noqa: PLC0415  # optional
+        build_image_layer_plan_steps_for_runtime,
+    )
+
     steps: list[PlanStep] = []
+    steps.extend(build_image_layer_plan_steps_for_runtime(runtime))
     for evaluator in (
         lambda: evaluate_runtime_ci_build_image(runtime),
         lambda: evaluate_runtime_debug_profile(runtime, project_env),

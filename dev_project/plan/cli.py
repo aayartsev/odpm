@@ -59,5 +59,9 @@ def is_build_mode(args: OdpmCliArgs) -> bool:
     return args.command == cli_params.BUILD_SUBCOMMAND
 
 
+def is_image_mode(args: OdpmCliArgs) -> bool:
+    return args.command == cli_params.IMAGE_SUBCOMMAND
+
+
 def is_scaffold_mode(args: OdpmCliArgs) -> bool:
     return args.command == cli_params.SCAFFOLD_SUBPARSER_PARAM

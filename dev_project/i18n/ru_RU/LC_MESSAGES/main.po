@@ -44,6 +44,9 @@ msgstr "В .odpm/secrets.json для ключей указаны заглушк�
 msgid ".odpm/secrets.json is missing required keys: {KEYS}"
 msgstr "В .odpm/secrets.json отсутствуют обязательные ключи: {KEYS}"
 
+msgid ".pre-commit-config.yaml absent — lint ensure would fail"
+msgstr ".pre-commit-config.yaml отсутствует — lint ensure завершится ошибкой"
+
 msgid "Accepted database drift: {KIND}"
 msgstr "Принят дрейф конфигурации БД: {KIND}"
 
@@ -98,14 +101,14 @@ msgstr "После разрешения дрейфа остаётся блоки
 msgid "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
 msgstr "Создание роли приложения PostgreSQL {ROLE} в single-user режиме."
 
-msgid "Build CI Docker image from prepared context"
-msgstr "Собрать CI Docker-образ из подготовленного контекста"
-
 msgid "Build compose start command and write .odpm/runtime/config.json when stale"
 msgstr "Собрать команду запуска compose и записать .odpm/runtime/config.json при устаревании"
 
 msgid "Build docker volume mapping for Odoo, venv, and addons"
 msgstr "Построить маппинг docker-томов для Odoo, venv и аддонов"
+
+msgid "Build layered CI image (base → platform → deps? → app; ADR-027)"
+msgstr "Собрать слоистый CI-образ (base → platform → deps? → app; ADR-027)"
 
 msgid "CI kaniko direct prepare-only; Docker daemon check skipped"
 msgstr "CI kaniko direct prepare-only; проверка Docker daemon пропущена"
@@ -377,8 +380,8 @@ msgstr "Порт на host: {PORT}"
 msgid "If you want drop this file to default values, just delete it"
 msgstr "Если вы хотите сбросить настройки этого файла в параметры по умолчанию, просто удалите его."
 
-msgid "In the ci scenario use odpm prepare or odpm build (odpm up / bare compose up is not allowed)."
-msgstr "В сценарии ci используйте odpm prepare или odpm build (odpm up / обычный compose up запрещён)."
+msgid "In the ci scenario use odpm prepare, odpm build, or odpm image (odpm up / bare compose up is not allowed)."
+msgstr "В сценарии ci используйте odpm prepare, odpm build или odpm image (odpm up / обычный compose up запрещён)."
 
 msgid "Infisical HTTP {STATUS} for {PATH}"
 msgstr "Infisical HTTP {STATUS} для {PATH}"
@@ -1070,14 +1073,20 @@ msgstr "Вы выбрали следующую локаль для сообще�
 msgid "already fetched this run ({COUNT} keys)"
 msgstr "уже получены в этом запуске ({COUNT} ключей)"
 
+msgid "app FROM {PARENT}"
+msgstr "app FROM {PARENT}"
+
+msgid "app FROM {PARENT}; publish tag {TAG}"
+msgstr "app FROM {PARENT}; тег публикации {TAG}"
+
 msgid "apply pinned commits from {SOURCE}"
 msgstr "применить закреплённые коммиты из {SOURCE}"
 
+msgid "base ensure (ADR-019 stamp / rebuild if stale)"
+msgstr "ensure base (штамп ADR-019 / пересборка при устаревании)"
+
 msgid "base image identity mismatch"
 msgstr "несовпадение идентичности базового образа"
-
-msgid "build CI image from prepared context"
-msgstr "собрать CI-образ из подготовленного контекста"
 
 msgid "build compose service for compose.generate ({REASON})"
 msgstr "собрать compose service для compose.generate ({REASON})"
@@ -1124,6 +1133,9 @@ msgstr "шаблон compose актуален"
 msgid "compose validation disabled by policy"
 msgstr "валидация compose отключена политикой"
 
+msgid "crane is required to check remote image presence for layered CI ensure (install crane or build without registry push)."
+msgstr "для проверки наличия слоистого CI-образа в registry нужен crane (установите crane или собирайте без push в registry)."
+
 msgid "database configuration drift detected: {KINDS}"
 msgstr "обнаружен дрейф конфигурации БД: {KINDS}"
 
@@ -1159,6 +1171,9 @@ msgstr "deps.lock будет обновлён; manifest locks.git без изм�
 
 msgid "deps.lock.json"
 msgstr "deps.lock.json"
+
+msgid "developing project must be a git repository for image app ensure (git rev-parse HEAD)"
+msgstr "для image app ensure developing-проект должен быть git-репозиторием (git rev-parse HEAD)"
 
 msgid "docker build failed with exit code {EXIT_CODE}"
 msgstr "docker build завершился с кодом {EXIT_CODE}"
@@ -1202,6 +1217,9 @@ msgstr "dry-run skip: {ARGV}"
 msgid "extensions.local must be a list of module names"
 msgstr "extensions.local должен быть списком имён модулей"
 
+msgid "failed to run crane digest: {ERR}"
+msgstr "не удалось выполнить crane digest: {ERR}"
+
 msgid "file provider uses existing source"
 msgstr "файловый провайдер использует существующий source"
 
@@ -1217,6 +1235,33 @@ msgstr "git diff завершился с ошибкой в {PATH}: {ERROR}"
 msgid "git repos will be materialized"
 msgstr "git-репозитории будут материализованы"
 
+msgid "git rev-parse HEAD failed in {PATH}: {ERR}"
+msgstr "git rev-parse HEAD не удался в {PATH}: {ERR}"
+
+msgid "hit {REF}"
+msgstr "есть в registry/локально {REF}"
+
+msgid "image app ensure"
+msgstr "ensure слоя app"
+
+msgid "image base ensure"
+msgstr "ensure слоя base"
+
+msgid "image deps ensure"
+msgstr "ensure слоя deps"
+
+msgid "image layer analysis"
+msgstr "анализ слоёв образа"
+
+msgid "image lint ensure"
+msgstr "ensure слоя lint"
+
+msgid "image lint ensure requires .pre-commit-config.yaml in the project root after sources prepare"
+msgstr "image lint ensure требует .pre-commit-config.yaml в корне проекта после prepare --stop-after sources"
+
+msgid "image platform ensure"
+msgstr "ensure слоя platform"
+
 msgid "import --secrets-file"
 msgstr "импорт --secrets-file"
 
@@ -1228,6 +1273,12 @@ msgstr "некорректный JSON в файле secrets {PATH}: {DETAIL}"
 
 msgid "kaniko build failed with exit code {EXIT_CODE}"
 msgstr "сборка kaniko завершилась с кодом {EXIT_CODE}"
+
+msgid "layer analysis unavailable: {ERR}"
+msgstr "анализ слоёв недоступен: {ERR}"
+
+msgid "layered build shortcut (odpm build)"
+msgstr "ярлык слоистой сборки (odpm build)"
 
 msgid "load git lock from {SOURCE} before checkout"
 msgstr "загрузить git lock из {SOURCE} перед checkout"
@@ -1274,6 +1325,12 @@ msgstr "manifest_schema 2 требует поле requires_odpm (минимал�
 msgid "materialize repos before writing deps.lock"
 msgstr "материализовать репозитории перед записью deps.lock"
 
+msgid "miss {REF}"
+msgstr "нет в registry/локально {REF}"
+
+msgid "missing layered image template {NAME}"
+msgstr "отсутствует шаблон слоистого образа {NAME}"
+
 msgid "modules diff JSON must be an object."
 msgstr "JSON modules diff должен быть объектом."
 
@@ -1288,6 +1345,9 @@ msgstr "Шаг modules diff был неожиданно пропущен."
 
 msgid "modules subcommand required: use \"odpm modules diff\" or \"odpm modules record-applied\"."
 msgstr "Укажите подкоманду modules: \"odpm modules diff\" или \"odpm modules record-applied\"."
+
+msgid "no dependencies — layer not required"
+msgstr "нет dependencies — слой не нужен"
 
 msgid "no git lock source available"
 msgstr "источник git lock недоступен"
@@ -1325,11 +1385,17 @@ msgstr "используется только с --update-lock"
 msgid "patch keys: {KEYS}"
 msgstr "ключи patch: {KEYS}"
 
+msgid "platform context missing {PATH}"
+msgstr "в контексте platform отсутствует {PATH}"
+
 msgid "plugins: {PLUGIN_LIST}"
 msgstr "плагины: {PLUGIN_LIST}"
 
 msgid "port release runs only in developer scenario"
 msgstr "освобождение портов только в developer-сценарии"
+
+msgid "presence check failed: {ERR}"
+msgstr "проверка наличия не удалась: {ERR}"
 
 msgid "psycopg2 is required."
 msgstr "Требуется psycopg2."
@@ -1406,6 +1472,9 @@ msgstr "service_sources актуальны"
 msgid "service_sources.{NAME} must be a non-empty git link."
 msgstr "service_sources.{NAME} должно быть непустой git-ссылкой."
 
+msgid "skipped by --stop-after sources"
+msgstr "пропущено из‑за --stop-after sources"
+
 msgid "skipped with --no-git-update"
 msgstr "пропущено с --no-git-update"
 
@@ -1429,6 +1498,9 @@ msgstr "синхронизировать ссылки project/service-sources"
 
 msgid "unable to preview debug profile"
 msgstr "не удалось построить preview debug profile"
+
+msgid "unknown image layer {LAYER}"
+msgstr "неизвестный слой образа {LAYER}"
 
 msgid "unsupported secrets schema_version: {VERSION} (expected {EXPECTED})"
 msgstr "неподдерживаемый secrets schema_version: {VERSION} (ожидается {EXPECTED})"

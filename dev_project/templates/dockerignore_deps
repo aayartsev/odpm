@@ -1,0 +1,8 @@
+odoo
+.venv
+dev_project
+ci
+runtime
+.git
+__pycache__
+*.pyc

@@ -14,9 +14,10 @@ odpm **does not replace** GitHub Actions, GitLab CI, or orchestrators — it pro
 
 | Area | How it works |
 |------|--------------|
-| **Image** | Created with `odpm build` (available **only** in this scenario). Backend: `docker` (default) or `kaniko` — see [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
-| **Sources** | Inside the image, no host mount. |
-| **Python environment** | Built during image build, not recreated on every `up`. |
+| **Image** | Layered build (ADR-027): `odpm prepare --stop-after sources` → miss analysis → `odpm image <layer> ensure` or shortcut `odpm build` (base → platform → deps? → app). Available **only** in this scenario. Backend: `docker` / `kaniko` — [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
+| **Layer families** | Registry tags: **dev** ↔ base profile `full` (browser); **runtime** ↔ `medium` (wkhtml, no browser). Set via `ODPM_BASE_IMAGE_PROFILE`. Scenario `ci` and profile `ci` are **not** renamed. |
+| **Sources** | Host snapshot first (`--stop-after sources`); final image has no host mount. |
+| **Python environment** | Bake venv in the **platform** layer, not in app. |
 | **Debugger** | None. |
 | **Module secrets** | Host mount **disabled**. Optional bake into image: `ODPM_BAKE_SECRETS=1` with `--build-image` — see [local secrets](../operations/secrets.md), [ADR-002](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-002-ci-secrets-bake.md). |
 | **Version pinning** | Strict check of `.odpm/deps.lock.json`; version incompatibilities in nested manifests — **error**. |
@@ -28,11 +29,20 @@ odpm **does not replace** GitHub Actions, GitLab CI, or orchestrators — it pro
 ```text
 git push → build machine
   → ODPM_SCENARIO=ci
-  → odpm prepare
-  → odpm build [--image-tag registry/project:tag] [--image-builder docker|kaniko] [--image-push]
-  → publish image (or --image-push / kaniko tar artifact)
+  → ODPM_BASE_IMAGE_PROFILE=full   # family dev; or medium → runtime
+  → odpm prepare --stop-after sources
+  → odpm plan                      # fingerprints / layer hit-miss
+  → odpm image base ensure
+  → odpm image platform ensure
+  → odpm image deps ensure         # noop when no dependencies
+  → odpm image app ensure --image-tag registry/project:tag [--image-push]
+  # or shortcut:
+  → odpm build [--image-tag …] [--image-builder docker|kaniko] [--image-push]
+  → optional: odpm image lint ensure
   → deploy (your tools)
 ```
+
+Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`.
 
 ## Checklist
 
@@ -45,9 +55,13 @@ git push → build machine
 
 ```bash
 export ODPM_SCENARIO=ci
-odpm prepare
+export ODPM_BASE_IMAGE_PROFILE=full   # family dev
+odpm prepare --stop-after sources
+odpm plan
+odpm image platform ensure
+odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
 # optional: odpm prepare --secrets-file /secure/ephemeral.json
-export ODPM_BAKE_SECRETS=1   # bake module secrets into image when secrets.json exists
+export ODPM_BAKE_SECRETS=1   # bake module secrets into app layer when secrets.json exists
 odpm build --image-tag myregistry/client-odoo:19.0
 odpm build --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
 ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
@@ -60,7 +74,7 @@ ODOO_SVC=odoo
 docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 
-In the `ci` scenario, `odpm up`, `scaffold`, and stack `database backup|restore|drop|list` are rejected. Allowed: `prepare` / `build` / `init` / `plan` / `manifest` / `modules` / `run` / host-`database` / `--version`/`-V` (plus legacy synonyms) — see [ADR-017](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md), [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md).
+In the `ci` scenario, `odpm up`, `scaffold`, and stack `database backup|restore|drop|list` are rejected. Allowed: `prepare` / `build` / **`image`** / `init` / `plan` / `manifest` / `modules` / `run` / host-`database` / `--version`/`-V` (plus legacy synonyms) — see [ADR-017](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md), [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md), [ADR-027](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md).
 
 ## External PostgreSQL in `ci` (ADR-022)
 

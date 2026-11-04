@@ -679,10 +679,40 @@ RU_MESSAGES: dict[str, str] = {
     "Interactive input is not available in non-interactive mode.": (
         "Интерактивный ввод недоступен в неинтерактивном режиме."
     ),
-    "In the ci scenario use odpm prepare or odpm build "
+    "In the ci scenario use odpm prepare, odpm build, or odpm image "
     "(odpm up / bare compose up is not allowed).": (
-        "В сценарии ci используйте odpm prepare или odpm build "
+        "В сценарии ci используйте odpm prepare, odpm build или odpm image "
         "(odpm up / обычный compose up запрещён)."
+    ),
+    "crane is required to check remote image presence for layered "
+    "CI ensure (install crane or build without registry push).": (
+        "для проверки наличия слоистого CI-образа в registry нужен crane "
+        "(установите crane или собирайте без push в registry)."
+    ),
+    "developing project must be a git repository for image app "
+    "ensure (git rev-parse HEAD)": (
+        "для image app ensure developing-проект должен быть git-репозиторием "
+        "(git rev-parse HEAD)"
+    ),
+    "failed to run crane digest: {ERR}": (
+        "не удалось выполнить crane digest: {ERR}"
+    ),
+    "git rev-parse HEAD failed in {PATH}: {ERR}": (
+        "git rev-parse HEAD не удался в {PATH}: {ERR}"
+    ),
+    "image lint ensure requires .pre-commit-config.yaml in the "
+    "project root after sources prepare": (
+        "image lint ensure требует .pre-commit-config.yaml в корне проекта "
+        "после prepare --stop-after sources"
+    ),
+    "missing layered image template {NAME}": (
+        "отсутствует шаблон слоистого образа {NAME}"
+    ),
+    "platform context missing {PATH}": (
+        "в контексте platform отсутствует {PATH}"
+    ),
+    "unknown image layer {LAYER}": (
+        "неизвестный слой образа {LAYER}"
     ),
     "Invalid choice. Please enter one of: {CHOICES}": (
         "Неверный выбор. Введите один из вариантов: {CHOICES}"

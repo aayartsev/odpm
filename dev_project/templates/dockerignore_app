@@ -1,0 +1,7 @@
+odoo
+.venv
+.git
+__pycache__
+*.pyc
+.local
+.cache

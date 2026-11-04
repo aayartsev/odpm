@@ -132,6 +132,7 @@ class OdpmPipeline:
         try:
             from .plan.cli import (  # noqa: PLC0415  # optional
                 is_database_host_mode,
+                is_image_mode,
                 is_manifest_mode,
                 is_modules_mode,
                 is_plan_mode,
@@ -143,6 +144,7 @@ class OdpmPipeline:
             for_manifest = is_manifest_mode(self.cli_args)
             for_modules = is_modules_mode(self.cli_args)
             for_run = is_run_mode(self.cli_args)
+            for_image = is_image_mode(self.cli_args)
             # Lightweight setup (no template sync) only for host tooling.
             # Stack database / up / scaffold need full setup like bare up today.
             self.setup(
@@ -188,6 +190,11 @@ class OdpmPipeline:
                 return
             self._enforce_ci_explicit_mode()
             self.prepare_project_files()
+            if for_image:
+                from .image_layers import ensure_image_layer  # noqa: PLC0415  # optional
+
+                ensure_image_layer(self._project_environment(), self.cli_args)
+                return
             self._runtime().run_after_prepare()
         except OdpmError as exc:
             message = str(exc)
@@ -206,7 +213,7 @@ class OdpmPipeline:
         if cli_allows_ci_explicit_mode(self.cli_args):
             return
         message = _(
-            "In the ci scenario use odpm prepare or odpm build "
+            "In the ci scenario use odpm prepare, odpm build, or odpm image "
             "(odpm up / bare compose up is not allowed)."
         )
         raise ConfigError(message)

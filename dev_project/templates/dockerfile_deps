@@ -1,0 +1,11 @@
+# Dependencies layer: extra-addons from git dependencies (no developing, no bake_venv).
+ARG PLATFORM_IMAGE
+FROM ${PLATFORM_IMAGE}
+
+ARG CONTAINER_USER=odoo
+
+WORKDIR /home/odoo
+
+COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} extra-addons/ ./extra-addons/
+
+USER ${CONTAINER_USER}

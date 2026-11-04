@@ -12,9 +12,10 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 
 | Область | Как устроено |
 |---------|--------------|
-| **Образ** | Создаётся командой `odpm build` (доступна **только** в этом сценарии). Бэкенд: `docker` (по умолчанию) или `kaniko` — см. [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
-| **Исходники** | Внутри образа, без подключения с хоста. |
-| **Окружение Python** | Собрано при сборке образа, не пересоздаётся при каждом `up`. |
+| **Образ** | Слоистая сборка (ADR-027): `odpm prepare --stop-after sources` → анализ miss → `odpm image <слой> ensure` или ярлык `odpm build` (base → platform → deps? → app). Доступно **только** в этом сценарии. Бэкенд: `docker` / `kaniko` — [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
+| **Семейства слоёв** | Теги registry: **dev** ↔ профиль base `full` (браузер); **runtime** ↔ `medium` (wkhtml, без браузера). Задаётся `ODPM_BASE_IMAGE_PROFILE`. Сценарий `ci` и профиль `ci` **не** переименовываются. |
+| **Исходники** | Сначала слепок на хосте (`--stop-after sources`); в финальном образе — без mount с хоста. |
+| **Окружение Python** | Bake venv в слое **platform**, не в app. |
 | **Отладчик** | Нет. |
 | **Секреты модулей** | Mount `.odpm/secrets.json` с хоста **отключён**. Секреты приложения в CI-образ этим механизмом не попадают — см. [локальные секреты](../operations/secrets.md) (TD-FEAT-09). |
 | **Фиксация версий** | Строгая проверка `.odpm/deps.lock.json`; несовместимости версий во вложенных описаниях — **ошибка**. |
@@ -25,11 +26,20 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 ```text
 отправка в git → машина сборки
   → ODPM_SCENARIO=ci
-  → odpm prepare
-  → odpm build [--image-tag реестр/проект:метка] [--image-builder docker|kaniko] [--image-push]
-  → публикация образа (или --image-push / артефакт tar для kaniko)
+  → ODPM_BASE_IMAGE_PROFILE=full   # семейство dev; или medium → runtime
+  → odpm prepare --stop-after sources
+  → odpm plan                      # отпечатки / hit-miss слоёв
+  → odpm image base ensure
+  → odpm image platform ensure
+  → odpm image deps ensure         # noop, если нет dependencies
+  → odpm image app ensure --image-tag реестр/проект:метка [--image-push]
+  # либо ярлык:
+  → odpm build [--image-tag …] [--image-builder docker|kaniko] [--image-push]
+  → опционально: odpm image lint ensure
   → развёртывание (ваши инструменты)
 ```
+
+Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`.
 
 ## Чеклист
 
@@ -50,7 +60,12 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 # ODPM_CI_IMAGE_PUSH=1
 
 export ODPM_SCENARIO=ci
-odpm prepare
+export ODPM_BASE_IMAGE_PROFILE=full   # семейство dev
+odpm prepare --stop-after sources
+odpm plan
+odpm image platform ensure
+odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
+# ярлык всей цепочки без lint:
 odpm build --image-tag myregistry/client-odoo:19.0
 odpm build --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
 ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
@@ -63,7 +78,7 @@ ODOO_SVC=odoo
 docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 ```
 
-В сценарии `ci` запрещены `odpm up`, `scaffold` и стековые `database backup|restore|drop|list`. Разрешены `prepare` / `build` / `init` / `plan` / `manifest` / `modules` / `run` / host-`database` / `--version`/`-V` (и legacy-синонимы) — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md), [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md).
+В сценарии `ci` запрещены `odpm up`, `scaffold` и стековые `database backup|restore|drop|list`. Разрешены `prepare` / `build` / **`image`** / `init` / `plan` / `manifest` / `modules` / `run` / host-`database` / `--version`/`-V` (и legacy-синонимы) — см. [ADR-017](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-017-ci-prepare-only-policy.md), [ADR-026](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-026-cli-command-verbs.md), [ADR-027](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md).
 
 ## Внешняя PostgreSQL в `ci` (ADR-022)
 

@@ -38,6 +38,7 @@ def is_ci_prepare_only(arguments: OdpmCliArgs | None) -> bool:
             cli_params.PREPARE_SUBCOMMAND,
             cli_params.BUILD_SUBCOMMAND,
             cli_params.INIT_SUBCOMMAND,
+            cli_params.IMAGE_SUBCOMMAND,
         }
     )
 
@@ -65,6 +66,7 @@ def cli_allows_ci_explicit_mode(arguments: OdpmCliArgs | None) -> bool:
         cli_params.MANIFEST_SUBCOMMAND,
         cli_params.MODULES_SUBCOMMAND,
         cli_params.RUN_SUBCOMMAND,
+        cli_params.IMAGE_SUBCOMMAND,
     }:
         return True
     if arguments.database_subcommand in cli_params.DATABASE_HOST_SUBCOMMANDS:

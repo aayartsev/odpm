@@ -166,8 +166,27 @@ def collect_prepare_warnings(ctx: PrepareContext) -> tuple[str, ...]:
     return tuple(warnings)
 
 
+def _apply_stop_after_sources(ctx: PrepareContext, step: PlanStep) -> PlanStep:
+    from .sources_only import SOURCES_ONLY_STEP_IDS, is_sources_only_prepare
+
+    if not is_sources_only_prepare(getattr(ctx.host_ctx.arguments, "stop_after", None)):
+        return step
+    if step.id in SOURCES_ONLY_STEP_IDS:
+        return step
+    return PlanStep(
+        step.id,
+        step.description,
+        "skip",
+        False,
+        plan_msg("skipped by --stop-after sources"),
+    )
+
+
 def evaluate_prepare_plan(ctx: PrepareContext) -> tuple[PlanStep, ...]:
-    return tuple(step_def.evaluate(ctx) for step_def in get_prepare_steps())
+    return tuple(
+        _apply_stop_after_sources(ctx, step_def.evaluate(ctx))
+        for step_def in get_prepare_steps()
+    )
 
 
 def collect_execute_step_ids(ctx: PrepareContext) -> tuple[str, ...]:
@@ -255,7 +274,7 @@ def execute_prepare(ctx: PrepareContext) -> None:
     )
     ctx.lock_manager = ctx.ports.bootstrap.new_lock_manager()
     for step_def in get_prepare_steps():
-        outcome = step_def.evaluate(ctx)
+        outcome = _apply_stop_after_sources(ctx, step_def.evaluate(ctx))
         if outcome.should_execute():
             step_def.execute(ctx)
 

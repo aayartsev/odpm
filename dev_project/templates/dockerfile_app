@@ -1,0 +1,21 @@
+# Thin app layer: FROM platform or deps (odoo + .venv already present).
+ARG PLATFORM_IMAGE
+FROM ${PLATFORM_IMAGE}
+
+ARG CONTAINER_USER=odoo
+
+WORKDIR /home/odoo
+
+COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} . .
+
+USER root
+RUN mkdir -p /run/odpm && chown ${CONTAINER_USER}:${CONTAINER_USER} /run/odpm
+
+COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} runtime/config.json /run/odpm/config.json
+ENV ODPM_CONFIG_PATH=/run/odpm/config.json
+
+# Optional secrets — enabled when secrets file is present in context:
+#COPY --chown=odoo:odoo runtime/secrets.json /run/odpm/secrets.json
+#ENV ODPM_SECRETS_PATH=/run/odpm/secrets.json
+
+USER ${CONTAINER_USER}

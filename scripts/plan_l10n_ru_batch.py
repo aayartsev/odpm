@@ -7,8 +7,41 @@ PLAN_L10N_RU: dict[str, str] = {
     "Apply pinned commits from {SOURCE} before checkout": (
         "Применить закреплённые коммиты из {SOURCE} перед checkout"
     ),
-    "Build CI Docker image from prepared context": (
-        "Собрать CI Docker-образ из подготовленного контекста"
+    "Build layered CI image (base → platform → deps? → app; ADR-027)": (
+        "Собрать слоистый CI-образ (base → platform → deps? → app; ADR-027)"
+    ),
+    "base ensure (ADR-019 stamp / rebuild if stale)": (
+        "ensure base (штамп ADR-019 / пересборка при устаревании)"
+    ),
+    "image app ensure": "ensure слоя app",
+    "image base ensure": "ensure слоя base",
+    "image deps ensure": "ensure слоя deps",
+    "image lint ensure": "ensure слоя lint",
+    "image layer analysis": "анализ слоёв образа",
+    "image platform ensure": "ensure слоя platform",
+    "layered build shortcut (odpm build)": (
+        "ярлык слоистой сборки (odpm build)"
+    ),
+    "no dependencies — layer not required": (
+        "нет dependencies — слой не нужен"
+    ),
+    ".pre-commit-config.yaml absent — lint ensure would fail": (
+        ".pre-commit-config.yaml отсутствует — lint ensure завершится ошибкой"
+    ),
+    "skipped by --stop-after sources": (
+        "пропущено из‑за --stop-after sources"
+    ),
+    "hit {REF}": "есть в registry/локально {REF}",
+    "miss {REF}": "нет в registry/локально {REF}",
+    "presence check failed: {ERR}": (
+        "проверка наличия не удалась: {ERR}"
+    ),
+    "layer analysis unavailable: {ERR}": (
+        "анализ слоёв недоступен: {ERR}"
+    ),
+    "app FROM {PARENT}": "app FROM {PARENT}",
+    "app FROM {PARENT}; publish tag {TAG}": (
+        "app FROM {PARENT}; тег публикации {TAG}"
     ),
     "Build compose start command and write .odpm/runtime/config.json when stale": (
         "Собрать команду запуска compose и записать .odpm/runtime/config.json при устаревании"
@@ -105,9 +138,6 @@ PLAN_L10N_RU: dict[str, str] = {
         "применить закреплённые коммиты из {SOURCE}"
     ),
     "base image identity mismatch": "несовпадение идентичности базового образа",
-    "build CI image from prepared context": (
-        "собрать CI-образ из подготовленного контекста"
-    ),
     "build compose service for compose.generate ({REASON})": (
         "собрать compose service для compose.generate ({REASON})"
     ),

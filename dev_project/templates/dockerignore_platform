@@ -1,0 +1,7 @@
+extra-addons
+.git
+__pycache__
+*.pyc
+.local
+.cache
+.odpm

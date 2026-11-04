@@ -11,7 +11,8 @@ The **`odpm`** command (or `python3 …/odpm.py`) accepts **subcommands** and fl
 | `odpm up` | Prepare files and start the compose stack (incl. `-i`/`-u`, combined `--db-restore`) |
 | `odpm prepare` | Files / lock only, **no** containers (replaces `--skip-start`) |
 | `odpm init URL` | Project init (replaces `--init`) |
-| `odpm build` | CI image build (replaces `--build-image`) |
+| `odpm build` | Final CI image via layered stages (replaces `--build-image`) |
+| `odpm image …` | One layer: `base` / `platform` / `deps` / `app` / `lint` + `ensure` |
 | `odpm plan` | Dry-run of prepare steps |
 | `odpm database …` | Host: `status` / `ensure-role` / `pull`. Stack: `backup` / `restore` / `drop` / `list` |
 | `odpm modules …` | Diff / record-applied |
@@ -66,15 +67,20 @@ odpm prepare --secrets-file ~/new-secrets.json
 | Command / parameter | Description |
 |---------------------|-------------|
 | `odpm prepare` | Regenerate Docker files and compose **without** starting containers |
+| `odpm prepare --stop-after sources` | Sources snapshot only (git / links); no Docker, compose, or secrets |
 | `odpm prepare --update-lock` | Write `.odpm/deps.lock.json` and exit |
 | `--no-git-update` | Do not touch git; lock is **not read**; directories must already exist |
-| `odpm build` | Build image for **`ci`** scenario (error otherwise) |
-| `--image-tag TAG` | Docker image name and tag for `odpm build` |
+| `odpm image <layer> ensure` | Ensure a CI image layer: `base`, `platform`, `deps`, `app`, `lint` (ADR-027) |
+| `odpm image … --from REF` | Explicit parent for `deps` / `app` (else platform or deps) |
+| `odpm build` | Layered shortcut for **`ci`**: base → platform → deps? → app (error otherwise) |
+| `--image-tag TAG` | Final image name/tag for `build` / `image app ensure` |
 | `--image-builder {docker,kaniko}` | CI image build backend (default `docker`) |
 | `--image-push` | After build, publish the image |
 | `-V`, `--version` | Show odpm version |
 
-Deprecated synonyms: `--skip-start` → `odpm prepare`; `--build-image` → `odpm build`.
+CI flow: `prepare --stop-after sources` → `plan` (layer hit/miss) → `image … ensure` or `build`. Registry tag families: **dev** (profile `full`) and **runtime** (profile `medium`) via `ODPM_BASE_IMAGE_PROFILE`. Scenario `ci` and base profile `ci` are **not** renamed. See [ci scenario](../scenarios/ci.md), [ADR-027](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md).
+
+Deprecated synonyms: `--skip-start` → `odpm prepare`; `--build-image` → `odpm build` (layered chain).
 
 ## Change plan (dry run)
 

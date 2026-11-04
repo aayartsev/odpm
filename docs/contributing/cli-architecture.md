@@ -15,6 +15,7 @@
 7. Для стековых `database *` **не** класть логику в `database/commands.py` — выставлять legacy-поля флагов и идти в runtime path.
 8. Docs RU (+ EN, если зеркало есть), CHANGELOG, тесты parse/normalize + dispatch.
 9. Слой совместимости (`normalize_cli_args`) — только если нужен переход со старого argv; не плодить новые корневые mode-флаги.
+10. Слои CI-образа (ADR-027): подкоманда `image` + `args_image.py`; примитивы в `dev_project/image_layers/`; `odpm build` вызывает `run_layered_build`, не монолитный `dockerfile_ci`.
 
 ## Host vs stack `database`
 
