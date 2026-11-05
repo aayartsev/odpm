@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block announce %}
+  {% if config.extra.version is defined %}
+    {% set ver = config.extra.version.version | default("") %}
+    {% if ver == "dev" or "beta" in ver or "rc" in ver or "alpha" in ver %}
+      <div class="md-banner md-banner--warning">
+        <div class="md-banner__inner md-grid md-typeset">
+          {% if config.theme.language == "en" %}
+            Pre-release documentation. For production, see
+            <a href="https://aayartsev.github.io/odpm/stable/">stable docs</a>.
+          {% else %}
+            Документация pre-release. Для production см.
+            <a href="https://aayartsev.github.io/odpm/stable/">стабильную версию</a>.
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endblock %}
