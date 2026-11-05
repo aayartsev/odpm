@@ -63,7 +63,7 @@ ODPM_COMPOSE_SMOKE_MAILPIT=1 ./scripts/run_compose_smoke_mailpit_test.sh
 
 По умолчанию CI создаёт **эфемерную обёртку** в `/tmp` (`scripts/bootstrap_golden_path_project.sh` → `odpm init` demo на branch `${MAJOR}.0`). Клоны platform/deps и Docker-образы остаются в **home** runner (`ODOO_PROJECTS_DIR` / docker). БД в обёртке сбрасывается между прогонами (чистый init при remedi ate) — это ожидаемо.
 
-Дальше: `refresh_golden_path_project.sh` → `odpm prepare` (+ remedi ate при `AUTO_REMEDIATE=1`) → `preflight_golden_path_project.sh` → unittest `docker compose up` + HTTP ready на **`/web/login`**. Remedi ate после init регенерирует compose с **`-d test_db`** (иначе пустой `db_name` → multi-db и 403). `odpm.json` `odoo_version` — для schema major / диагностики. Pre-release additionally installs the built `.deb` on the runner host. Job budget ≈ **15** мин.
+Дальше: `refresh_golden_path_project.sh` → `odpm prepare -d test_db` (+ remedi ate при `AUTO_REMEDIATE=1`) → `preflight_golden_path_project.sh` → unittest `docker compose up` + HTTP ready на **`/web/login`**. И refresh, и remedi ate пишут compose с **`-d`** (ранний «DB ready» без remedi ate иначе оставляет multi-db → 403). `odpm.json` `odoo_version` — для schema major / диагностики. Pre-release additionally installs the built `.deb` on the runner host. Job budget ≈ **15** мин.
 
 Пропуск refresh локально (если проект уже освежён): `ODPM_GOLDEN_PATH_SKIP_REFRESH=1 ./scripts/run_golden_path_test.sh`.  
 Офлайн / без git на runner: `ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1` (как раньше `--no-git-update`; не чинит drift ветки платформы на `master`).

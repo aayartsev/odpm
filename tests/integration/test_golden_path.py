@@ -296,7 +296,10 @@ class GoldenPathMaintenanceScriptsTests(unittest.TestCase):
         self.assertIn("golden_path_remediate_database", refresh)
         self.assertIn("docker compose down", refresh)
         self.assertIn("ODPM_GOLDEN_PATH_NO_GIT_UPDATE", refresh)
-        self.assertIn('odpm prepare "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}"', refresh)
+        self.assertIn(
+            'odpm prepare "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}" -d "${DB_NAME}"',
+            refresh,
+        )
         self.assertIn(
             '"${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"',
             refresh,

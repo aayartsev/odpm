@@ -59,8 +59,11 @@ if [[ "${ODPM_GOLDEN_PATH_NO_GIT_UPDATE:-0}" == "1" ]]; then
     log "ODPM_GOLDEN_PATH_NO_GIT_UPDATE=1; skipping git materialize/checkout"
 fi
 
-log "odpm prepare ${GOLDEN_PATH_ODPM_GIT_FLAGS[*]:-} ..."
-odpm prepare "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}" "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
+# Always bake -d into compose: early "DB ready" exits skip remedi ate, and without
+# -d unittest compose up leaves multi-db idle HTTP (403 on /web/login).
+log "odpm prepare ${GOLDEN_PATH_ODPM_GIT_FLAGS[*]:-} -d ${DB_NAME} ..."
+odpm prepare "${GOLDEN_PATH_ODPM_GIT_FLAGS[@]}" -d "${DB_NAME}" \
+    "${GOLDEN_PATH_ODPM_ACCEPT_DRIFT[@]}"
 log "odpm prepare done (${SECONDS}s elapsed)"
 # odpm may rewrite docker-compose.yml (e.g. legacy POSTGRES_SERVICE_NAME=db-dev → db).
 POSTGRES_SERVICE="$(golden_path_postgres_service "${PROJECT}" "${REPO_ROOT}")"

@@ -34,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- **Golden-path remedi ate keeps `-d` for long-running compose** — after init, `odpm prepare --no-git-update -d test_db` so unittest `compose up` loads the remedi ated DB (empty `db_name` caused multi-db idle HTTP and 403). Probe is always `/web/login`. Docs: `ci.md`, ADR-006. Tests: `test_golden_path`.
+- **Golden-path refresh/remedi ate keep `-d` for long-running compose** — `odpm prepare … -d test_db` on refresh (not only remedi ate), so early «DB ready» exits still bake the DB into compose; empty `db_name` caused multi-db idle HTTP and 403. Probe is always `/web/login`. Docs: `ci.md`, ADR-006. Tests: `test_golden_path`.
 - **Golden-path remedi ate ensures app role** — after postgres volume wipe the official image only creates the admin role; remedi ate now runs `odpm database ensure-role` (ready check via `POSTGRES_ADMIN_USER`) before `odpm up -i`, so Odoo no longer fails with `Role "odoo" does not exist`. Docs: `ci.md`. Tests: `test_golden_path`.
 - **`database pull` remote-db path safety** — `--remote-db` must be a single path segment (no `/`, `\`, or null bytes); archive path is resolved under `BACKUP_DIR`. Tests: `test_http_download`, `test_database_pull_cli`.
 - **Empty git URL → ConfigError** — `normalize_repo_url` / `repo_url_for_link` no longer raise `IndexError` on empty/whitespace URLs; host `odoo_git_link` and `dependencies[i]` are validated at bootstrap. Tests: `test_deps_lock`, `test_host_config`.
