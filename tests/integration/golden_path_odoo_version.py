@@ -35,8 +35,12 @@ def golden_path_http_probe(_major: int | None = None) -> tuple[str, set[int]]:
     """
     HTTP path and accepted status codes for golden-path readiness.
 
-    Always probe ``/web/login`` (available on all supported Odoo majors).
+    Probe ``/web/health`` (auth=none, no database selection) — returns JSON
+    ``{"status": "pass"}`` with HTTP 200 on supported Odoo majors (19/20).
+    Avoids false 403 from ``/web/login`` when urllib follows redirects to the
+    database selector, or when login rendering fails while HTTP is already up.
+
     ``_major`` is accepted for callers that already resolved ``odpm.json``
     ``odoo_version``; it does not change the path.
     """
-    return "/web/login", {200, 303}
+    return "/web/health", {200}

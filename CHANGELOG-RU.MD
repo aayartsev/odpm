@@ -22,6 +22,7 @@
 
 ### Исправлено
 
+- **HTTP ready-probe golden-path** — готовность проверяется через `/web/health` (200), а не `/web/login`: загруженный Odoo с 403/редиректом на login больше не выглядит как «HTTP не поднялся». `wait_for_http_ok` по умолчанию не следует редиректам (принятый 303 осмысленен) и пишет snippet тела ответа при timeout. Документация: `ci.md`, ADR-006. Тесты: `test_http_wait`, `test_golden_path`.
 - **Безопасность `--remote-db` в `database pull`** — имя БД должно быть одним сегментом пути (без `/`, `\` и нулевых байтов); путь архива резолвится строго под `BACKUP_DIR`. Тесты: `test_http_download`, `test_database_pull_cli`.
 - **Пустой git URL → ConfigError** — `normalize_repo_url` / `repo_url_for_link` больше не дают `IndexError` на пустых/пробельных URL; host `odoo_git_link` и `dependencies[i]` проверяются при bootstrap. Тесты: `test_deps_lock`, `test_host_config`.
 - **Отсутствие compose при probe** — `FileNotFoundError` для `docker` / `docker-compose` при probe capabilities переходит к следующему кандидату (`ensure` → `None`, `resolve` / `check_docker_compose` → `SystemCheckError`) вместо traceback. Тесты: `test_docker_capabilities`.

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Golden-path HTTP ready probe** — readiness uses `/web/health` (200) instead of `/web/login`, so a loaded Odoo with a 403/redirecting login page is not reported as “HTTP down”. `wait_for_http_ok` no longer follows redirects by default (so accepted 303 is meaningful) and includes a response-body snippet on timeout. Docs: `ci.md`, ADR-006. Tests: `test_http_wait`, `test_golden_path`.
+
 ## [4.8.0-beta] - 2026-11-04
 
 **Pre-release 4.8.0-beta** on branch `4.8.0-dev`; stable line remains **4.7.0** (`LATEST_STABLE_RELEASE`). Layered CI images, explicit CLI verbs, compose suffix/port offset, remote DB pull. No breaking changes for v1 flat `odpm.json`; 4.8 features remain opt-in except the CI image build path (ADR-027).

@@ -1,4 +1,4 @@
-"""Opt-in golden-path E2E: docker compose up + host-side HTTP ready (path from odpm.json)."""
+"""Opt-in golden-path E2E: docker compose up + host-side HTTP ready (``/web/health``)."""
 
 from __future__ import annotations
 
@@ -219,11 +219,11 @@ if __name__ == "__main__":
 
 
 class GoldenPathOdooVersionProbeTests(unittest.TestCase):
-    def test_probe_uses_web_login_for_all_majors(self) -> None:
+    def test_probe_uses_web_health_for_all_majors(self) -> None:
         self.assertEqual(odoo_major_from_version("19.0"), 19)
         self.assertEqual(odoo_major_from_version("20.0"), 20)
         self.assertIsNone(odoo_major_from_version(None))
-        expected = ("/web/login", {200, 303})
+        expected = ("/web/health", {200})
         self.assertEqual(golden_path_http_probe(19), expected)
         self.assertEqual(golden_path_http_probe(20), expected)
         self.assertEqual(golden_path_http_probe(None), expected)
@@ -238,7 +238,7 @@ class GoldenPathOdooVersionProbeTests(unittest.TestCase):
             self.assertEqual(odoo_version_from_project(root), "20.0")
             self.assertEqual(
                 golden_path_http_probe(odoo_major_from_version("20.0")),
-                ("/web/login", {200, 303}),
+                ("/web/health", {200}),
             )
 
 
