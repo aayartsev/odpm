@@ -2442,6 +2442,10 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 <td>Regenerate Docker files and compose <strong>without</strong> starting containers</td>
 </tr>
 <tr>
+<td><code>odpm prepare -d NAME</code></td>
+<td>Same, and bake <code>-d NAME</code> into the Odoo start command in compose (no <code>compose up</code>)</td>
+</tr>
+<tr>
 <td><code>odpm prepare --stop-after sources</code></td>
 <td>Sources snapshot only (git / links); no Docker, compose, or secrets</td>
 </tr>
