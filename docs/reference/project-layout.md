@@ -19,7 +19,7 @@
 | Объект | Назначение |
 |--------|------------|
 | `deps.lock.json` | Фиксация ревизий git — **хранить в git** |
-| `runtime/config.json` | Служебный контракт host→container — **не коммитить**, не править |
+| `runtime/config.json` | Служебный контракт host→container — **не коммитить**, не править. Имя базы в `arguments.d` — запасное: `-d` или `--database` в команде контейнера его перекрывает |
 | `database/last_run.json` | Снимок конфигурации PostgreSQL (fingerprint) — **не коммитить**; см. [database-state.md](database-state.md) |
 | `runtime/debug-profile.json` | IDE-neutral профиль отладчика (developer) — **не коммитить**, не править |
 | `secrets.example.json` | Шаблон ключей секретов — **хранить в git** |

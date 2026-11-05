@@ -10,7 +10,7 @@ from ..debugger.constants import DEBUGGER_BACKEND_PYDEVD_CONNECT
 from ..logging import get_module_logger
 from .container_bootstrap import run_container_bootstrap
 from .exceptions import ContainerError
-from .run_odoo import parse_odoo_argv, should_bootstrap_only
+from .run_odoo import apply_start_database_name, parse_odoo_argv, should_bootstrap_only
 
 _logger = get_module_logger(__name__)
 
@@ -78,6 +78,7 @@ def run_odoo_script_in_process(odoo_argv: list[str]) -> None:
 def run_with_pydevd(argv: list[str] | None = None) -> None:
     config = load_container_config_from_env()
     odoo_argv = parse_odoo_argv(argv)
+    apply_start_database_name(config, odoo_argv)
     run_container_bootstrap(config)
     if should_bootstrap_only(config):
         raise SystemExit(0)

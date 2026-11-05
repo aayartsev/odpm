@@ -200,6 +200,8 @@ odpm up -d test_db -i sale,crm -u my_module
 odpm up -d test_db -i --odoo-bin --stop-after-init
 ```
 
+The same image can start against different databases. The container command begins with `python3 -m dev_project.inside_docker_app.run_odoo --`, then the `odoo-bin` arguments. The name after `-d` or `--database` on that command is the database the container creates when it is missing and then opens. It overrides `arguments.d` in the mounted `.odpm/runtime/config.json`. The settings file is still required: it holds paths, PostgreSQL access, and database creation parameters. Do not change the database name in that file — the start command sets it. An external script or a Kubernetes pod passes its own `-d` and does not rebuild the image.
+
 ## Platform nightly build date
 
 | Parameter | Description |

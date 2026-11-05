@@ -25,6 +25,38 @@ def parse_odoo_argv(argv: list[str] | None = None) -> list[str]:
     return args
 
 
+def database_name_from_odoo_argv(argv: list[str]) -> str | None:
+    """Last ``-d`` / ``--database`` on the container command, if it has a name."""
+    name: str | None = None
+    index = 0
+    while index < len(argv):
+        token = argv[index]
+        if token.startswith("--database="):
+            value = token.split("=", 1)[1].strip()
+            if value:
+                name = value
+            index += 1
+            continue
+        if token in ("-d", "--database"):
+            if index + 1 < len(argv):
+                value = argv[index + 1].strip()
+                if value and not value.startswith("-"):
+                    name = value
+                    index += 2
+                    continue
+            index += 1
+            continue
+        index += 1
+    return name
+
+
+def apply_start_database_name(config: ContainerConfig, odoo_argv: list[str]) -> None:
+    """Use the command's database name for pre-start creation and open."""
+    name = database_name_from_odoo_argv(odoo_argv)
+    if name:
+        config.arguments["d"] = name
+
+
 def should_bootstrap_only(config: ContainerConfig) -> bool:
     return config.run_mode == constants.RUN_MODE_BOOTSTRAP_ONLY
 
@@ -46,6 +78,7 @@ def build_odoo_exec_argv(config: ContainerConfig, odoo_argv: list[str]) -> list[
 def run_odoo(argv: list[str] | None = None) -> None:
     config = load_container_config_from_env()
     odoo_argv = parse_odoo_argv(argv)
+    apply_start_database_name(config, odoo_argv)
     run_container_bootstrap(config)
     if should_bootstrap_only(config):
         raise SystemExit(0)

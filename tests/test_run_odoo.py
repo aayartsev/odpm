@@ -46,6 +46,31 @@ class RunOdooTests(unittest.TestCase):
             ["/home/odoo/odoo/odoo-bin", "-d", "demo"],
         )
 
+    def test_database_name_from_odoo_argv_uses_last_flag(self):
+        argv = [
+            "/home/odoo/odoo/odoo-bin",
+            "-c",
+            "/home/odoo/odoo.conf",
+            "-d",
+            "first",
+            "--database",
+            "second",
+            "--database=third",
+        ]
+        self.assertEqual(run_odoo.database_name_from_odoo_argv(argv), "third")
+
+    def test_database_name_from_odoo_argv_ignores_flag_without_name(self):
+        self.assertIsNone(
+            run_odoo.database_name_from_odoo_argv(
+                ["/home/odoo/odoo/odoo-bin", "-d"]
+            )
+        )
+        self.assertIsNone(
+            run_odoo.database_name_from_odoo_argv(
+                ["/home/odoo/odoo/odoo-bin", "--database="]
+            )
+        )
+
     def test_should_bootstrap_only_from_run_mode(self):
         self.assertTrue(
             run_odoo.should_bootstrap_only(
@@ -85,6 +110,7 @@ class RunOdooTests(unittest.TestCase):
         os.environ[constants.ODPM_CONFIG_PATH_ENV] = path
         run_odoo.run_odoo(["--", "/home/odoo/odoo/odoo-bin", "-d", "demo"])
         mock_bootstrap.assert_called_once()
+        self.assertEqual(mock_bootstrap.call_args[0][0].arguments.get("d"), "demo")
         mock_chdir.assert_not_called()
         exec_argv = mock_execv.call_args[0][1]
         self.assertEqual(exec_argv[0], "/home/odoo/.venv/bin/python3")
@@ -102,6 +128,40 @@ class RunOdooTests(unittest.TestCase):
             run_odoo.run_odoo(["--"])
         self.assertEqual(ctx.exception.code, 0)
         mock_bootstrap.assert_called_once()
+
+    @patch("dev_project.inside_docker_app.run_odoo.os.execv")
+    @patch("dev_project.inside_docker_app.run_odoo.run_container_bootstrap")
+    def test_run_odoo_command_database_overrides_config_file(
+        self, mock_bootstrap, mock_execv
+    ):
+        path = self._write_config_file(
+            odpm_scenario=constants.SERVER_SCENARIO,
+            arguments={"d": "from_file"},
+        )
+        os.environ[constants.ODPM_CONFIG_PATH_ENV] = path
+        run_odoo.run_odoo(
+            ["--", "/home/odoo/odoo/odoo-bin", "-d", "from_command"]
+        )
+        self.assertEqual(
+            mock_bootstrap.call_args[0][0].arguments.get("d"), "from_command"
+        )
+        mock_execv.assert_called_once()
+
+    @patch("dev_project.inside_docker_app.run_odoo.os.execv")
+    @patch("dev_project.inside_docker_app.run_odoo.run_container_bootstrap")
+    def test_run_odoo_keeps_config_database_when_command_has_none(
+        self, mock_bootstrap, mock_execv
+    ):
+        path = self._write_config_file(
+            odpm_scenario=constants.SERVER_SCENARIO,
+            arguments={"d": "from_file"},
+        )
+        os.environ[constants.ODPM_CONFIG_PATH_ENV] = path
+        run_odoo.run_odoo(["--", "/home/odoo/odoo/odoo-bin"])
+        self.assertEqual(
+            mock_bootstrap.call_args[0][0].arguments.get("d"), "from_file"
+        )
+        mock_execv.assert_called_once()
 
 
 if __name__ == "__main__":

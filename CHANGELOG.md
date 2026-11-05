@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Start command chooses the database** — before Odoo starts, the container takes the database name from `-d` or `--database` on its command (the last one wins) and creates that database when it is missing. `arguments.d` in the mounted `.odpm/runtime/config.json` is only the fallback. The same image can open, test, or update another database without a rebuild. Docs: `cli.md`, `project-layout.md`, `generated-files.md`. Tests: `test_run_odoo`, `test_run_with_pydevd`.
+
 ### Fixed
 
 - **Golden-path HTTP ready probe** — readiness uses `/web/health` (200) instead of `/web/login`, so a loaded Odoo with a 403/redirecting login page is not reported as “HTTP down”. `wait_for_http_ok` no longer follows redirects by default (so accepted 303 is meaningful). On timeout the error includes a response-body snippet, `Server` / `Via` / `Content-Type`, and `proxy-env`. The probe ignores `HTTP_PROXY`: Python urllib does not match `127.0.0.1` against `no_proxy=127.0.0.0/8`, so a local proxy (runner `:10809`) was answering 403 before Odoo saw the request. Docs: `ci.md`, ADR-006. Tests: `test_http_wait`, `test_golden_path`.

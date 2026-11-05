@@ -21,7 +21,7 @@ An **odpm project directory** (e.g. `odoo_demo_project-19/`) is the **working en
 | Object | Purpose |
 |--------|---------|
 | `deps.lock.json` | Git revision lock — **keep in git** |
-| `runtime/config.json` | Host→container service contract — **do not commit**, do not edit |
+| `runtime/config.json` | Host→container service contract — **do not commit**, do not edit. The database name in `arguments.d` is the fallback: `-d` or `--database` on the container command overrides it |
 | `database/last_run.json` | PostgreSQL configuration snapshot (fingerprint) — **do not commit**; see [database-state.md](database-state.md) |
 | `runtime/debug-profile.json` | IDE-neutral debugger profile (developer) — **do not commit**, do not edit |
 | `secrets.example.json` | Secret keys template — **keep in git** |

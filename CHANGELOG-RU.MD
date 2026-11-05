@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+### Изменено
+
+- **Имя базы берётся из команды запуска** — перед стартом Odoo контейнер читает имя базы из `-d` или `--database` своей команды (если флагов несколько, берётся последний) и создаёт эту базу, если её ещё нет. Поле `arguments.d` в смонтированном `.odpm/runtime/config.json` остаётся запасным. Один и тот же образ можно открыть, прогнать тесты или обновить на другой базе без новой сборки. Документация: `cli.md`, `project-layout.md`, `generated-files.md`. Тесты: `test_run_odoo`, `test_run_with_pydevd`.
+
 ### Ломающие изменения
 
 - **Nested deps = только исходники** — при `use_oca_dependencies` nested `odpm.json` больше не наследует `services` / `service_patches` в host compose и не мержит nested top-level `requirements_txt` в venv. Discovery даёт только **git URL** (+ проверки совместимости версий); sidecar’ы и pip объявляйте в **host** `odpm.json` (или плагинах). Удалены `nested_compose.py` и legacy `resolve_dependency_urls`. Миграция: перенести нужные sidecar/`requirements` в потребительский проект. Тесты: `test_dependency_resolver`, `test_nested_odpm_integration`, `test_extension_api_d4`. Документация: `plugins.md`, `user-settings.md`, `platform-fork.md`, ADR-004/009.

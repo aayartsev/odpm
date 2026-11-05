@@ -120,6 +120,7 @@ class RunWithPydevdTests(unittest.TestCase):
             ["--", "/home/odoo/odoo/odoo-bin", "-d", "demo"]
         )
         mock_bootstrap.assert_called_once()
+        self.assertEqual(mock_bootstrap.call_args[0][0].arguments.get("d"), "demo")
         mock_attach.assert_called_once_with(
             connect_host="host.docker.internal",
             port=5678,
