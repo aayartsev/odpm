@@ -2633,6 +2633,7 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
 odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
+<p>Один образ можно запускать с разными базами. Команда контейнера начинается с <code>python3 -m dev_project.inside_docker_app.run_odoo --</code>, дальше идут аргументы <code>odoo-bin</code>. Имя после <code>-d</code> или <code>--database</code> в этой команде — база, которую контейнер создаёт, если её ещё нет, и открывает. Оно важнее поля <code>arguments.d</code> в смонтированном <code>.odpm/runtime/config.json</code>. Файл настроек по-прежнему нужен: в нём пути, доступ к PostgreSQL и параметры создания базы. Имя базы в этом файле менять не нужно — его задаёт команда запуска. Внешний скрипт или под Kubernetes передаёт свой <code>-d</code> и не собирает образ заново.</p>
 <h2 id="_6">Дата ночной сборки платформы<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

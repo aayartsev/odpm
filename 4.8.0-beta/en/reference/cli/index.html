@@ -2664,6 +2664,7 @@ odpm<span class="w"> </span>run<span class="w"> </span>apply-modules-from-diff<s
 odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>sale,crm<span class="w"> </span>-u<span class="w"> </span>my_module
 odpm<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>test_db<span class="w"> </span>-i<span class="w"> </span>--odoo-bin<span class="w"> </span>--stop-after-init
 </code></pre></div>
+<p>The same image can start against different databases. The container command begins with <code>python3 -m dev_project.inside_docker_app.run_odoo --</code>, then the <code>odoo-bin</code> arguments. The name after <code>-d</code> or <code>--database</code> on that command is the database the container creates when it is missing and then opens. It overrides <code>arguments.d</code> in the mounted <code>.odpm/runtime/config.json</code>. The settings file is still required: it holds paths, PostgreSQL access, and database creation parameters. Do not change the database name in that file — the start command sets it. An external script or a Kubernetes pod passes its own <code>-d</code> and does not rebuild the image.</p>
 <h2 id="platform-nightly-build-date">Platform nightly build date<a class="headerlink" href="#platform-nightly-build-date" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
