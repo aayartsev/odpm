@@ -2,9 +2,22 @@
 
 from __future__ import annotations
 
+import os
 import time
 import urllib.error
 import urllib.request
+
+_PROXY_ENV_KEYS = (
+    "http_proxy",
+    "https_proxy",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "no_proxy",
+    "NO_PROXY",
+    "all_proxy",
+    "ALL_PROXY",
+)
+_RESPONSE_HEADER_NAMES = ("Server", "Via", "Content-Type")
 
 
 class HttpWaitTimeoutError(TimeoutError):
@@ -21,6 +34,17 @@ class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
 _NO_REDIRECT_OPENER = urllib.request.build_opener(_NoRedirectHandler)
 
 
+def _proxy_env_detail() -> str:
+    """Show whether urllib might send the probe through an HTTP proxy."""
+    parts = [
+        f"{key}={os.environ[key]}"
+        for key in _PROXY_ENV_KEYS
+        if os.environ.get(key)
+    ]
+    shown = ", ".join(parts) if parts else "(none)"
+    return f"proxy-env: {shown}"
+
+
 def _http_error_detail(error: urllib.error.HTTPError) -> str:
     body = ""
     try:
@@ -32,8 +56,14 @@ def _http_error_detail(error: urllib.error.HTTPError) -> str:
         body = " ".join(body.split())
         if len(body) > 200:
             body = body[:200] + "…"
-    location = error.headers.get("Location") if error.headers else None
+    headers = error.headers
+    location = headers.get("Location") if headers else None
     parts = [f"HTTP Error {error.code}: {error.reason}"]
+    if headers:
+        for name in _RESPONSE_HEADER_NAMES:
+            value = headers.get(name)
+            if value:
+                parts.append(f"{name}={value}")
     if location:
         parts.append(f"Location={location}")
     if body:
@@ -85,7 +115,10 @@ def wait_for_http_ok(
             last_detail = str(error)
         time.sleep(interval)
     allowed_text = ", ".join(str(code) for code in sorted(allowed))
-    message = f"Timed out after {timeout}s waiting for HTTP {{{allowed_text}}} from {url}"
+    message = (
+        f"Timed out after {timeout}s waiting for HTTP {{{allowed_text}}} from {url}"
+        f" ({_proxy_env_detail()})"
+    )
     if last_detail:
         raise HttpWaitTimeoutError(f"{message}: {last_detail}") from last_error
     raise HttpWaitTimeoutError(message)

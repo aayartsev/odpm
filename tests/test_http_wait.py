@@ -1,3 +1,4 @@
+import os
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -94,8 +95,11 @@ class HttpWaitTests(unittest.TestCase):
 
     def test_wait_for_http_ok_timeout_includes_body_snippet(self) -> None:
         class _ForbiddenHandler(BaseHTTPRequestHandler):
+            server_version = "test-proxy"
+
             def do_GET(self) -> None:
                 self.send_response(403)
+                self.send_header("Content-Type", "text/plain")
                 self.end_headers()
                 self.wfile.write(b"Forbidden by policy")
 
@@ -119,6 +123,21 @@ class HttpWaitTests(unittest.TestCase):
         message = str(raised.exception)
         self.assertIn("403", message)
         self.assertIn("Forbidden by policy", message)
+        self.assertRegex(message, r"Server=test-proxy\b")
+        self.assertIn("Content-Type=text/plain", message)
+        self.assertIn("proxy-env:", message)
+
+    def test_wait_for_http_ok_timeout_includes_proxy_env(self) -> None:
+        with patch.dict(os.environ, {"http_proxy": "http://proxy.example:3128", "NO_PROXY": "example.com"}):
+            with self.assertRaises(HttpWaitTimeoutError) as raised:
+                wait_for_http_ok(
+                    "http://127.0.0.1:1/web/health",
+                    timeout=0.4,
+                    interval=0.1,
+                )
+        message = str(raised.exception)
+        self.assertIn("http_proxy=http://proxy.example:3128", message)
+        self.assertIn("NO_PROXY=example.com", message)
 
     def test_wait_for_http_ok_retries_connection_reset(self) -> None:
         ready = MagicMock()
