@@ -2211,7 +2211,7 @@ odoo.conf on disk                     ← local defaults
 <p>If the file is missing, corrupted, or required database parameters are empty — odpm creates a template again.</p>
 <p>After changes affecting paths or addon composition: <code>odpm --skip-start</code> and restart containers.</p>
 <h2 id="image-build-scenario-ci">Image build scenario (<code>ci</code>)<a class="headerlink" href="#image-build-scenario-ci" title="Permanent link">&para;</a></h2>
-<p>The same configuration logic is <strong>baked into the image</strong> on <code>odpm --build-image</code>.</p>
+<p>The same configuration logic is <strong>baked into the image</strong> on <code>odpm image app ensure</code> / <code>odpm build</code>: the <code>options</code> section (disk → manifest merge, including <code>db_*</code> with expanded secrets) lands in the image runtime config via <code>generate_odoo_conf_docker_data</code> in the build context, without the <code>template.odoo_conf</code> prepare step.</p>
 
 
 
