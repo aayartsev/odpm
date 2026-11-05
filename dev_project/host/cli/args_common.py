@@ -42,6 +42,16 @@ def add_up_runtime_arguments(parser: argparse.ArgumentParser) -> None:
 def add_prepare_arguments(parser: argparse.ArgumentParser) -> None:
     """Flags for ``odpm prepare`` (files only, no compose up)."""
     add_database_policy_arguments(parser)
+    # Bake database name into generated compose/odoo start argv without compose up
+    # (parity with legacy ``odpm --skip-start -d …``; needed by golden-path refresh).
+    parser.add_argument(
+        params.D_PARAM,
+        help=(
+            "Database name to write into the generated Odoo start command "
+            "(compose is not started). Example: odpm prepare -d test_db"
+        ),
+        type=str,
+    )
     parser.add_argument(
         params.NO_GIT_UPDATE_PARAM,
         help="""Skip git clone, fetch, and checkout. Requires existing local platform and developing project directories.""",

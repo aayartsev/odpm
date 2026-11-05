@@ -121,6 +121,13 @@ class ParseCliArgsTests(unittest.TestCase):
         self.assertEqual(args.d, "demo")
         self.assertEqual(args.i, "sale")
 
+    def test_parse_prepare_accepts_d(self):
+        args = parse_cli_args(["prepare", "-d", "test_db", "--no-git-update"])
+        self.assertEqual(args.command, "prepare")
+        self.assertEqual(args.d, "test_db")
+        self.assertTrue(args.no_git_update)
+        self.assertTrue(is_prepare_mode(args))
+
     def test_parse_database_backup(self):
         args = parse_cli_args(["database", "backup", "-d", "demo"])
         self.assertTrue(is_database_stack_mode(args))

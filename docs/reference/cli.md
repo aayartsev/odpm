@@ -67,6 +67,7 @@ odpm prepare --secrets-file ~/new-secrets.json
 | Команда / параметр | Описание |
 |--------------------|----------|
 | `odpm prepare` | Пересоздать Docker-файлы и compose **без** запуска контейнеров |
+| `odpm prepare -d ИМЯ` | То же, и записать `-d ИМЯ` в команду старта Odoo в compose (без `compose up`) |
 | `odpm prepare --stop-after sources` | Только слепок исходников (git / links); без Docker, compose и секретов |
 | `odpm prepare --update-lock` | Записать `.odpm/deps.lock.json` и завершить работу |
 | `--no-git-update` | Не трогать git; lock **не читается**; каталоги должны уже существовать |

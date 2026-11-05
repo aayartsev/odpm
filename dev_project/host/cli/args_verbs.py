@@ -33,9 +33,10 @@ def register_prepare_subparser(
     parser = command_subparsers.add_parser(
         params.PREPARE_SUBCOMMAND,
         parents=[global_parser],
-        help="Prepare project files without starting containers. Example: odpm prepare",
+        help="Prepare project files without starting containers. Example: odpm prepare -d test_db",
         description=(
             "Generate docker-compose and related files, then exit without compose up. "
+            "Optional -d bakes the database name into the Odoo start command. "
             "Replaces legacy --skip-start."
         ),
     )
