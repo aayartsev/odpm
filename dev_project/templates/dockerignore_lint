@@ -1,3 +1,5 @@
 *
 !.pre-commit-config.yaml
 !.pre-commit-hooks.yaml
+!dev_project/
+!dev_project/bake_pre_commit.py

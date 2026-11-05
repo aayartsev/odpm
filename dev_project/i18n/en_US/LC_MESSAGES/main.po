@@ -1308,6 +1308,9 @@ msgstr "layered Dockerfile missing expected FROM stub ARG {ARG} / FROM ${{{ARG}}
 msgid "layered build shortcut (odpm build)"
 msgstr "layered build shortcut (odpm build)"
 
+msgid "layered dockerfile_lint missing USER ${CONTAINER_USER} before bake"
+msgstr "layered dockerfile_lint missing USER ${CONTAINER_USER} before bake"
+
 msgid "load git lock from {SOURCE} before checkout"
 msgstr "load git lock from {SOURCE} before checkout"
 
@@ -1355,6 +1358,9 @@ msgstr "materialize repos before writing deps.lock"
 
 msgid "miss {REF}"
 msgstr "miss {REF}"
+
+msgid "missing bake_pre_commit module at {PATH} (odpm install incomplete)"
+msgstr "missing bake_pre_commit module at {PATH} (odpm install incomplete)"
 
 msgid "missing layered image template {NAME}"
 msgstr "missing layered image template {NAME}"

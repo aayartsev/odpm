@@ -1307,6 +1307,9 @@ msgstr "в слоистом Dockerfile нет ожидаемого FROM-шабл
 msgid "layered build shortcut (odpm build)"
 msgstr "ярлык слоистой сборки (odpm build)"
 
+msgid "layered dockerfile_lint missing USER ${CONTAINER_USER} before bake"
+msgstr "в dockerfile_lint нет USER ${CONTAINER_USER} перед bake"
+
 msgid "load git lock from {SOURCE} before checkout"
 msgstr "загрузить git lock из {SOURCE} перед checkout"
 
@@ -1354,6 +1357,9 @@ msgstr "материализовать репозитории перед зап�
 
 msgid "miss {REF}"
 msgstr "нет в registry/локально {REF}"
+
+msgid "missing bake_pre_commit module at {PATH} (odpm install incomplete)"
+msgstr "нет модуля bake_pre_commit по пути {PATH} (установка odpm неполная)"
 
 msgid "missing layered image template {NAME}"
 msgstr "отсутствует шаблон слоистого образа {NAME}"

@@ -12,11 +12,11 @@ Accepted (4.8-dev track).
 
 1. **Flow:** `odpm prepare --stop-after sources` → analyse fingerprints / registry hit-miss (`odpm plan` + ensure logs) → `odpm image <layer> ensure` (or `odpm build` as shortcut).
 
-2. **Stack:** `base → platform → [deps] → app`; lint always `FROM` platform (no developing, no dependencies trees in the lint image). Optional **deps** when lock/manifest has at least one `dependencies` entry; otherwise deps ensure is noop and app `FROM` platform.
+2. **Stack:** `base → platform → [deps] → app`; lint always `FROM` platform (no developing, no dependencies trees in the lint image). Optional **deps** when lock/manifest has at least one `dependencies` entry; otherwise deps ensure is noop and app `FROM` platform. **`odpm image lint ensure`** bakes the pre-commit hook cache inside the image via `dev_project.bake_pre_commit` (isolated `.odpm-lint-bake` git tree + config index + `pre-commit install-hooks` into the container user home cache); it does **not** run `pre-commit run --all-files` on application code (that stays in a later Job). Lint image build needs network so hooks can be cloned. Re-running bake skips commit when the index is unchanged.
 
 3. **Families (docs/registry tags only):** `dev` ↔ profile `full`; `runtime` ↔ profile `medium`. Set via `ODPM_BASE_IMAGE_PROFILE`. Scenario `ODPM_SCENARIO=ci` and profile `ci` are **not** renamed; profile `ci` remains in ADR-007 but is not a target product family here (no wkhtml). Tag examples: `cache-platform-dev-…`, `cache-platform-runtime-…`.
 
-4. **Fingerprints (schema v1)** after sources: platform includes Odoo pin, extras, **platform** git SHA only, profile, dockerfile sha, python/distro/arch/venv; deps includes dependency SHAs + platform-ref; lint includes pre-commit config hashes; app includes `developing_git_sha` + parent-ref. `service_sources` never enter image fingerprints.
+4. **Fingerprints (schema v1)** after sources: platform includes Odoo pin, extras, **platform** git SHA only, profile, dockerfile sha, python/distro/arch/venv; deps includes dependency SHAs + platform-ref; lint includes pre-commit config hashes, `dockerfile_lint` sha, and `bake_pre_commit.py` sha; app includes `developing_git_sha` + parent-ref. `service_sources` never enter image fingerprints.
 
 5. **Presence:** base per ADR-019 (stamp); platform/deps/app/lint remote refs via `crane digest` (fail-fast if missing); local via `docker image inspect`. `ODPM_IMAGE_FORCE_REBUILD=1` forces the current layer only. Publish-tag alias after kaniko (`--image-push`) uses `crane copy` when the fingerprint cache ref is not local.
 

@@ -566,6 +566,35 @@ def ensure_app(
     return publish_tag or cache_ref
 
 
+def _lint_copy_block(*, has_hooks: bool) -> str:
+    """Build COPY lines injected into dockerfile_lint before USER/RUN bake."""
+    owner = "${CONTAINER_USER}:${CONTAINER_USER}"
+    lines = [
+        f"COPY --chown={owner} .pre-commit-config.yaml .pre-commit-config.yaml",
+    ]
+    if has_hooks:
+        lines.append(
+            f"COPY --chown={owner} .pre-commit-hooks.yaml .pre-commit-hooks.yaml"
+        )
+    lines.append(
+        f"COPY --chown={owner} "
+        "dev_project/bake_pre_commit.py "
+        "dev_project/bake_pre_commit.py"
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _inject_lint_copy_block(dockerfile_text: str, *, has_hooks: bool) -> str:
+    marker = "USER ${CONTAINER_USER}\n"
+    if marker not in dockerfile_text:
+        raise ConfigError(
+            _("layered dockerfile_lint missing USER ${CONTAINER_USER} before bake")
+        )
+    return dockerfile_text.replace(
+        marker, _lint_copy_block(has_hooks=has_hooks) + marker, 1
+    )
+
+
 def ensure_lint(
     project_env: CreateProjectEnvironment,
     args: OdpmCliArgs,
@@ -582,6 +611,14 @@ def ensure_lint(
                 "image lint ensure requires .pre-commit-config.yaml in the "
                 "project root after sources prepare"
             )
+        )
+    bake_src = Path(program_dir) / "dev_project" / "bake_pre_commit.py"
+    if not bake_src.is_file():
+        raise ConfigError(
+            _(
+                "missing bake_pre_commit module at {PATH} "
+                "(odpm install incomplete)"
+            ).format(PATH=str(bake_src))
         )
     platform_fp = compute_platform_fingerprint(config, program_dir=program_dir)
     parent = platform_ref or args.image_from
@@ -608,6 +645,9 @@ def ensure_lint(
     has_hooks = hooks.is_file()
     if has_hooks:
         shutil.copy2(hooks, context_dir / ".pre-commit-hooks.yaml")
+    bake_dest_dir = context_dir / "dev_project"
+    bake_dest_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(bake_src, bake_dest_dir / "bake_pre_commit.py")
     dockerfile = context_dir / "Dockerfile.lint"
     _copy_template(program_dir, "dockerfile_lint", dockerfile)
     text = _rewrite_from_line(
@@ -615,15 +655,7 @@ def ensure_lint(
         arg_name="PLATFORM_IMAGE",
         image_ref=parent,
     )
-    if has_hooks:
-        text = text.replace(
-            "COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} "
-            ".pre-commit-config.yaml .pre-commit-config.yaml\n",
-            "COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} "
-            ".pre-commit-config.yaml .pre-commit-config.yaml\n"
-            "COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} "
-            ".pre-commit-hooks.yaml .pre-commit-hooks.yaml\n",
-        )
+    text = _inject_lint_copy_block(text, has_hooks=has_hooks)
     dockerfile.write_text(text, encoding="utf-8")
     _copy_template(
         program_dir, "dockerignore_lint", context_dir / ".dockerignore"

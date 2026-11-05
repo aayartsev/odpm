@@ -705,6 +705,14 @@ RU_MESSAGES: dict[str, str] = {
         "image lint ensure требует .pre-commit-config.yaml в корне проекта "
         "после prepare --stop-after sources"
     ),
+    "layered dockerfile_lint missing USER ${CONTAINER_USER} before bake": (
+        "в dockerfile_lint нет USER ${CONTAINER_USER} перед bake"
+    ),
+    "missing bake_pre_commit module at {PATH} "
+    "(odpm install incomplete)": (
+        "нет модуля bake_pre_commit по пути {PATH} "
+        "(установка odpm неполная)"
+    ),
     "missing layered image template {NAME}": (
         "отсутствует шаблон слоистого образа {NAME}"
     ),

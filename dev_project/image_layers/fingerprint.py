@@ -135,10 +135,14 @@ def compute_lint_fingerprint(
     pre_commit = project / ".pre-commit-config.yaml"
     hooks = project / ".pre-commit-hooks.yaml"
     df = _template_path(program_dir, "dockerfile_lint")
+    bake = Path(program_dir) / "dev_project" / "bake_pre_commit.py"
     payload = {
         "schema": FINGERPRINT_SCHEMA_VERSION,
         "platform_fp": platform_fp,
         "dockerfile_lint": _sha8(df.read_bytes()) if df.is_file() else "missing",
+        "bake_pre_commit": (
+            _sha8(bake.read_bytes()) if bake.is_file() else "missing"
+        ),
         "pre_commit_config": _sha256_file(pre_commit),
         "pre_commit_hooks": (
             _sha256_file(hooks) if hooks.is_file() else "absent"

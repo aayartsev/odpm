@@ -38,9 +38,11 @@ git push → build machine
   → odpm image app ensure --image-tag registry/project:tag [--image-push]
   # or shortcut:
   → odpm build [--image-tag …] [--image-builder docker|kaniko] [--image-push]
-  → optional: odpm image lint ensure
+  → optional: odpm image lint ensure   # bake pre-commit hook cache (needs network)
   → deploy (your tools)
 ```
+
+`odpm image lint ensure` builds a layer `FROM` platform and **warms the hook cache** (`pre-commit install-hooks` inside the image, cache under the container user home). Git for bake uses an isolated `.odpm-lint-bake` directory, not the platform tree at home root. It does **not** run `pre-commit run --all-files` on application code — that stays for a later job. Cold ensure needs network on the builder (hook repo clones).
 
 Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Publishing a publish-tag alias after kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, when the fingerprint cache image is not in the local Docker daemon) requires **`crane copy`**. Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`.
 

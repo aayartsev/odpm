@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Lint image bakes pre-commit hooks** — `odpm image lint ensure` runs `dev_project.bake_pre_commit` in the lint Dockerfile (isolated `.odpm-lint-bake` git tree + config commit + `safe.directory` + `install-hooks` into the container user cache) so hooks are warm without touching a foreign `.git` under WORKDIR. Re-bake skips commit when nothing is staged. No `pre-commit run --all-files` on application code. Lint fingerprint includes `bake_pre_commit.py`; build needs network. Docs: ADR-027, `scenarios/ci.md`. Tests: `test_bake_pre_commit`, `test_image_layers`.
 - **Start command chooses the database** — before Odoo starts, the container takes the database name from `-d` or `--database` on its command (the last one wins) and creates that database when it is missing. `arguments.d` in the mounted `.odpm/runtime/config.json` is only the fallback. The same image can open, test, or update another database without a rebuild. Docs: `cli.md`, `project-layout.md`, `generated-files.md`. Tests: `test_run_odoo`, `test_run_with_pydevd`.
 
 ### Fixed

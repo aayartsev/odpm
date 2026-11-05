@@ -1,4 +1,5 @@
-# Lint layer: FROM platform; pre-commit runner + project config; no developing tree.
+# Lint layer: FROM platform; bake pre-commit hooks; no developing tree.
+# COPY lines for config / hooks / bake_pre_commit.py are injected by ensure_lint.
 ARG PLATFORM_IMAGE
 FROM ${PLATFORM_IMAGE}
 
@@ -9,8 +10,5 @@ RUN python3 -m pip install --no-cache-dir 'pre-commit>=3,<5'
 
 WORKDIR /home/odoo
 
-COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} .pre-commit-config.yaml .pre-commit-config.yaml
-# Optional .pre-commit-hooks.yaml is injected by ensure_lint when present.
-
 USER ${CONTAINER_USER}
-RUN pre-commit install-hooks
+RUN python3 -m dev_project.bake_pre_commit

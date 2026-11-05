@@ -35,9 +35,11 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
   → odpm image app ensure --image-tag реестр/проект:метка [--image-push]
   # либо ярлык:
   → odpm build [--image-tag …] [--image-builder docker|kaniko] [--image-push]
-  → опционально: odpm image lint ensure
+  → опционально: odpm image lint ensure   # bake кэша хуков pre-commit (нужна сеть)
   → развёртывание (ваши инструменты)
 ```
+
+`odpm image lint ensure` собирает слой от platform и **прогревает кэш хуков** (`pre-commit install-hooks` внутри образа, кэш в домашнем каталоге пользователя контейнера). Git для bake идёт в изолированном каталоге `.odpm-lint-bake`, не в корне home поверх platform. Полный `pre-commit run --all-files` по коду заявки в bake не входит — код подставляют позже в задании. Для cold ensure builder должен иметь сеть (клонирование репозиториев хуков).
 
 Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Для публикации alias publish-тега после kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, когда fingerprint-cache не в локальном Docker) нужен **`crane copy`**. Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`.
 

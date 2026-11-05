@@ -13,6 +13,7 @@ from dev_project.image_layers.ensure import (
     _copy_deps_extra_addons,
     developing_project_path,
     ensure_deps,
+    ensure_lint,
     run_layered_build,
 )
 from dev_project.image_layers.family import (
@@ -143,13 +144,143 @@ class FingerprintTests(unittest.TestCase):
         self.assertNotEqual(fp1, fp2)
         self.assertNotEqual(fp2, fp_plat)
 
+    def test_lint_fingerprint_bake_script_sensitive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".pre-commit-config.yaml").write_text(
+                "repos: []\n", encoding="utf-8"
+            )
+            prog = root / "prog"
+            bake = prog / "dev_project"
+            bake.mkdir(parents=True)
+            (bake / "templates").mkdir()
+            (bake / "templates" / "dockerfile_lint").write_text(
+                "FROM x\n", encoding="utf-8"
+            )
+            (bake / "bake_pre_commit.py").write_text("v1\n", encoding="utf-8")
+            cfg = self._config(project_dir=str(root))
+            fp1 = compute_lint_fingerprint(
+                cfg, program_dir=str(prog), platform_fp="plat"
+            )
+            (bake / "bake_pre_commit.py").write_text("v2\n", encoding="utf-8")
+            fp2 = compute_lint_fingerprint(
+                cfg, program_dir=str(prog), platform_fp="plat"
+            )
+        self.assertNotEqual(fp1, fp2)
+
     def test_lint_template_has_no_extra_addons(self):
         root = Path(__file__).resolve().parents[1]
         lint = (root / "dev_project" / "templates" / "dockerfile_lint").read_text(
             encoding="utf-8"
         )
+        ignore = (
+            root / "dev_project" / "templates" / "dockerignore_lint"
+        ).read_text(encoding="utf-8")
         self.assertNotIn("extra-addons", lint)
         self.assertIn("pre-commit", lint)
+        self.assertIn("bake_pre_commit", lint)
+        self.assertNotIn("install-hooks", lint)
+        self.assertIn("USER ${CONTAINER_USER}", lint)
+        # Hook cache must be written as the container user (~/.cache/pre-commit).
+        user_idx = lint.index("USER ${CONTAINER_USER}")
+        bake_idx = lint.index("python3 -m dev_project.bake_pre_commit")
+        self.assertLess(user_idx, bake_idx)
+        self.assertIn("!dev_project/", ignore)
+        self.assertIn("!dev_project/bake_pre_commit.py", ignore)
+
+
+class EnsureLintContextTests(unittest.TestCase):
+    def _config(self, project_dir: str, program_dir: str):
+        config = MagicMock()
+        config.project_dir = project_dir
+        config.program_dir = program_dir
+        config.odoo_version = "19.0"
+        config.odoo_build_date = "2026-01-01"
+        config.python_version = "3.12"
+        config.distro_name = "debian"
+        config.distro_version = "12"
+        config.arch = "amd64"
+        config.requirements_txt = []
+        config.project_name = "demo"
+        config.policy = MagicMock()
+        config.policy.base_image_profile = "full"
+        config.policy.venv_mode = "baked"
+        config.bootstrap = MagicMock()
+        config.bootstrap.manifest_view = None
+        return config
+
+    @patch("dev_project.image_layers.ensure._build_image")
+    @patch(
+        "dev_project.image_layers.ensure.image_ref_exists",
+        return_value=False,
+    )
+    @patch(
+        "dev_project.image_layers.ensure.ensure_platform",
+        return_value="registry/plat:tag",
+    )
+    @patch(
+        "dev_project.image_layers.ensure.compute_platform_fingerprint",
+        return_value="platfp",
+    )
+    def test_ensure_lint_prepares_context_from_program_dir(
+        self,
+        _plat_fp,
+        _ensure_plat,
+        _exists,
+        mock_build,
+    ):
+        program_dir = str(Path(__file__).resolve().parents[1])
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            (project / ".pre-commit-config.yaml").write_text(
+                "repos: []\n", encoding="utf-8"
+            )
+            (project / "developing").mkdir()
+            (project / "developing" / "mod.py").write_text("x\n", encoding="utf-8")
+            env = MagicMock()
+            env.config = self._config(str(project), program_dir)
+            args = OdpmCliArgs()
+            ref = ensure_lint(env, args)
+            self.assertTrue(ref)
+            context = project / ".odpm" / "lint-build-context"
+            self.assertTrue((context / ".pre-commit-config.yaml").is_file())
+            self.assertTrue(
+                (context / "dev_project" / "bake_pre_commit.py").is_file()
+            )
+            self.assertFalse((context / "developing").exists())
+            dockerfile = (context / "Dockerfile.lint").read_text(encoding="utf-8")
+            self.assertIn("bake_pre_commit.py", dockerfile)
+            self.assertIn(".pre-commit-config.yaml", dockerfile)
+            self.assertIn("python3 -m dev_project.bake_pre_commit", dockerfile)
+            self.assertNotIn("extra-addons", dockerfile)
+            mock_build.assert_called_once()
+
+    @patch(
+        "dev_project.image_layers.ensure.image_ref_exists",
+        return_value=True,
+    )
+    @patch(
+        "dev_project.image_layers.ensure.ensure_platform",
+        return_value="registry/plat:tag",
+    )
+    @patch(
+        "dev_project.image_layers.ensure.compute_platform_fingerprint",
+        return_value="platfp",
+    )
+    @patch("dev_project.image_layers.ensure._build_image")
+    def test_ensure_lint_skips_when_exists(
+        self, mock_build, _plat_fp, _ensure_plat, _exists
+    ):
+        program_dir = str(Path(__file__).resolve().parents[1])
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            (project / ".pre-commit-config.yaml").write_text(
+                "repos: []\n", encoding="utf-8"
+            )
+            env = MagicMock()
+            env.config = self._config(str(project), program_dir)
+            ensure_lint(env, OdpmCliArgs())
+        mock_build.assert_not_called()
 
 
 class RegistryPresenceTests(unittest.TestCase):

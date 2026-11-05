@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **Слой lint прогревает хуки pre-commit** — `odpm image lint ensure` запускает `dev_project.bake_pre_commit` в Dockerfile lint (изолированное дерево `.odpm-lint-bake` + commit конфига + `safe.directory` + `install-hooks` в кэш пользователя контейнера), без чужого `.git` в WORKDIR. Повторный bake без изменений индекса пропускает commit. Полный `pre-commit run --all-files` по коду заявки в bake не входит. В отпечаток lint входит `bake_pre_commit.py`; сборке нужна сеть. Документация: ADR-027, `scenarios/ci.md`. Тесты: `test_bake_pre_commit`, `test_image_layers`.
 - **Имя базы берётся из команды запуска** — перед стартом Odoo контейнер читает имя базы из `-d` или `--database` своей команды (если флагов несколько, берётся последний) и создаёт эту базу, если её ещё нет. Поле `arguments.d` в смонтированном `.odpm/runtime/config.json` остаётся запасным. Один и тот же образ можно открыть, прогнать тесты или обновить на другой базе без новой сборки. Документация: `cli.md`, `project-layout.md`, `generated-files.md`. Тесты: `test_run_odoo`, `test_run_with_pydevd`.
 
 ### Ломающие изменения
