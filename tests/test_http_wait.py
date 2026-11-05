@@ -139,6 +139,41 @@ class HttpWaitTests(unittest.TestCase):
         self.assertIn("http_proxy=http://proxy.example:3128", message)
         self.assertIn("NO_PROXY=example.com", message)
 
+    def test_wait_for_http_ok_ignores_http_proxy_cidr_no_proxy(self) -> None:
+        """``no_proxy=127.0.0.0/8`` does not match ``127.0.0.1`` in urllib."""
+
+        class _HealthHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b'{"status": "pass"}')
+
+            def log_message(self, _format: str, *_args) -> None:
+                return
+
+        server = HTTPServer(("127.0.0.1", 0), _HealthHandler)
+        host, port = server.server_address
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        env = {
+            "http_proxy": "http://127.0.0.1:1",
+            "HTTP_PROXY": "http://127.0.0.1:1",
+            "https_proxy": "http://127.0.0.1:1",
+            "HTTPS_PROXY": "http://127.0.0.1:1",
+            "no_proxy": "localhost,127.0.0.0/8,::1",
+            "NO_PROXY": "localhost,127.0.0.0/8,::1",
+        }
+        try:
+            with patch.dict(os.environ, env):
+                status = wait_for_http_ok(
+                    f"http://{host}:{port}/web/health",
+                    timeout=5.0,
+                    interval=0.2,
+                )
+            self.assertEqual(status, 200)
+        finally:
+            server.shutdown()
+
     def test_wait_for_http_ok_retries_connection_reset(self) -> None:
         ready = MagicMock()
         ready.status = 200

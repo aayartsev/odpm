@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- **Golden-path HTTP ready probe** — readiness uses `/web/health` (200) instead of `/web/login`, so a loaded Odoo with a 403/redirecting login page is not reported as “HTTP down”. `wait_for_http_ok` no longer follows redirects by default (so accepted 303 is meaningful). On timeout the error includes a response-body snippet, `Server` / `Via` / `Content-Type`, and `proxy-env` (`http_proxy`, `NO_PROXY`, …) so a runner proxy 403 is visible when Odoo never logs the request. Docs: `ci.md`, ADR-006. Tests: `test_http_wait`, `test_golden_path`.
+- **Golden-path HTTP ready probe** — readiness uses `/web/health` (200) instead of `/web/login`, so a loaded Odoo with a 403/redirecting login page is not reported as “HTTP down”. `wait_for_http_ok` no longer follows redirects by default (so accepted 303 is meaningful). On timeout the error includes a response-body snippet, `Server` / `Via` / `Content-Type`, and `proxy-env`. The probe ignores `HTTP_PROXY`: Python urllib does not match `127.0.0.1` against `no_proxy=127.0.0.0/8`, so a local proxy (runner `:10809`) was answering 403 before Odoo saw the request. Docs: `ci.md`, ADR-006. Tests: `test_http_wait`, `test_golden_path`.
 
 ## [4.8.0-beta] - 2026-11-04
 

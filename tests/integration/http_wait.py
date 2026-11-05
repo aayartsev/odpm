@@ -31,7 +31,12 @@ class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
         return None
 
 
-_NO_REDIRECT_OPENER = urllib.request.build_opener(_NoRedirectHandler)
+# Empty ProxyHandler replaces the default env proxy. urllib does not treat
+# ``127.0.0.0/8`` in ``no_proxy`` as a match for ``127.0.0.1``, so a runner
+# ``http_proxy`` would steal loopback readiness probes and return 403.
+_NO_PROXY = urllib.request.ProxyHandler({})
+_NO_REDIRECT_OPENER = urllib.request.build_opener(_NO_PROXY, _NoRedirectHandler)
+_DIRECT_OPENER = urllib.request.build_opener(_NO_PROXY)
 
 
 def _proxy_env_detail() -> str:
@@ -84,10 +89,11 @@ def wait_for_http_ok(
 
     By default redirects are **not** followed: a 302/303 response is returned as
     that status (via ``HTTPError``) so ``accept_status_codes`` can include them.
-    Pass ``follow_redirects=True`` for the stdlib opener behaviour.
+    Pass ``follow_redirects=True`` to follow redirects. Environment ``http_proxy``
+    is ignored: this helper probes loopback services.
     """
     allowed = accept_status_codes if accept_status_codes is not None else {expected_status}
-    opener = urllib.request.urlopen if follow_redirects else _NO_REDIRECT_OPENER.open
+    opener = _DIRECT_OPENER.open if follow_redirects else _NO_REDIRECT_OPENER.open
     deadline = time.monotonic() + timeout
     last_error: BaseException | None = None
     last_detail = ""
