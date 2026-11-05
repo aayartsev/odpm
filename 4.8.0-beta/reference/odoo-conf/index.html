@@ -2208,7 +2208,7 @@ odoo.conf на диске                    ← локальные значен
 <p>Если файл отсутствует, повреждён или в нём не заполнены обязательные параметры базы — odpm создаст шаблон заново.</p>
 <p>После правок, влияющих на пути или состав дополнений: <code>odpm --skip-start</code> и перезапуск контейнеров.</p>
 <h2 id="ci">Сценарий сборки образа (<code>ci</code>)<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h2>
-<p>Та же логика конфигурации <strong>встраивается в образ</strong> при <code>odpm --build-image</code>.</p>
+<p>Та же логика конфигурации <strong>встраивается в образ</strong> при <code>odpm image app ensure</code> / <code>odpm build</code>: секция <code>options</code> (слияние диск → манифест, в т.ч. <code>db_*</code> с раскрытыми секретами) попадает в runtime-конфиг образа через <code>generate_odoo_conf_docker_data</code> в контексте сборки, без шага <code>template.odoo_conf</code>.</p>
 
 
 
