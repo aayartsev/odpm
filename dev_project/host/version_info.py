@@ -1,13 +1,16 @@
-"""User-facing ``odpm --version`` string, optionally enriched from git."""
+"""User-facing ``odpm --version`` string, optionally enriched from git or package meta."""
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
 from .. import constants
 
 import dev_project
+
+_BUILD_META_NAME = "build_meta.json"
 
 
 def _candidate_roots(program_dir: str | None) -> list[Path]:
@@ -65,14 +68,40 @@ def read_git_build_meta(program_dir: str | None = None) -> tuple[str, str] | Non
     return short_sha, commit_date
 
 
+def packaged_build_meta_path() -> Path:
+    """Path to ``build_meta.json`` shipped inside the ``dev_project`` package."""
+    return Path(dev_project.__file__).resolve().parent / _BUILD_META_NAME
+
+
+def read_packaged_build_meta() -> tuple[str, str] | None:
+    """Return ``(short_sha, YYYY-MM-DD)`` from packaged ``build_meta.json``, if any."""
+    path = packaged_build_meta_path()
+    if not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    short_sha = str(payload.get("short_sha") or "").strip()
+    commit_date = str(payload.get("commit_date") or "").strip()
+    if not short_sha or not commit_date:
+        return None
+    return short_sha, commit_date
+
+
 def format_odpm_version_line(program_dir: str | None = None) -> str:
     """Build the ``odpm --version`` log line.
 
-    Example with git: ``odpm version: 4.8.0-dev (87564d8, 2026-09-28)``.
-    Without git metadata: ``odpm version: 4.8.0-dev``.
+    Example with git or package meta:
+    ``odpm version: 4.8.0-dev (87564d8, 2026-09-28)``.
+    Without metadata: ``odpm version: 4.8.0-dev``.
     """
     line = f"{constants.PROJECT_NAME} version: {constants.ODPM_VERSION}"
     meta = read_git_build_meta(program_dir)
+    if meta is None:
+        meta = read_packaged_build_meta()
     if meta is None:
         return line
     short_sha, commit_date = meta

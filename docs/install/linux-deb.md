@@ -34,7 +34,7 @@ echo 'deb [signed-by=/usr/share/keyrings/odpm-archive-keyring.gpg] https://aayar
 sudo apt update
 sudo apt install odpm
 odpm --version
-# ожидается: odpm version: 4.7.0
+# ожидается: odpm version: 4.7.0 (short_sha, YYYY-MM-DD)
 ```
 
 ### Предварительные версии (архив)

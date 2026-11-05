@@ -15,7 +15,7 @@ See [ADR-001](adr-001-extensions-and-manifest-v2.md) for manifest vs manager ver
 | `ODPM_VERSION` | same as `RELEASE_VERSION` | Alias; pip wheel metadata |
 | `MANIFEST_V1_CONTRACT_LINE` | `4.0` | Flat `odpm.json` → `odpm_version` for new v1 projects — **not** the installed manager version |
 
-On a git checkout, `odpm --version` appends short SHA and commit date: `odpm version: 4.8.0-beta (87564d8, 2026-11-04)`. Installed wheels/deb/rpm without `.git` print the version only.
+On a git checkout, `odpm --version` appends short SHA and commit date: `odpm version: 4.8.0-beta (87564d8, 2026-11-04)`. Package builds (`scripts/build_deb.sh`, `scripts/build_rpm.sh`, release PyPI job) run `scripts/write_build_meta.py` to write `dev_project/build_meta.json` (gitignored; listed in setuptools `package-data`). Installed wheels/deb/rpm without `.git` read that file and print the same stamp. Priority: live git → packaged `build_meta.json` → version number only. RPM uses `git archive`, so the build script unpacks Source0, injects `build_meta.json`, and repacks before `rpmbuild`.
 
 Bump `RELEASE_VERSION` in `dev_project/constants/scenarios.py` and sync `debian/changelog` + `packaging/odpm.spec` for each native package release. Tag `v{RELEASE_VERSION}` must match (`scripts/verify_release_tag_version.py`).
 

@@ -11,6 +11,8 @@ if ! command -v dpkg-buildpackage >/dev/null 2>&1; then
     exit 1
 fi
 
+python3 "${SCRIPT_DIR}/write_build_meta.py" "${PROJECT_ROOT}"
+
 mkdir -p dist
 dpkg-buildpackage -us -uc -b "$@"
 cp -f ../odpm_*.deb dist/

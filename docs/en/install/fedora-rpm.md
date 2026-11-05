@@ -29,7 +29,7 @@ sudo curl -fsSL https://aayartsev.github.io/odpm/yum/odpm-stable.repo \
 sudo dnf makecache
 sudo dnf install odpm
 odpm --version
-# expected: odpm version: 4.7.0
+# expected: odpm version: 4.7.0 (short_sha, YYYY-MM-DD)
 ```
 
 ### Pre-release (archived)

@@ -59,6 +59,7 @@ version = { attr = "dev_project.constants.RELEASE_VERSION" }
 
 [tool.setuptools.package-data]
 dev_project = [
+    "build_meta.json",
     "container_config/schemas/*.json",
     "manifest/schemas/*.json",
     "templates/*",

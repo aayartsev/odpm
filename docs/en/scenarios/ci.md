@@ -44,6 +44,8 @@ git push → build machine
 
 `odpm image lint ensure` builds a layer `FROM` platform and **warms the hook cache** (`pre-commit install-hooks` inside the image, cache under the container user home). Git for bake uses an isolated `.odpm-lint-bake` directory, not the platform tree at home root. It does **not** run `pre-commit run --all-files` on application code — that stays for a later job. Cold ensure needs network on the builder (hook repo clones).
 
+`odpm image … ensure` does not run the `template.odoo_conf` prepare step, but before writing the build context it calls `generate_odoo_conf_docker_data` (after refreshing secrets and reloading the manifest). The **app** layer must ship `odoo_config_data.options` in `/run/odpm/config.json` (including `db_*` from the effective `ci` slice with expanded `${@secret:…}`).
+
 Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Publishing a publish-tag alias after kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, when the fingerprint cache image is not in the local Docker daemon) requires **`crane copy`**. Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`.
 
 ## Checklist
@@ -99,7 +101,7 @@ The effective `ci` slice may set `db_*` in `odoo_conf.options` (still forbidden 
 }
 ```
 
-Values reach `odoo_config_data` via the normal merge (disk → manifest). The compose `db` service is not removed; host-side `odpm database` / `ensure_app_role` still target compose postgres. See [odoo.conf](../reference/odoo-conf.md), [ADR-022](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md).
+Values reach `odoo_config_data` via the normal merge (disk → manifest), including when building the app image via `image app ensure`. The compose `db` service is not removed; host-side `odpm database` / `ensure_app_role` still target compose postgres. See [odoo.conf](../reference/odoo-conf.md), [ADR-022](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md).
 
 Without `--image-push`, the `kaniko` backend writes a tar to `.odpm/ci-build-context/odpm-ci-image.tar`.
 

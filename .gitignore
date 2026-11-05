@@ -150,6 +150,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Generated at package build time for odpm --version stamp (not committed).
+dev_project/build_meta.json
+
 # unittest.mock path artifact (os.makedirs on MagicMock().project_dir)
 MagicMock/
 MockMagic/

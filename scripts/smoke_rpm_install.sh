@@ -25,7 +25,13 @@ else
     RUN_AS=()
 fi
 
-"${RUN_AS[@]}" odpm --version
+VERSION_OUT="$("${RUN_AS[@]}" odpm --version 2>&1 | tr -d '\r')"
+printf '%s\n' "${VERSION_OUT}"
+if ! grep -Eq 'odpm version: .+ \([0-9a-f]+, [0-9]{4}-[0-9]{2}-[0-9]{2}\)' <<< "${VERSION_OUT}"; then
+    echo "odpm --version missing commit stamp (sha, date):" >&2
+    printf '%s\n' "${VERSION_OUT}" >&2
+    exit 1
+fi
 "${RUN_AS[@]}" python3 -c "
 from dev_project.program_dir import resolve_program_dir
 from pathlib import Path
@@ -34,7 +40,9 @@ import dev_project.constants as c
 resolved = resolve_program_dir()
 templates = Path(resolved) / c.DEV_PROJECT_DIR / 'templates'
 mo = Path(resolved) / c.DEV_PROJECT_DIR / 'i18n/ru_RU/LC_MESSAGES/main.mo'
+meta = Path(resolved) / c.DEV_PROJECT_DIR / 'build_meta.json'
 assert templates.is_dir(), templates
 assert mo.is_file(), mo
+assert meta.is_file(), meta
 print('rpm smoke OK:', templates)
 "

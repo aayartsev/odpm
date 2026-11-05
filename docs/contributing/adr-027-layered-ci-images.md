@@ -20,7 +20,7 @@ Accepted (4.8-dev track).
 
 5. **Presence:** base per ADR-019 (stamp); platform/deps/app/lint remote refs via `crane digest` (fail-fast if missing); local via `docker image inspect`. `ODPM_IMAGE_FORCE_REBUILD=1` forces the current layer only. Publish-tag alias after kaniko (`--image-push`) uses `crane copy` when the fingerprint cache ref is not local.
 
-6. **CLI:** `odpm image {base|platform|deps|app|lint} ensure`; shared `--image-tag` / `--image-push` / `--image-builder` / `--from` where applicable. Allowlisted under scenario `ci` (extends ADR-017). `odpm image … ensure` runs a scoped prepare (sources + secrets only), not full compose/template materialization.
+6. **CLI:** `odpm image {base|platform|deps|app|lint} ensure`; shared `--image-tag` / `--image-push` / `--image-builder` / `--from` where applicable. Allowlisted under scenario `ci` (extends ADR-017). `odpm image … ensure` runs a scoped prepare (sources + secrets only), not full compose/template materialization. Runnable layers still need `odoo_config_data` (including `options`): `CiImageBuilder.prepare_ci_build_context` refreshes secrets, reloads the manifest view, and calls `generate_odoo_conf_docker_data()` before writing `runtime/config.json` — without adding `template.odoo_conf` to `IMAGE_ENSURE_STEP_IDS`.
 
 7. **Deps context:** exclude developing by absolute mapped path (never basename-only), so dependency trees that share a folder name with the app are kept.
 

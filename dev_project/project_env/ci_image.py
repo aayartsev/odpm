@@ -123,6 +123,39 @@ class CiImageBuilder:
         )
         write_runtime_config_to_path(self.config, config_path)
 
+    def _ensure_odoo_config_data_for_bake(self) -> None:
+        """Refresh secrets + manifest, then fill ``odoo_config_data`` for CI bake.
+
+        ``odpm image … ensure`` skips ``template.odoo_conf``; without this step the
+        runtime JSON would lack ``options`` (KeyError in ``wait_for_postgres``).
+        """
+        from ..config.config import Config
+        from ..config.transforms.env_substitution import with_secrets
+        from ..config.transforms.secret_refs import load_secrets_map
+        from ..manifest.reader import load_manifest
+
+        config = self.config
+        if not isinstance(config, Config):
+            return
+
+        project_dir = str(config.project_dir or "")
+        config._env_resolver = with_secrets(
+            config.env_resolver,
+            load_secrets_map(project_dir),
+        )
+
+        view = config.bootstrap.manifest_view
+        source_raw = getattr(view, "source_raw", None) if view is not None else None
+        if isinstance(source_raw, dict) and source_raw:
+            scenario = getattr(config.user_env, "odpm_scenario", None)
+            config.bootstrap.manifest_view = load_manifest(
+                dict(source_raw),
+                env_resolver=config.env_resolver,
+                active_scenario=scenario,
+            )
+
+        config.generate_odoo_conf_docker_data()
+
     def _write_ci_secrets_runtime(self, context_dir: str) -> bool:
 
         if not prepare_secrets_for_ci_bake(self.config.project_dir, self.config):
@@ -165,6 +198,8 @@ class CiImageBuilder:
             return reader.read()
 
     def prepare_ci_build_context(self) -> None:
+        self._ensure_odoo_config_data_for_bake()
+
         context_dir = self.config.ci_build_context_dir
         if os.path.exists(context_dir):
             shutil.rmtree(context_dir)

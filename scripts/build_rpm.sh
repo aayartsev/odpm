@@ -29,13 +29,29 @@ print(f"RPM_RELEASE={release}")
 
 TARBALL="odpm-${RPM_VERSION}.tar.gz"
 TOPDIR="${PROJECT_ROOT}/.rpmbuild"
+META_REL="odpm-${RPM_VERSION}/dev_project/build_meta.json"
 
 rm -rf "${TOPDIR}"
 mkdir -p "${TOPDIR}"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 mkdir -p dist
 
+python3 "${SCRIPT_DIR}/write_build_meta.py" "${PROJECT_ROOT}"
+META_SRC="${PROJECT_ROOT}/dev_project/build_meta.json"
+if [[ ! -f "${META_SRC}" ]]; then
+    echo "missing ${META_SRC} after write_build_meta.py" >&2
+    exit 1
+fi
+
 git config --global --add safe.directory "${PROJECT_ROOT}" 2>/dev/null || true
 git archive --format=tar.gz --prefix="odpm-${RPM_VERSION}/" -o "${TOPDIR}/SOURCES/${TARBALL}" HEAD
+
+# git archive skips gitignored build_meta.json — inject it into Source0.
+STAGE="$(mktemp -d)"
+trap 'rm -rf "${STAGE}"' EXIT
+tar -xzf "${TOPDIR}/SOURCES/${TARBALL}" -C "${STAGE}"
+mkdir -p "$(dirname "${STAGE}/${META_REL}")"
+cp -f "${META_SRC}" "${STAGE}/${META_REL}"
+tar -czf "${TOPDIR}/SOURCES/${TARBALL}" -C "${STAGE}" "odpm-${RPM_VERSION}"
 
 cp packaging/odpm.spec "${TOPDIR}/SPECS/odpm.spec"
 

@@ -68,4 +68,4 @@ After changes affecting paths or addon composition: `odpm --skip-start` and rest
 
 ## Image build scenario (`ci`)
 
-The same configuration logic is **baked into the image** on `odpm --build-image`.
+The same configuration logic is **baked into the image** on `odpm image app ensure` / `odpm build`: the `options` section (disk → manifest merge, including `db_*` with expanded secrets) lands in the image runtime config via `generate_odoo_conf_docker_data` in the build context, without the `template.odoo_conf` prepare step.

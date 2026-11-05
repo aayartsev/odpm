@@ -41,6 +41,8 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 
 `odpm image lint ensure` собирает слой от platform и **прогревает кэш хуков** (`pre-commit install-hooks` внутри образа, кэш в домашнем каталоге пользователя контейнера). Git для bake идёт в изолированном каталоге `.odpm-lint-bake`, не в корне home поверх platform. Полный `pre-commit run --all-files` по коду заявки в bake не входит — код подставляют позже в задании. Для cold ensure builder должен иметь сеть (клонирование репозиториев хуков).
 
+`odpm image … ensure` не запускает шаг `template.odoo_conf`, но перед записью контекста сборки вызывает `generate_odoo_conf_docker_data` (после обновления секретов и перезагрузки манифеста). Слой **app** обязан нести в `/run/odpm/config.json` секцию `odoo_config_data.options` (в т.ч. `db_*` из effective `ci` с раскрытыми `${@secret:…}`).
+
 Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Для публикации alias publish-тега после kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, когда fingerprint-cache не в локальном Docker) нужен **`crane copy`**. Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`.
 
 ## Чеклист
@@ -103,7 +105,7 @@ docker compose exec "$ODOO_SVC" odoo-bin -d test_db -i base --stop-after-init
 }
 ```
 
-Значения попадают в `odoo_config_data` через обычный merge (disk → manifest). Compose-сервис `db` не удаляется; host-side `odpm database` / `ensure_app_role` остаются привязаны к compose postgres. См. [odoo.conf](../reference/odoo-conf.md), [ADR-022](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md).
+Значения попадают в `odoo_config_data` через обычный merge (disk → manifest), в том числе при сборке app-образа через `image app ensure`. Compose-сервис `db` не удаляется; host-side `odpm database` / `ensure_app_role` остаются привязаны к compose postgres. См. [odoo.conf](../reference/odoo-conf.md), [ADR-022](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-022-odoo-conf-scenario-frozen.md).
 
 Без `--image-push` бэкенд `kaniko` пишет tar в `.odpm/ci-build-context/odpm-ci-image.tar`.
 

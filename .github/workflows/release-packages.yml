@@ -55,7 +55,13 @@ jobs:
               apt-get update -qq
               apt-get install -y -qq /pkgs/odpm_*.deb
               useradd -m -s /bin/bash odpm-smoke
-              runuser -u odpm-smoke -- odpm --version
+              version_out=$(runuser -u odpm-smoke -- odpm --version 2>&1 | tr -d "\r")
+              printf "%s\n" "$version_out"
+              if ! grep -Eq "odpm version: .+ \\([0-9a-f]+, [0-9]{4}-[0-9]{2}-[0-9]{2}\\)" <<< "$version_out"; then
+                echo "odpm --version missing commit stamp (sha, date):" >&2
+                printf "%s\n" "$version_out" >&2
+                exit 1
+              fi
               runuser -u odpm-smoke -- python3 -c "
           from dev_project.program_dir import resolve_program_dir
           from pathlib import Path
@@ -63,6 +69,7 @@ jobs:
           r = resolve_program_dir()
           assert (Path(r) / c.DEV_PROJECT_DIR / \"templates\").is_dir()
           assert (Path(r) / c.DEV_PROJECT_DIR / \"i18n/ru_RU/LC_MESSAGES/main.mo\").is_file()
+          assert (Path(r) / c.DEV_PROJECT_DIR / \"build_meta.json\").is_file()
           print(\"deb smoke OK\")
           "
             '
@@ -183,13 +190,26 @@ jobs:
               useradd -m -s /bin/bash odpm-smoke
               expected='odpm version: ${TAG}'
               version_out=\$(runuser -u odpm-smoke -- odpm --version 2>&1 | tr -d '\r')
+              printf '%s\n' \"\${version_out}\"
               if ! grep -Fq \"\${expected}\" <<< \"\${version_out}\"; then
                 echo \"expected substring not found: \${expected}\" >&2
                 echo \"odpm --version output:\" >&2
                 printf '%s\n' \"\${version_out}\" >&2
                 exit 1
               fi
-              echo \"deb install smoke OK: \${expected}\"
+              if ! grep -Eq 'odpm version: .+ \\([0-9a-f]+, [0-9]{4}-[0-9]{2}-[0-9]{2}\\)' <<< \"\${version_out}\"; then
+                echo \"odpm --version missing commit stamp (sha, date):\" >&2
+                printf '%s\n' \"\${version_out}\" >&2
+                exit 1
+              fi
+              runuser -u odpm-smoke -- python3 -c \"
+          from pathlib import Path
+          import dev_project.constants as c
+          from dev_project.program_dir import resolve_program_dir
+          meta = Path(resolve_program_dir()) / c.DEV_PROJECT_DIR / 'build_meta.json'
+          assert meta.is_file(), meta
+          print('deb install smoke OK: stamp present')
+          \"
             "
 
       - name: Install built odpm on runner
@@ -535,6 +555,9 @@ jobs:
 
       - name: Install build tooling
         run: python -m pip install --upgrade pip build
+
+      - name: Write build_meta.json for package stamp
+        run: python3 scripts/write_build_meta.py
 
       - name: Build wheel and sdist
         run: python -m build
