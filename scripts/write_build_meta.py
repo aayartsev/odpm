@@ -31,8 +31,26 @@ def _git_stdout(repo: Path, *args: str) -> str:
     return text
 
 
+def _ensure_safe_directory(repo: Path) -> None:
+    """Allow git in CI bind-mounts (dubious ownership under Docker)."""
+    subprocess.run(
+        [
+            "git",
+            "config",
+            "--global",
+            "--add",
+            "safe.directory",
+            str(repo.resolve()),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
 def write_build_meta(repo_root: Path | None = None) -> Path:
-    root = repo_root or Path(__file__).resolve().parent.parent
+    root = (repo_root or Path(__file__).resolve().parent.parent).resolve()
+    _ensure_safe_directory(root)
     short_sha = _git_stdout(root, "rev-parse", "--short", "HEAD")
     commit_date = _git_stdout(root, "show", "-s", "--format=%cs", "HEAD")
     out_path = root / "dev_project" / "build_meta.json"

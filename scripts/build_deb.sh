@@ -11,6 +11,9 @@ if ! command -v dpkg-buildpackage >/dev/null 2>&1; then
     exit 1
 fi
 
+# Bind-mounted CI trees need safe.directory before git (write_build_meta).
+git config --global --add safe.directory "${PROJECT_ROOT}" 2>/dev/null || true
+
 python3 "${SCRIPT_DIR}/write_build_meta.py" "${PROJECT_ROOT}"
 
 mkdir -p dist

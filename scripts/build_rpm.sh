@@ -35,6 +35,9 @@ rm -rf "${TOPDIR}"
 mkdir -p "${TOPDIR}"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 mkdir -p dist
 
+# Bind-mounted CI trees (e.g. /src in Fedora docker) need safe.directory before git.
+git config --global --add safe.directory "${PROJECT_ROOT}" 2>/dev/null || true
+
 python3 "${SCRIPT_DIR}/write_build_meta.py" "${PROJECT_ROOT}"
 META_SRC="${PROJECT_ROOT}/dev_project/build_meta.json"
 if [[ ! -f "${META_SRC}" ]]; then
@@ -42,7 +45,6 @@ if [[ ! -f "${META_SRC}" ]]; then
     exit 1
 fi
 
-git config --global --add safe.directory "${PROJECT_ROOT}" 2>/dev/null || true
 git archive --format=tar.gz --prefix="odpm-${RPM_VERSION}/" -o "${TOPDIR}/SOURCES/${TARBALL}" HEAD
 
 # git archive skips gitignored build_meta.json — inject it into Source0.
