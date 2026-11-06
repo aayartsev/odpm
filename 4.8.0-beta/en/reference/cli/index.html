@@ -2482,6 +2482,10 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 <td>After build, publish the image (publish-tag alias after kaniko via <code>crane copy</code>)</td>
 </tr>
 <tr>
+<td><code>--image-prune-stale</code></td>
+<td>After a successful ensure, delete stale same-layer <code>cache-*</code> tags (same as <code>ODPM_IMAGE_PRUNE_STALE=1</code>)</td>
+</tr>
+<tr>
 <td><code>-V</code>, <code>--version</code></td>
 <td>Show odpm version</td>
 </tr>

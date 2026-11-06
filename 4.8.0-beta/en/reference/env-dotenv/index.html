@@ -2420,6 +2420,16 @@
 <td>off</td>
 </tr>
 <tr>
+<td><code>ODPM_IMAGE_FORCE_REBUILD</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — force rebuild of the <strong>current</strong> <code>image … ensure</code> layer only (not parents)</td>
+<td>off</td>
+</tr>
+<tr>
+<td><code>ODPM_IMAGE_PRUNE_STALE</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — after successful ensure, delete stale same-layer <code>cache-*</code> tags (same as <code>--image-prune-stale</code>)</td>
+<td>off</td>
+</tr>
+<tr>
 <td><code>ODPM_KANIKO_EXECUTOR_MODE</code></td>
 <td><code>docker-run</code> or <code>direct</code> (CI+kaniko wizard defaults to <code>direct</code>)</td>
 <td><code>docker-run</code></td>
