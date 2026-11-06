@@ -26,21 +26,53 @@ class ProjectLinks:
     def user_env(self):
         return self.env.user_env
 
-    def map_folders(self) -> None:
-        mapper = VolumeMapper(self.env)
+    def materialize_dependencies(self) -> None:
+        """Resolve dependency URLs and clone/update dependency git repos."""
         materializer = self._materializer()
-        self.env.mapped_folders = mapper.build_base_folders()
         resolution = self._resolve_dependencies()
         self._dependency_resolution = resolution
         materializer.apply_to_config(resolution)
-        materialize_deps = not self.config.skip_git_update()
-        deps_materialized_during_discovery = (
-            materialize_deps and self.config.use_oca_dependencies
-        )
+        if self.config.skip_git_update():
+            return
+        # OCA discovery already clones while walking transitive URLs; avoid a
+        # second materialize pass. Non-OCA seed URLs still need an explicit clone.
+        already_during_discovery = bool(self.config.use_oca_dependencies)
+        for dependency_string in resolution.urls:
+            dependency_project = self.config.handle_git_link(
+                dependency_string,
+                materialize=not already_during_discovery,
+            )
+            try:
+                if already_during_discovery and not dependency_project.is_cloned:
+                    dependency_project.build_project()
+            finally:
+                if dependency_project.project_path:
+                    self.config.ensure_git_repo_symlink(
+                        dependency_project.project_path,
+                        scope="dependency",
+                    )
+
+    def map_folders(self) -> None:
+        """Build docker volume mapping; never clones or walks OCA discovery.
+
+        Prepare runs :meth:`materialize_dependencies` first (full resolve + clone).
+        Standalone callers (plan compose preview, tests) map seed ``dependencies``
+        URLs already on ``config`` — no git clone side effects.
+        """
+        mapper = VolumeMapper(self.env)
+        self.env.mapped_folders = mapper.build_base_folders()
+        if self._dependency_resolution is None:
+            resolution = DependencyResolutionResult(
+                urls=list(self.config.dependencies or []),
+                nested_fragments=[],
+            )
+            self._dependency_resolution = resolution
+        else:
+            resolution = self._dependency_resolution
         mapper.append_dependency_mounts(
             resolution,
-            materialize_deps=materialize_deps,
-            skip_materialize=deps_materialized_during_discovery,
+            materialize_deps=False,
+            skip_materialize=False,
         )
         mapper.map_pre_commit_files()
 

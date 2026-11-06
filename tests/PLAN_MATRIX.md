@@ -19,7 +19,7 @@ Unit gate for **documented odpm features verifiable without a Docker daemon**. I
 |----|---------|------|-----------------|
 | A1 | `odpm plan` | `PlanMatrixCoreTests.test_a1_plan_cli_all_scenarios` | in-process CLI, exit 0, all scenarios |
 | A2 | `--skip-start` | `PlanMatrixCoreTests.test_a2_skip_start_omits_compose_up` | no `compose.up` |
-| A3 | `--no-git-update` | `PlanMatrixCoreTests.test_a3_no_git_update_git_steps` | `git.ensure_present` run, `git.materialize` skip |
+| A3 | `--no-git-update` | `PlanMatrixCoreTests.test_a3_no_git_update_git_steps` | `git.ensure_present` run; `git.materialize_developing` / `_platform` / `_dependencies` skip |
 | A4 | `--update-lock` | `PlanMatrixCoreTests.test_a4_update_lock_collect_without_compose_up` | `git.lock_collect` update |
 | A5 | `--plan-format json` | `PlanMatrixFlagsTests.test_a5_plan_format_json`, `PlanMatrixCliInProcessTests.test_plan_json_all_scenarios` | JSON schema fields |
 | A6 | `--plan-format table` | `PlanMatrixFlagsTests.test_a6_plan_format_table` | table header |

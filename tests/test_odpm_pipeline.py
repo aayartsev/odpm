@@ -609,10 +609,13 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline = self._pipeline_with_mocks()
         with stub_prepare_service_executions() as service_mocks:
             pipeline.prepare_project_files()
+            materialize_dependencies = service_mocks[0]
             checkout_dependencies = service_mocks[-1]
-        pipeline.config._git_repos.materialize_git_repos.assert_called_once_with(
+        pipeline.config._git_repos.materialize_developing.assert_called_once_with()
+        pipeline.config._git_repos.materialize_platform.assert_called_once_with(
             skip_build_date=False
         )
+        materialize_dependencies.assert_called_once()
         pipeline.config._git_repos.ensure_git_repos_present.assert_not_called()
         checkout_dependencies.assert_called_once()
 
@@ -621,9 +624,12 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         pipeline = self._pipeline_with_mocks(no_git_update=True)
         with stub_prepare_service_executions() as service_mocks:
             pipeline.prepare_project_files()
+            materialize_dependencies = service_mocks[0]
             checkout_dependencies = service_mocks[-1]
         pipeline.config._git_repos.ensure_git_repos_present.assert_called_once()
-        pipeline.config._git_repos.materialize_git_repos.assert_not_called()
+        pipeline.config._git_repos.materialize_developing.assert_not_called()
+        pipeline.config._git_repos.materialize_platform.assert_not_called()
+        materialize_dependencies.assert_not_called()
         checkout_dependencies.assert_not_called()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")
@@ -637,7 +643,8 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
             mock_new_lock_manager.return_value = manager
             with stub_prepare_service_executions():
                 pipeline.prepare_project_files()
-        pipeline.config._git_repos.materialize_git_repos.assert_called_once_with(
+        pipeline.config._git_repos.materialize_developing.assert_called_once_with()
+        pipeline.config._git_repos.materialize_platform.assert_called_once_with(
             skip_build_date=True
         )
         manager.load.assert_called_once()

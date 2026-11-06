@@ -51,7 +51,7 @@
 
 ## Materialize
 
-Prepare-шаг **`sources.materialize`** (после `git.materialize`, до `hooks.post_clone`):
+Prepare-шаг **`sources.materialize`** (после `git.materialize_platform`, до `hooks.post_clone`):
 
 1. Клонирует git-источники в **`${ODOO_PROJECTS_DIR}/service-sources/<name>`** (по умолчанию)
 2. Для `file://` — использует указанный каталог (clone не выполняется)

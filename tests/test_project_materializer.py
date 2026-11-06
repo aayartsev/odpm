@@ -26,6 +26,7 @@ class ProjectMaterializerTests(unittest.TestCase):
     def test_run_materializes_git_by_default(self, _mock_builder):
         config, project_env, system_checker, service_mocks = self._run_with_mocks()
         (
+            materialize_dependencies,
             _map_folders,
             _dockerfile,
             _dockerignore,
@@ -35,9 +36,11 @@ class ProjectMaterializerTests(unittest.TestCase):
             update_links,
             checkout_dependencies,
         ) = service_mocks
-        config._git_repos.materialize_git_repos.assert_called_once_with(
+        config._git_repos.materialize_developing.assert_called_once_with()
+        config._git_repos.materialize_platform.assert_called_once_with(
             skip_build_date=False
         )
+        materialize_dependencies.assert_called_once()
         config._git_repos.ensure_git_repos_present.assert_not_called()
         checkout_dependencies.assert_called_once()
         system_checker.check_docker.assert_called_once()
@@ -51,7 +54,9 @@ class ProjectMaterializerTests(unittest.TestCase):
         )
         config.ensure_git_repos_present.assert_not_called()
         config._git_repos.ensure_git_repos_present.assert_called_once()
-        config._git_repos.materialize_git_repos.assert_not_called()
+        config._git_repos.materialize_developing.assert_not_called()
+        config._git_repos.materialize_platform.assert_not_called()
+        service_mocks[0].assert_not_called()
         service_mocks[-1].assert_not_called()
 
     @patch("dev_project.compose.service_builder.ComposeServiceBuilder.build")

@@ -36,10 +36,14 @@ from .steps_git import (
     evaluate_git_lock_collect,
     evaluate_git_lock_load,
     evaluate_git_lock_verify,
-    evaluate_git_materialize,
+    evaluate_git_materialize_dependencies,
+    evaluate_git_materialize_developing,
+    evaluate_git_materialize_platform,
     exec_git_checkout,
     exec_git_ensure_present,
-    exec_git_materialize,
+    exec_git_materialize_dependencies,
+    exec_git_materialize_developing,
+    exec_git_materialize_platform,
     exec_lock_apply,
     exec_lock_collect,
     exec_lock_load,
@@ -68,7 +72,16 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
         "git.ensure_present", "", evaluate_git_ensure_present, exec_git_ensure_present
     ),
     PrepareStepDef(
-        "git.materialize", "", evaluate_git_materialize, exec_git_materialize
+        "git.materialize_developing",
+        "",
+        evaluate_git_materialize_developing,
+        exec_git_materialize_developing,
+    ),
+    PrepareStepDef(
+        "git.materialize_platform",
+        "",
+        evaluate_git_materialize_platform,
+        exec_git_materialize_platform,
     ),
     PrepareStepDef(
         "sources.materialize",
@@ -78,6 +91,12 @@ BUILTIN_PREPARE_STEPS: tuple[PrepareStepDef, ...] = (
     ),
     PrepareStepDef(
         "hooks.post_clone", "", evaluate_hooks_post_clone, exec_hooks_post_clone
+    ),
+    PrepareStepDef(
+        "git.materialize_dependencies",
+        "",
+        evaluate_git_materialize_dependencies,
+        exec_git_materialize_dependencies,
     ),
     PrepareStepDef(
         "project.map_folders", "", evaluate_map_folders, exec_map_folders

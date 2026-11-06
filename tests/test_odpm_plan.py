@@ -142,11 +142,24 @@ class OdpmPlannerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
             plan = OdpmPlanner.build(config, OdpmCliArgs())
-            materialize = self._step(plan, "git.materialize")
+            developing = self._step(plan, "git.materialize_developing")
+            platform = self._step(plan, "git.materialize_platform")
+            deps = self._step(plan, "git.materialize_dependencies")
             ensure = self._step(plan, "git.ensure_present")
-            self.assertEqual(materialize.outcome, "run")
+            self.assertEqual(developing.outcome, "run")
+            self.assertEqual(platform.outcome, "run")
+            self.assertEqual(deps.outcome, "run")
             self.assertEqual(ensure.outcome, "skip")
             self.assertEqual(self._step(plan, "compose.up").outcome, "run")
+            step_ids = [step.id for step in plan.steps]
+            self.assertLess(
+                step_ids.index("git.materialize_developing"),
+                step_ids.index("git.materialize_platform"),
+            )
+            self.assertLess(
+                step_ids.index("git.materialize_dependencies"),
+                step_ids.index("project.map_folders"),
+            )
 
     def test_plan_ensure_git_when_no_git_update(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -156,14 +169,27 @@ class OdpmPlannerTests(unittest.TestCase):
             )
             plan = OdpmPlanner.build(config, OdpmCliArgs(no_git_update=True))
             self.assertEqual(self._step(plan, "git.ensure_present").outcome, "run")
-            self.assertEqual(self._step(plan, "git.materialize").outcome, "skip")
+            self.assertEqual(
+                self._step(plan, "git.materialize_developing").outcome, "skip"
+            )
+            self.assertEqual(
+                self._step(plan, "git.materialize_platform").outcome, "skip"
+            )
+            self.assertEqual(
+                self._step(plan, "git.materialize_dependencies").outcome, "skip"
+            )
             self.assertEqual(self._step(plan, "git.checkout").outcome, "skip")
 
     def test_plan_update_lock_step(self):
         with tempfile.TemporaryDirectory() as tmp:
             config = self._config(project_dir=tmp)
             plan = OdpmPlanner.build(config, OdpmCliArgs(update_lock=True))
-            self.assertEqual(self._step(plan, "git.materialize").outcome, "run")
+            self.assertEqual(
+                self._step(plan, "git.materialize_developing").outcome, "run"
+            )
+            self.assertEqual(
+                self._step(plan, "git.materialize_platform").outcome, "run"
+            )
             self.assertEqual(self._step(plan, "git.lock_collect").outcome, "update")
             self.assertFalse(any(step.id == "compose.up" for step in plan.steps))
 
@@ -225,11 +251,11 @@ class OdpmPlannerTests(unittest.TestCase):
             OdpmPlan(
                 steps=(
                     PlanStep(
-                        "git.materialize",
-                        "Clone git repos",
+                        "git.materialize_developing",
+                        "Clone developing",
                         "run",
                         True,
-                        "clone or update git repos",
+                        "clone or update developing project",
                     ),
                     PlanStep(
                         "vscode.settings",
@@ -242,10 +268,13 @@ class OdpmPlannerTests(unittest.TestCase):
                 warnings=("example warning",),
             )
         )
-        self.assertIn("Action   Required  ID", text)
+        self.assertTrue(
+            "Action   Required  ID" in text or "Действие" in text,
+            text,
+        )
         self.assertIn("RUN", text)
         self.assertIn("NOOP", text)
-        self.assertIn("git.materialize", text)
+        self.assertIn("git.materialize_developing", text)
         self.assertIn("example warning", text)
 
 
@@ -354,9 +383,11 @@ class PrepareRegistryContractTests(unittest.TestCase):
 PREPARE_STEP_IDS = [
     "git.lock_load",
     "git.ensure_present",
-    "git.materialize",
+    "git.materialize_developing",
+    "git.materialize_platform",
     "sources.materialize",
     "hooks.post_clone",
+    "git.materialize_dependencies",
     "project.map_folders",
     "git.lock_apply",
     "template.dockerfile",

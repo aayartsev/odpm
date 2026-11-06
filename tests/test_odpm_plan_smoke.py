@@ -39,8 +39,18 @@ class OdpmPlanSmokeTests(unittest.TestCase):
             seed_migrated_project_layout(Path(tmp))
             plan = OdpmPlanner.build(self._config(tmp), OdpmCliArgs(skip_start=True))
             text = format_plan(plan)
-            self.assertIn("Action   Required  ID", text)
-            self.assertIn("git.materialize", text)
+            self.assertTrue(
+                "Action   Required  ID" in text or "Действие" in text,
+                text,
+            )
+            self.assertTrue(
+                "Plan group:" in text or "Группа плана:" in text,
+                text,
+            )
+            self.assertIn("git.materialize_developing", text)
+            self.assertIn("git.materialize_platform", text)
+            self.assertIn("git.materialize_dependencies", text)
+            self.assertIn("project.map_folders", text)
             self.assertIn("compose.service", text)
             self.assertIn("compose.generate", text)
             outcomes = {step.id: step.outcome for step in plan.steps}

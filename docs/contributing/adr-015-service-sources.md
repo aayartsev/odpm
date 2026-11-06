@@ -19,7 +19,7 @@ Git materialize already exists for `platform`, `developing`, and `dependencies`,
 
 ### Runtime
 
-- Prepare step **`sources.materialize`** after `git.materialize`, before `hooks.post_clone`.
+- Prepare step **`sources.materialize`** after `git.materialize_platform`, before `hooks.post_clone`.
 - Clone target: **`${ODOO_PROJECTS_DIR}/service-sources/<name>`** — never `dependencies_projects` / `addons_path`.
 - Env placeholder **`${@source:<name>}`** → `ODPM_SOURCE_<NAME>`; compose fields with `@source` are re-expanded after materialize.
 - `file://` links skip clone (local override).

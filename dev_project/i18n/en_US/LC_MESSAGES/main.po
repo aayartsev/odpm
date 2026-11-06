@@ -117,8 +117,8 @@ msgstr "Bootstrapping PostgreSQL application role {ROLE} in single-user mode."
 msgid "Build compose start command and write .odpm/runtime/config.json when stale"
 msgstr "Build compose start command and write .odpm/runtime/config.json when stale"
 
-msgid "Build docker volume mapping for Odoo, venv, and addons"
-msgstr "Build docker volume mapping for Odoo, venv, and addons"
+msgid "Build docker volume mapping for Odoo, venv, and addons (no dependency clone or OCA discovery)"
+msgstr "Build docker volume mapping for Odoo, venv, and addons (no dependency clone or OCA discovery)"
 
 msgid "Build layered CI image (base → platform → deps? → app; ADR-027)"
 msgstr "Build layered CI image (base → platform → deps? → app; ADR-027)"
@@ -171,11 +171,17 @@ msgstr "Checking remote databases at {URL} …"
 msgid "Checkout dependency repos to odoo version branch"
 msgstr "Checkout dependency repos to odoo version branch"
 
+msgid "Clone or update dependency git repos"
+msgstr "Clone or update dependency git repos"
+
 msgid "Clone or update manifest service_sources git repositories"
 msgstr "Clone or update manifest service_sources git repositories"
 
-msgid "Clone or update platform, developing, and dependency git repos"
-msgstr "Clone or update platform, developing, and dependency git repos"
+msgid "Clone or update the Odoo platform git repo (and build date when unlocked)"
+msgstr "Clone or update the Odoo platform git repo (and build date when unlocked)"
+
+msgid "Clone or update the developing project git repo"
+msgstr "Clone or update the developing project git repo"
 
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Collect resolved git commits and write .odpm/deps.lock.json"
@@ -612,11 +618,44 @@ msgstr "ODPM scenario changed: {PREVIOUS} -> {CURRENT}.\nChoose: (a) abort  (c) 
 msgid "ODPM_DIFF_BASE=@last-applied but deploy marker is missing at {PATH}."
 msgstr "ODPM_DIFF_BASE=@last-applied but deploy marker is missing at {PATH}."
 
+msgid "Plan group: IDE"
+msgstr "Plan group: IDE"
+
+msgid "Plan group: checkout and project links"
+msgstr "Plan group: checkout and project links"
+
+msgid "Plan group: dependencies"
+msgstr "Plan group: dependencies"
+
+msgid "Plan group: image build"
+msgstr "Plan group: image build"
+
+msgid "Plan group: lock pins"
+msgstr "Plan group: lock pins"
+
+msgid "Plan group: post-clone hooks"
+msgstr "Plan group: post-clone hooks"
+
+msgid "Plan group: preparation — git and sources"
+msgstr "Plan group: preparation — git and sources"
+
+msgid "Plan group: project layout"
+msgstr "Plan group: project layout"
+
+msgid "Plan group: runtime"
+msgstr "Plan group: runtime"
+
+msgid "Plan group: secrets"
+msgstr "Plan group: secrets"
+
+msgid "Plan group: templates and compose"
+msgstr "Plan group: templates and compose"
+
 msgid "Planned changes:"
 msgstr "Planned changes:"
 
-msgid "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
-msgstr "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step)."
+msgid "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize_platform step)."
+msgstr "Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize_platform step)."
 
 msgid "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
 msgstr "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n Press 'Enter' to leave default value:\n"
@@ -1122,8 +1161,14 @@ msgstr "check_system disabled; Docker check skipped"
 msgid "checkout dependency repos"
 msgstr "checkout dependency repos"
 
-msgid "clone or update git repos"
-msgstr "clone or update git repos"
+msgid "clone or update Odoo platform"
+msgstr "clone or update Odoo platform"
+
+msgid "clone or update dependency repos"
+msgstr "clone or update dependency repos"
+
+msgid "clone or update developing project"
+msgstr "clone or update developing project"
 
 msgid "compose fragment {NAME} stale"
 msgstr "compose fragment {NAME} stale"
@@ -1371,8 +1416,14 @@ msgstr "manifest v1 does not support scenarios; run \"odpm manifest migrate --wr
 msgid "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
 msgstr "manifest_schema 2 requires requires_odpm (minimum odpm manager version)."
 
-msgid "materialize repos before writing deps.lock"
-msgstr "materialize repos before writing deps.lock"
+msgid "materialize Odoo platform before writing deps.lock"
+msgstr "materialize Odoo platform before writing deps.lock"
+
+msgid "materialize dependency repos before writing deps.lock"
+msgstr "materialize dependency repos before writing deps.lock"
+
+msgid "materialize developing project before writing deps.lock"
+msgstr "materialize developing project before writing deps.lock"
 
 msgid "miss {REF}"
 msgstr "miss {REF}"

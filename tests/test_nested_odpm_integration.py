@@ -193,6 +193,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
     def test_map_folders_does_not_merge_nested_requirements_into_runtime_config(self):
         config = _map_folders_config_stub()
         url = "https://github.com/acme/A.git"
+        config.dependencies = [url]
         dependency = MagicMock(
             is_cloned=True,
             project_path="/tmp/dep",
@@ -203,12 +204,6 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         env = MagicMock(config=config)
         env.mapped_folders = []
         links = ProjectLinks(env)
-        links._resolve_dependencies = MagicMock(
-            return_value=DependencyResolutionResult(
-                urls=[url],
-                nested_fragments=[],
-            )
-        )
 
         with patch(
             "dev_project.config.payload.compute_venv_lock_hash",
@@ -220,7 +215,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         self.assertNotIn("openupgradelib", payload["requirements_txt"])
         self.assertIn("requests==2.31.0", payload["requirements_txt"])
 
-    def test_map_folders_ci_nested_version_mismatch_raises_pipeline_error(self):
+    def test_materialize_dependencies_ci_nested_version_mismatch_raises(self):
         config = _map_folders_config_stub(scenario=constants.CI_SCENARIO)
         url = "https://github.com/acme/A.git"
         dependency = MagicMock(
@@ -248,7 +243,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         )
 
         with self.assertRaises(PipelineError):
-            links.map_folders()
+            links.materialize_dependencies()
 
 
 if __name__ == "__main__":

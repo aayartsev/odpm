@@ -49,15 +49,51 @@ PLAN_L10N_RU: dict[str, str] = {
     "Build compose start command and write .odpm/runtime/config.json when stale": (
         "Собрать команду запуска compose и записать .odpm/runtime/config.json при устаревании"
     ),
-    "Build docker volume mapping for Odoo, venv, and addons": (
-        "Построить маппинг docker-томов для Odoo, venv и аддонов"
+    "Build docker volume mapping for Odoo, venv, and addons "
+    "(no dependency clone or OCA discovery)": (
+        "Построить маппинг docker-томов для Odoo, venv и аддонов "
+        "(без клона зависимостей и без обхода OCA)"
     ),
+    "Clone or update the developing project git repo": (
+        "Клонировать или обновить git-репозиторий проекта разработки"
+    ),
+    "Clone or update the Odoo platform git repo (and build date when unlocked)": (
+        "Клонировать или обновить git-репозиторий платформы Odoo "
+        "(и дату сборки, если нет пина)"
+    ),
+    "Clone or update dependency git repos": (
+        "Клонировать или обновить git-репозитории зависимостей"
+    ),
+    "clone or update developing project": "клонировать или обновить проект разработки",
+    "clone or update Odoo platform": "клонировать или обновить платформу Odoo",
+    "clone or update dependency repos": "клонировать или обновить репозитории зависимостей",
+    "materialize developing project before writing deps.lock": (
+        "материализовать проект разработки перед записью deps.lock"
+    ),
+    "materialize Odoo platform before writing deps.lock": (
+        "материализовать платформу Odoo перед записью deps.lock"
+    ),
+    "materialize dependency repos before writing deps.lock": (
+        "материализовать репозитории зависимостей перед записью deps.lock"
+    ),
+    "Plan group: preparation — git and sources": (
+        "Группа плана: подготовка — git и исходники"
+    ),
+    "Plan group: post-clone hooks": "Группа плана: скрипты после клонирования",
+    "Plan group: dependencies": "Группа плана: зависимости",
+    "Plan group: project layout": "Группа плана: карта проекта",
+    "Plan group: lock pins": "Группа плана: фиксация версий",
+    "Plan group: templates and compose": "Группа плана: шаблоны и compose",
+    "Plan group: secrets": "Группа плана: секреты",
+    "Plan group: checkout and project links": (
+        "Группа плана: checkout и ссылки проекта"
+    ),
+    "Plan group: runtime": "Группа плана: runtime",
+    "Plan group: IDE": "Группа плана: IDE",
+    "Plan group: image build": "Группа плана: сборка образа",
     "Check Docker engine": "Проверить Docker engine",
     "Checkout dependency repos to odoo version branch": (
         "Переключить репозитории зависимостей на ветку версии Odoo"
-    ),
-    "Clone or update platform, developing, and dependency git repos": (
-        "Клонировать или обновить platform, developing и git-зависимости"
     ),
     "Clone or update manifest service_sources git repositories": (
         "Клонировать или обновить git-репозитории service_sources из manifest"
@@ -154,7 +190,6 @@ PLAN_L10N_RU: dict[str, str] = {
         "CI kaniko direct prepare-only; проверка Docker daemon пропущена"
     ),
     "checkout dependency repos": "переключить репозитории зависимостей",
-    "clone or update git repos": "клонировать или обновить git-репозитории",
     "compose fragment {NAME} stale": "compose-фрагмент {NAME} устарел",
     "compose fragment {NAME} up to date": "compose-фрагмент {NAME} актуален",
     "compose service fragments cleanup": "очистка compose service fragments",
@@ -191,9 +226,6 @@ PLAN_L10N_RU: dict[str, str] = {
     "lock apply not used in this mode": "применение lock не используется в этом режиме",
     "lock verify not applicable": "проверка lock не применима",
     "manifest locks.git": "manifest locks.git",
-    "materialize repos before writing deps.lock": (
-        "материализовать репозитории перед записью deps.lock"
-    ),
     "no git lock source available": "источник git lock недоступен",
     "sync project service-sources links": (
         "синхронизировать ссылки project/service-sources"

@@ -10,6 +10,7 @@ from ..host.context import HostProjectContext
 from ..translations import _
 from .core import OdpmPlan, PlanStep
 from .compose_runtime import compose_up_force_recreate_value
+from .step_groups import plan_group_header, plan_group_key_for_step
 
 
 PLAN_JSON_VERSION = 1
@@ -74,7 +75,22 @@ def format_plan_table(plan: OdpmPlan) -> str:
         _("Action   Required  ID                    Reason"),
         "-" * 72,
     ]
+    emitted_groups: set[str] = set()
+    last_group: str | None = None
     for step in plan.steps:
+        group_key = plan_group_key_for_step(step.id)
+        if (
+            group_key is not None
+            and group_key != last_group
+            and group_key not in emitted_groups
+        ):
+            if len(lines) > 2:
+                lines.append("")
+            lines.append(f"# {plan_group_header(group_key)}")
+            emitted_groups.add(group_key)
+            last_group = group_key
+        elif group_key is not None:
+            last_group = group_key
         lines.append(
             f"{step.outcome.upper():<8} {_format_required(step):<8}  "
             f"{step.id:<22} {step.reason}"

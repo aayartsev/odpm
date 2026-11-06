@@ -28,7 +28,9 @@ class PlanFormatHelperTests(unittest.TestCase):
     def test_plan_has_required_changes_when_required_run_exists(self):
         plan = OdpmPlan(
             steps=(
-                PlanStep("git.materialize", "desc", "run", True, "reason"),
+                PlanStep(
+                    "git.materialize_developing", "desc", "run", True, "reason"
+                ),
                 PlanStep("vscode.settings", "desc", "noop", False, "reason"),
             )
         )
@@ -122,12 +124,25 @@ class PlanJsonFormatTests(unittest.TestCase):
     def test_format_plan_defaults_to_table(self):
         plan = OdpmPlan(
             steps=(
-                PlanStep("git.materialize", "Clone", "run", True, "clone repos"),
+                PlanStep(
+                    "git.materialize_developing",
+                    "Clone",
+                    "run",
+                    True,
+                    "clone repos",
+                ),
             )
         )
         text = format_plan(plan)
-        self.assertIn("Action   Required  ID", text)
-        self.assertIn("git.materialize", text)
+        self.assertTrue(
+            "Action   Required  ID" in text or "Действие" in text,
+            text,
+        )
+        self.assertIn("git.materialize_developing", text)
+        self.assertTrue(
+            "Plan group:" in text or "Группа плана:" in text,
+            text,
+        )
 
     @patch(
         "dev_project.plan.format.compose_up_force_recreate_value",

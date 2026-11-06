@@ -93,7 +93,10 @@ class ImageCliParseTests(unittest.TestCase):
         )
 
     def test_sources_only_whitelist_excludes_docker(self):
-        self.assertIn("git.materialize", SOURCES_ONLY_STEP_IDS)
+        self.assertIn("git.materialize_developing", SOURCES_ONLY_STEP_IDS)
+        self.assertIn("git.materialize_platform", SOURCES_ONLY_STEP_IDS)
+        self.assertIn("git.materialize_dependencies", SOURCES_ONLY_STEP_IDS)
+        self.assertNotIn("git.materialize", SOURCES_ONLY_STEP_IDS)
         self.assertIn("sources.materialize", SOURCES_ONLY_STEP_IDS)
         self.assertNotIn("docker.engine_check", SOURCES_ONLY_STEP_IDS)
         self.assertNotIn("compose.validate", SOURCES_ONLY_STEP_IDS)

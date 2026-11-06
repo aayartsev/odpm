@@ -9,9 +9,11 @@ import dev_project.prepare as prepare_pkg
 PREPARE_STEP_IDS = [
     "git.lock_load",
     "git.ensure_present",
-    "git.materialize",
+    "git.materialize_developing",
+    "git.materialize_platform",
     "sources.materialize",
     "hooks.post_clone",
+    "git.materialize_dependencies",
     "project.map_folders",
     "git.lock_apply",
     "template.dockerfile",

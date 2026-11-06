@@ -1094,9 +1094,9 @@ RU_MESSAGES: dict[str, str] = {
         "разрабатываемого проекта или параметр --odoo-version в командной строке."
     ),
     "Platform git repository at {odoo_src_dir} is not ready yet; "
-    "cloning will run during prepare (git.materialize step).": (
+    "cloning will run during prepare (git.materialize_platform step).": (
         "Git-репозиторий platform в {odoo_src_dir} ещё не готов; "
-        "клонирование выполнится на этапе prepare (шаг git.materialize)."
+        "клонирование выполнится на этапе prepare (шаг git.materialize_platform)."
     ),
     "Please select scenario by number of odpm usage from this list {LIST_OF_SCENARIOS}\n "
     "Press 'Enter' to leave default value:\n": (

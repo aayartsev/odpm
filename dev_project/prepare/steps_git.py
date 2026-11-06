@@ -65,13 +65,17 @@ def evaluate_git_ensure_present(ctx: PrepareContext) -> PlanStep:
     )
 
 
-def evaluate_git_materialize(ctx: PrepareContext) -> PlanStep:
-    description = plan_msg(
-        "Clone or update platform, developing, and dependency git repos"
-    )
+def _evaluate_git_materialize_part(
+    ctx: PrepareContext,
+    *,
+    step_id: str,
+    description: str,
+    reason_default: str,
+    reason_update_lock: str,
+) -> PlanStep:
     if skip_git(ctx):
         return make_plan_step(
-            "git.materialize",
+            step_id,
             description,
             "skip",
             False,
@@ -79,18 +83,56 @@ def evaluate_git_materialize(ctx: PrepareContext) -> PlanStep:
         )
     if update_lock(ctx):
         return make_plan_step(
-            "git.materialize",
+            step_id,
             description,
             "run",
             True,
-            plan_msg("materialize repos before writing deps.lock"),
+            reason_update_lock,
         )
     return make_plan_step(
-        "git.materialize",
+        step_id,
         description,
         "run",
         True,
-        plan_msg("clone or update git repos"),
+        reason_default,
+    )
+
+
+def evaluate_git_materialize_developing(ctx: PrepareContext) -> PlanStep:
+    return _evaluate_git_materialize_part(
+        ctx,
+        step_id="git.materialize_developing",
+        description=plan_msg("Clone or update the developing project git repo"),
+        reason_default=plan_msg("clone or update developing project"),
+        reason_update_lock=plan_msg(
+            "materialize developing project before writing deps.lock"
+        ),
+    )
+
+
+def evaluate_git_materialize_platform(ctx: PrepareContext) -> PlanStep:
+    return _evaluate_git_materialize_part(
+        ctx,
+        step_id="git.materialize_platform",
+        description=plan_msg(
+            "Clone or update the Odoo platform git repo (and build date when unlocked)"
+        ),
+        reason_default=plan_msg("clone or update Odoo platform"),
+        reason_update_lock=plan_msg(
+            "materialize Odoo platform before writing deps.lock"
+        ),
+    )
+
+
+def evaluate_git_materialize_dependencies(ctx: PrepareContext) -> PlanStep:
+    return _evaluate_git_materialize_part(
+        ctx,
+        step_id="git.materialize_dependencies",
+        description=plan_msg("Clone or update dependency git repos"),
+        reason_default=plan_msg("clone or update dependency repos"),
+        reason_update_lock=plan_msg(
+            "materialize dependency repos before writing deps.lock"
+        ),
     )
 
 
@@ -193,11 +235,19 @@ def exec_git_ensure_present(ctx: PrepareContext) -> None:
     ctx.git_repos.ensure_git_repos_present()
 
 
-def exec_git_materialize(ctx: PrepareContext) -> None:
+def exec_git_materialize_developing(ctx: PrepareContext) -> None:
+    ctx.git_repos.materialize_developing()
+
+
+def exec_git_materialize_platform(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.git_repos.materialize_git_repos(
+    ctx.git_repos.materialize_platform(
         skip_build_date=ctx.lock_manager.has_platform_lock()
     )
+
+
+def exec_git_materialize_dependencies(ctx: PrepareContext) -> None:
+    ctx.links.materialize_dependencies()
 
 
 def exec_lock_apply(ctx: PrepareContext) -> None:

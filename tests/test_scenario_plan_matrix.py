@@ -129,7 +129,13 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
             OdpmCliArgs(plan=True, no_git_update=True),
         )
         self.assertEqual(plan_step(plan, "git.ensure_present").outcome, "run")
-        self.assertEqual(plan_step(plan, "git.materialize").outcome, "skip")
+        self.assertEqual(
+            plan_step(plan, "git.materialize_developing").outcome, "skip"
+        )
+        self.assertEqual(plan_step(plan, "git.materialize_platform").outcome, "skip")
+        self.assertEqual(
+            plan_step(plan, "git.materialize_dependencies").outcome, "skip"
+        )
 
     def test_a4_update_lock_collect_without_compose_up(self) -> None:
         project_dir = self._provision(scenario=constants.CI_SCENARIO)

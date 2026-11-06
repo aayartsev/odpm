@@ -269,6 +269,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         config = MagicMock()
         config.use_oca_dependencies = True
         config.skip_git_update.return_value = False
+        config.dependencies = [url]
         config.developing_project = MagicMock(project_path="")
         config.pre_commit_map_files = []
         config.odoo_src_dir = "/tmp/odoo"
@@ -300,6 +301,28 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         env.config = config
         env.mapped_folders = []
         _attach_host_addon_layout(env)
+        links = ProjectLinks(env)
+        links._resolve_dependencies = MagicMock()
+
+        links.map_folders()
+
+        links._resolve_dependencies.assert_not_called()
+        config.handle_git_link.assert_called_once_with(url, materialize=False)
+
+    def test_materialize_dependencies_clones_without_oca_discovery(self):
+        url = "https://github.com/acme/A.git"
+        config = MagicMock()
+        config.use_oca_dependencies = False
+        config.skip_git_update.return_value = False
+        config.developing_project = MagicMock(project_path="")
+        dependency = MagicMock(
+            is_cloned=True,
+            project_path="/tmp/dep",
+        )
+        config.handle_git_link = MagicMock(return_value=dependency)
+        config.apply_nested_compatibility = MagicMock()
+        env = MagicMock()
+        env.config = config
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
@@ -308,66 +331,12 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             )
         )
 
-        links.map_folders()
+        links.materialize_dependencies()
 
-        config.handle_git_link.assert_called_once_with(url, materialize=False)
+        config.handle_git_link.assert_called_once_with(url, materialize=True)
+        self.assertIsNotNone(links._dependency_resolution)
 
-    def test_map_folders_applies_nested_compatibility_from_resolution(self):
-        url = "https://github.com/acme/A.git"
-        fragment = NestedOdpmFragment(
-            dependencies=[],
-            odoo_version="17.0",
-            python_version="3.12",
-            source_path="/tmp/framework/odpm.json",
-        )
-        config = MagicMock()
-        config.use_oca_dependencies = True
-        config.skip_git_update.return_value = False
-        config.developing_project = MagicMock(project_path="")
-        config.pre_commit_map_files = []
-        config.odoo_src_dir = "/tmp/odoo"
-        config.venv_dir = "/tmp/venv"
-        config.odoo_tests_dir = "/tmp/tests"
-        config.program_dir = "/tmp/program"
-        config.docker_odoo_dir = "/docker/odoo"
-        config.docker_venv_dir = "/docker/venv"
-        config.docker_temp_tests_dir = "/docker/tests"
-        config.docker_dev_project_dir = "/docker/dev_project"
-        config.docker_backups_dir = "/docker/backups"
-        config.docker_project_dir = "/docker/project"
-        config.dir_for_odoo_container_home = "/tmp/home"
-        config.docker_odoo_project_dir_path = "/docker/project"
-        config.developing_project_dir_path = "/tmp/developing"
-        config.docker_extra_addons = "/docker/addons"
-        config.dependencies_projects = []
-        config.dependencies_dirs = []
-        config.docker_dirs_with_addons = []
-        config.check_project_for_subprojects = MagicMock(return_value=[])
-        config.apply_nested_compatibility = MagicMock()
-        dependency = MagicMock(
-            is_cloned=True,
-            project_path="/tmp/dep",
-            inside_docker_path="dep",
-        )
-        dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
-        config.handle_git_link = MagicMock(return_value=dependency)
-        env = MagicMock()
-        env.config = config
-        env.mapped_folders = []
-        _attach_host_addon_layout(env)
-        links = ProjectLinks(env)
-        links._resolve_dependencies = MagicMock(
-            return_value=DependencyResolutionResult(
-                urls=[url],
-                nested_fragments=[fragment],
-            )
-        )
-
-        links.map_folders()
-
-        config.apply_nested_compatibility.assert_called_once_with([fragment])
-
-    def test_map_folders_skips_apply_when_resolution_has_no_nested_fragments(self):
+    def test_map_folders_after_materialize_does_not_clone_again(self):
         url = "https://github.com/acme/A.git"
         config = MagicMock()
         config.use_oca_dependencies = False
@@ -412,9 +381,117 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             )
         )
 
+        links.materialize_dependencies()
+        config.handle_git_link.reset_mock()
         links.map_folders()
 
+        config.handle_git_link.assert_called_once_with(url, materialize=False)
+        links._resolve_dependencies.assert_called_once()
+
+    def test_materialize_dependencies_applies_nested_compatibility(self):
+        url = "https://github.com/acme/A.git"
+        fragment = NestedOdpmFragment(
+            dependencies=[],
+            odoo_version="17.0",
+            python_version="3.12",
+            source_path="/tmp/framework/odpm.json",
+        )
+        config = MagicMock()
+        config.use_oca_dependencies = True
+        config.skip_git_update.return_value = False
+        config.developing_project = MagicMock(project_path="")
+        config.apply_nested_compatibility = MagicMock()
+        dependency = MagicMock(
+            is_cloned=True,
+            project_path="/tmp/dep",
+        )
+        config.handle_git_link = MagicMock(return_value=dependency)
+        env = MagicMock()
+        env.config = config
+        links = ProjectLinks(env)
+        links._resolve_dependencies = MagicMock(
+            return_value=DependencyResolutionResult(
+                urls=[url],
+                nested_fragments=[fragment],
+            )
+        )
+
+        links.materialize_dependencies()
+
+        config.apply_nested_compatibility.assert_called_once_with([fragment])
+
+    def test_materialize_dependencies_skips_apply_when_no_nested_fragments(self):
+        url = "https://github.com/acme/A.git"
+        config = MagicMock()
+        config.use_oca_dependencies = False
+        config.skip_git_update.return_value = False
+        config.developing_project = MagicMock(project_path="")
+        config.apply_nested_compatibility = MagicMock()
+        dependency = MagicMock(
+            is_cloned=True,
+            project_path="/tmp/dep",
+        )
+        config.handle_git_link = MagicMock(return_value=dependency)
+        env = MagicMock()
+        env.config = config
+        links = ProjectLinks(env)
+        links._resolve_dependencies = MagicMock(
+            return_value=DependencyResolutionResult(
+                urls=[url],
+                nested_fragments=[],
+            )
+        )
+
+        links.materialize_dependencies()
+
         config.apply_nested_compatibility.assert_not_called()
+
+    def test_map_folders_alone_does_not_resolve_or_clone(self):
+        url = "https://github.com/acme/A.git"
+        config = MagicMock()
+        config.use_oca_dependencies = True
+        config.skip_git_update.return_value = False
+        config.dependencies = [url]
+        config.developing_project = MagicMock(project_path="")
+        config.pre_commit_map_files = []
+        config.odoo_src_dir = "/tmp/odoo"
+        config.venv_dir = "/tmp/venv"
+        config.odoo_tests_dir = "/tmp/tests"
+        config.program_dir = "/tmp/program"
+        config.docker_odoo_dir = "/docker/odoo"
+        config.docker_venv_dir = "/docker/venv"
+        config.docker_temp_tests_dir = "/docker/tests"
+        config.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_backups_dir = "/docker/backups"
+        config.docker_project_dir = "/docker/project"
+        config.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_odoo_project_dir_path = "/docker/project"
+        config.developing_project_dir_path = "/tmp/developing"
+        config.docker_extra_addons = "/docker/addons"
+        config.dependencies_projects = []
+        config.dependencies_dirs = []
+        config.docker_dirs_with_addons = []
+        config.check_project_for_subprojects = MagicMock(return_value=[])
+        config.apply_nested_compatibility = MagicMock()
+        dependency = MagicMock(
+            is_cloned=True,
+            project_path="/tmp/dep",
+            inside_docker_path="dep",
+        )
+        dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
+        config.handle_git_link = MagicMock(return_value=dependency)
+        env = MagicMock()
+        env.config = config
+        env.mapped_folders = []
+        _attach_host_addon_layout(env)
+        links = ProjectLinks(env)
+        links._resolve_dependencies = MagicMock()
+
+        links.map_folders()
+
+        links._resolve_dependencies.assert_not_called()
+        config.apply_nested_compatibility.assert_not_called()
+        config.handle_git_link.assert_called_once_with(url, materialize=False)
 
 
 class ProjectLinksUpdateTests(unittest.TestCase):

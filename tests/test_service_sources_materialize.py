@@ -186,7 +186,7 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
 class ServiceSourcesPrepareStepTests(unittest.TestCase):
     def test_prepare_registry_includes_sources_materialize_after_git_materialize(self):
         ids = [step.id for step in BUILTIN_PREPARE_STEPS]
-        git_index = ids.index("git.materialize")
+        git_index = ids.index("git.materialize_platform")
         sources_index = ids.index("sources.materialize")
         hooks_index = ids.index("hooks.post_clone")
         self.assertEqual(sources_index, git_index + 1)

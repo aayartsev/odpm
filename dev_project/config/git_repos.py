@@ -124,11 +124,15 @@ class GitRepoCoordinator:
             _logger.error(message)
             raise ConfigError(message)
 
-    def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
+    def materialize_developing(self) -> None:
         self._maybe_enable_worktree(self.config.developing_project)
-        self._maybe_enable_worktree(self.config.odoo_platform_project)
         self.config._developing_materializer.materialize_full(self.config)
+        self._paths.apply_developing_project_docker_path()
+        if self.config.developing_project_dir_path:
+            self.config.ensure_developing_repo_symlinks()
 
+    def materialize_platform(self, *, skip_build_date: bool = False) -> None:
+        self._maybe_enable_worktree(self.config.odoo_platform_project)
         try:
             self.config.odoo_platform_project.build_project()
             if not skip_build_date:
@@ -138,9 +142,10 @@ class GitRepoCoordinator:
             self.config.odoo_src_dir = platform_path
             self.config.ensure_git_repo_symlink(platform_path, scope="project")
 
-        self._paths.apply_developing_project_docker_path()
-        if self.config.developing_project_dir_path:
-            self.config.ensure_developing_repo_symlinks()
+    def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
+        """Clone developing then platform (same order as prepare steps)."""
+        self.materialize_developing()
+        self.materialize_platform(skip_build_date=skip_build_date)
 
     def apply_odoo_build_date_to_platform(self) -> None:
         self.config.odoo_platform_project.apply_build_date(

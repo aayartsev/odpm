@@ -4,6 +4,7 @@
 
 | Статья | О чём |
 |--------|--------|
+| [Зоны шагов подготовки](prepare-zones.md) | Карта git / зависимости / карта папок / сцепка `image … ensure` |
 | [Непрерывная интеграция репозитория](ci.md) | GitHub Actions, compose-smoke, golden-path |
 | [Тесты и статический анализ](tests.md) | Unit-тесты, ruff; quirks macOS/sandbox — [ADR-023](adr-023-local-unit-parity.md) |
 | [Переводы интерфейса](i18n.md) | gettext, ru_RU/en_US, CI job **i18n**, [ADR-008](adr-008-i18n-host-container-policy.md) |

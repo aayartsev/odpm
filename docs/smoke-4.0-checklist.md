@@ -152,7 +152,7 @@ odpm plan --plan-format json | jq .
 |-------|----------|--------|------|
 | Exit code | 0 | | |
 | Table header | `Action   Required  ID                    Reason` | | |
-| Git branch | `RUN git.materialize` or `SKIP`/`RUN` for `--no-git-update` / `--update-lock` | | |
+| Git branch | `RUN git.materialize_developing` / `_platform` / `_dependencies` or `SKIP` for `--no-git-update` | | |
 | Idle project | `NOOP compose.service` and `NOOP compose.generate` when runtime hash matches and root `docker-compose.yml` exists | | |
 | Stale runtime | `UPDATE compose.service` with reason `venv_lock_hash changed` after venv/scenario change | | |
 | Missing compose | `RUN compose.service` + `UPDATE compose.generate` when root `docker-compose.yml` is absent | | |

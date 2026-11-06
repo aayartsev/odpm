@@ -195,7 +195,7 @@ class SystemChecker(SystemCheckerProtocol):
         ):
             return
         if not self._platform_git_repo_ready():
-            message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize step).').format(odoo_src_dir=self.config.odoo_src_dir)
+            message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize_platform step).').format(odoo_src_dir=self.config.odoo_src_dir)
             _logger.warning(message)
 
     def check_file_system(self) -> None:

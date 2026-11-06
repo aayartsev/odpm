@@ -11,7 +11,10 @@ from .types import PrepareContext
 def evaluate_map_folders(ctx: PrepareContext) -> PlanStep:
     return make_plan_step(
         "project.map_folders",
-        plan_msg("Build docker volume mapping for Odoo, venv, and addons"),
+        plan_msg(
+            "Build docker volume mapping for Odoo, venv, and addons "
+            "(no dependency clone or OCA discovery)"
+        ),
         "run",
         True,
         plan_msg("refresh docker volume mapping"),

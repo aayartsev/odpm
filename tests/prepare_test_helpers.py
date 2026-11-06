@@ -9,6 +9,7 @@ from unittest.mock import patch
 from dev_project.docker_capabilities import DockerCapabilities
 
 _PREPARE_SERVICE_PATCH_TARGETS = (
+    "dev_project.project_env.links.ProjectLinks.materialize_dependencies",
     "dev_project.project_env.links.ProjectLinks.map_folders",
     "dev_project.project_env.templates.ProjectTemplates.generate_dockerfile",
     "dev_project.project_env.templates.ProjectTemplates.generate_dockerignore",

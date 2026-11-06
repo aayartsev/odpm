@@ -12,9 +12,6 @@ from dev_project.prepare.steps_template import exec_template_dockerfile
 from dev_project.prepare.steps_project import exec_map_folders
 from dev_project.docker_capabilities import DockerCapabilities
 from dev_project.prepare.steps_compose import exec_compose_generate
-from dev_project.prepare.steps_git import exec_git_materialize
-
-
 class PrepareContextServiceInjectionTests(unittest.TestCase):
     def test_make_prepare_context_reuses_create_project_environment_services(self):
         config = MagicMock()
@@ -100,7 +97,11 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
         exec_compose_generate(ctx)
         mock_generate.assert_called_once()
 
-    def test_exec_git_materialize_calls_materialize_git_repos_once(self):
+    def test_exec_git_materialize_parts_call_coordinator(self):
+        from dev_project.prepare.steps_git import (
+            exec_git_materialize_developing,
+            exec_git_materialize_platform,
+        )
 
         config = MagicMock()
         git_repos = MagicMock()
@@ -110,9 +111,11 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
         ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
         ctx.lock_manager = lock_manager
 
-        exec_git_materialize(ctx)
+        exec_git_materialize_developing(ctx)
+        exec_git_materialize_platform(ctx)
 
-        git_repos.materialize_git_repos.assert_called_once_with(skip_build_date=False)
+        git_repos.materialize_developing.assert_called_once_with()
+        git_repos.materialize_platform.assert_called_once_with(skip_build_date=False)
 
 
 if __name__ == "__main__":

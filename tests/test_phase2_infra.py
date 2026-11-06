@@ -251,7 +251,9 @@ class SystemCheckerExtraTests(unittest.TestCase):
 
         config._git_repos.materialize_git_repos.assert_not_called()
         mock_logger.warning.assert_called_once()
-        self.assertIn("git.materialize", mock_logger.warning.call_args.args[0])
+        self.assertIn(
+            "git.materialize_platform", mock_logger.warning.call_args.args[0]
+        )
 
     @patch("dev_project.check_system.os.makedirs", side_effect=OSError("denied"))
     @patch("dev_project.check_system.os.path.exists", return_value=False)

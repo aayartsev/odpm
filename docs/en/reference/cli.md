@@ -72,7 +72,7 @@ odpm prepare --secrets-file ~/new-secrets.json
 | `odpm prepare --update-lock` | Write `.odpm/deps.lock.json` and exit |
 | `--no-git-update` | Do not touch git; lock is **not read**; directories must already exist |
 | `--git-worktree` | Materialize remote git as bare mirrors + per-tenant worktrees under `ODOO_PROJECTS_DIR` (same as `ODPM_GIT_WORKTREE=1`; ADR-028) |
-| `odpm image <layer> ensure` | Ensure a CI image layer: `base`, `platform`, `deps`, `app`, `lint` (ADR-027); scoped prepare first (sources + secrets, no compose/templates) |
+| `odpm image <layer> ensure` | Ensure a CI image layer: `base`, `platform`, `deps`, `app`, `lint` (ADR-027); **first** scoped prepare (sources + secrets), **then** layer build — intentional coupling, no build-only mode |
 | `odpm image … --from REF` | Explicit parent for `deps` / `app` (else platform or deps) |
 | `odpm build` | Layered shortcut for **`ci`**: base → platform → deps? → app (error otherwise) |
 | `--image-tag TAG` | Final image name/tag for `build` / `image app ensure` |
@@ -87,7 +87,7 @@ Deprecated synonyms: `--skip-start` → `odpm prepare`; `--build-image` → `odp
 
 ## Change plan (dry run)
 
-Shows which prepare steps would run **without** changing git, writing files, or `docker compose up`.
+Shows which prepare steps would run **without** changing git, writing files, or `docker compose up`. The table groups steps with headers (git/sources, dependencies, folder map, templates, secrets, image build, …) — labels only; step ids are unchanged. Developing, platform, and dependency clones are separate rows; the folder map does not clone.
 
 ```bash
 odpm plan --skip-start

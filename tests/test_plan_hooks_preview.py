@@ -29,7 +29,9 @@ class PlanHookPreviewTests(unittest.TestCase):
 
     def test_insert_prepare_appends_post_prepare(self) -> None:
         prepare = [
-            make_plan_step("git.materialize", "git", "run", True, "clone"),
+            make_plan_step(
+                "git.materialize_developing", "git", "run", True, "clone"
+            ),
             make_plan_step("compose.generate", "compose", "run", True, "gen"),
         ]
         hook = make_plan_step("hooks.post_prepare", "hooks", "run", False, "notify")

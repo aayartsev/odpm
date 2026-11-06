@@ -53,7 +53,7 @@ Project `.env` only needs standard odpm variables; **`DIGITAL_AUTOPARTS_ENV_DIR`
 
 ## Materialize
 
-Prepare step **`sources.materialize`** (after `git.materialize`, before `hooks.post_clone`):
+Prepare step **`sources.materialize`** (after `git.materialize_platform`, before `hooks.post_clone`):
 
 1. Clones git sources under **`${ODOO_PROJECTS_DIR}/service-sources/<name>`** (default)
 2. For `file://` — uses the given directory (no clone)
