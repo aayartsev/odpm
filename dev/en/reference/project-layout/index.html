@@ -2147,7 +2147,7 @@
 </tr>
 <tr>
 <td><code>service-sources/</code></td>
-<td>Service links to <code>service_sources</code> clones (sidecar/build); clones themselves live under <code>${ODOO_PROJECTS_DIR}/service-sources/</code></td>
+<td>Service links to <code>service_sources</code> clones (sidecar/build); clones live under <code>${ODOO_PROJECTS_DIR}/service-sources/</code> (in worktree mode under <code>worktrees/&lt;tenant&gt;/…</code>, ADR-028)</td>
 </tr>
 <tr>
 <td><code>data/odoo/</code></td>
@@ -2162,7 +2162,8 @@
 <h2 id="where-platform-and-module-sources-live">Where platform and module sources live<a class="headerlink" href="#where-platform-and-module-sources-live" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Repositories cloned via HTTPS/SSH — in <strong><code>ODOO_PROJECTS_DIR</code></strong> (set in <code>.env</code>).</li>
-<li>Projects via <strong><code>file://</code></strong> links — at the given absolute path, without clone or version switching.</li>
+<li>With <code>ODPM_GIT_WORKTREE=1</code> / <code>--git-worktree</code>: bare mirrors in <code>mirrors/&lt;repo-key&gt;.git</code>, worktrees in <code>worktrees/&lt;tenant&gt;/&lt;repo-key&gt;/</code> (<code>tenant</code> = basename of the odpm project directory). Project symlinks point at the worktree. Existing full clones beside them are left alone. Details: <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md">ADR-028</a>.</li>
+<li>Projects via <strong><code>file://</code></strong> links — at the given absolute path, without clone or version switching (even when worktree mode is on).</li>
 </ul>
 <p>With <code>create_module_links</code> enabled, <strong>symbolic links</strong> may appear in the root for editor navigation — see <a href="../../operations/vscode-debug/">debugging</a>.</p>
 

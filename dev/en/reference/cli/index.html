@@ -2458,6 +2458,10 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 <td>Do not touch git; lock is <strong>not read</strong>; directories must already exist</td>
 </tr>
 <tr>
+<td><code>--git-worktree</code></td>
+<td>Materialize remote git as bare mirrors + per-tenant worktrees under <code>ODOO_PROJECTS_DIR</code> (same as <code>ODPM_GIT_WORKTREE=1</code>; ADR-028)</td>
+</tr>
+<tr>
 <td><code>odpm image &lt;layer&gt; ensure</code></td>
 <td>Ensure a CI image layer: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); scoped prepare first (sources + secrets, no compose/templates)</td>
 </tr>

@@ -2144,7 +2144,7 @@
 </tr>
 <tr>
 <td><code>service-sources/</code></td>
-<td>Служебные ссылки на клоны <code>service_sources</code> (sidecar/build); сами клоны — в <code>${ODOO_PROJECTS_DIR}/service-sources/</code></td>
+<td>Служебные ссылки на клоны <code>service_sources</code> (sidecar/build); сами клоны — в <code>${ODOO_PROJECTS_DIR}/service-sources/</code> (в режиме worktree — на <code>worktrees/&lt;тенант&gt;/…</code>, ADR-028)</td>
 </tr>
 <tr>
 <td><code>data/odoo/</code></td>
@@ -2159,7 +2159,8 @@
 <h2 id="_4">Где лежат исходники платформы и модулей<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Репозитории, клонируемые по HTTPS/SSH, — в <strong><code>ODOO_PROJECTS_DIR</code></strong> (задаётся в <code>.env</code>).</li>
-<li>Проекты по ссылкам вида <strong><code>file://</code></strong> — лежат по указанному абсолютному пути, без клонирования и переключения между версиями.</li>
+<li>При <code>ODPM_GIT_WORKTREE=1</code> / <code>--git-worktree</code>: зеркала без рабочей копии в <code>mirrors/&lt;ключ-репо&gt;.git</code>, рабочие деревья в <code>worktrees/&lt;тенант&gt;/&lt;ключ-репо&gt;/</code> (<code>тенант</code> = имя каталога odpm-проекта). Ссылки в корне проекта указывают на worktree. Старые полные clone рядом не трогаются. Подробнее: <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md">ADR-028</a>.</li>
+<li>Проекты по ссылкам вида <strong><code>file://</code></strong> — лежат по указанному абсолютному пути, без клонирования и переключения между версиями (даже при включённом worktree).</li>
 </ul>
 <p>При включённой опции <code>create_module_links</code> в корне могут появляться <strong>символические ссылки</strong> для удобства навигации в редакторе — см. <a href="../../operations/vscode-debug/">отладка</a>.</p>
 
