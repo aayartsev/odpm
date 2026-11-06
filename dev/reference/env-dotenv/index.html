@@ -2417,6 +2417,16 @@
 <td>выкл.</td>
 </tr>
 <tr>
+<td><code>ODPM_IMAGE_FORCE_REBUILD</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — принудительно пересобрать <strong>текущий</strong> слой <code>image … ensure</code> (не родителей)</td>
+<td>выкл.</td>
+</tr>
+<tr>
+<td><code>ODPM_IMAGE_PRUNE_STALE</code></td>
+<td><code>1</code> / <code>true</code> / <code>yes</code> — после успешного ensure удалить устаревшие <code>cache-*</code> текущего слоя (как <code>--image-prune-stale</code>)</td>
+<td>выкл.</td>
+</tr>
+<tr>
 <td><code>ODPM_KANIKO_EXECUTOR_MODE</code></td>
 <td><code>docker-run</code> или <code>direct</code> (мастер для <code>ci</code>+kaniko предлагает <code>direct</code> по умолчанию)</td>
 <td><code>docker-run</code></td>
