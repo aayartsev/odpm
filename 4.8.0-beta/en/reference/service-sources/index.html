@@ -2179,7 +2179,7 @@
 </code></pre></div>
 <p>Project <code>.env</code> only needs standard odpm variables; <strong><code>DIGITAL_AUTOPARTS_ENV_DIR</code> is not required</strong>.</p>
 <h2 id="materialize">Materialize<a class="headerlink" href="#materialize" title="Permanent link">&para;</a></h2>
-<p>Prepare step <strong><code>sources.materialize</code></strong> (after <code>git.materialize</code>, before <code>hooks.post_clone</code>):</p>
+<p>Prepare step <strong><code>sources.materialize</code></strong> (after <code>git.materialize_platform</code>, before <code>hooks.post_clone</code>):</p>
 <ol>
 <li>Clones git sources under <strong><code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code></strong> (default)</li>
 <li>For <code>file://</code> — uses the given directory (no clone)</li>

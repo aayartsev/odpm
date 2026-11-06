@@ -2463,7 +2463,7 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 </tr>
 <tr>
 <td><code>odpm image &lt;layer&gt; ensure</code></td>
-<td>Ensure a CI image layer: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); scoped prepare first (sources + secrets, no compose/templates)</td>
+<td>Ensure a CI image layer: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>first</strong> scoped prepare (sources + secrets), <strong>then</strong> layer build — intentional coupling, no build-only mode</td>
 </tr>
 <tr>
 <td><code>odpm image … --from REF</code></td>
@@ -2498,7 +2498,7 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 <p>CI flow: <code>prepare --stop-after sources</code> → <code>plan</code> (layer hit/miss) → <code>image … ensure</code> or <code>build</code>. Registry tag families: <strong>dev</strong> (profile <code>full</code>) and <strong>runtime</strong> (profile <code>medium</code>) via <code>ODPM_BASE_IMAGE_PROFILE</code>. Scenario <code>ci</code> and base profile <code>ci</code> are <strong>not</strong> renamed. See <a href="../../scenarios/ci/">ci scenario</a>, <a href="https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md">ADR-027</a>.</p>
 <p>Deprecated synonyms: <code>--skip-start</code> → <code>odpm prepare</code>; <code>--build-image</code> → <code>odpm build</code> (layered chain).</p>
 <h2 id="change-plan-dry-run">Change plan (dry run)<a class="headerlink" href="#change-plan-dry-run" title="Permanent link">&para;</a></h2>
-<p>Shows which prepare steps would run <strong>without</strong> changing git, writing files, or <code>docker compose up</code>.</p>
+<p>Shows which prepare steps would run <strong>without</strong> changing git, writing files, or <code>docker compose up</code>. The table groups steps with headers (git/sources, dependencies, folder map, templates, secrets, image build, …) — labels only; step ids are unchanged. Developing, platform, and dependency clones are separate rows; the folder map does not clone.</p>
 <div class="highlight"><pre><span></span><code>odpm<span class="w"> </span>plan<span class="w"> </span>--skip-start
 odpm<span class="w"> </span>plan<span class="w"> </span>--plan-format<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
 odpm<span class="w"> </span>plan<span class="w"> </span>--plan-show-diff<span class="w"> </span>--skip-start
