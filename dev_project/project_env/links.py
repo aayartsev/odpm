@@ -79,7 +79,6 @@ class ProjectLinks:
             if project in self.config.dependencies_projects
             else "project"
         )
-        project_path = project.project_path
         try:
             update_git_repos = self.config.update_git_repos
             if lock_manager is not None and lock_manager.is_pinned(project):
@@ -90,6 +89,11 @@ class ProjectLinks:
                 update_git_repos=update_git_repos,
             )
         finally:
+            project_path = project.project_path
+            if project is self.config.odoo_platform_project and project_path:
+                self.config.odoo_src_dir = project_path
+            if project is self.config.developing_project and project_path:
+                self.config.developing_project_dir_path = project_path
             if project_path:
                 self.config.ensure_git_repo_symlink(project_path, scope=scope)
                 if scope == "project" and project is self.config.developing_project:

@@ -34,6 +34,11 @@ class HandleOdooProjectLink:
         self.git_regex = r"git@[a-z._-]*:"
         self.inside_docker_path = ""
         self.is_cloned = False
+        # ADR-028 opt-in bare+worktree (set by GitRepoCoordinator / materialize)
+        self.worktree_mode = False
+        self.worktree_tenant: Optional[str] = None
+        self.worktree_skip_update = False
+        self.worktree_mirror: Optional[str] = None
 
         self._parser = LinkParser(self)
         self._discovery = ProjectDiscovery(self)
@@ -139,8 +144,16 @@ class HandleOdooProjectLink:
     def checkout_parsed_or_version(self, odoo_version: str) -> None:
         self._checkout.checkout_parsed_or_version(odoo_version)
 
-    def ensure_branch_exists(self, branch_name: str, odoo_version: str) -> None:
-        self._checkout.ensure_branch_exists(branch_name, odoo_version)
+    def ensure_branch_exists(
+        self,
+        branch_name: str,
+        odoo_version: str,
+        *,
+        cwd: Optional[str] = None,
+    ) -> None:
+        self._checkout.ensure_branch_exists(
+            branch_name, odoo_version, cwd=cwd
+        )
 
     def get_odoo_latest_version(self) -> float:
         return self._checkout.get_odoo_latest_version()

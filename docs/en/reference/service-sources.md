@@ -55,10 +55,12 @@ Project `.env` only needs standard odpm variables; **`DIGITAL_AUTOPARTS_ENV_DIR`
 
 Prepare step **`sources.materialize`** (after `git.materialize`, before `hooks.post_clone`):
 
-1. Clones git sources under **`${ODOO_PROJECTS_DIR}/service-sources/<name>`**
+1. Clones git sources under **`${ODOO_PROJECTS_DIR}/service-sources/<name>`** (default)
 2. For `file://` — uses the given directory (no clone)
 3. Writes paths to `ODPM_SOURCE_*` and **re-expands** `services` / `service_patches` before compose
 4. Creates/updates **`<project>/service-sources/<name>`** in the odpm project directory — a symlink to the clone (or `file://` path) for IDE navigation; do not confuse with the clone tree under `ODOO_PROJECTS_DIR`
+
+With `ODPM_GIT_WORKTREE=1` / `--git-worktree`, remote sources use `mirrors/` + `worktrees/<tenant>/<repo-key>/` (not `service-sources/<name>` under `ODOO_PROJECTS_DIR`); project symlinks still point at the worktree. Details: [ADR-028](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md).
 
 With `--no-git-update`, odpm only verifies that directories already exist and syncs the project links.
 

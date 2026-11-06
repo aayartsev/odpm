@@ -180,7 +180,8 @@ def lock_kind_for_link(link) -> LockKind:
 
 
 def is_git_repository(project_path: str) -> bool:
-    return os.path.isdir(os.path.join(project_path, ".git"))
+    git_meta = os.path.join(project_path, ".git")
+    return os.path.isdir(git_meta) or os.path.isfile(git_meta)
 
 
 def is_remote_git_link(link) -> bool:

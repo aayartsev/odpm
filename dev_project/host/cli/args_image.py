@@ -82,6 +82,15 @@ def register_image_subparser(
             help="Skip git clone/fetch/checkout when sources already exist",
             action="store_true",
         )
+        ensure_parser.add_argument(
+            params.GIT_WORKTREE_PARAM,
+            dest="git_worktree",
+            help=(
+                "Materialize remote git as bare mirrors + per-tenant worktrees "
+                "(same as ODPM_GIT_WORKTREE=1)"
+            ),
+            action="store_true",
+        )
         if layer in {params.IMAGE_APP_LAYER, params.IMAGE_DEPS_LAYER}:
             ensure_parser.add_argument(
                 params.IMAGE_FROM_PARAM,

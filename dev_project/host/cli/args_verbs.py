@@ -117,4 +117,13 @@ def register_build_subparser(
         help="""Skip git clone, fetch, and checkout when sources already exist.""",
         action="store_true",
     )
+    parser.add_argument(
+        params.GIT_WORKTREE_PARAM,
+        dest="git_worktree",
+        help=(
+            "Materialize remote git repos as bare mirrors + per-tenant worktrees "
+            "under ODOO_PROJECTS_DIR (same as ODPM_GIT_WORKTREE=1)"
+        ),
+        action="store_true",
+    )
     return parser

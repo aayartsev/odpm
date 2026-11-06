@@ -11,8 +11,20 @@ msgstr " Файл с параметрами \"config.json\" является у�
 msgid "(none)"
 msgstr "(нет)"
 
+msgid "--no-git-update requires an existing bare mirror at {PATH}"
+msgstr "--no-git-update требует существующее bare-зеркало в {PATH}"
+
+msgid "--no-git-update requires an existing worktree at {PATH}"
+msgstr "--no-git-update требует существующее worktree в {PATH}"
+
 msgid "--no-git-update requires existing service_sources directories: {PATHS}"
 msgstr "--no-git-update требует существующие каталоги service_sources: {PATHS}"
+
+msgid "--no-git-update: worktree at {PATH} is on {HAVE}, expected {WANT}; refuse to recreate"
+msgstr "--no-git-update: worktree в {PATH} на коммите {HAVE}, ожидался {WANT}; пересоздание запрещено"
+
+msgid "--no-git-update: worktree path exists but is not a git worktree: {PATH}"
+msgstr "--no-git-update: путь {PATH} существует, но это не git worktree"
 
 msgid "--remote-db is required for odpm database pull."
 msgstr "Для odpm database pull требуется --remote-db."
@@ -118,6 +130,9 @@ msgstr "Не удалось выполнить подключение к слу�
 
 msgid "Cannot create dir, {dir_path}, please check it"
 msgstr "Не удалось создать каталог, {dir_path}, пожалуйста проверьте его."
+
+msgid "Cannot derive repository key from empty relative_path"
+msgstr "Не удалось получить ключ репозитория из пустого relative_path"
 
 msgid "Cannot determine developing project source. Set \"developing_project\" in odpm.json, run from an odpm project directory, or use \"{PROJECT_NAME} {INIT_PARAM}\"."
 msgstr "Не удалось определить источник разрабатываемого проекта. Задайте \"developing_project\" в odpm.json, запускайте из каталога odpm-проекта или используйте \"{PROJECT_NAME} {INIT_PARAM}\"."
@@ -944,6 +959,9 @@ msgstr "Неизвестный провайдер секретов: {NAME}"
 msgid "Unknown {ENV}={VALUE!r}, using managed network"
 msgstr "Неизвестное значение {ENV}={VALUE!r}, используется managed network"
 
+msgid "Unsafe project directory name for git worktree tenant id: {NAME!r}. Use only letters, digits, dot, underscore, hyphen."
+msgstr "Небезопасное имя каталога проекта для id тенанта git worktree: {NAME!r}. Допустимы только буквы, цифры, точка, подчёркивание и дефис."
+
 msgid "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; only debian is supported ({SUPPORTED}). Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version)."
 msgstr "Неподдерживаемый дистрибутив базового образа {DISTRO_NAME}/{DISTRO_VERSION}; поддерживается только debian ({SUPPORTED}). Измените distro_name/distro_version в odpm.json (или --distro-name/--distro-version)."
 
@@ -1570,6 +1588,9 @@ msgstr "проверить наличие локальных git-каталог�
 
 msgid "verify service_sources paths exist"
 msgstr "проверить наличие путей service_sources"
+
+msgid "worktree_tenant is not set on git link"
+msgstr "На git-ссылке не задан worktree_tenant"
 
 msgid "write deps.lock.json from resolved commits"
 msgstr "записать deps.lock.json из разрешённых коммитов"

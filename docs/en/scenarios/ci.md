@@ -48,6 +48,8 @@ git push → build machine
 
 Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Publishing a publish-tag alias after kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, when the fingerprint cache image is not in the local Docker daemon) requires **`crane copy`**. Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`. Optional prune of stale same-layer `cache-*` tags after a successful ensure: `ODPM_IMAGE_PRUNE_STALE=1` or `--image-prune-stale` (keeps the current fingerprint tag; never touches floating `mr-*` / publish tags; missing crane for remote prune is fail-soft with a log line).
 
+Parallel checkouts (one directory per MR) on a shared `ODOO_PROJECTS_DIR` volume: `ODPM_GIT_WORKTREE=1` or `--git-worktree` — one bare mirror plus a per-tenant worktree (`basename` of the project directory), so jobs do not fight over a single working tree. Details: [ADR-028](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md).
+
 ## Checklist
 
 1. In git: `odpm.json` and committed `.odpm/deps.lock.json`.

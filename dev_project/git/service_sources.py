@@ -1,4 +1,8 @@
-"""Materialize manifest ``service_sources`` into ``ODOO_PROJECTS_DIR/service-sources/<name>``."""
+"""Materialize manifest ``service_sources`` into ``ODOO_PROJECTS_DIR/service-sources/<name>``.
+
+With ``--git-worktree`` / ``ODPM_GIT_WORKTREE``, remote sources use ``mirrors/`` +
+``worktrees/<tenant>/<repo-key>/`` instead of ``service-sources/<name>`` (ADR-028).
+"""
 
 from __future__ import annotations
 
@@ -13,6 +17,14 @@ from ..subprocess_runner import run_logged
 from ..symlinks.manager import SymlinkManager
 from ..translations import _
 from .runner import GitRunner
+from .worktree import (
+    git_worktree_requested,
+    is_git_work_tree,
+    materialize_link_as_worktree,
+    repo_key_from_relative_path,
+    tenant_id_from_project_dir,
+    worktree_path,
+)
 
 if TYPE_CHECKING:
     from ..config.config import Config
@@ -27,7 +39,7 @@ SERVICE_SOURCES_DIR = constants.SERVICE_SOURCES_DIR
 
 
 def service_source_target_dir(config: Config, name: str) -> str:
-    """Absolute clone directory for a named service source."""
+    """Absolute clone directory for a named service source (classic layout)."""
     return os.path.abspath(
         os.path.join(
             config.user_env.odoo_projects_dir,
@@ -35,6 +47,12 @@ def service_source_target_dir(config: Config, name: str) -> str:
             name,
         )
     )
+
+
+def _service_source_worktree_dir(config: Config, project_link) -> str:
+    tenant = tenant_id_from_project_dir(config.project_dir)
+    repo_key = repo_key_from_relative_path(project_link.project_data.relative_path)
+    return worktree_path(config.user_env.odoo_projects_dir, tenant, repo_key)
 
 
 def resolve_file_service_source_path(git_link: str) -> str:
@@ -92,15 +110,59 @@ def materialize_one_service_source(
             )
         return path
 
+    project_link = config.handle_git_link(link, materialize=False)
+    if lock_entry is not None:
+        from .deps_lock import apply_lock_entry_to_link  # noqa: PLC0415  # optional
+
+        apply_lock_entry_to_link(project_link, lock_entry)
+
+    if getattr(project_link, "worktree_mode", False) is True or (
+        git_worktree_requested(getattr(config, "arguments", None))
+        and project_link.link_type
+        in (
+            constants.GITLINK_TYPE_HTTP,
+            constants.GITLINK_TYPE_GIT,
+            constants.GITLINK_TYPE_SSH,
+        )
+    ):
+        if getattr(project_link, "worktree_mode", False) is not True:
+            from .worktree import configure_link_worktree_context
+
+            configure_link_worktree_context(
+                project_link,
+                tenant=tenant_id_from_project_dir(config.project_dir),
+                skip_git_update=config.skip_git_update(),
+            )
+        target = materialize_link_as_worktree(
+            project_link,
+            odoo_version=str(config.odoo_version),
+        )
+        if project_link.branch and not config.skip_git_update():
+            project_link.checkout_repository(
+                str(config.odoo_version),
+                clean_git_repos=config.user_settings.clean_git_repos,
+                update_git_repos=config.user_settings.update_git_repos,
+            )
+            target = project_link.project_path
+        if not os.path.isdir(target):
+            raise ConfigError(
+                _("Service source {NAME} materialize failed: {PATH}").format(
+                    NAME=name,
+                    PATH=target,
+                )
+            )
+        _logger.info(
+            _("Materialized service source {NAME} at {PATH}").format(
+                NAME=name,
+                PATH=target,
+            )
+        )
+        return target
+
     base_root = os.path.join(config.user_env.odoo_projects_dir, SERVICE_SOURCES_DIR)
     os.makedirs(base_root, exist_ok=True)
     target = service_source_target_dir(config, name)
 
-    project_link = config.handle_git_link(link, materialize=False)
-    if lock_entry is not None and not link.startswith("file://"):
-        from .deps_lock import apply_lock_entry_to_link  # noqa: PLC0415  # optional
-
-        apply_lock_entry_to_link(project_link, lock_entry)
     git_dir = os.path.join(target, ".git")
     if os.path.isdir(git_dir):
         project_link.project_path = target
@@ -169,11 +231,15 @@ def collect_service_source_paths(config: Config) -> dict[str, str]:
     sources = view.service_sources if view is not None else None
     if not sources:
         return {}
+    use_wt = git_worktree_requested(config.arguments)
     paths: dict[str, str] = {}
     for name, git_link in sources.items():
         link = git_link.strip()
         if link.startswith("file://"):
             paths[name] = resolve_file_service_source_path(link)
+        elif use_wt:
+            project_link = config.handle_git_link(link, materialize=False)
+            paths[name] = _service_source_worktree_dir(config, project_link)
         else:
             paths[name] = service_source_target_dir(config, name)
     return paths
@@ -199,6 +265,9 @@ def service_sources_need_materialize_for_view(
     *,
     manifest_view,
     odoo_projects_dir: str,
+    use_worktree: bool = False,
+    project_dir: str | None = None,
+    path_to_ssh_key: str = "",
 ) -> bool:
     sources = manifest_view.service_sources if manifest_view is not None else None
     if not sources:
@@ -210,10 +279,27 @@ def service_sources_need_materialize_for_view(
             if not os.path.isdir(path):
                 return True
             continue
+        if use_worktree and project_dir:
+            from .link import HandleOdooProjectLink
+
+            project_link = HandleOdooProjectLink(
+                link,
+                path_to_ssh_key,
+                odoo_projects_dir,
+                system_type="standart",
+            )
+            tenant = tenant_id_from_project_dir(project_dir)
+            repo_key = repo_key_from_relative_path(
+                project_link.project_data.relative_path
+            )
+            target = worktree_path(odoo_projects_dir, tenant, repo_key)
+            if not is_git_work_tree(target):
+                return True
+            continue
         target = os.path.abspath(
             os.path.join(odoo_projects_dir, SERVICE_SOURCES_DIR, name)
         )
-        if not os.path.isdir(os.path.join(target, ".git")):
+        if not is_git_work_tree(target):
             return True
     return False
 
@@ -223,6 +309,9 @@ def service_sources_need_materialize(config: Config) -> bool:
     return service_sources_need_materialize_for_view(
         manifest_view=view,
         odoo_projects_dir=config.user_env.odoo_projects_dir,
+        use_worktree=git_worktree_requested(config.arguments),
+        project_dir=config.project_dir,
+        path_to_ssh_key=config.user_env.path_to_ssh_key,
     )
 
 

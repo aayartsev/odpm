@@ -33,6 +33,15 @@ def add_up_runtime_arguments(parser: argparse.ArgumentParser) -> None:
         action="store_true",
     )
     parser.add_argument(
+        params.GIT_WORKTREE_PARAM,
+        dest="git_worktree",
+        help=(
+            "Materialize remote git repos as bare mirrors + per-tenant worktrees "
+            "under ODOO_PROJECTS_DIR (same as ODPM_GIT_WORKTREE=1)"
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
         params.ODOO_BIN_PARAM,
         nargs=argparse.REMAINDER,
         help="""Command to pass through as a single string""",
@@ -55,6 +64,15 @@ def add_prepare_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         params.NO_GIT_UPDATE_PARAM,
         help="""Skip git clone, fetch, and checkout. Requires existing local platform and developing project directories.""",
+        action="store_true",
+    )
+    parser.add_argument(
+        params.GIT_WORKTREE_PARAM,
+        dest="git_worktree",
+        help=(
+            "Materialize remote git repos as bare mirrors + per-tenant worktrees "
+            "under ODOO_PROJECTS_DIR (same as ODPM_GIT_WORKTREE=1)"
+        ),
         action="store_true",
     )
     parser.add_argument(

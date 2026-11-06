@@ -60,7 +60,6 @@ class DependencyMaterializer:
             dependency_string,
             materialize=materialize,
         )
-        project_path = project.project_path
         try:
             if not project.is_cloned:
                 _logger.warning(
@@ -91,7 +90,10 @@ class DependencyMaterializer:
                 nested_fragment=nested,
             )
         finally:
-            self.config.ensure_git_repo_symlink(project_path, scope="dependency")
+            if project.project_path:
+                self.config.ensure_git_repo_symlink(
+                    project.project_path, scope="dependency"
+                )
 
     def apply_to_config(self, resolution: DependencyResolutionResult) -> None:
         self.config.dependencies = resolution.urls

@@ -53,10 +53,12 @@
 
 Prepare-шаг **`sources.materialize`** (после `git.materialize`, до `hooks.post_clone`):
 
-1. Клонирует git-источники в **`${ODOO_PROJECTS_DIR}/service-sources/<name>`**
+1. Клонирует git-источники в **`${ODOO_PROJECTS_DIR}/service-sources/<name>`** (по умолчанию)
 2. Для `file://` — использует указанный каталог (clone не выполняется)
 3. Записывает пути в `ODPM_SOURCE_*` и **пере-expand** `services` / `service_patches` перед compose
 4. Создаёт/обновляет в каталоге odpm-проекта **`<project>/service-sources/<name>`** — symlink на клон (или путь `file://`) для навигации в IDE; не путать с каталогом клонов под `ODOO_PROJECTS_DIR`
+
+При `ODPM_GIT_WORKTREE=1` / `--git-worktree` remote-источники идут в `mirrors/` + `worktrees/<тенант>/<ключ-репо>/` (не в `service-sources/<name>` под `ODOO_PROJECTS_DIR`); проектные symlink по-прежнему указывают на worktree. Подробнее: [ADR-028](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md).
 
 При `--no-git-update` odpm только проверяет, что каталоги уже существуют, и синхронизирует проектные ссылки.
 

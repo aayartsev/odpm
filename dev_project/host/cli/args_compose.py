@@ -24,6 +24,16 @@ def add_compose_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
     parser.add_argument(
+        params.GIT_WORKTREE_PARAM,
+        dest="git_worktree",
+        help=(
+            "Materialize remote git repos as bare mirrors + per-tenant worktrees "
+            "under ODOO_PROJECTS_DIR (same as ODPM_GIT_WORKTREE=1)"
+        ),
+        action="store_true",
+    )
+
+    parser.add_argument(
         params.UPDATE_LOCK_PARAM,
         help="""Resolve platform, developing (remote git), and full OCA-resolved dependency repositories, write .odpm/deps.lock.json, and exit without starting containers.""",
         action="store_true",

@@ -85,6 +85,15 @@ def register_plan_subparser(
         action="store_true",
     )
     parser.add_argument(
+        params.GIT_WORKTREE_PARAM,
+        dest="git_worktree",
+        help=(
+            "Preview with bare mirrors + per-tenant worktrees "
+            "(same as ODPM_GIT_WORKTREE=1)"
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
         params.UPDATE_LOCK_PARAM,
         help="""Preview as if writing deps.lock.json.""",
         action="store_true",

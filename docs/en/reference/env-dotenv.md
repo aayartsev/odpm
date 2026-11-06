@@ -57,6 +57,7 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_CI_IMAGE_PUSH` | `1` / `true` / `yes` — push after `--build-image` (same as `--image-push`) | off |
 | `ODPM_IMAGE_FORCE_REBUILD` | `1` / `true` / `yes` — force rebuild of the **current** `image … ensure` layer only (not parents) | off |
 | `ODPM_IMAGE_PRUNE_STALE` | `1` / `true` / `yes` — after successful ensure, delete stale same-layer `cache-*` tags (same as `--image-prune-stale`) | off |
+| `ODPM_GIT_WORKTREE` | `1` / `true` / `yes` — bare mirrors + per-tenant worktrees (`basename` of the project dir) under `ODOO_PROJECTS_DIR` (same as `--git-worktree`; ADR-028) | off |
 | `ODPM_KANIKO_EXECUTOR_MODE` | `docker-run` or `direct` (CI+kaniko wizard defaults to `direct`) | `docker-run` |
 | `ODPM_KANIKO_EXECUTOR_IMAGE` | Executor image for `docker-run` mode | `gcr.io/kaniko-project/executor:v1.23.2` |
 | `ODPM_KANIKO_EXECUTOR_BIN` | Executor binary for `direct` mode | `executor` |

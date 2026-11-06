@@ -12,8 +12,20 @@ msgstr " \"config.json\" is deprecated. Please read documentation"
 msgid "(none)"
 msgstr "(none)"
 
+msgid "--no-git-update requires an existing bare mirror at {PATH}"
+msgstr "--no-git-update requires an existing bare mirror at {PATH}"
+
+msgid "--no-git-update requires an existing worktree at {PATH}"
+msgstr "--no-git-update requires an existing worktree at {PATH}"
+
 msgid "--no-git-update requires existing service_sources directories: {PATHS}"
 msgstr "--no-git-update requires existing service_sources directories: {PATHS}"
+
+msgid "--no-git-update: worktree at {PATH} is on {HAVE}, expected {WANT}; refuse to recreate"
+msgstr "--no-git-update: worktree at {PATH} is on {HAVE}, expected {WANT}; refuse to recreate"
+
+msgid "--no-git-update: worktree path exists but is not a git worktree: {PATH}"
+msgstr "--no-git-update: worktree path exists but is not a git worktree: {PATH}"
 
 msgid "--remote-db is required for odpm database pull."
 msgstr "--remote-db is required for odpm database pull."
@@ -119,6 +131,9 @@ msgstr "Cannot connect to the Docker daemon. Is the docker daemon running?"
 
 msgid "Cannot create dir, {dir_path}, please check it"
 msgstr "Cannot create dir, {dir_path}, please check it"
+
+msgid "Cannot derive repository key from empty relative_path"
+msgstr "Cannot derive repository key from empty relative_path"
 
 msgid "Cannot determine developing project source. Set \"developing_project\" in odpm.json, run from an odpm project directory, or use \"{PROJECT_NAME} {INIT_PARAM}\"."
 msgstr "Cannot determine developing project source. Set \"developing_project\" in odpm.json, run from an odpm project directory, or use \"{PROJECT_NAME} {INIT_PARAM}\"."
@@ -945,6 +960,9 @@ msgstr "Unknown secrets provider: {NAME}"
 msgid "Unknown {ENV}={VALUE!r}, using managed network"
 msgstr "Unknown {ENV}={VALUE!r}, using managed network"
 
+msgid "Unsafe project directory name for git worktree tenant id: {NAME!r}. Use only letters, digits, dot, underscore, hyphen."
+msgstr "Unsafe project directory name for git worktree tenant id: {NAME!r}. Use only letters, digits, dot, underscore, hyphen."
+
 msgid "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; only debian is supported ({SUPPORTED}). Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version)."
 msgstr "Unsupported base image distro {DISTRO_NAME}/{DISTRO_VERSION}; only debian is supported ({SUPPORTED}). Change distro_name/distro_version in odpm.json (or --distro-name/--distro-version)."
 
@@ -1571,6 +1589,9 @@ msgstr "verify local git directories exist"
 
 msgid "verify service_sources paths exist"
 msgstr "verify service_sources paths exist"
+
+msgid "worktree_tenant is not set on git link"
+msgstr "worktree_tenant is not set on git link"
 
 msgid "write deps.lock.json from resolved commits"
 msgstr "write deps.lock.json from resolved commits"

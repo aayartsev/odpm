@@ -34,6 +34,32 @@ RU_MESSAGES: dict[str, str] = {
     "--update-lock cannot be used together with --no-git-update": (
         "Нельзя использовать --update-lock вместе с --no-git-update"
     ),
+    "--no-git-update requires an existing bare mirror at {PATH}": (
+        "--no-git-update требует существующее bare-зеркало в {PATH}"
+    ),
+    "--no-git-update requires an existing worktree at {PATH}": (
+        "--no-git-update требует существующее worktree в {PATH}"
+    ),
+    "--no-git-update: worktree at {PATH} is on {HAVE}, "
+    "expected {WANT}; refuse to recreate": (
+        "--no-git-update: worktree в {PATH} на коммите {HAVE}, "
+        "ожидался {WANT}; пересоздание запрещено"
+    ),
+    "--no-git-update: worktree path exists but is not a git "
+    "worktree: {PATH}": (
+        "--no-git-update: путь {PATH} существует, но это не git worktree"
+    ),
+    "Cannot derive repository key from empty relative_path": (
+        "Не удалось получить ключ репозитория из пустого relative_path"
+    ),
+    "Unsafe project directory name for git worktree tenant id: {NAME!r}. "
+    "Use only letters, digits, dot, underscore, hyphen.": (
+        "Небезопасное имя каталога проекта для id тенанта git worktree: {NAME!r}. "
+        "Допустимы только буквы, цифры, точка, подчёркивание и дефис."
+    ),
+    "worktree_tenant is not set on git link": (
+        "На git-ссылке не задан worktree_tenant"
+    ),
     "-i/-u module list must contain at least one module name "
     "(comma-separated, e.g. sale,crm)": (
         "Список модулей для -i/-u должен содержать хотя бы одно имя модуля "

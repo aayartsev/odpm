@@ -4,11 +4,14 @@ import os
 from typing import TYPE_CHECKING
 
 from .. import constants
+from ..logging import get_module_logger
 from .types import SymlinksSources
 
 if TYPE_CHECKING:
     from ..config.config import Config
     from ..host.context import HostProjectContext
+
+_logger = get_module_logger(__name__)
 
 
 class SymlinkManager:
@@ -60,11 +63,21 @@ class SymlinkManager:
             return
         os.makedirs(link_dir, exist_ok=True)
         link_path = os.path.join(link_dir, name)
-        try:
-            os.symlink(target_path, link_path)
-            self._record_symlink(target_path, link_path)
-        except FileExistsError:
-            pass
+        if os.path.islink(link_path):
+            if os.readlink(link_path) == target_path:
+                self._record_symlink(target_path, link_path)
+                return
+            os.unlink(link_path)
+        elif os.path.exists(link_path):
+            # Do not clobber a real file/directory that occupies the link name.
+            _logger.warning(
+                "Skip symlink %s → %s: path exists and is not a symlink",
+                link_path,
+                target_path,
+            )
+            return
+        os.symlink(target_path, link_path)
+        self._record_symlink(target_path, link_path)
 
     def ensure_project_repo_link(self, target_path: str) -> None:
         if not self.config.project_dir:

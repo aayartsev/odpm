@@ -45,6 +45,8 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 
 Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Для публикации alias publish-тега после kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, когда fingerprint-cache не в локальном Docker) нужен **`crane copy`**. Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`. Опциональная очистка устаревших `cache-*` того же слоя после успешного ensure: `ODPM_IMAGE_PRUNE_STALE=1` или `--image-prune-stale` (оставляет тег с текущим отпечатком; плавающие `mr-*` / publish-тег не трогает; без crane очистка remote — мягкий сбой с логом).
 
+Параллельные слепки (каталог на MR) на одном томе `ODOO_PROJECTS_DIR`: `ODPM_GIT_WORKTREE=1` или `--git-worktree` — общее bare-зеркало и отдельное worktree на тенант (`basename` каталога проекта), без драки за один checkout. Подробнее: [ADR-028](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md).
+
 ## Чеклист
 
 1. В git: `odpm.json` и закоммиченный `.odpm/deps.lock.json`.

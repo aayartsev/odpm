@@ -124,6 +124,42 @@ class SymlinkManagerTests(unittest.TestCase):
 
             self.assertEqual(len(config.symlinks_sources), 1)
 
+    def test_ensure_link_retargets_existing_symlink(self) -> None:
+        with tempfile.TemporaryDirectory() as project_dir:
+            old_target = os.path.join(project_dir, "classic", "odoo")
+            new_target = os.path.join(project_dir, "worktrees", "mr-1", "odoo")
+            os.makedirs(old_target)
+            os.makedirs(new_target)
+            link_path = os.path.join(project_dir, "odoo")
+            os.symlink(old_target, link_path)
+
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.symlinks_sources = []
+
+            _symlink_manager(config).ensure_project_repo_link(new_target)
+
+            self.assertTrue(os.path.islink(link_path))
+            self.assertEqual(os.readlink(link_path), new_target)
+
+    def test_ensure_link_does_not_clobber_real_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as project_dir:
+            real_dir = os.path.join(project_dir, "odoo")
+            os.makedirs(real_dir)
+            target = os.path.join(project_dir, "elsewhere", "odoo")
+            os.makedirs(target)
+
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.symlinks_sources = []
+
+            with patch("dev_project.symlinks.manager._logger") as logger:
+                _symlink_manager(config).ensure_project_repo_link(target)
+                logger.warning.assert_called_once()
+
+            self.assertTrue(os.path.isdir(real_dir))
+            self.assertFalse(os.path.islink(real_dir))
+
     def test_delete_old_links_keeps_expected_symlinks_by_basename(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
             target_dir = os.path.join(project_dir, "sources", "odoo_src")

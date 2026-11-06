@@ -24,6 +24,11 @@ class RepoCloneService:
         self._runner = runner
 
     def check_project(self) -> None:
+        if getattr(self.link, "worktree_mode", False) is True:
+            from .worktree import materialize_link_as_worktree
+
+            materialize_link_as_worktree(self.link)
+            return
         inside_work_tree = False
         repo_is_same = False
         project_dir_name = os.path.basename(self.link.project_path)

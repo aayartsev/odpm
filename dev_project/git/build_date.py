@@ -47,36 +47,51 @@ class BuildDateResolver:
         return commit
 
     def _branch_ref(self, branch: str) -> str:
-        for ref in (f"origin/{branch}", branch):
-            result = self._runner.run_git(["rev-parse", "--verify", ref])
+        cwd = self._fetch_cwd()
+        for ref in (f"origin/{branch}", branch, f"refs/heads/{branch}"):
+            result = self._runner.run_git(["rev-parse", "--verify", ref], cwd=cwd)
             if result.returncode == 0:
                 return ref
         raise RuntimeError(
-            f"Branch {branch!r} not found in {self.link.project_path}. "
+            f"Branch {branch!r} not found in {cwd}. "
             "Check odoo_git_link branch or odoo_version."
         )
 
     def resolve_commit_by_build_date(self, branch: str, build_date: str) -> str:
         before = commit_before_timestamp(build_date)
+        cwd = self._fetch_cwd()
         ref = self._branch_ref(branch)
-        result = self._runner.run_git(["rev-list", "-1", f"--before={before}", ref])
+        result = self._runner.run_git(
+            ["rev-list", "-1", f"--before={before}", ref],
+            cwd=cwd,
+        )
         commit = result.stdout.strip()
         if result.returncode != 0 or not commit:
             raise RuntimeError(
-                f"No commit on {ref} before {before} in {self.link.project_path}. "
+                f"No commit on {ref} before {before} in {cwd}. "
                 "Try a newer build date or check branch name."
             )
         return commit
 
+    def _fetch_cwd(self) -> str:
+        """Prefer bare mirror for deepen when worktree mode is on (ADR-028)."""
+        mirror = getattr(self.link, "worktree_mirror", None)
+        if mirror and os.path.isdir(mirror):
+            return mirror
+        return self.link.project_path
+
     def fetch_history_for_build_date(self, branch: str, build_date: str) -> None:
         since = shallow_since_date(build_date)
+        cwd = self._fetch_cwd()
         _logger.info(
-            "Fetching history for odoo_build_date %s (shallow-since=%s)",
+            "Fetching history for odoo_build_date %s (shallow-since=%s) in %s",
             build_date,
             since,
+            cwd,
         )
         result = self._runner.run_git(
             ["fetch", "origin", branch, f"--shallow-since={since}"],
+            cwd=cwd,
             capture=False,
         )
         if result.returncode == 0:
@@ -89,11 +104,12 @@ class BuildDateResolver:
             _logger.info("Deepening history +%s commits (%s/%s)", step, fetched, max_extra)
             deepen_result = self._runner.run_git(
                 ["fetch", "--deepen", str(step)],
+                cwd=cwd,
                 capture=False,
             )
             if deepen_result.returncode != 0:
                 raise RuntimeError(
-                    f"git fetch --deepen failed in {self.link.project_path}"
+                    f"git fetch --deepen failed in {cwd}"
                 )
             fetched += step
             try:
@@ -128,13 +144,20 @@ class BuildDateResolver:
             return
 
         branch = self.link.branch if self.link.branch_explicit else odoo_version
+        fetch_cwd = self._fetch_cwd()
         _logger.info(
             "Resolving odoo_build_date %s on branch %s in %s",
             build_date,
             branch,
-            self.link.project_path,
+            fetch_cwd,
         )
-        if os.path.exists(os.path.join(self.link.project_path, ".git")):
+        # Prefer bare mirror for branch fetch when worktree mode is on (ADR-028).
+        mirror = getattr(self.link, "worktree_mirror", None)
+        if mirror and os.path.isdir(mirror):
+            self._checkout.ensure_branch_exists(
+                branch, odoo_version, cwd=mirror
+            )
+        elif os.path.exists(os.path.join(self.link.project_path, ".git")):
             self._checkout.ensure_branch_exists(branch, odoo_version)
         try:
             commit = self.resolve_commit_with_fetch(branch, build_date)

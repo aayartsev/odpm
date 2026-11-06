@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Opt-in per-tenant git worktrees** — `ODPM_GIT_WORKTREE=1` or `--git-worktree` materializes remote repos as bare mirrors under `ODOO_PROJECTS_DIR/mirrors/` plus detached worktrees under `worktrees/<tenant>/<repo-key>/` (`tenant` = basename of the odpm project dir). Project symlinks still point at the worktree; `file://` stays classic; `--no-git-update` reuses only when the worktree is already on the expected SHA. Docs: ADR-028, `project-layout.md`, `cli.md`, `env-dotenv.md`, `scenarios/ci.md`. Tests: `test_git_worktree`.
 - **Opt-in prune of stale layered CI cache tags** — `ODPM_IMAGE_PRUNE_STALE=1` or `--image-prune-stale` on `odpm image {platform|deps|app|lint} ensure` / `odpm build`. After a successful ensure (hit or miss, including nested parents), deletes other `cache-<layer>-<family>-<ver>-<build_date>-v-*` tags in the same repository, keeping the current fingerprint; floating `mr-*` / publish tags untouched. Remote: `crane ls`/`delete` + best-effort `docker rmi` (fail-soft without crane); local-only: docker. Presence checks remain fail-fast without crane. Docs: ADR-027, `scenarios/ci.md`, `cli.md`. Tests: `test_image_layers`, `test_cli_image`.
 
 ### Changed

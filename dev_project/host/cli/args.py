@@ -51,6 +51,7 @@ class OdpmCliArgs:
     plan_strict: bool = False
     skip_start: bool | None = None
     no_git_update: bool = False
+    git_worktree: bool = False
     update_lock: bool = False
     sync_manifest_locks: bool = False
     odoo_bin: list[str] | None = None

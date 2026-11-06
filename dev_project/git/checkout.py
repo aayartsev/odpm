@@ -43,22 +43,34 @@ class CheckoutService:
             return
         self._runner.run_git(["fetch", "--depth", "1", "origin", ref], capture=False)
 
-    def _local_branch_exists(self, branch_name: str) -> bool:
-        result = self._runner.run_git(["branch", "--list", branch_name])
+    def _local_branch_exists(
+        self, branch_name: str, *, cwd: Optional[str] = None
+    ) -> bool:
+        result = self._runner.run_git(
+            ["branch", "--list", branch_name], cwd=cwd
+        )
         return bool(result.stdout.strip())
 
-    def _remote_branch_exists(self, branch_name: str) -> bool:
-        result = self._runner.run_git(["branch", "-r", "--list", f"origin/{branch_name}"])
+    def _remote_branch_exists(
+        self, branch_name: str, *, cwd: Optional[str] = None
+    ) -> bool:
+        result = self._runner.run_git(
+            ["branch", "-r", "--list", f"origin/{branch_name}"],
+            cwd=cwd,
+        )
         return bool(result.stdout.strip())
 
-    def _ref_exists(self, ref: str) -> bool:
-        result = self._runner.run_git(["rev-parse", "--verify", ref])
+    def _ref_exists(self, ref: str, *, cwd: Optional[str] = None) -> bool:
+        result = self._runner.run_git(["rev-parse", "--verify", ref], cwd=cwd)
         text = (result.stdout or result.stderr or "").strip()
         return result.returncode == 0 and "fatal" not in text
 
-    def _fetch_local_branch_from_origin(self, branch_name: str) -> None:
+    def _fetch_local_branch_from_origin(
+        self, branch_name: str, *, cwd: Optional[str] = None
+    ) -> None:
         self._runner.run_git(
             ["fetch", "--depth", "1", "origin", f"{branch_name}:{branch_name}"],
+            cwd=cwd,
             capture=False,
         )
 
@@ -82,6 +94,11 @@ class CheckoutService:
     def checkout_parsed_or_version(self, odoo_version: str) -> None:
         if self.link.link_type == constants.GITLINK_TYPE_FILE:
             return
+        if getattr(self.link, "worktree_mode", False) is True:
+            from .worktree import sync_worktree_to_resolved_ref
+
+            sync_worktree_to_resolved_ref(self.link, odoo_version=odoo_version)
+            return
         if not os.path.exists(os.path.join(self.link.project_path, ".git")):
             return
 
@@ -94,13 +111,19 @@ class CheckoutService:
         else:
             self._checkout_version_branch(odoo_version)
 
-    def ensure_branch_exists(self, branch_name: str, odoo_version: str) -> None:
-        if self._local_branch_exists(branch_name):
+    def ensure_branch_exists(
+        self,
+        branch_name: str,
+        odoo_version: str,
+        *,
+        cwd: Optional[str] = None,
+    ) -> None:
+        if self._local_branch_exists(branch_name, cwd=cwd):
             return
-        if self._remote_branch_exists(branch_name):
-            self._fetch_local_branch_from_origin(branch_name)
+        if self._remote_branch_exists(branch_name, cwd=cwd):
+            self._fetch_local_branch_from_origin(branch_name, cwd=cwd)
             return
-        self._fetch_local_branch_from_origin(branch_name)
+        self._fetch_local_branch_from_origin(branch_name, cwd=cwd)
 
     def get_odoo_latest_version(self) -> float:
         all_remote_branches = self._runner.run_git(["branch", "-r"])
@@ -133,6 +156,15 @@ class CheckoutService:
         odoo_version: Optional[str] = None,
         odoo_version_sync: bool = False,
     ) -> None:
+        if getattr(self.link, "worktree_mode", False) is True:
+            # Per-tenant worktree: recreate at resolved SHA; never pull in-tree.
+            odoo_version = odoo_version or branch
+            if hard and not self.link.commit_explicit:
+                self.link.branch = branch
+                self.link.branch_explicit = True
+            self.checkout_parsed_or_version(odoo_version)
+            return
+
         if hard:
             self._git_stash()
             self._runner.run_git(["clean", "-fd"])
@@ -173,4 +205,15 @@ class CheckoutService:
                 BRANCH_NAME=branch_name,
             )
         )
+        if getattr(self.link, "worktree_mode", False) is True:
+            self.link.branch = branch_name
+            self.link.branch_explicit = True
+            self.link.commit_explicit = False
+            from .worktree import sync_worktree_to_resolved_ref
+
+            sync_worktree_to_resolved_ref(
+                self.link,
+                odoo_version=branch_name,
+            )
+            return
         self.checkout(branch_name, hard=True)

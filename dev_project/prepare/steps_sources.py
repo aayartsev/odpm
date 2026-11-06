@@ -9,11 +9,23 @@ from ..git.service_sources import (
     materialize_service_sources,
     service_sources_need_materialize_for_view,
 )
+from ..git.worktree import git_worktree_requested
 from ..plan.core import PlanStep
 from ..plan.l10n import plan_msg
 from ..symlinks.manager import SymlinkManager
 from .helpers import make_plan_step, skip_git
 from .types import PrepareContext
+
+
+def _sources_need_kwargs(ctx: PrepareContext) -> dict:
+    config = ctx.ports.bootstrap.config
+    return {
+        "manifest_view": ctx.manifest_view,
+        "odoo_projects_dir": ctx.host_ctx.user_env.odoo_projects_dir,
+        "use_worktree": git_worktree_requested(config.arguments),
+        "project_dir": config.project_dir,
+        "path_to_ssh_key": config.user_env.path_to_ssh_key,
+    }
 
 
 def evaluate_sources_materialize(ctx: PrepareContext) -> PlanStep:
@@ -30,12 +42,9 @@ def evaluate_sources_materialize(ctx: PrepareContext) -> PlanStep:
             plan_msg("sync project service-sources links"),
         )
 
-    odoo_projects_dir = ctx.host_ctx.user_env.odoo_projects_dir
+    need = service_sources_need_materialize_for_view(**_sources_need_kwargs(ctx))
     if skip_git(ctx):
-        if service_sources_need_materialize_for_view(
-            manifest_view=view,
-            odoo_projects_dir=odoo_projects_dir,
-        ):
+        if need:
             return make_plan_step(
                 "sources.materialize",
                 description,
@@ -51,10 +60,7 @@ def evaluate_sources_materialize(ctx: PrepareContext) -> PlanStep:
             plan_msg("inject service_sources paths into env resolver"),
         )
 
-    if service_sources_need_materialize_for_view(
-        manifest_view=view,
-        odoo_projects_dir=odoo_projects_dir,
-    ):
+    if need:
         return make_plan_step(
             "sources.materialize",
             description,
