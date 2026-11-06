@@ -77,6 +77,7 @@ odpm prepare --secrets-file ~/new-secrets.json
 | `--image-tag МЕТКА` | Имя и тег финального образа для `build` / `image app ensure` |
 | `--image-builder {docker,kaniko}` | Бэкенд сборки CI-образа (по умолчанию `docker`) |
 | `--image-push` | После сборки опубликовать образ (alias publish-тега после kaniko — через `crane copy`) |
+| `--image-prune-stale` | После успешного ensure удалить устаревшие `cache-*` текущего слоя (то же, что `ODPM_IMAGE_PRUNE_STALE=1`) |
 | `-V`, `--version` | Показать версию odpm |
 
 Поток CI: `prepare --stop-after sources` → `plan` (hit/miss слоёв) → `image … ensure` или `build`. Семейства тегов registry: **dev** (профиль `full`) и **runtime** (профиль `medium`) через `ODPM_BASE_IMAGE_PROFILE`. Сценарий `ci` и профиль base `ci` **не** переименовываются. Подробнее: [сценарий ci](../scenarios/ci.md), [ADR-027](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md).

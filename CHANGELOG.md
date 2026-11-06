@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Opt-in prune of stale layered CI cache tags** — `ODPM_IMAGE_PRUNE_STALE=1` or `--image-prune-stale` on `odpm image {platform|deps|app|lint} ensure` / `odpm build`. After a successful ensure (hit or miss, including nested parents), deletes other `cache-<layer>-<family>-<ver>-<build_date>-v-*` tags in the same repository, keeping the current fingerprint; floating `mr-*` / publish tags untouched. Remote: `crane ls`/`delete` + best-effort `docker rmi` (fail-soft without crane); local-only: docker. Presence checks remain fail-fast without crane. Docs: ADR-027, `scenarios/ci.md`, `cli.md`. Tests: `test_image_layers`, `test_cli_image`.
+
 ### Changed
 
 - **Lint image bakes pre-commit hooks** — `odpm image lint ensure` runs `dev_project.bake_pre_commit` in the lint Dockerfile (isolated `.odpm-lint-bake` git tree + config commit + `safe.directory` + `install-hooks` into the container user cache) so hooks are warm without touching a foreign `.git` under WORKDIR. Re-bake skips commit when nothing is staged. No `pre-commit run --all-files` on application code. Lint fingerprint includes `bake_pre_commit.py`; build needs network. Docs: ADR-027, `scenarios/ci.md`. Tests: `test_bake_pre_commit`, `test_image_layers`.

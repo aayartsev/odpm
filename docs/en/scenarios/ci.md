@@ -46,7 +46,7 @@ git push → build machine
 
 `odpm image … ensure` does not run the `template.odoo_conf` prepare step, but before writing the build context it calls `generate_odoo_conf_docker_data` (after refreshing secrets and reloading the manifest). The **app** layer must ship `odoo_config_data.options` in `/run/odpm/config.json` (including `db_*` from the effective `ci` slice with expanded `${@secret:…}`).
 
-Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Publishing a publish-tag alias after kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, when the fingerprint cache image is not in the local Docker daemon) requires **`crane copy`**. Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`.
+Remote layer presence checks require **`crane digest`** (fail-fast otherwise). Publishing a publish-tag alias after kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, when the fingerprint cache image is not in the local Docker daemon) requires **`crane copy`**. Force rebuild of the current layer: `ODPM_IMAGE_FORCE_REBUILD=1`. Optional prune of stale same-layer `cache-*` tags after a successful ensure: `ODPM_IMAGE_PRUNE_STALE=1` or `--image-prune-stale` (keeps the current fingerprint tag; never touches floating `mr-*` / publish tags; missing crane for remote prune is fail-soft with a log line).
 
 ## Checklist
 
@@ -68,6 +68,8 @@ odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
 export ODPM_BAKE_SECRETS=1   # bake module secrets into app layer when secrets.json exists
 odpm build --image-tag myregistry/client-odoo:19.0
 odpm build --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
+ODPM_IMAGE_PRUNE_STALE=1 odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
+odpm build --image-tag myregistry/client-odoo:19.0 --image-prune-stale
 ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
   ODPM_BASE_IMAGE_REGISTRY=registry.example.com/odpm \
   odpm build --image-tag myregistry/client-odoo:19.0 --image-push

@@ -15,6 +15,7 @@ class OdpmCliArgs:
     image_tag: str | None = None
     image_builder: str | None = None
     image_push: bool = False
+    image_prune_stale: bool = False
     get_dbs_list: str | None = None
     start_precommit: bool = False
     set_admin_pass: bool | str | None = None

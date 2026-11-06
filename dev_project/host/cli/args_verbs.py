@@ -104,6 +104,15 @@ def register_build_subparser(
         action="store_true",
     )
     parser.add_argument(
+        params.IMAGE_PRUNE_STALE_PARAM,
+        dest="image_prune_stale",
+        help=(
+            "After each successful layer ensure, delete stale cache-* tags "
+            "(same as ODPM_IMAGE_PRUNE_STALE=1)"
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
         params.NO_GIT_UPDATE_PARAM,
         help="""Skip git clone, fetch, and checkout when sources already exist.""",
         action="store_true",

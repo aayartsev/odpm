@@ -43,7 +43,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 
 `odpm image … ensure` не запускает шаг `template.odoo_conf`, но перед записью контекста сборки вызывает `generate_odoo_conf_docker_data` (после обновления секретов и перезагрузки манифеста). Слой **app** обязан нести в `/run/odpm/config.json` секцию `odoo_config_data.options` (в т.ч. `db_*` из effective `ci` с раскрытыми `${@secret:…}`).
 
-Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Для публикации alias publish-тега после kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, когда fingerprint-cache не в локальном Docker) нужен **`crane copy`**. Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`.
+Для проверки наличия слоёв в remote registry нужен **`crane digest`** (иначе fail-fast). Для публикации alias publish-тега после kaniko (`--image-push` / `ODPM_CI_IMAGE_PUSH`, когда fingerprint-cache не в локальном Docker) нужен **`crane copy`**. Принудительная пересборка текущего слоя: `ODPM_IMAGE_FORCE_REBUILD=1`. Опциональная очистка устаревших `cache-*` того же слоя после успешного ensure: `ODPM_IMAGE_PRUNE_STALE=1` или `--image-prune-stale` (оставляет тег с текущим отпечатком; плавающие `mr-*` / publish-тег не трогает; без crane очистка remote — мягкий сбой с логом).
 
 ## Чеклист
 
@@ -72,6 +72,8 @@ odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
 # ярлык всей цепочки без lint:
 odpm build --image-tag myregistry/client-odoo:19.0
 odpm build --image-builder kaniko --image-tag myregistry/client-odoo:19.0 --image-push
+ODPM_IMAGE_PRUNE_STALE=1 odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
+odpm build --image-tag myregistry/client-odoo:19.0 --image-prune-stale
 ODPM_CI_IMAGE_BUILDER=kaniko ODPM_KANIKO_EXECUTOR_MODE=direct \
   ODPM_BASE_IMAGE_REGISTRY=registry.example.com/odpm \
   odpm build --image-tag myregistry/client-odoo:19.0 --image-push

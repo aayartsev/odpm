@@ -637,5 +637,367 @@ class SourcesOnlyIdsTests(unittest.TestCase):
         self.assertGreaterEqual(len(SOURCES_ONLY_STEP_IDS), 8)
 
 
+class PruneCacheTagTests(unittest.TestCase):
+    def test_parse_and_select_stale(self):
+        from dev_project.image_layers.prune import (
+            parse_cache_tag,
+            select_stale_cache_tags,
+            split_image_ref,
+        )
+
+        repo, tag = split_image_ref(
+            "registry.example/proj:cache-app-dev-19.0-2026-01-01-v-aaaa1111"
+        )
+        self.assertEqual(repo, "registry.example/proj")
+        prefix, fp = parse_cache_tag(tag)
+        self.assertEqual(prefix, "cache-app-dev-19.0-2026-01-01-v-")
+        self.assertEqual(fp, "aaaa1111")
+
+        tags = [
+            "cache-app-dev-19.0-2026-01-01-v-aaaa1111",
+            "cache-app-dev-19.0-2026-01-01-v-bbbb2222",
+            "cache-lint-dev-19.0-2026-01-01-v-aaaa1111",
+            "cache-app-dev-19.0-2025-01-01-v-cccc3333",
+            "mr-123",
+            "latest",
+        ]
+        stale = select_stale_cache_tags(
+            tags, keep_tag="cache-app-dev-19.0-2026-01-01-v-aaaa1111"
+        )
+        self.assertEqual(stale, ["cache-app-dev-19.0-2026-01-01-v-bbbb2222"])
+
+    def test_prune_off_does_not_delete(self):
+        from dev_project.image_layers.ensure import _maybe_prune_stale
+
+        with patch(
+            "dev_project.image_layers.ensure.prune_stale_layer_cache_tags"
+        ) as mock_prune:
+            _maybe_prune_stale(
+                OdpmCliArgs(),
+                "reg/proj:cache-app-dev-19.0-2026-01-01-v-aaaa",
+                remote=False,
+            )
+        mock_prune.assert_not_called()
+
+    def test_prune_cli_flag_calls_helper(self):
+        from dev_project.image_layers.ensure import _maybe_prune_stale
+
+        keep = "reg/proj:cache-app-dev-19.0-2026-01-01-v-aaaa"
+        with patch(
+            "dev_project.image_layers.ensure.prune_stale_layer_cache_tags"
+        ) as mock_prune:
+            _maybe_prune_stale(
+                OdpmCliArgs(image_prune_stale=True),
+                keep,
+                remote=True,
+            )
+        mock_prune.assert_called_once_with(keep, remote=True)
+
+    def test_prune_env_truthy(self):
+        from dev_project.image_layers.prune import prune_stale_requested
+
+        with patch.dict(
+            "os.environ", {"ODPM_IMAGE_PRUNE_STALE": "1"}, clear=False
+        ):
+            self.assertTrue(prune_stale_requested(OdpmCliArgs()))
+        with patch.dict(
+            "os.environ", {"ODPM_IMAGE_PRUNE_STALE": "true"}, clear=False
+        ):
+            self.assertTrue(prune_stale_requested(OdpmCliArgs()))
+        with patch.dict(
+            "os.environ", {"ODPM_IMAGE_PRUNE_STALE": "0"}, clear=False
+        ):
+            self.assertFalse(prune_stale_requested(OdpmCliArgs()))
+
+    @patch("dev_project.image_layers.prune.shutil.which", return_value=None)
+    @patch("dev_project.image_layers.prune._docker_rmi")
+    @patch(
+        "dev_project.image_layers.prune._docker_list_tags",
+        return_value=[
+            "cache-platform-dev-19.0-2026-01-01-v-keepme01",
+            "cache-platform-dev-19.0-2026-01-01-v-oldtag02",
+        ],
+    )
+    def test_remote_without_crane_falls_back_to_local(
+        self, _list, mock_rmi, _which
+    ):
+        from dev_project.image_layers.prune import prune_stale_layer_cache_tags
+
+        keep = (
+            "registry.example/proj:"
+            "cache-platform-dev-19.0-2026-01-01-v-keepme01"
+        )
+        prune_stale_layer_cache_tags(keep, remote=True)
+        mock_rmi.assert_called_once_with(
+            "registry.example/proj:cache-platform-dev-19.0-2026-01-01-v-oldtag02"
+        )
+
+    @patch("dev_project.image_layers.prune.shutil.which")
+    @patch("dev_project.image_layers.prune.subprocess.run")
+    def test_crane_delete_error_is_soft(self, mock_run, mock_which):
+        from dev_project.image_layers.prune import prune_stale_layer_cache_tags
+
+        mock_which.side_effect = lambda name: (
+            "/usr/bin/crane" if name == "crane" else None
+        )
+
+        def _run(cmd, **_kwargs):
+            if cmd[1] == "ls":
+                return MagicMock(
+                    returncode=0,
+                    stdout=(
+                        "cache-app-dev-19.0-2026-01-01-v-keepme01\n"
+                        "cache-app-dev-19.0-2026-01-01-v-oldtag02\n"
+                    ),
+                    stderr="",
+                )
+            return MagicMock(returncode=1, stdout="", stderr="denied")
+
+        mock_run.side_effect = _run
+        keep = (
+            "registry.example/proj:cache-app-dev-19.0-2026-01-01-v-keepme01"
+        )
+        # Must not raise.
+        prune_stale_layer_cache_tags(keep, remote=True)
+
+    @patch(
+        "dev_project.image_layers.ensure.image_ref_exists",
+        return_value=True,
+    )
+    @patch(
+        "dev_project.image_layers.ensure.prune_stale_layer_cache_tags"
+    )
+    def test_ensure_platform_hit_prunes_when_enabled(
+        self, mock_prune, _exists
+    ):
+        from dev_project.image_layers.ensure import ensure_platform
+
+        program_dir = str(Path(__file__).resolve().parents[1])
+        with tempfile.TemporaryDirectory() as tmp:
+            env = MagicMock()
+            env.config = MagicMock()
+            env.config.program_dir = program_dir
+            env.config.project_dir = tmp
+            env.config.project_name = "demo"
+            env.config.odoo_version = "19.0"
+            env.config.odoo_build_date = "2026-01-01"
+            env.config.python_version = "3.12"
+            env.config.distro_name = "debian"
+            env.config.distro_version = "12"
+            env.config.arch = "amd64"
+            env.config.policy = MagicMock()
+            env.config.policy.base_image_profile = "full"
+            env.config.odoo_git_link = MagicMock()
+            env.config.odoo_git_link.commit = "abc"
+            env.config.odoo_extra_deb_packages = []
+            env.config.requirements_txt = ""
+            with (
+                patch(
+                    "dev_project.image_layers.ensure.compute_platform_fingerprint",
+                    return_value="platfp01",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.layer_image_ref",
+                    return_value="reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._remote_target",
+                    return_value=False,
+                ),
+            ):
+                ensure_platform(
+                    env, OdpmCliArgs(image_prune_stale=True)
+                )
+        mock_prune.assert_called_once()
+        self.assertEqual(
+            mock_prune.call_args.args[0],
+            "reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01",
+        )
+
+    @patch(
+        "dev_project.image_layers.ensure.compute_deps_fingerprint",
+        return_value=None,
+    )
+    @patch(
+        "dev_project.image_layers.ensure.prune_stale_layer_cache_tags"
+    )
+    def test_ensure_deps_skip_no_prune(self, mock_prune, _fp):
+        env = MagicMock()
+        env.config = MagicMock()
+        env.config.program_dir = str(Path(__file__).resolve().parents[1])
+        result = ensure_deps(
+            env,
+            OdpmCliArgs(image_prune_stale=True),
+            platform_ref="reg:platform",
+        )
+        self.assertIsNone(result)
+        mock_prune.assert_not_called()
+
+    @patch("dev_project.image_layers.prune._crane_ls")
+    @patch("dev_project.image_layers.prune._docker_rmi")
+    @patch(
+        "dev_project.image_layers.prune._docker_list_tags",
+        return_value=[
+            "cache-app-dev-19.0-2026-01-01-v-keepme01",
+            "cache-app-dev-19.0-2026-01-01-v-oldtag02",
+        ],
+    )
+    def test_local_only_does_not_call_crane(
+        self, _list, mock_rmi, mock_crane_ls
+    ):
+        from dev_project.image_layers.prune import prune_stale_layer_cache_tags
+
+        keep = (
+            "odpm-local/demo:cache-app-dev-19.0-2026-01-01-v-keepme01"
+        )
+        prune_stale_layer_cache_tags(keep, remote=False)
+        mock_crane_ls.assert_not_called()
+        mock_rmi.assert_called_once_with(
+            "odpm-local/demo:cache-app-dev-19.0-2026-01-01-v-oldtag02"
+        )
+
+    @patch(
+        "dev_project.image_layers.ensure.image_ref_exists",
+        return_value=False,
+    )
+    @patch("dev_project.image_layers.ensure.ensure_base", return_value="base:ref")
+    @patch("dev_project.image_layers.ensure._build_image")
+    @patch(
+        "dev_project.image_layers.ensure.prune_stale_layer_cache_tags"
+    )
+    def test_ensure_platform_miss_prunes_after_build(
+        self, mock_prune, mock_build, _base, _exists
+    ):
+        from dev_project.image_layers.ensure import ensure_platform
+
+        program_dir = str(Path(__file__).resolve().parents[1])
+        order: list[str] = []
+        mock_build.side_effect = lambda **_kw: order.append("build")
+        mock_prune.side_effect = lambda *_a, **_k: order.append("prune")
+        keep = "reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01"
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            ctx = project / ".odpm" / "ci-build-context"
+            for name in ("odoo", "dev_project", "ci"):
+                (ctx / name).mkdir(parents=True)
+            env = MagicMock()
+            env.config = MagicMock()
+            env.config.program_dir = program_dir
+            env.config.project_dir = str(project)
+            env.config.project_name = "demo"
+            env.config.odoo_version = "19.0"
+            env.config.odoo_build_date = "2026-01-01"
+            env.config.ci_build_context_dir = str(ctx)
+            env.config.policy = MagicMock()
+            env.config.policy.base_image_profile = "full"
+            with (
+                patch(
+                    "dev_project.image_layers.ensure.compute_platform_fingerprint",
+                    return_value="platfp01",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.layer_image_ref",
+                    return_value=keep,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._remote_target",
+                    return_value=False,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._want_push",
+                    return_value=False,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._rewrite_from_line",
+                    side_effect=lambda text, **_k: text,
+                ),
+                patch(
+                    "dev_project.project_env.ci_image.CiImageBuilder.prepare_ci_build_context",
+                ),
+            ):
+                def _copy_side_effect(_program_dir, _key, dest):
+                    Path(dest).parent.mkdir(parents=True, exist_ok=True)
+                    Path(dest).write_text("FROM scratch\n", encoding="utf-8")
+
+                with patch(
+                    "dev_project.image_layers.ensure._copy_template",
+                    side_effect=_copy_side_effect,
+                ):
+                    ensure_platform(
+                        env, OdpmCliArgs(image_prune_stale=True)
+                    )
+        self.assertEqual(order, ["build", "prune"])
+        mock_prune.assert_called_once_with(keep, remote=False)
+
+    @patch(
+        "dev_project.image_layers.ensure.prune_stale_layer_cache_tags"
+    )
+    def test_ensure_app_passes_prune_flag_to_nested_platform(
+        self, mock_prune
+    ):
+        """Nested ensure_platform gets the same args; hit-path prune is covered
+        by test_ensure_platform_hit_prunes_when_enabled."""
+        from dev_project.image_layers.ensure import ensure_app
+
+        program_dir = str(Path(__file__).resolve().parents[1])
+        plat_ref = (
+            "reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01"
+        )
+        app_ref = "reg/proj:cache-app-dev-19.0-2026-01-01-v-appfp001"
+        with tempfile.TemporaryDirectory() as tmp:
+            env = MagicMock()
+            env.config = MagicMock()
+            env.config.program_dir = program_dir
+            env.config.project_dir = tmp
+            env.config.project_name = "demo"
+            env.config.odoo_version = "19.0"
+            env.config.odoo_build_date = "2026-01-01"
+            env.config.odoo_ci_image_name = "reg/proj:publish"
+            env.config.policy = MagicMock()
+            env.config.policy.base_image_profile = "full"
+            env.config.developing_project = MagicMock()
+            env.config.developing_project.project_path = tmp
+            with (
+                patch(
+                    "dev_project.image_layers.ensure.ensure_deps",
+                    return_value=None,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.ensure_platform",
+                    return_value=plat_ref,
+                ) as mock_plat,
+                patch(
+                    "dev_project.image_layers.ensure._developing_git_sha",
+                    return_value="deadbeef",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.compute_app_fingerprint",
+                    return_value="appfp001",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.layer_image_ref",
+                    return_value=app_ref,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.image_ref_exists",
+                    return_value=True,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._remote_target",
+                    return_value=False,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._want_push",
+                    return_value=False,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._publish_alias",
+                ),
+            ):
+                ensure_app(env, OdpmCliArgs(image_prune_stale=True))
+        self.assertTrue(mock_plat.call_args.args[1].image_prune_stale)
+        mock_prune.assert_called_once_with(app_ref, remote=False)
+
+
 if __name__ == "__main__":
     unittest.main()

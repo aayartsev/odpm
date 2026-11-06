@@ -53,6 +53,8 @@ ODOO_PLATFORM_DIR=/work/client/odoo/19.0
 | `ODPM_SCENARIO` | `developer`, `server` или `ci` | `developer` |
 | `ODPM_CI_IMAGE_BUILDER` | Бэкенд `--build-image`: `docker` или `kaniko` (слабее CLI `--image-builder`; читается из layered `.env`, ADR-017) | `docker` |
 | `ODPM_CI_IMAGE_PUSH` | `1` / `true` / `yes` — push после `--build-image` (как `--image-push`) | выкл. |
+| `ODPM_IMAGE_FORCE_REBUILD` | `1` / `true` / `yes` — принудительно пересобрать **текущий** слой `image … ensure` (не родителей) | выкл. |
+| `ODPM_IMAGE_PRUNE_STALE` | `1` / `true` / `yes` — после успешного ensure удалить устаревшие `cache-*` текущего слоя (как `--image-prune-stale`) | выкл. |
 | `ODPM_KANIKO_EXECUTOR_MODE` | `docker-run` или `direct` (мастер для `ci`+kaniko предлагает `direct` по умолчанию) | `docker-run` |
 | `ODPM_KANIKO_EXECUTOR_IMAGE` | Образ executor для режима `docker-run` | `gcr.io/kaniko-project/executor:v1.23.2` |
 | `ODPM_KANIKO_EXECUTOR_BIN` | Бинарь executor для режима `direct` | `executor` |

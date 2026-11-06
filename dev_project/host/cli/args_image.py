@@ -66,6 +66,17 @@ def register_image_subparser(
             help="Push the image after build",
             action="store_true",
         )
+        if layer != params.IMAGE_BASE_LAYER:
+            ensure_parser.add_argument(
+                params.IMAGE_PRUNE_STALE_PARAM,
+                dest="image_prune_stale",
+                help=(
+                    "After successful ensure, delete stale cache-* tags for "
+                    "this layer (same family/version/build_date, other "
+                    "fingerprint); also ODPM_IMAGE_PRUNE_STALE=1"
+                ),
+                action="store_true",
+            )
         ensure_parser.add_argument(
             params.NO_GIT_UPDATE_PARAM,
             help="Skip git clone/fetch/checkout when sources already exist",

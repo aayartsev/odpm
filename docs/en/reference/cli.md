@@ -77,6 +77,7 @@ odpm prepare --secrets-file ~/new-secrets.json
 | `--image-tag TAG` | Final image name/tag for `build` / `image app ensure` |
 | `--image-builder {docker,kaniko}` | CI image build backend (default `docker`) |
 | `--image-push` | After build, publish the image (publish-tag alias after kaniko via `crane copy`) |
+| `--image-prune-stale` | After a successful ensure, delete stale same-layer `cache-*` tags (same as `ODPM_IMAGE_PRUNE_STALE=1`) |
 | `-V`, `--version` | Show odpm version |
 
 CI flow: `prepare --stop-after sources` → `plan` (layer hit/miss) → `image … ensure` or `build`. Registry tag families: **dev** (profile `full`) and **runtime** (profile `medium`) via `ODPM_BASE_IMAGE_PROFILE`. Scenario `ci` and base profile `ci` are **not** renamed. See [ci scenario](../scenarios/ci.md), [ADR-027](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-027-layered-ci-images.md).

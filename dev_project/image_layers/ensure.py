@@ -26,6 +26,7 @@ from .fingerprint import (
     compute_platform_fingerprint,
     layer_image_ref,
 )
+from .prune import prune_stale_layer_cache_tags, prune_stale_requested
 from .registry import (
     force_rebuild_requested,
     image_ref_exists,
@@ -69,6 +70,17 @@ def _force_this_layer(force: bool | None) -> bool:
     if force is not None:
         return force
     return force_rebuild_requested()
+
+
+def _maybe_prune_stale(
+    args: OdpmCliArgs,
+    keep_ref: str,
+    *,
+    remote: bool,
+) -> None:
+    if not prune_stale_requested(args):
+        return
+    prune_stale_layer_cache_tags(keep_ref, remote=remote)
 
 
 def _docker_push_or_raise(ref: str) -> None:
@@ -344,6 +356,7 @@ def ensure_platform(
         ref, remote=remote, force=_force_this_layer(force)
     ):
         _logger.info("image platform ensure: skip (exists) %s", ref)
+        _maybe_prune_stale(args, ref, remote=remote)
         return ref
 
     _logger.info("image platform ensure: miss — building %s", ref)
@@ -389,6 +402,7 @@ def ensure_platform(
         push=push,
     )
     _logger.info("image platform ensure: done %s", ref)
+    _maybe_prune_stale(args, ref, remote=remote)
     return ref
 
 
@@ -417,6 +431,7 @@ def ensure_deps(
         ref, remote=remote, force=_force_this_layer(force)
     ):
         _logger.info("image deps ensure: skip (exists) %s", ref)
+        _maybe_prune_stale(args, ref, remote=remote)
         return ref
 
     _logger.info("image deps ensure: miss — building %s", ref)
@@ -463,6 +478,7 @@ def ensure_deps(
         push=push,
     )
     _logger.info("image deps ensure: done %s", ref)
+    _maybe_prune_stale(args, ref, remote=remote)
     return ref
 
 
@@ -504,6 +520,7 @@ def ensure_app(
             publish_tag=publish_tag,
             push=push,
         )
+        _maybe_prune_stale(args, cache_ref, remote=remote)
         return publish_tag or cache_ref
 
     _logger.info(
@@ -563,6 +580,7 @@ def ensure_app(
         cache_ref,
         publish_tag or cache_ref,
     )
+    _maybe_prune_stale(args, cache_ref, remote=remote)
     return publish_tag or cache_ref
 
 
@@ -633,6 +651,7 @@ def ensure_lint(
         ref, remote=remote, force=_force_this_layer(force)
     ):
         _logger.info("image lint ensure: skip (exists) %s", ref)
+        _maybe_prune_stale(args, ref, remote=remote)
         return ref
 
     _logger.info("image lint ensure: miss — building %s", ref)
@@ -670,6 +689,7 @@ def ensure_lint(
         push=push,
     )
     _logger.info("image lint ensure: done %s", ref)
+    _maybe_prune_stale(args, ref, remote=remote)
     return ref
 
 

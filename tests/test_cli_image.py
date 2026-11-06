@@ -29,6 +29,26 @@ class ImageCliParseTests(unittest.TestCase):
         self.assertTrue(args.image_push)
         self.assertEqual(args.image_builder, "kaniko")
         self.assertTrue(is_image_mode(args))
+        self.assertFalse(args.image_prune_stale)
+
+    def test_parse_image_app_ensure_prune_stale(self):
+        args = parse_cli_args(
+            ["image", "app", "ensure", "--image-prune-stale"]
+        )
+        self.assertEqual(args.image_layer, params.IMAGE_APP_LAYER)
+        self.assertTrue(args.image_prune_stale)
+
+    def test_parse_build_prune_stale(self):
+        args = parse_cli_args(["build", "--image-prune-stale", "--image-tag", "x:y"])
+        self.assertEqual(args.command, params.BUILD_SUBCOMMAND)
+        self.assertTrue(args.image_prune_stale)
+        self.assertEqual(args.image_tag, "x:y")
+
+    def test_image_base_ensure_rejects_prune_flag(self):
+        with self.assertRaises(SystemExit):
+            parse_args_module.parse_args(
+                ["image", "base", "ensure", "--image-prune-stale"]
+            )
 
     def test_parse_image_app_ensure_from(self):
         args = parse_cli_args(
