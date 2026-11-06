@@ -2176,7 +2176,7 @@
 </code></pre></div>
 <p>В project <code>.env</code> достаточно стандартных переменных odpm; <strong><code>DIGITAL_AUTOPARTS_ENV_DIR</code> не нужен</strong>.</p>
 <h2 id="materialize">Materialize<a class="headerlink" href="#materialize" title="Permanent link">&para;</a></h2>
-<p>Prepare-шаг <strong><code>sources.materialize</code></strong> (после <code>git.materialize</code>, до <code>hooks.post_clone</code>):</p>
+<p>Prepare-шаг <strong><code>sources.materialize</code></strong> (после <code>git.materialize_platform</code>, до <code>hooks.post_clone</code>):</p>
 <ol>
 <li>Клонирует git-источники в <strong><code>${ODOO_PROJECTS_DIR}/service-sources/&lt;name&gt;</code></strong> (по умолчанию)</li>
 <li>Для <code>file://</code> — использует указанный каталог (clone не выполняется)</li>
