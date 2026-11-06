@@ -80,16 +80,13 @@ class VersionInfoTests(unittest.TestCase):
         repo_root = Path(__file__).resolve().parent.parent
         if not (repo_root / ".git").exists():
             self.skipTest("not a git checkout")
-        with tempfile.TemporaryDirectory() as tmp:
-            # write_build_meta expects repo layout with .git — use real repo,
-            # write into a temp copy of the path under a patched root by
-            # invoking against the real checkout then reading the file.
-            out = write_build_meta(repo_root)
-            self.addCleanup(lambda: out.unlink(missing_ok=True))
-            self.assertTrue(out.is_file())
-            payload = json.loads(out.read_text(encoding="utf-8"))
-            self.assertRegex(payload["short_sha"], r"^[0-9a-f]+$")
-            self.assertRegex(payload["commit_date"], r"^\d{4}-\d{2}-\d{2}$")
+        # write_build_meta needs a real .git; write into the checkout, then clean up.
+        out = write_build_meta(repo_root)
+        self.addCleanup(lambda: out.unlink(missing_ok=True))
+        self.assertTrue(out.is_file())
+        payload = json.loads(out.read_text(encoding="utf-8"))
+        self.assertRegex(payload["short_sha"], r"^[0-9a-f]+$")
+        self.assertRegex(payload["commit_date"], r"^\d{4}-\d{2}-\d{2}$")
 
     def test_read_git_build_meta_from_repo_checkout(self):
         repo_root = Path(__file__).resolve().parent.parent
