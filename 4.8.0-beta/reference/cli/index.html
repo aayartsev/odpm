@@ -2434,6 +2434,10 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 <td>Не трогать git; lock <strong>не читается</strong>; каталоги должны уже существовать</td>
 </tr>
 <tr>
+<td><code>--git-worktree</code></td>
+<td>Материализовать remote git как bare-зеркало + worktree на тенант под <code>ODOO_PROJECTS_DIR</code> (то же, что <code>ODPM_GIT_WORKTREE=1</code>; ADR-028)</td>
+</tr>
+<tr>
 <td><code>odpm image &lt;слой&gt; ensure</code></td>
 <td>Обеспечить слой CI-образа: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); перед сборкой — узкий prepare (исходники + секреты, без compose/шаблонов)</td>
 </tr>
