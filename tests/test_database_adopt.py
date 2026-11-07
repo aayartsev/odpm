@@ -179,15 +179,25 @@ class BuildAdoptionLastRunTests(unittest.TestCase):
 
 class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
     @patch("dev_project.project_env.services.docker_base_image.BaseImageService.ensure_base_image")
+    @patch(
+        "dev_project.runtime_backend.compose.should_force_recreate_compose_for_host",
+        return_value=False,
+    )
     @patch("dev_project.runtime_backend.compose.run_logged", return_value=0)
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.configure_ide")
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.write_debug_profile")
     @patch("dev_project.runtime_coordinator.ensure_no_blocking_database_drift")
     @patch("dev_project.runtime_coordinator.adopt_database_baseline")
     def test_run_after_prepare_adopts_before_compose(
-        self, mock_adopt, mock_blocking, _mock_write, _mock_ide, _mock_run, _mock_base_image
+        self,
+        mock_adopt,
+        mock_blocking,
+        _mock_write,
+        _mock_ide,
+        _mock_run,
+        _mock_force,
+        _mock_base_image,
     ):
-
         config = MagicMock()
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.no_log_prefix = False
@@ -196,11 +206,7 @@ class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
         config.odoo_image_name = "odoo-base:test"
         config.user_env.odoo_port = 8069
         coordinator = RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
-
-        with patch.object(
-            coordinator, "build_compose_up_argv", return_value=["docker", "compose", "up"]
-        ):
-            coordinator.run_after_prepare()
+        coordinator.run_after_prepare()
 
         mock_adopt.assert_called_once_with(config)
         mock_blocking.assert_called_once_with(config, coordinator.cli_args)
