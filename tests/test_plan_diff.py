@@ -219,19 +219,19 @@ class PlanDiffIntegrationTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.arguments = OdpmCliArgs()
-        config.check_system = True
-        config.create_module_links = True
-        config.dockerfile_template_name = "debian_12_dockerfile"
+        config.user_settings.check_system = True
+        config.user_settings.create_module_links = True
+        config.docker_layout.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.compute_venv_lock_hash.return_value = "hash"
-        config.docker_compose_command = "docker compose"
-        config.project_dockerignore_template_path = os.path.join(
+        config.runtime.docker_compose_command = "docker compose"
+        config.docker_layout.project_dockerignore_template_path = os.path.join(
             project_dir,
             constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
         )
         config.docker_layout = MagicMock()
         config.docker_layout.project_dockerignore_template_path = (
-            config.project_dockerignore_template_path
+            config.docker_layout.project_dockerignore_template_path
         )
         config.addon_layout = MagicMock()
         config.user_settings = MagicMock()

@@ -56,7 +56,7 @@ class ParseArgsLazyTests(unittest.TestCase):
 class SystemCheckerDockerTests(unittest.TestCase):
     def _config(self) -> MagicMock:
         config = MagicMock()
-        config.check_system = False
+        config.user_settings.check_system = False
         config.user_env.backups = "/tmp/backups"
         config.user_env.odoo_projects_dir = "/tmp/odoo-projects"
         return config
@@ -101,7 +101,7 @@ class SystemCheckerDockerTests(unittest.TestCase):
 class SystemCheckerExtraTests(unittest.TestCase):
     def _config(self) -> MagicMock:
         config = MagicMock()
-        config.check_system = False
+        config.user_settings.check_system = False
         config.user_env.backups = "/tmp/backups"
         config.user_env.odoo_projects_dir = "/tmp/odoo-projects"
         config.user_env.odoo_port = 8069
@@ -175,8 +175,8 @@ class SystemCheckerExtraTests(unittest.TestCase):
     @patch("dev_project.check_system.run_checked")
     def test_check_docker_compose_raises_system_check_error(self, mock_checked):
         config = self._config()
-        config.no_log_prefix = True
-        config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+        config.runtime.no_log_prefix = True
+        config.runtime.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
         checker = self._checker(config)
         mock_checked.return_value = MagicMock(returncode=0, stdout="unknown tool", stderr="")
         with patch(

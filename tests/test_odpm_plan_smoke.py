@@ -26,12 +26,12 @@ class OdpmPlanSmokeTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.arguments = OdpmCliArgs()
-        config.check_system = True
-        config.create_module_links = True
-        config.dockerfile_template_name = "debian_12_dockerfile"
+        config.user_settings.check_system = True
+        config.user_settings.create_module_links = True
+        config.docker_layout.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.compute_venv_lock_hash.return_value = "hash"
-        config.python_version = "3.12"
+        config.project_settings.python_version = "3.12"
         return config
 
     def test_plan_table_on_migrated_project_layout(self):

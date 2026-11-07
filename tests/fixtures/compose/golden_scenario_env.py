@@ -14,6 +14,7 @@ from dev_project.debugger.constants import (
     DEFAULT_DEBUGGER_CONNECT_HOST,
 )
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.types import MappedPath
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.yaml import dump_document
@@ -29,9 +30,9 @@ def make_golden_compose_env(scenario: str) -> CreateProjectEnvironment:
     config = MagicMock()
     config.project_dir = GOLDEN_PROJECT_DIR
     config.policy = policy
-    config.odoo_image_name = "odoo-base:dev"
-    config.odoo_ci_image_name = "odoo-ci:19"
-    config.compose_service = ComposeOdooService(
+    config.docker_layout.odoo_image_name = "odoo-base:dev"
+    config.docker_layout.odoo_ci_image_name = "odoo-ci:19"
+    config.runtime.compose_service = ComposeOdooService(
         working_dir="/home/odoo",
         include_runtime_config=policy.mount_runtime_config_from_host(),
         include_runtime_secrets=False,
@@ -43,8 +44,8 @@ def make_golden_compose_env(scenario: str) -> CreateProjectEnvironment:
             "/home/odoo/odoo/odoo-bin",
         ],
     )
-    config.compose_file_version = "3.8"
-    config.postgres_version = "16"
+    config.docker_layout.compose_file_version = "3.8"
+    config.project_settings.postgres_version = "16"
     config.postgres_data_local_storage = GOLDEN_POSTGRES_DATA
     config.pd_manager = MagicMock()
     config.bootstrap = MagicMock(manifest_view=None)
@@ -57,14 +58,14 @@ def make_golden_compose_env(scenario: str) -> CreateProjectEnvironment:
     user_env.odoo_port = 8069
     user_env.gevent_port = 8072
     config.user_env = user_env
-    config.docker_capabilities = DockerCapabilities(
+    config.runtime.docker_capabilities = DockerCapabilities(
         compose_command=constants.DEFAULT_DOCKER_COMPOSE_COMMAND,
         compose_version_text="Docker Compose version v2.24.0",
         supports_no_log_prefix=True,
         supports_compose_up_yes=True,
         supports_pull_policy_never=False,
     )
-    env = CreateProjectEnvironment(config)
+    env = CreateProjectEnvironment(BootstrapHandle(config=config))
     if policy.include_odoo_volumes:
         env.mapped_folders = [
             MappedPath(local=GOLDEN_MAPPED_LOCAL, docker="/home/odoo/extra-addons")

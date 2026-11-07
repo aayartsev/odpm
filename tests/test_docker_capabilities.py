@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 from dev_project import constants
 from dev_project.check_system import SystemChecker
 from dev_project.compose.compose_document import build_compose_document
+from dev_project.host.runtime import HostRuntimeState
 from dev_project.docker_capabilities import (
     DockerCapabilities,
     detect_docker_capabilities,
@@ -58,9 +59,8 @@ class ProbeComposeCandidatesFileNotFoundTests(unittest.TestCase):
 
     def test_ensure_returns_none_on_file_not_found(self):
         config = MagicMock()
-        config.docker_capabilities = None
-        config.runtime = None
-        config.docker_compose_command = "docker compose"
+        config.runtime = HostRuntimeState()
+        config.runtime.docker_compose_command = "docker compose"
 
         def fake_run_checked(argv, **kwargs):
             raise FileNotFoundError(argv[0])
@@ -72,9 +72,8 @@ class ProbeComposeCandidatesFileNotFoundTests(unittest.TestCase):
 
     def test_resolve_raises_system_check_error_on_file_not_found(self):
         config = MagicMock()
-        config.docker_capabilities = None
-        config.runtime = None
-        config.docker_compose_command = "docker compose"
+        config.runtime = HostRuntimeState()
+        config.runtime.docker_compose_command = "docker compose"
 
         def fake_run_checked(argv, **kwargs):
             raise FileNotFoundError(argv[0])
@@ -142,7 +141,7 @@ class DetectDockerCapabilitiesTests(unittest.TestCase):
 class ComposeDocumentPullPolicyTests(unittest.TestCase):
     def test_odoo_service_gets_pull_policy_never_when_supported(self):
         env = make_golden_compose_env(constants.DEVELOPER_SCENARIO)
-        env.config.docker_capabilities = DockerCapabilities(
+        env.bootstrap.config.runtime.docker_capabilities = DockerCapabilities(
             compose_command=constants.DEFAULT_DOCKER_COMPOSE_COMMAND,
             compose_version_text="Docker Compose version v2.24.0",
             supports_no_log_prefix=True,
@@ -168,7 +167,7 @@ class ResolveDockerCapabilitiesTests(unittest.TestCase):
             supports_pull_policy_never=True,
         )
         config = MagicMock()
-        config.docker_capabilities = cached
+        config.runtime.docker_capabilities = cached
         with patch(
             "dev_project.docker_capabilities.probe_docker_capabilities"
         ) as mock_probe:
@@ -193,9 +192,11 @@ class SystemCheckerComposeCapabilitiesTests(unittest.TestCase):
             return_value=caps,
         ):
             checker.check_docker_compose()
-        self.assertEqual(config.docker_compose_command, caps.compose_command)
-        self.assertEqual(config.no_log_prefix, caps.supports_no_log_prefix)
-        self.assertEqual(config.docker_capabilities, caps)
+        self.assertEqual(
+            config.runtime.docker_compose_command, caps.compose_command
+        )
+        self.assertEqual(config.runtime.no_log_prefix, caps.supports_no_log_prefix)
+        self.assertEqual(config.runtime.docker_capabilities, caps)
 
     def test_check_docker_compose_raises_when_no_working_command(self):
         config = MagicMock()

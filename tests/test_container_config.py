@@ -85,23 +85,23 @@ class ContainerConfigFromHostTests(unittest.TestCase):
         config = MagicMock()
         config.user_env.odpm_scenario = constants.SERVER_SCENARIO
         config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.odoo_config_data = {}
-        config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.odoo_config_data = {}
+        config.docker_layout.docker_path_odoo_conf = "/home/odoo/odoo.conf"
         config.arguments = OdpmCliArgs()
-        config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
-        config.db_manager_password = ""
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.docker_project_dir = "/home/odoo"
-        config.requirements_txt = []
-        config.odoo_version = "19.0"
-        config.python_version = "3.12"
-        config.platform_name = "odoo"
-        config.arch = "amd64"
-        config.sql_queries = []
-        config.update_modules = ""
-        config.docker_dirs_with_addons = []
-        config.container_run_mode = constants.RUN_MODE_BOOTSTRAP_ONLY
+        config.user_settings.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
+        config.user_settings.db_manager_password = ""
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.project_settings.requirements_txt = []
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.arch = "amd64"
+        config.user_settings.sql_queries = []
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_dirs_with_addons = []
+        config.runtime.container_run_mode = constants.RUN_MODE_BOOTSTRAP_ONLY
         apply_odpm_config_database_fields(config)
 
         with patch(

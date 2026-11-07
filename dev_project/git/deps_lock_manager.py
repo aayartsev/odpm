@@ -77,9 +77,11 @@ class DepsLockManager:
             try:
                 self._lock = deps_lock_from_manifest_git_locks(
                     git_locks,
-                    platform_git_link=self._config.odoo_git_link,
+                    platform_git_link=self._config.project_settings.odoo_git_link,
                     developing_git_link=developing_git_link_from_config(self._config),
-                    dependency_git_links=list(self._config.dependencies),
+                    dependency_git_links=list(
+                        self._config.project_settings.dependencies
+                    ),
                 )
             except ValueError as exc:
                 message = str(exc)
@@ -191,7 +193,7 @@ class DepsLockManager:
         platform_entry = self._entry_from_project(platform)
         dependency_entries = [
             self._entry_from_project(project)
-            for project in self._config.dependencies_projects
+            for project in self._config.docker_layout.dependencies_projects
         ]
         developing_entry = None
         if developing is not None and is_remote_git_link(developing):
@@ -248,7 +250,7 @@ class DepsLockManager:
         """Apply loaded lock entries to platform, developing, and dependency repos."""
         self.apply_to_platform(self._config.odoo_platform_project)
         self.apply_to_developing(self._config.developing_project)
-        self.apply_to_dependencies(self._config.dependencies_projects)
+        self.apply_to_dependencies(self._config.docker_layout.dependencies_projects)
 
     def collect_and_save_from_config(self) -> None:
         self.collect_and_save(developing=self._config.developing_project)
@@ -258,7 +260,7 @@ class DepsLockManager:
         self.verify_after_checkout(
             platform=self._config.odoo_platform_project,
             developing=self._config.developing_project,
-            dependencies=self._config.dependencies_projects,
+            dependencies=self._config.docker_layout.dependencies_projects,
         )
         self.verify_service_sources()
 

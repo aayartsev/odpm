@@ -24,7 +24,7 @@ from dev_project.errors import ConfigError
 from dev_project.extensions.context import ExtensionHostContext
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
-from dev_project.host.ports import ports_from_config
+from dev_project.host.ports import BootstrapHandle, ports_from_config
 from dev_project.manifest.reader import ManifestView
 from dev_project.plan.fragments_preview import build_compose_fragment_service_plan_steps
 from dev_project.prepare.steps_compose import evaluate_compose_fragments, exec_compose_fragments
@@ -129,15 +129,15 @@ def _compose_env(
     config.program_dir = GOLDEN_PROJECT_DIR
     config.config_home_dir = GOLDEN_PROJECT_DIR
     config.policy = policy
-    config.odoo_image_name = "odoo-base:dev"
-    config.compose_service = ComposeOdooService(
+    config.docker_layout.odoo_image_name = "odoo-base:dev"
+    config.runtime.compose_service = ComposeOdooService(
         working_dir="/home/odoo",
         include_runtime_config=policy.mount_runtime_config_from_host(),
         include_runtime_secrets=False,
         command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT, "--"],
     )
-    config.compose_file_version = "3.8"
-    config.postgres_version = "16"
+    config.docker_layout.compose_file_version = "3.8"
+    config.project_settings.postgres_version = "16"
     config.postgres_data_local_storage = GOLDEN_POSTGRES_DATA
     config.pd_manager = MagicMock()
     config.bootstrap = MagicMock()
@@ -156,7 +156,7 @@ def _compose_env(
     config.project_settings = MagicMock()
     config.docker_layout = MagicMock()
     config.addon_layout = MagicMock()
-    config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+    config.runtime.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
     config.arguments = OdpmCliArgs()
     user_env = MagicMock()
     user_env.postgres_port = 15432
@@ -175,7 +175,7 @@ def _compose_env(
     user_env.compose_network_external = False
     user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
     config.user_env = user_env
-    return CreateProjectEnvironment(config)
+    return CreateProjectEnvironment(BootstrapHandle(config=config))
 
 
 class BuildComposeDocumentSidecarGatesTests(unittest.TestCase):
@@ -224,12 +224,16 @@ class FragmentsSidecarGatesTests(unittest.TestCase):
         config.project_settings = MagicMock()
         config.docker_layout = MagicMock()
         config.addon_layout = MagicMock()
-        config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+        config.runtime.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
         config.arguments = OdpmCliArgs()
         config.user_env = MagicMock()
         config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
         host_ctx = HostProjectContext.from_config(config)
-        ports = ports_from_config(config, MagicMock(), OdpmCliArgs())
+        ports = ports_from_config(
+            config,
+            MagicMock(bootstrap=BootstrapHandle(config=config)),
+            OdpmCliArgs(),
+        )
         return PrepareContext(
             ports=ports,
             project_env=MagicMock(),

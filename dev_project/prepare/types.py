@@ -10,7 +10,7 @@ from .compose_preview_port import ComposePreviewPort
 from .. import constants
 from ..compose.generator import ComposeGenerator
 from ..compose.service_builder import ComposeServiceBuilder
-from ..database.drift import detect_database_drift_for_config
+from ..database.drift import detect_database_drift_for_handle
 from ..docker_capabilities import ensure_config_docker_capabilities
 from ..extensions.context import ExtensionHostContext
 from ..git.deps_lock_manager import DepsLockManager
@@ -32,7 +32,6 @@ from ..secrets_providers.fetch import ensure_secrets_source_for_config
 from ..symlinks.manager import SymlinkManager
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..config.git_repos import GitRepoCoordinator
     from ..manifest.reader import ManifestView
     from ..project_env import CreateProjectEnvironment
@@ -50,11 +49,6 @@ class PrepareContext:
     args: OdpmCliArgs
     host_ctx: HostProjectContext
     lock_manager: DepsLockManager | None = None
-
-    @property
-    def config(self) -> Config:
-        """Execute-only bootstrap config; evaluate should use host_ctx / ports."""
-        return self.ports.bootstrap.config
 
     @property
     def compose_preview(self) -> ComposePreviewPort:
@@ -83,7 +77,9 @@ class PrepareContext:
         return self.ports.bootstrap.secrets_session()
 
     def ensure_secrets_source(self, raw, *, phase: str = "prepare"):
-        return ensure_secrets_source_for_config(self.config, raw=raw, phase=phase)
+        return ensure_secrets_source_for_config(
+            self.ports.bootstrap.config, raw=raw, phase=phase
+        )
 
     def service_sources_need_materialize(self) -> bool:
         return service_sources_need_materialize_for_view(
@@ -97,16 +93,17 @@ class PrepareContext:
     def run_service_sources_materialize(
         self, *, skip_git: bool, lock_entries: dict
     ) -> None:
+        bootstrap = self.ports.bootstrap
         view = self.manifest_view
         if view is None or not view.service_sources:
-            SymlinkManager(self.config).sync_service_source_project_links({})
+            SymlinkManager(bootstrap).sync_service_source_project_links({})
             return
         if skip_git:
-            ensure_service_sources_present(self.config)
-            paths = collect_service_source_paths(self.config)
+            ensure_service_sources_present(bootstrap)
+            paths = collect_service_source_paths(bootstrap)
         else:
-            paths = materialize_service_sources(self.config, lock_entries=lock_entries)
-        apply_materialized_service_sources(self.config, paths)
+            paths = materialize_service_sources(bootstrap, lock_entries=lock_entries)
+        apply_materialized_service_sources(bootstrap, paths)
 
     def compute_venv_lock_hash(self) -> str:
         return self.ports.bootstrap.compute_venv_lock_hash()
@@ -115,18 +112,20 @@ class PrepareContext:
         self.ports.bootstrap.pd_manager.rebuild_docker_compose_template()
 
     def build_compose_service(self):
-        return ComposeServiceBuilder(self.ports.bootstrap.config).build()
+        return ComposeServiceBuilder(self.ports.bootstrap).build()
 
     def ensure_compose_docker_ready(self, policy) -> None:
-        config = self.config
+        config = self.ports.bootstrap.config
         if policy.skip_compose_cli_probe:
-            if not getattr(config, "docker_compose_command", None):
-                config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+            if not config.runtime.docker_compose_command:
+                config.runtime.docker_compose_command = (
+                    constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+                )
         else:
             ensure_config_docker_capabilities(config)
 
     def detect_database_drift(self):
-        return detect_database_drift_for_config(self.ports.bootstrap.config)
+        return detect_database_drift_for_handle(self.ports.bootstrap)
 
 
 @dataclass(frozen=True)

@@ -36,7 +36,7 @@ class ContainerHealthTests(unittest.TestCase):
 class ComposeStackHealthTests(unittest.TestCase):
     def _config(self, *, postgres_service_name: str = "db") -> MagicMock:
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.project_dir = "/tmp/project"
         config.user_env.postgres_service_name = postgres_service_name
         return config
@@ -108,7 +108,7 @@ class ComposeCliArgvTests(unittest.TestCase):
 
     def test_compose_cli_argv_includes_project_when_prefix_set(self):
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.user_env.compose_project_name = "acme"
         with patch(
             "dev_project.host.context.HostProjectContext.from_config",
@@ -124,7 +124,7 @@ class ComposeCliArgvTests(unittest.TestCase):
 
     def test_compose_cli_argv_includes_project_when_suffix_set(self):
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.user_env.compose_project_name = "dev"
         with patch(
             "dev_project.host.context.HostProjectContext.from_config",
@@ -140,7 +140,7 @@ class ComposeCliArgvTests(unittest.TestCase):
 
     def test_compose_cli_argv_includes_project_when_prefix_and_suffix_set(self):
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.user_env.compose_project_name = "acme-dev"
         with patch(
             "dev_project.host.context.HostProjectContext.from_config",
@@ -159,7 +159,7 @@ class ComposeCliArgvTests(unittest.TestCase):
 
         mock_run.return_value = MagicMock(returncode=0, stdout="cid\n", stderr="")
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.project_dir = "/tmp/project"
         config.user_env.compose_project_name = "acme"
         config.user_env.postgres_service_name = "acme-db"

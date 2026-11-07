@@ -136,9 +136,9 @@ def _apply_manifest_database_to_user_settings(config: Config) -> None:
 def bind_platform_link(config: Config) -> None:
     bootstrap = config.bootstrap
     odoo_git_link = require_nonempty_git_url(
-        config.odoo_git_link, field="odoo_git_link"
+        config.project_settings.odoo_git_link, field="odoo_git_link"
     )
-    config.odoo_git_link = odoo_git_link
+    config.project_settings.odoo_git_link = odoo_git_link
     bootstrap.odoo_platform_project = config.handle_git_link(
         odoo_git_link,
         system_type="platform",
@@ -152,8 +152,8 @@ def normalize_project_requirements(
 ) -> list[str]:
     normalized = config.policy.normalize_requirements(
         requirements_txt,
-        python_version=config.python_version,
-        odoo_version=config.odoo_version,
+        python_version=config.project_settings.python_version,
+        odoo_version=config.project_settings.odoo_version,
         debugger_backend=resolve_debugger_backend_id(
             getattr(config, "user_env", None)
         ),
@@ -161,7 +161,7 @@ def normalize_project_requirements(
     return merge_autoreload_requirements(
         normalized,
         effective_dev_mode(
-            config.dev_mode,
+            config.user_settings.dev_mode,
             apply_dev_mode=config.policy.apply_dev_mode,
         ),
     )

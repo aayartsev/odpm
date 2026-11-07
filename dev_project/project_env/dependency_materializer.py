@@ -32,8 +32,11 @@ class DependencyMaterializer:
         self._checkout_fn = checkout_fn
 
     def resolve(self) -> DependencyResolutionResult:
-        seed_urls = list(self.config.dependencies)
-        if self.config.skip_git_update() or not self.config.use_oca_dependencies:
+        seed_urls = list(self.config.project_settings.dependencies)
+        if (
+            self.config.skip_git_update()
+            or not self.config.user_settings.use_oca_dependencies
+        ):
             return DependencyResolutionResult(
                 urls=seed_urls,
                 nested_fragments=[],
@@ -96,6 +99,6 @@ class DependencyMaterializer:
                 )
 
     def apply_to_config(self, resolution: DependencyResolutionResult) -> None:
-        self.config.dependencies = resolution.urls
+        self.config.project_settings.dependencies = resolution.urls
         if resolution.nested_fragments:
             self.config.apply_nested_compatibility(resolution.nested_fragments)

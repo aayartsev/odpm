@@ -15,7 +15,7 @@ from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
-from .host.ports import PipelinePorts
+from .host.ports import BootstrapHandle, PipelinePorts
 from .project_materializer import ProjectMaterializer
 from .secrets_providers.session import SecretsFetchSession
 from .system_check_policy import SystemCheckPolicy, cli_allows_ci_explicit_mode
@@ -61,7 +61,8 @@ class OdpmPipeline:
             user_environment,
             secrets_fetch_session=secrets_session,
         )
-        self.project_environment = CreateProjectEnvironment(self.config)
+        bootstrap = BootstrapHandle(config=self.config)
+        self.project_environment = CreateProjectEnvironment(bootstrap)
         self.system_checker = SystemChecker(self.config, self.project_environment)
         policy = SystemCheckPolicy.from_config(self.config)
         if policy.beginner_git:

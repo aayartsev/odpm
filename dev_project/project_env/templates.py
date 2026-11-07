@@ -17,14 +17,14 @@ class ProjectTemplates:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def generate_dockerfile(self) -> None:
         policy = self.config.policy
-        with open(self.config.project_dockerfile_template_path) as reader:
+        with open(self.config.docker_layout.project_dockerfile_template_path) as reader:
             content = reader.read()
         content = content.format(
-            PROCESSOR_ARCH=self.config.arch,
+            PROCESSOR_ARCH=self.config.project_settings.arch,
             CONTAINER_USER_UID=policy.runtime_unix_uid(),
             CONTAINER_USER_GID=policy.runtime_unix_gid(),
             CONTAINER_USER=policy.runtime_unix_user(),
@@ -33,10 +33,10 @@ class ProjectTemplates:
             CURRENT_USER_GID=policy.runtime_unix_gid(),
             CURRENT_USER=policy.runtime_unix_user(),
             CURRENT_PASSWORD=policy.runtime_unix_password(),
-            PYTHON_VERSION=self.config.python_version,
-            DISTRO_NAME=self.config.distro_name,
-            DISTRO_VERSION=self.config.distro_version,
-            DISTRO_VERSION_CODENAME=self.config.distro_version_codename,
+            PYTHON_VERSION=self.config.project_settings.python_version,
+            DISTRO_NAME=self.config.project_settings.distro_name,
+            DISTRO_VERSION=self.config.project_settings.distro_version,
+            DISTRO_VERSION_CODENAME=self.config.project_settings.distro_version_codename,
         )
         content = content.replace(
             _('If you want drop this file to default values, just delete it'),
@@ -48,7 +48,7 @@ class ProjectTemplates:
             writer.write(content)
 
     def generate_dockerignore(self) -> None:
-        with open(self.config.project_dockerignore_template_path) as reader:
+        with open(self.config.docker_layout.project_dockerignore_template_path) as reader:
             content = reader.read()
         content = content.replace(
             _('If you want drop this file to default values, just delete it'),
@@ -77,10 +77,10 @@ class ProjectTemplates:
         }.items():
             content = content.replace(replace_phrase[0], replace_phrase[1])
         if odoo_conf_on_disk_needs_regeneration(
-            self.config.path_odoo_conf,
+            self.config.docker_layout.path_odoo_conf,
             expected_db_host=self.config.user_env.postgres_service_name,
         ) or self.config.pd_manager.check_project_odoo_config_template(
             config_file_template_path
         ):
-            with open(self.config.path_odoo_conf, "w") as writer:
+            with open(self.config.docker_layout.path_odoo_conf, "w") as writer:
                 writer.write(content)

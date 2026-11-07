@@ -20,9 +20,9 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.symlinks_sources = []
             config.repo_odpm_json = ""
             config.arguments = OdpmCliArgs(branch="17.0", no_git_update=False)
             config.developing_project = MagicMock(
@@ -54,27 +54,27 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = [dependency]
-            config.dependencies_projects = [dependency]
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = [dependency]
+            config.docker_layout.dependencies_projects = [dependency]
             config.developing_project = MagicMock()
-            config.update_git_repos = True
-            config.clean_git_repos = False
-            config.odoo_version = "17.0"
-            config.symlinks_sources = []
+            config.user_settings.update_git_repos = True
+            config.user_settings.clean_git_repos = False
+            config.project_settings.odoo_version = "17.0"
+            config.docker_layout.symlinks_sources = []
             config.ensure_git_repo_symlink = lambda path, *, scope: ensure_git_repo_symlink(
                 config, path, scope=scope
             )
             config.ensure_developing_repo_symlinks = MagicMock()
 
             env = MagicMock()
-            env.config = config
+            env.bootstrap = MagicMock(config=config)
 
             with self.assertRaises(GitError):
                 ProjectLinks(env).checkout_project(dependency)
 
             link_path = os.path.join(
-                config.dependencies_dir,
+                config.docker_layout.dependencies_dir,
                 os.path.basename(dep_path),
             )
             self.assertTrue(os.path.islink(link_path))
@@ -93,9 +93,9 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.symlinks_sources = []
             config.developing_project_dir_path = ""
             config._developing_materializer.materialize_full = MagicMock()
             config.odoo_platform_project = MagicMock(project_path=platform_path)

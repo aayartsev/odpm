@@ -9,6 +9,7 @@ from dev_project.translations import _
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.errors import PipelineError
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.base_image import BaseImageBuilder
 from dev_project.project_env.services import (
     BaseImageService,
@@ -26,7 +27,7 @@ class ProjectTemplatesTests(unittest.TestCase):
             user_env = MagicMock()
 
         config = ConfigStub()
-        CreateProjectEnvironment(config)  # type: ignore[arg-type]
+        CreateProjectEnvironment(BootstrapHandle(config=config))  # type: ignore[arg-type]
         self.assertFalse(hasattr(config, "project_env"))
 
     def _program_dir(self) -> str:
@@ -46,11 +47,11 @@ class ProjectTemplatesTests(unittest.TestCase):
     def _make_env(self, project_dir: str) -> CreateProjectEnvironment:
         config = MagicMock()
         config.project_dir = project_dir
-        config.project_dockerignore_template_path = os.path.join(
+        config.docker_layout.project_dockerignore_template_path = os.path.join(
             project_dir,
             constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
         )
-        return CreateProjectEnvironment(config)
+        return CreateProjectEnvironment(BootstrapHandle(config=config))
 
     def test_generate_dockerignore_writes_managed_file(self):
         with tempfile.TemporaryDirectory() as project_dir:
@@ -87,14 +88,14 @@ class ProjectTemplatesTests(unittest.TestCase):
             policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
             config = MagicMock()
             config.project_dir = project_dir
-            config.project_dockerfile_template_path = template_path
+            config.docker_layout.project_dockerfile_template_path = template_path
             config.policy = policy
-            config.arch = "amd64"
-            config.python_version = "3.12"
-            config.distro_name = "debian"
-            config.distro_version = "13"
-            config.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
-            env = CreateProjectEnvironment(config)
+            config.project_settings.arch = "amd64"
+            config.project_settings.python_version = "3.12"
+            config.project_settings.distro_name = "debian"
+            config.project_settings.distro_version = "13"
+            config.project_settings.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
+            env = CreateProjectEnvironment(BootstrapHandle(config=config))
             env._templates.generate_dockerfile()
 
             dockerfile = Path(project_dir, constants.DOCKERFILE).read_text(
@@ -116,14 +117,14 @@ class ProjectTemplatesTests(unittest.TestCase):
             policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
             config = MagicMock()
             config.project_dir = project_dir
-            config.project_dockerfile_template_path = template_path
+            config.docker_layout.project_dockerfile_template_path = template_path
             config.policy = policy
-            config.arch = "amd64"
-            config.python_version = "3.12"
-            config.distro_name = "debian"
-            config.distro_version = "13"
-            config.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
-            env = CreateProjectEnvironment(config)
+            config.project_settings.arch = "amd64"
+            config.project_settings.python_version = "3.12"
+            config.project_settings.distro_name = "debian"
+            config.project_settings.distro_version = "13"
+            config.project_settings.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
+            env = CreateProjectEnvironment(BootstrapHandle(config=config))
             env._templates.generate_dockerfile()
 
             dockerfile = Path(project_dir, constants.DOCKERFILE).read_text(
@@ -139,17 +140,17 @@ class BaseImageBuilderTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = "/tmp/project"
         config.dockerfile_path = "/tmp/project/Dockerfile"
-        config.odoo_image_name = "odoo-amd64-python-3.12-debian-120-ci"
-        config.arch = "amd64"
-        config.python_version = "3.12"
-        config.distro_name = "debian"
-        config.distro_version = "12.0"
+        config.docker_layout.odoo_image_name = "odoo-amd64-python-3.12-debian-120-ci"
+        config.project_settings.arch = "amd64"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.distro_name = "debian"
+        config.project_settings.distro_version = "12.0"
         config.arguments = OdpmCliArgs()
         config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         config.user_env = MagicMock()
         config.user_env.project_dotenv_dict.return_value = dict(dotenv)
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         return BaseImageBuilder(env)
 
     @patch("dev_project.project_env.base_image.run_or_raise")
@@ -342,7 +343,7 @@ class BaseImageServiceTests(unittest.TestCase):
     def test_ensure_base_image_delegates_to_builder(self, mock_ensure):
         config = MagicMock()
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         BaseImageService(env).ensure_base_image()
         mock_ensure.assert_called_once()
 
@@ -352,13 +353,13 @@ class CiImageBuildServiceTests(unittest.TestCase):
 
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.odoo_ci_image_name = "odoo-ci:test"
-        config.odoo_image_name = "odoo-base:test"
-        config.arch = "amd64"
-        config.ci_build_context_dir = "/tmp/project/.odpm/ci-build-context"
+        config.docker_layout.odoo_ci_image_name = "odoo-ci:test"
+        config.docker_layout.odoo_image_name = "odoo-base:test"
+        config.project_settings.arch = "amd64"
+        config.docker_layout.ci_build_context_dir = "/tmp/project/.odpm/ci-build-context"
         config.arguments = OdpmCliArgs()
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         env.mapped_folders = []
         return CiImageBuildService(env)
 
@@ -374,7 +375,7 @@ class CiImageBuildServiceTests(unittest.TestCase):
         with self.assertRaises(PipelineError) as ctx:
             service.build_ci_image()
         self.assertEqual(ctx.exception.exit_code, 2)
-        mock_layered.assert_called_once_with(service.env, service.env.config.arguments)
+        mock_layered.assert_called_once_with(service.env, service.env.bootstrap.config.arguments)
 
 
 if __name__ == "__main__":

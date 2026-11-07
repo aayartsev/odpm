@@ -210,4 +210,4 @@ class SystemCheckPolicy:
         user_settings = getattr(config, "user_settings", None)
         if user_settings is not None and hasattr(user_settings, "check_system"):
             return bool(user_settings.check_system)
-        return bool(getattr(config, "check_system", True))
+        return bool(config.user_settings.check_system)

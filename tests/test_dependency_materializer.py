@@ -12,8 +12,8 @@ from dev_project.project_env.dependency_materializer import DependencyMaterializ
 class DependencyMaterializerResolveTests(unittest.TestCase):
     def test_resolve_skips_discovery_when_no_git_update(self):
         config = MagicMock()
-        config.dependencies = ["https://github.com/OCA/partner-contact.git"]
-        config.use_oca_dependencies = True
+        config.project_settings.dependencies = ["https://github.com/OCA/partner-contact.git"]
+        config.user_settings.use_oca_dependencies = True
         config.skip_git_update.return_value = True
         checkout_fn = MagicMock()
 
@@ -31,14 +31,14 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
 
     def test_resolve_skips_discovery_when_oca_disabled(self):
         config = MagicMock()
-        config.dependencies = ["https://github.com/acme/A.git"]
-        config.use_oca_dependencies = False
+        config.project_settings.dependencies = ["https://github.com/acme/A.git"]
+        config.user_settings.use_oca_dependencies = False
         config.skip_git_update.return_value = False
         checkout_fn = MagicMock()
 
         resolved = DependencyMaterializer(config, checkout_fn=checkout_fn).resolve()
 
-        self.assertEqual(resolved.urls, config.dependencies)
+        self.assertEqual(resolved.urls, config.project_settings.dependencies)
         checkout_fn.assert_not_called()
 
     def test_resolve_reads_developing_oca_without_checkout(self):
@@ -59,8 +59,8 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
                 return link
 
             config = MagicMock()
-            config.dependencies = []
-            config.use_oca_dependencies = True
+            config.project_settings.dependencies = []
+            config.user_settings.use_oca_dependencies = True
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
@@ -91,7 +91,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             resolution
         )
 
-        self.assertEqual(config.dependencies, resolution.urls)
+        self.assertEqual(config.project_settings.dependencies, resolution.urls)
         config.apply_nested_compatibility.assert_called_once_with([fragment])
 
     def test_apply_to_config_skips_compatibility_when_no_fragments(self):
@@ -105,7 +105,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             resolution
         )
 
-        self.assertEqual(config.dependencies, resolution.urls)
+        self.assertEqual(config.project_settings.dependencies, resolution.urls)
         config.apply_nested_compatibility.assert_not_called()
 
 
@@ -142,8 +142,8 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
                 return link
 
             config = MagicMock()
-            config.dependencies = [url_a]
-            config.use_oca_dependencies = True
+            config.project_settings.dependencies = [url_a]
+            config.user_settings.use_oca_dependencies = True
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
@@ -190,8 +190,8 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
                 return link
 
             config = MagicMock()
-            config.dependencies = [url_a]
-            config.use_oca_dependencies = True
+            config.project_settings.dependencies = [url_a]
+            config.user_settings.use_oca_dependencies = True
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)

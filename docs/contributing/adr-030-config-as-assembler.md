@@ -21,13 +21,23 @@ Accepted (4.8-dev track).
 
 3. **Не раздувать плоский фасад:** новые команды и шаги не добавляют `bind_slice` / плоские свойства на `Config` ради удобства вызова. Предпочтительны порты, контекст или метод handle.
 
-4. **Первая версия (этот ADR):** карта зон ([config-zones.md](config-zones.md)); на `BootstrapHandle` — `env_resolver`, `odoo_conf`, `pd_manager`; `PrepareContext` переводит `env_resolver` / `rebuild_compose_template` на handle; `odoo_conf` на handle доступен для прямых вызовов и следующих шагов (пока не все места вызова переведены); `ctx.config` остаётся для хвостов; правило для агентов в `.cursor/rules/`.
+4. **Первая версия (этот ADR):** карта зон ([config-zones.md](config-zones.md)); на `BootstrapHandle` — `env_resolver`, `odoo_conf`, `pd_manager`; `PrepareContext` переводит `env_resolver` / `rebuild_compose_template` на handle; `odoo_conf` на handle доступен для прямых вызовов и следующих шагов (пока не все места вызова переведены); правило для агентов в `.cursor/rules/`.
 
 5. **Срез A (выполнен):** шаги secrets, sources и compose generate в `prepare/steps_*.py` не читают сырой `bootstrap.config` / `ctx.config`. На `BootstrapHandle` — `secrets_session`; сценарий шага — хелперы `PrepareContext`. Запрет в шагах держит `tests/test_prepare_config_coupling.py`. Команды `odpm` для пользователя не меняются. Хелперы по-прежнему могут вызывать API, которые принимают `Config`.
 
 6. **Срез B (выполнен):** оценка IDE в `prepare/runtime.py` через методы `RuntimePorts`; сброс кэша превью — `BootstrapHandle.clear_runtime_config_preview_cache`; превью compose — `ComposePreviewPort.run_with_mutable_snapshot` без `runtime_cache_config` у вызывающего кода. Coupling: `steps_*.py` + `runtime.py`. Поведение команд не меняется.
 
-7. **Вне срезов A–B:** снятие `PrepareContext.config`; отвязка `CreateProjectEnvironment` / compose service builder; публичные shims `bind_slice`; вынос runtime-фасада с `Config`.
+7. **Срез C (выполнен):** алиас `PrepareContext.config` снят; сырой снимок только через `ports.bootstrap` / хелперы. Поведение команд не меняется.
+
+8. **Срез D (выполнен):** публичные входы сборщика compose, менеджера ссылок, исходников сервисов и drift — на `BootstrapHandle`.
+
+9. **Срез E (выполнен):** `CreateProjectEnvironment` получает
+   `BootstrapHandle` и не публикует `.config`; состояние запуска доступно через
+   `BootstrapHandle.runtime` / `Config.runtime`. Плоский runtime-фасад и
+   автоматически привязанные свойства срезов (`bind_slice_properties`) удалены:
+   внутри сборщика используются явные `user_settings`, `project_settings`,
+   `docker_layout`, `addon_layout`. `HostProjectContext.from_config` снимает
+   команду compose из runtime с запасным значением из docker layout.
 
 ## Consequences
 
@@ -42,3 +52,4 @@ Accepted (4.8-dev track).
 - Plan: `.cursor/plans/config_zones_contract_f41d371a.plan.md`
 - Slice A: `.cursor/plans/config_handle_prepare_56471ad4.plan.md`
 - Slice B: `.cursor/plans/config_roadmap_b_9498b8e7.plan.md`
+- Slices C–E: `.cursor/plans/config_roadmap_cde_41d7995e.plan.md`

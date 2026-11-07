@@ -26,7 +26,7 @@ class PipelinePortsTests(unittest.TestCase):
         config = MagicMock()
         config.arguments = OdpmCliArgs()
         config.user_env = MagicMock()
-        project_env = CreateProjectEnvironment(config)
+        project_env = CreateProjectEnvironment(BootstrapHandle(config=config))
 
         ports = PipelinePorts.from_setup(config, project_env, OdpmCliArgs())
 

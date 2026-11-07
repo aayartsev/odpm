@@ -163,9 +163,9 @@ class SystemChecker(SystemCheckerProtocol):
             message = _('Cannot get docker-compose info, did you install it?')
             _logger.error(message)
             raise SystemCheckError(message)
-        self.config.docker_compose_command = capabilities.compose_command
-        self.config.no_log_prefix = capabilities.supports_no_log_prefix
-        self.config.docker_capabilities = capabilities
+        self.config.runtime.docker_compose_command = capabilities.compose_command
+        self.config.runtime.no_log_prefix = capabilities.supports_no_log_prefix
+        self.config.runtime.docker_capabilities = capabilities
 
     def _platform_git_repo_ready(self) -> bool:
         odoo_src_dir = self.config.odoo_src_dir

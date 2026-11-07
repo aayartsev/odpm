@@ -27,7 +27,6 @@ from dev_project.host.cli import OdpmCliArgs, parse_cli_args
 from dev_project.config import bootstrap as bootstrap_module
 from dev_project.config import bootstrap_phases as bootstrap_phases_module
 from dev_project.config import layout as layout_module
-from dev_project.config.runtime_facade import ConfigRuntimeFacadeMixin
 from dev_project.cli import main
 from dev_project.plan import OdpmPlanner, PlanStep, format_plan
 from dev_project.plan.cli import is_plan_mode
@@ -118,14 +117,18 @@ class CanonicalImportSmokeTests(unittest.TestCase):
         self.assertFalse(hasattr(Config, "system_checker"))
 
     def test_config_runtime_fields_are_properties(self):
+        from dev_project.host.runtime import HostRuntimeState
 
+        self.assertIsInstance(Config.runtime, property)
+        runtime = HostRuntimeState()
         for name in (
             "compose_service",
             "container_run_mode",
             "no_log_prefix",
             "docker_compose_command",
+            "docker_capabilities",
         ):
-            self.assertIsInstance(getattr(Config, name), property)
+            self.assertTrue(hasattr(runtime, name))
 
     def test_project_env_package_imports(self):
 
@@ -168,10 +171,6 @@ class CanonicalImportSmokeTests(unittest.TestCase):
     def test_config_layout_imports(self):
 
         self.assertTrue(callable(layout_module.apply_policy_and_layout))
-
-    def test_config_runtime_facade_imports(self):
-
-        self.assertTrue(hasattr(ConfigRuntimeFacadeMixin, "compose_service"))
 
     def test_cli_entrypoint_imports(self):
 

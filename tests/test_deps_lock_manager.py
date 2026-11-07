@@ -37,7 +37,7 @@ def _config_with_policy(project_dir: str, scenario: str, **overrides):
     config = MagicMock()
     config.project_dir = project_dir
     config.policy = ScenarioPolicy.from_scenario(scenario)
-    config.dependencies = overrides.get("dependencies", list(seed_dependencies))
+    config.project_settings.dependencies = overrides.get("dependencies", list(seed_dependencies))
     config.seed_dependency_urls = MagicMock(return_value=list(seed_dependencies))
     config.odoo_platform_project = overrides.get(
         "odoo_platform_project",
@@ -47,7 +47,7 @@ def _config_with_policy(project_dir: str, scenario: str, **overrides):
             branch_explicit=True,
         ),
     )
-    config.dependencies_projects = overrides.get(
+    config.docker_layout.dependencies_projects = overrides.get(
         "dependencies_projects",
         [
             _bare_link(gitlink="https://github.com/OCA/partner-contact.git"),
@@ -90,11 +90,11 @@ class DepsLockManagerApplyTests(unittest.TestCase):
             manager.load()
             manager.enter_apply_mode()
             manager.apply_to_platform(config.odoo_platform_project)
-            manager.apply_to_dependencies(config.dependencies_projects)
+            manager.apply_to_dependencies(config.docker_layout.dependencies_projects)
 
             self.assertTrue(config.odoo_platform_project.commit_explicit)
-            self.assertTrue(config.dependencies_projects[0].commit_explicit)
-            self.assertTrue(config.dependencies_projects[1].commit_explicit)
+            self.assertTrue(config.docker_layout.dependencies_projects[0].commit_explicit)
+            self.assertTrue(config.docker_layout.dependencies_projects[1].commit_explicit)
 
     def test_apply_to_developing_skips_remote_git_in_developer_scenario(self):
         with tempfile.TemporaryDirectory() as project_dir:
@@ -210,8 +210,8 @@ class DepsLockManagerCollectTests(unittest.TestCase):
             Path(platform_dir, "odoo-bin").write_text("bin", encoding="utf-8")
 
             config = _config_with_policy(project_dir, constants.DEVELOPER_SCENARIO)
-            config.dependencies = []
-            config.dependencies_projects = []
+            config.project_settings.dependencies = []
+            config.docker_layout.dependencies_projects = []
             config.seed_dependency_urls.return_value = []
             platform = MagicMock()
             platform.gitlink = ""
@@ -255,7 +255,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
             manager.verify_after_checkout(
                 platform=config.odoo_platform_project,
                 developing=config.developing_project,
-                dependencies=config.dependencies_projects,
+                dependencies=config.docker_layout.dependencies_projects,
             )
 
     def test_verify_after_checkout_skips_developing_in_developer_scenario(self):
@@ -286,7 +286,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
         manager.verify_after_checkout(
             platform=config.odoo_platform_project,
             developing=config.developing_project,
-            dependencies=config.dependencies_projects,
+            dependencies=config.docker_layout.dependencies_projects,
         )
 
         self.assertIn("platform", verified_labels)
@@ -309,7 +309,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
             manager.verify_after_checkout(
                 platform=config.odoo_platform_project,
                 developing=config.developing_project,
-                dependencies=config.dependencies_projects,
+                dependencies=config.docker_layout.dependencies_projects,
             )
 
     def test_missing_seed_in_lock_fails_ci(self):

@@ -68,21 +68,26 @@ def _lock_sha_map(config: Any) -> dict[str, str]:
 def compute_platform_fingerprint(config: Any, *, program_dir: str) -> str:
     df = _template_path(program_dir, "dockerfile_platform")
     extras = sorted(
-        r.strip() for r in (getattr(config, "requirements_txt", None) or []) if r.strip()
+        r.strip()
+        for r in (config.project_settings.requirements_txt or [])
+        if r.strip()
     )
     locks = _lock_sha_map(config)
     platform_sha = locks.get("platform", "")
     payload = {
         "schema": FINGERPRINT_SCHEMA_VERSION,
-        "odoo_version": str(config.odoo_version),
-        "build_date": str(getattr(config, "odoo_build_date", "") or ""),
+        "odoo_version": str(config.project_settings.odoo_version),
+        "build_date": str(config.project_settings.odoo_build_date or ""),
         "profile": _profile(config),
         "extras": extras,
         "platform_git_sha": platform_sha,
         "dockerfile_platform": _sha8(df.read_bytes()) if df.is_file() else "missing",
-        "python": str(config.python_version),
-        "distro": f"{config.distro_name}-{config.distro_version}",
-        "arch": str(config.arch),
+        "python": str(config.project_settings.python_version),
+        "distro": (
+            f"{config.project_settings.distro_name}-"
+            f"{config.project_settings.distro_version}"
+        ),
+        "arch": str(config.project_settings.arch),
         "venv_mode": str(getattr(config.policy, "venv_mode", "baked")),
     }
     return _sha8(json.dumps(payload, sort_keys=True, separators=(",", ":")))
@@ -168,8 +173,8 @@ def layer_image_ref(
         reg = f"odpm-local/{getattr(config, 'project_name', 'project')}"
     profile = _profile(config)
     family = family_for_profile(profile)
-    ver = str(config.odoo_version)
-    build_date = str(getattr(config, "odoo_build_date", "") or "unknown")
+    ver = str(config.project_settings.odoo_version)
+    build_date = str(config.project_settings.odoo_build_date or "unknown")
     tag = f"cache-{layer}-{family}-{ver}-{build_date}-v-{fingerprint}"
     return f"{reg}:{tag}"
 

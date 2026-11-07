@@ -61,7 +61,7 @@ class BaseImageBuilder:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def _builder_environ(self) -> dict[str, str]:
         return environ_from_config(self.config)
@@ -108,7 +108,7 @@ class BaseImageBuilder:
             context_dir=self.config.project_dir,
             dockerfile=self.config.dockerfile_path,
             tag=image_ref,
-            platform=f"linux/{self.config.arch}",
+            platform=f"linux/{self.config.project_settings.arch}",
             push=push,
             project_dir=self.config.project_dir,
         )

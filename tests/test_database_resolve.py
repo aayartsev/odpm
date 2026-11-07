@@ -23,6 +23,7 @@ from dev_project.database.schema import (
 )
 from dev_project.errors import PipelineError
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.ports import BootstrapHandle
 from dev_project.prepare import make_prepare_context
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -35,17 +36,19 @@ class DatabaseResolveTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config.postgres_version = "17"
+        config.project_settings.postgres_version = "17"
         config.postgres_data_local_storage = data_path
         config.user_env.postgres_service_name = "db-dev"
         config.user_env.postgres_port = 5432
-        config.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
+        config.docker_layout.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
         return config
 
     def _ctx(self, config: MagicMock, *, accept: tuple[str, ...] = ()) -> MagicMock:
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
         return make_prepare_context(
             config,
-            MagicMock(),
+            project_env,
             MagicMock(),
             OdpmCliArgs(accept_database_drift=accept),
         )

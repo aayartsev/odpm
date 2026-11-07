@@ -15,6 +15,7 @@ from dev_project.dependency_resolver import (
 )
 from dev_project.errors import ConfigError
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.host.ports import BootstrapHandle
 
 
 class ParseOcaDependenciesLineTests(unittest.TestCase):
@@ -360,7 +361,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
 
     def _make_env(self, config):
 
-        env = CreateProjectEnvironment(config)
+        env = CreateProjectEnvironment(BootstrapHandle(config=config))
         env._links.checkout_project = MagicMock()
         return env
 
@@ -392,8 +393,8 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
                 return link
 
             config = MagicMock()
-            config.dependencies = [url_a]
-            config.use_oca_dependencies = True
+            config.project_settings.dependencies = [url_a]
+            config.user_settings.use_oca_dependencies = True
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
@@ -425,8 +426,8 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
                 return link
 
             config = MagicMock()
-            config.dependencies = []
-            config.use_oca_dependencies = True
+            config.project_settings.dependencies = []
+            config.user_settings.use_oca_dependencies = True
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
@@ -440,8 +441,8 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
 
     def test_resolve_dependencies_warns_when_dependency_not_cloned(self):
         config = MagicMock()
-        config.dependencies = ["https://github.com/OCA/missing.git"]
-        config.use_oca_dependencies = True
+        config.project_settings.dependencies = ["https://github.com/OCA/missing.git"]
+        config.user_settings.use_oca_dependencies = True
         config.skip_git_update.return_value = False
         config.developing_project = MagicMock(project_path="")
         missing = MagicMock(is_cloned=False, project_path="")

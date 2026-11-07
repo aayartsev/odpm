@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from ..config.transforms.env_substitution import EnvResolver
     from ..git.deps_lock_manager import DepsLockManager
     from ..manifest.reader import ManifestView
+    from .runtime import HostRuntimeState
     from ..project_dir_manager import ProjectDirManager
 from ..project_env import CreateProjectEnvironment
 from ..secrets_providers.session import session_for_config
@@ -30,6 +31,10 @@ class BootstrapHandle:
     """
 
     config: Config
+
+    @property
+    def runtime(self) -> HostRuntimeState:
+        return self.config.runtime
 
     @property
     def git_repos(self) -> GitRepoCoordinator:
@@ -154,7 +159,12 @@ class PipelinePorts:
         args: OdpmCliArgs,
     ) -> PipelinePorts:
         host_ctx = HostProjectContext.from_config(config, arguments=args)
-        bootstrap = BootstrapHandle(config=config)
+        env_bootstrap = getattr(project_env, "bootstrap", None)
+        bootstrap = (
+            env_bootstrap
+            if isinstance(env_bootstrap, BootstrapHandle)
+            else BootstrapHandle(config=config)
+        )
         plan = PlanPorts(host_ctx=host_ctx, args=args, bootstrap=bootstrap)
         compose = ComposePorts(
             host_ctx=host_ctx,
@@ -179,7 +189,9 @@ def ports_from_config(
 
     resolved_args = args if args is not None else config.arguments
     resolved_env = (
-        project_env if project_env is not None else CreateProjectEnvironment(config)
+        project_env
+        if project_env is not None
+        else CreateProjectEnvironment(BootstrapHandle(config=config))
     )
     return PipelinePorts.from_setup(config, resolved_env, resolved_args)
 

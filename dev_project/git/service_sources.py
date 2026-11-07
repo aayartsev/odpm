@@ -28,6 +28,7 @@ from .worktree import (
 
 if TYPE_CHECKING:
     from ..config.config import Config
+    from ..host.ports import BootstrapHandle
     from .deps_lock import LockEntry
 from ..config.transforms.env_substitution import inject_service_source_paths
 from ..manifest.reader import refresh_manifest_view_compose_expansion
@@ -65,11 +66,12 @@ def resolve_file_service_source_path(git_link: str) -> str:
 
 
 def materialize_service_sources(
-    config: Config,
+    bootstrap: BootstrapHandle,
     *,
     lock_entries: dict[str, LockEntry] | None = None,
 ) -> dict[str, str]:
     """Clone or update service sources; return name → absolute host path."""
+    config = bootstrap.config
     view = config.bootstrap.manifest_view
     sources = view.service_sources if view is not None else None
     if not sources:
@@ -135,11 +137,11 @@ def materialize_one_service_source(
             )
         target = materialize_link_as_worktree(
             project_link,
-            odoo_version=str(config.odoo_version),
+            odoo_version=str(config.project_settings.odoo_version),
         )
         if project_link.branch and not config.skip_git_update():
             project_link.checkout_repository(
-                str(config.odoo_version),
+                str(config.project_settings.odoo_version),
                 clean_git_repos=config.user_settings.clean_git_repos,
                 update_git_repos=config.user_settings.update_git_repos,
             )
@@ -175,7 +177,7 @@ def materialize_one_service_source(
 
     if project_link.branch and not config.skip_git_update():
         project_link.checkout_repository(
-            str(config.odoo_version),
+            str(config.project_settings.odoo_version),
             clean_git_repos=config.user_settings.clean_git_repos,
             update_git_repos=config.user_settings.update_git_repos,
         )
@@ -225,8 +227,9 @@ def _clone_service_source_repo(
     project_link.is_cloned = True
 
 
-def collect_service_source_paths(config: Config) -> dict[str, str]:
+def collect_service_source_paths(bootstrap: BootstrapHandle) -> dict[str, str]:
     """Resolve current on-disk paths for effective ``service_sources``."""
+    config = bootstrap.config
     view = config.bootstrap.manifest_view
     sources = view.service_sources if view is not None else None
     if not sources:
@@ -245,11 +248,12 @@ def collect_service_source_paths(config: Config) -> dict[str, str]:
     return paths
 
 
-def ensure_service_sources_present(config: Config) -> None:
+def ensure_service_sources_present(bootstrap: BootstrapHandle) -> None:
+    config = bootstrap.config
     if not service_sources_need_materialize(config):
         return
     missing = []
-    for name, path in collect_service_source_paths(config).items():
+    for name, path in collect_service_source_paths(bootstrap).items():
         if not os.path.isdir(path):
             missing.append(f"{name}: {path}")
     if missing:
@@ -316,11 +320,12 @@ def service_sources_need_materialize(config: Config) -> bool:
 
 
 def apply_materialized_service_sources(
-    config: Config,
+    bootstrap: BootstrapHandle,
     source_paths: dict[str, str],
 ) -> None:
     """Inject materialized paths into env resolver and re-expand compose fields."""
 
+    config = bootstrap.config
     config.bootstrap.service_source_paths = dict(source_paths)
     config._env_resolver = inject_service_source_paths(
         config.env_resolver,
@@ -332,4 +337,4 @@ def apply_materialized_service_sources(
             view,
             env_resolver=config.env_resolver,
         )
-    SymlinkManager(config).sync_service_source_project_links(source_paths)
+    SymlinkManager(bootstrap).sync_service_source_project_links(source_paths)

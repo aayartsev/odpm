@@ -122,7 +122,7 @@ def _build_image(
         context_dir=str(context_dir),
         dockerfile=str(dockerfile),
         tag=tag,
-        platform=f"linux/{config.arch}",
+        platform=f"linux/{config.project_settings.arch}",
         push=push,
         project_dir=config.project_dir,
     )
@@ -205,7 +205,7 @@ def _copy_deps_extra_addons(
     dest_addons: Path,
 ) -> int:
     """Copy dependency trees into deps context, excluding developing."""
-    config = project_env.config
+    config = project_env.bootstrap.config
     developing = developing_project_path(config)
     src_root = full_ctx / "extra-addons"
     if not src_root.is_dir():
@@ -214,7 +214,7 @@ def _copy_deps_extra_addons(
     copied = 0
     # Prefer mapped_folders so we skip by absolute developing path.
     mapped = list(getattr(project_env, "mapped_folders", None) or [])
-    docker_extra = str(getattr(config, "docker_extra_addons", "") or "")
+    docker_extra = str(config.docker_layout.docker_extra_addons or "")
     used_mapped = False
     for item in mapped:
         local = getattr(item, "local", None)
@@ -320,7 +320,7 @@ def ensure_base(
 
     builder = BaseImageBuilder(project_env)
     if _force_this_layer(force):
-        stamp = Path(base_image_identity_path(project_env.config.project_dir))
+        stamp = Path(base_image_identity_path(project_env.bootstrap.config.project_dir))
         if stamp.is_file():
             stamp.unlink()
             _logger.info(
@@ -331,9 +331,9 @@ def ensure_base(
         image_ref = builder.resolve_base_image_ref()
         builder.build_base_image()
         write_base_image_identity(
-            project_env.config.project_dir,
+            project_env.bootstrap.config.project_dir,
             expected_base_image_identity(
-                project_env.config, image_ref=image_ref
+                project_env.bootstrap.config, image_ref=image_ref
             ),
         )
         return image_ref
@@ -347,7 +347,7 @@ def ensure_platform(
     *,
     force: bool | None = None,
 ) -> str:
-    config = project_env.config
+    config = project_env.bootstrap.config
     program_dir = _program_dir(config)
     fp = compute_platform_fingerprint(config, program_dir=program_dir)
     ref = layer_image_ref(config, layer="platform", fingerprint=fp)
@@ -366,7 +366,7 @@ def ensure_platform(
 
     builder = CiImageBuilder(project_env)
     builder.prepare_ci_build_context()
-    full_ctx = Path(config.ci_build_context_dir)
+    full_ctx = Path(config.docker_layout.ci_build_context_dir)
     context_dir = Path(config.project_dir) / ".odpm" / "platform-build-context"
     if context_dir.exists():
         shutil.rmtree(context_dir)
@@ -413,7 +413,7 @@ def ensure_deps(
     platform_ref: str | None = None,
     force: bool | None = None,
 ) -> str | None:
-    config = project_env.config
+    config = project_env.bootstrap.config
     program_dir = _program_dir(config)
     parent = platform_ref or args.image_from
     if not parent:
@@ -439,7 +439,7 @@ def ensure_deps(
 
     builder = CiImageBuilder(project_env)
     builder.prepare_ci_build_context()
-    full_ctx = Path(config.ci_build_context_dir)
+    full_ctx = Path(config.docker_layout.ci_build_context_dir)
     context_dir = Path(config.project_dir) / ".odpm" / "deps-build-context"
     if context_dir.exists():
         shutil.rmtree(context_dir)
@@ -489,7 +489,7 @@ def ensure_app(
     parent_ref: str | None = None,
     force: bool | None = None,
 ) -> str:
-    config = project_env.config
+    config = project_env.bootstrap.config
     program_dir = _program_dir(config)
     developing_sha = _developing_git_sha(config)
     parent = parent_ref or args.image_from
@@ -498,7 +498,7 @@ def ensure_app(
         parent = deps_ref or ensure_platform(project_env, args, force=False)
 
     push = _want_push(args, config)
-    publish_tag = args.image_tag or config.odoo_ci_image_name
+    publish_tag = args.image_tag or config.docker_layout.odoo_ci_image_name
     remote = _remote_target(args, config)
     secrets_baked = bool(
         os.environ.get("ODPM_BAKE_SECRETS", "").strip()
@@ -534,7 +534,7 @@ def ensure_app(
     builder = CiImageBuilder(project_env)
     builder.prepare_ci_build_context()
     # Drop odoo/.venv from context for thin app (already in parent).
-    full_ctx = Path(config.ci_build_context_dir)
+    full_ctx = Path(config.docker_layout.ci_build_context_dir)
     for drop in ("odoo", ".venv"):
         target = full_ctx / drop
         if target.exists():
@@ -620,7 +620,7 @@ def ensure_lint(
     platform_ref: str | None = None,
     force: bool | None = None,
 ) -> str:
-    config = project_env.config
+    config = project_env.bootstrap.config
     program_dir = _program_dir(config)
     pre_commit = Path(config.project_dir) / ".pre-commit-config.yaml"
     if not pre_commit.is_file():

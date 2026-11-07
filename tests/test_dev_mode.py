@@ -21,6 +21,7 @@ from dev_project.dev_mode import (
 )
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.integration.dev_mode_probe import dev_flag_from_compose_command, extract_odoo_compose_command
+from dev_project.host.ports import BootstrapHandle
 
 
 class DevModeHelperTests(unittest.TestCase):
@@ -94,7 +95,7 @@ class ComposeDevModeTests(unittest.TestCase):
         config.project_dir = "/tmp/odpm-test-project"
         config.user_env.odpm_scenario = scenario
         config.policy = ScenarioPolicy.from_scenario(scenario)
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         config.arguments = OdpmCliArgs(
             d=None,
             translate=None,
@@ -106,18 +107,18 @@ class ComposeDevModeTests(unittest.TestCase):
             screencasts=False,
             odoo_bin=[],
         )
-        config.dev_mode = False
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.docker_project_dir = "/home/odoo"
-        config.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.platform_name = "odoo"
-        config.odoo_version = "19.0"
-        config.init_modules = ""
-        config.update_modules = ""
-        config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
-        config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
-        config.requirements_txt = []
+        config.user_settings.dev_mode = False
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.docker_layout.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.odoo_version = "19.0"
+        config.user_settings.init_modules = ""
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
+        config.docker_layout.docker_temp_tests_dir = "/home/odoo/odoo_tests"
+        config.project_settings.requirements_txt = []
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
         return config
@@ -134,9 +135,11 @@ class ComposeDevModeTests(unittest.TestCase):
         for case_id, dev_mode_value, expected_argv in iter_dev_mode_compose_cases():
             with self.subTest(case_id=case_id, dev_mode=dev_mode_value):
                 config = self._make_config()
-                config.dev_mode = dev_mode_value
-                ComposeServiceBuilder(config).build()
-                actual = self._dev_flag_from_command(config.compose_service.command)
+                config.user_settings.dev_mode = dev_mode_value
+                ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+                actual = self._dev_flag_from_command(
+                    config.runtime.compose_service.command
+                )
                 self.assertEqual(actual, expected_argv)
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
@@ -150,20 +153,20 @@ class ComposeDevModeTests(unittest.TestCase):
         ):
             with self.subTest(scenario=scenario):
                 config = self._make_config(scenario)
-                config.dev_mode = "reload"
-                ComposeServiceBuilder(config).build()
+                config.user_settings.dev_mode = "reload"
+                ComposeServiceBuilder(BootstrapHandle(config=config)).build()
                 self.assertEqual(
-                    self._dev_flag_from_command(config.compose_service.command),
+                    self._dev_flag_from_command(config.runtime.compose_service.command),
                     expected,
                 )
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_pre_commit_start_omits_dev_mode(self, _mock_write_runtime_config):
         config = self._make_config()
-        config.dev_mode = "reload,qweb"
+        config.user_settings.dev_mode = "reload,qweb"
         config.arguments = replace(config.arguments, start_precommit=True)
-        ComposeServiceBuilder(config).build()
-        service = config.compose_service
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        service = config.runtime.compose_service
         self.assertNotIn("--dev", service.command)
         self.assertIn(constants.RUN_PRE_COMMIT_ENTRYPOINT, service.command)
 

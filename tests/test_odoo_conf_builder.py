@@ -86,7 +86,7 @@ class OdooConfBuilderTests(unittest.TestCase):
             )
 
             config = _config_with_layout_slices()
-            config.path_odoo_conf = str(conf_path)
+            config.docker_layout.path_odoo_conf = str(conf_path)
             config.docker_layout.path_odoo_conf = str(conf_path)
             config.docker_layout.docker_dirs_with_addons = ["/home/odoo/extra-addons"]
             config.docker_layout.docker_project_dir = "/home/odoo"
@@ -122,7 +122,7 @@ class OdooConfBuilderTests(unittest.TestCase):
             )
 
             config = _config_with_layout_slices()
-            config.path_odoo_conf = str(conf_path)
+            config.docker_layout.path_odoo_conf = str(conf_path)
             config.docker_layout.path_odoo_conf = str(conf_path)
             config.docker_layout.docker_dirs_with_addons = ["/home/odoo/extra-addons"]
             config.docker_layout.docker_project_dir = "/home/odoo"
@@ -156,7 +156,7 @@ class OdooConfBuilderTests(unittest.TestCase):
             )
 
             config = _config_with_layout_slices()
-            config.path_odoo_conf = str(conf_path)
+            config.docker_layout.path_odoo_conf = str(conf_path)
             config.docker_layout.path_odoo_conf = str(conf_path)
             config.docker_layout.docker_dirs_with_addons = ["/home/odoo/extra-addons"]
             config.docker_layout.docker_project_dir = "/home/odoo"
@@ -255,10 +255,10 @@ class OdooConfBuilderTests(unittest.TestCase):
     def test_populate_addons_paths_without_subprojects_uses_project_dir(self):
         config = _config_with_layout_slices()
         config.developing_project = MagicMock(project_path="/tmp/dev/project")
-        config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
+        config.docker_layout.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
         config.odoo_src_dir = "/tmp/odoo/src"
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.platform_name = "odoo"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.project_settings.platform_name = "odoo"
 
         builder = OdooConfBuilder(config)
         builder.check_project_for_subprojects = MagicMock(return_value=[])

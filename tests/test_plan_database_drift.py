@@ -19,6 +19,7 @@ from dev_project.database.schema import (
     DatabaseOdooConfFingerprint,
 )
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.ports import BootstrapHandle
 from dev_project.database.drift import (
     detect_database_drift_for_config,
     has_blocking_database_drift,
@@ -39,7 +40,7 @@ class PlanDatabaseDriftTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config.postgres_version = "17"
+        config.project_settings.postgres_version = "17"
         config.postgres_data_local_storage = data_path
         config.user_env.postgres_service_name = "db-dev"
         config.user_env.postgres_port = 5432
@@ -47,13 +48,15 @@ class PlanDatabaseDriftTests(unittest.TestCase):
         config.docker_layout = DockerLayoutState(
             path_odoo_conf=os.path.join(project_dir, constants.ODOO_CONF_NAME),
         )
-        config.path_odoo_conf = config.docker_layout.path_odoo_conf
+        config.docker_layout.path_odoo_conf = config.docker_layout.path_odoo_conf
         config.pd_manager.check_project_odoo_config_template.return_value = False
         return config
 
     def _ctx(self, config: MagicMock):
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
         return make_prepare_context(
-            config, MagicMock(), MagicMock(), OdpmCliArgs(skip_start=True)
+            config, project_env, MagicMock(), OdpmCliArgs(skip_start=True)
         )
 
     def _write_odoo_conf(self, project_dir: str, *, db_host: str) -> None:

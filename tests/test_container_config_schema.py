@@ -76,29 +76,29 @@ class ContainerConfigSchemaTests(unittest.TestCase):
         config.user_env.debugger_connect_host = "host.docker.internal"
         config.user_env.debugger_suspend = False
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.odoo_config_data = {}
-        config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.odoo_config_data = {}
+        config.docker_layout.docker_path_odoo_conf = "/home/odoo/odoo.conf"
         config.arguments = OdpmCliArgs()
-        config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
-        config.db_manager_password = ""
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.docker_project_dir = "/home/odoo"
-        config.requirements_txt = []
-        config.odoo_version = "19.0"
-        config.python_version = "3.12"
-        config.platform_name = "odoo"
-        config.arch = "amd64"
-        config.sql_queries = []
-        config.update_modules = ""
-        config.docker_dirs_with_addons = []
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.user_settings.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
+        config.user_settings.db_manager_password = ""
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.project_settings.requirements_txt = []
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.arch = "amd64"
+        config.user_settings.sql_queries = []
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_dirs_with_addons = []
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         config.project_dir = "/tmp/odpm-project"
         config.postgres_data_local_storage = "/tmp/odpm-project/postgres-data"
         config.user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
         config.user_env.postgres_port = 5432
-        config.path_odoo_conf = "/tmp/odpm-project/odoo.conf"
-        config.postgres_version = "16"
+        config.docker_layout.path_odoo_conf = "/tmp/odpm-project/odoo.conf"
+        config.project_settings.postgres_version = "16"
 
         with patch(
             "dev_project.config.payload.compute_venv_lock_hash",

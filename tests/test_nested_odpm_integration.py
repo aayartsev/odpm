@@ -87,22 +87,22 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
     config.odoo_src_dir = "/tmp/odoo"
     config.developing_project_dir_path = "/tmp/developing"
     config.developing_project = MagicMock(project_path="")
-    config.pre_commit_map_files = []
+    config.user_settings.pre_commit_map_files = []
     config.check_project_for_subprojects = MagicMock(return_value=[])
-    config.platform_name = "odoo"
-    config.arch = "amd64"
-    config.sql_queries = []
-    config.update_modules = ""
-    config.container_run_mode = constants.RUN_MODE_ODOO
-    config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
-    config.db_manager_password = ""
+    config.project_settings.platform_name = "odoo"
+    config.project_settings.arch = "amd64"
+    config.user_settings.sql_queries = []
+    config.user_settings.update_modules = ""
+    config.runtime.container_run_mode = constants.RUN_MODE_ODOO
+    config.user_settings.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
+    config.user_settings.db_manager_password = ""
     config.user_env = MagicMock(odpm_scenario=scenario)
     config.user_env.postgres_service_name = constants.DEFAULT_POSTGRES_SERVICE_NAME
     config.user_env.postgres_port = 5432
     config.project_dir = "/tmp/project"
     config.postgres_data_local_storage = "/tmp/project/postgres-data"
-    config.path_odoo_conf = "/tmp/project/odoo.conf"
-    config.postgres_version = "16"
+    config.docker_layout.path_odoo_conf = "/tmp/project/odoo.conf"
+    config.project_settings.postgres_version = "16"
     config._env_resolver = EnvResolver.from_sources(
         process_environ={},
         project_dotenv={},
@@ -139,9 +139,9 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
                 return _cloned_link("", url)
 
             config = _map_folders_config_stub()
-            config.dependencies = [framework_url]
+            config.project_settings.dependencies = [framework_url]
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
-            env = MagicMock(config=config)
+            env = MagicMock(bootstrap=MagicMock(config=config))
             links = ProjectLinks(env)
             links.checkout_project = MagicMock()
 
@@ -193,7 +193,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
     def test_map_folders_does_not_merge_nested_requirements_into_runtime_config(self):
         config = _map_folders_config_stub()
         url = "https://github.com/acme/A.git"
-        config.dependencies = [url]
+        config.project_settings.dependencies = [url]
         dependency = MagicMock(
             is_cloned=True,
             project_path="/tmp/dep",
@@ -201,7 +201,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
-        env = MagicMock(config=config)
+        env = MagicMock(bootstrap=MagicMock(config=config))
         env.mapped_folders = []
         links = ProjectLinks(env)
 
@@ -225,7 +225,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
-        env = MagicMock(config=config)
+        env = MagicMock(bootstrap=MagicMock(config=config))
         env.mapped_folders = []
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(

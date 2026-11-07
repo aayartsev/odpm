@@ -30,7 +30,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
 from dev_project.manifest.reader import ManifestView
 from dev_project.prepare.steps_compose import evaluate_compose_fragments, exec_compose_fragments
-from dev_project.host.ports import ports_from_config
+from dev_project.host.ports import BootstrapHandle, ports_from_config
 from dev_project.prepare.types import PrepareContext
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.compose.generator import ComposeGenerator
@@ -209,15 +209,15 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             config = MagicMock()
             config.project_dir = project_dir
             config.policy = policy
-            config.odoo_image_name = "odoo-base:dev"
-            config.compose_service = ComposeOdooService(
+            config.docker_layout.odoo_image_name = "odoo-base:dev"
+            config.runtime.compose_service = ComposeOdooService(
                 working_dir="/home/odoo",
                 include_runtime_config=policy.mount_runtime_config_from_host(),
                 include_runtime_secrets=False,
                 command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT],
             )
-            config.compose_file_version = "3.8"
-            config.postgres_version = "16"
+            config.docker_layout.compose_file_version = "3.8"
+            config.project_settings.postgres_version = "16"
             config.postgres_data_local_storage = "/tmp/postgres-data"
             config.pd_manager = MagicMock()
             config.bootstrap = MagicMock()
@@ -240,7 +240,7 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             user_env.odoo_port = 8069
             user_env.gevent_port = 8072
             config.user_env = user_env
-            env = CreateProjectEnvironment(config)
+            env = CreateProjectEnvironment(BootstrapHandle(config=config))
             env.mapped_folders = [
                 MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
             ]
@@ -255,15 +255,15 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             config = MagicMock()
             config.project_dir = project_dir
             config.policy = policy
-            config.odoo_image_name = "odoo-base:dev"
-            config.compose_service = ComposeOdooService(
+            config.docker_layout.odoo_image_name = "odoo-base:dev"
+            config.runtime.compose_service = ComposeOdooService(
                 working_dir="/home/odoo",
                 include_runtime_config=policy.mount_runtime_config_from_host(),
                 include_runtime_secrets=False,
                 command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT],
             )
-            config.compose_file_version = "3.8"
-            config.postgres_version = "16"
+            config.docker_layout.compose_file_version = "3.8"
+            config.project_settings.postgres_version = "16"
             config.postgres_data_local_storage = "/tmp/postgres-data"
             config.pd_manager = MagicMock()
             config.bootstrap = MagicMock()
@@ -291,7 +291,7 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             user_env.odoo_port = 8069
             user_env.gevent_port = 8072
             config.user_env = user_env
-            env = CreateProjectEnvironment(config)
+            env = CreateProjectEnvironment(BootstrapHandle(config=config))
             env.mapped_folders = [
                 MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
             ]
@@ -327,7 +327,11 @@ class ComposeFragmentsPrepareStepTests(unittest.TestCase):
         )
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         host_ctx = HostProjectContext.from_config(config)
-        ports = ports_from_config(config, MagicMock(), OdpmCliArgs())
+        ports = ports_from_config(
+            config,
+            MagicMock(bootstrap=BootstrapHandle(config=config)),
+            OdpmCliArgs(),
+        )
         return PrepareContext(
             ports=ports,
             project_env=MagicMock(),
@@ -387,15 +391,15 @@ class ComposeServicePatchTests(unittest.TestCase):
             config = MagicMock()
             config.project_dir = project_dir
             config.policy = policy
-            config.odoo_image_name = "odoo-base:dev"
-            config.compose_service = ComposeOdooService(
+            config.docker_layout.odoo_image_name = "odoo-base:dev"
+            config.runtime.compose_service = ComposeOdooService(
                 working_dir="/home/odoo",
                 include_runtime_config=policy.mount_runtime_config_from_host(),
                 include_runtime_secrets=False,
                 command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT],
             )
-            config.compose_file_version = "3.8"
-            config.postgres_version = "16"
+            config.docker_layout.compose_file_version = "3.8"
+            config.project_settings.postgres_version = "16"
             config.postgres_data_local_storage = "/tmp/postgres-data"
             config.pd_manager = MagicMock()
             config.bootstrap = MagicMock()
@@ -426,7 +430,7 @@ class ComposeServicePatchTests(unittest.TestCase):
             user_env.odoo_port = 8069
             user_env.gevent_port = 8072
             config.user_env = user_env
-            env = CreateProjectEnvironment(config)
+            env = CreateProjectEnvironment(BootstrapHandle(config=config))
             env.mapped_folders = []
             content = ComposeGenerator(env).render_docker_compose_content()
             self.assertIn("PATCH_FLAG=1", content)
@@ -455,7 +459,7 @@ class ComposeServicePatchTests(unittest.TestCase):
                 ctx,
                 host_ctx=replace(ctx.host_ctx, manifest_view=manifest_view),
             )
-            ctx.config.bootstrap.manifest_view = manifest_view
+            ctx.ports.bootstrap.config.bootstrap.manifest_view = manifest_view
             plan = build_prepare_plan(ctx)
             step_ids = [step.id for step in plan.steps]
             self.assertIn("compose.patch.odoo", step_ids)

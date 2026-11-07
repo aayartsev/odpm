@@ -170,34 +170,38 @@ class ContainerConfig:
         from ..config.payload import compute_venv_lock_hash  # noqa: PLC0415  # cycle
         from ..config.transforms.modules import modules_csv_for_update_list  # noqa: PLC0415  # cycle
 
-        run_mode = getattr(config, "container_run_mode", constants.RUN_MODE_ODOO)
+        run_mode = config.runtime.container_run_mode
         debugger = cls._debugger_settings_from_host(config)
         database = None
         if config.policy.mount_runtime_config_from_host():
             database = DatabaseContainerContext.from_host_config(config)
         update_csv = modules_csv_for_update_list(
             getattr(config.arguments, "u", None),
-            config.update_modules,
+            config.user_settings.update_modules,
         )
         return cls(
             schema_version=CONTAINER_CONFIG_SCHEMA_VERSION,
-            docker_odoo_dir=config.docker_odoo_dir,
-            odoo_config_data=config.odoo_config_data,
-            docker_path_odoo_conf=config.docker_path_odoo_conf,
+            docker_odoo_dir=config.docker_layout.docker_odoo_dir,
+            odoo_config_data=config.docker_layout.odoo_config_data,
+            docker_path_odoo_conf=config.docker_layout.docker_path_odoo_conf,
             arguments=vars(config.arguments),
-            db_creation_data=DbCreationConfig.from_dict(config.db_creation_data),
-            db_manager_password=config.db_manager_password or "",
-            docker_venv_dir=config.docker_venv_dir,
-            docker_project_dir=config.docker_project_dir,
-            requirements_txt=list(config.requirements_txt),
-            odoo_version=str(config.odoo_version),
-            python_version=str(config.python_version),
+            db_creation_data=DbCreationConfig.from_dict(
+                config.user_settings.db_creation_data
+            ),
+            db_manager_password=config.user_settings.db_manager_password or "",
+            docker_venv_dir=config.docker_layout.docker_venv_dir,
+            docker_project_dir=config.docker_layout.docker_project_dir,
+            requirements_txt=list(config.project_settings.requirements_txt),
+            odoo_version=str(config.project_settings.odoo_version),
+            python_version=str(config.project_settings.python_version),
             venv_lock_hash=compute_venv_lock_hash(config),
-            platform_name=config.platform_name,
-            arch=config.arch,
-            sql_queries=list(config.sql_queries),
+            platform_name=config.project_settings.platform_name,
+            arch=config.project_settings.arch,
+            sql_queries=list(config.user_settings.sql_queries),
             modules_to_update=update_csv.split(",") if update_csv else [],
-            docker_dirs_with_addons=list(config.docker_dirs_with_addons),
+            docker_dirs_with_addons=list(
+                config.docker_layout.docker_dirs_with_addons
+            ),
             odpm_scenario=config.user_env.odpm_scenario,
             venv_mode=config.policy.venv_mode,
             run_mode=run_mode,

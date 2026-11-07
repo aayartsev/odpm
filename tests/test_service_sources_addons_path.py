@@ -19,7 +19,7 @@ class ServiceSourcesAddonsPathTests(unittest.TestCase):
 
 
             config = MagicMock()
-            config.dependencies_projects = []
+            config.docker_layout.dependencies_projects = []
             config.developing_project = MagicMock(project_path=os.path.join(tmp, "developing"))
             config.odoo_src_dir = os.path.join(tmp, "platform")
             config.docker_layout.docker_dirs_with_addons = []

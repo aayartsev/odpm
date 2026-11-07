@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from .. import constants
 from ..config import Config
 from ..config.transforms import modules_csv_for_odoo_flag
@@ -9,6 +11,9 @@ from ..dev_mode import effective_dev_mode
 from ..host.cli import params as cli_params
 from .start_command import ComposeOdooService, StartCommand
 from ..config.payload import write_runtime_config
+
+if TYPE_CHECKING:
+    from ..host.ports import BootstrapHandle
 
 
 def persist_runtime_config(config: Config) -> None:
@@ -18,45 +23,46 @@ def persist_runtime_config(config: Config) -> None:
 
 
 class ComposeServiceBuilder:
-    def __init__(self, config: Config) -> None:
-        self.config = config
-        self.args = self.config.arguments
-        self.policy = config.policy
+    def __init__(self, bootstrap: BootstrapHandle) -> None:
+        self.bootstrap = bootstrap
+        self.args = self.bootstrap.config.arguments
+        self.policy = self.bootstrap.config.policy
 
     def build(self) -> ComposeOdooService:
         start_command = self.build_start_command()
         compose_service = start_command.to_compose_service(
             include_runtime_config=self.policy.mount_runtime_config_from_host(),
         )
-        self.config.compose_service = compose_service
-        self.config.container_run_mode = start_command.run_mode
+        self.bootstrap.runtime.compose_service = compose_service
+        self.bootstrap.runtime.container_run_mode = start_command.run_mode
         if compose_service.include_runtime_config:
-            persist_runtime_config(self.config)
+            persist_runtime_config(self.bootstrap.config)
         if self.policy.mount_runtime_secrets_from_host():
             from ..project_env.secrets import materialize_secrets  # noqa: PLC0415  # optional
 
             compose_service.include_runtime_secrets = materialize_secrets(
-                self.config.project_dir
+                self.bootstrap.config.project_dir
             )
         return compose_service
 
     def build_start_command(self) -> StartCommand:
-        self.config.generate_odoo_conf_docker_data()
+        self.bootstrap.config.generate_odoo_conf_docker_data()
         odoo_bin_path = (
-            f"{self.config.docker_odoo_dir}/{self.config.platform_name}-bin"
+            f"{self.bootstrap.config.docker_layout.docker_odoo_dir}/"
+            f"{self.bootstrap.config.project_settings.platform_name}-bin"
         )
 
         if self.args.start_precommit:
             return StartCommand(
                 kind="pre_commit",
-                docker_project_dir=self.config.docker_project_dir,
-                pre_commit_project_dir=self.config.docker_odoo_project_dir_path,
+                docker_project_dir=self.bootstrap.config.docker_layout.docker_project_dir,
+                pre_commit_project_dir=self.bootstrap.config.docker_layout.docker_odoo_project_dir_path,
             )
 
         if self.args.export_po_files:
             return StartCommand(
                 kind="standard",
-                docker_project_dir=self.config.docker_project_dir,
+                docker_project_dir=self.bootstrap.config.docker_layout.docker_project_dir,
                 run_mode=constants.RUN_MODE_BOOTSTRAP_ONLY,
             )
 
@@ -65,20 +71,20 @@ class ComposeServiceBuilder:
                 odoo_bin_path,
                 "scaffold",
                 self.args.scaffold_module_name,
-                self.config.docker_odoo_project_dir_path,
+                self.bootstrap.config.docker_layout.docker_odoo_project_dir_path,
             ]
             if self.args.scaffold_template_name:
                 odoo_bin.extend(["-t", self.args.scaffold_template_name])
             return StartCommand(
                 kind="standard",
-                docker_project_dir=self.config.docker_project_dir,
+                docker_project_dir=self.bootstrap.config.docker_layout.docker_project_dir,
                 odoo_bin=odoo_bin,
             )
 
         odoo_bin = self._build_odoo_bin_argv(odoo_bin_path)
         return StartCommand(
             kind="standard",
-            docker_project_dir=self.config.docker_project_dir,
+            docker_project_dir=self.bootstrap.config.docker_layout.docker_project_dir,
             odoo_bin=odoo_bin,
         )
 
@@ -86,7 +92,7 @@ class ComposeServiceBuilder:
         argv = [
             odoo_bin_path,
             "-c",
-            f"{self.config.docker_project_dir}/odoo.conf",
+            f"{self.bootstrap.config.docker_layout.docker_project_dir}/odoo.conf",
             "--limit-time-real",
             "99999",
         ]
@@ -95,13 +101,13 @@ class ComposeServiceBuilder:
             argv.extend([cli_params.D_PARAM, self.args.d])
 
         init_modules = modules_csv_for_odoo_flag(
-            self.args.i, self.config.init_modules
+            self.args.i, self.bootstrap.config.user_settings.init_modules
         )
         if init_modules:
             argv.extend([cli_params.I_PARAM, init_modules])
 
         update_modules = modules_csv_for_odoo_flag(
-            self.args.u, self.config.update_modules
+            self.args.u, self.bootstrap.config.user_settings.update_modules
         )
         if update_modules:
             argv.extend([cli_params.U_PARAM, update_modules])
@@ -110,12 +116,15 @@ class ComposeServiceBuilder:
             argv.extend(["--test-enable", "--stop-after-init"])
             if self.args.screencasts:
                 argv.extend(
-                    [cli_params.SCREENCASTS_PARAM, self.config.docker_temp_tests_dir]
+                    [
+                        cli_params.SCREENCASTS_PARAM,
+                        self.bootstrap.config.docker_layout.docker_temp_tests_dir,
+                    ]
                 )
 
         if self.args.translate:
             lang_param = "--language"
-            if float(self.config.odoo_version) >= 19:
+            if float(self.bootstrap.config.project_settings.odoo_version) >= 19:
                 lang_param = "--load-language"
             argv.extend(
                 [
@@ -128,8 +137,8 @@ class ComposeServiceBuilder:
             )
 
         dev_mode = effective_dev_mode(
-            self.config.dev_mode,
-            apply_dev_mode=self.config.policy.apply_dev_mode,
+            self.bootstrap.config.user_settings.dev_mode,
+            apply_dev_mode=self.bootstrap.config.policy.apply_dev_mode,
         )
         if dev_mode:
             argv.extend(["--dev", str(dev_mode)])

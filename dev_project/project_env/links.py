@@ -20,7 +20,7 @@ class ProjectLinks:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     @property
     def user_env(self):
@@ -36,7 +36,9 @@ class ProjectLinks:
             return
         # OCA discovery already clones while walking transitive URLs; avoid a
         # second materialize pass. Non-OCA seed URLs still need an explicit clone.
-        already_during_discovery = bool(self.config.use_oca_dependencies)
+        already_during_discovery = bool(
+            self.config.user_settings.use_oca_dependencies
+        )
         for dependency_string in resolution.urls:
             dependency_project = self.config.handle_git_link(
                 dependency_string,
@@ -63,7 +65,7 @@ class ProjectLinks:
         self.env.mapped_folders = mapper.build_base_folders()
         if self._dependency_resolution is None:
             resolution = DependencyResolutionResult(
-                urls=list(self.config.dependencies or []),
+                urls=list(self.config.project_settings.dependencies or []),
                 nested_fragments=[],
             )
             self._dependency_resolution = resolution
@@ -99,7 +101,7 @@ class ProjectLinks:
         list_for_checkout = [self.config.odoo_platform_project]
         if self._should_checkout_developing(lock_manager):
             list_for_checkout.append(self.config.developing_project)
-        list_for_checkout.extend(self.config.dependencies_projects)
+        list_for_checkout.extend(self.config.docker_layout.dependencies_projects)
         for project in list_for_checkout:
             self.checkout_project(project, lock_manager=lock_manager)
 
@@ -108,16 +110,16 @@ class ProjectLinks:
     ) -> None:
         scope = (
             "dependency"
-            if project in self.config.dependencies_projects
+            if project in self.config.docker_layout.dependencies_projects
             else "project"
         )
         try:
-            update_git_repos = self.config.update_git_repos
+            update_git_repos = self.config.user_settings.update_git_repos
             if lock_manager is not None and lock_manager.is_pinned(project):
                 update_git_repos = False
             project.checkout_repository(
-                self.config.odoo_version,
-                clean_git_repos=self.config.clean_git_repos,
+                self.config.project_settings.odoo_version,
+                clean_git_repos=self.config.user_settings.clean_git_repos,
                 update_git_repos=update_git_repos,
             )
         finally:
@@ -132,4 +134,9 @@ class ProjectLinks:
                     self.config.ensure_developing_repo_symlinks()
 
     def update_links(self) -> None:
-        SymlinkManager(self.config, host_ctx=self.env.host_ctx).update_links()
+        from ..host.ports import BootstrapHandle  # noqa: PLC0415  # optional
+
+        SymlinkManager(
+            BootstrapHandle(config=self.config),
+            host_ctx=self.env.host_ctx,
+        ).update_links()

@@ -31,12 +31,12 @@ def _make_paths_env(
     env = MagicMock()
     config = MagicMock()
     config.project_dir = project_dir
-    config.dependencies_dir = os.path.join(project_dir, constants.DEPENDENCIES_DIR)
-    config.venv_dir = os.path.join(project_dir, constants.VENV_DIR_NAME)
-    config.python_version = python_version
+    config.docker_layout.dependencies_dir = os.path.join(project_dir, constants.DEPENDENCIES_DIR)
+    config.docker_layout.venv_dir = os.path.join(project_dir, constants.VENV_DIR_NAME)
+    config.project_settings.python_version = python_version
     config.odoo_src_dir = odoo_src_dir
-    config.symlinks_sources = symlinks_sources or []
-    config.dependencies_projects = []
+    config.docker_layout.symlinks_sources = symlinks_sources or []
+    config.docker_layout.dependencies_projects = []
     layout = MagicMock()
     layout.catalogs_of_modules_data = catalogs_of_modules_data or []
     env.host_ctx = MagicMock()
@@ -49,9 +49,9 @@ def _make_paths_env(
     for dep_path in dependency_paths or []:
         dep = MagicMock()
         dep.project_path = dep_path
-        config.dependencies_projects.append(dep)
+        config.docker_layout.dependencies_projects.append(dep)
 
-    env.config = config
+    env.bootstrap = MagicMock(config=config)
     return env
 
 

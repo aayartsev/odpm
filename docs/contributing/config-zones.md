@@ -16,12 +16,16 @@
 | Оценка IDE после prepare | [`RuntimePorts`](../../dev_project/host/ports.py): `debug_profile_needs_update`, `vscode_settings_up_to_date`, `pycharm_run_config_*` |
 | Превью compose в плане | [`ComposePreviewPort`](../../dev_project/prepare/compose_preview_port.py) (`run_with_mutable_snapshot`, без выдачи сырого снимка наружу) |
 | Генератор `odoo.conf` | `bootstrap.odoo_conf` (на handle уже есть; прямые вызовы / следующие шаги — сюда, не в `config._odoo_conf`) |
+| Окружение проекта (`CreateProjectEnvironment`) | передавать `BootstrapHandle`; сырой снимок при необходимости доступен только внутри пакета как `env.bootstrap.config` |
 | Шаги `prepare/steps_*.py` и `prepare/runtime.py` | только handle / `RuntimePorts` / хелперы; сырой `bootstrap.config` / `ctx.config` запрещён |
 | Сырой `bootstrap.config` | хвосты внутри хелперов/API с `Config`, drift, сборка compose-сервиса — пока нет узкого accessor |
 
 Новые шаги и фичи **не** добавляют плоские свойства на `Config` «для удобства».
+Автоматических свойств `bind_slice_properties` больше нет: поля читаются явно
+через `config.user_settings`, `config.project_settings`, `config.docker_layout`
+и `config.addon_layout`.
 
-Шаги в `dev_project/prepare/steps_*.py` и оценка IDE в `prepare/runtime.py` не читают сырой снимок. Нужное берут с `BootstrapHandle` / `RuntimePorts` и с хелперов `PrepareContext`. Запрет строк `bootstrap.config` и `ctx.config` в этих файлах проверяет `tests/test_prepare_config_coupling.py`. Превью compose в плане идёт через `ComposePreviewPort.run_with_mutable_snapshot`. Внутри хелпера вызов API, который ещё принимает `Config`, допустим. `PrepareContext.config` остаётся для хвостов и шагами/`runtime.py` не используется.
+Шаги в `dev_project/prepare/steps_*.py` и оценка IDE в `prepare/runtime.py` не читают сырой снимок. Нужное берут с `BootstrapHandle` / `RuntimePorts` и с хелперов `PrepareContext`. Запрет строк `bootstrap.config` и `ctx.config` в этих файлах проверяет `tests/test_prepare_config_coupling.py`. Превью compose в плане идёт через `ComposePreviewPort.run_with_mutable_snapshot`. Внутри хелпера вызов API, который ещё принимает `Config`, допустим. Алиаса `PrepareContext.config` **нет** (срез C): сырой снимок — только через `ports.bootstrap.config` внутри хелперов/API.
 
 ## Зоны внутри сборки
 
@@ -35,7 +39,7 @@
 | Docker и аддоны | `DockerLayoutState`, `AddonLayoutState` | Шаблоны, тома, каталоги модулей |
 | Env и секреты | `EnvResolver`, сессия секретов | Подстановки `${…}` / `${@secret:…}` |
 | Исполнители на границе | `GitRepoCoordinator`, `OdooConfBuilder` | Клон/ссылки, генерация odoo.conf |
-| Живой runtime-фасад | `HostRuntimeState` / mixin | Команда compose, capabilities — состояние **сеанса**, не описание проекта |
+| Живое состояние запуска | `HostRuntimeState` (`config.runtime`, `bootstrap.runtime`) | Команда compose и возможности Docker — состояние **сеанса**, не описание проекта |
 
 Сборка по фазам: [`bootstrap.py`](../../dev_project/config/bootstrap.py).
 

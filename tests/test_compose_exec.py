@@ -11,6 +11,7 @@ from dev_project.database.compose_exec import (
 )
 from dev_project.compose.runtime import compose_cli_argv
 from dev_project.docker_capabilities import DockerCapabilities
+from dev_project.host.runtime import HostRuntimeState
 
 
 def _capabilities(*, supports_compose_up_yes: bool) -> DockerCapabilities:
@@ -27,7 +28,8 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
     def _config(self) -> MagicMock:
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
+        config.runtime = HostRuntimeState()
+        config.runtime.docker_compose_command = "docker compose"
         config.user_env.compose_project_name = None
         return config
 
@@ -48,7 +50,7 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
 
     def test_argv_includes_yes_when_compose_supports_it(self):
         config = self._config()
-        config.docker_capabilities = _capabilities(supports_compose_up_yes=True)
+        config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=True)
         self.assertEqual(
             compose_up_detached_argv(config, "db-dev"),
             ["docker", "compose", "up", "-d", "-y", "db-dev"],
@@ -56,7 +58,7 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
 
     def test_argv_omits_yes_on_legacy_compose(self):
         config = self._config()
-        config.docker_capabilities = _capabilities(supports_compose_up_yes=False)
+        config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=False)
         self.assertEqual(
             compose_up_detached_argv(config, "db-dev"),
             ["docker", "compose", "up", "-d", "db-dev"],
@@ -65,7 +67,7 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
     def test_argv_includes_project_and_yes_when_prefix_active(self):
         config = self._config()
         config.user_env.compose_project_name = "acme"
-        config.docker_capabilities = _capabilities(supports_compose_up_yes=True)
+        config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=True)
         with patch(
             "dev_project.host.context.HostProjectContext.from_config",
             return_value=MagicMock(
@@ -83,7 +85,7 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
         self, mock_run: MagicMock
     ) -> None:
         config = self._config()
-        config.docker_capabilities = _capabilities(supports_compose_up_yes=True)
+        config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=True)
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         compose_up_service_detached(config, "db-dev")

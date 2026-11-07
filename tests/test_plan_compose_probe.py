@@ -32,7 +32,7 @@ class PlanComposeRuntimeTests(unittest.TestCase):
     def _config(self, project_dir: str = "/tmp/project") -> MagicMock:
         config = MagicMock()
         config.project_dir = project_dir
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         return config
 
     def _host_ctx(self, project_dir: str = "/tmp/project") -> HostProjectContext:
@@ -125,12 +125,12 @@ class PlanComposeProbeIntegrationTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.arguments = OdpmCliArgs()
-        config.check_system = True
-        config.create_module_links = True
-        config.dockerfile_template_name = "debian_12_dockerfile"
+        config.user_settings.check_system = True
+        config.user_settings.create_module_links = True
+        config.docker_layout.dockerfile_template_name = "debian_12_dockerfile"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.compute_venv_lock_hash.return_value = "hash"
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         return config
 
     @patch(

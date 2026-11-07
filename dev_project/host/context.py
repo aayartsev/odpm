@@ -52,6 +52,26 @@ class HostProjectContext:
         repo_odpm_json = (
             bootstrap.repo_odpm_json if bootstrap is not None else ""
         )
+        from ..host.runtime import HostRuntimeState  # noqa: PLC0415  # optional
+
+        layout_default = getattr(
+            getattr(config, "docker_layout", None),
+            "docker_compose_command",
+            "",
+        )
+        if not isinstance(layout_default, str):
+            layout_default = ""
+        runtime = getattr(config, "runtime", None)
+        if isinstance(runtime, HostRuntimeState):
+            docker_compose_command = runtime.resolved_docker_compose_command(
+                layout_default
+            )
+        else:
+            override = getattr(runtime, "docker_compose_command", None)
+            docker_compose_command = (
+                override if isinstance(override, str) else layout_default
+            )
+
         return cls(
             project_dir=config.project_dir,
             program_dir=config.program_dir,
@@ -63,7 +83,7 @@ class HostProjectContext:
             project_settings=config.project_settings,
             docker_layout=config.docker_layout,
             addon_layout=config.addon_layout,
-            docker_compose_command=config.docker_compose_command,
+            docker_compose_command=docker_compose_command,
             manifest_view=manifest_view,
             repo_odpm_json=repo_odpm_json,
         )

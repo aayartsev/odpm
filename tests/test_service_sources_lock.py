@@ -81,10 +81,10 @@ class DepsLockManagerServiceSourcesTests(unittest.TestCase):
         config.bootstrap.service_source_paths = {
             "autoparts_env": source_path,
         }
-        config.dependencies = []
+        config.project_settings.dependencies = []
         config.seed_dependency_urls = MagicMock(return_value=[])
         config.odoo_platform_project = MagicMock()
-        config.dependencies_projects = []
+        config.docker_layout.dependencies_projects = []
         config.developing_project = MagicMock()
         link = MagicMock()
         link.project_path = source_path

@@ -12,6 +12,7 @@ from dev_project.debugger.constants import (
     DEFAULT_DEBUGGER_CONNECT_HOST,
 )
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.host.ports import BootstrapHandle
 from dev_project.compose.generator import ComposeGenerator
 from dev_project.project_env.types import MappedPath
 from dev_project.compose.start_command import ComposeOdooService
@@ -49,9 +50,9 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.policy = policy
-        config.odoo_image_name = "odoo-base:dev"
-        config.odoo_ci_image_name = "odoo-ci:19"
-        config.compose_service = ComposeOdooService(
+        config.docker_layout.odoo_image_name = "odoo-base:dev"
+        config.docker_layout.odoo_ci_image_name = "odoo-ci:19"
+        config.runtime.compose_service = ComposeOdooService(
             working_dir="/home/odoo",
             include_runtime_config=policy.mount_runtime_config_from_host(),
             include_runtime_secrets=include_runtime_secrets,
@@ -63,8 +64,8 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 "/home/odoo/odoo/odoo-bin",
             ],
         )
-        config.compose_file_version = "3.8"
-        config.postgres_version = "16"
+        config.docker_layout.compose_file_version = "3.8"
+        config.project_settings.postgres_version = "16"
         config.postgres_data_local_storage = "/tmp/postgres-data"
         config.pd_manager = MagicMock()
         user_env = MagicMock()
@@ -76,7 +77,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         user_env.odoo_port = 8069
         user_env.gevent_port = 8072
         config.user_env = user_env
-        env = CreateProjectEnvironment(config)
+        env = CreateProjectEnvironment(BootstrapHandle(config=config))
         env.mapped_folders = [
             MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
         ]
@@ -128,7 +129,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             self._copy_compose_template(project_dir)
             env = self._make_env(project_dir, constants.DEVELOPER_SCENARIO)
-            env.config.user_env.postgres_service_name = "postgres"
+            env.bootstrap.config.user_env.postgres_service_name = "postgres"
             env._compose.generate_docker_compose_file()
             content = (Path(project_dir) / "docker-compose.yml").read_text(
                 encoding="utf-8"
@@ -276,7 +277,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
             )
             ComposeGenerator(env)._ensure_compose_template_current(template_path)
-            env.config.pd_manager.rebuild_docker_compose_template.assert_called_once()
+            env.bootstrap.config.pd_manager.rebuild_docker_compose_template.assert_called_once()
 
 
 if __name__ == "__main__":

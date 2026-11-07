@@ -48,8 +48,8 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
             config.odoo_platform_project = MagicMock()
             config.arguments = OdpmCliArgs(branch=None)
             config._developing_materializer = DevelopingRepoMaterializer()
-            config.odoo_build_date = "20240101"
-            config.odoo_version = "17.0"
+            config.project_settings.odoo_build_date = "20240101"
+            config.project_settings.odoo_version = "17.0"
         paths = MagicMock()
         return GitRepoCoordinator(config, paths=paths), config, paths
 

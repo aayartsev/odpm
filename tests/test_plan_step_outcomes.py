@@ -36,7 +36,7 @@ class PlanComposePreviewTests(unittest.TestCase):
         config.arguments = OdpmCliArgs()
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.compute_venv_lock_hash.return_value = "hash"
-        config.python_version = "3.12"
+        config.project_settings.python_version = "3.12"
         return config
 
     def _developer_compose_config(self) -> MagicMock:
@@ -44,23 +44,23 @@ class PlanComposePreviewTests(unittest.TestCase):
         config.project_dir = "/tmp/odpm-test-project"
         config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         config.arguments = OdpmCliArgs()
-        config.dev_mode = False
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.docker_project_dir = "/home/odoo"
-        config.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.platform_name = "odoo"
-        config.odoo_version = "19.0"
-        config.init_modules = ""
-        config.update_modules = ""
-        config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
-        config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
-        config.requirements_txt = []
+        config.user_settings.dev_mode = False
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.docker_layout.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.odoo_version = "19.0"
+        config.user_settings.init_modules = ""
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
+        config.docker_layout.docker_temp_tests_dir = "/home/odoo/odoo_tests"
+        config.project_settings.requirements_txt = []
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
-        config.db_creation_data = {}
+        config.user_settings.db_creation_data = {}
         return config
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
@@ -249,7 +249,6 @@ class EvaluateDockerPortsReleaseTests(unittest.TestCase):
 class EvaluateUpdateLinksTests(unittest.TestCase):
     def test_runs_when_create_module_links_disabled(self) -> None:
         ctx = MagicMock()
-        ctx.config.create_module_links = False
 
         step = evaluate_update_links(ctx)
 

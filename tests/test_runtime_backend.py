@@ -20,8 +20,8 @@ from dev_project.runtime_coordinator import RuntimeCoordinator
 class ComposeRuntimeBackendStubTests(unittest.TestCase):
     def _backend(self) -> ComposeRuntimeBackend:
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         config.project_dir = "/tmp/project"
         host_ctx = HostProjectContext.from_config(config)
         return get_runtime_backend(
@@ -89,8 +89,8 @@ class LaunchExecuteTests(unittest.TestCase):
     def _config(self) -> MagicMock:
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         config.user_env.odoo_port = 8069
         return config
 

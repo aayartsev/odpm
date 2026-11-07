@@ -31,8 +31,8 @@ _logger = get_module_logger(__name__)
 def validate_distro(config: Config) -> None:
     """Fail fast when base-image distro is not supported (debian only)."""
 
-    distro_name = config.distro_name
-    distro_version = config.distro_version
+    distro_name = config.project_settings.distro_name
+    distro_version = config.project_settings.distro_version
     versions = constants.DISTRO_INFO.get(distro_name)
     if versions is None or distro_version not in versions:
         supported = ", ".join(
@@ -56,9 +56,9 @@ def validate_distro(config: Config) -> None:
 def apply_policy_and_layout(config: Config) -> None:
 
     validate_distro(config)
-    original_requirements_txt = list(config.requirements_txt)
+    original_requirements_txt = list(config.project_settings.requirements_txt)
     normalized_requirements = normalize_project_requirements(
-        config, config.requirements_txt
+        config, config.project_settings.requirements_txt
     )
     arch = config._raw_odpm_json.get("arch", constants.ARCH)
     if arch == "auto":
@@ -66,8 +66,8 @@ def apply_policy_and_layout(config: Config) -> None:
 
     dockerfile_template_name = resolve_dockerfile_template_name(
         config.program_dir,
-        config.distro_name,
-        config.distro_version,
+        config.project_settings.distro_name,
+        config.project_settings.distro_version,
         config.policy.base_image_profile,
     )
     project_dockerfile_template_path = os.path.join(
@@ -92,18 +92,18 @@ def apply_policy_and_layout(config: Config) -> None:
         config.pd_manager.rebuild_dockerignore_template()
 
     config._project = ProjectSettingsState(
-        odoo_version=config.odoo_version,
-        python_version=config.python_version,
-        distro_version=config.distro_version,
-        distro_name=config.distro_name,
-        postgres_version=config.postgres_version,
-        distro_version_codename=config.distro_version_codename,
-        dependencies=config.dependencies,
+        odoo_version=config.project_settings.odoo_version,
+        python_version=config.project_settings.python_version,
+        distro_version=config.project_settings.distro_version,
+        distro_name=config.project_settings.distro_name,
+        postgres_version=config.project_settings.postgres_version,
+        distro_version_codename=config.project_settings.distro_version_codename,
+        dependencies=config.project_settings.dependencies,
         requirements_txt=normalized_requirements,
-        odoo_build_date=config.odoo_build_date,
-        odoo_git_link=config.odoo_git_link,
-        platform_name=config.platform_name,
-        project_odpm_version=config.project_odpm_version,
+        odoo_build_date=config.project_settings.odoo_build_date,
+        odoo_git_link=config.project_settings.odoo_git_link,
+        platform_name=config.project_settings.platform_name,
+        project_odpm_version=config.project_settings.project_odpm_version,
         arch=arch,
     )
     config._docker = DockerLayoutState(
@@ -152,10 +152,13 @@ def apply_policy_and_layout(config: Config) -> None:
                 _logger.info(
                     "odoo-stubs skipped for scenario %s (Odoo %s has built-in typing or unsupported version)",
                     config.policy.scenario,
-                    config.odoo_version,
+                    config.project_settings.odoo_version,
                 )
 
-    if not dev_mode_disabled(config.dev_mode) and not config.policy.apply_dev_mode:
+    if (
+        not dev_mode_disabled(config.user_settings.dev_mode)
+        and not config.policy.apply_dev_mode
+    ):
         _logger.warning(
             "dev_mode is ignored in scenario %s",
             config.policy.scenario,

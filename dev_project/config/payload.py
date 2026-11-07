@@ -66,7 +66,11 @@ def compute_odoo_requirements_hash(odoo_dir: str) -> str:
 
 def compute_venv_lock_hash(config: Config) -> str:
 
-    arch = config.arch if config.arch != "auto" else constants.ARCH
+    arch = (
+        config.project_settings.arch
+        if config.project_settings.arch != "auto"
+        else constants.ARCH
+    )
     payload: dict[str, str] = {}
     for key in constants.VENV_LOCK_KEYS:
         if key == "venv_mode":
@@ -74,17 +78,19 @@ def compute_venv_lock_hash(config: Config) -> str:
         elif key == "arch":
             payload[key] = str(arch)
         elif key == "python_version":
-            payload[key] = str(config.python_version)
+            payload[key] = str(config.project_settings.python_version)
         elif key == "distro_version":
-            payload[key] = str(config.distro_version)
+            payload[key] = str(config.project_settings.distro_version)
         elif key == "distro_name":
-            payload[key] = str(config.distro_name)
+            payload[key] = str(config.project_settings.distro_name)
         elif key == "postgres_version":
-            payload[key] = str(config.postgres_version)
+            payload[key] = str(config.project_settings.postgres_version)
         elif key == "odoo_version":
-            payload[key] = str(config.odoo_version)
+            payload[key] = str(config.project_settings.odoo_version)
         elif key == "odoo_requirements_hash":
-            payload[key] = compute_odoo_requirements_hash(config.docker_odoo_dir)
+            payload[key] = compute_odoo_requirements_hash(
+                config.docker_layout.docker_odoo_dir
+            )
         else:
             payload[key] = ""
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))

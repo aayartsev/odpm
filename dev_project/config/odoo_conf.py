@@ -129,14 +129,14 @@ class OdooConfBuilder:
                     docker.docker_dirs_with_addons.append(
                         str(
                             pathlib.PurePosixPath(
-                                self.config.docker_odoo_project_dir_path,
+                                self.config.docker_layout.docker_odoo_project_dir_path,
                                 subproject.subproject_rel_path,
                             )
                         )
                     )
             else:
                 docker.docker_dirs_with_addons.append(
-                    self.config.docker_odoo_project_dir_path
+                    self.config.docker_layout.docker_odoo_project_dir_path
                 )
 
         odoo_addons_modules_data = self.check_project_for_subprojects(
@@ -146,18 +146,24 @@ class OdooConfBuilder:
         docker.docker_dirs_with_addons.append(
             str(
                 pathlib.PurePosixPath(
-                    self.config.docker_odoo_dir, self.config.platform_name, "addons"
+                    self.config.docker_layout.docker_odoo_dir,
+                    self.config.project_settings.platform_name,
+                    "addons",
                 )
             )
         )
         if os.path.exists(os.path.join(self.config.odoo_src_dir, "addons")):
             docker.docker_dirs_with_addons.append(
-                str(pathlib.PurePosixPath(self.config.docker_odoo_dir, "addons"))
+                str(
+                    pathlib.PurePosixPath(
+                        self.config.docker_layout.docker_odoo_dir, "addons"
+                    )
+                )
             )
 
     def generate_odoo_conf_docker_data(self) -> None:
         odoo_config = configparser.ConfigParser()
-        odoo_config.read(self.config.path_odoo_conf)
+        odoo_config.read(self.config.docker_layout.path_odoo_conf)
         if "options" not in odoo_config:
             odoo_config["options"] = {}
 

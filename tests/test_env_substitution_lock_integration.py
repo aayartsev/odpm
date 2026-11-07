@@ -12,7 +12,11 @@ from unittest.mock import MagicMock
 from dev_project import constants
 from dev_project.config import Config
 from dev_project.config.manifests import OdpmJsonReader
-from dev_project.config.state import BootstrapState, DockerLayoutState
+from dev_project.config.state import (
+    BootstrapState,
+    DockerLayoutState,
+    ProjectSettingsState,
+)
 from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.git import HandleOdooProjectLink
 from dev_project.git.deps_lock import canonical_repo_url, load_deps_lock
@@ -78,12 +82,16 @@ class EnvSubstitutionDepsLockIntegrationTests(unittest.TestCase):
 
             lock_config = Config.__new__(Config)
             lock_config._bootstrap = BootstrapState()
-            lock_config._docker = DockerLayoutState()
+            lock_config._docker = DockerLayoutState(
+                dependencies_projects=[_file_link_at(dep_dir)]
+            )
+            lock_config._project = ProjectSettingsState(
+                odoo_git_link=resolved_platform_url
+            )
             lock_config._raw_odpm_json = dict(config._raw_odpm_json)
             lock_config.project_dir = project_dir
             lock_config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
             lock_config.odoo_platform_project = _file_link_at(platform_dir)
-            lock_config.dependencies_projects = [_file_link_at(dep_dir)]
             lock_config.developing_project = _file_link_at(dev_repo)
 
             self.assertEqual(
@@ -141,7 +149,7 @@ class EnvSubstitutionDepsLockIntegrationTests(unittest.TestCase):
             config.project_dir = project_dir
             config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
             config.odoo_platform_project = _file_link_at(platform_dir)
-            config.dependencies_projects = [_file_link_at(dep_dir)]
+            config.docker_layout.dependencies_projects = [_file_link_at(dep_dir)]
             config.developing_project = _file_link_at(dev_dir)
 
             DepsLockManager(config).collect_and_save(developing=config.developing_project)

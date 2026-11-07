@@ -200,9 +200,11 @@ class VenvLockHashTests(unittest.TestCase):
     @classmethod
     def _apply_lock_hash_fields(cls, config: MagicMock, base_dict: dict) -> None:
         for key, value in base_dict.items():
-            setattr(config, key, value)
-        if not getattr(config, "docker_odoo_dir", None):
-            config.docker_odoo_dir = ""
+            setattr(config.project_settings, key, value)
+        if not isinstance(
+            getattr(config.docker_layout, "docker_odoo_dir", None), str
+        ):
+            config.docker_layout.docker_odoo_dir = ""
 
     def test_lock_hash_same_when_only_requirements_differ(self):
         base_dict = self._base_config_dict()

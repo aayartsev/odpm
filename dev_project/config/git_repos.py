@@ -149,6 +149,6 @@ class GitRepoCoordinator:
 
     def apply_odoo_build_date_to_platform(self) -> None:
         self.config.odoo_platform_project.apply_build_date(
-            self.config.odoo_build_date,
-            str(self.config.odoo_version),
+            self.config.project_settings.odoo_build_date,
+            str(self.config.project_settings.odoo_version),
         )

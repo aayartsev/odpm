@@ -35,7 +35,7 @@ class PycharmConfigurator:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def build_debugger_profile(self) -> DebuggerProfile:
         return DebuggerProfileBuilder(self.env).build()

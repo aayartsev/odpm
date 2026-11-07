@@ -70,7 +70,7 @@ class PostgresPathsHelpersTests(unittest.TestCase):
 class Postgres18ComposeDocumentTests(unittest.TestCase):
     def test_compose_mount_legacy_for_postgres_16(self):
         env = make_golden_compose_env(constants.DEVELOPER_SCENARIO)
-        env.config.postgres_version = "16"
+        env.bootstrap.config.project_settings.postgres_version = "16"
         document = build_compose_document(env)
         volumes = document["services"]["db"]["volumes"]
         self.assertEqual(
@@ -79,7 +79,7 @@ class Postgres18ComposeDocumentTests(unittest.TestCase):
 
     def test_compose_mount_parent_for_postgres_18(self):
         env = make_golden_compose_env(constants.DEVELOPER_SCENARIO)
-        env.config.postgres_version = "18"
+        env.bootstrap.config.project_settings.postgres_version = "18"
         document = build_compose_document(env)
         volumes = document["services"]["db"]["volumes"]
         self.assertEqual(volumes, [f"{LOGICAL_POSTGRES_VOLUME}:/var/lib/postgresql"])
@@ -89,7 +89,7 @@ class PostgresLocalStoragePathTests(unittest.TestCase):
     def test_config_paths_uses_v18_relpath(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()
-            config.postgres_version = "18"
+            config.project_settings.postgres_version = "18"
             config.pd_manager = MagicMock()
             config.pd_manager.project_path = project_dir
             path = ConfigPaths(config).get_postgres_data_local_storage_path()

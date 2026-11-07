@@ -17,6 +17,7 @@ from dev_project.config.transforms.modules import (
     normalize_cli_module_csv,
 )
 from dev_project.scenario_policy import ScenarioPolicy
+from dev_project.host.ports import BootstrapHandle
 
 
 class NormalizeCliModuleCsvTests(unittest.TestCase):
@@ -60,20 +61,20 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
         config.project_dir = "/tmp/odpm-test-project"
         config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         config.arguments = OdpmCliArgs()
-        config.dev_mode = False
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.docker_project_dir = "/home/odoo"
-        config.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.platform_name = "odoo"
-        config.odoo_version = "19.0"
-        config.init_modules = "from_settings"
-        config.update_modules = "upd_settings"
-        config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
-        config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
-        config.requirements_txt = []
+        config.user_settings.dev_mode = False
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.docker_layout.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.odoo_version = "19.0"
+        config.user_settings.init_modules = "from_settings"
+        config.user_settings.update_modules = "upd_settings"
+        config.docker_layout.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
+        config.docker_layout.docker_temp_tests_dir = "/home/odoo/odoo_tests"
+        config.project_settings.requirements_txt = []
         config.generate_odoo_conf_docker_data = MagicMock()
         return config
 
@@ -81,8 +82,8 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
     def test_bare_i_uses_settings(self, _mock_persist):
         config = self._make_config()
         config.arguments = replace(config.arguments, i=True)
-        ComposeServiceBuilder(config).build()
-        command = config.compose_service.command
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        command = config.runtime.compose_service.command
         self.assertIn("-i", command)
         self.assertIn("from_settings", command)
 
@@ -90,8 +91,8 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
     def test_cli_i_overrides_settings(self, _mock_persist):
         config = self._make_config()
         config.arguments = replace(config.arguments, i="other")
-        ComposeServiceBuilder(config).build()
-        command = config.compose_service.command
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        command = config.runtime.compose_service.command
         self.assertIn("-i", command)
         self.assertIn("other", command)
         self.assertNotIn("from_settings", command)
@@ -99,8 +100,8 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_absent_i_omits_flag(self, _mock_persist):
         config = self._make_config()
-        ComposeServiceBuilder(config).build()
-        command = config.compose_service.command
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        command = config.runtime.compose_service.command
         self.assertNotIn("-i", command)
         self.assertNotIn("-u", command)
 
@@ -108,23 +109,23 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
 class ContainerConfigModulesToUpdateTests(unittest.TestCase):
     def _host_config(self, *, update_modules: str, u):
         config = MagicMock()
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.odoo_config_data = {}
-        config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.odoo_config_data = {}
+        config.docker_layout.docker_path_odoo_conf = "/home/odoo/odoo.conf"
         config.arguments = OdpmCliArgs(u=u)
-        config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
-        config.db_manager_password = ""
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.docker_project_dir = "/home/odoo"
-        config.requirements_txt = []
-        config.odoo_version = "19.0"
-        config.python_version = "3.12"
-        config.platform_name = "odoo"
-        config.arch = "amd64"
-        config.sql_queries = []
-        config.update_modules = update_modules
-        config.docker_dirs_with_addons = []
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.user_settings.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
+        config.user_settings.db_manager_password = ""
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.project_settings.requirements_txt = []
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.arch = "amd64"
+        config.user_settings.sql_queries = []
+        config.user_settings.update_modules = update_modules
+        config.docker_layout.docker_dirs_with_addons = []
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
         policy = MagicMock()
         policy.venv_mode = constants.VENV_MODE_FRESH

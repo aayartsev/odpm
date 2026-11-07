@@ -162,7 +162,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             config.developing_project.build_project = lambda: None
             config.developing_project.switch_to_branch = lambda _branch: None
             config.skip_git_update = lambda: False
-            config.dependencies_dirs = []
+            config.docker_layout.dependencies_dirs = []
             config.repo_odpm_json = ""
 
             self.materializer.materialize_for_odpm_json(config)

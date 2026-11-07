@@ -14,6 +14,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.prepare import make_prepare_context
 from dev_project.prepare.steps_secrets import evaluate_secrets_materialize
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.secrets import (
     bake_secrets_enabled,
     import_secrets_from_path,
@@ -94,39 +95,39 @@ class CiSecretsBakeTests(unittest.TestCase):
         config = MagicMock()
         config.program_dir = self._program_dir()
         config.project_dir = project_dir
-        config.ci_build_context_dir = os.path.join(
+        config.docker_layout.ci_build_context_dir = os.path.join(
             project_dir, constants.CI_BUILD_CONTEXT_DIR
         )
-        config.odoo_config_data = {"options": {"admin_passwd": "admin"}}
-        config.docker_project_dir = "/home/odoo"
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.docker_dev_project_dir = "/home/odoo/dev_project"
-        config.docker_backups_dir = "/home/odoo/backups"
-        config.docker_temp_tests_dir = "/tmp/odoo_tests"
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.docker_extra_addons = "/home/odoo/extra-addons"
-        config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
+        config.docker_layout.odoo_config_data = {"options": {"admin_passwd": "admin"}}
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_layout.docker_dev_project_dir = "/home/odoo/dev_project"
+        config.docker_layout.docker_backups_dir = "/home/odoo/backups"
+        config.docker_layout.docker_temp_tests_dir = "/tmp/odoo_tests"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.docker_extra_addons = "/home/odoo/extra-addons"
+        config.docker_layout.docker_path_odoo_conf = "/home/odoo/odoo.conf"
         config.compute_venv_lock_hash.return_value = "abc"
-        config.python_version = "3.12"
-        config.requirements_txt = []
-        config.arch = "amd64"
-        config.odoo_version = "19.0"
-        config.platform_name = "odoo"
-        config.container_run_mode = constants.RUN_MODE_ODOO
-        config.db_manager_password = ""
-        config.db_creation_data = dict(constants.DEFAULT_DB_CREATION_DATA)
+        config.project_settings.python_version = "3.12"
+        config.project_settings.requirements_txt = []
+        config.project_settings.arch = "amd64"
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.platform_name = "odoo"
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
+        config.user_settings.db_manager_password = ""
+        config.user_settings.db_creation_data = dict(constants.DEFAULT_DB_CREATION_DATA)
         config.arguments = OdpmCliArgs()
-        config.sql_queries = []
-        config.update_modules = ""
-        config.docker_dirs_with_addons = []
-        config.odoo_image_name = "odoo-base:test"
+        config.user_settings.sql_queries = []
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_dirs_with_addons = []
+        config.docker_layout.odoo_image_name = "odoo-base:test"
         config.user_env = MagicMock(odpm_scenario=constants.CI_SCENARIO)
         config.user_env.project_dotenv_dict.return_value = {}
         config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         config.secrets_fetch_session = SecretsFetchSession()
         config.bootstrap = MagicMock()
         config.bootstrap.manifest_view = None
-        env = CreateProjectEnvironment(config)
+        env = CreateProjectEnvironment(BootstrapHandle(config=config))
         env.mapped_folders = []
         return env
 
@@ -217,14 +218,14 @@ class CiSecretsBakeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             write_secrets_source(project_dir, {"payment.api_key": "stale-yesterday"})
             env = self._make_ci_env(project_dir)
-            env.config.arguments = OdpmCliArgs(secrets_provider="fake")
+            env.bootstrap.config.arguments = OdpmCliArgs(secrets_provider="fake")
             with patch.dict(os.environ, {constants.ODPM_BAKE_SECRETS_ENV: "1"}):
                 self.assertTrue(
-                    prepare_secrets_for_ci_bake(project_dir, env.config)
+                    prepare_secrets_for_ci_bake(project_dir, env.bootstrap.config)
                 )
                 self.assertEqual(provider.calls, 1)
                 self.assertTrue(
-                    prepare_secrets_for_ci_bake(project_dir, env.config)
+                    prepare_secrets_for_ci_bake(project_dir, env.bootstrap.config)
                 )
             self.assertEqual(provider.calls, 1)
             payload = json.loads(

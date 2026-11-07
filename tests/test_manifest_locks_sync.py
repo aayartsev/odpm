@@ -136,8 +136,8 @@ class DepsLockManagerDivergenceWarningTests(unittest.TestCase):
             config.project_dir = tmp
             config.policy.is_ci.return_value = False
             config.policy.is_developer.return_value = True
-            config.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
-            config.dependencies = []
+            config.project_settings.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
+            config.project_settings.dependencies = []
             config.bootstrap.developing_project = None
             config.bootstrap.manifest_view = ManifestView(
                 manifest_schema=constants.MANIFEST_SCHEMA_V2,
@@ -146,7 +146,7 @@ class DepsLockManagerDivergenceWarningTests(unittest.TestCase):
                 locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
             )
             config.odoo_platform_project.resolve_head_sha.return_value = "a" * 40
-            config.dependencies_projects = []
+            config.docker_layout.dependencies_projects = []
 
             save_deps_lock(
                 f"{tmp}/.odpm/deps.lock.json",
@@ -177,8 +177,8 @@ class DepsLockManagerManifestSourceTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = "/tmp/project"
         config.policy.is_ci.return_value = False
-        config.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
-        config.dependencies = ["https://github.com/OCA/web.git 17.0"]
+        config.project_settings.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
+        config.project_settings.dependencies = ["https://github.com/OCA/web.git 17.0"]
         config.bootstrap.manifest_view = ManifestView(
             manifest_schema=constants.MANIFEST_SCHEMA_V2,
             requires_odpm="4.4",
@@ -215,8 +215,8 @@ class DepsLockManagerApplyModeLogTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = "/tmp/project"
         config.policy.is_ci.return_value = False
-        config.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
-        config.dependencies = []
+        config.project_settings.odoo_git_link = "https://github.com/odoo/odoo.git 17.0"
+        config.project_settings.dependencies = []
         config.bootstrap.developing_project = None
         config.bootstrap.manifest_view = ManifestView(
             manifest_schema=constants.MANIFEST_SCHEMA_V2,
@@ -378,7 +378,7 @@ class SyncManifestLocksCollectTests(unittest.TestCase):
                 locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
             )
             config.odoo_platform_project = MagicMock()
-            config.dependencies_projects = []
+            config.docker_layout.dependencies_projects = []
             config.developing_project = None
 
             manager = DepsLockManager(config)
@@ -412,7 +412,7 @@ class SyncManifestLocksCollectTests(unittest.TestCase):
                 locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
             )
             config.odoo_platform_project = MagicMock()
-            config.dependencies_projects = []
+            config.docker_layout.dependencies_projects = []
             config.developing_project = None
 
             manager = DepsLockManager(config)

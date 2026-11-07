@@ -172,31 +172,31 @@ class DotenvBaseImageProfileTests(unittest.TestCase):
 class ImageNameProfileSuffixTests(unittest.TestCase):
     def test_odoo_image_name_includes_profile_suffix(self):
         config = MagicMock()
-        config.arch = "amd64"
-        config.python_version = "3.12"
-        config.distro_name = "debian"
-        config.distro_version = "12"
+        config.project_settings.arch = "amd64"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.distro_name = "debian"
+        config.project_settings.distro_version = "12"
         config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         config.docker_layout = MagicMock()
         config.arguments = MagicMock(image_tag=None)
-        config.odoo_version = "17.0"
-        config.platform_name = "odoo"
+        config.project_settings.odoo_version = "17.0"
+        config.project_settings.platform_name = "odoo"
         ConfigPaths(config).apply_image_names()
         self.assertTrue(config.docker_layout.odoo_image_name.endswith("-ci"))
 
     def test_odoo_image_name_uses_overridden_profile_suffix(self):
         config = MagicMock()
-        config.arch = "amd64"
-        config.python_version = "3.12"
-        config.distro_name = "debian"
-        config.distro_version = "12"
+        config.project_settings.arch = "amd64"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.distro_name = "debian"
+        config.project_settings.distro_version = "12"
         config.policy = ScenarioPolicy.from_scenario(
             constants.CI_SCENARIO, base_image_profile="medium"
         )
         config.docker_layout = MagicMock()
         config.arguments = MagicMock(image_tag=None)
-        config.odoo_version = "17.0"
-        config.platform_name = "odoo"
+        config.project_settings.odoo_version = "17.0"
+        config.project_settings.platform_name = "odoo"
         ConfigPaths(config).apply_image_names()
         self.assertTrue(config.docker_layout.odoo_image_name.endswith("-medium"))
 
@@ -205,15 +205,15 @@ class ValidateDistroTests(unittest.TestCase):
     def test_debian_accepted(self):
 
         config = MagicMock()
-        config.distro_name = "debian"
-        config.distro_version = "12"
+        config.project_settings.distro_name = "debian"
+        config.project_settings.distro_version = "12"
         validate_distro(config)
 
     def test_ubuntu_rejected(self):
 
         config = MagicMock()
-        config.distro_name = "ubuntu"
-        config.distro_version = "22.04"
+        config.project_settings.distro_name = "ubuntu"
+        config.project_settings.distro_version = "22.04"
         with self.assertRaises(ConfigError) as ctx:
             validate_distro(config)
         self.assertIn("debian", str(ctx.exception).lower())

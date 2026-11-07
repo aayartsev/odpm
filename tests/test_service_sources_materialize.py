@@ -29,7 +29,7 @@ from dev_project.config.config import Config
 from dev_project import constants
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
-from dev_project.host.ports import ports_from_config
+from dev_project.host.ports import ports_from_config, BootstrapHandle
 from dev_project.prepare.types import PrepareContext
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -60,7 +60,7 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
             config = mock.MagicMock()
             config.user_env.odoo_projects_dir = tmp
             config.skip_git_update.return_value = False
-            config.odoo_version = "17.0"
+            config.project_settings.odoo_version = "17.0"
             config.user_settings.clean_git_repos = False
             config.user_settings.update_git_repos = False
 
@@ -142,8 +142,7 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
         with mock.patch(
             "dev_project.git.service_sources.SymlinkManager"
         ) as manager_cls:
-            apply_materialized_service_sources(
-                config,
+            apply_materialized_service_sources(BootstrapHandle(config=config),
                 {"autoparts_env": "/opt/autoparts-env"},
             )
             manager_cls.return_value.sync_service_source_project_links.assert_called_once_with(
@@ -175,7 +174,7 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
             config.bootstrap.manifest_view = view
             config.user_env.odoo_projects_dir = tmp
 
-            paths = collect_service_source_paths(config)
+            paths = collect_service_source_paths(BootstrapHandle(config=config))
             self.assertEqual(paths["local_env"], os.path.abspath(local))
             self.assertEqual(
                 paths["autoparts_env"],
@@ -195,8 +194,8 @@ class ServiceSourcesPrepareStepTests(unittest.TestCase):
     def _make_ctx(self, project_dir: str, *, service_sources: dict | None) -> PrepareContext:
         config = mock.MagicMock()
         config.project_dir = project_dir
-        config.service_sources_dir = os.path.join(project_dir, constants.SERVICE_SOURCES_DIR)
-        config.symlinks_sources = []
+        config.docker_layout.service_sources_dir = os.path.join(project_dir, constants.SERVICE_SOURCES_DIR)
+        config.docker_layout.symlinks_sources = []
         config.repo_odpm_json = os.path.join(project_dir, "odpm.json")
         config.bootstrap = mock.MagicMock()
         if service_sources is None:
@@ -209,7 +208,11 @@ class ServiceSourcesPrepareStepTests(unittest.TestCase):
         config.user_env.odoo_projects_dir = os.path.join(project_dir, "odoo_projects")
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         host_ctx = HostProjectContext.from_config(config)
-        ports = ports_from_config(config, mock.MagicMock(), OdpmCliArgs())
+        ports = ports_from_config(
+            config,
+            mock.MagicMock(bootstrap=BootstrapHandle(config=config)),
+            OdpmCliArgs(),
+        )
         return PrepareContext(
             ports=ports,
             project_env=mock.MagicMock(),

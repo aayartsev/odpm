@@ -40,7 +40,7 @@ def write_debug_profile_to_path(env: CreateProjectEnvironment, path: str) -> str
 
 def write_debug_profile(env: CreateProjectEnvironment) -> str:
 
-    project_dir = env.config.project_dir
+    project_dir = env.bootstrap.config.project_dir
     ensure_runtime_dir_gitignore(project_dir)
     return write_debug_profile_to_path(env, debug_profile_path(project_dir))
 
@@ -165,7 +165,7 @@ class DebuggerProfileBuilder:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def build(self) -> DebuggerProfile:
         from ..debugger.user_env import resolve_debugger_port  # noqa: PLC0415  # cycle-safe
@@ -225,12 +225,12 @@ class DebuggerProfileBuilder:
             seen_pairs.add(pair)
             candidates.append(pair)
 
-        for entry in self.config.symlinks_sources:
+        for entry in self.config.docker_layout.symlinks_sources:
             add(entry.link_path, entry.source_path)
 
         for scan_dir in (
             self.config.project_dir,
-            self.config.dependencies_dir,
+            self.config.docker_layout.dependencies_dir,
         ):
             if not os.path.isdir(scan_dir):
                 continue

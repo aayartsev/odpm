@@ -147,7 +147,7 @@ def _resolve_data_path(ctx: PrepareContext, drift: DatabaseDrift) -> None:
             )
         )
         _abort_resolution()
-    _accept_drift_baseline(ctx.config, drift)
+    _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
 
 
 def _resolve_postgres_major(ctx: PrepareContext, drift: DatabaseDrift) -> None:
@@ -158,7 +158,7 @@ def _resolve_postgres_major(ctx: PrepareContext, drift: DatabaseDrift) -> None:
     if choice == "a":
         _abort_resolution()
     if choice == "c":
-        data_path = os.path.realpath(ctx.config.postgres_data_local_storage)
+        data_path = os.path.realpath(ctx.ports.bootstrap.config.postgres_data_local_storage)
         _logger.info(
             _MSG_WIPE_POSTGRES_MAJOR.format(
                 DATA_PATH=data_path,
@@ -166,7 +166,7 @@ def _resolve_postgres_major(ctx: PrepareContext, drift: DatabaseDrift) -> None:
             )
         )
         _abort_resolution()
-    _accept_drift_baseline(ctx.config, drift)
+    _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
 
 
 def _resolve_app_role_missing(ctx: PrepareContext, drift: DatabaseDrift) -> None:
@@ -174,11 +174,11 @@ def _resolve_app_role_missing(ctx: PrepareContext, drift: DatabaseDrift) -> None
     choice = _prompt_choice(prompt, frozenset({"a", "b"}))
     if choice == "a":
         _abort_resolution()
-    ensure_app_role(ctx.config)
+    ensure_app_role(ctx.ports.bootstrap.config)
     _logger.info(
         _("PostgreSQL application role {ROLE} is ready.").format(ROLE=drift.current)
     )
-    _accept_drift_baseline(ctx.config, drift, assume_app_role_present=True)
+    _accept_drift_baseline(ctx.ports.bootstrap.config, drift, assume_app_role_present=True)
 
 
 def _resolve_continue_or_abort(
@@ -188,7 +188,7 @@ def _resolve_continue_or_abort(
     choice = _prompt_choice(prompt, frozenset({"a", "c"}))
     if choice == "a":
         _abort_resolution()
-    _accept_drift_baseline(ctx.config, drift)
+    _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
 
 
 def _resolve_interactive(ctx: PrepareContext, drift: DatabaseDrift) -> None:
@@ -215,15 +215,15 @@ def _non_interactive_error(pending: tuple[DatabaseDrift, ...]) -> str:
 def resolve_database_drifts(ctx: PrepareContext) -> None:
     accepted = accepted_drift_kinds(ctx.args)
     while True:
-        pending = pending_resolution_drifts(ctx.config)
+        pending = pending_resolution_drifts(ctx.ports.bootstrap.config)
         if not pending:
             break
         drift = pending[0]
         if drift.kind in accepted:
             _logger.info(_MSG_ACCEPTED.format(KIND=drift.kind))
-            _accept_drift_baseline(ctx.config, drift)
+            _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
             continue
         if not stdin_is_interactive():
             raise PipelineError(_non_interactive_error(pending))
         _resolve_interactive(ctx, drift)
-    ensure_no_blocking_database_drift(ctx.config, ctx.args)
+    ensure_no_blocking_database_drift(ctx.ports.bootstrap.config, ctx.args)

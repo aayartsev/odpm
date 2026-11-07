@@ -47,7 +47,7 @@ class ComposeRuntimeBackend:
         argv = shlex.split(self.host_ctx.docker_compose_command)
         argv.extend(compose_project_cli_args(self.host_ctx.user_env))
         argv += ["up"]
-        if self.config.no_log_prefix:
+        if self.config.runtime.no_log_prefix:
             argv.append("--no-log-prefix")
         argv.append("--abort-on-container-exit")
         if force_recreate:

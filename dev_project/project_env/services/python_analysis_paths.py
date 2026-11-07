@@ -17,7 +17,7 @@ class PythonAnalysisPathsBuilder:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def build(self) -> list[str]:
         paths: list[str] = []
@@ -43,7 +43,7 @@ class PythonAnalysisPathsBuilder:
         if developing is not None:
             add_raw(getattr(developing, "project_path", None))
 
-        for dependency in getattr(self.config, "dependencies_projects", []) or []:
+        for dependency in self.config.docker_layout.dependencies_projects or []:
             add_raw(getattr(dependency, "project_path", None))
 
         for catalog in self.env.host_ctx.addon_layout.catalogs_of_modules_data or []:
@@ -52,8 +52,8 @@ class PythonAnalysisPathsBuilder:
         return paths
 
     def _venv_site_packages_candidates(self) -> list[str]:
-        venv_dir = getattr(self.config, "venv_dir", None)
-        python_version = str(getattr(self.config, "python_version", "") or "")
+        venv_dir = self.config.docker_layout.venv_dir
+        python_version = str(self.config.project_settings.python_version or "")
         if not venv_dir or not python_version:
             return []
         relative = os.path.join("lib", f"python{python_version}", "site-packages")
@@ -108,12 +108,12 @@ class PythonAnalysisPathsBuilder:
             seen.add(pair)
             pairs.append(pair)
 
-        for entry in getattr(self.config, "symlinks_sources", []) or []:
+        for entry in self.config.docker_layout.symlinks_sources or []:
             add(entry.link_path, entry.source_path)
 
         for scan_dir in (
             self.config.project_dir,
-            getattr(self.config, "dependencies_dir", None),
+            self.config.docker_layout.dependencies_dir,
         ):
             if not scan_dir or not os.path.isdir(scan_dir):
                 continue

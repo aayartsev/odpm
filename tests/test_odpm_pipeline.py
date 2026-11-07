@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.errors import ConfigError, PipelineError
-from dev_project.host.ports import ports_from_config
+from dev_project.host.ports import ports_from_config, BootstrapHandle
 from dev_project.odpm_pipeline import OdpmPipeline
 from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
@@ -23,7 +23,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         config.user_env.odpm_ide = "vscode"
         config.user_env.odoo_port = 8069
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.program_dir = "/opt/odpm"
         config.config_home_dir = "/tmp/project"
         config.user_settings = MagicMock()
@@ -146,7 +146,7 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
         policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
         config.policy = policy
         config.project_dir = "/tmp/odpm-test-project"
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         config.arguments = OdpmCliArgs(
             d=None,
             translate=None,
@@ -158,37 +158,53 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
             screencasts=False,
             odoo_bin=[],
         )
-        config.dev_mode = False
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.docker_project_dir = "/home/odoo"
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.platform_name = "odoo"
-        config.odoo_version = "19.0"
-        config.init_modules = ""
-        config.update_modules = ""
-        config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
-        config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
+        config.user_settings.dev_mode = False
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.odoo_version = "19.0"
+        config.user_settings.init_modules = ""
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
+        config.docker_layout.docker_temp_tests_dir = "/home/odoo/odoo_tests"
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
-        config.db_creation_data = {}
+        config.user_settings.db_creation_data = {}
 
 
         with patch("dev_project.compose.service_builder.persist_runtime_config"):
-            builder = ComposeServiceBuilder(config)
+            builder = ComposeServiceBuilder(BootstrapHandle(config=config))
             builder.build()
         self.assertIs(builder.policy, policy)
 
 
 class RuntimeCoordinatorComposeTests(unittest.TestCase):
     def _coordinator(self, config: MagicMock) -> RuntimeCoordinator:
+        from dev_project.host.runtime import HostRuntimeState
+
+        if not isinstance(getattr(config, "runtime", None), HostRuntimeState):
+            runtime = HostRuntimeState()
+            override = getattr(config.runtime, "docker_compose_command", None)
+            if isinstance(override, str):
+                runtime.docker_compose_command = override
+            no_log = getattr(config.runtime, "no_log_prefix", False)
+            if isinstance(no_log, bool):
+                runtime.no_log_prefix = no_log
+            config.runtime = runtime
+        if not isinstance(
+            getattr(getattr(config, "docker_layout", None), "docker_compose_command", None),
+            str,
+        ):
+            config.docker_layout.docker_compose_command = "docker compose"
         project_env = MagicMock()
         project_env.host_ctx = HostProjectContext.from_config(config)
         return RuntimeCoordinator(OdpmCliArgs(), config, project_env)
 
     def test_build_compose_up_argv_force_recreate_explicit(self):
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         self.assertEqual(
             self._coordinator(config).build_compose_up_argv(force_recreate=True),
             [
@@ -202,8 +218,8 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
 
     def test_build_compose_up_argv_skips_force_recreate_when_healthy(self):
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         self.assertEqual(
             self._coordinator(config).build_compose_up_argv(force_recreate=False),
             [
@@ -216,8 +232,8 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
 
     def test_build_compose_up_argv_with_no_log_prefix(self):
         config = MagicMock()
-        config.docker_compose_command = "docker-compose"
-        config.no_log_prefix = True
+        config.runtime.docker_compose_command = "docker-compose"
+        config.runtime.no_log_prefix = True
         self.assertEqual(
             self._coordinator(config).build_compose_up_argv(force_recreate=True),
             [
@@ -235,8 +251,8 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
     )
     def test_build_compose_up_argv_auto_detects_force_recreate(self, _mock_should):
         config = MagicMock()
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         argv = self._coordinator(config).build_compose_up_argv()
         self.assertIn("--force-recreate", argv)
 
@@ -248,8 +264,8 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
     def test_start_containers_uses_subprocess(self, mock_base_image, _mock_should):
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         config.user_env.odoo_port = 8069
         with patch(
             "dev_project.runtime_backend.compose.run_logged", return_value=0
@@ -271,8 +287,8 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
     ):
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         config.user_env.odoo_port = 8069
         config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         with patch("dev_project.runtime_backend.compose.run_logged", return_value=17):
@@ -295,8 +311,8 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
     ):
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
         config.user_env.odoo_port = 8069
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         with patch("dev_project.runtime_backend.compose.run_logged", return_value=1):
@@ -510,7 +526,9 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         self.assertIs(pipeline.project_environment, mock_project_env)
         self.assertIs(pipeline.system_checker, mock_checker)
         mock_config_cls.assert_called_once()
-        mock_project_env_cls.assert_called_once_with(mock_config)
+        mock_project_env_cls.assert_called_once()
+        called_bootstrap = mock_project_env_cls.call_args.args[0]
+        self.assertIs(called_bootstrap.config, mock_config)
         mock_checker_cls.assert_called_once_with(mock_config, mock_project_env)
         mock_project_env.attach_system_checker.assert_called_once_with(mock_checker)
 
@@ -595,9 +613,12 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
         args = OdpmCliArgs(build_image=False, skip_start=True, **args_overrides)
         pipeline = OdpmPipeline(args, "/opt/odpm")
         pipeline.config = MagicMock()
-        pipeline.config.docker_compose_command = "docker compose"
+        pipeline.config.runtime.docker_compose_command = "docker compose"
         pipeline.config.arguments = args
         pipeline.project_environment = MagicMock()
+        pipeline.project_environment.bootstrap = BootstrapHandle(
+            config=pipeline.config
+        )
         pipeline.system_checker = MagicMock()
         pipeline.ports = ports_from_config(
             pipeline.config,

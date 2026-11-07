@@ -26,6 +26,7 @@ from dev_project.debugger.constants import (
 )
 from dev_project.manifest.reader import ManifestView
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.host.ports import BootstrapHandle
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -195,15 +196,15 @@ def _make_compose_env(
     config = MagicMock()
     config.project_dir = GOLDEN_PROJECT_DIR
     config.policy = policy
-    config.odoo_image_name = "odoo-base:dev"
-    config.compose_service = ComposeOdooService(
+    config.docker_layout.odoo_image_name = "odoo-base:dev"
+    config.runtime.compose_service = ComposeOdooService(
         working_dir="/home/odoo",
         include_runtime_config=policy.mount_runtime_config_from_host(),
         include_runtime_secrets=False,
         command=["python3", "-m", constants.RUN_ODOO_ENTRYPOINT, "--"],
     )
-    config.compose_file_version = "3.8"
-    config.postgres_version = "16"
+    config.docker_layout.compose_file_version = "3.8"
+    config.project_settings.postgres_version = "16"
     config.postgres_data_local_storage = GOLDEN_POSTGRES_DATA
     config.pd_manager = MagicMock()
     config.bootstrap = MagicMock()
@@ -221,7 +222,7 @@ def _make_compose_env(
         else None
     )
     config.repo_odpm_json = os.path.join(GOLDEN_PROJECT_DIR, "odpm.json")
-    config.docker_capabilities = DockerCapabilities(
+    config.runtime.docker_capabilities = DockerCapabilities(
         compose_command=constants.DEFAULT_DOCKER_COMPOSE_COMMAND,
         compose_version_text="Docker Compose version v2.24.0",
         supports_no_log_prefix=True,
@@ -251,7 +252,7 @@ def _make_compose_env(
     user_env.compose_network_physical = compose_network_physical
     user_env.compose_network_external = compose_network_external
     config.user_env = user_env
-    return CreateProjectEnvironment(config)
+    return CreateProjectEnvironment(BootstrapHandle(config=config))
 
 
 class BuildComposeDocumentPrefixTests(unittest.TestCase):

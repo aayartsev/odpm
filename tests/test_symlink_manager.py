@@ -4,13 +4,14 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from dev_project.symlinks import SymlinkManager
+from dev_project.host.ports import BootstrapHandle
 
 
 def _symlink_manager(config: MagicMock) -> SymlinkManager:
     host_ctx = MagicMock()
     host_ctx.addon_layout = MagicMock()
     host_ctx.addon_layout.catalogs_of_modules_data = []
-    return SymlinkManager(config, host_ctx=host_ctx)
+    return SymlinkManager(BootstrapHandle(config=config), host_ctx=host_ctx)
 
 
 class SymlinkManagerTests(unittest.TestCase):
@@ -18,13 +19,13 @@ class SymlinkManagerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.list_for_symlinks = []
-            config.create_module_links = False
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.list_for_symlinks = []
+            config.user_settings.create_module_links = False
+            config.docker_layout.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
-            config.platform_name = "odoo"
+            config.project_settings.platform_name = "odoo"
 
             with patch("dev_project.symlinks.manager.os.chdir") as mock_chdir:
                 _symlink_manager(config).update_links()
@@ -38,13 +39,13 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.list_for_symlinks = [target_dir]
-            config.create_module_links = False
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.list_for_symlinks = [target_dir]
+            config.user_settings.create_module_links = False
+            config.docker_layout.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
-            config.platform_name = "odoo"
+            config.project_settings.platform_name = "odoo"
 
             _symlink_manager(config).update_links()
 
@@ -59,19 +60,19 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.list_for_symlinks = [target_dir]
-            config.create_module_links = False
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.list_for_symlinks = [target_dir]
+            config.user_settings.create_module_links = False
+            config.docker_layout.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
-            config.platform_name = "odoo"
+            config.project_settings.platform_name = "odoo"
 
             _symlink_manager(config).update_links()
 
             expected_link = os.path.join(project_dir, os.path.basename(target_dir))
-            self.assertEqual(len(config.symlinks_sources), 1)
-            entry = config.symlinks_sources[0]
+            self.assertEqual(len(config.docker_layout.symlinks_sources), 1)
+            entry = config.docker_layout.symlinks_sources[0]
             self.assertEqual(entry.source_path, target_dir)
             self.assertEqual(entry.link_path, expected_link)
             self.assertTrue(os.path.islink(entry.link_path))
@@ -82,8 +83,8 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.symlinks_sources = []
 
             _symlink_manager(config).ensure_project_repo_link(target_dir)
 
@@ -99,8 +100,8 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = ""
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = ""
+            config.docker_layout.symlinks_sources = []
 
             _symlink_manager(config).ensure_dependency_repo_link(target_dir)
 
@@ -115,14 +116,14 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.symlinks_sources = []
 
             manager = _symlink_manager(config)
             manager.ensure_project_repo_link(target_dir)
             manager.ensure_project_repo_link(target_dir)
 
-            self.assertEqual(len(config.symlinks_sources), 1)
+            self.assertEqual(len(config.docker_layout.symlinks_sources), 1)
 
     def test_ensure_link_retargets_existing_symlink(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
@@ -135,7 +136,7 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.symlinks_sources = []
+            config.docker_layout.symlinks_sources = []
 
             _symlink_manager(config).ensure_project_repo_link(new_target)
 
@@ -151,7 +152,7 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.symlinks_sources = []
+            config.docker_layout.symlinks_sources = []
 
             with patch("dev_project.symlinks.manager._logger") as logger:
                 _symlink_manager(config).ensure_project_repo_link(target)
@@ -184,8 +185,8 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.service_sources_dir = os.path.join(project_dir, "service-sources")
-            config.symlinks_sources = []
+            config.docker_layout.service_sources_dir = os.path.join(project_dir, "service-sources")
+            config.docker_layout.symlinks_sources = []
 
             _symlink_manager(config).sync_service_source_project_links(
                 {"autoparts_env": target_a, "local_env": target_b}
@@ -216,8 +217,8 @@ class SymlinkManagerTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.service_sources_dir = link_dir
-            config.symlinks_sources = []
+            config.docker_layout.service_sources_dir = link_dir
+            config.docker_layout.symlinks_sources = []
 
             _symlink_manager(config).sync_service_source_project_links(
                 {"autoparts_env": new_target, "keep_env": keep_target}
@@ -239,8 +240,8 @@ class SymlinkManagerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()
             config.project_dir = project_dir
-            config.service_sources_dir = os.path.join(project_dir, "service-sources")
-            config.symlinks_sources = []
+            config.docker_layout.service_sources_dir = os.path.join(project_dir, "service-sources")
+            config.docker_layout.symlinks_sources = []
 
             _symlink_manager(config).sync_service_source_project_links({})
             self.assertFalse(

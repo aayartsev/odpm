@@ -23,7 +23,7 @@ class ComposeGenerator:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     @property
     def host_ctx(self):

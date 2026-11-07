@@ -18,7 +18,7 @@ class CiImageBuildService:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def prepare_ci_build_context(self) -> None:
         self._builder.prepare_ci_build_context()
@@ -30,7 +30,7 @@ class CiImageBuildService:
         """Build final CI image via layered stages (ADR-027)."""
         from ...image_layers import run_layered_build
 
-        run_layered_build(self.env, self.env.config.arguments)
+        run_layered_build(self.env, self.env.bootstrap.config.arguments)
 
     def read_ci_dockerignore_template(self) -> str:
         return self._builder._read_ci_dockerignore_template()

@@ -98,25 +98,6 @@ def project_settings_from_raw(
     )
 
 
-def _slice_property(slice_attr: str, field_name: str) -> property:
-    def getter(self) -> Any:
-        return getattr(getattr(self, slice_attr), field_name)
-
-    def setter(self, value: Any) -> None:
-        setattr(getattr(self, slice_attr), field_name, value)
-
-    return property(getter, setter)
-
-
-def bind_slice_properties(
-    cls: type,
-    slice_attr: str,
-    field_names: tuple[str, ...],
-) -> None:
-    for field_name in field_names:
-        setattr(cls, field_name, _slice_property(slice_attr, field_name))
-
-
 def _ensure_bootstrap_state(self: Any) -> BootstrapState:
     state = getattr(self, "_bootstrap", None)
     if state is None:
@@ -283,11 +264,12 @@ BOOTSTRAP_SHIM_FIELDS = tuple(
     if field_name not in BOOTSTRAP_HOST_CTX_SHIM_FIELDS
 )
 
-# Deprecated Config top-level property shims (bind_slice_properties / runtime facade).
+# Deprecated Config top-level bootstrap property shims.
 # New plan/prepare/runtime code should use HostProjectContext slices or host ports
 # (see docs/contributing/adr-003-host-ports-vs-config.md, adr-030-config-as-assembler.md).
 BOOTSTRAP_HANDLE_SURFACES: tuple[str, ...] = (
     "config",
+    "runtime",
     "git_repos",
     "env_resolver",
     "odoo_conf",
@@ -299,26 +281,6 @@ BOOTSTRAP_HANDLE_SURFACES: tuple[str, ...] = (
 )
 
 CONFIG_PROPERTY_SHIMS: tuple[tuple[str, str, str], ...] = (
-    *(
-        ("user_settings", field_name, "host_ctx.user_settings")
-        for field_name in USER_SLICE_FIELDS
-    ),
-    *(
-        ("project_settings", field_name, "host_ctx.project_settings")
-        for field_name in PROJECT_SLICE_FIELDS
-    ),
-    *(
-        ("docker_layout", field_name, "host_ctx.docker_layout")
-        for field_name in DOCKER_SLICE_FIELDS
-    ),
-    *(
-        ("addon_layout", field_name, "host_ctx.addon_layout")
-        for field_name in ADDON_LAYOUT_SLICE_FIELDS
-    ),
-    ("runtime_facade", "compose_service", "prepare execute / ComposeServiceBuilder only"),
-    ("runtime_facade", "docker_compose_command", "host_ctx.docker_compose_command"),
-    ("runtime_facade", "container_run_mode", "bootstrap compose service build"),
-    ("runtime_facade", "no_log_prefix", "RuntimeCoordinator.cli_args / runtime state"),
     *(
         ("bootstrap", field_name, "ports.bootstrap.config.bootstrap")
         for field_name in BOOTSTRAP_SHIM_FIELDS

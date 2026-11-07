@@ -30,8 +30,8 @@ _RUNTIME_PREVIEW_CACHE_KEY = "_odpm_plan_runtime_preview_cache"
 def compose_preview_mutable_snapshot(config: Config) -> tuple[object, object, object]:
     """Capture compose-preview mutable fields on *config* for later restore."""
     return (
-        getattr(config, "compose_service", None),
-        getattr(config, "container_run_mode", None),
+        config.runtime.compose_service,
+        config.runtime.container_run_mode,
         getattr(config, "_odpm_plan_runtime_preview_cache", None),
     )
 
@@ -41,8 +41,8 @@ def restore_compose_preview_mutable_snapshot(
 ) -> None:
     """Restore fields saved by :func:`compose_preview_mutable_snapshot`."""
     compose_service, container_run_mode, cache = snapshot
-    config.compose_service = compose_service
-    config.container_run_mode = container_run_mode
+    config.runtime.compose_service = compose_service
+    config.runtime.container_run_mode = container_run_mode
     if cache is None:
         if hasattr(config, _RUNTIME_PREVIEW_CACHE_KEY):
             delattr(config, _RUNTIME_PREVIEW_CACHE_KEY)
@@ -55,8 +55,10 @@ def docker_compose_path(project_dir: str) -> str:
 
 
 def preview_compose_service(config: Config):
+    from ..host.ports import BootstrapHandle  # noqa: PLC0415  # optional
+
     with patch("dev_project.compose.service_builder.persist_runtime_config"):
-        return ComposeServiceBuilder(config).build()
+        return ComposeServiceBuilder(BootstrapHandle(config=config)).build()
 
 
 def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
@@ -91,7 +93,7 @@ def preview_runtime_config_text(config: Config) -> str | None:
 
 
 def compose_start_command_changed(config: Config) -> bool:
-    existing = getattr(config, "compose_service", None)
+    existing = config.runtime.compose_service
     if not isinstance(existing, ComposeOdooService):
         return False
     try:
@@ -186,7 +188,7 @@ def vscode_settings_up_to_date(config: Config) -> bool:
     if not os.path.isfile(settings_path) or not os.path.isfile(launch_path):
         return False
     try:
-        return str(config.python_version) in Path(settings_path).read_text(
+        return str(config.project_settings.python_version) in Path(settings_path).read_text(
             encoding="utf-8"
         )
     except OSError:

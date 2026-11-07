@@ -6,6 +6,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
 from dev_project.prepare import make_prepare_context
 from dev_project.project_env import CreateProjectEnvironment
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.links import ProjectLinks
 from dev_project.project_env.templates import ProjectTemplates
 from dev_project.prepare.steps_template import exec_template_dockerfile
@@ -16,7 +17,7 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
     def test_make_prepare_context_reuses_create_project_environment_services(self):
         config = MagicMock()
         config.user_env = MagicMock()
-        project_env = CreateProjectEnvironment(config)
+        project_env = CreateProjectEnvironment(BootstrapHandle(config=config))
         system_checker = MagicMock()
         args = OdpmCliArgs()
 
@@ -29,7 +30,7 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
     def test_create_project_environment_caches_host_ctx(self):
         config = MagicMock()
         config.user_env = MagicMock()
-        project_env = CreateProjectEnvironment(config)
+        project_env = CreateProjectEnvironment(BootstrapHandle(config=config))
         first = project_env.host_ctx
         second = project_env.host_ctx
         self.assertIs(first, second)
@@ -49,7 +50,8 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
         self.assertIs(ctx.templates.env, project_env)
         self.assertIs(ctx.compose_generator.env, project_env)
         self.assertIs(ctx.links.env, project_env)
-        self.assertIs(ctx.config, config)
+        with self.assertRaises(AttributeError):
+            _ = ctx.config
         self.assertIs(ctx.ports.bootstrap.config, config)
         self.assertIs(ctx.project_env, project_env)
         self.assertIs(ctx.system_checker, system_checker)
@@ -93,7 +95,7 @@ class PrepareStepServiceExecutionTests(unittest.TestCase):
     def test_exec_compose_generate_uses_ctx_compose_generator(self, mock_generate):
 
         config = MagicMock()
-        config.docker_capabilities = DockerCapabilities(
+        config.runtime.docker_capabilities = DockerCapabilities(
             compose_command="docker compose",
             compose_version_text="Docker Compose version v2.24.0",
             supports_no_log_prefix=True,

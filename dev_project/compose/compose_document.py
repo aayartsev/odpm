@@ -80,16 +80,18 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     from ..extensions.context import ExtensionHostContext  # noqa: PLC0415  # cycle
     from .fragments import collect_compose_services, collect_service_patches  # noqa: PLC0415  # cycle
 
-    config = env.config
+    config = env.bootstrap.config
     policy = env.host_ctx.policy
     user_env = env.user_env
-    compose_service = config.compose_service
+    compose_service = config.runtime.compose_service
     if compose_service is None:
         raise ValueError(
-            "config.compose_service is required; run ComposeServiceBuilder.build() first"
+            "config.runtime.compose_service is required; run ComposeServiceBuilder.build() first"
         )
 
-    odoo_image = _config_str(config, policy.odoo_image_attr, "odoo:dev")
+    odoo_image = _config_str(
+        config.docker_layout, policy.odoo_image_attr, "odoo:dev"
+    )
     compose_user = policy.runtime_unix_user()
 
     postgres_port = _resolve_port(user_env, "postgres_port", constants.POSTGRES_DEFAULT_PORT)
@@ -104,7 +106,9 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     restart_policy = policy.compose_service_restart_policy()
 
     postgres_service: dict[str, Any] = {
-        "image": f"postgres:{_config_str(config, 'postgres_version', '16')}",
+        "image": (
+            f"postgres:{_config_str(config.project_settings, 'postgres_version', '16')}"
+        ),
         "user": "root",
         "tty": True,
     }
@@ -120,7 +124,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             ],
             "volumes": [
                 f"{LOGICAL_POSTGRES_VOLUME}:"
-                f"{postgres_container_mount_path(_config_str(config, 'postgres_version', '16'))}"
+                f"{postgres_container_mount_path(_config_str(config.project_settings, 'postgres_version', '16'))}"
             ],
         }
     )

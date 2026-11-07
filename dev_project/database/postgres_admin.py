@@ -151,7 +151,7 @@ def bootstrap_app_role_single_user(config: Config, sql: str) -> None:
         service,
         "--single",
         "-D",
-        postgres_pgdata_path(config.postgres_version),
+        postgres_pgdata_path(config.project_settings.postgres_version),
         "postgres",
         user=constants.POSTGRES_CONTAINER_OS_USER,
         entrypoint="postgres",

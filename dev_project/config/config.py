@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from ..host.context import HostProjectContext
 
 from ..host.cli.args import OdpmCliArgs
+from ..host.runtime import HostRuntimeState
 
 from ..dependency_resolver import NestedOdpmFragment
 from ..errors import PipelineError
@@ -20,12 +21,7 @@ from ..symlinks import ensure_developing_repo_symlinks, ensure_git_repo_symlink
 from .transforms.env_substitution import EnvResolver
 from .nested_compatibility import collect_nested_compatibility_issues
 from .payload import compute_extras_stamp, compute_venv_lock_hash, config_to_json
-from .runtime_facade import ConfigRuntimeFacadeMixin
 from .state import (
-    ADDON_LAYOUT_SLICE_FIELDS,
-    DOCKER_SLICE_FIELDS,
-    PROJECT_SLICE_FIELDS,
-    USER_SLICE_FIELDS,
     AddonLayoutState,
     BootstrapState,
     DockerLayoutState,
@@ -33,14 +29,13 @@ from .state import (
     UserSettingsState,
     _ensure_bootstrap_state,
     bind_bootstrap_properties,
-    bind_slice_properties,
 )
 from .types import SubProject
 
 _logger = get_module_logger(__name__)
 
 
-class Config(ConfigRuntimeFacadeMixin):
+class Config:
     policy: ScenarioPolicy
 
     def __init__(
@@ -87,6 +82,12 @@ class Config(ConfigRuntimeFacadeMixin):
         return self._addon_layout
 
     @property
+    def runtime(self) -> HostRuntimeState:
+        if not hasattr(self, "_runtime"):
+            self._runtime = HostRuntimeState()
+        return self._runtime
+
+    @property
     def bootstrap(self) -> BootstrapState:
         return _ensure_bootstrap_state(self)
 
@@ -117,8 +118,8 @@ class Config(ConfigRuntimeFacadeMixin):
         """Validate nested dependency manifest versions against the host project."""
         fragments = list(nested_fragments or [])
         for message in collect_nested_compatibility_issues(
-            self.odoo_version,
-            self.python_version,
+            self.project_settings.odoo_version,
+            self.project_settings.python_version,
             fragments,
         ):
             if self.policy.is_ci():
@@ -152,7 +153,7 @@ class Config(ConfigRuntimeFacadeMixin):
         return compute_venv_lock_hash(self)
 
     def compute_extras_stamp(self) -> str:
-        return compute_extras_stamp(self.requirements_txt)
+        return compute_extras_stamp(self.project_settings.requirements_txt)
 
     def config_to_json(self) -> bytes:
         return config_to_json(self)
@@ -172,8 +173,4 @@ class Config(ConfigRuntimeFacadeMixin):
         ensure_developing_repo_symlinks(self)
 
 
-bind_slice_properties(Config, "_user", USER_SLICE_FIELDS)
-bind_slice_properties(Config, "_project", PROJECT_SLICE_FIELDS)
-bind_slice_properties(Config, "_docker", DOCKER_SLICE_FIELDS)
-bind_slice_properties(Config, "_addon_layout", ADDON_LAYOUT_SLICE_FIELDS)
 bind_bootstrap_properties(Config)

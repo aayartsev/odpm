@@ -71,8 +71,8 @@ def _config_stub(project_dir: str, scenario: str, **kwargs):
     config.project_dir = project_dir
     config.policy = ScenarioPolicy.from_scenario(scenario)
     config.seed_dependency_urls = MagicMock(return_value=[])
-    config.dependencies = []
-    config.dependencies_projects = kwargs.get("dependencies_projects", [])
+    config.project_settings.dependencies = []
+    config.docker_layout.dependencies_projects = kwargs.get("dependencies_projects", [])
     config.odoo_platform_project = kwargs["platform"]
     config.developing_project = kwargs.get(
         "developing",

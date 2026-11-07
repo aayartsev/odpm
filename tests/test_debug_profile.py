@@ -33,7 +33,7 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
         env = MagicMock()
         config = MagicMock()
         config.project_dir = "/proj"
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         env.user_env.backups = "/proj/backups"
         env.user_env.debugger_port = 5678
         env.user_env.debugger_backend = DEBUGGER_BACKEND_DEBUGPY_LISTEN
@@ -111,7 +111,7 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
         env = MagicMock()
         config = MagicMock()
         config.project_dir = "/proj"
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         env.user_env.backups = "/proj/backups"
         env.user_env.debugger_port = 5678
         env.user_env.debugger_backend = DEBUGGER_BACKEND_PYDEVD_CONNECT

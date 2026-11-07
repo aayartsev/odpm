@@ -39,10 +39,12 @@ class HostRuntimeStateTests(unittest.TestCase):
         config._runtime = runtime
         config._docker = DockerLayoutState(docker_compose_command="docker-compose")
 
-        self.assertIs(config.compose_service, runtime.compose_service)
-        self.assertEqual(config.container_run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY)
-        self.assertTrue(config.no_log_prefix)
-        self.assertEqual(config.docker_compose_command, "docker compose")
+        self.assertIs(config.runtime.compose_service, runtime.compose_service)
+        self.assertEqual(
+            config.runtime.container_run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY
+        )
+        self.assertTrue(config.runtime.no_log_prefix)
+        self.assertEqual(config.runtime.docker_compose_command, "docker compose")
 
     def test_config_setters_update_runtime_state(self):
 
@@ -50,10 +52,10 @@ class HostRuntimeStateTests(unittest.TestCase):
         instance._runtime = HostRuntimeState()
         instance._docker = DockerLayoutState(docker_compose_command="docker-compose")
 
-        instance.compose_service = None
-        instance.container_run_mode = constants.RUN_MODE_BOOTSTRAP_ONLY
-        instance.no_log_prefix = True
-        instance.docker_compose_command = "docker compose"
+        instance.runtime.compose_service = None
+        instance.runtime.container_run_mode = constants.RUN_MODE_BOOTSTRAP_ONLY
+        instance.runtime.no_log_prefix = True
+        instance.runtime.docker_compose_command = "docker compose"
 
         self.assertIsNone(instance.runtime.compose_service)
         self.assertEqual(

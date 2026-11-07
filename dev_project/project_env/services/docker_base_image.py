@@ -17,7 +17,7 @@ class BaseImageService:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def base_image_exists(self) -> bool:
         return self._builder.base_image_exists()

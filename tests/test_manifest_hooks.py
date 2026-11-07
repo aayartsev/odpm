@@ -22,6 +22,7 @@ from dev_project.compose.fragments import render_compose_services_block
 from dev_project.prepare.execute import execute_prepare
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.runtime import HostRuntimeState
 from tests.fixtures.compose.mailpit_fragment import MAILPIT_COMPOSE_FRAGMENT
 from dev_project.manifest.reader import load_manifest
 from tests.test_manifest_v2_reader import _minimal_v2
@@ -269,6 +270,7 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         _mock_force_recreate,
     ):
         config = MagicMock()
+        config.runtime = HostRuntimeState()
         config.project_dir = "/tmp/project"
         config.program_dir = "/opt/odpm"
         config.config_home_dir = "/tmp/project"
@@ -280,9 +282,9 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         config.docker_layout = MagicMock()
         config.addon_layout = MagicMock()
         config.arguments = OdpmCliArgs(skip_start=False)
-        config.docker_compose_command = "docker compose"
-        config.no_log_prefix = False
-        config.odoo_image_name = "odoo:dev"
+        config.runtime.docker_compose_command = "docker compose"
+        config.runtime.no_log_prefix = False
+        config.docker_layout.odoo_image_name = "odoo:dev"
         coordinator = RuntimeCoordinator(OdpmCliArgs(skip_start=False), config, MagicMock())
         coordinator.handle_build_image = MagicMock(return_value=False)
         coordinator.write_debug_profile = MagicMock()

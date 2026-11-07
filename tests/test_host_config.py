@@ -143,8 +143,8 @@ class ConfigPathsTests(unittest.TestCase):
     def test_get_odoo_ci_image_name_uses_image_tag_when_set(self):
         config = MagicMock()
         config.arguments = OdpmCliArgs(image_tag=" custom:tag ")
-        config.odoo_version = "19.0"
-        config.platform_name = "odoo"
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.platform_name = "odoo"
         self.assertEqual(
             ConfigPaths(config).get_odoo_ci_image_name(),
             "custom:tag",
@@ -153,8 +153,8 @@ class ConfigPathsTests(unittest.TestCase):
     def test_get_odoo_ci_image_name_default_pattern(self):
         config = MagicMock()
         config.arguments = OdpmCliArgs()
-        config.odoo_version = "19.0"
-        config.platform_name = "odoo"
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.platform_name = "odoo"
         self.assertEqual(
             ConfigPaths(config).get_odoo_ci_image_name(),
             "odoo-19-0-ci:latest",
@@ -174,7 +174,7 @@ class ConfigPathsTests(unittest.TestCase):
         config.odoo_src_dir = "/tmp/odoo"
         config.developing_project_dir_path = "/tmp/dev"
         config.repo_odpm_json = "/tmp/dev/odpm.json"
-        config.create_module_links = False
+        config.user_settings.create_module_links = False
         ConfigPaths(config).apply_symlink_sources()
         self.assertEqual(
             config.docker_layout.list_for_symlinks.count("/tmp/dev/odpm.json"), 1
@@ -187,7 +187,7 @@ class ConfigPathsTests(unittest.TestCase):
         config.odoo_src_dir = "/tmp/odoo"
         config.developing_project_dir_path = "/tmp/dev"
         config.repo_odpm_json = "/tmp/dev/odpm.json"
-        config.create_module_links = True
+        config.user_settings.create_module_links = True
         ConfigPaths(config).apply_symlink_sources()
         self.assertEqual(
             config.docker_layout.list_for_symlinks.count("/tmp/dev/odpm.json"), 1
@@ -199,7 +199,7 @@ class ConfigPathsTests(unittest.TestCase):
             config = MagicMock()
             config.docker_layout = DockerLayoutState()
             config.project_dir = project_dir
-            config.platform_name = constants.PLATFORM_NAME
+            config.project_settings.platform_name = constants.PLATFORM_NAME
             config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
             runtime_user = config.policy.runtime_unix_user()
 
@@ -220,7 +220,7 @@ class ConfigPathsTests(unittest.TestCase):
             config = MagicMock()
             config.docker_layout = DockerLayoutState()
             config.project_dir = project_dir
-            config.platform_name = constants.PLATFORM_NAME
+            config.project_settings.platform_name = constants.PLATFORM_NAME
             config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
 
             ConfigPaths(config).apply_docker_layout()
@@ -418,7 +418,7 @@ class ConfigPayloadTests(unittest.TestCase):
         for key, value in base_dict.items():
             setattr(config, key, value)
         if not getattr(config, "docker_odoo_dir", None):
-            config.docker_odoo_dir = ""
+            config.docker_layout.docker_odoo_dir = ""
 
     def test_compute_venv_lock_hash_includes_odoo_requirements(self):
         base_dict = self._base_config_dict()
@@ -479,23 +479,23 @@ class ConfigPayloadTests(unittest.TestCase):
         config = MagicMock()
         config.user_env.odpm_scenario = constants.SERVER_SCENARIO
         config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.odoo_config_data = {}
-        config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.odoo_config_data = {}
+        config.docker_layout.docker_path_odoo_conf = "/home/odoo/odoo.conf"
         config.arguments = OdpmCliArgs()
-        config.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
-        config.db_manager_password = ""
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.docker_project_dir = "/home/odoo"
-        config.requirements_txt = []
-        config.odoo_version = "19.0"
-        config.python_version = "3.12"
-        config.platform_name = "odoo"
-        config.arch = "amd64"
-        config.sql_queries = []
-        config.update_modules = ""
-        config.docker_dirs_with_addons = []
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.user_settings.db_creation_data = constants.DEFAULT_DB_CREATION_DATA
+        config.user_settings.db_manager_password = ""
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.project_settings.requirements_txt = []
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.arch = "amd64"
+        config.user_settings.sql_queries = []
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_dirs_with_addons = []
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         apply_odpm_config_database_fields(config)
 
         payload = json.loads(config_to_json(config).decode("utf-8"))
@@ -900,7 +900,7 @@ class BindPlatformLinkTests(unittest.TestCase):
     def test_bind_platform_link_sets_platform_project_and_src_dir(self):
         config = Config.__new__(Config)
         config._project = ProjectSettingsState()
-        config.odoo_git_link = "https://github.com/odoo/odoo.git"
+        config.project_settings.odoo_git_link = "https://github.com/odoo/odoo.git"
         platform_link = MagicMock()
         platform_link.get_project_path.return_value = "/tmp/odoo/src"
         config.handle_git_link = MagicMock(return_value=platform_link)
@@ -908,7 +908,7 @@ class BindPlatformLinkTests(unittest.TestCase):
         bind_platform_link(config)
 
         config.handle_git_link.assert_called_once_with(
-            config.odoo_git_link,
+            config.project_settings.odoo_git_link,
             system_type="platform",
             materialize=False,
         )
@@ -918,7 +918,7 @@ class BindPlatformLinkTests(unittest.TestCase):
     def test_bind_platform_link_rejects_empty_odoo_git_link(self):
         config = Config.__new__(Config)
         config._project = ProjectSettingsState()
-        config.odoo_git_link = "   "
+        config.project_settings.odoo_git_link = "   "
         config.handle_git_link = MagicMock()
 
         with self.assertRaises(ConfigError) as ctx:
@@ -959,9 +959,9 @@ class ConfigStateSliceTests(unittest.TestCase):
         config._project = ProjectSettingsState()
         config._docker = DockerLayoutState()
 
-        config.init_modules = "sale,purchase"
-        config.odoo_version = "19.0"
-        config.docker_project_dir = "/home/odoo"
+        config.user_settings.init_modules = "sale,purchase"
+        config.project_settings.odoo_version = "19.0"
+        config.docker_layout.docker_project_dir = "/home/odoo"
 
         self.assertEqual(config._user.init_modules, "sale,purchase")
         self.assertEqual(config._project.odoo_version, "19.0")
@@ -974,8 +974,8 @@ class ConfigStateSliceTests(unittest.TestCase):
         config = Config.__new__(Config)
         config._addon_layout = AddonLayoutState()
 
-        config.catalogs_of_modules_data = [{"name": "demo"}]
-        config.list_of_developing_project_subprojects_data = [{"rel": "addons"}]
+        config.addon_layout.catalogs_of_modules_data = [{"name": "demo"}]
+        config.addon_layout.list_of_developing_project_subprojects_data = [{"rel": "addons"}]
 
         self.assertEqual(config.addon_layout.catalogs_of_modules_data, [{"name": "demo"}])
         self.assertEqual(

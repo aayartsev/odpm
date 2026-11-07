@@ -341,9 +341,9 @@ class RuntimeCoordinatorSecretsGuardTests(unittest.TestCase):
             config.project_settings = MagicMock()
             config.docker_layout = MagicMock()
             config.addon_layout = MagicMock()
-            config.no_log_prefix = False
-            config.docker_compose_command = "docker compose"
-            config.odoo_image_name = "odoo:dev"
+            config.runtime.no_log_prefix = False
+            config.runtime.docker_compose_command = "docker compose"
+            config.docker_layout.odoo_image_name = "odoo:dev"
             config.bootstrap.manifest_view = ManifestView(
                 manifest_schema=constants.MANIFEST_SCHEMA_V2,
                 requires_odpm="4.7.0",

@@ -16,7 +16,9 @@ class ConfigPaths:
         self.config = config
 
     def get_postgres_data_local_storage_path(self) -> str:
-        rel = postgres_local_storage_relpath(self.config.postgres_version)
+        rel = postgres_local_storage_relpath(
+            self.config.project_settings.postgres_version
+        )
         postgres_data_local_storage_path = os.path.join(
             self.config.pd_manager.project_path, rel
         )
@@ -30,16 +32,17 @@ class ConfigPaths:
         image_tag = getattr(self.config.arguments, "image_tag", None)
         if image_tag:
             return image_tag.strip()
-        version_label = str(self.config.odoo_version).replace(".", "-")
-        return f"{self.config.platform_name}-{version_label}-ci:latest"
+        version_label = str(self.config.project_settings.odoo_version).replace(".", "-")
+        return f"{self.config.project_settings.platform_name}-{version_label}-ci:latest"
 
     def local_base_image_name(self) -> str:
         """Unprefixed local base image name (docker default tag target)."""
         profile = self.config.policy.base_image_profile
         return (
-            f"odoo-{self.config.arch}-python-{self.config.python_version}-"
-            f"{self.config.distro_name}-"
-            f"{self.config.distro_version.replace('.', '')}-{profile}"
+            f"odoo-{self.config.project_settings.arch}-python-"
+            f"{self.config.project_settings.python_version}-"
+            f"{self.config.project_settings.distro_name}-"
+            f"{self.config.project_settings.distro_version.replace('.', '')}-{profile}"
         )
 
     def resolve_base_image_ref(self, *, registry: str | None = None) -> str:
@@ -76,7 +79,9 @@ class ConfigPaths:
             pathlib.PurePosixPath(docker.docker_dev_project_dir, "inside_docker_app")
         )
         docker.docker_odoo_dir = str(
-            pathlib.PurePosixPath(docker.docker_project_dir, self.config.platform_name)
+            pathlib.PurePosixPath(
+                docker.docker_project_dir, self.config.project_settings.platform_name
+            )
         )
         docker.docker_extra_addons = str(
             pathlib.PurePosixPath(docker.docker_project_dir, "extra-addons")

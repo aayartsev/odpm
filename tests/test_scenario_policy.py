@@ -25,6 +25,7 @@ from dev_project.ide_stubs import is_odoo_stubs_requirement, odoo_stubs_pip_requ
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.container_config_helpers import apply_odpm_config_database_fields
 from dev_project.scenario_policy import format_published_port
+from dev_project.host.ports import BootstrapHandle
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -165,24 +166,24 @@ class ScenarioPolicyTests(unittest.TestCase):
         config = MagicMock()
         config.user_env.odpm_scenario = constants.SERVER_SCENARIO
         config.policy = ScenarioPolicy.from_scenario(constants.SERVER_SCENARIO)
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.odoo_config_data = {}
-        config.docker_path_odoo_conf = "/home/odoo/odoo.conf"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.odoo_config_data = {}
+        config.docker_layout.docker_path_odoo_conf = "/home/odoo/odoo.conf"
         config.arguments = OdpmCliArgs()
-        config.db_creation_data = {}
-        config.db_manager_password = ""
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.docker_project_dir = "/home/odoo"
-        config.requirements_txt = []
-        config.odoo_version = "19.0"
-        config.python_version = "3.12"
-        config.platform_name = "odoo"
-        config.arch = "amd64"
-        config.sql_queries = []
-        config.update_modules = ""
-        config.docker_dirs_with_addons = []
+        config.user_settings.db_creation_data = {}
+        config.user_settings.db_manager_password = ""
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.project_settings.requirements_txt = []
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.arch = "amd64"
+        config.user_settings.sql_queries = []
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_dirs_with_addons = []
         config.compute_venv_lock_hash.return_value = "abc"
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         apply_odpm_config_database_fields(config)
 
         payload = json.loads(Config.config_to_json(config).decode("utf-8"))
@@ -410,19 +411,21 @@ class ScenarioPolicyTests(unittest.TestCase):
 
 class CiVenvInstallSpecTests(unittest.TestCase):
     def test_build_ci_venv_install_spec_uses_normalized_requirements(self):
-        """CI bake reads config.requirements_txt after Config normalization."""
+        """CI bake reads config.project_settings.requirements_txt after Config normalization."""
         config = MagicMock()
-        config.requirements_txt = normalize_project_requirements(
+        config.project_settings.requirements_txt = normalize_project_requirements(
             constants.CI_SCENARIO,
             ["debugpy==1.8.0", "requests==2.31.0"],
         )
-        config.docker_project_dir = "/home/odoo"
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.python_version = "3.12"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.project_settings.python_version = "3.12"
         config.compute_venv_lock_hash.return_value = "abc123"
 
-        spec = CiImageBuildService(CreateProjectEnvironment(config)).build_ci_venv_install_spec()
+        spec = CiImageBuildService(
+            CreateProjectEnvironment(BootstrapHandle(config=config))
+        ).build_ci_venv_install_spec()
 
         self.assertIn("requests==2.31.0", spec.extra_packages)
         self.assertFalse(
@@ -455,10 +458,10 @@ class WriteCiVenvInstallSpecTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as context_dir:
             config = MagicMock()
             config.program_dir = str(PROJECT_ROOT)
-            config.docker_project_dir = "/home/odoo"
-            config.docker_dev_project_dir = "/home/odoo/dev_project"
+            config.docker_layout.docker_project_dir = "/home/odoo"
+            config.docker_layout.docker_dev_project_dir = "/home/odoo/dev_project"
             env = MagicMock()
-            env.config = config
+            env.bootstrap = MagicMock(config=config)
             CiImageBuilder(env)._copy_dev_project_for_ci(context_dir)
 
             dest = os.path.join(context_dir, "dev_project")
@@ -484,7 +487,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         config.project_dir = "/tmp/odpm-test-project"
         config.user_env.odpm_scenario = scenario
         config.policy = ScenarioPolicy.from_scenario(scenario)
-        config.container_run_mode = constants.RUN_MODE_ODOO
+        config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         config.arguments = OdpmCliArgs(
             d=None,
             translate=None,
@@ -496,28 +499,28 @@ class ComposeServiceBuilderTests(unittest.TestCase):
             screencasts=False,
             odoo_bin=[],
         )
-        config.dev_mode = False
-        config.docker_odoo_dir = "/home/odoo/odoo"
-        config.docker_project_dir = "/home/odoo"
-        config.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
-        config.docker_venv_dir = "/home/odoo/.venv"
-        config.platform_name = "odoo"
-        config.odoo_version = "19.0"
-        config.init_modules = ""
-        config.update_modules = ""
-        config.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
-        config.docker_temp_tests_dir = "/home/odoo/odoo_tests"
-        config.requirements_txt = []
+        config.user_settings.dev_mode = False
+        config.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+        config.docker_layout.docker_project_dir = "/home/odoo"
+        config.docker_layout.docker_inside_app = "/home/odoo/dev_project/inside_docker_app"
+        config.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+        config.project_settings.platform_name = "odoo"
+        config.project_settings.odoo_version = "19.0"
+        config.user_settings.init_modules = ""
+        config.user_settings.update_modules = ""
+        config.docker_layout.docker_odoo_project_dir_path = "/home/odoo/extra-addons/project"
+        config.docker_layout.docker_temp_tests_dir = "/home/odoo/odoo_tests"
+        config.project_settings.requirements_txt = []
         config.config_to_json.return_value = b"{}"
         config.generate_odoo_conf_docker_data = MagicMock()
-        config.db_creation_data = {}
+        config.user_settings.db_creation_data = {}
         return config
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_ci_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
-        ComposeServiceBuilder(config).build()
-        command = config.compose_service.command
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        command = config.runtime.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
             command,
@@ -527,8 +530,8 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_server_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
-        ComposeServiceBuilder(config).build()
-        command = config.compose_service.command
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        command = config.runtime.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
             command,
@@ -540,8 +543,8 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         self, _mock_write_runtime_config
     ):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
-        ComposeServiceBuilder(config).build()
-        command = config.compose_service.command
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        command = config.runtime.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
             command,
@@ -552,19 +555,19 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     def test_start_command_includes_database_name(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.arguments = replace(config.arguments, d="my_project")
-        ComposeServiceBuilder(config).build()
-        self.assertIn("-d", config.compose_service.command)
-        self.assertIn("my_project", config.compose_service.command)
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        self.assertIn("-d", config.runtime.compose_service.command)
+        self.assertIn("my_project", config.runtime.compose_service.command)
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_start_command_includes_translate_flags_for_odoo_19(
         self, _mock_write_runtime_config
     ):
         config = self._make_config(constants.SERVER_SCENARIO)
-        config.odoo_version = "19.0"
+        config.project_settings.odoo_version = "19.0"
         config.arguments = replace(config.arguments, translate="ru_RU")
-        ComposeServiceBuilder(config).build()
-        command = config.compose_service.command
+        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        command = config.runtime.compose_service.command
         self.assertIn("--load-language", command)
         self.assertIn("ru_RU", command)
         self.assertIn("--i18n-overwrite", command)
@@ -572,29 +575,29 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     def test_export_po_files_uses_bootstrap_only_run_mode(self):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.arguments = replace(config.arguments, export_po_files="ru_RU")
-        command = ComposeServiceBuilder(config).build_start_command()
+        command = ComposeServiceBuilder(BootstrapHandle(config=config)).build_start_command()
         self.assertEqual(command.run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY)
         self.assertNotIn("exit", command.to_compose_service().command)
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_build_returns_compose_service(self, mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
-        service = ComposeServiceBuilder(config).build()
-        self.assertIs(service, config.compose_service)
+        service = ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        self.assertIs(service, config.runtime.compose_service)
         self.assertTrue(service.include_runtime_config)
         mock_write_runtime_config.assert_called_once_with(config)
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_ci_build_skips_host_runtime_config(self, mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
-        service = ComposeServiceBuilder(config).build()
-        self.assertIs(service, config.compose_service)
+        service = ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        self.assertIs(service, config.runtime.compose_service)
         self.assertFalse(service.include_runtime_config)
         mock_write_runtime_config.assert_not_called()
 
     def test_build_start_command_returns_structured_command(self):
         config = self._make_config(constants.CI_SCENARIO)
-        command = ComposeServiceBuilder(config).build_start_command()
+        command = ComposeServiceBuilder(BootstrapHandle(config=config)).build_start_command()
         self.assertTrue(command.odoo_bin[0].endswith("/odoo-bin"))
         service = command.to_compose_service()
         self.assertIn(constants.RUN_ODOO_ENTRYPOINT, service.command)
@@ -602,17 +605,17 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     def test_start_precommit_uses_run_pre_commit_entrypoint(self):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
         config.arguments = replace(config.arguments, start_precommit=True)
-        command = ComposeServiceBuilder(config).build_start_command()
+        command = ComposeServiceBuilder(BootstrapHandle(config=config)).build_start_command()
 
         self.assertEqual(command.kind, "pre_commit")
         self.assertEqual(
             command.pre_commit_project_dir,
-            config.docker_odoo_project_dir_path,
+            config.docker_layout.docker_odoo_project_dir_path,
         )
         service = command.to_compose_service()
-        self.assertEqual(service.working_dir, config.docker_project_dir)
+        self.assertEqual(service.working_dir, config.docker_layout.docker_project_dir)
         self.assertIn(
-            config.docker_odoo_project_dir_path,
+            config.docker_layout.docker_odoo_project_dir_path,
             service.command,
         )
         self.assertFalse(service.include_runtime_config)

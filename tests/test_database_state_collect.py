@@ -69,11 +69,11 @@ class CollectDatabaseStateTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.policy.scenario = constants.DEVELOPER_SCENARIO
-        config.postgres_version = "17"
+        config.project_settings.postgres_version = "17"
         config.postgres_data_local_storage = data_path
         config.user_env.postgres_service_name = "db-dev"
         config.user_env.postgres_port = 5432
-        config.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
+        config.docker_layout.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
         return config
 
     def test_collects_compose_and_odoo_conf_fingerprints(self):

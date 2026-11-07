@@ -6,7 +6,7 @@ from .. import constants
 from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
-from ..host.ports import PipelinePorts, ports_from_config
+from ..host.ports import BootstrapHandle, PipelinePorts, ports_from_config
 from ..logging import get_module_logger
 from ..translations import _
 from ..plan.core import OdpmPlan, PlanStep, deps_lock_file_exists
@@ -243,7 +243,8 @@ def build_plan(
         resolved_args = args if args is not None else config.arguments
         ports = ports_from_config(
             config,
-            project_env or CreateProjectEnvironment(config),
+            project_env
+            or CreateProjectEnvironment(BootstrapHandle(config=config)),
             resolved_args,
         )
         prepare_env = PlanOnlyProjectEnv()  # type: ignore[arg-type]

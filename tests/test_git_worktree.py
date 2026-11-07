@@ -35,6 +35,7 @@ from dev_project.git.worktree import (
 )
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.cli.parse_args import parse_cli_args
+from dev_project.host.ports import BootstrapHandle
 
 
 def _git(cwd: str, *args: str) -> str:
@@ -425,7 +426,7 @@ class ServiceSourcesWorktreeTests(unittest.TestCase):
             config.user_env.odoo_projects_dir = projects
             config.user_env.path_to_ssh_key = ""
             config.skip_git_update.return_value = False
-            config.odoo_version = "17.0"
+            config.project_settings.odoo_version = "17.0"
             config.user_settings.clean_git_repos = False
             config.user_settings.update_git_repos = False
             config.handle_git_link.return_value = project_link
@@ -465,7 +466,7 @@ class ServiceSourcesWorktreeTests(unittest.TestCase):
             }
             config.handle_git_link.return_value = project_link
 
-            paths = collect_service_source_paths(config)
+            paths = collect_service_source_paths(BootstrapHandle(config=config))
             repo_key = repo_key_from_relative_path(
                 project_link.project_data.relative_path
             )

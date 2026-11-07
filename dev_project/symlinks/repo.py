@@ -21,11 +21,13 @@ def ensure_git_repo_symlink(
 ) -> None:
     if not target_path or not getattr(config, "project_dir", None):
         return
-    manager = SymlinkManager(config)
+    from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
+
+    manager = SymlinkManager(BootstrapHandle(config=config))
     if scope == "dependency":
         manager.ensure_dependency_repo_link(target_path)
-        if target_path not in config.dependencies_dirs:
-            config.dependencies_dirs.append(target_path)
+        if target_path not in config.docker_layout.dependencies_dirs:
+            config.docker_layout.dependencies_dirs.append(target_path)
         return
     manager.ensure_project_repo_link(target_path)
 

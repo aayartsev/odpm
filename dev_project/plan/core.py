@@ -92,7 +92,7 @@ def runtime_config_stale_for_project(
 def dockerfile_template_relative(config: Config) -> str:
     return os.path.join(
         constants.PROJECT_SERVICE_DIRECTORY,
-        config.dockerfile_template_name,
+        config.docker_layout.dockerfile_template_name,
     )
 
 

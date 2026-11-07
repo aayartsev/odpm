@@ -20,7 +20,7 @@ from dev_project.errors import OdpmError
 def _postgres_config() -> MagicMock:
     config = MagicMock()
     config.project_dir = "/tmp/project"
-    config.docker_compose_command = "docker compose"
+    config.runtime.docker_compose_command = "docker compose"
     config.user_env.postgres_service_name = "db"
     return config
 

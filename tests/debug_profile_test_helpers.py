@@ -19,12 +19,12 @@ def make_debugger_env_mock(
     env = MagicMock()
     config = MagicMock()
     config.project_dir = project_dir
-    config.dependencies_dir = dependencies_dir or os.path.join(
+    config.docker_layout.dependencies_dir = dependencies_dir or os.path.join(
         project_dir, "dependencies"
     )
-    config.symlinks_sources = symlinks_sources or []
-    config.debugger_path_mappings = []
-    env.config = config
+    config.docker_layout.symlinks_sources = symlinks_sources or []
+    config.docker_layout.debugger_path_mappings = []
+    env.bootstrap = MagicMock(config=config)
     env.user_env.backups = os.path.join(project_dir, "backups")
     env.user_env.debugger_port = debugger_port
     env.user_env.debugger_backend = "debugpy_listen"

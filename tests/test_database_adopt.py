@@ -20,6 +20,7 @@ from dev_project.errors import OdpmError
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.database.state import save_last_run
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.runtime import HostRuntimeState
 from dev_project.runtime_coordinator import RuntimeCoordinator
 
 
@@ -33,8 +34,8 @@ class NeedsDatabaseAdoptionTests(unittest.TestCase):
         )
         config.user_env.postgres_service_name = "db"
         config.user_env.postgres_port = 5432
-        config.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
-        config.postgres_version = "17"
+        config.docker_layout.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
+        config.project_settings.postgres_version = "17"
         return config
 
     def test_true_when_last_run_missing_on_developer_project(self):
@@ -59,14 +60,14 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.postgres_data_local_storage = os.path.join(
             project_dir, constants.POSTGRES_LOCAL_STORAGE_DIR
         )
         config.user_env.postgres_service_name = "db"
         config.user_env.postgres_port = 5432
-        config.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
-        config.postgres_version = "17"
+        config.docker_layout.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
+        config.project_settings.postgres_version = "17"
         return config
 
     @patch("dev_project.database.adopt.save_last_run")
@@ -132,7 +133,7 @@ class StartPostgresDetachedTests(unittest.TestCase):
     def test_raises_when_compose_up_fails(self, mock_up):
         config = MagicMock()
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
+        config.runtime.docker_compose_command = "docker compose"
         config.user_env.postgres_service_name = "db"
         mock_up.return_value = MagicMock(returncode=1, stderr="boom", stdout="")
 
@@ -169,8 +170,8 @@ class BuildAdoptionLastRunTests(unittest.TestCase):
             )
             config.user_env.postgres_service_name = "db"
             config.user_env.postgres_port = 5432
-            config.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
-            config.postgres_version = "17"
+            config.docker_layout.path_odoo_conf = os.path.join(project_dir, constants.ODOO_CONF_NAME)
+            config.project_settings.postgres_version = "17"
 
             snapshot = build_adoption_last_run(config)
             self.assertEqual(snapshot.schema_version, DATABASE_LAST_RUN_SCHEMA_VERSION)
@@ -199,11 +200,12 @@ class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
         _mock_base_image,
     ):
         config = MagicMock()
+        config.runtime = HostRuntimeState()
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        config.no_log_prefix = False
+        config.runtime.no_log_prefix = False
         config.project_dir = "/tmp/project"
-        config.docker_compose_command = "docker compose"
-        config.odoo_image_name = "odoo-base:test"
+        config.runtime.docker_compose_command = "docker compose"
+        config.docker_layout.odoo_image_name = "odoo-base:test"
         config.user_env.odoo_port = 8069
         coordinator = RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
         coordinator.run_after_prepare()

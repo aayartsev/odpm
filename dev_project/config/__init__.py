@@ -54,7 +54,6 @@ _CONFIG_SUBMODULES = frozenset(
         "odoo_conf",
         "paths",
         "payload",
-        "runtime_facade",
         "state",
         "transforms",
     }

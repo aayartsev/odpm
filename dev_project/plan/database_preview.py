@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from ..database.drift import (
     detect_database_drift_for_config,
+    detect_database_drift_for_handle,
     has_blocking_database_drift,
     meaningful_database_drifts,
 )
@@ -39,4 +40,11 @@ def collect_database_drift_warnings_for_host(
 ) -> tuple[str, ...]:
     """Plan warnings keyed by host project dir; drift uses bootstrap handle."""
     _ = host_ctx.project_dir
-    return collect_database_drift_warnings(bootstrap.config)
+    _current, drifts = detect_database_drift_for_handle(bootstrap)
+    if not drifts:
+        return ()
+    warnings = [format_database_drift_warning(drift) for drift in drifts]
+    meaningful = meaningful_database_drifts(drifts)
+    if meaningful and has_blocking_database_drift(meaningful):
+        warnings.append(plan_msg(MSG_DATABASE_DRIFT_BLOCKING))
+    return tuple(warnings)

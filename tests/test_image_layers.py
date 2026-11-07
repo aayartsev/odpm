@@ -45,13 +45,13 @@ class FamilyTests(unittest.TestCase):
 class FingerprintTests(unittest.TestCase):
     def _config(self, *, profile: str = "full", project_dir: str | None = None):
         config = MagicMock()
-        config.odoo_version = "19.0"
-        config.odoo_build_date = "2026-01-01"
-        config.python_version = "3.12"
-        config.distro_name = "debian"
-        config.distro_version = "12"
-        config.arch = "amd64"
-        config.requirements_txt = ["foo", "bar"]
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.odoo_build_date = "2026-01-01"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.distro_name = "debian"
+        config.project_settings.distro_version = "12"
+        config.project_settings.arch = "amd64"
+        config.project_settings.requirements_txt = ["foo", "bar"]
         config.project_dir = project_dir or "/tmp/proj"
         config.project_name = "demo"
         config.policy = MagicMock()
@@ -194,13 +194,13 @@ class EnsureLintContextTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = project_dir
         config.program_dir = program_dir
-        config.odoo_version = "19.0"
-        config.odoo_build_date = "2026-01-01"
-        config.python_version = "3.12"
-        config.distro_name = "debian"
-        config.distro_version = "12"
-        config.arch = "amd64"
-        config.requirements_txt = []
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.odoo_build_date = "2026-01-01"
+        config.project_settings.python_version = "3.12"
+        config.project_settings.distro_name = "debian"
+        config.project_settings.distro_version = "12"
+        config.project_settings.arch = "amd64"
+        config.project_settings.requirements_txt = []
         config.project_name = "demo"
         config.policy = MagicMock()
         config.policy.base_image_profile = "full"
@@ -238,7 +238,7 @@ class EnsureLintContextTests(unittest.TestCase):
             (project / "developing").mkdir()
             (project / "developing" / "mod.py").write_text("x\n", encoding="utf-8")
             env = MagicMock()
-            env.config = self._config(str(project), program_dir)
+            env.bootstrap = MagicMock(config=self._config(str(project), program_dir))
             args = OdpmCliArgs()
             ref = ensure_lint(env, args)
             self.assertTrue(ref)
@@ -278,7 +278,7 @@ class EnsureLintContextTests(unittest.TestCase):
                 "repos: []\n", encoding="utf-8"
             )
             env = MagicMock()
-            env.config = self._config(str(project), program_dir)
+            env.bootstrap = MagicMock(config=self._config(str(project), program_dir))
             ensure_lint(env, OdpmCliArgs())
         mock_build.assert_not_called()
 
@@ -319,7 +319,7 @@ class DepsExcludeDevelopingTests(unittest.TestCase):
             (ctx / "extra-addons").mkdir(parents=True)
 
             config = MagicMock()
-            config.docker_extra_addons = "/home/odoo/extra-addons"
+            config.docker_layout.docker_extra_addons = "/home/odoo/extra-addons"
             developing_link = MagicMock()
             developing_link.project_path = str(developing)
             config.developing_project = developing_link
@@ -327,7 +327,7 @@ class DepsExcludeDevelopingTests(unittest.TestCase):
             config.bootstrap.developing_project = developing_link
 
             env = MagicMock()
-            env.config = config
+            env.bootstrap = MagicMock(config=config)
             env.mapped_folders = [
                 MappedPath(
                     local=str(oca),
@@ -359,7 +359,7 @@ class DepsExcludeDevelopingTests(unittest.TestCase):
             (oca_web / "module").mkdir()
 
             config = MagicMock()
-            config.docker_extra_addons = "/home/odoo/extra-addons"
+            config.docker_layout.docker_extra_addons = "/home/odoo/extra-addons"
             developing_link = MagicMock()
             developing_link.project_path = str(developing)
             config.developing_project = developing_link
@@ -367,7 +367,7 @@ class DepsExcludeDevelopingTests(unittest.TestCase):
             config.bootstrap.developing_project = developing_link
 
             env = MagicMock()
-            env.config = config
+            env.bootstrap = MagicMock(config=config)
             env.mapped_folders = []
             dest = root / "deps" / "extra-addons"
             copied = _copy_deps_extra_addons(
@@ -417,7 +417,7 @@ class ForceRebuildScopeTests(unittest.TestCase):
         from dev_project.image_layers.ensure import ensure_base
 
         env = MagicMock()
-        env.config.project_dir = "/tmp/proj"
+        env.bootstrap.config.project_dir = "/tmp/proj"
         builder = MagicMock()
         builder.resolve_base_image_ref.return_value = "base:tag"
         with (
@@ -613,15 +613,15 @@ class DepsMissingTreesTests(unittest.TestCase):
         config.program_dir = str(Path(__file__).resolve().parents[1])
         config.project_dir = "/tmp/proj"
         config.project_name = "demo"
-        config.odoo_version = "19.0"
-        config.odoo_build_date = "2026-01-01"
-        config.arch = "amd64"
-        config.ci_build_context_dir = "/tmp/proj/.odpm/ci-build-context"
+        config.project_settings.odoo_version = "19.0"
+        config.project_settings.odoo_build_date = "2026-01-01"
+        config.project_settings.arch = "amd64"
+        config.docker_layout.ci_build_context_dir = "/tmp/proj/.odpm/ci-build-context"
         config.policy = MagicMock()
         config.policy.base_image_profile = "full"
         config.arguments = OdpmCliArgs()
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         with self.assertRaises(ConfigError) as ctx:
             ensure_deps(
                 env,
@@ -775,22 +775,22 @@ class PruneCacheTagTests(unittest.TestCase):
         program_dir = str(Path(__file__).resolve().parents[1])
         with tempfile.TemporaryDirectory() as tmp:
             env = MagicMock()
-            env.config = MagicMock()
-            env.config.program_dir = program_dir
-            env.config.project_dir = tmp
-            env.config.project_name = "demo"
-            env.config.odoo_version = "19.0"
-            env.config.odoo_build_date = "2026-01-01"
-            env.config.python_version = "3.12"
-            env.config.distro_name = "debian"
-            env.config.distro_version = "12"
-            env.config.arch = "amd64"
-            env.config.policy = MagicMock()
-            env.config.policy.base_image_profile = "full"
-            env.config.odoo_git_link = MagicMock()
-            env.config.odoo_git_link.commit = "abc"
-            env.config.odoo_extra_deb_packages = []
-            env.config.requirements_txt = ""
+            env.bootstrap = MagicMock(config=MagicMock())
+            env.bootstrap.config.program_dir = program_dir
+            env.bootstrap.config.project_dir = tmp
+            env.bootstrap.config.project_name = "demo"
+            env.bootstrap.config.project_settings.odoo_version = "19.0"
+            env.bootstrap.config.project_settings.odoo_build_date = "2026-01-01"
+            env.bootstrap.config.project_settings.python_version = "3.12"
+            env.bootstrap.config.project_settings.distro_name = "debian"
+            env.bootstrap.config.project_settings.distro_version = "12"
+            env.bootstrap.config.project_settings.arch = "amd64"
+            env.bootstrap.config.policy = MagicMock()
+            env.bootstrap.config.policy.base_image_profile = "full"
+            env.bootstrap.config.project_settings.odoo_git_link = MagicMock()
+            env.bootstrap.config.project_settings.odoo_git_link.commit = "abc"
+            env.bootstrap.config.odoo_extra_deb_packages = []
+            env.bootstrap.config.project_settings.requirements_txt = ""
             with (
                 patch(
                     "dev_project.image_layers.ensure.compute_platform_fingerprint",
@@ -823,8 +823,8 @@ class PruneCacheTagTests(unittest.TestCase):
     )
     def test_ensure_deps_skip_no_prune(self, mock_prune, _fp):
         env = MagicMock()
-        env.config = MagicMock()
-        env.config.program_dir = str(Path(__file__).resolve().parents[1])
+        env.bootstrap = MagicMock(config=MagicMock())
+        env.bootstrap.config.program_dir = str(Path(__file__).resolve().parents[1])
         result = ensure_deps(
             env,
             OdpmCliArgs(image_prune_stale=True),
@@ -881,15 +881,15 @@ class PruneCacheTagTests(unittest.TestCase):
             for name in ("odoo", "dev_project", "ci"):
                 (ctx / name).mkdir(parents=True)
             env = MagicMock()
-            env.config = MagicMock()
-            env.config.program_dir = program_dir
-            env.config.project_dir = str(project)
-            env.config.project_name = "demo"
-            env.config.odoo_version = "19.0"
-            env.config.odoo_build_date = "2026-01-01"
-            env.config.ci_build_context_dir = str(ctx)
-            env.config.policy = MagicMock()
-            env.config.policy.base_image_profile = "full"
+            env.bootstrap = MagicMock(config=MagicMock())
+            env.bootstrap.config.program_dir = program_dir
+            env.bootstrap.config.project_dir = str(project)
+            env.bootstrap.config.project_name = "demo"
+            env.bootstrap.config.project_settings.odoo_version = "19.0"
+            env.bootstrap.config.project_settings.odoo_build_date = "2026-01-01"
+            env.bootstrap.config.docker_layout.ci_build_context_dir = str(ctx)
+            env.bootstrap.config.policy = MagicMock()
+            env.bootstrap.config.policy.base_image_profile = "full"
             with (
                 patch(
                     "dev_project.image_layers.ensure.compute_platform_fingerprint",
@@ -946,17 +946,17 @@ class PruneCacheTagTests(unittest.TestCase):
         app_ref = "reg/proj:cache-app-dev-19.0-2026-01-01-v-appfp001"
         with tempfile.TemporaryDirectory() as tmp:
             env = MagicMock()
-            env.config = MagicMock()
-            env.config.program_dir = program_dir
-            env.config.project_dir = tmp
-            env.config.project_name = "demo"
-            env.config.odoo_version = "19.0"
-            env.config.odoo_build_date = "2026-01-01"
-            env.config.odoo_ci_image_name = "reg/proj:publish"
-            env.config.policy = MagicMock()
-            env.config.policy.base_image_profile = "full"
-            env.config.developing_project = MagicMock()
-            env.config.developing_project.project_path = tmp
+            env.bootstrap = MagicMock(config=MagicMock())
+            env.bootstrap.config.program_dir = program_dir
+            env.bootstrap.config.project_dir = tmp
+            env.bootstrap.config.project_name = "demo"
+            env.bootstrap.config.project_settings.odoo_version = "19.0"
+            env.bootstrap.config.project_settings.odoo_build_date = "2026-01-01"
+            env.bootstrap.config.docker_layout.odoo_ci_image_name = "reg/proj:publish"
+            env.bootstrap.config.policy = MagicMock()
+            env.bootstrap.config.policy.base_image_profile = "full"
+            env.bootstrap.config.developing_project = MagicMock()
+            env.bootstrap.config.developing_project.project_path = tmp
             with (
                 patch(
                     "dev_project.image_layers.ensure.ensure_deps",

@@ -79,7 +79,7 @@ class CiManifestDbOverrideMergeTests(unittest.TestCase):
                 docker_project_dir="/home/odoo",
             )
             config.addon_layout = AddonLayoutState()
-            config.path_odoo_conf = str(conf_path)
+            config.docker_layout.path_odoo_conf = str(conf_path)
             config.bootstrap = BootstrapState(
                 manifest_view=ManifestView(
                     manifest_schema=2,
@@ -210,7 +210,7 @@ class CiManifestDbOverrideDriftTests(unittest.TestCase):
             config = MagicMock()
             config.project_dir = project_dir
             config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
-            config.postgres_version = "17"
+            config.project_settings.postgres_version = "17"
             config.postgres_data_local_storage = data_path
             config.user_env.postgres_service_name = "db-dev"
             config.user_env.postgres_port = 5432
@@ -218,7 +218,7 @@ class CiManifestDbOverrideDriftTests(unittest.TestCase):
             config.docker_layout = DockerLayoutState(
                 path_odoo_conf=os.path.join(project_dir, constants.ODOO_CONF_NAME),
             )
-            config.path_odoo_conf = config.docker_layout.path_odoo_conf
+            config.docker_layout.path_odoo_conf = config.docker_layout.path_odoo_conf
             config.bootstrap = BootstrapState(
                 manifest_view=ManifestView(
                     manifest_schema=2,

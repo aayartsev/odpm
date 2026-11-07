@@ -121,7 +121,9 @@ def ensure_config_docker_capabilities(
     cached = cached_docker_capabilities(config)
     if cached is not None:
         return cached
-    compose_command = config.docker_compose_command
+    compose_command = config.runtime.resolved_docker_compose_command(
+        config.docker_layout.docker_compose_command
+    )
     if not isinstance(compose_command, str) or not compose_command.strip():
         return None
     if run_checked is None:
@@ -132,20 +134,13 @@ def ensure_config_docker_capabilities(
         probed = probe_docker_capabilities(compose_command, run_checked=run_checked)
     except FileNotFoundError:
         return None
-    config.docker_capabilities = probed
+    config.runtime.docker_capabilities = probed
     return probed
 
 
 def cached_docker_capabilities(config: Config) -> DockerCapabilities | None:
-    caps = getattr(config, "docker_capabilities", None)
-    if isinstance(caps, DockerCapabilities):
-        return caps
-    runtime = getattr(config, "runtime", None)
-    if runtime is not None:
-        caps = getattr(runtime, "docker_capabilities", None)
-        if isinstance(caps, DockerCapabilities):
-            return caps
-    return None
+    caps = config.runtime.docker_capabilities
+    return caps if isinstance(caps, DockerCapabilities) else None
 
 
 def resolve_docker_capabilities(
@@ -162,13 +157,14 @@ def resolve_docker_capabilities(
         run_checked = default_run_checked
     try:
         probed = probe_docker_capabilities(
-            config.docker_compose_command,
+            config.runtime.resolved_docker_compose_command(
+                config.docker_layout.docker_compose_command
+            ),
             run_checked=run_checked,
         )
     except FileNotFoundError as exc:
         raise SystemCheckError(
             _("Cannot get docker-compose info, did you install it?")
         ) from exc
-    if hasattr(config, "docker_capabilities"):
-        config.docker_capabilities = probed
+    config.runtime.docker_capabilities = probed
     return probed

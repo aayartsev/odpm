@@ -21,7 +21,7 @@ class VscodeConfigurator:
 
     @property
     def config(self):
-        return self.env.config
+        return self.env.bootstrap.config
 
     def get_vscode_dir_path(self) -> str:
         vscode_dir = os.path.join(self.config.project_dir, ".vscode")
@@ -48,7 +48,9 @@ class VscodeConfigurator:
 
     def update_vscode_debugger_launcher(self) -> None:
         profile = self.build_debugger_profile()
-        self.config.debugger_path_mappings = profile.to_vscode_path_mappings()
+        self.config.docker_layout.debugger_path_mappings = (
+            profile.to_vscode_path_mappings()
+        )
 
         launch_json = os.path.join(self.get_vscode_dir_path(), "launch.json")
         if not os.path.exists(launch_json):
@@ -75,7 +77,7 @@ class VscodeConfigurator:
             lines = reader.readlines()
         content = "".join(lines[1:]).replace(
             "{PYTHON_VERSION}",
-            str(self.config.python_version),
+            str(self.config.project_settings.python_version),
         )
         settings = json.loads(content)
         extra_paths = PythonAnalysisPathsBuilder(self.env).build()

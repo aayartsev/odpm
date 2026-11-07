@@ -21,11 +21,11 @@ def _attach_host_addon_layout(env: MagicMock) -> None:
 class ProjectLinksCheckoutTests(unittest.TestCase):
     def test_checkout_project_disables_update_when_pinned(self):
         config = MagicMock()
-        config.update_git_repos = True
-        config.clean_git_repos = False
-        config.odoo_version = "19.0"
+        config.user_settings.update_git_repos = True
+        config.user_settings.clean_git_repos = False
+        config.project_settings.odoo_version = "19.0"
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         project = MagicMock()
         lock_manager = MagicMock()
         lock_manager.is_pinned.return_value = True
@@ -40,11 +40,11 @@ class ProjectLinksCheckoutTests(unittest.TestCase):
 
     def test_checkout_project_keeps_update_when_not_pinned(self):
         config = MagicMock()
-        config.update_git_repos = True
-        config.clean_git_repos = True
-        config.odoo_version = "17.0"
+        config.user_settings.update_git_repos = True
+        config.user_settings.clean_git_repos = True
+        config.project_settings.odoo_version = "17.0"
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         project = MagicMock()
         lock_manager = MagicMock()
         lock_manager.is_pinned.return_value = False
@@ -61,9 +61,9 @@ class ProjectLinksCheckoutTests(unittest.TestCase):
 class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
     def test_checkout_dependencies_skips_developing_without_explicit_branch(self):
         config = MagicMock()
-        config.odoo_version = "17.0"
+        config.project_settings.odoo_version = "17.0"
         config.odoo_platform_project = MagicMock()
-        config.dependencies_projects = []
+        config.docker_layout.dependencies_projects = []
         developing = MagicMock()
         developing.link_type = constants.GITLINK_TYPE_SSH
         developing.is_true = True
@@ -71,7 +71,7 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
         developing.commit_explicit = False
         config.developing_project = developing
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
 
@@ -84,10 +84,10 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
 
     def test_checkout_dependencies_includes_pinned_developing_in_ci_scenario(self):
         config = MagicMock()
-        config.odoo_version = "17.0"
+        config.project_settings.odoo_version = "17.0"
         config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         config.odoo_platform_project = MagicMock()
-        config.dependencies_projects = []
+        config.docker_layout.dependencies_projects = []
         developing = MagicMock()
         developing.link_type = constants.GITLINK_TYPE_SSH
         developing.is_true = True
@@ -95,7 +95,7 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
         developing.commit_explicit = False
         config.developing_project = developing
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
         lock_manager = MagicMock()
@@ -113,10 +113,10 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
 
     def test_checkout_dependencies_skips_pinned_developing_in_developer_scenario(self):
         config = MagicMock()
-        config.odoo_version = "17.0"
+        config.project_settings.odoo_version = "17.0"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         config.odoo_platform_project = MagicMock()
-        config.dependencies_projects = []
+        config.docker_layout.dependencies_projects = []
         developing = MagicMock()
         developing.link_type = constants.GITLINK_TYPE_SSH
         developing.is_true = True
@@ -124,7 +124,7 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
         developing.commit_explicit = False
         config.developing_project = developing
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
         lock_manager = MagicMock()
@@ -143,10 +143,10 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
 class ProjectLinksDependencyTests(unittest.TestCase):
     def test_resolve_dependencies_skips_oca_when_no_git_update(self):
         env = MagicMock()
-        env.config = MagicMock()
-        env.config.dependencies = ["https://github.com/OCA/partner-contact.git"]
-        env.config.use_oca_dependencies = True
-        env.config.skip_git_update.return_value = True
+        env.bootstrap = MagicMock(config=MagicMock())
+        env.bootstrap.config.project_settings.dependencies = ["https://github.com/OCA/partner-contact.git"]
+        env.bootstrap.config.user_settings.use_oca_dependencies = True
+        env.bootstrap.config.skip_git_update.return_value = True
 
         resolved = ProjectLinks(env)._resolve_dependencies()
 
@@ -160,7 +160,7 @@ class ProjectLinksDependencyTests(unittest.TestCase):
 class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
     def _make_links(self, config):
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
         return links
@@ -197,8 +197,8 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
                 return link
 
             config = MagicMock()
-            config.dependencies = [url_a]
-            config.use_oca_dependencies = True
+            config.project_settings.dependencies = [url_a]
+            config.user_settings.use_oca_dependencies = True
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
@@ -240,8 +240,8 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
                 return link
 
             config = MagicMock()
-            config.dependencies = [url_a]
-            config.use_oca_dependencies = True
+            config.project_settings.dependencies = [url_a]
+            config.user_settings.use_oca_dependencies = True
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
@@ -254,41 +254,41 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
 
     def test_discover_dependency_extensions_skips_materialize_when_no_git_update(self):
         config = MagicMock()
-        config.dependencies = ["https://github.com/acme/A.git"]
-        config.use_oca_dependencies = True
+        config.project_settings.dependencies = ["https://github.com/acme/A.git"]
+        config.user_settings.use_oca_dependencies = True
         config.skip_git_update.return_value = True
         links = self._make_links(config)
 
         result = links._resolve_dependencies()
 
-        self.assertEqual(result.urls, config.dependencies)
+        self.assertEqual(result.urls, config.project_settings.dependencies)
         config.handle_git_link.assert_not_called()
 
     def test_map_folders_skips_rematerialize_when_discovery_enabled(self):
         url = "https://github.com/acme/A.git"
         config = MagicMock()
-        config.use_oca_dependencies = True
+        config.user_settings.use_oca_dependencies = True
         config.skip_git_update.return_value = False
-        config.dependencies = [url]
+        config.project_settings.dependencies = [url]
         config.developing_project = MagicMock(project_path="")
-        config.pre_commit_map_files = []
+        config.user_settings.pre_commit_map_files = []
         config.odoo_src_dir = "/tmp/odoo"
-        config.venv_dir = "/tmp/venv"
-        config.odoo_tests_dir = "/tmp/tests"
+        config.docker_layout.venv_dir = "/tmp/venv"
+        config.docker_layout.odoo_tests_dir = "/tmp/tests"
         config.program_dir = "/tmp/program"
-        config.docker_odoo_dir = "/docker/odoo"
-        config.docker_venv_dir = "/docker/venv"
-        config.docker_temp_tests_dir = "/docker/tests"
-        config.docker_dev_project_dir = "/docker/dev_project"
-        config.docker_backups_dir = "/docker/backups"
-        config.docker_project_dir = "/docker/project"
-        config.dir_for_odoo_container_home = "/tmp/home"
-        config.docker_odoo_project_dir_path = "/docker/project"
+        config.docker_layout.docker_odoo_dir = "/docker/odoo"
+        config.docker_layout.docker_venv_dir = "/docker/venv"
+        config.docker_layout.docker_temp_tests_dir = "/docker/tests"
+        config.docker_layout.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_layout.docker_backups_dir = "/docker/backups"
+        config.docker_layout.docker_project_dir = "/docker/project"
+        config.docker_layout.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_layout.docker_odoo_project_dir_path = "/docker/project"
         config.developing_project_dir_path = "/tmp/developing"
-        config.docker_extra_addons = "/docker/addons"
-        config.dependencies_projects = []
-        config.dependencies_dirs = []
-        config.docker_dirs_with_addons = []
+        config.docker_layout.docker_extra_addons = "/docker/addons"
+        config.docker_layout.dependencies_projects = []
+        config.docker_layout.dependencies_dirs = []
+        config.docker_layout.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
         dependency = MagicMock(
             is_cloned=True,
@@ -298,7 +298,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         env.mapped_folders = []
         _attach_host_addon_layout(env)
         links = ProjectLinks(env)
@@ -312,7 +312,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
     def test_materialize_dependencies_clones_without_oca_discovery(self):
         url = "https://github.com/acme/A.git"
         config = MagicMock()
-        config.use_oca_dependencies = False
+        config.user_settings.use_oca_dependencies = False
         config.skip_git_update.return_value = False
         config.developing_project = MagicMock(project_path="")
         dependency = MagicMock(
@@ -322,7 +322,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         config.handle_git_link = MagicMock(return_value=dependency)
         config.apply_nested_compatibility = MagicMock()
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
@@ -339,27 +339,27 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
     def test_map_folders_after_materialize_does_not_clone_again(self):
         url = "https://github.com/acme/A.git"
         config = MagicMock()
-        config.use_oca_dependencies = False
+        config.user_settings.use_oca_dependencies = False
         config.skip_git_update.return_value = False
         config.developing_project = MagicMock(project_path="")
-        config.pre_commit_map_files = []
+        config.user_settings.pre_commit_map_files = []
         config.odoo_src_dir = "/tmp/odoo"
-        config.venv_dir = "/tmp/venv"
-        config.odoo_tests_dir = "/tmp/tests"
+        config.docker_layout.venv_dir = "/tmp/venv"
+        config.docker_layout.odoo_tests_dir = "/tmp/tests"
         config.program_dir = "/tmp/program"
-        config.docker_odoo_dir = "/docker/odoo"
-        config.docker_venv_dir = "/docker/venv"
-        config.docker_temp_tests_dir = "/docker/tests"
-        config.docker_dev_project_dir = "/docker/dev_project"
-        config.docker_backups_dir = "/docker/backups"
-        config.docker_project_dir = "/docker/project"
-        config.dir_for_odoo_container_home = "/tmp/home"
-        config.docker_odoo_project_dir_path = "/docker/project"
+        config.docker_layout.docker_odoo_dir = "/docker/odoo"
+        config.docker_layout.docker_venv_dir = "/docker/venv"
+        config.docker_layout.docker_temp_tests_dir = "/docker/tests"
+        config.docker_layout.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_layout.docker_backups_dir = "/docker/backups"
+        config.docker_layout.docker_project_dir = "/docker/project"
+        config.docker_layout.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_layout.docker_odoo_project_dir_path = "/docker/project"
         config.developing_project_dir_path = "/tmp/developing"
-        config.docker_extra_addons = "/docker/addons"
-        config.dependencies_projects = []
-        config.dependencies_dirs = []
-        config.docker_dirs_with_addons = []
+        config.docker_layout.docker_extra_addons = "/docker/addons"
+        config.docker_layout.dependencies_projects = []
+        config.docker_layout.dependencies_dirs = []
+        config.docker_layout.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
         config.apply_nested_compatibility = MagicMock()
         dependency = MagicMock(
@@ -370,7 +370,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         env.mapped_folders = []
         _attach_host_addon_layout(env)
         links = ProjectLinks(env)
@@ -397,7 +397,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             source_path="/tmp/framework/odpm.json",
         )
         config = MagicMock()
-        config.use_oca_dependencies = True
+        config.user_settings.use_oca_dependencies = True
         config.skip_git_update.return_value = False
         config.developing_project = MagicMock(project_path="")
         config.apply_nested_compatibility = MagicMock()
@@ -407,7 +407,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         )
         config.handle_git_link = MagicMock(return_value=dependency)
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
@@ -423,7 +423,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
     def test_materialize_dependencies_skips_apply_when_no_nested_fragments(self):
         url = "https://github.com/acme/A.git"
         config = MagicMock()
-        config.use_oca_dependencies = False
+        config.user_settings.use_oca_dependencies = False
         config.skip_git_update.return_value = False
         config.developing_project = MagicMock(project_path="")
         config.apply_nested_compatibility = MagicMock()
@@ -433,7 +433,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         )
         config.handle_git_link = MagicMock(return_value=dependency)
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
             return_value=DependencyResolutionResult(
@@ -449,28 +449,28 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
     def test_map_folders_alone_does_not_resolve_or_clone(self):
         url = "https://github.com/acme/A.git"
         config = MagicMock()
-        config.use_oca_dependencies = True
+        config.user_settings.use_oca_dependencies = True
         config.skip_git_update.return_value = False
-        config.dependencies = [url]
+        config.project_settings.dependencies = [url]
         config.developing_project = MagicMock(project_path="")
-        config.pre_commit_map_files = []
+        config.user_settings.pre_commit_map_files = []
         config.odoo_src_dir = "/tmp/odoo"
-        config.venv_dir = "/tmp/venv"
-        config.odoo_tests_dir = "/tmp/tests"
+        config.docker_layout.venv_dir = "/tmp/venv"
+        config.docker_layout.odoo_tests_dir = "/tmp/tests"
         config.program_dir = "/tmp/program"
-        config.docker_odoo_dir = "/docker/odoo"
-        config.docker_venv_dir = "/docker/venv"
-        config.docker_temp_tests_dir = "/docker/tests"
-        config.docker_dev_project_dir = "/docker/dev_project"
-        config.docker_backups_dir = "/docker/backups"
-        config.docker_project_dir = "/docker/project"
-        config.dir_for_odoo_container_home = "/tmp/home"
-        config.docker_odoo_project_dir_path = "/docker/project"
+        config.docker_layout.docker_odoo_dir = "/docker/odoo"
+        config.docker_layout.docker_venv_dir = "/docker/venv"
+        config.docker_layout.docker_temp_tests_dir = "/docker/tests"
+        config.docker_layout.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_layout.docker_backups_dir = "/docker/backups"
+        config.docker_layout.docker_project_dir = "/docker/project"
+        config.docker_layout.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_layout.docker_odoo_project_dir_path = "/docker/project"
         config.developing_project_dir_path = "/tmp/developing"
-        config.docker_extra_addons = "/docker/addons"
-        config.dependencies_projects = []
-        config.dependencies_dirs = []
-        config.docker_dirs_with_addons = []
+        config.docker_layout.docker_extra_addons = "/docker/addons"
+        config.docker_layout.dependencies_projects = []
+        config.docker_layout.dependencies_dirs = []
+        config.docker_layout.docker_dirs_with_addons = []
         config.check_project_for_subprojects = MagicMock(return_value=[])
         config.apply_nested_compatibility = MagicMock()
         dependency = MagicMock(
@@ -481,7 +481,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
         env = MagicMock()
-        env.config = config
+        env.bootstrap = MagicMock(config=config)
         env.mapped_folders = []
         _attach_host_addon_layout(env)
         links = ProjectLinks(env)
@@ -499,15 +499,15 @@ class ProjectLinksUpdateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.list_for_symlinks = []
-            config.create_module_links = False
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.list_for_symlinks = []
+            config.user_settings.create_module_links = False
+            config.docker_layout.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
-            config.platform_name = "odoo"
+            config.project_settings.platform_name = "odoo"
             env = MagicMock()
-            env.config = config
+            env.bootstrap = MagicMock(config=config)
             _attach_host_addon_layout(env)
 
             with patch("dev_project.symlinks.manager.os.chdir") as mock_chdir:
@@ -522,15 +522,15 @@ class ProjectLinksUpdateTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.list_for_symlinks = [target_dir]
-            config.create_module_links = False
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.list_for_symlinks = [target_dir]
+            config.user_settings.create_module_links = False
+            config.docker_layout.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
-            config.platform_name = "odoo"
+            config.project_settings.platform_name = "odoo"
             env = MagicMock()
-            env.config = config
+            env.bootstrap = MagicMock(config=config)
             _attach_host_addon_layout(env)
 
             ProjectLinks(env).update_links()
@@ -546,15 +546,15 @@ class ProjectLinksUpdateTests(unittest.TestCase):
 
             config = MagicMock()
             config.project_dir = project_dir
-            config.dependencies_dir = os.path.join(project_dir, "dependencies")
-            config.dependencies_dirs = []
-            config.list_for_symlinks = []
-            config.create_module_links = False
-            config.symlinks_sources = []
+            config.docker_layout.dependencies_dir = os.path.join(project_dir, "dependencies")
+            config.docker_layout.dependencies_dirs = []
+            config.docker_layout.list_for_symlinks = []
+            config.user_settings.create_module_links = False
+            config.docker_layout.symlinks_sources = []
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
-            config.platform_name = "odoo"
+            config.project_settings.platform_name = "odoo"
             env = MagicMock()
-            env.config = config
+            env.bootstrap = MagicMock(config=config)
             _attach_host_addon_layout(env)
 
             ProjectLinks(env).update_links()
