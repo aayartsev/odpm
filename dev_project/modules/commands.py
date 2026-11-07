@@ -49,7 +49,7 @@ def _run_modules_diff(cli_args: OdpmCliArgs, bootstrap: BootstrapHandle) -> int:
 
 
 def _run_modules_record_applied(bootstrap: BootstrapHandle) -> int:
-    project_dir = str(getattr(bootstrap.config, "project_dir", "") or "")
+    project_dir = str(bootstrap.project_dir or "")
     if not project_dir:
         raise ConfigError(_("Project directory is not set."))
     repo_path = developing_repo_path(bootstrap)

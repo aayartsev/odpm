@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import os
 import unittest
 from unittest.mock import MagicMock
@@ -26,7 +28,6 @@ from dev_project.debugger.constants import (
 )
 from dev_project.manifest.reader import ManifestView
 from dev_project.project_env import CreateProjectEnvironment
-from dev_project.host.ports import BootstrapHandle
 from dev_project.scenario_policy import ScenarioPolicy
 
 
@@ -252,7 +253,7 @@ def _make_compose_env(
     user_env.compose_network_physical = compose_network_physical
     user_env.compose_network_external = compose_network_external
     config.user_env = user_env
-    return CreateProjectEnvironment(BootstrapHandle(config=config))
+    return CreateProjectEnvironment(BootstrapHandle(_assembled=config))
 
 
 class BuildComposeDocumentPrefixTests(unittest.TestCase):

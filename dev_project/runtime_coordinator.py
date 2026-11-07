@@ -47,17 +47,13 @@ class RuntimeCoordinator:
     @property
     def host_ctx(self) -> HostProjectContext:
         # Fresh each access so compose argv sees runtime capability writes.
-        return HostProjectContext.from_config(
-            self.runtime.bootstrap.config,
-            arguments=self.runtime.args,
-        )
+        return self.runtime.bootstrap.host_context(arguments=self.runtime.args)
 
     @property
     def runtime_backend(self) -> ComposeRuntimeBackend:
-        config = self.runtime.bootstrap.config
         return get_runtime_backend(
             host_ctx=self.host_ctx,
-            config=config,
+            bootstrap=self.runtime.bootstrap,
             project_env=self.runtime.project_env,
         )
 
@@ -120,8 +116,7 @@ class RuntimeCoordinator:
         adopt_database_baseline(bootstrap)
         ensure_no_blocking_database_drift(bootstrap, self.cli_args)
 
-        config = bootstrap.config
-        manifest_view = config.bootstrap.manifest_view
+        manifest_view = bootstrap.manifest_view
         secrets_spec = (
             manifest_view.scenario_slice.secrets
             if manifest_view is not None and manifest_view.scenario_slice is not None
@@ -139,10 +134,14 @@ class RuntimeCoordinator:
             raise PipelineError(str(exc), exit_code=1) from exc
 
         run_lifecycle_hooks(
-            ExtensionHostContext.from_config(config),
+            ExtensionHostContext.from_host(
+                self.host_ctx,
+                repo_odpm_json=self.host_ctx.repo_odpm_json,
+                manifest_view=bootstrap.manifest_view,
+            ),
             "pre_up",
             cwd=self.host_ctx.project_dir,
-            env_resolver=config.env_resolver,
+            env_resolver=bootstrap.env_resolver,
         )
         try:
             execute_launch_steps(self)

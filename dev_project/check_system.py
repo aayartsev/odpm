@@ -39,9 +39,7 @@ class SystemChecker(SystemCheckerProtocol):
     ) -> None:
         self.bootstrap = bootstrap
         self.project_environment = project_environment
-        policy = SystemCheckPolicy.from_host_context(
-            HostProjectContext.from_config(bootstrap.config)
-        )
+        policy = SystemCheckPolicy.from_bootstrap(bootstrap)
         if policy.file_system_on_init:
             self.check_file_system()
 
@@ -100,7 +98,7 @@ class SystemChecker(SystemCheckerProtocol):
 
     def check_docker(self) -> None:
         policy = SystemCheckPolicy.from_host_context(
-            HostProjectContext.from_config(self.bootstrap.config)
+            self.bootstrap.host_context()
         )
         if not policy.skip_docker_daemon:
             self.check_docker_daemon()
@@ -115,7 +113,7 @@ class SystemChecker(SystemCheckerProtocol):
             effective_postgres_port,
         )
 
-        user_env = self.bootstrap.config.user_env
+        user_env = self.bootstrap.user_env
         ports_to_check = [
             effective_odoo_port(user_env),
             effective_debugger_port(user_env),
@@ -178,7 +176,7 @@ class SystemChecker(SystemCheckerProtocol):
         runtime.docker_capabilities = capabilities
 
     def _platform_git_repo_ready(self) -> bool:
-        odoo_src_dir = self.bootstrap.config.odoo_src_dir
+        odoo_src_dir = self.bootstrap.odoo_src_dir
         if not odoo_src_dir or not os.path.isdir(odoo_src_dir):
             return False
         if not os.path.exists(os.path.join(odoo_src_dir, ".git")):
@@ -193,7 +191,7 @@ class SystemChecker(SystemCheckerProtocol):
         return "true" in result.stdout
 
     def _ensure_platform_sources(self) -> None:
-        config = self.bootstrap.config
+        config = self.bootstrap
         policy = config.policy
         if policy.is_ci():
             return
@@ -210,13 +208,12 @@ class SystemChecker(SystemCheckerProtocol):
             _logger.warning(message)
 
     def check_file_system(self) -> None:
-        config = self.bootstrap.config
-        policy = SystemCheckPolicy.from_host_context(
-            HostProjectContext.from_config(config)
-        )
-        dirs = [config.user_env.odoo_projects_dir]
+        bootstrap = self.bootstrap
+        host = bootstrap.host_context()
+        policy = SystemCheckPolicy.from_host_context(host)
+        dirs = [bootstrap.user_env.odoo_projects_dir]
         if not policy.relaxed_file_system:
-            dirs.insert(0, config.user_env.backups)
+            dirs.insert(0, bootstrap.user_env.backups)
         for dir_path in dirs:
             if not dir_path:
                 continue

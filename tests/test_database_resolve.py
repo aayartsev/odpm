@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import os
 import tempfile
 import unittest
@@ -23,7 +25,6 @@ from dev_project.database.schema import (
 )
 from dev_project.errors import PipelineError
 from dev_project.host.cli.args import OdpmCliArgs
-from dev_project.host.ports import BootstrapHandle
 from dev_project.prepare import make_prepare_context
 from dev_project.scenario_policy import ScenarioPolicy
 
@@ -45,7 +46,7 @@ class DatabaseResolveTests(unittest.TestCase):
 
     def _ctx(self, config: MagicMock, *, accept: tuple[str, ...] = ()) -> MagicMock:
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         return make_prepare_context(
             config,
             project_env,
@@ -136,7 +137,7 @@ class DatabaseResolveTests(unittest.TestCase):
                 resolve_database_drifts(
                     self._ctx(config, accept=("data_path",))
                 )
-            ensure_no_blocking_database_drift(BootstrapHandle(config=config), OdpmCliArgs(accept_database_drift=())
+            ensure_no_blocking_database_drift(BootstrapHandle(_assembled=config), OdpmCliArgs(accept_database_drift=())
             )
             snapshot = load_last_run(project_dir)
             self.assertIsNotNone(snapshot)
@@ -159,7 +160,7 @@ class DatabaseResolveTests(unittest.TestCase):
                 return_value="b",
             ):
                 resolve_database_drifts(self._ctx(config))
-            ensure_no_blocking_database_drift(BootstrapHandle(config=config), OdpmCliArgs(accept_database_drift=())
+            ensure_no_blocking_database_drift(BootstrapHandle(_assembled=config), OdpmCliArgs(accept_database_drift=())
             )
             snapshot = load_last_run(project_dir)
             self.assertIsNotNone(snapshot)
@@ -215,7 +216,7 @@ class DatabaseResolveTests(unittest.TestCase):
             ):
                 resolve_database_drifts(ctx)
             mock_ensure.assert_called_once()
-            self.assertIs(mock_ensure.call_args.args[0].config, config)
+            self.assertIs(mock_ensure.call_args.args[0]._assembled, config)
 
     @patch("dev_project.database.status.probe_postgres_container_running", return_value=False)
     def test_interactive_abort_raises(self, _mock_running):

@@ -17,7 +17,7 @@ from ..project_env.services.pycharm_configurator import (
 )
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.context import HostProjectContext
     from ..project_env import CreateProjectEnvironment
 
 
@@ -52,10 +52,11 @@ def preview_pycharm_run_config_text(
 
 
 def pycharm_run_config_up_to_date(
-    config: Config, project_env: CreateProjectEnvironment | None = None
+    host_ctx: HostProjectContext,
+    project_env: CreateProjectEnvironment | None = None,
 ) -> bool:
-    backend = config.user_env.debugger_backend
-    path = pycharm_run_config_path(config.project_dir, backend=backend)
+    backend = host_ctx.user_env.debugger_backend
+    path = pycharm_run_config_path(host_ctx.project_dir, backend=backend)
     if not os.path.isfile(path):
         return False
     if project_env is None:
@@ -70,8 +71,8 @@ def pycharm_run_config_up_to_date(
     return on_disk == preview
 
 
-def pycharm_run_config_description(config: Config) -> str:
-    backend = getattr(config.user_env, "debugger_backend", None)
+def pycharm_run_config_description(host_ctx: HostProjectContext) -> str:
+    backend = getattr(host_ctx.user_env, "debugger_backend", None)
     if backend == DEBUGGER_BACKEND_PYDEVD_CONNECT:
         return "Update PyCharm Debug Server run configuration"
     return "Update PyCharm Attach to DAP run configuration"

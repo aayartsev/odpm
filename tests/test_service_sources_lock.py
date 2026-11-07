@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import os
 import tempfile
 import unittest
@@ -98,12 +100,13 @@ class DepsLockManagerServiceSourcesTests(unittest.TestCase):
             return_value="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         )
         config.handle_git_link = MagicMock(return_value=link)
+        config._git_repos.handle_git_link = config.handle_git_link
         return config
 
     def test_collect_writes_service_sources_entries(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             with patch.object(
                 manager,
                 "_entry_from_project",
@@ -142,7 +145,7 @@ class DepsLockManagerServiceSourcesTests(unittest.TestCase):
             config.handle_git_link.return_value.resolve_head_sha.return_value = (
                 "cccccccccccccccccccccccccccccccccccccccc"
             )
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             with self.assertRaises(PipelineError):
@@ -164,7 +167,7 @@ class DepsLockManagerServiceSourcesTests(unittest.TestCase):
             )
             save_deps_lock(os.path.join(project_dir, ".odpm", "deps.lock.json"), lock)
             config = self._config(project_dir)
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             entries = manager.lock_entries_for_service_sources()

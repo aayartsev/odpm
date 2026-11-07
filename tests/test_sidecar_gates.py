@@ -24,7 +24,7 @@ from dev_project.errors import ConfigError
 from dev_project.extensions.context import ExtensionHostContext
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 from dev_project.manifest.reader import ManifestView
 from dev_project.plan.fragments_preview import build_compose_fragment_service_plan_steps
 from dev_project.prepare.steps_compose import evaluate_compose_fragments, exec_compose_fragments
@@ -40,6 +40,7 @@ from tests.test_compose_service_prefix import GOLDEN_POSTGRES_DATA, GOLDEN_PROJE
 import tempfile
 
 
+from dev_project.config.assembly import ports_from_assembled, host_context_from_assembled
 class ParseSidecarGatesTests(unittest.TestCase):
     def test_none_and_empty(self) -> None:
         self.assertEqual(parse_sidecar_gates(None), {})
@@ -175,7 +176,7 @@ def _compose_env(
     user_env.compose_network_external = False
     user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
     config.user_env = user_env
-    return CreateProjectEnvironment(BootstrapHandle(config=config))
+    return CreateProjectEnvironment(BootstrapHandle(_assembled=config))
 
 
 class BuildComposeDocumentSidecarGatesTests(unittest.TestCase):
@@ -228,10 +229,10 @@ class FragmentsSidecarGatesTests(unittest.TestCase):
         config.arguments = OdpmCliArgs()
         config.user_env = MagicMock()
         config.user_env.odpm_scenario = constants.DEVELOPER_SCENARIO
-        host_ctx = HostProjectContext.from_config(config)
-        ports = ports_from_config(
+        host_ctx = host_context_from_assembled(config)
+        ports = ports_from_assembled(
             config,
-            MagicMock(bootstrap=BootstrapHandle(config=config)),
+            MagicMock(bootstrap=BootstrapHandle(_assembled=config)),
             OdpmCliArgs(),
         )
         return PrepareContext(

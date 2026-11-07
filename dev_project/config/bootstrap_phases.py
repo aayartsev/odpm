@@ -1,4 +1,4 @@
-"""Individual bootstrap phases for :class:`~dev_project.config.config.Config`."""
+"""Individual bootstrap phases for :class:`~dev_project.config.config.AssembledProject`."""
 
 from __future__ import annotations
 
@@ -22,12 +22,12 @@ from ..project_env.secrets import import_secrets_from_path, read_secrets_source
 from ..secrets_providers.session import session_for_config
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
 
 _logger = get_module_logger(__name__)
 
 
-def load_user_settings(config: Config) -> None:
+def load_user_settings(config: AssembledProject) -> None:
     """Phase 1: create defaults if needed; expand only pre-manifest fields."""
     ctx = config._bootstrap_ctx
     arguments = getattr(config, "arguments", None)
@@ -58,7 +58,7 @@ def load_user_settings(config: Config) -> None:
     config.bootstrap.user_loaded = True
 
 
-def finalize_user_settings_after_secrets(config: Config) -> None:
+def finalize_user_settings_after_secrets(config: AssembledProject) -> None:
     """Phase 2: deep-expand settings after secrets ensure + availability gate.
 
     Preserves ``bootstrap.developing_project`` when it was already bound to a
@@ -79,13 +79,13 @@ def finalize_user_settings_after_secrets(config: Config) -> None:
     _apply_manifest_database_to_user_settings(config)
 
 
-def bind_developing_link(config: Config) -> None:
+def bind_developing_link(config: AssembledProject) -> None:
     bootstrap = config.bootstrap
     if not bootstrap.developing_project:
         message = _("You do not set where developing project is situated. You can set it with --init command. Example: '--init file:///home/user/projects/your_directory_for_project' or directly form git repo --init https://github.com/aayartsev/odoo_demo_project.git'. You also can set it in user_settings.json file in key 'developing_project'")
         _logger.error(message)
         raise ConfigError(message)
-    bootstrap.developing_project = config.handle_git_link(
+    bootstrap.developing_project = config._git_repos.handle_git_link(
         bootstrap.developing_project,
         system_type="standart",
         materialize=False,
@@ -94,7 +94,7 @@ def bind_developing_link(config: Config) -> None:
     config._developing_materializer.materialize_for_odpm_json(config)
 
 
-def load_project_settings(config: Config) -> None:
+def load_project_settings(config: AssembledProject) -> None:
     ctx = config._bootstrap_ctx
     ctx.odpm_json.get_project_odpm_json()
     ctx.odpm_json.get_odpm_settings()
@@ -121,10 +121,10 @@ def load_project_settings(config: Config) -> None:
     config.bootstrap.project_loaded = True
 
 
-def _apply_manifest_database_to_user_settings(config: Config) -> None:
+def _apply_manifest_database_to_user_settings(config: AssembledProject) -> None:
     from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
 
-    view = BootstrapHandle(config=config).manifest_view
+    view = BootstrapHandle(_assembled=config).manifest_view
     if view is None:
         return
     config._user.db_creation_data = merge_db_creation_from_manifest(
@@ -133,13 +133,13 @@ def _apply_manifest_database_to_user_settings(config: Config) -> None:
     )
 
 
-def bind_platform_link(config: Config) -> None:
+def bind_platform_link(config: AssembledProject) -> None:
     bootstrap = config.bootstrap
     odoo_git_link = require_nonempty_git_url(
         config.project_settings.odoo_git_link, field="odoo_git_link"
     )
     config.project_settings.odoo_git_link = odoo_git_link
-    bootstrap.odoo_platform_project = config.handle_git_link(
+    bootstrap.odoo_platform_project = config._git_repos.handle_git_link(
         odoo_git_link,
         system_type="platform",
         materialize=False,
@@ -148,7 +148,7 @@ def bind_platform_link(config: Config) -> None:
 
 
 def normalize_project_requirements(
-    config: Config, requirements_txt: list[str]
+    config: AssembledProject, requirements_txt: list[str]
 ) -> list[str]:
     normalized = config.policy.normalize_requirements(
         requirements_txt,

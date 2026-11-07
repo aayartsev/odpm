@@ -52,7 +52,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
                 project_dir,
                 constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
             )
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
             env.templates.generate_dockerignore()
 
             dockerignore = Path(project_dir) / constants.DOCKERIGNORE
@@ -80,7 +80,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
             config = MagicMock()
             config.project_dir = project_dir
             config.docker_layout.project_dockerignore_template_path = str(project_template)
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
             env.templates.generate_dockerignore()
 
             content = (Path(project_dir) / constants.DOCKERIGNORE).read_text(
@@ -92,7 +92,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
         program_dir = self._program_dir()
         config = MagicMock()
         config.program_dir = program_dir
-        env = CreateProjectEnvironment(BootstrapHandle(config=config))
+        env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
         content = CiImageBuildService(env).read_ci_dockerignore_template()
         self.assertIn("**/.git", content)
         self.assertIn("dev_project/templates/**", content)
@@ -133,7 +133,7 @@ class ProjectDockerignoreTests(unittest.TestCase):
             config.user_env = MagicMock(odpm_scenario=constants.CI_SCENARIO)
             config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
 
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
             env.mapped_folders = []
             CiImageBuildService(env).prepare_ci_build_context()
 

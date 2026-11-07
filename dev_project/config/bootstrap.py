@@ -1,4 +1,4 @@
-"""Ordered bootstrap phases for :class:`~dev_project.config.config.Config`."""
+"""Ordered bootstrap phases for :class:`~dev_project.config.config.AssembledProject`."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ from .state import (
 )
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
 
 __all__ = [
     "bind_developing_link",
@@ -47,7 +47,7 @@ __all__ = [
 
 
 def bootstrap_config(
-    config: Config,
+    config: AssembledProject,
     pd_manager: ProjectDirManager,
     arguments: OdpmCliArgs,
     program_dir: str,
@@ -63,7 +63,7 @@ def bootstrap_config(
 
 
 def init_context(
-    config: Config,
+    config: AssembledProject,
     pd_manager: ProjectDirManager,
     arguments: OdpmCliArgs,
     program_dir: str,

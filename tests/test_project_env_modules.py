@@ -27,7 +27,7 @@ class ProjectTemplatesTests(unittest.TestCase):
             user_env = MagicMock()
 
         config = ConfigStub()
-        CreateProjectEnvironment(BootstrapHandle(config=config))  # type: ignore[arg-type]
+        CreateProjectEnvironment(BootstrapHandle(_assembled=config))  # type: ignore[arg-type]
         self.assertFalse(hasattr(config, "project_env"))
 
     def _program_dir(self) -> str:
@@ -51,7 +51,14 @@ class ProjectTemplatesTests(unittest.TestCase):
             project_dir,
             constants.PROJECT_DOCKERIGNORE_TEMPLATE_FILE_RELATIVE_PATH,
         )
-        return CreateProjectEnvironment(BootstrapHandle(config=config))
+        env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
+        env._host_ctx = MagicMock()
+        env._host_ctx.project_dir = project_dir
+        env._host_ctx.docker_layout = config.docker_layout
+        env._host_ctx.project_settings = config.project_settings
+        env._host_ctx.policy = config.policy
+        env._host_ctx.user_env = config.user_env
+        return env
 
     def test_generate_dockerignore_writes_managed_file(self):
         with tempfile.TemporaryDirectory() as project_dir:
@@ -95,7 +102,13 @@ class ProjectTemplatesTests(unittest.TestCase):
             config.project_settings.distro_name = "debian"
             config.project_settings.distro_version = "13"
             config.project_settings.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
+            env._host_ctx = MagicMock()
+            env._host_ctx.project_dir = project_dir
+            env._host_ctx.docker_layout = config.docker_layout
+            env._host_ctx.project_settings = config.project_settings
+            env._host_ctx.policy = policy
+            env._host_ctx.user_env = config.user_env
             env._templates.generate_dockerfile()
 
             dockerfile = Path(project_dir, constants.DOCKERFILE).read_text(
@@ -124,7 +137,13 @@ class ProjectTemplatesTests(unittest.TestCase):
             config.project_settings.distro_name = "debian"
             config.project_settings.distro_version = "13"
             config.project_settings.distro_version_codename = constants.DISTRO_INFO["debian"]["13"]
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
+            env._host_ctx = MagicMock()
+            env._host_ctx.project_dir = project_dir
+            env._host_ctx.docker_layout = config.docker_layout
+            env._host_ctx.project_settings = config.project_settings
+            env._host_ctx.policy = policy
+            env._host_ctx.user_env = config.user_env
             env._templates.generate_dockerfile()
 
             dockerfile = Path(project_dir, constants.DOCKERFILE).read_text(
@@ -150,7 +169,14 @@ class BaseImageBuilderTests(unittest.TestCase):
         config.user_env = MagicMock()
         config.user_env.project_dotenv_dict.return_value = dict(dotenv)
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
+        host_ctx = MagicMock()
+        host_ctx.project_dir = config.project_dir
+        host_ctx.project_settings = config.project_settings
+        host_ctx.arguments = config.arguments
+        host_ctx.policy = config.policy
+        host_ctx.user_env = config.user_env
+        env.host_ctx = host_ctx
         return BaseImageBuilder(env)
 
     @patch("dev_project.project_env.base_image.run_or_raise")
@@ -343,7 +369,7 @@ class BaseImageServiceTests(unittest.TestCase):
     def test_ensure_base_image_delegates_to_builder(self, mock_ensure):
         config = MagicMock()
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         BaseImageService(env).ensure_base_image()
         mock_ensure.assert_called_once()
 
@@ -359,7 +385,7 @@ class CiImageBuildServiceTests(unittest.TestCase):
         config.docker_layout.ci_build_context_dir = "/tmp/project/.odpm/ci-build-context"
         config.arguments = OdpmCliArgs()
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         env.host_ctx = MagicMock()
         env.host_ctx.arguments = config.arguments
         env.mapped_folders = []

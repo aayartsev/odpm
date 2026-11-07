@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import json
 import os
 import subprocess
@@ -12,7 +14,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.config import Config, config_to_json
+from dev_project.config.config import AssembledProject
+from dev_project.config import config_to_json
 from dev_project.config.state import (
     AddonLayoutState,
     DockerLayoutState,
@@ -28,6 +31,7 @@ from dev_project.project_env.links import ProjectLinks
 from dev_project.scenario_policy import ScenarioPolicy
 
 from tests.test_deps_lock_integration import _config_stub, _git_link_at, _init_git_repo
+from tests.test_project_env_links import _wire_host_ctx_from_config
 
 
 def _commit_file(repo_path: str, filename: str, content: str) -> None:
@@ -47,8 +51,8 @@ def _cloned_link(repo_path: str, url: str):
     return link
 
 
-def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) -> Config:
-    config = Config.__new__(Config)
+def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) -> AssembledProject:
+    config = AssembledProject.__new__(AssembledProject)
     config._project = ProjectSettingsState(
         odoo_version="17.0",
         python_version="3.12",
@@ -60,10 +64,11 @@ def _map_folders_config_stub(*, scenario: str = constants.DEVELOPER_SCENARIO) ->
     config.user_env = MagicMock()
     config.user_env.debugger_backend = "debugpy_listen"
     config.arguments = OdpmCliArgs(no_git_update=False)
-    config.skip_git_update = Config.skip_git_update.__get__(config, Config)
-    config.apply_nested_compatibility = Config.apply_nested_compatibility.__get__(
-        config, Config
-    )
+    config.skip_git_update = AssembledProject.skip_git_update.__get__(config, AssembledProject)
+    def _apply_nested(fragments=None):
+        from dev_project.host.ports import BootstrapHandle
+        BootstrapHandle(_assembled=config).apply_nested_compatibility(fragments)
+    config.apply_nested_compatibility = _apply_nested
     config._docker = DockerLayoutState(
         venv_dir="/tmp/venv",
         odoo_tests_dir="/tmp/tests",
@@ -141,7 +146,10 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
             config = _map_folders_config_stub()
             config.project_settings.dependencies = [framework_url]
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
-            env = MagicMock(bootstrap=MagicMock(config=config))
+            config._git_repos = MagicMock()
+            config._git_repos.handle_git_link = config.handle_git_link
+            env = MagicMock(bootstrap=BootstrapHandle(_assembled=config))
+            _wire_host_ctx_from_config(env)
             links = ProjectLinks(env)
             links.checkout_project = MagicMock()
 
@@ -181,7 +189,7 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
             )
             config.seed_dependency_urls = MagicMock(return_value=[framework_url])
 
-            DepsLockManager(config).collect_and_save()
+            DepsLockManager(BootstrapHandle(_assembled=config)).collect_and_save()
 
             lock = load_deps_lock(os.path.join(project_dir, ".odpm", "deps.lock.json"))
             self.assertIsNotNone(lock)
@@ -201,7 +209,10 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
-        env = MagicMock(bootstrap=MagicMock(config=config))
+        config._git_repos = MagicMock()
+        config._git_repos.handle_git_link = config.handle_git_link
+        env = MagicMock(bootstrap=BootstrapHandle(_assembled=config))
+        _wire_host_ctx_from_config(env)
         env.mapped_folders = []
         links = ProjectLinks(env)
 
@@ -225,7 +236,10 @@ class NestedOdpmIntegrationTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
-        env = MagicMock(bootstrap=MagicMock(config=config))
+        config._git_repos = MagicMock()
+        config._git_repos.handle_git_link = config.handle_git_link
+        env = MagicMock(bootstrap=BootstrapHandle(_assembled=config))
+        _wire_host_ctx_from_config(env)
         env.mapped_folders = []
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(

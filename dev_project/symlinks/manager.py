@@ -19,34 +19,25 @@ class SymlinkManager:
         self,
         bootstrap: BootstrapHandle,
         *,
-        host_ctx: HostProjectContext | None = None,
+        host_ctx: HostProjectContext,
     ) -> None:
         self.bootstrap = bootstrap
-        self._host_ctx_override = host_ctx
-        self._host_ctx_cached: HostProjectContext | None = None
-
-    @property
-    def _host_ctx(self) -> HostProjectContext:
-        if self._host_ctx_override is not None:
-            return self._host_ctx_override
-        if self._host_ctx_cached is None:
-            from ..host.context import HostProjectContext  # noqa: PLC0415  # optional
-
-            self._host_ctx_cached = HostProjectContext.from_config(self.bootstrap.config)
-        return self._host_ctx_cached
+        self.host_ctx = host_ctx
 
     def _dependencies_link_dir(self) -> str:
-        if self.bootstrap.config.docker_layout.dependencies_dir:
-            return self.bootstrap.config.docker_layout.dependencies_dir
-        if self.bootstrap.config.project_dir:
-            return os.path.join(self.bootstrap.config.project_dir, constants.DEPENDENCIES_DIR)
+        layout = self.host_ctx.docker_layout
+        if layout.dependencies_dir:
+            return layout.dependencies_dir
+        if self.host_ctx.project_dir:
+            return os.path.join(self.host_ctx.project_dir, constants.DEPENDENCIES_DIR)
         return ""
 
     def _service_sources_link_dir(self) -> str:
-        if getattr(self.bootstrap.config, "service_sources_dir", None):
-            return self.bootstrap.config.docker_layout.service_sources_dir
-        if self.bootstrap.config.project_dir:
-            return os.path.join(self.bootstrap.config.project_dir, constants.SERVICE_SOURCES_DIR)
+        layout = self.host_ctx.docker_layout
+        if layout.service_sources_dir:
+            return layout.service_sources_dir
+        if self.host_ctx.project_dir:
+            return os.path.join(self.host_ctx.project_dir, constants.SERVICE_SOURCES_DIR)
         return ""
 
     def ensure_link(
@@ -80,9 +71,9 @@ class SymlinkManager:
         self._record_symlink(target_path, link_path)
 
     def ensure_project_repo_link(self, target_path: str) -> None:
-        if not self.bootstrap.config.project_dir:
+        if not self.host_ctx.project_dir:
             return
-        self.ensure_link(self.bootstrap.config.project_dir, target_path)
+        self.ensure_link(self.host_ctx.project_dir, target_path)
 
     def ensure_dependency_repo_link(self, target_path: str) -> None:
         link_dir = self._dependencies_link_dir()
@@ -117,40 +108,38 @@ class SymlinkManager:
                 os.unlink(link_path)
 
     def update_links(self) -> None:
-        if (
-            not os.path.exists(self.bootstrap.config.docker_layout.dependencies_dir)
-            and self.bootstrap.config.docker_layout.dependencies_dirs
-        ):
-            os.mkdir(self.bootstrap.config.docker_layout.dependencies_dir)
+        layout = self.host_ctx.docker_layout
+        if not os.path.exists(layout.dependencies_dir) and layout.dependencies_dirs:
+            os.mkdir(layout.dependencies_dir)
         self._delete_old_links(
-            self.bootstrap.config.project_dir,
-            self.bootstrap.config.docker_layout.list_for_symlinks,
+            self.host_ctx.project_dir,
+            layout.list_for_symlinks,
         )
         self._create_new_links(
-            self.bootstrap.config.project_dir,
-            self.bootstrap.config.docker_layout.list_for_symlinks,
+            self.host_ctx.project_dir,
+            layout.list_for_symlinks,
         )
-        if self.bootstrap.config.docker_layout.dependencies_dirs:
+        if layout.dependencies_dirs:
             self._delete_old_links(
-                self.bootstrap.config.docker_layout.dependencies_dir,
-                self.bootstrap.config.docker_layout.dependencies_dirs,
+                layout.dependencies_dir,
+                layout.dependencies_dirs,
             )
             self._create_new_links(
-                self.bootstrap.config.docker_layout.dependencies_dir,
-                self.bootstrap.config.docker_layout.dependencies_dirs,
+                layout.dependencies_dir,
+                layout.dependencies_dirs,
             )
         list_of_all_modules = []
-        for catalog_of_modules in self._host_ctx.addon_layout.catalogs_of_modules_data:
+        for catalog_of_modules in self.host_ctx.addon_layout.catalogs_of_modules_data:
             list_of_all_modules.extend(catalog_of_modules.list_of_modules)
 
         if list_of_all_modules:
             odoo_src_addons_dir = os.path.join(
-                self.bootstrap.config.odoo_src_dir,
-                self.bootstrap.config.project_settings.platform_name,
+                self.bootstrap.odoo_src_dir,
+                self.host_ctx.project_settings.platform_name,
                 "addons",
             )
             self._delete_old_links(odoo_src_addons_dir, list_of_all_modules)
-            if self.bootstrap.config.user_settings.create_module_links:
+            if self.host_ctx.user_settings.create_module_links:
                 self._create_new_links(odoo_src_addons_dir, list_of_all_modules)
 
     @staticmethod
@@ -171,10 +160,11 @@ class SymlinkManager:
             self.ensure_link(dir_to_create, dep_for_link)
 
     def _record_symlink(self, source_path: str, link_path: str) -> None:
-        for entry in self.bootstrap.config.docker_layout.symlinks_sources:
+        layout = self.host_ctx.docker_layout
+        for entry in layout.symlinks_sources:
             if entry.link_path == link_path:
                 return
-        self.bootstrap.config.docker_layout.symlinks_sources.append(
+        layout.symlinks_sources.append(
             SymlinksSources(
                 source_path=source_path,
                 link_path=link_path,

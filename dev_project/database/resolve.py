@@ -20,7 +20,6 @@ from .state import save_current_database_baseline
 from .status import collect_database_status
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.cli.args import OdpmCliArgs
     from ..host.ports import BootstrapHandle
     from ..prepare.types import PrepareContext
@@ -161,7 +160,7 @@ def _resolve_postgres_major(ctx: PrepareContext, drift: DatabaseDrift) -> None:
     if choice == "a":
         _abort_resolution()
     if choice == "c":
-        data_path = os.path.realpath(ctx.ports.bootstrap.config.postgres_data_local_storage)
+        data_path = os.path.realpath(ctx.ports.bootstrap.postgres_data_local_storage)
         _logger.info(
             _MSG_WIPE_POSTGRES_MAJOR.format(
                 DATA_PATH=data_path,

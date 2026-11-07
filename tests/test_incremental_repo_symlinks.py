@@ -8,6 +8,7 @@ from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.errors import GitError
 from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.links import ProjectLinks
 from dev_project.symlinks import ensure_git_repo_symlink
 
@@ -62,14 +63,17 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
             config.user_settings.clean_git_repos = False
             config.project_settings.odoo_version = "17.0"
             config.docker_layout.symlinks_sources = []
-            config.ensure_git_repo_symlink = lambda path, *, scope: ensure_git_repo_symlink(
-                config, path, scope=scope
+            config.ensure_git_repo_symlink = (
+                lambda path, *, scope: ensure_git_repo_symlink(
+                    BootstrapHandle(_assembled=config), path, scope=scope
+                )
             )
             config.ensure_developing_repo_symlinks = MagicMock()
 
             env = MagicMock()
-            env.bootstrap = MagicMock(config=config)
+            env.bootstrap = BootstrapHandle(_assembled=config)
             env.host_ctx = MagicMock()
+            env.host_ctx.project_dir = config.project_dir
             env.host_ctx.user_settings = config.user_settings
             env.host_ctx.project_settings = config.project_settings
             env.host_ctx.docker_layout = config.docker_layout
@@ -105,8 +109,10 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
             config._developing_materializer.materialize_full = MagicMock()
             config.odoo_platform_project = MagicMock(project_path=platform_path)
             config.odoo_platform_project.build_project = MagicMock()
-            config.ensure_git_repo_symlink = lambda path, *, scope: ensure_git_repo_symlink(
-                config, path, scope=scope
+            config.ensure_git_repo_symlink = (
+                lambda path, *, scope: ensure_git_repo_symlink(
+                    BootstrapHandle(_assembled=config), path, scope=scope
+                )
             )
             config.ensure_developing_repo_symlinks = MagicMock()
 

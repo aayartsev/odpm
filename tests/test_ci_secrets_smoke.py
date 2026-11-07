@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import json
 import os
 import tempfile
@@ -14,7 +16,6 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.prepare import make_prepare_context
 from dev_project.prepare.steps_secrets import evaluate_secrets_materialize
 from dev_project.project_env import CreateProjectEnvironment
-from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.secrets import (
     bake_secrets_enabled,
     import_secrets_from_path,
@@ -127,7 +128,7 @@ class CiSecretsBakeTests(unittest.TestCase):
         config.secrets_fetch_session = SecretsFetchSession()
         config.bootstrap = MagicMock()
         config.bootstrap.manifest_view = None
-        env = CreateProjectEnvironment(BootstrapHandle(config=config))
+        env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
         env.mapped_folders = []
         return env
 
@@ -218,14 +219,14 @@ class CiSecretsBakeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             write_secrets_source(project_dir, {"payment.api_key": "stale-yesterday"})
             env = self._make_ci_env(project_dir)
-            env.bootstrap.config.arguments = OdpmCliArgs(secrets_provider="fake")
+            env.bootstrap._assembled.arguments = OdpmCliArgs(secrets_provider="fake")
             with patch.dict(os.environ, {constants.ODPM_BAKE_SECRETS_ENV: "1"}):
                 self.assertTrue(
-                    prepare_secrets_for_ci_bake(project_dir, env.bootstrap.config)
+                    prepare_secrets_for_ci_bake(project_dir, env.bootstrap)
                 )
                 self.assertEqual(provider.calls, 1)
                 self.assertTrue(
-                    prepare_secrets_for_ci_bake(project_dir, env.bootstrap.config)
+                    prepare_secrets_for_ci_bake(project_dir, env.bootstrap)
                 )
             self.assertEqual(provider.calls, 1)
             payload = json.loads(

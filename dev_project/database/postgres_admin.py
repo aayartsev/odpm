@@ -20,7 +20,7 @@ from .compose_exec import (
 from .postgres_paths import postgres_pgdata_path
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.ports import BootstrapHandle
 
 _logger = get_module_logger(__name__)
 
@@ -53,15 +53,15 @@ def _exec_users() -> tuple[str | None, ...]:
 
 
 def _run_psql(
-    config: Config,
+    bootstrap: BootstrapHandle,
     pg_role: str,
     database: str,
     *psql_args: str,
     exec_user: str | None = constants.POSTGRES_CONTAINER_OS_USER,
 ) -> CommandResult:
     return compose_exec(
-        config,
-        postgres_service_name(config),
+        bootstrap,
+        postgres_service_name(bootstrap),
         "psql",
         "-U",
         pg_role,
@@ -72,10 +72,10 @@ def _run_psql(
     )
 
 
-def psql_role_connects(config: Config, pg_role: str, *, database: str = "postgres") -> bool:
+def psql_role_connects(bootstrap: BootstrapHandle, pg_role: str, *, database: str = "postgres") -> bool:
     for exec_user in _exec_users():
         result = _run_psql(
-            config,
+            bootstrap,
             pg_role,
             database,
             "-tAc",
@@ -87,22 +87,22 @@ def psql_role_connects(config: Config, pg_role: str, *, database: str = "postgre
     return False
 
 
-def resolve_psql_admin_role(config: Config) -> str | None:
+def resolve_psql_admin_role(bootstrap: BootstrapHandle) -> str | None:
     for role in admin_role_candidates():
-        if psql_role_connects(config, role):
+        if psql_role_connects(bootstrap, role):
             return role
     return None
 
 
 def wait_for_psql_admin_role(
-    config: Config,
+    bootstrap: BootstrapHandle,
     *,
     timeout_seconds: int = _PSQL_ADMIN_WAIT_TIMEOUT_SECONDS,
     poll_seconds: float = _PSQL_ADMIN_POLL_SECONDS,
 ) -> str:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        admin_role = resolve_psql_admin_role(config)
+        admin_role = resolve_psql_admin_role(bootstrap)
         if admin_role is not None:
             return admin_role
         time.sleep(poll_seconds)
@@ -112,13 +112,13 @@ def wait_for_psql_admin_role(
 
 
 def run_psql_as_admin(
-    config: Config,
+    bootstrap: BootstrapHandle,
     *psql_args: str,
     database: str = "postgres",
 ) -> CommandResult:
-    admin_role = resolve_psql_admin_role(config)
+    admin_role = resolve_psql_admin_role(bootstrap)
     if admin_role is None:
-        service = postgres_service_name(config)
+        service = postgres_service_name(bootstrap)
         return CommandResult(
             1,
             "",
@@ -127,7 +127,7 @@ def run_psql_as_admin(
     last_result: CommandResult | None = None
     for exec_user in _exec_users():
         last_result = _run_psql(
-            config,
+            bootstrap,
             admin_role,
             database,
             *psql_args,
@@ -139,25 +139,25 @@ def run_psql_as_admin(
     return last_result
 
 
-def bootstrap_app_role_single_user(config: Config, sql: str) -> None:
+def bootstrap_app_role_single_user(bootstrap: BootstrapHandle, sql: str) -> None:
     """Create roles via postgres --single when no admin login role is available."""
-    service = postgres_service_name(config)
+    service = postgres_service_name(bootstrap)
     role = constants.POSTGRES_ODOO_USER
     _logger.info(_MSG_BOOTSTRAP_SINGLE_USER.format(ROLE=role))
 
-    compose_stop_service(config, service)
+    compose_stop_service(bootstrap, service)
     result = compose_run(
-        config,
+        bootstrap,
         service,
         "--single",
         "-D",
-        postgres_pgdata_path(config.project_settings.postgres_version),
+        postgres_pgdata_path(bootstrap.project_settings.postgres_version),
         "postgres",
         user=constants.POSTGRES_CONTAINER_OS_USER,
         entrypoint="postgres",
         input_text=sql if sql.endswith("\n") else f"{sql}\n",
     )
-    up_result = compose_up_service_detached(config, service)
+    up_result = compose_up_service_detached(bootstrap, service)
     if up_result.returncode != 0:
         detail = up_result.stderr.strip() or up_result.stdout.strip()
         message = _MSG_BOOTSTRAP_FAILED.format(ROLE=role)
@@ -170,21 +170,21 @@ def bootstrap_app_role_single_user(config: Config, sql: str) -> None:
         if detail:
             message = f"{message} {detail}"
         raise OdpmError(message)
-    _wait_for_postgres_ready(config)
+    _wait_for_postgres_ready(bootstrap)
 
 
 def _wait_for_postgres_ready(
-    config: Config,
+    bootstrap: BootstrapHandle,
     *,
     timeout_seconds: int = 120,
     poll_seconds: float = 2,
 ) -> None:
     from .probe import probe_postgres_ready  # noqa: PLC0415  # cycle
 
-    service = postgres_service_name(config)
+    service = postgres_service_name(bootstrap)
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        if probe_postgres_ready(config) is True:
+        if probe_postgres_ready(bootstrap) is True:
             return
         time.sleep(poll_seconds)
     raise OdpmError(

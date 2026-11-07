@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -15,7 +17,6 @@ from dev_project.database.postgres_admin import (
     run_psql_as_admin,
 )
 from dev_project.errors import OdpmError
-from dev_project.host.ports import BootstrapHandle
 
 
 def _postgres_config() -> MagicMock:
@@ -37,17 +38,17 @@ class ResolvePsqlAdminRoleTests(unittest.TestCase):
 
     @patch.object(postgres_admin, "psql_role_connects", side_effect=[False, True])
     def test_returns_app_role_when_admin_unavailable(self, _mock_connect):
-        self.assertEqual(resolve_psql_admin_role(self._config()), "odoo")
+        self.assertEqual(resolve_psql_admin_role(BootstrapHandle(_assembled=self._config())), "odoo")
 
     @patch.object(postgres_admin, "psql_role_connects", return_value=True)
     def test_returns_admin_role_when_available(self, _mock_connect):
         self.assertEqual(
-            resolve_psql_admin_role(self._config()), constants.POSTGRES_ADMIN_USER
+            resolve_psql_admin_role(BootstrapHandle(_assembled=self._config())), constants.POSTGRES_ADMIN_USER
         )
 
     @patch.object(postgres_admin, "psql_role_connects", return_value=False)
     def test_returns_none_when_no_role_works(self, _mock_connect):
-        self.assertIsNone(resolve_psql_admin_role(self._config()))
+        self.assertIsNone(resolve_psql_admin_role(BootstrapHandle(_assembled=self._config())))
 
 
 class RunPsqlAsAdminTests(unittest.TestCase):
@@ -56,15 +57,23 @@ class RunPsqlAsAdminTests(unittest.TestCase):
     def test_uses_resolved_admin_role(self, mock_run, _mock_resolve):
         config = _postgres_config()
         mock_run.return_value = MagicMock(returncode=0, stdout="1", stderr="")
-        result = run_psql_as_admin(config, "-tAc", "SELECT 1")
-        self.assertEqual(result.returncode, 0)
-        mock_run.assert_called_once_with(
-            config, "odoo", "postgres", "-tAc", "SELECT 1", exec_user="postgres"
+        result = run_psql_as_admin(
+            BootstrapHandle(_assembled=config), "-tAc", "SELECT 1"
         )
+        self.assertEqual(result.returncode, 0)
+        mock_run.assert_called_once()
+        self.assertIs(mock_run.call_args.args[0]._assembled, config)
+        self.assertEqual(
+            mock_run.call_args.args[1:],
+            ("odoo", "postgres", "-tAc", "SELECT 1"),
+        )
+        self.assertEqual(mock_run.call_args.kwargs, {"exec_user": "postgres"})
 
     @patch.object(postgres_admin, "resolve_psql_admin_role", return_value=None)
     def test_fails_when_admin_missing(self, _mock_resolve):
-        result = run_psql_as_admin(_postgres_config(), "-c", "SELECT 1")
+        result = run_psql_as_admin(
+            BootstrapHandle(_assembled=_postgres_config()), "-c", "SELECT 1"
+        )
         self.assertNotEqual(result.returncode, 0)
 
 
@@ -81,7 +90,7 @@ class BootstrapAppRoleSingleUserTests(unittest.TestCase):
     ):
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         mock_up.return_value = MagicMock(returncode=0, stdout="", stderr="")
-        bootstrap_app_role_single_user(self._config(), "CREATE ROLE odoo;")
+        bootstrap_app_role_single_user(BootstrapHandle(_assembled=self._config()), "CREATE ROLE odoo;")
         mock_stop.assert_called_once()
         mock_run.assert_called_once()
         mock_up.assert_called_once()
@@ -96,7 +105,7 @@ class BootstrapAppRoleSingleUserTests(unittest.TestCase):
         mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="boom")
         mock_up.return_value = MagicMock(returncode=0, stdout="", stderr="")
         with self.assertRaises(OdpmError):
-            bootstrap_app_role_single_user(self._config(), "CREATE ROLE odoo;")
+            bootstrap_app_role_single_user(BootstrapHandle(_assembled=self._config()), "CREATE ROLE odoo;")
 
 
 class EnsureAppRoleAdminIntegrationTests(unittest.TestCase):
@@ -117,7 +126,7 @@ class EnsureAppRoleAdminIntegrationTests(unittest.TestCase):
     ):
         mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
         config = _postgres_config()
-        result = ensure_role_mod.ensure_app_role(BootstrapHandle(config=config))
+        result = ensure_role_mod.ensure_app_role(BootstrapHandle(_assembled=config))
         mock_bootstrap.assert_called_once()
         self.assertEqual(mock_psql.call_count, 2)
         self.assertEqual(result.outcome, "created")

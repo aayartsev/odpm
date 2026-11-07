@@ -20,7 +20,7 @@ from dev_project.extensions.registry import (
 from dev_project.extensions.reference.mailpit import MAILPIT_SERVICE_SPEC
 from dev_project.compose.fragments import render_compose_services_block
 from dev_project.prepare.execute import execute_prepare
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.runtime import HostRuntimeState
@@ -29,6 +29,7 @@ from dev_project.manifest.reader import load_manifest
 from tests.test_manifest_v2_reader import _minimal_v2
 
 
+from dev_project.config.assembly import ports_from_assembled
 class _RecordingHookRunner:
     name = "test.hooks.recorder"
 
@@ -287,9 +288,9 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         config.runtime.no_log_prefix = False
         config.docker_layout.odoo_image_name = "odoo:dev"
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         coordinator = RuntimeCoordinator(
-            ports_from_config(
+            ports_from_assembled(
                 config, project_env, OdpmCliArgs(skip_start=False)
             ).runtime
         )

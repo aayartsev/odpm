@@ -40,7 +40,7 @@ class AddonLayoutPortsTests(unittest.TestCase):
         self.assertEqual(
             offenders,
             [],
-            msg="read addon catalogs through host_ctx.addon_layout, not Config shims",
+            msg="read addon catalogs through host_ctx.addon_layout, not AssembledProject shims",
         )
 
     def test_catalog_access_lines_use_host_ctx_addon_layout(self):

@@ -13,18 +13,18 @@ from .paths import ConfigPaths
 from .transforms import OdooBuildDateResolver
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
 from .manifests.odpm_json_writer import rewrite_odpm_json
 import sys
 
 
-def _rewrite_odpm_json_impl(config: Config, *, create_default) -> None:
+def _rewrite_odpm_json_impl(config: AssembledProject, *, create_default) -> None:
 
     rewrite_odpm_json(config, create_default=create_default)
 
 
 class ConfigBootstrapContext:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: AssembledProject) -> None:
         self.config = config
         self._wire_services()
 

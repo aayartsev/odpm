@@ -13,8 +13,8 @@ from ..manifest.locks import (
     LockSource,
     compare_manifest_and_deps_git_locks,
     deps_lock_from_manifest_git_locks,
-    developing_git_link_from_config,
-    manifest_git_locks_from_config,
+    developing_git_link_from_bootstrap,
+    manifest_git_locks_from_bootstrap,
     resolve_lock_source,
     write_manifest_git_locks_from_deps_lock,
 )
@@ -38,25 +38,23 @@ from .deps_lock import (
 from ..host.ports import BootstrapHandle
 
 if TYPE_CHECKING:
-    from ..config import Config
     from .link import HandleOdooProjectLink
 
 _logger = get_module_logger(__name__)
 
 
-def _bootstrap_handle(config: Config) -> BootstrapHandle:
-    return BootstrapHandle(config=config)
-
-
 class DepsLockManager:
-    def __init__(self, config: Config) -> None:
-        self._config = config
-        self._path = deps_lock_path(config.project_dir)
+    def __init__(self, bootstrap: BootstrapHandle) -> None:
+        self._bootstrap = bootstrap
+        # Prefer duck-typed config attributes so incomplete test stubs keep working;
+        # full HostProjectContext assembly is not required for lock orchestration.
+        self._path = deps_lock_path(bootstrap.project_dir)
         self._lock: DepsLock | None = None
         self._lock_source = LockSource.DEPS_FILE
         self._apply_mode = False
         self._pinned_urls: set[str] = set()
-        self._strict = config.policy.is_ci()
+        policy = getattr(bootstrap, "policy", None)
+        self._strict = bool(policy.is_ci()) if policy is not None else False
 
     @property
     def lock_source(self) -> LockSource:
@@ -67,9 +65,9 @@ class DepsLockManager:
         return self._apply_mode
 
     def load(self) -> DepsLock | None:
-        self._lock_source = resolve_lock_source(self._config)
+        self._lock_source = resolve_lock_source(self._bootstrap)
         if self._lock_source == LockSource.MANIFEST:
-            view = _bootstrap_handle(self._config).manifest_view
+            view = self._bootstrap.manifest_view
             locks = (view.locks if view is not None else None) or {}
             git_locks = locks.get("git") or {}
             if not isinstance(git_locks, dict):
@@ -77,10 +75,10 @@ class DepsLockManager:
             try:
                 self._lock = deps_lock_from_manifest_git_locks(
                     git_locks,
-                    platform_git_link=self._config.project_settings.odoo_git_link,
-                    developing_git_link=developing_git_link_from_config(self._config),
+                    platform_git_link=self._bootstrap.project_settings.odoo_git_link,
+                    developing_git_link=developing_git_link_from_bootstrap(self._bootstrap),
                     dependency_git_links=list(
-                        self._config.project_settings.dependencies
+                        self._bootstrap.project_settings.dependencies
                     ),
                 )
             except ValueError as exc:
@@ -128,7 +126,7 @@ class DepsLockManager:
     def apply_to_developing(self, developing: HandleOdooProjectLink) -> None:
         if not self._apply_mode or self._lock is None or self._lock.developing is None:
             return
-        if self._config.policy.is_developer():
+        if self._bootstrap.policy.is_developer():
             _logger.info(
                 _(
                     "Skipping developing lock apply in developer scenario; "
@@ -172,7 +170,7 @@ class DepsLockManager:
         if (
             self._lock.developing is not None
             and is_remote_git_link(developing)
-            and not self._config.policy.is_developer()
+            and not self._bootstrap.policy.is_developer()
         ):
             self._verify_entry(developing, self._lock.developing, label="developing")
         resolved_urls = {repo_url_for_link(project) for project in dependencies}
@@ -189,11 +187,11 @@ class DepsLockManager:
         *,
         developing: HandleOdooProjectLink | None = None,
     ) -> None:
-        platform = self._config.odoo_platform_project
+        platform = self._bootstrap.odoo_platform_project
         platform_entry = self._entry_from_project(platform)
         dependency_entries = [
             self._entry_from_project(project)
-            for project in self._config.docker_layout.dependencies_projects
+            for project in self._bootstrap.docker_layout.dependencies_projects
         ]
         developing_entry = None
         if developing is not None and is_remote_git_link(developing):
@@ -212,17 +210,17 @@ class DepsLockManager:
         self._maybe_sync_manifest_git_locks(lock)
 
     def _sync_manifest_locks_requested(self) -> bool:
-        arguments = getattr(self._config, "arguments", None)
+        arguments = getattr(self._bootstrap, "arguments", None)
         return bool(getattr(arguments, "sync_manifest_locks", False))
 
     def _maybe_sync_manifest_git_locks(self, lock: DepsLock) -> None:
-        view = _bootstrap_handle(self._config).manifest_view
+        view = self._bootstrap.manifest_view
         is_v2 = (
             view is not None
             and view.manifest_schema == constants.MANIFEST_SCHEMA_V2
         )
         if not self._sync_manifest_locks_requested():
-            if is_v2 and self._config.policy.is_developer():
+            if is_v2 and self._bootstrap.policy.is_developer():
                 _logger.info(
                     _(
                         "Wrote .odpm/deps.lock.json; manifest locks.git unchanged "
@@ -230,7 +228,7 @@ class DepsLockManager:
                     )
                 )
             return
-        if not self._config.policy.is_developer():
+        if not self._bootstrap.policy.is_developer():
             _logger.warning(
                 _(
                     "--sync-manifest-locks is only supported in developer scenario; "
@@ -240,7 +238,7 @@ class DepsLockManager:
             return
         if not is_v2:
             return
-        manifest_path = self._config.repo_odpm_json
+        manifest_path = self._bootstrap.repo_odpm_json
         if write_manifest_git_locks_from_deps_lock(manifest_path, lock):
             _logger.info(
                 _("Wrote locks.git to {PATH}").format(PATH=manifest_path)
@@ -248,19 +246,19 @@ class DepsLockManager:
 
     def apply_pinned_locks(self) -> None:
         """Apply loaded lock entries to platform, developing, and dependency repos."""
-        self.apply_to_platform(self._config.odoo_platform_project)
-        self.apply_to_developing(self._config.developing_project)
-        self.apply_to_dependencies(self._config.docker_layout.dependencies_projects)
+        self.apply_to_platform(self._bootstrap.odoo_platform_project)
+        self.apply_to_developing(self._bootstrap.developing_project)
+        self.apply_to_dependencies(self._bootstrap.docker_layout.dependencies_projects)
 
     def collect_and_save_from_config(self) -> None:
-        self.collect_and_save(developing=self._config.developing_project)
+        self.collect_and_save(developing=self._bootstrap.developing_project)
 
     def verify_pinned_checkout(self) -> None:
         self._warn_manifest_deps_lock_divergence()
         self.verify_after_checkout(
-            platform=self._config.odoo_platform_project,
-            developing=self._config.developing_project,
-            dependencies=self._config.docker_layout.dependencies_projects,
+            platform=self._bootstrap.odoo_platform_project,
+            developing=self._bootstrap.developing_project,
+            dependencies=self._bootstrap.docker_layout.dependencies_projects,
         )
         self.verify_service_sources()
 
@@ -272,14 +270,14 @@ class DepsLockManager:
     def verify_service_sources(self) -> None:
         if not self._apply_mode or self._lock is None:
             return
-        view = _bootstrap_handle(self._config).manifest_view
+        view = self._bootstrap.manifest_view
         declared = (
             dict(view.service_sources)
             if view is not None and view.service_sources
             else {}
         )
         self._check_stale_service_source_entries(declared)
-        paths = getattr(self._config.bootstrap, "service_source_paths", {}) or {}
+        paths = self._bootstrap.service_source_paths
         for name, entry in self._lock.service_sources.items():
             if name not in declared:
                 continue
@@ -288,7 +286,7 @@ class DepsLockManager:
                 project_path = paths.get(name)
                 if not project_path:
                     continue
-                link = self._config.handle_git_link(git_link, materialize=False)
+                link = self._bootstrap.handle_git_link(git_link, materialize=False)
                 link.project_path = project_path
                 self._verify_entry(link, entry, label=f"service_source {name}")
                 continue
@@ -299,7 +297,7 @@ class DepsLockManager:
                     "run prepare without --no-git-update"
                 )
                 continue
-            link = self._config.handle_git_link(git_link, materialize=False)
+            link = self._bootstrap.handle_git_link(git_link, materialize=False)
             link.project_path = project_path
             link.dir_to_clone = os.path.dirname(project_path)
             self._verify_entry(link, entry, label=f"service_source {name}")
@@ -314,7 +312,7 @@ class DepsLockManager:
         except ValueError:
             return
         divergences = compare_manifest_and_deps_git_locks(
-            manifest_git_locks_from_config(self._config),
+            manifest_git_locks_from_bootstrap(self._bootstrap),
             file_lock,
         )
         for detail in divergences:
@@ -342,11 +340,11 @@ class DepsLockManager:
         )
 
     def _collect_service_source_entries(self) -> dict[str, LockEntry]:
-        view = _bootstrap_handle(self._config).manifest_view
+        view = self._bootstrap.manifest_view
         sources = view.service_sources if view is not None else None
         if not sources:
             return {}
-        paths = getattr(self._config.bootstrap, "service_source_paths", {}) or {}
+        paths = self._bootstrap.service_source_paths
         entries: dict[str, LockEntry] = {}
         for name, git_link in sources.items():
             link_text = git_link.strip()
@@ -355,7 +353,7 @@ class DepsLockManager:
             project_path = paths.get(name)
             if not project_path:
                 continue
-            link = self._config.handle_git_link(link_text, materialize=False)
+            link = self._bootstrap.handle_git_link(link_text, materialize=False)
             link.project_path = project_path
             if link_text.startswith("file://"):
                 entries[name] = LockEntry(
@@ -393,7 +391,7 @@ class DepsLockManager:
     def _check_seed_coverage(self) -> None:
         if self._lock is None:
             return
-        for seed_url in self._config.seed_dependency_urls():
+        for seed_url in self._bootstrap.seed_dependency_urls():
             if entry_for_url(self._lock, seed_url) is None:
                 self._report_issue(
                     f"Seed dependency {seed_url!r} is missing from deps.lock.json; "

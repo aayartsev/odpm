@@ -19,29 +19,30 @@ from .secrets_policy import collect_secrets_requirement_issues
 from .schema import validate_manifest_v1, validate_manifest_v2
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.cli.args import OdpmCliArgs
-    from ..host.ports import PipelinePorts
+    from ..host.context import HostProjectContext
+    from ..host.ports import BootstrapHandle, PipelinePorts
 
 _logger = get_module_logger(__name__)
 
 
 def run_manifest_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
-    config = ports.bootstrap.config
+    bootstrap = ports.bootstrap
+    host_ctx = ports.plan.host_ctx
     subcommand = cli_args.manifest_subcommand
     if subcommand == "migrate":
-        return _run_manifest_migrate(cli_args, config)
+        return _run_manifest_migrate(cli_args, bootstrap, host_ctx)
     if subcommand == "validate":
-        return _run_manifest_validate(config)
+        return _run_manifest_validate(bootstrap, host_ctx)
     raise ConfigError(
         _('manifest subcommand required: use "odpm manifest migrate" or '
           '"odpm manifest validate".')
     )
 
 
-def _read_manifest_json(config: Config) -> tuple[str, dict]:
-    manifest_path = config.repo_odpm_json
-    if not os.path.isfile(manifest_path):
+def _read_manifest_json(bootstrap: BootstrapHandle) -> tuple[str, dict]:
+    manifest_path = bootstrap.repo_odpm_json
+    if not isinstance(manifest_path, str) or not os.path.isfile(manifest_path):
         raise ConfigError(
             _("Manifest file not found at {PATH}.").format(PATH=manifest_path)
         )
@@ -52,14 +53,16 @@ def _read_manifest_json(config: Config) -> tuple[str, dict]:
     return manifest_path, raw
 
 
-def _run_manifest_validate(config: Config) -> int:
-    manifest_path, raw = _read_manifest_json(config)
+def _run_manifest_validate(
+    bootstrap: BootstrapHandle, host_ctx: HostProjectContext
+) -> int:
+    manifest_path, raw = _read_manifest_json(bootstrap)
     assert_manager_supports_manifest(raw)
     info = parse_manifest_version_info(raw)
     if info.manifest_schema == constants.MANIFEST_SCHEMA_V2:
         validate_manifest_v2(raw)
         schema_label = "v2"
-        network_logical = getattr(config.user_env, "compose_network_logical", None)
+        network_logical = getattr(host_ctx.user_env, "compose_network_logical", None)
         if not isinstance(network_logical, str) or not network_logical:
             network_logical = None
         validate_scenario_manifest(
@@ -69,7 +72,7 @@ def _run_manifest_validate(config: Config) -> int:
     else:
         validate_manifest_v1(raw)
         schema_label = "v1"
-        network_logical = getattr(config.user_env, "compose_network_logical", None)
+        network_logical = getattr(host_ctx.user_env, "compose_network_logical", None)
         if not isinstance(network_logical, str) or not network_logical:
             network_logical = None
         validate_scenario_manifest(
@@ -80,15 +83,15 @@ def _run_manifest_validate(config: Config) -> int:
             raw.get("odoo_conf") if isinstance(raw.get("odoo_conf"), dict) else None,
             scenario=constants.DEFAULT_ODPM_SCENARIO,
         )
-    scenario = getattr(config.user_env, "odpm_scenario", None) or constants.DEFAULT_ODPM_SCENARIO
+    scenario = getattr(host_ctx.user_env, "odpm_scenario", None) or constants.DEFAULT_ODPM_SCENARIO
     secrets_spec = None
     if info.manifest_schema == constants.MANIFEST_SCHEMA_V2:
         effective = resolve_effective_manifest_slice(raw, str(scenario))
         secrets_spec = effective.secrets
     for issue in collect_secrets_requirement_issues(
-        config.project_dir,
+        host_ctx.project_dir,
         secrets_spec,
-        mount_secrets_from_host=config.policy.mount_runtime_secrets_from_host(),
+        mount_secrets_from_host=host_ctx.policy.mount_runtime_secrets_from_host(),
         scenario=str(scenario),
     ):
         _logger.warning(issue)
@@ -101,11 +104,15 @@ def _run_manifest_validate(config: Config) -> int:
     return 0
 
 
-def _run_manifest_migrate(cli_args: OdpmCliArgs, config: Config) -> int:
-    manifest_path, raw = _read_manifest_json(config)
+def _run_manifest_migrate(
+    cli_args: OdpmCliArgs,
+    bootstrap: BootstrapHandle,
+    host_ctx: HostProjectContext,
+) -> int:
+    manifest_path, raw = _read_manifest_json(bootstrap)
 
-    user_settings = dict(config.bootstrap.raw_user_settings or {})
-    deps_lock = load_deps_lock(deps_lock_path(config.project_dir))
+    user_settings = bootstrap.raw_user_settings
+    deps_lock = load_deps_lock(deps_lock_path(host_ctx.project_dir))
     migrated = migrate_v1_flat_to_v2(
         raw,
         user_settings=user_settings,

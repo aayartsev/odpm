@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import unittest
 from dataclasses import replace
 from unittest.mock import MagicMock, patch
@@ -17,7 +19,6 @@ from dev_project.config.transforms.modules import (
     normalize_cli_module_csv,
 )
 from dev_project.scenario_policy import ScenarioPolicy
-from dev_project.host.ports import BootstrapHandle
 
 
 class NormalizeCliModuleCsvTests(unittest.TestCase):
@@ -82,7 +83,7 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
     def test_bare_i_uses_settings(self, _mock_persist):
         config = self._make_config()
         config.arguments = replace(config.arguments, i=True)
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         command = config.runtime.compose_service.command
         self.assertIn("-i", command)
         self.assertIn("from_settings", command)
@@ -91,7 +92,7 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
     def test_cli_i_overrides_settings(self, _mock_persist):
         config = self._make_config()
         config.arguments = replace(config.arguments, i="other")
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         command = config.runtime.compose_service.command
         self.assertIn("-i", command)
         self.assertIn("other", command)
@@ -100,7 +101,7 @@ class ComposeServiceBuilderModuleArgvTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_absent_i_omits_flag(self, _mock_persist):
         config = self._make_config()
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         command = config.runtime.compose_service.command
         self.assertNotIn("-i", command)
         self.assertNotIn("-u", command)

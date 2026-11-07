@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.errors import ConfigError, PipelineError
-from dev_project.host.ports import ports_from_config, BootstrapHandle
+from dev_project.host.ports import BootstrapHandle
 from dev_project.odpm_pipeline import OdpmPipeline
 from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
@@ -14,6 +14,7 @@ from dev_project.scenario_policy import ScenarioPolicy
 from tests.prepare_test_helpers import stub_prepare_service_executions
 from dev_project.compose.service_builder import ComposeServiceBuilder
 from dev_project.secrets_providers.session import SecretsFetchSession
+from dev_project.config.assembly import ports_from_assembled, host_context_from_assembled
 
 
 
@@ -23,9 +24,9 @@ def _attach_pipeline_ports(pipeline, config=None, project_environment=None):
         config = MagicMock()
     if project_environment is None:
         project_environment = MagicMock()
-        project_environment.bootstrap = BootstrapHandle(config=config)
+        project_environment.bootstrap = BootstrapHandle(_assembled=config)
     pipeline.project_environment = project_environment
-    pipeline.ports = ports_from_config(
+    pipeline.ports = ports_from_assembled(
         config,
         project_environment,
         pipeline.cli_args,
@@ -49,13 +50,13 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         config.arguments = args
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
-        return RuntimeCoordinator(ports_from_config(config, project_env, args).runtime)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
+        return RuntimeCoordinator(ports_from_assembled(config, project_env, args).runtime)
 
     @patch("dev_project.project_env.services.CiImageBuildService")
     def test_handle_build_image_rejects_non_ci_policy(self, mock_ci_service):
         coordinator = self._coordinator(build_image=True)
-        coordinator.runtime.bootstrap.config.policy = ScenarioPolicy.from_scenario(
+        coordinator.runtime.bootstrap._assembled.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         )
         with self.assertRaises(PipelineError) as ctx:
@@ -66,7 +67,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
     @patch("dev_project.project_env.services.CiImageBuildService")
     def test_handle_build_image_runs_for_ci_policy(self, mock_ci_service):
         coordinator = self._coordinator(build_image=True)
-        coordinator.runtime.bootstrap.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        coordinator.runtime.bootstrap._assembled.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         self.assertTrue(coordinator.handle_build_image())
         mock_ci_service.assert_called_once_with(coordinator.project_env)
         mock_ci_service.return_value.build_ci_image.assert_called_once()
@@ -74,14 +75,14 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
     @patch("dev_project.runtime_coordinator.VscodeConfigurator")
     def test_configure_vscode_skipped_when_policy_says_so(self, mock_vscode_cls):
         coordinator = self._coordinator()
-        coordinator.runtime.bootstrap.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        coordinator.runtime.bootstrap._assembled.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         coordinator.configure_vscode()
         mock_vscode_cls.assert_not_called()
 
     @patch("dev_project.runtime_coordinator.VscodeConfigurator")
     def test_configure_vscode_runs_for_developer_policy(self, mock_vscode_cls):
         coordinator = self._coordinator()
-        coordinator.runtime.bootstrap.config.policy = ScenarioPolicy.from_scenario(
+        coordinator.runtime.bootstrap._assembled.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         )
         coordinator.configure_vscode()
@@ -92,14 +93,14 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
     @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_write_debug_profile_skipped_without_debugpy(self, mock_write):
         coordinator = self._coordinator()
-        coordinator.runtime.bootstrap.config.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+        coordinator.runtime.bootstrap._assembled.policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
         coordinator.write_debug_profile()
         mock_write.assert_not_called()
 
     @patch("dev_project.runtime_coordinator.write_debug_profile")
     def test_write_debug_profile_runs_for_developer_policy(self, mock_write):
         coordinator = self._coordinator()
-        coordinator.runtime.bootstrap.config.policy = ScenarioPolicy.from_scenario(
+        coordinator.runtime.bootstrap._assembled.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         )
         coordinator.write_debug_profile()
@@ -112,7 +113,7 @@ class RuntimeCoordinatorPolicyTests(unittest.TestCase):
         self, mock_write, mock_vscode_cls, mock_pycharm_cls
     ):
         coordinator = self._coordinator(skip_start=True)
-        coordinator.runtime.bootstrap.config.policy = ScenarioPolicy.from_scenario(
+        coordinator.runtime.bootstrap._assembled.policy = ScenarioPolicy.from_scenario(
             constants.DEVELOPER_SCENARIO
         )
         call_order: list[str] = []
@@ -189,7 +190,7 @@ class OdpmPipelinePolicyTests(unittest.TestCase):
 
 
         with patch("dev_project.compose.service_builder.persist_runtime_config"):
-            builder = ComposeServiceBuilder(BootstrapHandle(config=config))
+            builder = ComposeServiceBuilder(BootstrapHandle(_assembled=config))
             builder.build()
         self.assertIs(builder.policy, policy)
 
@@ -213,10 +214,10 @@ class RuntimeCoordinatorComposeTests(unittest.TestCase):
         ):
             config.docker_layout.docker_compose_command = "docker compose"
         project_env = MagicMock()
-        project_env.host_ctx = HostProjectContext.from_config(config)
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.host_ctx = host_context_from_assembled(config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         return RuntimeCoordinator(
-            ports_from_config(config, project_env, OdpmCliArgs()).runtime
+            ports_from_assembled(config, project_env, OdpmCliArgs()).runtime
         )
 
     def test_build_compose_up_argv_force_recreate_explicit(self):
@@ -508,7 +509,7 @@ class OdpmPipelineRunTests(unittest.TestCase):
 class OdpmPipelineSetupTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.SystemChecker")
     @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
-    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.assemble_project")
     @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
     @patch("dev_project.odpm_pipeline.ProjectDirManager")
     def test_setup_wires_pipeline_dependencies(
@@ -532,22 +533,22 @@ class OdpmPipelineSetupTests(unittest.TestCase):
         pipeline = OdpmPipeline(pipeline_args, "/opt/odpm")
         pipeline.setup()
 
-        self.assertIs(pipeline.ports.bootstrap.config, mock_config)
+        self.assertIs(pipeline.ports.bootstrap._assembled, mock_config)
         self.assertIs(pipeline.project_environment, mock_project_env)
         self.assertIs(pipeline.system_checker, mock_checker)
         mock_config_cls.assert_called_once()
         mock_project_env_cls.assert_called_once()
         called_bootstrap = mock_project_env_cls.call_args.args[0]
-        self.assertIs(called_bootstrap.config, mock_config)
+        self.assertIs(called_bootstrap._assembled, mock_config)
         mock_checker_cls.assert_called_once()
         checker_bootstrap = mock_checker_cls.call_args.args[0]
-        self.assertIs(checker_bootstrap.config, mock_config)
+        self.assertIs(checker_bootstrap._assembled, mock_config)
         self.assertIs(mock_checker_cls.call_args.args[1], mock_project_env)
         mock_project_env.attach_system_checker.assert_called_once_with(mock_checker)
 
     @patch("dev_project.odpm_pipeline.SystemChecker")
     @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
-    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.assemble_project")
     @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
     @patch("dev_project.odpm_pipeline.ProjectDirManager")
     def test_setup_syncs_cli_args_with_pd_manager_arguments(
@@ -571,7 +572,7 @@ class OdpmPipelineSetupTests(unittest.TestCase):
 
     @patch("dev_project.odpm_pipeline.SystemChecker")
     @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
-    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.assemble_project")
     @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
     @patch("dev_project.odpm_pipeline.ProjectDirManager")
     @patch("dev_project.project_env.secrets.import_secrets_from_path")
@@ -702,9 +703,9 @@ class OdpmPipelinePrepareTests(unittest.TestCase):
                 encoding="utf-8",
             )
             pipeline = self._pipeline_with_mocks()
-            config = pipeline.ports.bootstrap.config
+            config = pipeline.ports.bootstrap._assembled
             config.project_dir = tmp
-            pipeline.ports = ports_from_config(
+            pipeline.ports = ports_from_assembled(
                 config,
                 pipeline.project_environment,
                 pipeline.cli_args,

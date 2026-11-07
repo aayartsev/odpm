@@ -6,14 +6,39 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.links import ProjectLinks
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 from dev_project.scenario_policy import ScenarioPolicy
 
 
 def _wire_host_ctx_from_config(env: MagicMock) -> None:
-    """Mirror config slices onto env.host_ctx for ProjectLinks/VolumeMapper reads."""
-    config = env.bootstrap.config
+    """Mirror config slices onto env.host_ctx; use real BootstrapHandle for accessors."""
+    raw = env.bootstrap
+    config = getattr(raw, "_assembled", None)
+    if config is None:
+        config = getattr(raw, "config", None)
+    if config is None:
+        config = raw
+    # Bridge legacy test mocks: facades live on BootstrapHandle / _git_repos now.
+    hgl = getattr(config, "handle_git_link", None)
+    if callable(hgl):
+        git_repos = getattr(config, "_git_repos", None)
+        if git_repos is None or isinstance(git_repos, MagicMock) and not hasattr(git_repos, "_bridged"):
+            git_repos = MagicMock()
+            git_repos._bridged = True
+            config._git_repos = git_repos
+        config._git_repos.handle_git_link = hgl
+    if not isinstance(env.bootstrap, BootstrapHandle):
+        env.bootstrap = BootstrapHandle(_assembled=config)
+    nested = getattr(config, "apply_nested_compatibility", None)
+    if callable(nested):
+        env.bootstrap.apply_nested_compatibility = nested
+    symlink = getattr(config, "ensure_git_repo_symlink", None)
+    if callable(symlink):
+        env.bootstrap.ensure_git_repo_symlink = symlink
+    else:
+        env.bootstrap.ensure_git_repo_symlink = MagicMock()
     host_ctx = MagicMock()
     host_ctx.project_dir = getattr(config, "project_dir", "")
     host_ctx.program_dir = getattr(config, "program_dir", "")
@@ -37,7 +62,7 @@ class ProjectLinksCheckoutTests(unittest.TestCase):
         config.user_settings.clean_git_repos = False
         config.project_settings.odoo_version = "19.0"
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         project = MagicMock()
         lock_manager = MagicMock()
@@ -57,7 +82,7 @@ class ProjectLinksCheckoutTests(unittest.TestCase):
         config.user_settings.clean_git_repos = True
         config.project_settings.odoo_version = "17.0"
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         project = MagicMock()
         lock_manager = MagicMock()
@@ -85,7 +110,7 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
         developing.commit_explicit = False
         config.developing_project = developing
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
@@ -110,7 +135,7 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
         developing.commit_explicit = False
         config.developing_project = developing
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
@@ -140,7 +165,7 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
         developing.commit_explicit = False
         config.developing_project = developing
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
@@ -160,11 +185,11 @@ class ProjectLinksDevelopingCheckoutTests(unittest.TestCase):
 class ProjectLinksDependencyTests(unittest.TestCase):
     def test_resolve_dependencies_skips_oca_when_no_git_update(self):
         env = MagicMock()
-        env.bootstrap = MagicMock(config=MagicMock())
+        env.bootstrap = MagicMock(_assembled=MagicMock())
         _wire_host_ctx_from_config(env)
-        env.bootstrap.config.project_settings.dependencies = ["https://github.com/OCA/partner-contact.git"]
-        env.bootstrap.config.user_settings.use_oca_dependencies = True
-        env.bootstrap.config.skip_git_update.return_value = True
+        env.bootstrap._assembled.project_settings.dependencies = ["https://github.com/OCA/partner-contact.git"]
+        env.bootstrap._assembled.user_settings.use_oca_dependencies = True
+        env.bootstrap._assembled.skip_git_update.return_value = True
 
         resolved = ProjectLinks(env)._resolve_dependencies()
 
@@ -178,7 +203,7 @@ class ProjectLinksDependencyTests(unittest.TestCase):
 class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
     def _make_links(self, config):
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         links = ProjectLinks(env)
         links.checkout_project = MagicMock()
@@ -221,6 +246,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config._git_repos.handle_git_link = config.handle_git_link
             config.env_resolver = None
 
             result = self._make_links(config)._resolve_dependencies()
@@ -264,6 +290,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config._git_repos.handle_git_link = config.handle_git_link
             config.env_resolver = None
 
             result = self._make_links(config)._resolve_dependencies()
@@ -316,8 +343,9 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
+        config._git_repos.handle_git_link = config.handle_git_link
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         env.mapped_folders = []
         _wire_host_ctx_from_config(env)
@@ -340,9 +368,10 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             project_path="/tmp/dep",
         )
         config.handle_git_link = MagicMock(return_value=dependency)
+        config._git_repos.handle_git_link = config.handle_git_link
         config.apply_nested_compatibility = MagicMock()
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
@@ -390,8 +419,9 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
+        config._git_repos.handle_git_link = config.handle_git_link
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         env.mapped_folders = []
         _wire_host_ctx_from_config(env)
@@ -428,8 +458,9 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             project_path="/tmp/dep",
         )
         config.handle_git_link = MagicMock(return_value=dependency)
+        config._git_repos.handle_git_link = config.handle_git_link
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
@@ -455,8 +486,9 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             project_path="/tmp/dep",
         )
         config.handle_git_link = MagicMock(return_value=dependency)
+        config._git_repos.handle_git_link = config.handle_git_link
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         links = ProjectLinks(env)
         links._resolve_dependencies = MagicMock(
@@ -504,8 +536,9 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         config.handle_git_link = MagicMock(return_value=dependency)
+        config._git_repos.handle_git_link = config.handle_git_link
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         _wire_host_ctx_from_config(env)
         env.mapped_folders = []
         _wire_host_ctx_from_config(env)
@@ -532,7 +565,7 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.project_settings.platform_name = "odoo"
             env = MagicMock()
-            env.bootstrap = MagicMock(config=config)
+            env.bootstrap = MagicMock(_assembled=config)
             _wire_host_ctx_from_config(env)
 
             with patch("dev_project.symlinks.manager.os.chdir") as mock_chdir:
@@ -555,7 +588,7 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.project_settings.platform_name = "odoo"
             env = MagicMock()
-            env.bootstrap = MagicMock(config=config)
+            env.bootstrap = MagicMock(_assembled=config)
             _wire_host_ctx_from_config(env)
 
             ProjectLinks(env).update_links()
@@ -579,7 +612,7 @@ class ProjectLinksUpdateTests(unittest.TestCase):
             config.odoo_src_dir = os.path.join(project_dir, "odoo")
             config.project_settings.platform_name = "odoo"
             env = MagicMock()
-            env.bootstrap = MagicMock(config=config)
+            env.bootstrap = MagicMock(_assembled=config)
             _wire_host_ctx_from_config(env)
 
             ProjectLinks(env).update_links()

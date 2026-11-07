@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import json
 import tempfile
 import unittest
@@ -9,7 +11,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.config.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.config.odoo_conf import OdooConfBuilder
 from dev_project.config.payload import write_runtime_config_to_path
 from dev_project.config.state import BootstrapState, DockerLayoutState
@@ -19,7 +21,6 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.manifest.reader import load_manifest
 from dev_project.prepare.sources_only import IMAGE_ENSURE_STEP_IDS
 from dev_project.project_env import CreateProjectEnvironment
-from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.ci_image import CiImageBuilder
 from dev_project.project_env.secrets import write_secrets_source
 from dev_project.project_env.services import CiImageBuildService
@@ -70,7 +71,7 @@ class EnsureOdooConfigDataForBakeTests(unittest.TestCase):
                 "${@secret:pg_user}",
             )
 
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config.project_dir = project_dir
             config._env_resolver = EnvResolver.from_sources(
                 process_environ={},
@@ -87,7 +88,7 @@ class EnsureOdooConfigDataForBakeTests(unittest.TestCase):
             config._odoo_conf = OdooConfBuilder(config)
 
             env = MagicMock(spec=CreateProjectEnvironment)
-            env.bootstrap = MagicMock(config=config)
+            env.bootstrap = BootstrapHandle(_assembled=config)
             CiImageBuilder(env)._ensure_odoo_config_data_for_bake()
 
             options = config.docker_layout.odoo_config_data["options"]
@@ -154,7 +155,7 @@ class EnsureOdooConfigDataForBakeTests(unittest.TestCase):
                 active_scenario=constants.CI_SCENARIO,
                 env_resolver=None,
             )
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config.project_dir = project_dir
             config._env_resolver = EnvResolver.from_sources(
                 process_environ={},
@@ -170,7 +171,7 @@ class EnsureOdooConfigDataForBakeTests(unittest.TestCase):
             )
             config._odoo_conf = OdooConfBuilder(config)
             env = MagicMock(spec=CreateProjectEnvironment)
-            env.bootstrap = MagicMock(config=config)
+            env.bootstrap = BootstrapHandle(_assembled=config)
             with self.assertRaises(ConfigError):
                 CiImageBuilder(env)._ensure_odoo_config_data_for_bake()
 
@@ -178,7 +179,7 @@ class EnsureOdooConfigDataForBakeTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = "/tmp"
         config.docker_layout.ci_build_context_dir = "/tmp/ci-ctx"
-        env = CreateProjectEnvironment(BootstrapHandle(config=config))
+        env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
         calls: list[str] = []
 
         def _tracking(self) -> None:

@@ -20,13 +20,13 @@ from ..transforms.env_substitution import (
 )
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..config import AssembledProject
 
 
 class UserSettingsReader:
     def __init__(
         self,
-        config: Config,
+        config: AssembledProject,
         *,
         create_default_user_settings: Callable[[], Any],
     ) -> None:

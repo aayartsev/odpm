@@ -1,4 +1,4 @@
-"""Typed configuration slices populated during Config bootstrap."""
+"""Typed configuration slices populated during AssembledProject bootstrap."""
 
 from __future__ import annotations
 
@@ -6,9 +6,8 @@ from dataclasses import dataclass, field
 
 from typing import TYPE_CHECKING, Any, Callable, Union
 
-from ..host.cli.args import OdpmCliArgs
-
 if TYPE_CHECKING:
+    from ..host.cli.args import OdpmCliArgs
     from ..manifest.reader import ManifestView
 
 from .. import constants
@@ -57,7 +56,7 @@ def user_settings_from_raw(
 
 def project_settings_from_raw(
     raw: dict,
-    arguments: OdpmCliArgs,
+    arguments: "OdpmCliArgs",
     *,
     odoo_build_date: str,
 ) -> ProjectSettingsState:
@@ -264,25 +263,59 @@ BOOTSTRAP_SHIM_FIELDS = tuple(
     if field_name not in BOOTSTRAP_HOST_CTX_SHIM_FIELDS
 )
 
-# Deprecated Config top-level bootstrap property shims.
+# Deprecated AssembledProject top-level bootstrap property shims.
 # New plan/prepare/runtime code should use HostProjectContext slices or host ports
 # (see docs/contributing/adr-003-host-ports-vs-config.md, adr-030-config-as-assembler.md).
 BOOTSTRAP_HANDLE_SURFACES: tuple[str, ...] = (
-    "config",
     "runtime",
     "git_repos",
     "env_resolver",
     "odoo_conf",
     "pd_manager",
+    "developing_project",
+    "odoo_platform_project",
+    "odoo_src_dir",
+    "developing_project_dir_path",
+    "user_env",
+    "project_settings",
+    "docker_layout",
+    "policy",
+    "arguments",
+    "project_dir",
+    "program_dir",
+    "dockerfile_path",
+    "postgres_data_local_storage",
+    "service_source_paths",
+    "raw_user_settings",
+    "manifest_view",
+    "repo_odpm_json",
+    "project_name",
     "new_lock_manager",
     "compute_venv_lock_hash",
+    "write_runtime_config",
+    "write_runtime_config_to_path",
+    "runtime_config_json_bytes",
+    "to_container_config",
+    "handle_git_link",
+    "ensure_git_repo_symlink",
+    "ensure_developing_repo_symlinks",
+    "apply_nested_compatibility",
+    "generate_odoo_conf_docker_data",
+    "host_context",
+    "skip_git_update",
+    "seed_dependency_urls",
+    "ensure_secrets_source",
+    "resolve_base_image_ref",
+    "set_env_resolver",
+    "set_manifest_view",
     "secrets_session",
     "clear_runtime_config_preview_cache",
+    "ensure_docker_capabilities",
 )
 
 CONFIG_PROPERTY_SHIMS: tuple[tuple[str, str, str], ...] = (
     *(
-        ("bootstrap", field_name, "ports.bootstrap.config.bootstrap")
+        ("bootstrap", field_name, "ports.bootstrap._assembled.bootstrap")
         for field_name in BOOTSTRAP_SHIM_FIELDS
     ),
     ("bootstrap", "manifest_view", "host_ctx.manifest_view"),

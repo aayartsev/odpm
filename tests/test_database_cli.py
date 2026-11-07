@@ -6,7 +6,7 @@ import json
 import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 
 from dev_project.database.schema import (
     DatabaseClusterFingerprint,
@@ -22,6 +22,7 @@ from dev_project.database.commands import run_database_command
 from dev_project.database.ensure_role import EnsureRoleResult
 
 
+from dev_project.config.assembly import ports_from_assembled
 def _static_state() -> DatabaseCurrentState:
     return DatabaseCurrentState(
         odpm_scenario="developer",
@@ -101,7 +102,7 @@ class DatabaseStatusCollectTests(unittest.TestCase):
                 app_role_present=None,
             ),
         )
-        report = collect_database_status(BootstrapHandle(config=MagicMock()))
+        report = collect_database_status(BootstrapHandle(_assembled=MagicMock()))
         self.assertFalse(report.app_role_present)
         kinds = {drift.kind for drift in report.drifts}
         self.assertIn("app_role_missing", kinds)
@@ -128,7 +129,7 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
                     command="database",
                     database_subcommand="status",
                 ),
-                ports_from_config(config),
+                ports_from_assembled(config),
             )
         self.assertEqual(code, 0)
         mock_logger.info.assert_called_once()
@@ -154,7 +155,7 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
                     database_subcommand="status",
                     database_status_format="json",
                 ),
-                ports_from_config(config),
+                ports_from_assembled(config),
             )
         self.assertEqual(code, 0)
         payload = json.loads(buffer.getvalue())
@@ -172,11 +173,11 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
                     command="database",
                     database_subcommand="ensure-role",
                 ),
-                ports_from_config(config),
+                ports_from_assembled(config),
             )
         self.assertEqual(code, 0)
         mock_ensure.assert_called_once()
-        self.assertIs(mock_ensure.call_args.args[0].config, config)
+        self.assertIs(mock_ensure.call_args.args[0]._assembled, config)
         mock_logger.info.assert_called_once()
 
 

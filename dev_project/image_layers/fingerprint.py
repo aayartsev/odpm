@@ -42,8 +42,12 @@ def _lock_sha_map(config: Any) -> dict[str, str]:
     )
 
     project_dir = config.project_dir
-    bootstrap = getattr(config, "bootstrap", None)
-    view = getattr(bootstrap, "manifest_view", None) if bootstrap is not None else None
+    view = getattr(config, "manifest_view", None)
+    if view is None:
+        bootstrap = getattr(config, "bootstrap", None)
+        view = (
+            getattr(bootstrap, "manifest_view", None) if bootstrap is not None else None
+        )
     source = resolve_lock_source_from_view(view)
     if source == LockSource.MANIFEST and view is not None:
         locks = manifest_git_locks_from_view(view)

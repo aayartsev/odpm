@@ -20,7 +20,6 @@ from .probe import probe_app_role_exists, probe_postgres_ready
 from .state import collect_database_state, save_last_run
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.ports import BootstrapHandle
 
 _logger = get_module_logger(__name__)
@@ -46,15 +45,15 @@ _MSG_COMPOSE_UP_FAILED = _(
 
 def needs_database_adoption(bootstrap: BootstrapHandle) -> bool:
     """True when the project has no last_run snapshot and uses host DB state."""
-    config = bootstrap.config
+    config = bootstrap
     if not config.policy.mount_runtime_config_from_host():
         return False
     return last_run_missing(config.project_dir)
 
 
-def start_postgres_detached(config: Config) -> None:
-    service = postgres_service_name(config)
-    result = compose_up_service_detached(config, service)
+def start_postgres_detached(bootstrap: BootstrapHandle) -> None:
+    service = postgres_service_name(bootstrap)
+    result = compose_up_service_detached(bootstrap, service)
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         if detail:
@@ -66,15 +65,15 @@ def start_postgres_detached(config: Config) -> None:
 
 
 def wait_for_postgres_ready(
-    config: Config,
+    bootstrap: BootstrapHandle,
     *,
     timeout_seconds: int = _POSTGRES_READY_TIMEOUT_SECONDS,
     poll_seconds: float = _POSTGRES_READY_POLL_SECONDS,
 ) -> None:
-    service = postgres_service_name(config)
+    service = postgres_service_name(bootstrap)
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        if probe_postgres_ready(config) is True:
+        if probe_postgres_ready(bootstrap) is True:
             return
         time.sleep(poll_seconds)
     raise OdpmError(
@@ -82,8 +81,8 @@ def wait_for_postgres_ready(
     )
 
 
-def build_adoption_last_run(config: Config):
-    state = collect_database_state(config)
+def build_adoption_last_run(bootstrap: BootstrapHandle):
+    state = collect_database_state(bootstrap)
     state_with_role = replace(
         state,
         cluster=replace(state.cluster, app_role_present=True),
@@ -96,20 +95,20 @@ def adopt_database_baseline(bootstrap: BootstrapHandle) -> str | None:
     if not needs_database_adoption(bootstrap):
         return None
 
-    config = bootstrap.config
+    config = bootstrap
     _logger.info(_MSG_ADOPTING)
-    service = postgres_service_name(config)
-    if probe_postgres_ready(config) is not True:
+    service = postgres_service_name(bootstrap)
+    if probe_postgres_ready(bootstrap) is not True:
         _logger.info(_MSG_STARTING_POSTGRES.format(SERVICE=service))
-        start_postgres_detached(config)
-        wait_for_postgres_ready(config)
+        start_postgres_detached(bootstrap)
+        wait_for_postgres_ready(bootstrap)
 
     role = constants.POSTGRES_ODOO_USER
-    existed_before = probe_app_role_exists(config, role=role) is True
+    existed_before = probe_app_role_exists(bootstrap, role=role) is True
     ensure_app_role(bootstrap)
     if not existed_before:
         _logger.info(_MSG_ENSURED_ROLE.format(ROLE=role))
 
-    path = save_last_run(config.project_dir, build_adoption_last_run(config))
+    path = save_last_run(config.project_dir, build_adoption_last_run(bootstrap))
     _logger.info(_MSG_BASELINE_RECORDED.format(PATH=path))
     return path

@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING
 
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
-from ..host.ports import PipelinePorts, ports_from_config
+from ..host.ports import PipelinePorts
 from ..prepare import build_plan
 from .core import OdpmPlan
 from .diff import build_plan_diffs
 from .format import format_plan as format_plan_output
+from ..config.assembly import ports_from_assembled
 if TYPE_CHECKING:
-    from ..config import Config
     from ..project_env import CreateProjectEnvironment
 
 
@@ -20,14 +20,14 @@ class OdpmPlanner:
     @classmethod
     def build(
         cls,
-        ports_or_config: PipelinePorts | Config,
+        ports_or_config: PipelinePorts | Any,
         args: OdpmCliArgs | None = None,
         project_env: CreateProjectEnvironment | None = None,
     ) -> OdpmPlan:
         if isinstance(ports_or_config, PipelinePorts):
             ports = ports_or_config
         else:
-            ports = ports_from_config(ports_or_config, project_env, args)
+            ports = ports_from_assembled(ports_or_config, project_env, args)
         ports.bootstrap.clear_runtime_config_preview_cache()
         plan = build_plan(ports, project_env=project_env)
         diffs = build_plan_diffs(

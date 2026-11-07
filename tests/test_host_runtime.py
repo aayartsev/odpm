@@ -5,7 +5,7 @@ import unittest
 from dev_project import constants
 from dev_project.host.runtime import HostRuntimeState
 from dev_project.compose.start_command import ComposeOdooService
-from dev_project.config.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.config.state import DockerLayoutState
 
 
@@ -26,7 +26,7 @@ class HostRuntimeStateTests(unittest.TestCase):
 
     def test_config_runtime_properties_delegate(self):
 
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         runtime = HostRuntimeState(
             compose_service=ComposeOdooService(
                 working_dir="/home/odoo",
@@ -48,7 +48,7 @@ class HostRuntimeStateTests(unittest.TestCase):
 
     def test_config_setters_update_runtime_state(self):
 
-        instance = Config.__new__(Config)
+        instance = AssembledProject.__new__(AssembledProject)
         instance._runtime = HostRuntimeState()
         instance._docker = DockerLayoutState(docker_compose_command="docker-compose")
 

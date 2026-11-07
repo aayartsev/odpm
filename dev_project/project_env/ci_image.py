@@ -12,7 +12,6 @@ from ..bake_venv import (
     get_venv_bootstrap_packages,
     write_ci_venv_install_spec,
 )
-from ..config.payload import write_runtime_config_to_path
 from ..logging import get_module_logger
 from ..inside_docker_app.utils import write_odoo_config_data_to_file
 from .base_image import BaseImageBuilder
@@ -121,7 +120,7 @@ class CiImageBuilder:
         config_path = os.path.join(
             context_dir, constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH
         )
-        write_runtime_config_to_path(self.env.bootstrap.config, config_path)
+        self.env.bootstrap.write_runtime_config_to_path(config_path)
 
     def _ensure_odoo_config_data_for_bake(self) -> None:
         """Refresh secrets + manifest, then fill ``odoo_config_data`` for CI bake.
@@ -129,36 +128,15 @@ class CiImageBuilder:
         ``odpm image … ensure`` skips ``template.odoo_conf``; without this step the
         runtime JSON would lack ``options`` (KeyError in ``wait_for_postgres``).
         """
-        from ..config.config import Config
-        from ..config.transforms.env_substitution import with_secrets
-        from ..config.transforms.secret_refs import load_secrets_map
-        from ..manifest.reader import load_manifest
-
-        config = self.env.bootstrap.config
-        if not isinstance(config, Config):
-            return
-
-        project_dir = str(config.project_dir or "")
-        config._env_resolver = with_secrets(
-            config.env_resolver,
-            load_secrets_map(project_dir),
-        )
-
-        view = config.bootstrap.manifest_view
-        source_raw = getattr(view, "source_raw", None) if view is not None else None
-        if isinstance(source_raw, dict) and source_raw:
-            scenario = getattr(config.user_env, "odpm_scenario", None)
-            config.bootstrap.manifest_view = load_manifest(
-                dict(source_raw),
-                env_resolver=config.env_resolver,
-                active_scenario=scenario,
-            )
-
-        config.generate_odoo_conf_docker_data()
+        bootstrap = self.env.bootstrap
+        project_dir = str(bootstrap.project_dir or "")
+        bootstrap.bind_env_resolver_with_secrets(project_dir)
+        bootstrap.reload_manifest_view_from_source_raw()
+        bootstrap.generate_odoo_conf_docker_data()
 
     def _write_ci_secrets_runtime(self, context_dir: str) -> bool:
 
-        if not prepare_secrets_for_ci_bake(self.env.host_ctx.project_dir, self.env.bootstrap.config):
+        if not prepare_secrets_for_ci_bake(self.env.host_ctx.project_dir, self.env.bootstrap):
             return False
 
         source_path = secrets_runtime_path(self.env.host_ctx.project_dir)

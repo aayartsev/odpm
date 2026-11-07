@@ -10,7 +10,6 @@ from .. import constants
 from .service_names import LOGICAL_ODOO
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.context import HostProjectContext
 from ..subprocess_runner import run_checked
 
@@ -39,9 +38,9 @@ def compose_stack_service_names(user_env) -> tuple[str, str]:
     return (odoo_compose_service_name(user_env), user_env.postgres_service_name)
 
 
-def compose_stack_services(config: Config) -> tuple[str, str]:
+def compose_stack_services(host_ctx: HostProjectContext) -> tuple[str, str]:
     """Return compose service names for stack health checks (odoo, postgres)."""
-    return compose_stack_service_names(config.user_env)
+    return compose_stack_service_names(host_ctx.user_env)
 
 
 # Backward-compatible default pair when config is unavailable.
@@ -53,47 +52,25 @@ def _run_checked(*args, **kwargs):
     return run_checked(*args, **kwargs)
 
 
-def _compose_base_argv_for_host(host_ctx: HostProjectContext) -> list[str]:
+def compose_cli_argv(host_ctx: HostProjectContext) -> list[str]:
+    """Base ``docker compose`` argv including optional ``-p`` project scope."""
     argv = shlex.split(host_ctx.docker_compose_command)
     argv.extend(compose_project_cli_args(host_ctx.user_env))
     return argv
 
 
-def _compose_base_argv(config: Config) -> list[str]:
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
-
-    return _compose_base_argv_for_host(HostProjectContext.from_config(config))
-
-
-def compose_cli_argv(config: Config) -> list[str]:
-    """Base ``docker compose`` argv including optional ``-p`` project scope."""
-    return _compose_base_argv(config)
-
-
-def compose_service_container_id(config: Config, service: str) -> str | None:
-    """Return the running container id for a compose service, or None."""
-    return _running_container_id(config, service)
-
-
-def _running_container_id_for_host(
+def compose_service_container_id(
     host_ctx: HostProjectContext, service: str
 ) -> str | None:
+    """Return the running container id for a compose service, or None."""
     result = _run_checked(
-        _compose_base_argv_for_host(host_ctx) + ["ps", "-q", service],
+        compose_cli_argv(host_ctx) + ["ps", "-q", service],
         cwd=host_ctx.project_dir,
     )
     if result.returncode != 0:
         return None
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     return lines[0] if lines else None
-
-
-def _running_container_id(
-    config: Config, service: str
-) -> str | None:
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
-
-    return _running_container_id_for_host(HostProjectContext.from_config(config), service)
 
 
 def container_is_running_and_healthy(container_id: str) -> bool:
@@ -116,10 +93,10 @@ def container_is_running_and_healthy(container_id: str) -> bool:
     return True
 
 
-def compose_stack_is_healthy_for_host(host_ctx: HostProjectContext) -> bool:
+def compose_stack_is_healthy(host_ctx: HostProjectContext) -> bool:
     """True when odoo and postgres compose services are up (and healthy if probed)."""
     for service in compose_stack_service_names(host_ctx.user_env):
-        container_id = _running_container_id_for_host(host_ctx, service)
+        container_id = compose_service_container_id(host_ctx, service)
         if not container_id:
             return False
         if not container_is_running_and_healthy(container_id):
@@ -127,20 +104,11 @@ def compose_stack_is_healthy_for_host(host_ctx: HostProjectContext) -> bool:
     return True
 
 
-def compose_stack_is_healthy(config: Config) -> bool:
-    """True when odoo and postgres compose services are up (and healthy if probed)."""
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
-
-    return compose_stack_is_healthy_for_host(HostProjectContext.from_config(config))
-
-
-def should_force_recreate_compose_for_host(host_ctx: HostProjectContext) -> bool:
+def should_force_recreate_compose(host_ctx: HostProjectContext) -> bool:
     """Recreate only when the stack is missing or not healthy."""
-    return not compose_stack_is_healthy_for_host(host_ctx)
+    return not compose_stack_is_healthy(host_ctx)
 
 
-def should_force_recreate_compose(config: Config) -> bool:
-    """Recreate only when the stack is missing or not healthy."""
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
-
-    return should_force_recreate_compose_for_host(HostProjectContext.from_config(config))
+# Names used by plan / runtime_backend (same host_ctx surface).
+compose_stack_is_healthy_for_host = compose_stack_is_healthy
+should_force_recreate_compose_for_host = should_force_recreate_compose

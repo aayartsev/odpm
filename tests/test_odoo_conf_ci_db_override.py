@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import os
 import tempfile
 import unittest
@@ -28,7 +30,6 @@ from dev_project.prepare.steps_template import evaluate_template_odoo_conf
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.test_manifest_v2_reader import _minimal_v2
 from tests.test_plan_database_drift import PlanDatabaseDriftTests
-from dev_project.host.ports import BootstrapHandle
 
 
 class CiManifestDbOverrideHelperTests(unittest.TestCase):
@@ -235,7 +236,7 @@ class CiManifestDbOverrideDriftTests(unittest.TestCase):
                     },
                 )
             )
-            _current, drifts = detect_database_drift_for_handle(BootstrapHandle(config=config))
+            _current, drifts = detect_database_drift_for_handle(BootstrapHandle(_assembled=config))
             kinds = {d.kind for d in drifts}
             self.assertNotIn("db_host_mismatch", kinds)
 

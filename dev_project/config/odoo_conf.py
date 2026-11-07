@@ -11,7 +11,7 @@ from ..manifest.odoo_conf import merge_odoo_conf_sections, odoo_conf_from_manife
 from .types import SubProject
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
 
 _REQUIRED_DB_OPTION_KEYS = ("db_host", "db_port", "db_user", "db_password")
 _UNRESOLVED_DB_MARKERS = (
@@ -63,7 +63,7 @@ def odoo_conf_on_disk_needs_regeneration(
 
 
 class OdooConfBuilder:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: AssembledProject) -> None:
         self.config = config
 
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:

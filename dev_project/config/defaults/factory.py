@@ -21,7 +21,7 @@ from ..git_url_validation import require_nonempty_dependency_urls
 from ..types import DbCreationData, OdpmJson, UserSettingsJson
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..config import AssembledProject
 
 _logger = get_module_logger(__name__)
 
@@ -45,7 +45,7 @@ def _env_default(odoo_version: str | None, key: str) -> str | None:
 
 
 class ConfigDefaultsFactory:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: AssembledProject) -> None:
         self.config = config
 
     def _resolve_env_field(

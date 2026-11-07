@@ -33,6 +33,7 @@ from dev_project.prepare.steps_template import evaluate_template_odoo_conf
 from dev_project.scenario_policy import ScenarioPolicy
 
 
+from dev_project.config.assembly import host_context_from_assembled
 class PlanDatabaseDriftTests(unittest.TestCase):
     def _config(self, project_dir: str) -> MagicMock:
         data_path = os.path.join(
@@ -55,7 +56,7 @@ class PlanDatabaseDriftTests(unittest.TestCase):
 
     def _ctx(self, config: MagicMock):
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         return make_prepare_context(
             config, project_env, MagicMock(), OdpmCliArgs(skip_start=True)
         )
@@ -165,8 +166,8 @@ class PlanDatabaseDriftTests(unittest.TestCase):
             config = self._config(project_dir)
             self._write_odoo_conf(project_dir, db_host="db")
             warnings = collect_database_drift_warnings_for_host(
-                HostProjectContext.from_config(config),
-                BootstrapHandle(config=config),
+                host_context_from_assembled(config),
+                BootstrapHandle(_assembled=config),
             )
             self.assertTrue(
                 any("db_host" in warning.lower() or "db-dev" in warning for warning in warnings)
@@ -181,7 +182,7 @@ class PlanDatabaseDriftTests(unittest.TestCase):
             os.makedirs(other_data, exist_ok=True)
             (Path(other_data) / "PG_VERSION").write_text("17\n", encoding="utf-8")
             config.postgres_data_local_storage = other_data
-            _current, drifts = detect_database_drift_for_handle(BootstrapHandle(config=config))
+            _current, drifts = detect_database_drift_for_handle(BootstrapHandle(_assembled=config))
             meaningful = meaningful_database_drifts(drifts)
             self.assertTrue(has_blocking_database_drift(meaningful))
             self.assertTrue(any("data_path" in drift.kind for drift in meaningful))

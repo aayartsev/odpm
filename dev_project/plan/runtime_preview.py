@@ -10,8 +10,7 @@ from ..config.payload import runtime_config_path
 from ..inside_docker_app.exceptions import ConfigValidationError
 
 if TYPE_CHECKING:
-    from ..config import Config
-from ..container_config import ContainerConfig
+    from ..host.ports import BootstrapHandle
 
 
 PLAN_ONLY_ARGUMENT_KEYS = frozenset(
@@ -20,16 +19,16 @@ PLAN_ONLY_ARGUMENT_KEYS = frozenset(
 _RUNTIME_PREVIEW_CACHE_KEY = "_odpm_plan_runtime_preview_cache"
 
 
-def clear_runtime_config_preview_cache(config: Config) -> None:
-    if hasattr(config, _RUNTIME_PREVIEW_CACHE_KEY):
-        delattr(config, _RUNTIME_PREVIEW_CACHE_KEY)
+def clear_runtime_config_preview_cache(bootstrap: BootstrapHandle) -> None:
+    if hasattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY):
+        delattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY)
 
 
-def _runtime_preview_cache(config: Config) -> dict[str, str | None]:
-    cache = getattr(config, _RUNTIME_PREVIEW_CACHE_KEY, None)
+def _runtime_preview_cache(bootstrap: BootstrapHandle) -> dict[str, str | None]:
+    cache = getattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY, None)
     if not isinstance(cache, dict):
         cache = {}
-        setattr(config, _RUNTIME_PREVIEW_CACHE_KEY, cache)
+        setattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY, cache)
     return cache
 
 
@@ -45,14 +44,17 @@ def format_runtime_config_payload(payload: dict) -> str:
     return json.dumps(payload, ensure_ascii=False, indent=4, sort_keys=True) + "\n"
 
 
-def runtime_config_payload_from_config(config: Config) -> dict:
-
-    container = ContainerConfig.from_odpm_config(config)
+def runtime_config_payload_from_bootstrap(bootstrap: BootstrapHandle) -> dict:
+    container = bootstrap.to_container_config()
     payload = container.to_dict()
     arguments = payload.get("arguments") or {}
     if isinstance(arguments, dict):
         payload["arguments"] = strip_plan_only_arguments(arguments)
     return payload
+
+
+# Compat alias for older imports; prefer runtime_config_payload_from_bootstrap.
+runtime_config_payload_from_config = runtime_config_payload_from_bootstrap
 
 
 def normalize_runtime_config_text(raw_text: str) -> str:
@@ -68,10 +70,10 @@ def normalize_runtime_config_text(raw_text: str) -> str:
 
 
 def normalized_runtime_config_text_from_disk(
-    project_dir: str, *, config: Config | None = None
+    project_dir: str, *, bootstrap: BootstrapHandle | None = None
 ) -> str:
-    if config is not None:
-        cache = _runtime_preview_cache(config)
+    if bootstrap is not None:
+        cache = _runtime_preview_cache(bootstrap)
         if "on_disk" in cache:
             return cache["on_disk"] or ""
     path = runtime_config_path(project_dir)
@@ -82,20 +84,20 @@ def normalized_runtime_config_text_from_disk(
             text = normalize_runtime_config_text(Path(path).read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError, UnicodeDecodeError, ConfigValidationError):
             text = ""
-    if config is not None:
-        _runtime_preview_cache(config)["on_disk"] = text
+    if bootstrap is not None:
+        _runtime_preview_cache(bootstrap)["on_disk"] = text
     return text
 
 
-def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
+def prepare_runtime_config_for_compose_preview(bootstrap: BootstrapHandle) -> bool:
     from .compose_preview import (  # noqa: PLC0415  # cycle
         prepare_runtime_config_for_compose_preview as prepare,
-    )  # noqa: PLC0415  # cycle
+    )
 
-    return prepare(config)
+    return prepare(bootstrap)
 
 
-def preview_runtime_config_text(config: Config) -> str | None:
+def preview_runtime_config_text(bootstrap: BootstrapHandle) -> str | None:
     from .compose_preview import preview_runtime_config_text as preview  # noqa: PLC0415  # cycle
 
-    return preview(config)
+    return preview(bootstrap)

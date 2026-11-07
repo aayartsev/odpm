@@ -14,20 +14,21 @@ from dev_project.prepare.runtime import (
 )
 from dev_project.runtime_backend import LAUNCH_STEPS, get_runtime_backend
 from dev_project.runtime_backend.compose import ComposeRuntimeBackend
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 from dev_project.runtime_coordinator import RuntimeCoordinator
 
 
+from dev_project.config.assembly import ports_from_assembled, host_context_from_assembled
 class ComposeRuntimeBackendStubTests(unittest.TestCase):
     def _backend(self) -> ComposeRuntimeBackend:
         config = MagicMock()
         config.runtime.docker_compose_command = "docker compose"
         config.runtime.no_log_prefix = False
         config.project_dir = "/tmp/project"
-        host_ctx = HostProjectContext.from_config(config)
+        host_ctx = host_context_from_assembled(config)
         return get_runtime_backend(
             host_ctx=host_ctx,
-            config=config,
+            bootstrap=BootstrapHandle(_assembled=config),
             project_env=MagicMock(),
         )
 
@@ -106,9 +107,9 @@ class LaunchExecuteTests(unittest.TestCase):
     ) -> None:
         config = self._config()
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         coordinator = RuntimeCoordinator(
-            ports_from_config(config, project_env, OdpmCliArgs()).runtime
+            ports_from_assembled(config, project_env, OdpmCliArgs()).runtime
         )
         from dev_project.runtime_backend import execute_launch_steps
 
@@ -125,9 +126,9 @@ class LaunchExecuteTests(unittest.TestCase):
 
         config = self._config()
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         coordinator = RuntimeCoordinator(
-            ports_from_config(
+            ports_from_assembled(
                 config, project_env, OdpmCliArgs(skip_start=True)
             ).runtime
         )
@@ -146,9 +147,9 @@ class LaunchExecuteTests(unittest.TestCase):
     ) -> None:
         config = self._config()
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         coordinator = RuntimeCoordinator(
-            ports_from_config(
+            ports_from_assembled(
                 config, project_env, OdpmCliArgs(skip_start=True)
             ).runtime
         )
@@ -167,9 +168,9 @@ class LaunchExecuteTests(unittest.TestCase):
         config = self._config()
         config.bootstrap.manifest_view = None
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         coordinator = RuntimeCoordinator(
-            ports_from_config(config, project_env, OdpmCliArgs()).runtime
+            ports_from_assembled(config, project_env, OdpmCliArgs()).runtime
         )
         coordinator.handle_build_image = MagicMock(return_value=False)
         coordinator.write_debug_profile = MagicMock()

@@ -178,8 +178,8 @@ class SecretsFetchPrepareStepTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             args = OdpmCliArgs(secrets_file="/tmp/x.json")
             ctx = self._ctx(project_dir, args)
-            ctx.ports.bootstrap.config.secrets_fetch_session.fetched = True
-            ctx.ports.bootstrap.config.secrets_fetch_session.provider_name = "file"
+            ctx.ports.bootstrap._assembled.secrets_fetch_session.fetched = True
+            ctx.ports.bootstrap._assembled.secrets_fetch_session.provider_name = "file"
             step = evaluate_secrets_fetch(ctx)
             self.assertEqual(step.outcome, "skip")
 

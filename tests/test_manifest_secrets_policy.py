@@ -23,7 +23,7 @@ from dev_project.manifest.secrets_policy import (
 )
 from dev_project.prepare.execute import collect_prepare_warnings
 from dev_project.project_env.secrets import write_secrets_source
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.test_manifest_v2_reader import _minimal_v2
@@ -31,6 +31,7 @@ from dev_project.errors import PipelineError
 from dev_project.manifest.reader import ManifestView
 
 
+from dev_project.config.assembly import ports_from_assembled
 class ManifestSecretsSchemaTests(unittest.TestCase):
     def test_schema_accepts_root_and_overlay_secrets(self):
         raw = _minimal_v2(
@@ -354,9 +355,9 @@ class RuntimeCoordinatorSecretsGuardTests(unittest.TestCase):
                 ),
             )
             project_env = MagicMock()
-            project_env.bootstrap = BootstrapHandle(config=config)
+            project_env.bootstrap = BootstrapHandle(_assembled=config)
             coordinator = RuntimeCoordinator(
-                ports_from_config(
+                ports_from_assembled(
                     config, project_env, OdpmCliArgs(skip_start=False)
                 ).runtime
             )

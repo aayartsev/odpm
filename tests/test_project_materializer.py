@@ -5,9 +5,9 @@ from dev_project.host.cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
 from dev_project.errors import PipelineError
-from dev_project.host.ports import ports_from_config
 from dev_project.project_materializer import ProjectMaterializer
 from tests.prepare_test_helpers import stub_prepare_service_executions
+from dev_project.config.assembly import ports_from_assembled
 
 
 class ProjectMaterializerTests(unittest.TestCase):
@@ -16,7 +16,7 @@ class ProjectMaterializerTests(unittest.TestCase):
         config = MagicMock()
         project_env = MagicMock()
         system_checker = MagicMock()
-        ports = ports_from_config(config, project_env, args)
+        ports = ports_from_assembled(config, project_env, args)
         materializer = ProjectMaterializer()
         with stub_prepare_service_executions() as service_mocks:
             materializer.run(ports, system_checker)
@@ -64,7 +64,7 @@ class ProjectMaterializerTests(unittest.TestCase):
         materializer = ProjectMaterializer()
         config = MagicMock()
         config.arguments = OdpmCliArgs(update_lock=True, no_git_update=True)
-        ports = ports_from_config(
+        ports = ports_from_assembled(
             config,
             MagicMock(),
             OdpmCliArgs(update_lock=True, no_git_update=True),

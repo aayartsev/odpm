@@ -36,7 +36,7 @@ def write_debug_profile_to_path(env: CreateProjectEnvironment, path: str) -> str
 
 def write_debug_profile(env: CreateProjectEnvironment) -> str:
 
-    project_dir = env.bootstrap.config.project_dir
+    project_dir = env.host_ctx.project_dir
     ensure_runtime_dir_gitignore(project_dir)
     return write_debug_profile_to_path(env, debug_profile_path(project_dir))
 
@@ -213,12 +213,13 @@ class DebuggerProfileBuilder:
             seen_pairs.add(pair)
             candidates.append(pair)
 
-        for entry in self.env.bootstrap.config.docker_layout.symlinks_sources:
+        host_ctx = self.env.host_ctx
+        for entry in host_ctx.docker_layout.symlinks_sources:
             add(entry.link_path, entry.source_path)
 
         for scan_dir in (
-            self.env.bootstrap.config.project_dir,
-            self.env.bootstrap.config.docker_layout.dependencies_dir,
+            host_ctx.project_dir,
+            host_ctx.docker_layout.dependencies_dir,
         ):
             if not os.path.isdir(scan_dir):
                 continue

@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Any
 from . import constants
 
 if TYPE_CHECKING:
-    from .config import Config
     from .host.cli.args import OdpmCliArgs
 from .host.cli import params as cli_params
 from .host.cli.args import OdpmCliArgs
@@ -95,7 +94,7 @@ def merged_environ_for_resolve(
 
 
 def environ_from_config(config: Any) -> dict[str, str]:
-    """Build resolve environ from ``Config`` / user_env dotenv + process env."""
+    """Build resolve environ from ``Any`` / user_env dotenv + process env."""
     dotenv: Mapping[str, str] = {}
     user_env = getattr(config, "user_env", None)
     if user_env is not None and hasattr(user_env, "project_dotenv_dict"):
@@ -131,20 +130,11 @@ class SystemCheckPolicy:
     require_ci_explicit_mode: bool = False
 
     @classmethod
-    def from_config(cls, config: Config) -> SystemCheckPolicy:
-        check_system = cls._check_system_enabled(config)
-        policy = getattr(config, "policy", None)
-        scenario = getattr(policy, "scenario", None) if policy is not None else None
-        is_developer = scenario == constants.DEVELOPER_SCENARIO
-        is_ci = scenario == constants.CI_SCENARIO
-        arguments = getattr(config, "arguments", None)
-        environ = environ_from_config(config)
-        return cls._build(
-            check_system=check_system,
-            is_developer=is_developer,
-            is_ci=is_ci,
-            arguments=arguments,
-            environ=environ,
+    def from_bootstrap(cls, bootstrap) -> SystemCheckPolicy:
+        from .host.context import HostProjectContext  # noqa: PLC0415  # cycle
+
+        return cls.from_host_context(
+            bootstrap.host_context()
         )
 
     @classmethod

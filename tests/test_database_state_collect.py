@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import json
 import os
 import tempfile
@@ -92,7 +94,7 @@ class CollectDatabaseStateTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
-            state = collect_database_state(self._config(project_dir))
+            state = collect_database_state(BootstrapHandle(_assembled=self._config(project_dir)))
             self.assertEqual(state.compose.service_name, "db-dev")
             self.assertEqual(state.compose.image_tag, "17")
             self.assertEqual(state.compose.host_port, 5432)
@@ -116,7 +118,7 @@ class CollectDatabaseStateTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
-            state = collect_database_state(self._config(project_dir))
+            state = collect_database_state(BootstrapHandle(_assembled=self._config(project_dir)))
             self.assertEqual(state.compose.service_name, "db-dev")
             self.assertEqual(state.odoo_conf.db_host, "db")
 
@@ -125,7 +127,7 @@ class CollectDatabaseStateTests(unittest.TestCase):
             data_path = Path(project_dir) / constants.POSTGRES_LOCAL_STORAGE_DIR
             data_path.mkdir(parents=True)
             (data_path / "PG_VERSION").write_text("17\n", encoding="utf-8")
-            state = collect_database_state(self._config(project_dir))
+            state = collect_database_state(BootstrapHandle(_assembled=self._config(project_dir)))
             self.assertTrue(state.cluster.data_dir_nonempty)
             self.assertEqual(state.cluster.pg_major, 17)
             self.assertEqual(
@@ -135,7 +137,7 @@ class CollectDatabaseStateTests(unittest.TestCase):
 
     def test_empty_data_dir_reports_not_initialized(self):
         with tempfile.TemporaryDirectory() as project_dir:
-            state = collect_database_state(self._config(project_dir))
+            state = collect_database_state(BootstrapHandle(_assembled=self._config(project_dir)))
             self.assertFalse(state.cluster.data_dir_nonempty)
             self.assertIsNone(state.cluster.pg_major)
 

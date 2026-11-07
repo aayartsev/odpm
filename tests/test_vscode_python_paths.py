@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import json
 import os
 import shutil
@@ -39,8 +41,6 @@ def _make_paths_env(
     config.docker_layout.dependencies_projects = []
     layout = MagicMock()
     layout.catalogs_of_modules_data = catalogs_of_modules_data or []
-    env.host_ctx = MagicMock()
-    env.host_ctx.addon_layout = layout
 
     developing = MagicMock()
     developing.project_path = developing_path
@@ -51,7 +51,13 @@ def _make_paths_env(
         dep.project_path = dep_path
         config.docker_layout.dependencies_projects.append(dep)
 
-    env.bootstrap = MagicMock(config=config)
+    env.bootstrap = BootstrapHandle(_assembled=config)
+    host_ctx = MagicMock()
+    host_ctx.project_dir = project_dir
+    host_ctx.docker_layout = config.docker_layout
+    host_ctx.project_settings = config.project_settings
+    host_ctx.addon_layout = layout
+    env.host_ctx = host_ctx
     return env
 
 

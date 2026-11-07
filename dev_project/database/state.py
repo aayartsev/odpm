@@ -22,7 +22,6 @@ from .schema import (
 )
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.ports import BootstrapHandle
 
 _PG_VERSION_FILE = "PG_VERSION"
@@ -100,7 +99,8 @@ def read_odoo_conf_db_fingerprint(
     )
 
 
-def collect_database_state(config: Config) -> DatabaseCurrentState:
+def collect_database_state(bootstrap: BootstrapHandle) -> DatabaseCurrentState:
+    config = bootstrap
     data_path = os.path.realpath(config.postgres_data_local_storage)
     cluster_path = postgres_cluster_dir_on_host(
         data_path, config.project_settings.postgres_version
@@ -176,7 +176,7 @@ def save_current_database_baseline(
             current,
             cluster=replace(current.cluster, app_role_present=True),
         )
-    return save_last_run(bootstrap.config.project_dir, current.to_last_run())
+    return save_last_run(bootstrap.project_dir, current.to_last_run())
 
 
 def write_last_run_to_path(path: str, snapshot: DatabaseLastRun) -> str:

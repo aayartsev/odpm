@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -34,25 +36,19 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
         return config
 
     def test_compose_cli_argv_includes_project_when_prefix_set(self):
-        config = self._config()
-        config.user_env.compose_project_name = "acme"
-        with patch(
-            "dev_project.host.context.HostProjectContext.from_config",
-            return_value=MagicMock(
-                docker_compose_command="docker compose",
-                user_env=config.user_env,
-            ),
-        ):
-            self.assertEqual(
-                compose_cli_argv(config),
-                ["docker", "compose", "-p", "acme"],
-            )
+        host_ctx = MagicMock()
+        host_ctx.docker_compose_command = "docker compose"
+        host_ctx.user_env.compose_project_name = "acme"
+        self.assertEqual(
+            compose_cli_argv(host_ctx),
+            ["docker", "compose", "-p", "acme"],
+        )
 
     def test_argv_includes_yes_when_compose_supports_it(self):
         config = self._config()
         config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=True)
         self.assertEqual(
-            compose_up_detached_argv(config, "db-dev"),
+            compose_up_detached_argv(BootstrapHandle(_assembled=config), "db-dev"),
             ["docker", "compose", "up", "-d", "-y", "db-dev"],
         )
 
@@ -60,7 +56,7 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
         config = self._config()
         config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=False)
         self.assertEqual(
-            compose_up_detached_argv(config, "db-dev"),
+            compose_up_detached_argv(BootstrapHandle(_assembled=config), "db-dev"),
             ["docker", "compose", "up", "-d", "db-dev"],
         )
 
@@ -68,15 +64,17 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
         config = self._config()
         config.user_env.compose_project_name = "acme"
         config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=True)
-        with patch(
-            "dev_project.host.context.HostProjectContext.from_config",
+        bootstrap = BootstrapHandle(_assembled=config)
+        with patch.object(
+            bootstrap,
+            "host_context",
             return_value=MagicMock(
                 docker_compose_command="docker compose",
                 user_env=config.user_env,
             ),
         ):
             self.assertEqual(
-                compose_up_detached_argv(config, "acme-db"),
+                compose_up_detached_argv(bootstrap, "acme-db"),
                 ["docker", "compose", "-p", "acme", "up", "-d", "-y", "acme-db"],
             )
 
@@ -88,7 +86,7 @@ class ComposeUpServiceDetachedTests(unittest.TestCase):
         config.runtime.docker_capabilities = _capabilities(supports_compose_up_yes=True)
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
-        compose_up_service_detached(config, "db-dev")
+        compose_up_service_detached(BootstrapHandle(_assembled=config), "db-dev")
 
         mock_run.assert_called_once()
         self.assertEqual(

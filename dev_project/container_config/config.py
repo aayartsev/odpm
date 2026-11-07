@@ -6,7 +6,7 @@ import json
 import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from .. import constants
 from .database_context import DatabaseContainerContext
@@ -19,9 +19,6 @@ from ..debugger.user_env import (
 )
 from ..inside_docker_app.exceptions import ConfigValidationError, ContainerError
 from .schema import CONTAINER_CONFIG_SCHEMA_VERSION, validate_container_config_dict
-
-if TYPE_CHECKING:
-    from ..config.config import Config
 
 
 def _normalize_legacy_container_config(raw: dict) -> dict:
@@ -166,7 +163,7 @@ class ContainerConfig:
     database: DatabaseContainerContext | None = None
 
     @classmethod
-    def from_odpm_config(cls, config: Config) -> ContainerConfig:
+    def from_odpm_config(cls, config: Any) -> ContainerConfig:
         from ..config.payload import compute_venv_lock_hash  # noqa: PLC0415  # cycle
         from ..config.transforms.modules import modules_csv_for_update_list  # noqa: PLC0415  # cycle
 
@@ -210,7 +207,7 @@ class ContainerConfig:
         )
 
     @staticmethod
-    def _debugger_settings_from_host(config: Config) -> DebuggerSettings | None:
+    def _debugger_settings_from_host(config: Any) -> DebuggerSettings | None:
         if not config.policy.install_debugpy:
             return None
         user_env = config.user_env

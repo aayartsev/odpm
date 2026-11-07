@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.dependency_resolver import DependencyResolutionResult
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.volume_mapper import VolumeMapper
 
 
@@ -35,7 +36,7 @@ class VolumeMapperTests(unittest.TestCase):
         user_env.backups = "/tmp/backups"
         config.user_env = user_env
         env = MagicMock()
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = BootstrapHandle(_assembled=config)
         env.user_env = user_env
         env.mapped_folders = []
         host_ctx = MagicMock()
@@ -68,7 +69,8 @@ class VolumeMapperTests(unittest.TestCase):
             inside_docker_path="dep",
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
-        env.bootstrap.config.handle_git_link = MagicMock(return_value=dependency)
+        env.bootstrap.handle_git_link = MagicMock(return_value=dependency)
+        env.bootstrap.ensure_git_repo_symlink = MagicMock()
         resolution = DependencyResolutionResult(
             urls=[url],
             nested_fragments=[],
@@ -80,7 +82,7 @@ class VolumeMapperTests(unittest.TestCase):
             skip_materialize=True,
         )
 
-        env.bootstrap.config.handle_git_link.assert_called_once_with(url, materialize=False)
+        env.bootstrap.handle_git_link.assert_called_once_with(url, materialize=False)
         self.assertEqual(len(env.mapped_folders), 1)
         self.assertEqual(env.mapped_folders[0].local, "/tmp/dep")
 
@@ -94,7 +96,8 @@ class VolumeMapperTests(unittest.TestCase):
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
         dependency.build_project = MagicMock(side_effect=lambda: setattr(dependency, "is_cloned", True))
-        env.bootstrap.config.handle_git_link = MagicMock(return_value=dependency)
+        env.bootstrap.handle_git_link = MagicMock(return_value=dependency)
+        env.bootstrap.ensure_git_repo_symlink = MagicMock()
         resolution = DependencyResolutionResult(
             urls=[url],
             nested_fragments=[],
@@ -106,7 +109,7 @@ class VolumeMapperTests(unittest.TestCase):
             skip_materialize=True,
         )
 
-        env.bootstrap.config.handle_git_link.assert_called_once_with(url, materialize=False)
+        env.bootstrap.handle_git_link.assert_called_once_with(url, materialize=False)
         dependency.build_project.assert_called_once()
         self.assertEqual(len(env.mapped_folders), 1)
         self.assertEqual(env.mapped_folders[0].local, "/tmp/dep")
@@ -114,11 +117,11 @@ class VolumeMapperTests(unittest.TestCase):
     def test_map_pre_commit_files_copies_and_mounts_existing_file(self):
         with tempfile.TemporaryDirectory() as project_dir:
             env = self._make_env()
-            env.bootstrap.config.project_dir = project_dir
+            env.bootstrap._assembled.project_dir = project_dir
             env.host_ctx.project_dir = project_dir
-            env.bootstrap.config.developing_project_dir_path = project_dir
-            env.bootstrap.config.docker_layout.docker_odoo_project_dir_path = "/docker/developing"
-            env.bootstrap.config.user_settings.pre_commit_map_files = [".pre-commit-config.yaml"]
+            env.bootstrap._assembled.developing_project_dir_path = project_dir
+            env.bootstrap._assembled.docker_layout.docker_odoo_project_dir_path = "/docker/developing"
+            env.bootstrap._assembled.user_settings.pre_commit_map_files = [".pre-commit-config.yaml"]
             source = os.path.join(project_dir, ".pre-commit-config.yaml")
             with open(source, "w", encoding="utf-8") as handle:
                 handle.write("repos: []\n")

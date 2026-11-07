@@ -30,7 +30,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
 from dev_project.manifest.reader import ManifestView
 from dev_project.prepare.steps_compose import evaluate_compose_fragments, exec_compose_fragments
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 from dev_project.prepare.types import PrepareContext
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.compose.generator import ComposeGenerator
@@ -44,6 +44,7 @@ from tests.test_manifest_v2_reader import _minimal_v2
 from dev_project.compose.fragments import collect_service_patches
 
 
+from dev_project.config.assembly import ports_from_assembled, host_context_from_assembled
 class _MailpitFragment:
     name = "mailpit-plugin"
 
@@ -240,7 +241,7 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             user_env.odoo_port = 8069
             user_env.gevent_port = 8072
             config.user_env = user_env
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
             env.mapped_folders = [
                 MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
             ]
@@ -291,7 +292,7 @@ class ComposeFragmentsGeneratorTests(unittest.TestCase):
             user_env.odoo_port = 8069
             user_env.gevent_port = 8072
             config.user_env = user_env
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
             env.mapped_folders = [
                 MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
             ]
@@ -326,10 +327,10 @@ class ComposeFragmentsPrepareStepTests(unittest.TestCase):
             else None
         )
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        host_ctx = HostProjectContext.from_config(config)
-        ports = ports_from_config(
+        host_ctx = host_context_from_assembled(config)
+        ports = ports_from_assembled(
             config,
-            MagicMock(bootstrap=BootstrapHandle(config=config)),
+            MagicMock(bootstrap=BootstrapHandle(_assembled=config)),
             OdpmCliArgs(),
         )
         return PrepareContext(
@@ -430,7 +431,7 @@ class ComposeServicePatchTests(unittest.TestCase):
             user_env.odoo_port = 8069
             user_env.gevent_port = 8072
             config.user_env = user_env
-            env = CreateProjectEnvironment(BootstrapHandle(config=config))
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
             env.mapped_folders = []
             content = ComposeGenerator(env).render_docker_compose_content()
             self.assertIn("PATCH_FLAG=1", content)
@@ -459,7 +460,7 @@ class ComposeServicePatchTests(unittest.TestCase):
                 ctx,
                 host_ctx=replace(ctx.host_ctx, manifest_view=manifest_view),
             )
-            ctx.ports.bootstrap.config.bootstrap.manifest_view = manifest_view
+            ctx.ports.bootstrap._assembled.bootstrap.manifest_view = manifest_view
             plan = build_prepare_plan(ctx)
             step_ids = [step.id for step in plan.steps]
             self.assertIn("compose.patch.odoo", step_ids)

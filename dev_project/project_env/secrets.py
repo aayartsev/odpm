@@ -184,22 +184,27 @@ def bake_secrets_enabled() -> bool:
     return value in ("1", "true", "yes")
 
 
-def prepare_secrets_for_ci_bake(project_dir: str, config: object | None = None) -> bool:
+def prepare_secrets_for_ci_bake(project_dir: str, bootstrap: object | None = None) -> bool:
     """Materialize secrets for CI bake when :envvar:`ODPM_BAKE_SECRETS` is set.
 
-    Always runs ``ensure_secrets_source`` on the same config session first.
+    Always runs ``ensure_secrets_source`` on the same bootstrap session first.
     """
     if not bake_secrets_enabled():
         return False
-    if config is not None:
-        from ..secrets_providers.fetch import ensure_secrets_source_for_config  # noqa: PLC0415  # optional
-
+    if bootstrap is not None:
         raw: dict = {}
-        bootstrap = getattr(config, "bootstrap", None)
-        view = getattr(bootstrap, "manifest_view", None) if bootstrap is not None else None
+        view = getattr(bootstrap, "manifest_view", None)
         if view is not None and getattr(view, "source_raw", None):
             raw = dict(view.source_raw)
-        ensure_secrets_source_for_config(config, raw=raw, phase="bake")
+        ensure = getattr(bootstrap, "ensure_secrets_source", None)
+        if callable(ensure):
+            ensure(raw, phase="bake")
+        else:
+            from ..secrets_providers.fetch import (  # noqa: PLC0415  # optional
+                ensure_secrets_source_for_config,
+            )
+
+            ensure_secrets_source_for_config(bootstrap, raw=raw, phase="bake")
     materialize_secrets(project_dir)
     return os.path.isfile(secrets_runtime_path(project_dir))
 

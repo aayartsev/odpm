@@ -6,9 +6,10 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.config.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
 from dev_project.config.state import DockerLayoutState, ProjectSettingsState, UserSettingsState
+from dev_project.host.ports import BootstrapHandle
 
 
 class DevelopingRepoMaterializerTests(unittest.TestCase):
@@ -17,7 +18,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
 
     def test_materialize_for_odpm_json_clones_remote_git(self):
         with tempfile.TemporaryDirectory() as project_dir:
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config._user = UserSettingsState()
             config._project = ProjectSettingsState()
             config._docker = DockerLayoutState()
@@ -46,7 +47,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
             Path(odpm_path).write_text('{"odpm_version": "3.0"}', encoding="utf-8")
 
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config._user = UserSettingsState()
             config._project = ProjectSettingsState()
             config._docker = DockerLayoutState()
@@ -64,7 +65,10 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             config.developing_project.switch_to_branch.assert_called_once_with(
                 "17.0-dev"
             )
-            mock_symlinks.assert_called_once_with(config)
+            mock_symlinks.assert_called_once()
+            (handle,) = mock_symlinks.call_args.args
+            self.assertIsInstance(handle, BootstrapHandle)
+            self.assertIs(handle._assembled, config)
             self.assertTrue(materialized)
             self.assertTrue(self.materializer.developing_repo_materialized)
 
@@ -75,7 +79,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             odpm_path = os.path.join(dev_path, constants.PROJECT_CONFIG_FILE_NAME)
             Path(odpm_path).write_text("{}", encoding="utf-8")
 
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config._user = UserSettingsState()
             config._project = ProjectSettingsState()
             config._docker = DockerLayoutState()
@@ -94,7 +98,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
             self.assertFalse(self.materializer.developing_repo_materialized)
 
     def test_materialize_for_odpm_json_skips_file_link(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._user = UserSettingsState()
         config._project = ProjectSettingsState()
         config._docker = DockerLayoutState()
@@ -112,7 +116,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
         self.assertFalse(materialized)
 
     def test_materialize_for_odpm_json_skips_no_git_update(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._user = UserSettingsState()
         config._project = ProjectSettingsState()
         config._docker = DockerLayoutState()
@@ -149,7 +153,7 @@ class DevelopingRepoMaterializerTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config._user = UserSettingsState()
             config._project = ProjectSettingsState()
             config._docker = DockerLayoutState()

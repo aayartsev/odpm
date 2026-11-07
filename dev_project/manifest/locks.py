@@ -19,7 +19,6 @@ from ..translations import _
 from .schema import validate_manifest_v2
 
 if TYPE_CHECKING:
-    from ..config import Config
     from .reader import ManifestView
 
 
@@ -97,8 +96,13 @@ def manifest_git_locks_from_view(manifest_view: ManifestView | None) -> dict[str
     return {str(key): str(value) for key, value in git_locks.items()}
 
 
-def manifest_git_locks_from_config(config: Config) -> dict[str, str]:
+def manifest_git_locks_from_bootstrap(bootstrap) -> dict[str, str]:
     """Return manifest ``locks.git`` map when present on a v2 manifest."""
+    return manifest_git_locks_from_view(bootstrap.manifest_view)
+
+
+def manifest_git_locks_from_config(config: Any) -> dict[str, str]:
+    """Compat for in-tree config snapshots; prefer :func:`manifest_git_locks_from_bootstrap`."""
     return manifest_git_locks_from_view(config.bootstrap.manifest_view)
 
 
@@ -161,12 +165,30 @@ def resolve_lock_source_from_view(manifest_view: ManifestView | None) -> LockSou
     return LockSource.DEPS_FILE
 
 
-def resolve_lock_source(config: Config) -> LockSource:
+def resolve_lock_source(bootstrap) -> LockSource:
     """Prefer manifest ``locks.git`` on v2 manifests; otherwise deps.lock.json."""
-    return resolve_lock_source_from_view(config.bootstrap.manifest_view)
+    from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
+
+    if isinstance(bootstrap, BootstrapHandle):
+        return resolve_lock_source_from_view(bootstrap.manifest_view)
+    boot = getattr(bootstrap, "bootstrap", None)
+    view = getattr(boot, "manifest_view", None) if boot is not None else None
+    return resolve_lock_source_from_view(view)
 
 
-def developing_git_link_from_config(config: Config) -> str | None:
+def developing_git_link_from_bootstrap(bootstrap) -> str | None:
+    developing = bootstrap.developing_project
+    if developing is None:
+        return None
+    link = getattr(developing, "project_link", None) or getattr(
+        developing, "project_string", None
+    )
+    if not link:
+        return None
+    return str(link).strip() or None
+
+
+def developing_git_link_from_config(config: Any) -> str | None:
     developing = config.bootstrap.developing_project
     if developing is None:
         return None

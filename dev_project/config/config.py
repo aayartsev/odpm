@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
+
+from .assembly import host_context_from_assembled
 
 if TYPE_CHECKING:
     from ..host.context import HostProjectContext
@@ -8,18 +10,13 @@ if TYPE_CHECKING:
 from ..host.cli.args import OdpmCliArgs
 from ..host.runtime import HostRuntimeState
 
-from ..dependency_resolver import NestedOdpmFragment
-from ..errors import PipelineError
-from ..git import HandleOdooProjectLink
 from ..host.user_env import CreateUserEnvironment
 from ..logging import get_module_logger
 from ..project_dir_manager import ProjectDirManager
 from ..scenario_policy import ScenarioPolicy
 from .bootstrap import bootstrap_config, normalize_project_requirements
 from ..secrets_providers.session import SecretsFetchSession
-from ..symlinks import ensure_developing_repo_symlinks, ensure_git_repo_symlink
 from .transforms.env_substitution import EnvResolver
-from .nested_compatibility import collect_nested_compatibility_issues
 from .payload import compute_extras_stamp, compute_venv_lock_hash, config_to_json
 from .state import (
     AddonLayoutState,
@@ -35,7 +32,7 @@ from .types import SubProject
 _logger = get_module_logger(__name__)
 
 
-class Config:
+class AssembledProject:
     policy: ScenarioPolicy
 
     def __init__(
@@ -99,7 +96,7 @@ class Config:
     def host_context(self) -> HostProjectContext:
         from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
-        return HostProjectContext.from_config(self)
+        return host_context_from_assembled(self)
 
     def skip_git_update(self) -> bool:
         return bool(self.arguments.no_git_update)
@@ -111,22 +108,6 @@ class Config:
             return []
         return [str(url).strip() for url in seeds if url and str(url).strip()]
 
-    def apply_nested_compatibility(
-        self,
-        nested_fragments: list[NestedOdpmFragment] | None = None,
-    ) -> None:
-        """Validate nested dependency manifest versions against the host project."""
-        fragments = list(nested_fragments or [])
-        for message in collect_nested_compatibility_issues(
-            self.project_settings.odoo_version,
-            self.project_settings.python_version,
-            fragments,
-        ):
-            if self.policy.is_ci():
-                _logger.error(message)
-                raise PipelineError(message, exit_code=1)
-            _logger.warning(message)
-
     def ensure_git_repos_present(self) -> None:
         self._git_repos.ensure_git_repos_present()
 
@@ -135,19 +116,6 @@ class Config:
 
     def check_project_for_subprojects(self, project_path: str) -> list[SubProject]:
         return self._odoo_conf.check_project_for_subprojects(project_path)
-
-    def handle_git_link(
-        self,
-        gitlink: str,
-        system_type: Literal["developing", "platform", "standart"] = "standart",
-        *,
-        materialize: bool = False,
-    ) -> HandleOdooProjectLink:
-        return self._git_repos.handle_git_link(
-            gitlink,
-            system_type=system_type,
-            materialize=materialize,
-        )
 
     def compute_venv_lock_hash(self) -> str:
         return compute_venv_lock_hash(self)
@@ -158,19 +126,5 @@ class Config:
     def config_to_json(self) -> bytes:
         return config_to_json(self)
 
-    def generate_odoo_conf_docker_data(self) -> None:
-        self._odoo_conf.generate_odoo_conf_docker_data()
 
-    def ensure_git_repo_symlink(
-        self,
-        target_path: str,
-        *,
-        scope: Literal["project", "dependency"] = "project",
-    ) -> None:
-        ensure_git_repo_symlink(self, target_path, scope=scope)
-
-    def ensure_developing_repo_symlinks(self) -> None:
-        ensure_developing_repo_symlinks(self)
-
-
-bind_bootstrap_properties(Config)
+bind_bootstrap_properties(AssembledProject)

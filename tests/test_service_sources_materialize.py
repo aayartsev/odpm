@@ -25,15 +25,16 @@ from dev_project.prepare.steps_sources import (
     exec_sources_materialize,
 )
 from tests.test_manifest_v2_reader import _minimal_v2
-from dev_project.config.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project import constants
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.context import HostProjectContext
-from dev_project.host.ports import ports_from_config, BootstrapHandle
+from dev_project.host.ports import BootstrapHandle
 from dev_project.prepare.types import PrepareContext
 from dev_project.scenario_policy import ScenarioPolicy
 
 
+from dev_project.config.assembly import ports_from_assembled, host_context_from_assembled
 class ServiceSourcesMaterializeTests(unittest.TestCase):
     def test_file_source_returns_absolute_path(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -69,9 +70,10 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
             project_link.branch = "17.0"
             project_link.branch_explicit = True
             project_link.commit_explicit = False
-            config.handle_git_link.return_value = project_link
+            config._git_repos.handle_git_link.return_value = project_link
 
-            expected = service_source_target_dir(config, "autoparts_env")
+            bootstrap = BootstrapHandle(_assembled=config)
+            expected = service_source_target_dir(bootstrap, "autoparts_env")
 
             with mock.patch.object(
                 service_sources_mod,
@@ -88,7 +90,7 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
 
                 with mock.patch("os.path.isdir", side_effect=isdir_side_effect):
                     path = materialize_one_service_source(
-                        config,
+                        bootstrap,
                         "autoparts_env",
                         "https://github.com/org/autoparts-env.git 17.0",
                     )
@@ -131,7 +133,7 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
             ),
             env_resolver=EnvResolver.from_sources(process_environ={}, project_dotenv={}),
         )
-        config = mock.MagicMock(spec=Config)
+        config = mock.MagicMock(spec=AssembledProject)
         config.bootstrap.manifest_view = view
         config._env_resolver = EnvResolver.from_sources(
             process_environ={},
@@ -142,7 +144,7 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
         with mock.patch(
             "dev_project.git.service_sources.SymlinkManager"
         ) as manager_cls:
-            apply_materialized_service_sources(BootstrapHandle(config=config),
+            apply_materialized_service_sources(BootstrapHandle(_assembled=config),
                 {"autoparts_env": "/opt/autoparts-env"},
             )
             manager_cls.return_value.sync_service_source_project_links.assert_called_once_with(
@@ -174,11 +176,12 @@ class ServiceSourcesMaterializeTests(unittest.TestCase):
             config.bootstrap.manifest_view = view
             config.user_env.odoo_projects_dir = tmp
 
-            paths = collect_service_source_paths(BootstrapHandle(config=config))
+            bootstrap = BootstrapHandle(_assembled=config)
+            paths = collect_service_source_paths(bootstrap)
             self.assertEqual(paths["local_env"], os.path.abspath(local))
             self.assertEqual(
                 paths["autoparts_env"],
-                service_source_target_dir(config, "autoparts_env"),
+                service_source_target_dir(bootstrap, "autoparts_env"),
             )
 
 
@@ -207,10 +210,10 @@ class ServiceSourcesPrepareStepTests(unittest.TestCase):
         config.user_env = mock.MagicMock()
         config.user_env.odoo_projects_dir = os.path.join(project_dir, "odoo_projects")
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        host_ctx = HostProjectContext.from_config(config)
-        ports = ports_from_config(
+        host_ctx = host_context_from_assembled(config)
+        ports = ports_from_assembled(
             config,
-            mock.MagicMock(bootstrap=BootstrapHandle(config=config)),
+            mock.MagicMock(bootstrap=BootstrapHandle(_assembled=config)),
             OdpmCliArgs(),
         )
         return PrepareContext(

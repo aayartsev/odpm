@@ -11,13 +11,13 @@ from ...translations import _
 from ...logging import get_module_logger
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..config import AssembledProject
 
 _logger = get_module_logger(__name__)
 
 
 class DeprecatedConfigHandler:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: AssembledProject) -> None:
         self.config = config
 
     def check_for_config(self) -> None:

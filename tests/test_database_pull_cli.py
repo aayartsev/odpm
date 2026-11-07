@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import io
 import os
 import tempfile
@@ -52,7 +54,7 @@ class DatabasePullCliTests(unittest.TestCase):
         env = {k: v for k, v in os.environ.items() if k != REMOTE_DB_MASTER_PWD_ENV}
         with patch.dict(os.environ, env, clear=True):
             with self.assertRaises(ConfigError) as ctx:
-                _run_database_pull(args, config)
+                _run_database_pull(args, BootstrapHandle(_assembled=config))
             self.assertIn(REMOTE_DB_MASTER_PWD_ENV, str(ctx.exception))
 
     def test_pull_rejects_remote_db_path_traversal(self):
@@ -74,7 +76,7 @@ class DatabasePullCliTests(unittest.TestCase):
                             "dev_project.database.commands.download_multipart_post"
                         ) as download:
                             with self.assertRaises(ConfigError) as ctx:
-                                _run_database_pull(args, config)
+                                _run_database_pull(args, BootstrapHandle(_assembled=config))
                     download.assert_not_called()
                     self.assertIn("--remote-db", str(ctx.exception))
                     outside = list(Path(tmp).parent.glob("*.zip"))
@@ -96,7 +98,7 @@ class DatabasePullCliTests(unittest.TestCase):
                 return_value=["prod"],
             ):
                 with self.assertRaises(ConfigError) as ctx:
-                    _run_database_pull(args, config)
+                    _run_database_pull(args, BootstrapHandle(_assembled=config))
         self.assertIn("missing", str(ctx.exception))
         self.assertIn("prod", str(ctx.exception))
 
@@ -140,7 +142,7 @@ class DatabasePullCliTests(unittest.TestCase):
                         side_effect=fake_download,
                     ):
                         with patch("sys.stdout", new_callable=io.StringIO) as out:
-                            code = _run_database_pull(args, config)
+                            code = _run_database_pull(args, BootstrapHandle(_assembled=config))
             self.assertEqual(code, 0)
             self.assertTrue(header_cb_called["ok"])
             name = out.getvalue().strip()
@@ -176,7 +178,7 @@ class DatabasePullCliTests(unittest.TestCase):
                         side_effect=fake_download,
                     ):
                         with patch("sys.stdout", new_callable=io.StringIO):
-                            code = _run_database_pull(args, config)
+                            code = _run_database_pull(args, BootstrapHandle(_assembled=config))
             self.assertEqual(code, 0)
 
 

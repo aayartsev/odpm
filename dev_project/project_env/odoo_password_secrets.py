@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import secrets
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from .. import constants
 from ..config.transforms.env_substitution import collect_secret_refs_in_value
@@ -19,8 +19,6 @@ from ..secrets_providers.resolve import (
 )
 from ..security_profiles import ODOO_PASSWORD_SECRET_KEYS
 
-if TYPE_CHECKING:
-    from ..config.config import Config
 from ..translations import _
 
 
@@ -44,7 +42,7 @@ def raw_settings_references_password_secrets(raw: dict[str, Any]) -> set[str]:
     return {key for key in ODOO_PASSWORD_SECRET_KEYS if key in refs}
 
 
-def warn_hardened_plaintext_password_fields(config: Config, raw: dict[str, Any]) -> None:
+def warn_hardened_plaintext_password_fields(config: Any, raw: dict[str, Any]) -> None:
     """WARNING when hardened settings store passwords without ``${@secret:}`` (raw)."""
 
     policy = getattr(config, "policy", None)
@@ -77,7 +75,7 @@ def warn_hardened_plaintext_password_fields(config: Config, raw: dict[str, Any])
 
 
 def maybe_ensure_odoo_password_keys(
-    config: Config,
+    config: Any,
     *,
     raw_manifest: Mapping[str, Any] | None = None,
 ) -> bool:

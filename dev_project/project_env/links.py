@@ -28,7 +28,7 @@ class ProjectLinks:
         self._dependency_resolution = resolution
         materializer.apply_to_config(resolution)
         host_ctx = self.env.host_ctx
-        config = self.env.bootstrap.config
+        bootstrap = self.env.bootstrap
         if host_ctx.skip_git_update:
             return
         # OCA discovery already clones while walking transitive URLs; avoid a
@@ -37,7 +37,7 @@ class ProjectLinks:
             host_ctx.user_settings.use_oca_dependencies
         )
         for dependency_string in resolution.urls:
-            dependency_project = config.handle_git_link(
+            dependency_project = bootstrap.handle_git_link(
                 dependency_string,
                 materialize=not already_during_discovery,
             )
@@ -46,7 +46,7 @@ class ProjectLinks:
                     dependency_project.build_project()
             finally:
                 if dependency_project.project_path:
-                    config.ensure_git_repo_symlink(
+                    bootstrap.ensure_git_repo_symlink(
                         dependency_project.project_path,
                         scope="dependency",
                     )
@@ -85,8 +85,7 @@ class ProjectLinks:
         return self._materializer().resolve()
 
     def _should_checkout_developing(self, lock_manager=None) -> bool:
-        config = self.env.bootstrap.config
-        developing = config.developing_project
+        developing = self.env.bootstrap.developing_project
         if not is_remote_git_link(developing):
             return False
         if self.env.host_ctx.policy.is_developer():
@@ -96,10 +95,10 @@ class ProjectLinks:
         return bool(developing.branch_explicit or developing.commit_explicit)
 
     def checkout_dependencies(self, lock_manager=None) -> None:
-        config = self.env.bootstrap.config
-        list_for_checkout = [config.odoo_platform_project]
+        bootstrap = self.env.bootstrap
+        list_for_checkout = [bootstrap.odoo_platform_project]
         if self._should_checkout_developing(lock_manager):
-            list_for_checkout.append(config.developing_project)
+            list_for_checkout.append(bootstrap.developing_project)
         list_for_checkout.extend(self.env.host_ctx.docker_layout.dependencies_projects)
         for project in list_for_checkout:
             self.checkout_project(project, lock_manager=lock_manager)
@@ -108,7 +107,7 @@ class ProjectLinks:
         self, project: HandleOdooProjectLink, *, lock_manager=None
     ) -> None:
         host_ctx = self.env.host_ctx
-        config = self.env.bootstrap.config
+        bootstrap = self.env.bootstrap
         scope = (
             "dependency"
             if project in host_ctx.docker_layout.dependencies_projects
@@ -125,14 +124,14 @@ class ProjectLinks:
             )
         finally:
             project_path = project.project_path
-            if project is config.odoo_platform_project and project_path:
-                config.odoo_src_dir = project_path
-            if project is config.developing_project and project_path:
-                config.developing_project_dir_path = project_path
+            if project is bootstrap.odoo_platform_project and project_path:
+                bootstrap.odoo_src_dir = project_path
+            if project is bootstrap.developing_project and project_path:
+                bootstrap.developing_project_dir_path = project_path
             if project_path:
-                config.ensure_git_repo_symlink(project_path, scope=scope)
-                if scope == "project" and project is config.developing_project:
-                    config.ensure_developing_repo_symlinks()
+                bootstrap.ensure_git_repo_symlink(project_path, scope=scope)
+                if scope == "project" and project is bootstrap.developing_project:
+                    bootstrap.ensure_developing_repo_symlinks()
 
     def update_links(self) -> None:
         SymlinkManager(

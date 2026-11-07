@@ -17,13 +17,14 @@ from dev_project.plan.format import (
     plan_has_required_changes,
     plan_to_dict,
 )
-from dev_project.host.ports import ports_from_config
+
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 from dev_project.plan.diff import PlanFileDiff
 from dev_project.odpm_pipeline import OdpmPipeline
 
 
+from dev_project.config.assembly import ports_from_assembled
 class PlanFormatHelperTests(unittest.TestCase):
     def test_plan_has_required_changes_when_required_run_exists(self):
         plan = OdpmPlan(
@@ -190,7 +191,7 @@ class PlanStrictPipelineTests(unittest.TestCase):
             )
             config = self._config(tmp)
             pipeline.project_environment = MagicMock()
-            pipeline.ports = ports_from_config(
+            pipeline.ports = ports_from_assembled(
                 config,
                 pipeline.project_environment,
                 pipeline.cli_args,
@@ -208,7 +209,7 @@ class PlanStrictPipelineTests(unittest.TestCase):
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True, plan_strict=True), "/opt/odpm")
         config = MagicMock()
         pipeline.project_environment = MagicMock()
-        pipeline.ports = ports_from_config(
+        pipeline.ports = ports_from_assembled(
             config,
             pipeline.project_environment,
             pipeline.cli_args,

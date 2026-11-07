@@ -57,25 +57,25 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
-            config = self._developer_config(project_dir)
-            needs_update, reason = debug_profile_needs_update(config, None)
+            host_ctx = self._host_ctx(project_dir)
+            needs_update, reason = debug_profile_needs_update(host_ctx, None)
             self.assertTrue(needs_update)
             self.assertIn("missing", reason)
 
     def test_debug_profile_needs_update_when_preview_differs_from_disk(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
-            config = self._developer_config(project_dir)
+            host_ctx = self._host_ctx(project_dir)
             env = self._project_env(project_dir)
-            needs_update, reason = debug_profile_needs_update(config, env)
+            needs_update, reason = debug_profile_needs_update(host_ctx, env)
             self.assertTrue(needs_update)
             self.assertIn("changed", reason)
 
     def test_debug_profile_noop_when_preview_matches_disk(self) -> None:
         with tempfile.TemporaryDirectory() as project_dir:
-            config = self._developer_config(project_dir)
+            host_ctx = self._host_ctx(project_dir)
             env = self._project_env(project_dir)
             write_debug_profile(env)
-            needs_update, reason = debug_profile_needs_update(config, env)
+            needs_update, reason = debug_profile_needs_update(host_ctx, env)
             self.assertFalse(needs_update)
             self.assertIn("unchanged", reason)
             on_disk = normalized_debug_profile_text_from_disk(project_dir)
@@ -100,7 +100,7 @@ class PlanDebugProfilePreviewTests(unittest.TestCase):
             host_ctx=host_ctx,
             args=OdpmCliArgs(),
             project_env=MagicMock(),
-            bootstrap=BootstrapHandle(config=config),
+            bootstrap=BootstrapHandle(_assembled=config),
         )
 
     def test_evaluate_runtime_debug_profile_skipped_for_ci(self) -> None:

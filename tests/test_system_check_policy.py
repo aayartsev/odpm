@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 from dev_project import constants
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.ports import BootstrapHandle
 from dev_project.prepare.steps_compose import evaluate_compose_validate
 from dev_project.prepare.steps_docker import (
     evaluate_docker_engine_check,
@@ -60,9 +61,9 @@ class SystemCheckPolicyMatrixTests(unittest.TestCase):
         return host_ctx
 
     def test_from_config_developer_check_system_enabled(self):
-        policy = SystemCheckPolicy.from_config(
+        policy = SystemCheckPolicy.from_bootstrap(BootstrapHandle(_assembled=
             self._config(check_system=True, scenario=constants.DEVELOPER_SCENARIO)
-        )
+        ))
         self.assertTrue(policy.beginner_git)
         self.assertTrue(policy.beginner_docker)
         self.assertTrue(policy.developer_port_release)
@@ -72,9 +73,9 @@ class SystemCheckPolicyMatrixTests(unittest.TestCase):
         self.assertFalse(policy.require_ci_explicit_mode)
 
     def test_from_config_developer_check_system_disabled(self):
-        policy = SystemCheckPolicy.from_config(
+        policy = SystemCheckPolicy.from_bootstrap(BootstrapHandle(_assembled=
             self._config(check_system=False, scenario=constants.DEVELOPER_SCENARIO)
-        )
+        ))
         self.assertFalse(policy.beginner_git)
         self.assertFalse(policy.beginner_docker)
         self.assertTrue(policy.developer_port_release)
@@ -82,9 +83,9 @@ class SystemCheckPolicyMatrixTests(unittest.TestCase):
         self.assertTrue(policy.file_system_on_init)
 
     def test_from_config_server_scenario(self):
-        policy = SystemCheckPolicy.from_config(
+        policy = SystemCheckPolicy.from_bootstrap(BootstrapHandle(_assembled=
             self._config(check_system=True, scenario=constants.SERVER_SCENARIO)
-        )
+        ))
         self.assertTrue(policy.beginner_git)
         self.assertTrue(policy.beginner_docker)
         self.assertFalse(policy.developer_port_release)
@@ -95,14 +96,14 @@ class SystemCheckPolicyMatrixTests(unittest.TestCase):
             constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko",
             constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "direct",
         }
-        policy = SystemCheckPolicy.from_config(
+        policy = SystemCheckPolicy.from_bootstrap(BootstrapHandle(_assembled=
             self._config(
                 check_system=True,
                 scenario=constants.CI_SCENARIO,
                 arguments=args,
                 dotenv=dotenv,
             )
-        )
+        ))
         self.assertTrue(policy.require_ci_explicit_mode)
         self.assertTrue(policy.skip_docker_daemon)
         self.assertTrue(policy.skip_compose_cli_probe)
@@ -116,27 +117,27 @@ class SystemCheckPolicyMatrixTests(unittest.TestCase):
             constants.ODPM_CI_IMAGE_BUILDER_ENV: "kaniko",
             constants.ODPM_KANIKO_EXECUTOR_MODE_ENV: "docker-run",
         }
-        policy = SystemCheckPolicy.from_config(
+        policy = SystemCheckPolicy.from_bootstrap(BootstrapHandle(_assembled=
             self._config(
                 check_system=True,
                 scenario=constants.CI_SCENARIO,
                 arguments=args,
                 dotenv=dotenv,
             )
-        )
+        ))
         self.assertFalse(policy.skip_docker_daemon)
         self.assertTrue(policy.skip_ensure_base_local)
 
     def test_ci_docker_builder_skips_ensure_base_false(self):
         args = OdpmCliArgs(skip_start=True)
-        policy = SystemCheckPolicy.from_config(
+        policy = SystemCheckPolicy.from_bootstrap(BootstrapHandle(_assembled=
             self._config(
                 check_system=True,
                 scenario=constants.CI_SCENARIO,
                 arguments=args,
                 dotenv={constants.ODPM_CI_IMAGE_BUILDER_ENV: "docker"},
             )
-        )
+        ))
         self.assertFalse(policy.skip_ensure_base_local)
         self.assertFalse(policy.skip_docker_daemon)
 
@@ -220,7 +221,7 @@ class CiExplicitModeAllowlistTests(unittest.TestCase):
         user_env = MagicMock()
         user_env.project_dotenv_dict.return_value = dict(dotenv)
         config.user_env = user_env
-        policy = SystemCheckPolicy.from_config(config)
+        policy = SystemCheckPolicy.from_bootstrap(BootstrapHandle(_assembled=config))
         self.assertTrue(policy.skip_docker_daemon)
         self.assertTrue(policy.skip_compose_cli_probe)
         self.assertTrue(policy.relaxed_file_system)

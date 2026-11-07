@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -13,7 +15,6 @@ from dev_project.database.ensure_role import (
     ensure_app_role,
 )
 from dev_project.errors import OdpmError
-from dev_project.host.ports import BootstrapHandle
 
 
 class BuildEnsureRoleSqlTests(unittest.TestCase):
@@ -63,7 +64,7 @@ class EnsureAppRoleTests(unittest.TestCase):
     ):
         mock_role_exists.return_value = False
         mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
-        result = ensure_app_role(BootstrapHandle(config=self._config()))
+        result = ensure_app_role(BootstrapHandle(_assembled=self._config()))
         self.assertEqual(result.outcome, "created")
         self.assertEqual(result.role, "odoo")
         self.assertEqual(mock_psql.call_count, 2)
@@ -82,7 +83,7 @@ class EnsureAppRoleTests(unittest.TestCase):
     ):
         mock_role_exists.return_value = True
         mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
-        result = ensure_app_role(BootstrapHandle(config=self._config()))
+        result = ensure_app_role(BootstrapHandle(_assembled=self._config()))
         self.assertEqual(result.outcome, "updated")
         self.assertEqual(mock_psql.call_count, 2)
         roles_sql = mock_psql.call_args_list[0].args[
@@ -94,12 +95,12 @@ class EnsureAppRoleTests(unittest.TestCase):
     @patch("dev_project.database.ensure_role.probe_postgres_ready", return_value=None)
     def test_ensure_role_fails_when_container_not_running(self, _mock_ready):
         with self.assertRaises(OdpmError):
-            ensure_app_role(BootstrapHandle(config=self._config()))
+            ensure_app_role(BootstrapHandle(_assembled=self._config()))
 
     @patch("dev_project.database.ensure_role.probe_postgres_ready", return_value=False)
     def test_ensure_role_fails_when_postgres_not_ready(self, _mock_ready):
         with self.assertRaises(OdpmError):
-            ensure_app_role(BootstrapHandle(config=self._config()))
+            ensure_app_role(BootstrapHandle(_assembled=self._config()))
 
     @patch("dev_project.database.ensure_role.run_psql_as_admin")
     @patch("dev_project.database.ensure_role.resolve_psql_admin_role", return_value="postgres")
@@ -112,7 +113,7 @@ class EnsureAppRoleTests(unittest.TestCase):
             returncode=1, stdout="", stderr="permission denied"
         )
         with self.assertRaises(OdpmError):
-            ensure_app_role(BootstrapHandle(config=self._config()))
+            ensure_app_role(BootstrapHandle(_assembled=self._config()))
 
 
 if __name__ == "__main__":

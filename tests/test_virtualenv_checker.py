@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.config.payload import compute_extras_stamp
 from dev_project.inside_docker_app.check_virtualenv import VirtualenvChecker
 from dev_project.inside_docker_app.exceptions import ConfigValidationError, VenvError
@@ -227,8 +227,8 @@ class VenvLockHashTests(unittest.TestCase):
         )
         self._apply_lock_hash_fields(server_config, base_dict)
 
-        dev_hash = Config.compute_venv_lock_hash(dev_config)
-        server_hash = Config.compute_venv_lock_hash(server_config)
+        dev_hash = AssembledProject.compute_venv_lock_hash(dev_config)
+        server_hash = AssembledProject.compute_venv_lock_hash(server_config)
         self.assertEqual(dev_hash, server_hash)
         self.assertNotEqual(
             compute_extras_stamp(dev_config.requirements_txt),
@@ -251,8 +251,8 @@ class VenvLockHashTests(unittest.TestCase):
         ci_config.requirements_txt = list(shared_requirements)
         self._apply_lock_hash_fields(ci_config, base_dict)
 
-        dev_hash = Config.compute_venv_lock_hash(dev_config)
-        ci_hash = Config.compute_venv_lock_hash(ci_config)
+        dev_hash = AssembledProject.compute_venv_lock_hash(dev_config)
+        ci_hash = AssembledProject.compute_venv_lock_hash(ci_config)
         self.assertNotEqual(dev_hash, ci_hash)
 
 

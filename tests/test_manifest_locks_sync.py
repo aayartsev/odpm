@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import unittest
 from unittest.mock import MagicMock
 
@@ -158,7 +160,7 @@ class DepsLockManagerDivergenceWarningTests(unittest.TestCase):
                 ),
             )
 
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
 
@@ -192,7 +194,7 @@ class DepsLockManagerManifestSourceTests(unittest.TestCase):
         )
         config.bootstrap.developing_project = None
 
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         lock = manager.load()
 
         self.assertEqual(manager.lock_source, LockSource.MANIFEST)
@@ -225,7 +227,7 @@ class DepsLockManagerApplyModeLogTests(unittest.TestCase):
             locks={"git": {"https://github.com/odoo/odoo.git": "a" * 40}},
         )
 
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         manager.load()
         with self.assertLogs(
             "dev_project.git.deps_lock_manager", level="INFO"
@@ -254,7 +256,7 @@ class DepsLockManagerApplyModeLogTests(unittest.TestCase):
                 ),
             )
 
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             with self.assertLogs(
                 "dev_project.git.deps_lock_manager", level="INFO"
@@ -381,7 +383,7 @@ class SyncManifestLocksCollectTests(unittest.TestCase):
             config.docker_layout.dependencies_projects = []
             config.developing_project = None
 
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             with patch.object(
                 manager,
                 "_entry_from_project",
@@ -415,7 +417,7 @@ class SyncManifestLocksCollectTests(unittest.TestCase):
             config.docker_layout.dependencies_projects = []
             config.developing_project = None
 
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             platform_entry = LockEntry(
                 url="https://github.com/odoo/odoo.git",
                 commit="b" * 40,

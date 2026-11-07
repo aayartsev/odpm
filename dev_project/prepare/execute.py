@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from .. import constants
 from ..git.deps_lock import deps_lock_path, load_deps_lock
 from ..errors import PipelineError
 from ..host.cli.args import OdpmCliArgs
-from ..host.ports import BootstrapHandle, PipelinePorts, ports_from_config
+from ..host.ports import BootstrapHandle, PipelinePorts
 from ..logging import get_module_logger
 from ..translations import _
 from ..plan.core import OdpmPlan, PlanStep, deps_lock_file_exists
@@ -14,7 +16,6 @@ from ..plan.l10n import plan_msg
 from .helpers import skip_git, update_lock
 from .registry import get_prepare_steps
 from .runtime import build_runtime_plan_steps, build_runtime_plan_warnings
-from ..config import Config
 from ..compose.generator import ComposeGenerator
 from ..project_env import CreateProjectEnvironment
 from ..project_env.links import ProjectLinks
@@ -37,6 +38,7 @@ from ..plan.secrets_preview import (
     secrets_gitignore_warning,
 )
 
+from ..config.assembly import ports_from_assembled
 _logger = get_module_logger(__name__)
 
 
@@ -68,7 +70,7 @@ def _resolve_prepare_services(
 
 
 def make_prepare_context(
-    ports_or_config: PipelinePorts | Config,
+    ports_or_config: PipelinePorts | Any,
     project_env: CreateProjectEnvironment,
     system_checker: SystemCheckerProtocol,
     args: OdpmCliArgs | None = None,
@@ -78,7 +80,7 @@ def make_prepare_context(
         resolved_args = ports.plan.args
     else:
         resolved_args = args if args is not None else ports_or_config.arguments
-        ports = ports_from_config(ports_or_config, project_env, resolved_args)
+        ports = ports_from_assembled(ports_or_config, project_env, resolved_args)
     templates, compose_generator, links = _resolve_prepare_services(project_env)
     return PrepareContext(
         ports=ports,
@@ -227,7 +229,7 @@ def build_prepare_plan(ctx: PrepareContext) -> OdpmPlan:
 
 
 def build_plan(
-    ports_or_config: PipelinePorts | Config,
+    ports_or_config: PipelinePorts | Any,
     args: OdpmCliArgs | None = None,
     project_env: CreateProjectEnvironment | None = None,
 ) -> OdpmPlan:
@@ -241,10 +243,10 @@ def build_plan(
     else:
         config = ports_or_config
         resolved_args = args if args is not None else config.arguments
-        ports = ports_from_config(
+        ports = ports_from_assembled(
             config,
             project_env
-            or CreateProjectEnvironment(BootstrapHandle(config=config)),
+            or CreateProjectEnvironment(BootstrapHandle(_assembled=config)),
             resolved_args,
         )
         prepare_env = PlanOnlyProjectEnv()  # type: ignore[arg-type]

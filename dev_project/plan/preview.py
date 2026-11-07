@@ -20,6 +20,7 @@ from .runtime_preview import (
     format_runtime_config_payload,
     normalize_runtime_config_text,
     normalized_runtime_config_text_from_disk,
+    runtime_config_payload_from_bootstrap,
     runtime_config_payload_from_config,
     strip_plan_only_arguments,
 )
@@ -38,6 +39,7 @@ __all__ = (
     "prepare_runtime_config_for_compose_preview",
     "preview_compose_service",
     "preview_runtime_config_text",
+    "runtime_config_payload_from_bootstrap",
     "runtime_config_payload_from_config",
     "strip_plan_only_arguments",
 )

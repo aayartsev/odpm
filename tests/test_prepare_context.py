@@ -17,7 +17,7 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
     def test_make_prepare_context_reuses_create_project_environment_services(self):
         config = MagicMock()
         config.user_env = MagicMock()
-        project_env = CreateProjectEnvironment(BootstrapHandle(config=config))
+        project_env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
         system_checker = MagicMock()
         args = OdpmCliArgs()
 
@@ -30,7 +30,7 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
     def test_create_project_environment_caches_host_ctx(self):
         config = MagicMock()
         config.user_env = MagicMock()
-        project_env = CreateProjectEnvironment(BootstrapHandle(config=config))
+        project_env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
         first = project_env.host_ctx
         second = project_env.host_ctx
         self.assertIs(first, second)
@@ -52,7 +52,7 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
         self.assertIs(ctx.links.env, project_env)
         with self.assertRaises(AttributeError):
             _ = ctx.config
-        self.assertIs(ctx.ports.bootstrap.config, config)
+        self.assertIs(ctx.ports.bootstrap._assembled, config)
         self.assertIs(ctx.project_env, project_env)
         self.assertIs(ctx.system_checker, system_checker)
         self.assertIs(ctx.args, args)
@@ -70,7 +70,7 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
             return "ok"
 
         self.assertEqual(ctx.compose_preview.run_with_mutable_snapshot(_capture), "ok")
-        self.assertEqual(seen, [ctx.ports.bootstrap.config])
+        self.assertEqual(seen, [ctx.ports.bootstrap])
 
 
 class PrepareStepServiceExecutionTests(unittest.TestCase):

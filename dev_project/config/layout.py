@@ -1,4 +1,4 @@
-"""Docker layout and policy side-effects during Config bootstrap."""
+"""Docker layout and policy side-effects during AssembledProject bootstrap."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from ..ide_stubs import is_odoo_stubs_requirement
 from .state import DockerLayoutState, ProjectSettingsState
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
 from ..errors import ConfigError
 from ..translations import _
 from .bootstrap import normalize_project_requirements
@@ -28,7 +28,7 @@ from .bootstrap import normalize_project_requirements
 _logger = get_module_logger(__name__)
 
 
-def validate_distro(config: Config) -> None:
+def validate_distro(config: AssembledProject) -> None:
     """Fail fast when base-image distro is not supported (debian only)."""
 
     distro_name = config.project_settings.distro_name
@@ -53,7 +53,7 @@ def validate_distro(config: Config) -> None:
         )
 
 
-def apply_policy_and_layout(config: Config) -> None:
+def apply_policy_and_layout(config: AssembledProject) -> None:
 
     validate_distro(config)
     original_requirements_txt = list(config.project_settings.requirements_txt)

@@ -13,7 +13,6 @@ from ..database.drift_format import format_database_drift_warning
 from .l10n import plan_msg
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.context import HostProjectContext
     from ..host.ports import BootstrapHandle
 

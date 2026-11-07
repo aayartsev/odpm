@@ -77,7 +77,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         user_env.odoo_port = 8069
         user_env.gevent_port = 8072
         config.user_env = user_env
-        env = CreateProjectEnvironment(BootstrapHandle(config=config))
+        env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
         env.mapped_folders = [
             MappedPath(local="/tmp/local-addons", docker="/home/odoo/extra-addons")
         ]
@@ -129,7 +129,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             self._copy_compose_template(project_dir)
             env = self._make_env(project_dir, constants.DEVELOPER_SCENARIO)
-            env.bootstrap.config.user_env.postgres_service_name = "postgres"
+            env.bootstrap._assembled.user_env.postgres_service_name = "postgres"
             env._compose.generate_docker_compose_file()
             content = (Path(project_dir) / "docker-compose.yml").read_text(
                 encoding="utf-8"
@@ -277,7 +277,7 @@ class ComposeGeneratorPolicyTests(unittest.TestCase):
                 constants.PROJECT_DOCKER_COMPOSE_TEMPLATE_FILE_RELATIVE_PATH,
             )
             ComposeGenerator(env)._ensure_compose_template_current(template_path)
-            env.bootstrap.config.pd_manager.rebuild_docker_compose_template.assert_called_once()
+            env.bootstrap._assembled.pd_manager.rebuild_docker_compose_template.assert_called_once()
 
 
 if __name__ == "__main__":

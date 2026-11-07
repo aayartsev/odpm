@@ -215,7 +215,7 @@ def _runtime_config_on_disk_text(
         return ""
     return normalized_runtime_config_text_from_disk(
         host_ctx.project_dir,
-        config=project_env.runtime_preview_cache_config(),
+        bootstrap=project_env.bootstrap,
     )
 
 

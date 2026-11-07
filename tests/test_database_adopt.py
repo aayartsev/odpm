@@ -21,10 +21,11 @@ from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.database.state import save_last_run
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.runtime import HostRuntimeState
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 from dev_project.runtime_coordinator import RuntimeCoordinator
 
 
+from dev_project.config.assembly import ports_from_assembled
 class NeedsDatabaseAdoptionTests(unittest.TestCase):
     def _config(self, project_dir: str, *, scenario: str = constants.DEVELOPER_SCENARIO):
         config = MagicMock()
@@ -41,19 +42,19 @@ class NeedsDatabaseAdoptionTests(unittest.TestCase):
 
     def test_true_when_last_run_missing_on_developer_project(self):
         with tempfile.TemporaryDirectory() as project_dir:
-            self.assertTrue(needs_database_adoption(BootstrapHandle(config=self._config(project_dir))))
+            self.assertTrue(needs_database_adoption(BootstrapHandle(_assembled=self._config(project_dir))))
 
     def test_false_when_last_run_exists(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
 
             save_last_run(project_dir, build_adoption_last_run(config))
-            self.assertFalse(needs_database_adoption(BootstrapHandle(config=config)))
+            self.assertFalse(needs_database_adoption(BootstrapHandle(_assembled=config)))
 
     def test_false_on_ci_scenario(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir, scenario=constants.CI_SCENARIO)
-            self.assertFalse(needs_database_adoption(BootstrapHandle(config=config)))
+            self.assertFalse(needs_database_adoption(BootstrapHandle(_assembled=config)))
 
 
 class AdoptDatabaseBaselineTests(unittest.TestCase):
@@ -88,10 +89,10 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
                 project_dir, constants.ODPM_DATABASE_LAST_RUN_REL_PATH
             )
 
-            path = adopt_database_baseline(BootstrapHandle(config=config))
+            path = adopt_database_baseline(BootstrapHandle(_assembled=config))
 
             mock_ensure.assert_called_once()
-            self.assertIs(mock_ensure.call_args.args[0].config, config)
+            self.assertIs(mock_ensure.call_args.args[0]._assembled, config)
             mock_save.assert_called_once()
             self.assertIsNotNone(path)
             saved_snapshot = mock_save.call_args[0][1]
@@ -116,19 +117,20 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
             config = self._config(project_dir)
             mock_save.return_value = "path"
 
-            adopt_database_baseline(BootstrapHandle(config=config))
+            bootstrap = BootstrapHandle(_assembled=config)
+            adopt_database_baseline(bootstrap)
 
-            mock_start.assert_called_once_with(config)
-            mock_wait.assert_called_once_with(config)
+            mock_start.assert_called_once_with(bootstrap)
+            mock_wait.assert_called_once_with(bootstrap)
             mock_ensure.assert_called_once()
-            self.assertIs(mock_ensure.call_args.args[0].config, config)
+            self.assertIs(mock_ensure.call_args.args[0]._assembled, config)
 
     def test_skips_when_last_run_exists(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
 
             save_last_run(project_dir, build_adoption_last_run(config))
-            self.assertIsNone(adopt_database_baseline(BootstrapHandle(config=config)))
+            self.assertIsNone(adopt_database_baseline(BootstrapHandle(_assembled=config)))
 
 
 class StartPostgresDetachedTests(unittest.TestCase):
@@ -211,16 +213,16 @@ class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
         config.docker_layout.odoo_image_name = "odoo-base:test"
         config.user_env.odoo_port = 8069
         project_env = MagicMock()
-        project_env.bootstrap = BootstrapHandle(config=config)
+        project_env.bootstrap = BootstrapHandle(_assembled=config)
         coordinator = RuntimeCoordinator(
-            ports_from_config(config, project_env, OdpmCliArgs()).runtime
+            ports_from_assembled(config, project_env, OdpmCliArgs()).runtime
         )
         coordinator.run_after_prepare()
 
         mock_adopt.assert_called_once()
-        self.assertIs(mock_adopt.call_args.args[0].config, config)
+        self.assertIs(mock_adopt.call_args.args[0]._assembled, config)
         mock_blocking.assert_called_once()
-        self.assertIs(mock_blocking.call_args.args[0].config, config)
+        self.assertIs(mock_blocking.call_args.args[0]._assembled, config)
         self.assertEqual(mock_blocking.call_args.args[1], coordinator.cli_args)
 
 

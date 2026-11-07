@@ -11,7 +11,7 @@ import unittest
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from dev_project.host.ports import BootstrapHandle, ports_from_config
+from dev_project.host.ports import BootstrapHandle
 
 from dev_project import constants
 from dev_project.errors import ConfigError
@@ -31,6 +31,7 @@ from dev_project.plan.cli import is_modules_mode
 from dev_project.system_check_policy import cli_allows_ci_explicit_mode
 
 
+from dev_project.config.assembly import ports_from_assembled
 def _run_git(repo: Path, *args: str) -> str:
     result = subprocess.run(
         ["git", *args],
@@ -303,7 +304,7 @@ class ModulesCommandIntegrationTests(unittest.TestCase):
             )
             buf = StringIO()
             with patch("sys.stdout", buf):
-                code = run_modules_command(cli_args, ports_from_config(config))
+                code = run_modules_command(cli_args, ports_from_assembled(config))
             self.assertEqual(code, 0)
             payload = json.loads(buf.getvalue())
             self.assertEqual(payload["init_modules"], "new_mod")
@@ -313,7 +314,7 @@ class ModulesCommandIntegrationTests(unittest.TestCase):
                 command="modules",
                 modules_subcommand="record-applied",
             )
-            self.assertEqual(run_modules_command(record_args, ports_from_config(config)), 0)
+            self.assertEqual(run_modules_command(record_args, ports_from_assembled(config)), 0)
             marker = read_last_applied(str(project_dir))
             assert marker is not None
             self.assertEqual(marker.developing_sha, _run_git(repo, "rev-parse", "HEAD"))

@@ -19,7 +19,7 @@ class VscodeConfigurator:
         self.env = env
 
     def get_vscode_dir_path(self) -> str:
-        vscode_dir = os.path.join(self.env.bootstrap.config.project_dir, ".vscode")
+        vscode_dir = os.path.join(self.env.host_ctx.project_dir, ".vscode")
         if not os.path.exists(vscode_dir):
             os.mkdir(vscode_dir)
         return vscode_dir
@@ -43,7 +43,8 @@ class VscodeConfigurator:
 
     def update_vscode_debugger_launcher(self) -> None:
         profile = self.build_debugger_profile()
-        self.env.bootstrap.config.docker_layout.debugger_path_mappings = (
+        # Mutation of assembled layout still goes through the bootstrap snapshot.
+        self.env.bootstrap.docker_layout.debugger_path_mappings = (
             profile.to_vscode_path_mappings()
         )
 
@@ -65,14 +66,15 @@ class VscodeConfigurator:
             json.dump(content, outfile, indent=4)
 
     def generate_vscode_settings_json(self) -> None:
+        host_ctx = self.env.host_ctx
         vscode_settings_json_template_path = os.path.join(
-            self.env.bootstrap.config.project_dir, constants.PROJECT_VSCODE_SETTINGS_TEMPLATE
+            host_ctx.project_dir, constants.PROJECT_VSCODE_SETTINGS_TEMPLATE
         )
         with open(vscode_settings_json_template_path) as reader:
             lines = reader.readlines()
         content = "".join(lines[1:]).replace(
             "{PYTHON_VERSION}",
-            str(self.env.bootstrap.config.project_settings.python_version),
+            str(host_ctx.project_settings.python_version),
         )
         settings = json.loads(content)
         extra_paths = PythonAnalysisPathsBuilder(self.env).build()

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
 from dev_project.check_system import SystemChecker
-from dev_project.host.ports import BootstrapHandle
 from dev_project.compose.compose_document import build_compose_document
 from dev_project.host.runtime import HostRuntimeState
 from dev_project.docker_capabilities import (
@@ -67,7 +68,7 @@ class ProbeComposeCandidatesFileNotFoundTests(unittest.TestCase):
             raise FileNotFoundError(argv[0])
 
         caps = ensure_config_docker_capabilities(
-            config, run_checked=fake_run_checked
+            BootstrapHandle(_assembled=config), run_checked=fake_run_checked
         )
         self.assertIsNone(caps)
 
@@ -80,7 +81,7 @@ class ProbeComposeCandidatesFileNotFoundTests(unittest.TestCase):
             raise FileNotFoundError(argv[0])
 
         with self.assertRaises(SystemCheckError):
-            resolve_docker_capabilities(config, run_checked=fake_run_checked)
+            resolve_docker_capabilities(BootstrapHandle(_assembled=config), run_checked=fake_run_checked)
 
 
 class DetectDockerCapabilitiesTests(unittest.TestCase):
@@ -142,7 +143,7 @@ class DetectDockerCapabilitiesTests(unittest.TestCase):
 class ComposeDocumentPullPolicyTests(unittest.TestCase):
     def test_odoo_service_gets_pull_policy_never_when_supported(self):
         env = make_golden_compose_env(constants.DEVELOPER_SCENARIO)
-        env.bootstrap.config.runtime.docker_capabilities = DockerCapabilities(
+        env.bootstrap._assembled.runtime.docker_capabilities = DockerCapabilities(
             compose_command=constants.DEFAULT_DOCKER_COMPOSE_COMMAND,
             compose_version_text="Docker Compose version v2.24.0",
             supports_no_log_prefix=True,
@@ -172,7 +173,7 @@ class ResolveDockerCapabilitiesTests(unittest.TestCase):
         with patch(
             "dev_project.docker_capabilities.probe_docker_capabilities"
         ) as mock_probe:
-            resolved = resolve_docker_capabilities(config)
+            resolved = resolve_docker_capabilities(BootstrapHandle(_assembled=config))
         self.assertIs(resolved, cached)
         mock_probe.assert_not_called()
 
@@ -180,7 +181,7 @@ class ResolveDockerCapabilitiesTests(unittest.TestCase):
 class SystemCheckerComposeCapabilitiesTests(unittest.TestCase):
     def test_check_docker_compose_stores_capabilities(self):
         config = MagicMock()
-        checker = SystemChecker(BootstrapHandle(config=config), MagicMock())
+        checker = SystemChecker(BootstrapHandle(_assembled=config), MagicMock())
         caps = DockerCapabilities(
             compose_command=constants.DEFAULT_DOCKER_COMPOSE_COMMAND,
             compose_version_text="Docker Compose version v2.24.0",
@@ -201,7 +202,7 @@ class SystemCheckerComposeCapabilitiesTests(unittest.TestCase):
 
     def test_check_docker_compose_raises_when_no_working_command(self):
         config = MagicMock()
-        checker = SystemChecker(BootstrapHandle(config=config), MagicMock())
+        checker = SystemChecker(BootstrapHandle(_assembled=config), MagicMock())
         with patch(
             "dev_project.check_system.probe_compose_command_from_candidates",
             return_value=None,

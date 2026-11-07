@@ -27,7 +27,7 @@ class CreateProjectEnvironment:
         system_checker: SystemCheckerProtocol | None = None,
     ) -> None:
         self.bootstrap = bootstrap
-        self.user_env = self.bootstrap.config.user_env
+        self.user_env = self.bootstrap.user_env
         self.odoo_platform_project: HandleOdooProjectLink
         self.mapped_folders: list[MappedPath] = []
         self._system_checker = system_checker
@@ -39,7 +39,7 @@ class CreateProjectEnvironment:
     @property
     def host_ctx(self) -> HostProjectContext:
         if self._host_ctx is None:
-            self._host_ctx = HostProjectContext.from_config(self.bootstrap.config)
+            self._host_ctx = self.bootstrap.host_context()
         return self._host_ctx
 
     def attach_system_checker(self, checker: SystemCheckerProtocol) -> None:
@@ -65,11 +65,8 @@ class CreateProjectEnvironment:
         return self._links
 
     def plan_preview_compose_service(self):
-        return preview_compose_service(self.bootstrap.config)
+        return preview_compose_service(self.bootstrap)
 
     def plan_runtime_config_preview_text(self) -> str | None:
-        return preview_runtime_config_text(self.bootstrap.config)
+        return preview_runtime_config_text(self.bootstrap)
 
-    def runtime_preview_cache_config(self):
-        """Config handle used only for plan runtime preview disk cache."""
-        return self.bootstrap.config

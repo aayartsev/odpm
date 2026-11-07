@@ -14,7 +14,7 @@ from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.project_env.links import ProjectLinks
 from dev_project.project_env.templates import ProjectTemplates
 from dev_project import config as config_module
-from dev_project.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project import project_env as project_env_module
 from dev_project import git as git_module
 from dev_project import compose as compose_module
@@ -110,16 +110,17 @@ class ProtocolTypingTests(unittest.TestCase):
 class CanonicalImportSmokeTests(unittest.TestCase):
     def test_config_package_imports(self):
 
-        self.assertTrue(hasattr(config_module, "Config"))
+        self.assertFalse(hasattr(config_module, "Config"))
+        self.assertFalse(hasattr(config_module, "AssembledProject"))
 
     def test_config_has_no_system_checker_backref(self):
 
-        self.assertFalse(hasattr(Config, "system_checker"))
+        self.assertFalse(hasattr(AssembledProject, "system_checker"))
 
     def test_config_runtime_fields_are_properties(self):
         from dev_project.host.runtime import HostRuntimeState
 
-        self.assertIsInstance(Config.runtime, property)
+        self.assertIsInstance(AssembledProject.runtime, property)
         runtime = HostRuntimeState()
         for name in (
             "compose_service",

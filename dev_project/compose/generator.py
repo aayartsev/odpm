@@ -22,10 +22,6 @@ class ComposeGenerator:
         self.env = env
 
     @property
-    def config(self):
-        return self.env.bootstrap.config
-
-    @property
     def host_ctx(self):
         return self.env.host_ctx
 
@@ -41,7 +37,7 @@ class ComposeGenerator:
                 "Upgrading %s to scenario-aware docker-compose template",
                 template_path,
             )
-            self.config.pd_manager.rebuild_docker_compose_template()
+            self.env.bootstrap.pd_manager.rebuild_docker_compose_template()
 
     def render_docker_compose_content(self) -> str:
         docker_compose_template_path = os.path.join(

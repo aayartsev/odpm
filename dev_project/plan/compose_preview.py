@@ -16,74 +16,74 @@ from .core import project_template_needs_upgrade, runtime_config_stale_for_proje
 from .runtime_preview import (
     format_runtime_config_payload,
     normalized_runtime_config_text_from_disk,
-    runtime_config_payload_from_config,
+    runtime_config_payload_from_bootstrap,
     _runtime_preview_cache,
+    _RUNTIME_PREVIEW_CACHE_KEY,
 )
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.context import HostProjectContext
+    from ..host.ports import BootstrapHandle
     from ..prepare.types import PrepareContext
 
-_RUNTIME_PREVIEW_CACHE_KEY = "_odpm_plan_runtime_preview_cache"
 
-
-def compose_preview_mutable_snapshot(config: Config) -> tuple[object, object, object]:
-    """Capture compose-preview mutable fields on *config* for later restore."""
+def compose_preview_mutable_snapshot(
+    bootstrap: BootstrapHandle,
+) -> tuple[object, object, object]:
+    """Capture compose-preview mutable fields on *bootstrap* for later restore."""
     return (
-        config.runtime.compose_service,
-        config.runtime.container_run_mode,
-        getattr(config, "_odpm_plan_runtime_preview_cache", None),
+        bootstrap.runtime.compose_service,
+        bootstrap.runtime.container_run_mode,
+        getattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY, None),
     )
 
 
 def restore_compose_preview_mutable_snapshot(
-    config: Config, snapshot: tuple[object, object, object]
+    bootstrap: BootstrapHandle, snapshot: tuple[object, object, object]
 ) -> None:
     """Restore fields saved by :func:`compose_preview_mutable_snapshot`."""
     compose_service, container_run_mode, cache = snapshot
-    config.runtime.compose_service = compose_service
-    config.runtime.container_run_mode = container_run_mode
+    bootstrap.runtime.compose_service = compose_service
+    bootstrap.runtime.container_run_mode = container_run_mode
     if cache is None:
-        if hasattr(config, _RUNTIME_PREVIEW_CACHE_KEY):
-            delattr(config, _RUNTIME_PREVIEW_CACHE_KEY)
+        if hasattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY):
+            delattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY)
     else:
-        setattr(config, _RUNTIME_PREVIEW_CACHE_KEY, cache)
+        setattr(bootstrap, _RUNTIME_PREVIEW_CACHE_KEY, cache)
 
 
 def docker_compose_path(project_dir: str) -> str:
     return os.path.join(project_dir, "docker-compose.yml")
 
 
-def preview_compose_service(config: Config):
-    from ..host.ports import BootstrapHandle  # noqa: PLC0415  # optional
-
+def preview_compose_service(bootstrap: BootstrapHandle):
     with patch("dev_project.compose.service_builder.persist_runtime_config"):
-        return ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        return ComposeServiceBuilder(bootstrap).build()
 
 
-def prepare_runtime_config_for_compose_preview(config: Config) -> bool:
+def prepare_runtime_config_for_compose_preview(bootstrap: BootstrapHandle) -> bool:
     """Populate runtime fields the same way compose.service execute would."""
     try:
-        preview_compose_service(config)
+        preview_compose_service(bootstrap)
         return True
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         try:
-            config.generate_odoo_conf_docker_data()
+            bootstrap.generate_odoo_conf_docker_data()
             return True
         except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
             return False
 
 
-def preview_runtime_config_text(config: Config) -> str | None:
-    cache = _runtime_preview_cache(config)
+def preview_runtime_config_text(bootstrap: BootstrapHandle) -> str | None:
+    cache = _runtime_preview_cache(bootstrap)
     if "preview" in cache:
         return cache["preview"]
-    if not prepare_runtime_config_for_compose_preview(config):
+    if not prepare_runtime_config_for_compose_preview(bootstrap):
         cache["preview"] = None
         return None
     try:
         text = format_runtime_config_payload(
-            runtime_config_payload_from_config(config)
+            runtime_config_payload_from_bootstrap(bootstrap)
         )
     except (TypeError, ValueError, ConfigValidationError):
         cache["preview"] = None
@@ -92,19 +92,19 @@ def preview_runtime_config_text(config: Config) -> str | None:
     return text
 
 
-def compose_start_command_changed(config: Config) -> bool:
-    existing = config.runtime.compose_service
+def compose_start_command_changed(bootstrap: BootstrapHandle) -> bool:
+    existing = bootstrap.runtime.compose_service
     if not isinstance(existing, ComposeOdooService):
         return False
     try:
-        preview = preview_compose_service(config)
+        preview = preview_compose_service(bootstrap)
     except (AttributeError, TypeError, ValueError, ConfigValidationError):
         return True
     return preview.command != existing.command
 
 
 def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
-    def _evaluate(config: Config) -> tuple[bool, str]:
+    def _evaluate(bootstrap: BootstrapHandle) -> tuple[bool, str]:
         host = ctx.host_ctx
         if runtime_config_stale_for_project(
             host.project_dir,
@@ -119,7 +119,7 @@ def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
                 preview = ctx.compose_preview.runtime_config_text()
                 on_disk = normalized_runtime_config_text_from_disk(
                     host.project_dir,
-                    config=config,
+                    bootstrap=bootstrap,
                 )
                 if preview is not None and preview != on_disk:
                     return True, "runtime config payload changed"
@@ -164,10 +164,8 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
     if not _project_env_has_volume_map(ctx):
         return False
 
-    def _evaluate(config: Config) -> str:
-        from ..docker_capabilities import ensure_config_docker_capabilities  # noqa: PLC0415  # optional
-
-        ensure_config_docker_capabilities(config)
+    def _evaluate(bootstrap: BootstrapHandle) -> str:
+        bootstrap.ensure_docker_capabilities()
         ctx.compose_preview.preview_compose_service()
         return ctx.compose_generator.render_docker_compose_content()
 
@@ -182,13 +180,13 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
     return on_disk == preview
 
 
-def vscode_settings_up_to_date(config: Config) -> bool:
-    settings_path = os.path.join(config.project_dir, ".vscode", "settings.json")
-    launch_path = os.path.join(config.project_dir, ".vscode", "launch.json")
+def vscode_settings_up_to_date(host_ctx: HostProjectContext) -> bool:
+    settings_path = os.path.join(host_ctx.project_dir, ".vscode", "settings.json")
+    launch_path = os.path.join(host_ctx.project_dir, ".vscode", "launch.json")
     if not os.path.isfile(settings_path) or not os.path.isfile(launch_path):
         return False
     try:
-        return str(config.project_settings.python_version) in Path(settings_path).read_text(
+        return str(host_ctx.project_settings.python_version) in Path(settings_path).read_text(
             encoding="utf-8"
         )
     except OSError:

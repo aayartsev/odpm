@@ -7,7 +7,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dev_project import constants
-from dev_project.config import Config, compute_venv_lock_hash, config_to_json
+from dev_project.config.config import AssembledProject
+from dev_project.config import compute_venv_lock_hash, config_to_json
 from dev_project.config.payload import compute_odoo_requirements_hash
 from tests.container_config_helpers import apply_odpm_config_database_fields
 from dev_project.container_config import CONTAINER_CONFIG_SCHEMA_VERSION
@@ -512,7 +513,7 @@ class ConfigPayloadTests(unittest.TestCase):
         mock_config.requirements_txt = ["pre-commit"]
         self._apply_lock_hash_fields(mock_config, base_dict)
 
-        self.assertTrue(Config.compute_venv_lock_hash(mock_config))
+        self.assertTrue(AssembledProject.compute_venv_lock_hash(mock_config))
 
 
 class OdpmJsonReaderTests(unittest.TestCase):
@@ -649,7 +650,7 @@ class UserSettingsReaderTests(unittest.TestCase):
                 json.dumps({"init_modules": ["sale"]}),
                 encoding="utf-8",
             )
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config.project_dir = project_dir
             config._raw_user_settings = {}
             config.user_settings_json = settings_path
@@ -679,7 +680,7 @@ class UserSettingsReaderTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config.project_dir = project_dir
             config._raw_user_settings = {}
             config.user_settings_json = settings_path
@@ -701,7 +702,7 @@ class UserSettingsReaderTests(unittest.TestCase):
 
     def test_get_user_settings_json_creates_file_via_default_factory(self):
         with tempfile.TemporaryDirectory() as project_dir:
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config.project_dir = project_dir
             create_default = MagicMock(return_value={"init_modules": "sale"})
 
@@ -762,7 +763,7 @@ class ConfigBootstrapContextWiringTests(unittest.TestCase):
 
 class ConfigBootstrapStateTests(unittest.TestCase):
     def test_init_context_creates_bootstrap_state(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         init_context(
             config,
             MagicMock(project_path="/tmp/project"),
@@ -787,7 +788,7 @@ class ConfigBootstrapStateTests(unittest.TestCase):
         self.assertEqual(config.bootstrap.repo_odpm_json, "")
 
     def test_init_context_creates_env_resolver_from_user_env(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         user_env = MagicMock(odpm_scenario=constants.DEVELOPER_SCENARIO)
         user_env.project_dotenv_dict.return_value = {
             "ODOO_PLATFORM_DIR": "/from/dotenv",
@@ -821,7 +822,7 @@ class ConfigBootstrapStateTests(unittest.TestCase):
         user_env.project_dotenv_dict.assert_called_once_with()
 
     def test_property_shims_delegate_to_bootstrap(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._bootstrap = BootstrapState()
 
         config._raw_odpm_json = {"odoo_version": "18.0"}
@@ -833,7 +834,7 @@ class ConfigBootstrapStateTests(unittest.TestCase):
         self.assertTrue(config.bootstrap.user_loaded)
 
     def test_developing_project_lives_in_bootstrap_not_user_slice(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._bootstrap = BootstrapState()
         config._user = UserSettingsState(developing_project="https://github.com/acme/demo.git")
 
@@ -845,7 +846,7 @@ class ConfigBootstrapStateTests(unittest.TestCase):
         )
 
     def test_load_user_settings_syncs_developing_project_to_bootstrap(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._bootstrap = BootstrapState()
         config._raw_user_settings = {
             "developing_project": "https://github.com/acme/demo.git",
@@ -863,7 +864,7 @@ class ConfigBootstrapStateTests(unittest.TestCase):
 
 class BindDevelopingLinkTests(unittest.TestCase):
     def test_bind_developing_link_raises_when_developing_project_missing(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._user = UserSettingsState()
         config.developing_project = ""
 
@@ -872,7 +873,7 @@ class BindDevelopingLinkTests(unittest.TestCase):
 
     def test_finalize_preserves_bound_developing_project_link(self):
 
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._bootstrap = BootstrapState()
         bound = MagicMock(project_path="/tmp/dev", project_data=MagicMock())
         config.bootstrap.developing_project = bound
@@ -898,16 +899,17 @@ class BindDevelopingLinkTests(unittest.TestCase):
 
 class BindPlatformLinkTests(unittest.TestCase):
     def test_bind_platform_link_sets_platform_project_and_src_dir(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._project = ProjectSettingsState()
         config.project_settings.odoo_git_link = "https://github.com/odoo/odoo.git"
         platform_link = MagicMock()
         platform_link.get_project_path.return_value = "/tmp/odoo/src"
-        config.handle_git_link = MagicMock(return_value=platform_link)
+        config._git_repos = MagicMock()
+        config._git_repos.handle_git_link.return_value = platform_link
 
         bind_platform_link(config)
 
-        config.handle_git_link.assert_called_once_with(
+        config._git_repos.handle_git_link.assert_called_once_with(
             config.project_settings.odoo_git_link,
             system_type="platform",
             materialize=False,
@@ -916,15 +918,15 @@ class BindPlatformLinkTests(unittest.TestCase):
         self.assertEqual(config.odoo_src_dir, "/tmp/odoo/src")
 
     def test_bind_platform_link_rejects_empty_odoo_git_link(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._project = ProjectSettingsState()
         config.project_settings.odoo_git_link = "   "
-        config.handle_git_link = MagicMock()
+        config._git_repos = MagicMock()
 
         with self.assertRaises(ConfigError) as ctx:
             bind_platform_link(config)
         self.assertIn("odoo_git_link", str(ctx.exception))
-        config.handle_git_link.assert_not_called()
+        config._git_repos.handle_git_link.assert_not_called()
 
 
 class ProjectSettingsFromRawDependencyTests(unittest.TestCase):
@@ -954,7 +956,7 @@ class ProjectSettingsFromRawDependencyTests(unittest.TestCase):
 
 class ConfigStateSliceTests(unittest.TestCase):
     def test_slice_property_facade_reads_and_writes(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._user = UserSettingsState()
         config._project = ProjectSettingsState()
         config._docker = DockerLayoutState()
@@ -971,7 +973,7 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertEqual(config.docker_layout.docker_project_dir, "/home/odoo")
 
     def test_addon_layout_property_facade_reads_and_writes(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._addon_layout = AddonLayoutState()
 
         config.addon_layout.catalogs_of_modules_data = [{"name": "demo"}]
@@ -984,7 +986,7 @@ class ConfigStateSliceTests(unittest.TestCase):
         )
 
     def test_seed_dependency_urls_reads_odpm_json(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._raw_odpm_json = {
             "dependencies": [
                 "https://github.com/OCA/partner-contact.git",
@@ -999,7 +1001,7 @@ class ConfigStateSliceTests(unittest.TestCase):
         )
 
     def test_load_user_settings_populates_user_slice(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._raw_user_settings = {
             "init_modules": ["sale", "purchase"],
             "developing_project": "https://github.com/acme/demo.git",
@@ -1016,7 +1018,7 @@ class ConfigStateSliceTests(unittest.TestCase):
         self.assertTrue(config._user_loaded)
 
     def test_load_project_settings_populates_project_slice(self):
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._raw_odpm_json = {
             "odoo_version": "18.0",
             "python_version": "3.12",
@@ -1055,8 +1057,8 @@ class ConfigStateSliceTests(unittest.TestCase):
 
 
 class ConfigApplyNestedCompatibilityTests(unittest.TestCase):
-    def _config(self, *, scenario: str = constants.DEVELOPER_SCENARIO) -> Config:
-        config = Config.__new__(Config)
+    def _config(self, *, scenario: str = constants.DEVELOPER_SCENARIO) -> AssembledProject:
+        config = AssembledProject.__new__(AssembledProject)
         config._user = UserSettingsState()
         config._project = ProjectSettingsState(
             odoo_version="17.0",
@@ -1096,8 +1098,10 @@ class ConfigApplyNestedCompatibilityTests(unittest.TestCase):
             python_version=None,
             source_path="/tmp/framework/odpm.json",
         )
-        with self.assertLogs("dev_project.config.config", level="WARNING") as captured:
-            config.apply_nested_compatibility([fragment])
+        from dev_project.host.ports import BootstrapHandle
+
+        with self.assertLogs("dev_project.host.ports", level="WARNING") as captured:
+            BootstrapHandle(_assembled=config).apply_nested_compatibility([fragment])
         self.assertEqual(len(captured.output), 1)
         self.assertIn("19.0", captured.output[0])
         self.assertIn("17.0", captured.output[0])
@@ -1110,8 +1114,10 @@ class ConfigApplyNestedCompatibilityTests(unittest.TestCase):
             python_version=None,
             source_path="/tmp/framework/odpm.json",
         )
+        from dev_project.host.ports import BootstrapHandle
+
         with self.assertRaises(PipelineError):
-            config.apply_nested_compatibility([fragment])
+            BootstrapHandle(_assembled=config).apply_nested_compatibility([fragment])
 
 
 if __name__ == "__main__":

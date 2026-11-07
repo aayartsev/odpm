@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- **Config retire H: AssembledProject replaces public Config** — assembler class renamed to `AssembledProject`; package no longer re-exports `Config`; git/symlink/nested/odoo.conf-docker facades live on `BootstrapHandle` only; CI gate `tests/test_no_public_config.py`. User-facing command behavior is unchanged. Docs: ADR-003, ADR-030, `config-zones.md`.
+- **Config retire G: BootstrapHandle without public `.config`** — snapshot is private `_assembled`; `ports_from_assembled` / `host_context_from_assembled` live in `config/assembly.py`; `ports_from_config` and `HostProjectContext.from_config` removed from `host/`; `config.state` no longer imports `host` at runtime. User-facing command behavior is unchanged. Docs: ADR-003, ADR-030, `config-zones.md`.
+- **Config retire F: image/git/manifest/capabilities/runtime without bare Config** — image layers, service sources, `DepsLockManager`, manifest host commands, `SystemCheckPolicy.from_bootstrap`, docker capabilities, and Compose runtime backend take the handle / `host_ctx`. User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.
+- **Config retire E: plan/preview and runtime payload without bare Config** — plan preview APIs take `BootstrapHandle` / `host_ctx`; runtime preview cache on the handle (`runtime_preview_cache_config` removed); outside `config/`, runtime JSON write goes through handle accessors. User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.
+- **Config retire D: database low-level APIs take BootstrapHandle** — probe / compose_exec / postgres_admin / adopt helpers / `collect_database_state` / `database pull` accept the handle instead of bare host Config. User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.
+
+- **Config retire C: symlinks and compose without bare Config** — SymlinkManager / repo helpers and compose runtime / service builder / generator / document take `host_ctx` or `BootstrapHandle` at public entries (docker capabilities still Config until later). User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.
+- **Config retire B: BootstrapHandle accessors for git/symlink/workspace** — `project_env` callers use handle wrappers for git-link / symlink / nested compatibility / odoo.conf docker data and workspace fields; public Config methods remain. User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.
+- **Config retire A: project_env tails read via host_ctx** — Templates, BaseImage (+ identity), IDE/debug/analysis paths read listed slices from `env.host_ctx`; `pd_manager` via `env.bootstrap.pd_manager`. User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.
+
 ### Added
 
 - **Opt-in per-tenant git worktrees** — `ODPM_GIT_WORKTREE=1` or `--git-worktree` materializes remote repos as bare mirrors under `ODOO_PROJECTS_DIR/mirrors/` plus detached worktrees under `worktrees/<tenant>/<repo-key>/` (`tenant` = basename of the odpm project dir). Project symlinks still point at the worktree; `file://` stays classic; `--no-git-update` reuses only when the worktree is already on the expected SHA. Docs: ADR-028, `project-layout.md`, `cli.md`, `env-dotenv.md`, `scenarios/ci.md`. Tests: `test_git_worktree`.

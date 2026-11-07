@@ -8,11 +8,11 @@ from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..config import AssembledProject
 
 
 def rewrite_odpm_json(
-    config: Config,
+    config: AssembledProject,
     *,
     create_default: Callable[[], Mapping[str, Any]],
 ) -> None:

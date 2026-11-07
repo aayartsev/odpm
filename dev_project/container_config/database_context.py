@@ -16,7 +16,7 @@ from ..database.schema import (
 from ..database.state import collect_database_state
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.ports import BootstrapHandle
 
 
 @dataclass(frozen=True)
@@ -65,8 +65,10 @@ class DatabaseContainerContext:
         )
 
     @classmethod
-    def from_host_config(cls, config: Config) -> DatabaseContainerContext:
-        state = collect_database_state(config)
+    def from_host_config(cls, config: Any) -> DatabaseContainerContext:
+        from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
+
+        state = collect_database_state(BootstrapHandle(_assembled=config))
         return cls(
             service_name=state.compose.service_name,
             image_tag=state.compose.image_tag,

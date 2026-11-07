@@ -10,7 +10,7 @@ from .. import constants
 from ..container_config import ContainerConfig
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
 
 
 def runtime_config_path(project_dir: str) -> str:
@@ -32,17 +32,17 @@ def ensure_runtime_dir_gitignore(project_dir: str) -> None:
         Path(gitignore_path).write_text(content, encoding="utf-8")
 
 
-def config_to_json(config: Config) -> bytes:
+def config_to_json(config: AssembledProject) -> bytes:
     return ContainerConfig.from_odpm_config(config).to_json_bytes()
 
 
-def write_runtime_config_to_path(config: Config, path: str) -> str:
+def write_runtime_config_to_path(config: AssembledProject, path: str) -> str:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     Path(path).write_bytes(config_to_json(config))
     return path
 
 
-def write_runtime_config(config: Config) -> str:
+def write_runtime_config(config: AssembledProject) -> str:
     path = runtime_config_path(config.project_dir)
     ensure_runtime_dir_gitignore(config.project_dir)
     return write_runtime_config_to_path(config, path)
@@ -64,7 +64,7 @@ def compute_odoo_requirements_hash(odoo_dir: str) -> str:
     return hashlib.sha256(Path(requirements_path).read_bytes()).hexdigest()
 
 
-def compute_venv_lock_hash(config: Config) -> str:
+def compute_venv_lock_hash(config: AssembledProject) -> str:
 
     arch = (
         config.project_settings.arch

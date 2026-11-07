@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import unittest
 from dataclasses import replace
 from unittest.mock import MagicMock, patch
@@ -21,7 +23,6 @@ from dev_project.dev_mode import (
 )
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.integration.dev_mode_probe import dev_flag_from_compose_command, extract_odoo_compose_command
-from dev_project.host.ports import BootstrapHandle
 
 
 class DevModeHelperTests(unittest.TestCase):
@@ -136,7 +137,7 @@ class ComposeDevModeTests(unittest.TestCase):
             with self.subTest(case_id=case_id, dev_mode=dev_mode_value):
                 config = self._make_config()
                 config.user_settings.dev_mode = dev_mode_value
-                ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+                ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
                 actual = self._dev_flag_from_command(
                     config.runtime.compose_service.command
                 )
@@ -154,7 +155,7 @@ class ComposeDevModeTests(unittest.TestCase):
             with self.subTest(scenario=scenario):
                 config = self._make_config(scenario)
                 config.user_settings.dev_mode = "reload"
-                ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+                ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
                 self.assertEqual(
                     self._dev_flag_from_command(config.runtime.compose_service.command),
                     expected,
@@ -165,7 +166,7 @@ class ComposeDevModeTests(unittest.TestCase):
         config = self._make_config()
         config.user_settings.dev_mode = "reload,qweb"
         config.arguments = replace(config.arguments, start_precommit=True)
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         service = config.runtime.compose_service
         self.assertNotIn("--dev", service.command)
         self.assertIn(constants.RUN_PRE_COMMIT_ENTRYPOINT, service.command)

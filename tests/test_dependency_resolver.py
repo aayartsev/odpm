@@ -360,8 +360,13 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
     """Host-layer _resolve_dependencies() with real oca_dependencies.txt on disk."""
 
     def _make_env(self, config):
-
-        env = CreateProjectEnvironment(BootstrapHandle(config=config))
+        hgl = getattr(config, "handle_git_link", None)
+        if callable(hgl):
+            config._git_repos = MagicMock()
+            config._git_repos.handle_git_link = hgl
+        handle = BootstrapHandle(_assembled=config)
+        handle.ensure_git_repo_symlink = MagicMock()
+        env = CreateProjectEnvironment(handle)
         env._links.checkout_project = MagicMock()
         return env
 
@@ -398,6 +403,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config._git_repos.handle_git_link = config.handle_git_link
             config.env_resolver = None
 
             env = self._make_env(config)
@@ -431,6 +437,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config._git_repos.handle_git_link = config.handle_git_link
             config.env_resolver = None
 
             env = self._make_env(config)
@@ -447,6 +454,7 @@ class ResolveDependenciesIntegrationTests(unittest.TestCase):
         config.developing_project = MagicMock(project_path="")
         missing = MagicMock(is_cloned=False, project_path="")
         config.handle_git_link = MagicMock(return_value=missing)
+        config._git_repos.handle_git_link = config.handle_git_link
 
         env = self._make_env(config)
         with patch(

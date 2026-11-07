@@ -25,7 +25,6 @@ from .status import (
 )
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.cli.args import OdpmCliArgs
     from ..host.ports import BootstrapHandle, PipelinePorts
 
@@ -41,7 +40,7 @@ def run_database_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
     if subcommand == "ensure-role":
         return _run_database_ensure_role(ports.bootstrap)
     if subcommand == "pull":
-        return _run_database_pull(cli_args, ports.bootstrap.config)
+        return _run_database_pull(cli_args, ports.bootstrap)
     raise ConfigError(
         _('database subcommand required: use "odpm database status", '
           '"odpm database ensure-role", or "odpm database pull".')
@@ -70,11 +69,9 @@ def _run_database_ensure_role(bootstrap: BootstrapHandle) -> int:
     return 0
 
 
-def _backups_dir(config: Config) -> Path:
-    user_env = getattr(config, "user_env", None)
-    backups = ""
-    if user_env is not None:
-        backups = str(getattr(user_env, "backups", "") or "").strip()
+def _backups_dir(bootstrap: BootstrapHandle) -> Path:
+    user_env = bootstrap.user_env
+    backups = str(getattr(user_env, "backups", "") or "").strip()
     if not backups:
         raise ConfigError(
             _("BACKUP_DIR is not set; configure it in the project .env file.")
@@ -111,7 +108,7 @@ def _preflight_remote_database(url: str, remote_db: str) -> None:
     )
 
 
-def _run_database_pull(cli_args: OdpmCliArgs, config: Config) -> int:
+def _run_database_pull(cli_args: OdpmCliArgs, bootstrap: BootstrapHandle) -> int:
     url = str(cli_args.database_pull_url or "").strip().rstrip("/")
     remote_db = validate_remote_db_name(
         str(cli_args.database_pull_remote_db or "").strip()
@@ -127,7 +124,7 @@ def _run_database_pull(cli_args: OdpmCliArgs, config: Config) -> int:
             ).format(ENV=REMOTE_DB_MASTER_PWD_ENV)
         )
 
-    backups = _backups_dir(config)
+    backups = _backups_dir(bootstrap)
     backups_resolved = backups.resolve()
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
     archive_name = f"{safe_host_token(url)}_{remote_db}_{stamp}.zip"

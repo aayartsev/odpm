@@ -17,8 +17,8 @@ from ..subprocess_runner import run_logged
 from ..translations import _
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.context import HostProjectContext
+    from ..host.ports import BootstrapHandle
     from ..project_env import CreateProjectEnvironment
 
 
@@ -29,11 +29,11 @@ class ComposeRuntimeBackend:
         self,
         *,
         host_ctx: HostProjectContext,
-        config: Config,
+        bootstrap: BootstrapHandle,
         project_env: CreateProjectEnvironment,
     ) -> None:
         self.host_ctx = host_ctx
-        self.config = config
+        self.bootstrap = bootstrap
         self.project_env = project_env
 
     def ensure_base_image(self) -> None:
@@ -47,7 +47,7 @@ class ComposeRuntimeBackend:
         argv = shlex.split(self.host_ctx.docker_compose_command)
         argv.extend(compose_project_cli_args(self.host_ctx.user_env))
         argv += ["up"]
-        if self.config.runtime.no_log_prefix:
+        if self.bootstrap.runtime.no_log_prefix:
             argv.append("--no-log-prefix")
         argv.append("--abort-on-container-exit")
         if force_recreate:

@@ -1,4 +1,4 @@
-"""Frozen host views for extension plugins (no mutable Config)."""
+"""Frozen host views for extension plugins (no mutable assembled snapshot)."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from ..host.context import HostProjectContext
+from ..config.assembly import host_context_from_assembled
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..manifest.reader import ManifestView
 
 
@@ -27,8 +27,8 @@ class ExtensionHostContext:
     manifest_extensions: dict[str, Any] | None = None
 
     @classmethod
-    def from_config(cls, config: Config) -> ExtensionHostContext:
-        host = HostProjectContext.from_config(config)
+    def from_config(cls, config: Any) -> ExtensionHostContext:
+        host = host_context_from_assembled(config)
         return cls.from_host(
             host,
             repo_odpm_json=host.repo_odpm_json,

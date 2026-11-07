@@ -33,11 +33,17 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
         env = MagicMock()
         config = MagicMock()
         config.project_dir = "/proj"
-        env.bootstrap = MagicMock(config=config)
+        config.docker_layout.symlinks_sources = []
+        config.docker_layout.dependencies_dir = "/proj/dependencies"
+        env.bootstrap = MagicMock(_assembled=config)
         env.user_env.backups = "/proj/backups"
         env.user_env.debugger_port = 5678
         env.user_env.debugger_backend = DEBUGGER_BACKEND_DEBUGPY_LISTEN
         env.mapped_folders = mapped_folders
+        host_ctx = MagicMock()
+        host_ctx.project_dir = "/proj"
+        host_ctx.docker_layout = config.docker_layout
+        env.host_ctx = host_ctx
         return DebuggerProfileBuilder(env)
 
     def test_build_path_mappings_uses_absolute_real_paths(self) -> None:
@@ -111,13 +117,19 @@ class DebuggerProfileBuilderTests(unittest.TestCase):
         env = MagicMock()
         config = MagicMock()
         config.project_dir = "/proj"
-        env.bootstrap = MagicMock(config=config)
+        config.docker_layout.symlinks_sources = []
+        config.docker_layout.dependencies_dir = "/proj/dependencies"
+        env.bootstrap = MagicMock(_assembled=config)
         env.user_env.backups = "/proj/backups"
         env.user_env.debugger_port = 5678
         env.user_env.debugger_backend = DEBUGGER_BACKEND_PYDEVD_CONNECT
         env.mapped_folders = [
             MappedPath(local="/proj/sources/odoo", docker="/home/odoo/odoo"),
         ]
+        host_ctx = MagicMock()
+        host_ctx.project_dir = "/proj"
+        host_ctx.docker_layout = config.docker_layout
+        env.host_ctx = host_ctx
 
         profile = DebuggerProfileBuilder(env).build()
         payload = profile.to_dict()

@@ -16,7 +16,7 @@ Introduce frozen **host ports** at the pipeline boundary:
 
 | Port | Role | Typical consumers |
 |------|------|-------------------|
-| `BootstrapHandle` | Mutable bootstrap hub: `config`, `git_repos`, `env_resolver`, `odoo_conf`, `pd_manager`, lock manager factory, venv lock hash (see also [ADR-030](adr-030-config-as-assembler.md)) | execute steps, drift detection at bootstrap boundary |
+| `BootstrapHandle` | Mutable bootstrap hub: private `_assembled` snapshot (no public `.config`), `git_repos`, `env_resolver`, `odoo_conf`, `pd_manager`, lock manager factory, venv lock hash, git/symlink/nested/odoo.conf-docker accessors and workspace fields (see also [ADR-030](adr-030-config-as-assembler.md)) | execute steps, drift detection at bootstrap boundary |
 | `PlanPorts` | `host_ctx` + CLI args + bootstrap handle | plan diff/format, prepare evaluate, lock warnings |
 | `ComposePorts` | `host_ctx` + `CreateProjectEnvironment` + bootstrap | compose generator, plan compose preview |
 | `RuntimePorts` | `host_ctx` + args + project env + bootstrap | runtime plan steps, `RuntimeCoordinator` |
@@ -28,9 +28,9 @@ Module: `dev_project/host/ports.py`.
 
 1. **Pipeline entrypoints** (`OdpmPlanner.build`, `ProjectMaterializer.run`, `print_plan`, host `run_*_command`) take `PipelinePorts`, not bare `Config`. `OdpmPipeline` has no public `.config` after `setup()` — only `ports` / `project_environment` / `system_checker`.
 2. **Plan/prepare/runtime evaluate** reads paths and policy via `host_ctx` (or port fields), not `config.project_dir` / `config.policy` shims. `RuntimeCoordinator` takes `RuntimePorts`; `SystemChecker` takes `BootstrapHandle`.
-3. **Materialize** (execute steps, `ComposeServiceBuilder`, git) uses `ports.bootstrap` — `config`, `git_repos`, `env_resolver`, `odoo_conf`, `pd_manager`, `new_lock_manager()`, `compute_venv_lock_hash()`. Plan/prepare **evaluate** must not read `ctx.config`; use `host_ctx`, `PrepareContext` helpers, or `ports.bootstrap` only where drift/compose builder still need raw `config`.
+3. **Materialize** (execute steps, `ComposeServiceBuilder`, git) uses `ports.bootstrap` accessors — `git_repos`, `env_resolver`, `odoo_conf`, `pd_manager`, `new_lock_manager()`, `compute_venv_lock_hash()` (no public `bootstrap.config`). Plan/prepare **evaluate** must not read `ctx.config`; use `host_ctx` or `PrepareContext` helpers.
 4. **Manifest read model** (`manifest_view`, `repo_odpm_json`) is copied into `HostProjectContext` at port construction; evaluate paths use `host_ctx.manifest_view` / `ctx.manifest_view`, not `config.bootstrap.manifest_view`.
-5. **Tests** may call `ports_from_config(config, …)` when constructing ports without a full pipeline.
+5. **Tests** build ports via `ports_from_assembled(assembled, …)` / `host_context_from_assembled(assembled, …)` in `dev_project/config/assembly.py` (no public `ports_from_config` / `HostProjectContext.from_config` on `host/`).
 
 ### Config property shims (deprecated for new callers)
 
@@ -81,6 +81,55 @@ Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
 | M1 | `DependencyMaterializer` takes `BootstrapHandle` (no public `.config`); Links passes `env.bootstrap` |
 | M2 | `ProjectLinks` / `VolumeMapper` read paths and settings slices via `env.host_ctx`; git project objects and Config methods stay on `env.bootstrap.config`; `SymlinkManager(self.env.bootstrap, …)` |
 | M3 | `CiImageBuilder` / `CiImageBuildService` same read rule; `run_layered_build(..., host_ctx.arguments)`; bake mutations (`_env_resolver`, secrets, runtime write) keep a local snapshot |
+
+### Config retire campaign A
+
+| Slice | Outcome |
+|-------|---------|
+| A | `ProjectTemplates`, `BaseImageBuilder` (+ identity helpers), IDE configurators / debug profile / analysis paths read listed slices via `env.host_ctx`; `pd_manager` via `env.bootstrap.pd_manager`; mutations and Config-only APIs stay on `env.bootstrap.config` |
+
+### Config retire campaign B
+
+| Slice | Outcome |
+|-------|---------|
+| B | `BootstrapHandle` exposes thin accessors for git-link / symlink / nested compatibility / `generate_odoo_conf_docker_data` and workspace fields (`developing_project`, `odoo_platform_project`, `odoo_src_dir`, `developing_project_dir_path`); `project_env` callers use the handle. Public Config methods remain until campaign H. |
+
+### Config retire campaign C
+
+| Slice | Outcome |
+|-------|---------|
+| C | `SymlinkManager` / `symlinks/repo` take handle + `host_ctx`; compose runtime / `ComposeServiceBuilder` / generator / compose document public entries take `host_ctx` or handle (capabilities still Config until F). |
+
+### Config retire campaign D
+
+| Slice | Outcome |
+|-------|---------|
+| D | Database probe / compose_exec / postgres_admin / adopt helpers / `collect_database_state` / host pull take `BootstrapHandle` (no bare host `Config` in those public signatures). |
+
+### Config retire campaign E
+
+| Slice | Outcome |
+|-------|---------|
+| E | Plan/preview APIs (`compose_preview`, `runtime_preview`, `core`, pycharm/debug/image layer preview) take `BootstrapHandle` / `host_ctx` (no bare `config: Config` signatures). Runtime preview cache lives on the handle; `runtime_preview_cache_config` removed. Outside `dev_project/config/`, runtime JSON write/hash go through handle accessors (`write_runtime_config*`, `to_container_config`). |
+
+### Config retire campaign F
+
+| Slice | Outcome |
+|-------|---------|
+| F | Image layers ensure, `service_sources`, `DepsLockManager`, manifest host commands/locks helpers, `SystemCheckPolicy.from_bootstrap`, docker capabilities, and Compose runtime backend take `BootstrapHandle` / `host_ctx` (no bare host `Config` on those public session boundaries). `ContainerConfig.from_odpm_config` remains inside `config/` and handle accessors only. |
+
+### Config retire campaign G
+
+| Slice | Outcome |
+|-------|---------|
+| G | `BootstrapHandle` has no public `.config` (private `_assembled`); `ports_from_assembled` / `host_context_from_assembled` live in `config/assembly.py`; `HostProjectContext.from_config` and `ports_from_config` removed from `host/`; `config.state` does not import `host` at runtime. |
+
+### Config retire campaign H
+
+| Slice | Outcome |
+|-------|---------|
+| H1 | Internal assembler class renamed `Config` → `AssembledProject` (`config/config.py` path unchanged); package no longer re-exports `Config` / `AssembledProject`. |
+| H2 | Handle-only facades removed from assembler (`handle_git_link`, symlink helpers, `apply_nested_compatibility`, `generate_odoo_conf_docker_data`); CI gate `tests/test_no_public_config.py` forbids public `Config` / consumer `AssembledProject` imports outside `config/` (+ `ports.py`) and forbids `bootstrap.config` outside that boundary. |
 
 ## References
 

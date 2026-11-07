@@ -15,14 +15,14 @@ from dev_project.host.cli import params
 from dev_project.host.cli.parse_args import parse_cli_args
 from dev_project.plan.cli import is_plan_mode
 from dev_project.scenario_policy import ScenarioPolicy
-from dev_project.host.ports import ports_from_config
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 from dev_project.odpm_pipeline import OdpmPipeline
+from dev_project.config.assembly import ports_from_assembled
 
 
 def _attach_pipeline_ports(pipeline, config, project_environment) -> None:
     pipeline.project_environment = project_environment
-    pipeline.ports = ports_from_config(
+    pipeline.ports = ports_from_assembled(
         config,
         project_environment,
         pipeline.cli_args,

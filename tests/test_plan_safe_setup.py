@@ -14,7 +14,7 @@ from dev_project.config.bootstrap import load_project_settings
 from dev_project.odpm_pipeline import OdpmPipeline
 from dev_project.project_dir_manager import ProjectDirManager
 from tests.plan_smoke_helpers import repo_root, seed_migrated_project_layout
-from dev_project.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.config.state import ProjectSettingsState
 from dev_project.config.transforms import OdooBuildDateResolver
 
@@ -78,7 +78,7 @@ class PlanSafeProjectDirManagerTests(unittest.TestCase):
 class PlanSafeBootstrapTests(unittest.TestCase):
     def _config(self, *, sync_templates: bool):
 
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config._raw_odpm_json = {
             "odoo_version": "18.0",
             "python_version": "3.12",
@@ -130,7 +130,7 @@ class PlanSafeBootstrapTests(unittest.TestCase):
 class PlanSafePipelineSetupTests(unittest.TestCase):
     @patch("dev_project.odpm_pipeline.SystemChecker")
     @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
-    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.assemble_project")
     @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
     @patch("dev_project.odpm_pipeline.ProjectDirManager")
     def test_setup_for_plan_disables_template_sync(
@@ -161,7 +161,7 @@ class PlanSafePipelineSetupTests(unittest.TestCase):
 
     @patch("dev_project.odpm_pipeline.SystemChecker")
     @patch("dev_project.odpm_pipeline.CreateProjectEnvironment")
-    @patch("dev_project.odpm_pipeline.Config")
+    @patch("dev_project.odpm_pipeline.assemble_project")
     @patch("dev_project.odpm_pipeline.CreateUserEnvironment")
     @patch("dev_project.odpm_pipeline.ProjectDirManager")
     def test_setup_default_enables_template_sync(

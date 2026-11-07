@@ -11,7 +11,7 @@ from .. import constants
 from ..project_env.debug_profile import DebuggerProfile, DebuggerProfileBuilder
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.context import HostProjectContext
     from ..project_env import CreateProjectEnvironment
 
 
@@ -43,11 +43,11 @@ def normalized_debug_profile_text_from_disk(project_dir: str) -> str:
 
 
 def debug_profile_needs_update(
-    config: Config, project_env: CreateProjectEnvironment | None
+    host_ctx: HostProjectContext, project_env: CreateProjectEnvironment | None
 ) -> tuple[bool, str]:
     if project_env is None:
         profile_path = os.path.join(
-            config.project_dir, constants.ODPM_DEBUG_PROFILE_REL_PATH
+            host_ctx.project_dir, constants.ODPM_DEBUG_PROFILE_REL_PATH
         )
         if not os.path.isfile(profile_path):
             return True, "debug profile missing"
@@ -56,7 +56,7 @@ def debug_profile_needs_update(
     preview = preview_debug_profile_text(project_env)
     if preview is None:
         return True, "unable to preview debug profile"
-    on_disk = normalized_debug_profile_text_from_disk(config.project_dir)
+    on_disk = normalized_debug_profile_text_from_disk(host_ctx.project_dir)
     if preview != on_disk:
         return True, "debug profile payload changed"
     return False, "debug profile unchanged"

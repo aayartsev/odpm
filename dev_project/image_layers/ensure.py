@@ -17,7 +17,7 @@ from ..project_env.image_build.resolve import (
     resolve_ci_image_builder,
     resolve_ci_image_push,
 )
-from ..system_check_policy import environ_from_config
+from ..system_check_policy import environ_from_host_context
 from ..translations import _
 from .fingerprint import (
     compute_app_fingerprint,
@@ -33,25 +33,27 @@ from .registry import (
     retag_image,
 )
 
+from ..host.context import HostProjectContext
+from ..host.ports import BootstrapHandle
+
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.cli.args import OdpmCliArgs
     from ..project_env import CreateProjectEnvironment
 
 _logger = get_module_logger(__name__)
 
 
-def _program_dir(config: Config) -> str:
-    return str(config.program_dir)
+def _program_dir(host_ctx: HostProjectContext) -> str:
+    return str(host_ctx.program_dir)
 
 
-def _remote_target(args: OdpmCliArgs, config: Config) -> bool:
+def _remote_target(args: OdpmCliArgs, host_ctx: HostProjectContext) -> bool:
     """Whether presence checks should use the remote registry (crane).
 
     Registry env alone is enough to *probe* remote hits; it does **not**
     imply a push (see :func:`_want_push`).
     """
-    environ = environ_from_config(config)
+    environ = environ_from_host_context(host_ctx)
     push = resolve_ci_image_push(args, environ=environ)
     registry = os.environ.get("ODPM_BASE_IMAGE_REGISTRY") or os.environ.get(
         "CI_REGISTRY_IMAGE", ""
@@ -59,10 +61,10 @@ def _remote_target(args: OdpmCliArgs, config: Config) -> bool:
     return bool(push or registry)
 
 
-def _want_push(args: OdpmCliArgs, config: Config) -> bool:
+def _want_push(args: OdpmCliArgs, host_ctx: HostProjectContext) -> bool:
     """Explicit push only (``--image-push`` / ``ODPM_CI_IMAGE_PUSH``)."""
     return bool(
-        resolve_ci_image_push(args, environ=environ_from_config(config))
+        resolve_ci_image_push(args, environ=environ_from_host_context(host_ctx))
     )
 
 
@@ -109,22 +111,22 @@ def _docker_push_or_raise(ref: str) -> None:
 
 def _build_image(
     *,
-    config: Config,
+    host_ctx: HostProjectContext,
     args: OdpmCliArgs,
     context_dir: Path,
     dockerfile: Path,
     tag: str,
     push: bool,
 ) -> None:
-    environ = environ_from_config(config)
+    environ = environ_from_host_context(host_ctx)
     builder_name = resolve_ci_image_builder(args, environ=environ)
     spec = ImageBuildSpec(
         context_dir=str(context_dir),
         dockerfile=str(dockerfile),
         tag=tag,
-        platform=f"linux/{config.project_settings.arch}",
+        platform=f"linux/{host_ctx.project_settings.arch}",
         push=push,
-        project_dir=config.project_dir,
+        project_dir=host_ctx.project_dir,
     )
     get_ci_image_build_backend(builder_name).build(spec)
 
@@ -151,16 +153,9 @@ def _rewrite_from_line(text: str, *, arg_name: str, image_ref: str) -> str:
     return text.replace(needle, f"FROM {image_ref}", 1)
 
 
-def developing_project_path(config: Config) -> Path | None:
+def developing_project_path(bootstrap: BootstrapHandle) -> Path | None:
     """Resolve the developing checkout path when available."""
-    developing = getattr(config, "developing_project", None)
-    if developing is None:
-        bootstrap = getattr(config, "bootstrap", None)
-        developing = (
-            getattr(bootstrap, "developing_project", None)
-            if bootstrap is not None
-            else None
-        )
+    developing = bootstrap.developing_project
     if developing is None:
         return None
     if isinstance(developing, str) and developing.strip():
@@ -174,8 +169,8 @@ def developing_project_path(config: Config) -> Path | None:
     return Path(str(path)).resolve()
 
 
-def _developing_git_sha(config: Config) -> str:
-    root = developing_project_path(config)
+def _developing_git_sha(bootstrap: BootstrapHandle) -> str:
+    root = developing_project_path(bootstrap)
     if root is None or not (root / ".git").exists():
         raise ConfigError(
             _(
@@ -205,8 +200,9 @@ def _copy_deps_extra_addons(
     dest_addons: Path,
 ) -> int:
     """Copy dependency trees into deps context, excluding developing."""
-    config = project_env.bootstrap.config
-    developing = developing_project_path(config)
+    bootstrap = project_env.bootstrap
+    host_ctx = project_env.host_ctx
+    developing = developing_project_path(bootstrap)
     src_root = full_ctx / "extra-addons"
     if not src_root.is_dir():
         return 0
@@ -214,7 +210,7 @@ def _copy_deps_extra_addons(
     copied = 0
     # Prefer mapped_folders so we skip by absolute developing path.
     mapped = list(getattr(project_env, "mapped_folders", None) or [])
-    docker_extra = str(config.docker_layout.docker_extra_addons or "")
+    docker_extra = str(host_ctx.docker_layout.docker_extra_addons or "")
     used_mapped = False
     for item in mapped:
         local = getattr(item, "local", None)
@@ -320,7 +316,7 @@ def ensure_base(
 
     builder = BaseImageBuilder(project_env)
     if _force_this_layer(force):
-        stamp = Path(base_image_identity_path(project_env.bootstrap.config.project_dir))
+        stamp = Path(base_image_identity_path(project_env.host_ctx.project_dir))
         if stamp.is_file():
             stamp.unlink()
             _logger.info(
@@ -331,9 +327,9 @@ def ensure_base(
         image_ref = builder.resolve_base_image_ref()
         builder.build_base_image()
         write_base_image_identity(
-            project_env.bootstrap.config.project_dir,
+            project_env.host_ctx.project_dir,
             expected_base_image_identity(
-                project_env.bootstrap.config, image_ref=image_ref
+                project_env.host_ctx, image_ref=image_ref
             ),
         )
         return image_ref
@@ -347,11 +343,12 @@ def ensure_platform(
     *,
     force: bool | None = None,
 ) -> str:
-    config = project_env.bootstrap.config
-    program_dir = _program_dir(config)
-    fp = compute_platform_fingerprint(config, program_dir=program_dir)
-    ref = layer_image_ref(config, layer="platform", fingerprint=fp)
-    remote = _remote_target(args, config)
+    bootstrap = project_env.bootstrap
+    host_ctx = project_env.host_ctx
+    program_dir = _program_dir(host_ctx)
+    fp = compute_platform_fingerprint(host_ctx, program_dir=program_dir)
+    ref = layer_image_ref(bootstrap, layer="platform", fingerprint=fp)
+    remote = _remote_target(args, host_ctx)
     if image_ref_exists(
         ref, remote=remote, force=_force_this_layer(force)
     ):
@@ -366,8 +363,8 @@ def ensure_platform(
 
     builder = CiImageBuilder(project_env)
     builder.prepare_ci_build_context()
-    full_ctx = Path(config.docker_layout.ci_build_context_dir)
-    context_dir = Path(config.project_dir) / ".odpm" / "platform-build-context"
+    full_ctx = Path(host_ctx.docker_layout.ci_build_context_dir)
+    context_dir = Path(host_ctx.project_dir) / ".odpm" / "platform-build-context"
     if context_dir.exists():
         shutil.rmtree(context_dir)
     context_dir.mkdir(parents=True)
@@ -392,9 +389,9 @@ def ensure_platform(
         "dockerignore_platform",
         context_dir / ".dockerignore",
     )
-    push = _want_push(args, config)
+    push = _want_push(args, host_ctx)
     _build_image(
-        config=config,
+        host_ctx=host_ctx,
         args=args,
         context_dir=context_dir,
         dockerfile=dockerfile,
@@ -413,20 +410,21 @@ def ensure_deps(
     platform_ref: str | None = None,
     force: bool | None = None,
 ) -> str | None:
-    config = project_env.bootstrap.config
-    program_dir = _program_dir(config)
+    bootstrap = project_env.bootstrap
+    host_ctx = project_env.host_ctx
+    program_dir = _program_dir(host_ctx)
     parent = platform_ref or args.image_from
     if not parent:
         # Parent ensure never inherits FORCE for this layer.
         parent = ensure_platform(project_env, args, force=False)
     fp = compute_deps_fingerprint(
-        config, program_dir=program_dir, platform_ref=parent
+        host_ctx, program_dir=program_dir, platform_ref=parent
     )
     if fp is None:
         _logger.info("image deps ensure: no dependencies — layer skipped")
         return None
-    ref = layer_image_ref(config, layer="deps", fingerprint=fp)
-    remote = _remote_target(args, config)
+    ref = layer_image_ref(bootstrap, layer="deps", fingerprint=fp)
+    remote = _remote_target(args, host_ctx)
     if image_ref_exists(
         ref, remote=remote, force=_force_this_layer(force)
     ):
@@ -439,8 +437,8 @@ def ensure_deps(
 
     builder = CiImageBuilder(project_env)
     builder.prepare_ci_build_context()
-    full_ctx = Path(config.docker_layout.ci_build_context_dir)
-    context_dir = Path(config.project_dir) / ".odpm" / "deps-build-context"
+    full_ctx = Path(host_ctx.docker_layout.ci_build_context_dir)
+    context_dir = Path(host_ctx.project_dir) / ".odpm" / "deps-build-context"
     if context_dir.exists():
         shutil.rmtree(context_dir)
     context_dir.mkdir(parents=True)
@@ -468,9 +466,9 @@ def ensure_deps(
     _copy_template(
         program_dir, "dockerignore_deps", context_dir / ".dockerignore"
     )
-    push = _want_push(args, config)
+    push = _want_push(args, host_ctx)
     _build_image(
-        config=config,
+        host_ctx=host_ctx,
         args=args,
         context_dir=context_dir,
         dockerfile=dockerfile,
@@ -489,29 +487,30 @@ def ensure_app(
     parent_ref: str | None = None,
     force: bool | None = None,
 ) -> str:
-    config = project_env.bootstrap.config
-    program_dir = _program_dir(config)
-    developing_sha = _developing_git_sha(config)
+    bootstrap = project_env.bootstrap
+    host_ctx = project_env.host_ctx
+    program_dir = _program_dir(host_ctx)
+    developing_sha = _developing_git_sha(bootstrap)
     parent = parent_ref or args.image_from
     if not parent:
         deps_ref = ensure_deps(project_env, args, force=False)
         parent = deps_ref or ensure_platform(project_env, args, force=False)
 
-    push = _want_push(args, config)
-    publish_tag = args.image_tag or config.docker_layout.odoo_ci_image_name
-    remote = _remote_target(args, config)
+    push = _want_push(args, host_ctx)
+    publish_tag = args.image_tag or host_ctx.docker_layout.odoo_ci_image_name
+    remote = _remote_target(args, host_ctx)
     secrets_baked = bool(
         os.environ.get("ODPM_BAKE_SECRETS", "").strip()
         in {"1", "true", "True", "yes", "YES"}
     )
     app_fp = compute_app_fingerprint(
-        config,
+        host_ctx,
         program_dir=program_dir,
         parent_ref=parent,
         developing_git_sha=developing_sha,
         secrets_baked=secrets_baked,
     )
-    cache_ref = layer_image_ref(config, layer="app", fingerprint=app_fp)
+    cache_ref = layer_image_ref(bootstrap, layer="app", fingerprint=app_fp)
     force_this = _force_this_layer(force)
     if image_ref_exists(cache_ref, remote=remote, force=force_this):
         _logger.info("image app ensure: skip (exists) %s", cache_ref)
@@ -534,7 +533,7 @@ def ensure_app(
     builder = CiImageBuilder(project_env)
     builder.prepare_ci_build_context()
     # Drop odoo/.venv from context for thin app (already in parent).
-    full_ctx = Path(config.docker_layout.ci_build_context_dir)
+    full_ctx = Path(host_ctx.docker_layout.ci_build_context_dir)
     for drop in ("odoo", ".venv"):
         target = full_ctx / drop
         if target.exists():
@@ -563,7 +562,7 @@ def ensure_app(
     )
     # Push only when explicitly requested; registry env alone is for presence.
     _build_image(
-        config=config,
+        host_ctx=host_ctx,
         args=args,
         context_dir=full_ctx,
         dockerfile=dockerfile,
@@ -620,9 +619,10 @@ def ensure_lint(
     platform_ref: str | None = None,
     force: bool | None = None,
 ) -> str:
-    config = project_env.bootstrap.config
-    program_dir = _program_dir(config)
-    pre_commit = Path(config.project_dir) / ".pre-commit-config.yaml"
+    bootstrap = project_env.bootstrap
+    host_ctx = project_env.host_ctx
+    program_dir = _program_dir(host_ctx)
+    pre_commit = Path(host_ctx.project_dir) / ".pre-commit-config.yaml"
     if not pre_commit.is_file():
         raise ConfigError(
             _(
@@ -638,15 +638,15 @@ def ensure_lint(
                 "(odpm install incomplete)"
             ).format(PATH=str(bake_src))
         )
-    platform_fp = compute_platform_fingerprint(config, program_dir=program_dir)
+    platform_fp = compute_platform_fingerprint(host_ctx, program_dir=program_dir)
     parent = platform_ref or args.image_from
     if not parent:
         parent = ensure_platform(project_env, args, force=False)
     fp = compute_lint_fingerprint(
-        config, program_dir=program_dir, platform_fp=platform_fp
+        host_ctx, program_dir=program_dir, platform_fp=platform_fp
     )
-    ref = layer_image_ref(config, layer="lint", fingerprint=fp)
-    remote = _remote_target(args, config)
+    ref = layer_image_ref(bootstrap, layer="lint", fingerprint=fp)
+    remote = _remote_target(args, host_ctx)
     if image_ref_exists(
         ref, remote=remote, force=_force_this_layer(force)
     ):
@@ -655,12 +655,12 @@ def ensure_lint(
         return ref
 
     _logger.info("image lint ensure: miss — building %s", ref)
-    context_dir = Path(config.project_dir) / ".odpm" / "lint-build-context"
+    context_dir = Path(host_ctx.project_dir) / ".odpm" / "lint-build-context"
     if context_dir.exists():
         shutil.rmtree(context_dir)
     context_dir.mkdir(parents=True)
     shutil.copy2(pre_commit, context_dir / ".pre-commit-config.yaml")
-    hooks = Path(config.project_dir) / ".pre-commit-hooks.yaml"
+    hooks = Path(host_ctx.project_dir) / ".pre-commit-hooks.yaml"
     has_hooks = hooks.is_file()
     if has_hooks:
         shutil.copy2(hooks, context_dir / ".pre-commit-hooks.yaml")
@@ -679,9 +679,9 @@ def ensure_lint(
     _copy_template(
         program_dir, "dockerignore_lint", context_dir / ".dockerignore"
     )
-    push = _want_push(args, config)
+    push = _want_push(args, host_ctx)
     _build_image(
-        config=config,
+        host_ctx=host_ctx,
         args=args,
         context_dir=context_dir,
         dockerfile=dockerfile,

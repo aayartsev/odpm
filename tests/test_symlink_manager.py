@@ -9,9 +9,13 @@ from dev_project.host.ports import BootstrapHandle
 
 def _symlink_manager(config: MagicMock) -> SymlinkManager:
     host_ctx = MagicMock()
+    host_ctx.project_dir = getattr(config, "project_dir", "")
+    host_ctx.docker_layout = config.docker_layout
+    host_ctx.project_settings = config.project_settings
+    host_ctx.user_settings = config.user_settings
     host_ctx.addon_layout = MagicMock()
     host_ctx.addon_layout.catalogs_of_modules_data = []
-    return SymlinkManager(BootstrapHandle(config=config), host_ctx=host_ctx)
+    return SymlinkManager(BootstrapHandle(_assembled=config), host_ctx=host_ctx)
 
 
 class SymlinkManagerTests(unittest.TestCase):

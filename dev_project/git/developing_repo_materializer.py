@@ -1,4 +1,4 @@
-"""Clone/update developing project repo during Config bootstrap and pipeline prepare."""
+"""Clone/update developing project repo during AssembledProject bootstrap and pipeline prepare."""
 
 from __future__ import annotations
 
@@ -88,6 +88,8 @@ class DevelopingRepoMaterializer:
             if branch:
                 config.developing_project.switch_to_branch(branch)
         finally:
-            ensure_developing_repo_symlinks(config)
+            from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
+
+            ensure_developing_repo_symlinks(BootstrapHandle(_assembled=config))
         config.developing_project_dir_path = config.developing_project.project_path
         self._developing_repo_materialized = True

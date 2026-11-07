@@ -1,5 +1,6 @@
 """Integration tests for deps.lock apply → checkout → verify with real git repos."""
 
+from dev_project.host.ports import BootstrapHandle
 import os
 import subprocess
 import tempfile
@@ -107,7 +108,7 @@ class DepsLockIntegrationTests(unittest.TestCase):
                 platform=platform,
                 dependencies_projects=[dep],
             )
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             manager.apply_to_platform(platform)
@@ -168,7 +169,7 @@ class DepsLockIntegrationTests(unittest.TestCase):
                 platform=platform,
                 dependencies_projects=[dep],
             )
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             manager.apply_to_platform(platform)

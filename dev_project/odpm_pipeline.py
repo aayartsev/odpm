@@ -8,7 +8,6 @@ import sys
 from . import constants, host_summaries
 from .check_system import SystemChecker
 from .errors import ConfigError, OdpmError
-from .config import Config
 from .project_env import CreateProjectEnvironment
 from .runtime_coordinator import RuntimeCoordinator
 from .host.user_env import CreateUserEnvironment
@@ -22,6 +21,11 @@ from .secrets_providers.session import SecretsFetchSession
 from .system_check_policy import SystemCheckPolicy, cli_allows_ci_explicit_mode
 from .translations import _
 from .host.version_info import format_odpm_version_line
+from .config.assembly import (
+    assemble_project,
+    host_context_from_assembled,
+    ports_from_assembled,
+)
 
 _logger = get_module_logger(__name__)
 
@@ -54,23 +58,23 @@ class OdpmPipeline:
         self.cli_args = self.pd_manager.arguments
         secrets_session = SecretsFetchSession()
         user_environment = CreateUserEnvironment(self.pd_manager)
-        config = Config(
+        config = assemble_project(
             self.pd_manager,
             self.cli_args,
             self.program_dir,
             user_environment,
             secrets_fetch_session=secrets_session,
         )
-        bootstrap = BootstrapHandle(config=config)
+        bootstrap = BootstrapHandle(_assembled=config)
         self.project_environment = CreateProjectEnvironment(bootstrap)
         self.system_checker = SystemChecker(bootstrap, self.project_environment)
         policy = SystemCheckPolicy.from_host_context(
-            HostProjectContext.from_config(config)
+            host_context_from_assembled(config)
         )
         if policy.beginner_git:
             self.system_checker.check_git()
         self.project_environment.attach_system_checker(self.system_checker)
-        self.ports = PipelinePorts.from_setup(
+        self.ports = ports_from_assembled(
             config,
             self.project_environment,
             self.cli_args,

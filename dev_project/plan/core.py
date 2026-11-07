@@ -14,7 +14,8 @@ from ..host.cli.args import OdpmCliArgs
 from ..project_dir_manager import template_needs_upgrade
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.context import HostProjectContext
+    from ..host.ports import BootstrapHandle
     from .diff import PlanFileDiff
 from ..git.deps_lock import deps_lock_path
 
@@ -68,10 +69,12 @@ def project_template_needs_upgrade(
     return template_needs_upgrade(path, markers)
 
 
-def runtime_config_stale(config: Config) -> bool:
+def runtime_config_stale(
+    bootstrap: BootstrapHandle, host_ctx: HostProjectContext
+) -> bool:
     return runtime_config_stale_for_project(
-        config.project_dir,
-        config.compute_venv_lock_hash(),
+        host_ctx.project_dir,
+        bootstrap.compute_venv_lock_hash(),
     )
 
 
@@ -89,15 +92,12 @@ def runtime_config_stale_for_project(
     return payload.get("venv_lock_hash") != expected_venv_lock_hash
 
 
-def dockerfile_template_relative(config: Config) -> str:
-    return os.path.join(
-        constants.PROJECT_SERVICE_DIRECTORY,
-        config.docker_layout.dockerfile_template_name,
-    )
-
-
-def dockerfile_template_relative_host(host_ctx) -> str:
+def dockerfile_template_relative(host_ctx: HostProjectContext) -> str:
     return os.path.join(
         constants.PROJECT_SERVICE_DIRECTORY,
         host_ctx.docker_layout.dockerfile_template_name,
     )
+
+
+# Alias kept for call sites that already use the host_ctx name.
+dockerfile_template_relative_host = dockerfile_template_relative

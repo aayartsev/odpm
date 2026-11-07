@@ -32,7 +32,7 @@ class DependencyMaterializer:
         self._checkout_fn = checkout_fn
 
     def resolve(self) -> DependencyResolutionResult:
-        config = self.bootstrap.config
+        config = self.bootstrap
         seed_urls = list(config.project_settings.dependencies)
         if (
             config.skip_git_update()
@@ -47,9 +47,10 @@ class DependencyMaterializer:
         # Full checkout belongs to ProjectLinks._should_checkout_developing
         # (explicit #branch/@commit, or CI/server lock pin) — not OCA discovery.
         initial_extra_urls: list[str] = []
-        if config.developing_project.project_path:
+        developing = self.bootstrap.developing_project
+        if developing.project_path:
             initial_extra_urls = read_oca_dependency_urls(
-                config.developing_project.project_path
+                developing.project_path
             )
 
         return resolve_dependencies(
@@ -59,9 +60,9 @@ class DependencyMaterializer:
         )
 
     def discover_extensions(self, dependency_string: str) -> DependencyDiscovery:
-        config = self.bootstrap.config
-        materialize = not config.skip_git_update()
-        project = config.handle_git_link(
+        bootstrap = self.bootstrap
+        materialize = not bootstrap.skip_git_update()
+        project = bootstrap.handle_git_link(
             dependency_string,
             materialize=materialize,
         )
@@ -79,7 +80,7 @@ class DependencyMaterializer:
             urls = read_oca_dependency_urls(project.project_path)
             nested = read_nested_odpm_fragment(
                 project.project_path,
-                resolver=self.bootstrap.env_resolver,
+                resolver=bootstrap.env_resolver,
             )
             if nested is None:
                 return DependencyDiscovery(urls=urls)
@@ -96,12 +97,12 @@ class DependencyMaterializer:
             )
         finally:
             if project.project_path:
-                config.ensure_git_repo_symlink(
+                bootstrap.ensure_git_repo_symlink(
                     project.project_path, scope="dependency"
                 )
 
     def apply_to_config(self, resolution: DependencyResolutionResult) -> None:
-        config = self.bootstrap.config
+        config = self.bootstrap
         config.project_settings.dependencies = resolution.urls
         if resolution.nested_fragments:
-            config.apply_nested_compatibility(resolution.nested_fragments)
+            self.bootstrap.apply_nested_compatibility(resolution.nested_fragments)

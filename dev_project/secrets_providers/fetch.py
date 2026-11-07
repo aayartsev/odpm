@@ -174,7 +174,7 @@ def ensure_secrets_source_for_config(
     phase: FetchPhase,
     extra_ref_trees: tuple[Any, ...] = (),
 ) -> SecretsFetchResult:
-    """Adapter for Config / MagicMock bootstrap objects."""
+    """Adapter for AssembledProject / MagicMock bootstrap objects."""
     session = session_for_config(config)
     arguments = _cli_args(getattr(config, "arguments", None))
     user_env = getattr(config, "user_env", None)

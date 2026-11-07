@@ -2,12 +2,19 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.dependency_materializer import DependencyMaterializer
+
+
+def _bootstrap(config):
+    handle = BootstrapHandle(_assembled=config)
+    handle.ensure_git_repo_symlink = MagicMock()
+    return handle
+
 
 
 class DependencyMaterializerResolveTests(unittest.TestCase):
@@ -19,7 +26,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
         checkout_fn = MagicMock()
 
         resolved = DependencyMaterializer(
-            BootstrapHandle(config=config),
+            _bootstrap(config),
             checkout_fn=checkout_fn,
         ).resolve()
 
@@ -37,7 +44,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
         config.skip_git_update.return_value = False
         checkout_fn = MagicMock()
 
-        resolved = DependencyMaterializer(BootstrapHandle(config=config), checkout_fn=checkout_fn).resolve()
+        resolved = DependencyMaterializer(_bootstrap(config), checkout_fn=checkout_fn).resolve()
 
         self.assertEqual(resolved.urls, config.project_settings.dependencies)
         checkout_fn.assert_not_called()
@@ -65,10 +72,11 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path=str(developing))
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config._git_repos.handle_git_link = config.handle_git_link
             checkout_fn = MagicMock()
 
             resolved = DependencyMaterializer(
-                BootstrapHandle(config=config),
+                _bootstrap(config),
                 checkout_fn=checkout_fn,
             ).resolve()
 
@@ -88,12 +96,14 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             nested_fragments=[fragment],
         )
 
-        DependencyMaterializer(BootstrapHandle(config=config), checkout_fn=MagicMock()).apply_to_config(
-            resolution
-        )
+        bootstrap = _bootstrap(config)
+        with patch.object(bootstrap, "apply_nested_compatibility") as mock_apply:
+            DependencyMaterializer(bootstrap, checkout_fn=MagicMock()).apply_to_config(
+                resolution
+            )
 
         self.assertEqual(config.project_settings.dependencies, resolution.urls)
-        config.apply_nested_compatibility.assert_called_once_with([fragment])
+        mock_apply.assert_called_once_with([fragment])
 
     def test_apply_to_config_skips_compatibility_when_no_fragments(self):
         config = MagicMock()
@@ -102,12 +112,14 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             nested_fragments=[],
         )
 
-        DependencyMaterializer(BootstrapHandle(config=config), checkout_fn=MagicMock()).apply_to_config(
-            resolution
-        )
+        bootstrap = _bootstrap(config)
+        with patch.object(bootstrap, "apply_nested_compatibility") as mock_apply:
+            DependencyMaterializer(bootstrap, checkout_fn=MagicMock()).apply_to_config(
+                resolution
+            )
 
         self.assertEqual(config.project_settings.dependencies, resolution.urls)
-        config.apply_nested_compatibility.assert_not_called()
+        mock_apply.assert_not_called()
 
 
 class DependencyMaterializerDiscoveryTests(unittest.TestCase):
@@ -148,6 +160,7 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config._git_repos.handle_git_link = config.handle_git_link
             config.env_resolver = EnvResolver.from_sources(
                 process_environ={},
                 project_dotenv={},
@@ -155,7 +168,7 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
             checkout_fn = MagicMock()
 
             result = DependencyMaterializer(
-                BootstrapHandle(config=config),
+                _bootstrap(config),
                 checkout_fn=checkout_fn,
             ).resolve()
 
@@ -196,13 +209,14 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
             config.skip_git_update.return_value = False
             config.developing_project = MagicMock(project_path="")
             config.handle_git_link = MagicMock(side_effect=handle_git_link)
+            config._git_repos.handle_git_link = config.handle_git_link
             config.env_resolver = EnvResolver.from_sources(
                 process_environ={},
                 project_dotenv={"NESTED_DEP_PATH": "/home/dev/nested/addons"},
             )
 
             result = DependencyMaterializer(
-                BootstrapHandle(config=config),
+                _bootstrap(config),
                 checkout_fn=MagicMock(),
             ).resolve()
 

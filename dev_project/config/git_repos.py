@@ -15,7 +15,7 @@ from ..git.worktree import (
 from ..logging import get_module_logger
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
     from .paths import ConfigPaths
 
 _logger = get_module_logger(__name__)
@@ -24,7 +24,7 @@ _logger = get_module_logger(__name__)
 class GitRepoCoordinator:
     def __init__(
         self,
-        config: Config,
+        config: AssembledProject,
         *,
         paths: ConfigPaths,
     ) -> None:
@@ -129,7 +129,10 @@ class GitRepoCoordinator:
         self.config._developing_materializer.materialize_full(self.config)
         self._paths.apply_developing_project_docker_path()
         if self.config.developing_project_dir_path:
-            self.config.ensure_developing_repo_symlinks()
+            from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
+            from ..symlinks import ensure_developing_repo_symlinks  # noqa: PLC0415
+
+            ensure_developing_repo_symlinks(BootstrapHandle(_assembled=self.config))
 
     def materialize_platform(self, *, skip_build_date: bool = False) -> None:
         self._maybe_enable_worktree(self.config.odoo_platform_project)
@@ -140,7 +143,14 @@ class GitRepoCoordinator:
         finally:
             platform_path = self.config.odoo_platform_project.project_path
             self.config.odoo_src_dir = platform_path
-            self.config.ensure_git_repo_symlink(platform_path, scope="project")
+            from ..host.ports import BootstrapHandle  # noqa: PLC0415  # cycle
+            from ..symlinks import ensure_git_repo_symlink  # noqa: PLC0415
+
+            ensure_git_repo_symlink(
+                BootstrapHandle(_assembled=self.config),
+                platform_path,
+                scope="project",
+            )
 
     def materialize_git_repos(self, *, skip_build_date: bool = False) -> None:
         """Clone developing then platform (same order as prepare steps)."""

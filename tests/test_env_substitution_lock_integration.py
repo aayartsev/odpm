@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import json
 import os
 import tempfile
@@ -10,7 +12,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from dev_project import constants
-from dev_project.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.config.manifests import OdpmJsonReader
 from dev_project.config.state import (
     BootstrapState,
@@ -80,7 +82,7 @@ class EnvSubstitutionDepsLockIntegrationTests(unittest.TestCase):
             self.assertEqual(config._raw_odpm_json["odoo_git_link"], resolved_platform_url)
             self.assertEqual(config._raw_odpm_json["dependencies"], [resolved_dep_url])
 
-            lock_config = Config.__new__(Config)
+            lock_config = AssembledProject.__new__(AssembledProject)
             lock_config._bootstrap = BootstrapState()
             lock_config._docker = DockerLayoutState(
                 dependencies_projects=[_file_link_at(dep_dir)]
@@ -95,11 +97,11 @@ class EnvSubstitutionDepsLockIntegrationTests(unittest.TestCase):
             lock_config.developing_project = _file_link_at(dev_repo)
 
             self.assertEqual(
-                Config.seed_dependency_urls(lock_config),
+                AssembledProject.seed_dependency_urls(lock_config),
                 [resolved_dep_url],
             )
 
-            DepsLockManager(lock_config).collect_and_save(
+            DepsLockManager(BootstrapHandle(_assembled=lock_config)).collect_and_save(
                 developing=lock_config.developing_project,
             )
 
@@ -142,7 +144,7 @@ class EnvSubstitutionDepsLockIntegrationTests(unittest.TestCase):
                 "odoo_git_link": f"file://{platform_dir}",
             }
 
-            config = Config.__new__(Config)
+            config = AssembledProject.__new__(AssembledProject)
             config._bootstrap = BootstrapState()
             config._docker = DockerLayoutState()
             config._raw_odpm_json = expanded_manifest
@@ -152,9 +154,9 @@ class EnvSubstitutionDepsLockIntegrationTests(unittest.TestCase):
             config.docker_layout.dependencies_projects = [_file_link_at(dep_dir)]
             config.developing_project = _file_link_at(dev_dir)
 
-            DepsLockManager(config).collect_and_save(developing=config.developing_project)
+            DepsLockManager(BootstrapHandle(_assembled=config)).collect_and_save(developing=config.developing_project)
 
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
 

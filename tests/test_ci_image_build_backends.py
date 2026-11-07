@@ -325,7 +325,7 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
         env = MagicMock()
         config = MagicMock()
         config.arguments = OdpmCliArgs(image_builder="docker", image_push=False)
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         env.host_ctx = MagicMock()
         env.host_ctx.arguments = config.arguments
         CiImageBuilder(env).build_ci_image()
@@ -336,7 +336,7 @@ class FactoryAndCiImageWireTests(unittest.TestCase):
         env = MagicMock()
         config = MagicMock()
         config.arguments = OdpmCliArgs(image_builder="kaniko", image_push=True)
-        env.bootstrap = MagicMock(config=config)
+        env.bootstrap = MagicMock(_assembled=config)
         env.host_ctx = MagicMock()
         env.host_ctx.arguments = config.arguments
         CiImageBuilder(env).build_ci_image()

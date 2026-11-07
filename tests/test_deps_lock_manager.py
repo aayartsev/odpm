@@ -1,3 +1,4 @@
+from dev_project.host.ports import BootstrapHandle
 import os
 import tempfile
 import unittest
@@ -86,7 +87,7 @@ class DepsLockManagerApplyTests(unittest.TestCase):
                 lock,
             )
             config = _config_with_policy(project_dir, constants.DEVELOPER_SCENARIO)
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             manager.apply_to_platform(config.odoo_platform_project)
@@ -113,7 +114,7 @@ class DepsLockManagerApplyTests(unittest.TestCase):
                 lock,
             )
             config = _config_with_policy(project_dir, constants.DEVELOPER_SCENARIO)
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
 
@@ -140,7 +141,7 @@ class DepsLockManagerApplyTests(unittest.TestCase):
                 lock,
             )
             config = _config_with_policy(project_dir, constants.CI_SCENARIO)
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             manager.apply_to_developing(config.developing_project)
@@ -169,7 +170,7 @@ class DepsLockManagerApplyTests(unittest.TestCase):
                 project_link="file:///tmp/local-dev",
                 link_type=constants.GITLINK_TYPE_FILE,
             )
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             manager.apply_to_developing(config.developing_project)
@@ -191,7 +192,7 @@ class DepsLockManagerCollectTests(unittest.TestCase):
                 "dev_project.git.deps_lock_manager.resolve_lock_commit",
                 side_effect=lambda link: link.resolve_head_sha(),
             ):
-                DepsLockManager(config).collect_and_save(
+                DepsLockManager(BootstrapHandle(_assembled=config)).collect_and_save(
                     developing=config.developing_project,
                 )
 
@@ -228,7 +229,7 @@ class DepsLockManagerCollectTests(unittest.TestCase):
                 link_type=constants.GITLINK_TYPE_FILE,
             )
 
-            DepsLockManager(config).collect_and_save(developing=config.developing_project)
+            DepsLockManager(BootstrapHandle(_assembled=config)).collect_and_save(developing=config.developing_project)
 
             loaded = load_deps_lock(os.path.join(project_dir, ".odpm", "deps.lock.json"))
             assert loaded is not None
@@ -246,7 +247,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
                 commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             ),
         )
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         manager._lock = lock
         manager._apply_mode = True
         config.odoo_platform_project.resolve_head_sha.return_value = "b" * 40
@@ -270,7 +271,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
                 commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             ),
         )
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         manager._lock = lock
         manager._apply_mode = True
         verified_labels: list[str] = []
@@ -300,7 +301,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
                 commit="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             ),
         )
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         manager._lock = lock
         manager._apply_mode = True
         config.odoo_platform_project.resolve_head_sha.return_value = "b" * 40
@@ -324,7 +325,7 @@ class DepsLockManagerVerifyTests(unittest.TestCase):
             ),
             dependencies=[],
         )
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         manager._lock = lock
         manager._apply_mode = True
 
@@ -354,7 +355,7 @@ class DepsLockManagerStaleDevelopingTests(unittest.TestCase):
                 project_link="file:///tmp/local-dev",
                 link_type=constants.GITLINK_TYPE_FILE,
             )
-            manager = DepsLockManager(config)
+            manager = DepsLockManager(BootstrapHandle(_assembled=config))
             manager.load()
             manager.enter_apply_mode()
             manager.apply_to_developing(config.developing_project)
@@ -373,7 +374,7 @@ class DepsLockManagerStaleDevelopingTests(unittest.TestCase):
                 commit="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             ),
         )
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         manager._lock = lock
         manager._apply_mode = True
         config.developing_project = _bare_link(
@@ -389,13 +390,13 @@ class DepsLockManagerModeTests(unittest.TestCase):
         config = MagicMock()
         config.project_dir = "/tmp/project"
         config.policy = ScenarioPolicy.from_scenario(constants.DEVELOPER_SCENARIO)
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         self.assertFalse(manager.has_platform_lock())
 
     @patch("dev_project.git.deps_lock_manager.load_deps_lock", return_value=None)
     def test_apply_is_noop_without_lock(self, _mock_load):
         config = _config_with_policy("/tmp/project", constants.DEVELOPER_SCENARIO)
-        manager = DepsLockManager(config)
+        manager = DepsLockManager(BootstrapHandle(_assembled=config))
         manager.load()
         manager.enter_apply_mode()
         manager.apply_to_platform(config.odoo_platform_project)

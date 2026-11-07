@@ -1,4 +1,4 @@
-"""Plan preview evaluate helpers should not read Config directly."""
+"""Plan preview evaluate helpers should not read AssembledProject directly."""
 
 from __future__ import annotations
 
@@ -102,9 +102,9 @@ def _assert_module_has_no_config_coupling(test_case: unittest.TestCase, path: Pa
     test_case.assertNotIn("ctx.config", text)
     test_case.assertIsNone(
         _FORBIDDEN_CONFIG_ACCESS.search(text),
-        msg=f"{path.name} must not reference Config outside bootstrap handle",
+        msg=f"{path.name} must not reference AssembledProject outside bootstrap handle",
     )
-    test_case.assertNotIn("from ..config import Config", text)
+    test_case.assertNotIn("from ..config import AssembledProject", text)
 
 
 class PlanConfigCouplingTests(unittest.TestCase):

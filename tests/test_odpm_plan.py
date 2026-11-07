@@ -29,7 +29,7 @@ from tests.i18n_test_helpers import host_locale
 from dev_project.manifest.reader import ManifestView
 from tests.plan_smoke_helpers import seed_migrated_project_layout
 from dev_project.plan import OdpmPlan
-from dev_project.host.ports import PipelinePorts
+from dev_project.host.ports import BootstrapHandle, PipelinePorts
 from dev_project.odpm_pipeline import OdpmPipeline
 
 
@@ -51,7 +51,10 @@ class PlanPredicateTests(unittest.TestCase):
     def test_runtime_config_stale_when_file_missing(self):
         config = MagicMock()
         config.project_dir = "/tmp/missing-runtime"
-        self.assertTrue(runtime_config_stale(config))
+        config.compute_venv_lock_hash.return_value = "x"
+        bootstrap = BootstrapHandle(_assembled=config)
+        host_ctx = MagicMock(project_dir="/tmp/missing-runtime")
+        self.assertTrue(runtime_config_stale(bootstrap, host_ctx))
 
     def test_runtime_config_stale_when_hash_differs(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -62,7 +65,9 @@ class PlanPredicateTests(unittest.TestCase):
             config = MagicMock()
             config.project_dir = tmp
             config.compute_venv_lock_hash.return_value = "new"
-            self.assertTrue(runtime_config_stale(config))
+            bootstrap = BootstrapHandle(_assembled=config)
+            host_ctx = MagicMock(project_dir=tmp)
+            self.assertTrue(runtime_config_stale(bootstrap, host_ctx))
 
     def test_runtime_config_stale_when_hash_matches(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -73,7 +78,9 @@ class PlanPredicateTests(unittest.TestCase):
             config = MagicMock()
             config.project_dir = tmp
             config.compute_venv_lock_hash.return_value = "same"
-            self.assertFalse(runtime_config_stale(config))
+            bootstrap = BootstrapHandle(_assembled=config)
+            host_ctx = MagicMock(project_dir=tmp)
+            self.assertFalse(runtime_config_stale(bootstrap, host_ctx))
 
 
 class OdpmPlannerTests(unittest.TestCase):

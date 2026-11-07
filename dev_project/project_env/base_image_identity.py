@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from .. import constants
 
 if TYPE_CHECKING:
-    from ..config.config import Config
+    from ..host.context import HostProjectContext
 
 
 def base_image_identity_path(project_dir: str) -> str:
@@ -34,15 +34,18 @@ def dockerfile_content_sha256(project_dir: str) -> str:
 
 
 def expected_base_image_identity(
-    config: Config, *, image_ref: str | None = None
+    host: "Any | HostProjectContext",
+    *,
+    image_ref: str | None = None,
 ) -> dict[str, str]:
-    policy = config.policy
+    """``host`` is Any or HostProjectContext (``.policy`` / ``.project_dir``)."""
+    policy = host.policy
     identity = {
         "user": policy.runtime_unix_user(),
         "uid": policy.runtime_unix_uid(),
         "gid": policy.runtime_unix_gid(),
         "base_image_profile": policy.base_image_profile,
-        "dockerfile_sha256": dockerfile_content_sha256(config.project_dir),
+        "dockerfile_sha256": dockerfile_content_sha256(host.project_dir),
     }
     if image_ref:
         identity["image_ref"] = image_ref
@@ -90,12 +93,14 @@ def ensure_base_image_identity_gitignore(project_dir: str) -> None:
 
 
 def base_image_identity_matches(
-    config: Config, *, image_ref: str | None = None
+    host: "Any | HostProjectContext",
+    *,
+    image_ref: str | None = None,
 ) -> bool:
-    stamp = read_base_image_identity(config.project_dir)
+    stamp = read_base_image_identity(host.project_dir)
     if stamp is None:
         return False
-    expected = expected_base_image_identity(config, image_ref=image_ref)
+    expected = expected_base_image_identity(host, image_ref=image_ref)
     if image_ref is None:
         # Ignore optional image_ref in stamp when caller does not care.
         stamp = {key: value for key, value in stamp.items() if key != "image_ref"}

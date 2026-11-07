@@ -26,11 +26,11 @@ class VolumeMapper:
 
     def build_base_folders(self) -> list[MappedPath]:
         host_ctx = self.env.host_ctx
-        config = self.env.bootstrap.config
+        bootstrap = self.env.bootstrap
         layout = host_ctx.docker_layout
         mapped_folders = [
             MappedPath(
-                local=config.odoo_src_dir,
+                local=bootstrap.odoo_src_dir,
                 docker=layout.docker_odoo_dir,
             ),
             MappedPath(
@@ -70,10 +70,11 @@ class VolumeMapper:
                 ),
             ),
         ]
-        if config.developing_project.project_path:
+        developing = bootstrap.developing_project
+        if developing.project_path:
             mapped_folders.append(
                 MappedPath(
-                    local=config.developing_project.project_path,
+                    local=developing.project_path,
                     docker=layout.docker_odoo_project_dir_path,
                 ),
             )
@@ -87,11 +88,11 @@ class VolumeMapper:
         skip_materialize: bool,
     ) -> None:
         host_ctx = self.env.host_ctx
-        config = self.env.bootstrap.config
+        bootstrap = self.env.bootstrap
         layout = host_ctx.docker_layout
         for dependency_string in resolution.urls:
             materialize = materialize_deps and not skip_materialize
-            dependency_project = config.handle_git_link(
+            dependency_project = bootstrap.handle_git_link(
                 dependency_string,
                 materialize=materialize,
             )
@@ -100,13 +101,13 @@ class VolumeMapper:
                     dependency_project.build_project()
             finally:
                 if dependency_project.project_path:
-                    config.ensure_git_repo_symlink(
+                    bootstrap.ensure_git_repo_symlink(
                         dependency_project.project_path,
                         scope="dependency",
                     )
             if not dependency_project.is_cloned:
                 continue
-            list_of_subprojects = config.check_project_for_subprojects(
+            list_of_subprojects = bootstrap.check_project_for_subprojects(
                 dependency_project.project_path
             )
             docker_dependency_project_path = str(
@@ -152,10 +153,10 @@ class VolumeMapper:
 
     def map_pre_commit_files(self) -> None:
         host_ctx = self.env.host_ctx
-        config = self.env.bootstrap.config
+        developing_dir = self.env.bootstrap.developing_project_dir_path
         for pre_commit_file in host_ctx.user_settings.pre_commit_map_files:
             real_file_place = os.path.join(
-                config.developing_project_dir_path, pre_commit_file
+                developing_dir, pre_commit_file
             )
             if os.path.exists(real_file_place):
                 full_path_pre_commit_file = os.path.join(
@@ -178,6 +179,6 @@ class VolumeMapper:
                 _logger.warning(
                     _('Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}').format(
                         PRE_COMMIT_FILE=pre_commit_file,
-                        ODOO_PROJECT_DIR_PATH=config.developing_project_dir_path,
+                        ODOO_PROJECT_DIR_PATH=developing_dir,
                     )
                 )

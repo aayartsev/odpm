@@ -8,11 +8,11 @@ from .. import constants
 from ..database.postgres_paths import postgres_local_storage_relpath
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .config import AssembledProject
 
 
 class ConfigPaths:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: AssembledProject) -> None:
         self.config = config
 
     def get_postgres_data_local_storage_path(self) -> str:

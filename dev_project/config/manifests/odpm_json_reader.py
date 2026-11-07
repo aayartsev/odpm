@@ -22,14 +22,14 @@ from ...project_env.odoo_password_secrets import maybe_ensure_odoo_password_keys
 from ...secrets_providers.fetch import ensure_secrets_source_for_config
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..config import AssembledProject
 from ...manifest.reader import load_manifest
 
 
 class OdpmJsonReader:
     def __init__(
         self,
-        config: Config,
+        config: AssembledProject,
         *,
         rewrite_odpm_json: Callable[[], None],
     ) -> None:

@@ -1,7 +1,7 @@
 """Host and container configuration package.
 
 Leaf exports used inside the container (``payload`` stamps/hashes and
-``types``) load eagerly. ``Config`` and settings slices load lazily so
+``types``) load eagerly. ``AssembledProject`` and settings slices load lazily so
 ``from dev_project.config.payload import …`` does not pull host-only deps
 such as ``jsonschema`` (golden-path / ``check_virtualenv``).
 """
@@ -25,8 +25,7 @@ from .types import (
 )
 
 __all__ = [
-    "Config",
-    "DbCreationData",
+        "DbCreationData",
     "DockerLayoutState",
     "OdpmJson",
     "ProjectSettingsState",
@@ -60,7 +59,6 @@ _CONFIG_SUBMODULES = frozenset(
 )
 
 _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
-    "Config": (".config", "Config"),
     "DockerLayoutState": (".state", "DockerLayoutState"),
     "ProjectSettingsState": (".state", "ProjectSettingsState"),
     "UserSettingsState": (".state", "UserSettingsState"),

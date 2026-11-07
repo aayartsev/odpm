@@ -13,20 +13,24 @@ from ..image_layers.fingerprint import (
     layer_image_ref,
 )
 from ..image_layers.registry import image_ref_exists
-from ..system_check_policy import environ_from_config
+from ..system_check_policy import environ_from_host_context
 from .core import PlanStep
 from .l10n import plan_msg
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.cli.args import OdpmCliArgs
-    from ..host.ports import RuntimePorts
+    from ..host.context import HostProjectContext
+    from ..host.ports import BootstrapHandle, RuntimePorts
 
 
-def _remote_for_plan(config: Config, args: OdpmCliArgs) -> bool:
+def _remote_for_plan(
+    bootstrap: BootstrapHandle,
+    host_ctx: HostProjectContext,
+    args: OdpmCliArgs,
+) -> bool:
     from ..project_env.image_build.resolve import resolve_ci_image_push
 
-    environ = environ_from_config(config)
+    environ = environ_from_host_context(host_ctx)
     push = resolve_ci_image_push(args, environ=environ)
     import os
 
@@ -95,11 +99,12 @@ def _presence_step(
 
 
 def build_image_layer_plan_steps(
-    config: Config,
+    bootstrap: BootstrapHandle,
+    host_ctx: HostProjectContext,
     args: OdpmCliArgs,
 ) -> tuple[PlanStep, ...]:
     """Fingerprint + hit/miss rows for ``odpm plan`` after sources."""
-    if not getattr(config.policy, "allow_build_image", False):
+    if not getattr(host_ctx.policy, "allow_build_image", False):
         return ()
     # Always show analysis in ci; also when user asked build / image / stop-after.
     show = (
@@ -107,13 +112,13 @@ def build_image_layer_plan_steps(
         or args.command == cli_params.BUILD_SUBCOMMAND
         or args.command == cli_params.IMAGE_SUBCOMMAND
         or getattr(args, "stop_after", None) == cli_params.STOP_AFTER_SOURCES
-        or getattr(config.policy, "scenario", None) == "ci"
+        or getattr(host_ctx.policy, "scenario", None) == "ci"
     )
     if not show:
         return ()
 
     try:
-        return _build_image_layer_plan_steps_inner(config, args)
+        return _build_image_layer_plan_steps_inner(bootstrap, host_ctx, args)
     except Exception as exc:  # noqa: BLE001 — plan must stay soft
         return (
             PlanStep(
@@ -127,11 +132,14 @@ def build_image_layer_plan_steps(
 
 
 def _build_image_layer_plan_steps_inner(
-    config: Config,
+    bootstrap: BootstrapHandle,
+    host_ctx: HostProjectContext,
     args: OdpmCliArgs,
 ) -> tuple[PlanStep, ...]:
-    program_dir = str(config.program_dir)
-    remote = _remote_for_plan(config, args)
+    # Fingerprint helpers still duck-type the assembled snapshot until F.
+    assembled = bootstrap  # duck-typed fingerprint surface
+    program_dir = str(host_ctx.program_dir)
+    remote = _remote_for_plan(bootstrap, host_ctx, args)
     steps: list[PlanStep] = []
 
     steps.append(
@@ -144,9 +152,9 @@ def _build_image_layer_plan_steps_inner(
         )
     )
 
-    platform_fp = compute_platform_fingerprint(config, program_dir=program_dir)
+    platform_fp = compute_platform_fingerprint(assembled, program_dir=program_dir)
     platform_ref = layer_image_ref(
-        config, layer="platform", fingerprint=platform_fp
+        assembled, layer="platform", fingerprint=platform_fp
     )
     steps.append(
         _presence_step(
@@ -159,7 +167,7 @@ def _build_image_layer_plan_steps_inner(
     )
 
     deps_fp = compute_deps_fingerprint(
-        config, program_dir=program_dir, platform_ref=platform_ref
+        assembled, program_dir=program_dir, platform_ref=platform_ref
     )
     if deps_fp is None:
         steps.append(
@@ -174,7 +182,7 @@ def _build_image_layer_plan_steps_inner(
         )
         parent_ref = platform_ref
     else:
-        deps_ref = layer_image_ref(config, layer="deps", fingerprint=deps_fp)
+        deps_ref = layer_image_ref(assembled, layer="deps", fingerprint=deps_fp)
         steps.append(
             _presence_step(
                 step_id="image.deps",
@@ -190,7 +198,7 @@ def _build_image_layer_plan_steps_inner(
         from ..image_layers.ensure import _developing_git_sha  # noqa: PLC0415
         import os
 
-        developing_sha = _developing_git_sha(config)
+        developing_sha = _developing_git_sha(bootstrap)
         secrets_baked = os.environ.get("ODPM_BAKE_SECRETS", "").strip() in {
             "1",
             "true",
@@ -199,13 +207,13 @@ def _build_image_layer_plan_steps_inner(
             "YES",
         }
         app_fp = compute_app_fingerprint(
-            config,
+            assembled,
             program_dir=program_dir,
             parent_ref=parent_ref,
             developing_git_sha=developing_sha,
             secrets_baked=secrets_baked,
         )
-        app_ref = layer_image_ref(config, layer="app", fingerprint=app_fp)
+        app_ref = layer_image_ref(assembled, layer="app", fingerprint=app_fp)
         steps.append(
             _presence_step(
                 step_id="image.app",
@@ -241,11 +249,11 @@ def _build_image_layer_plan_steps_inner(
 
     from pathlib import Path
 
-    if (Path(config.project_dir) / ".pre-commit-config.yaml").is_file():
+    if (Path(host_ctx.project_dir) / ".pre-commit-config.yaml").is_file():
         lint_fp = compute_lint_fingerprint(
-            config, program_dir=program_dir, platform_fp=platform_fp
+            assembled, program_dir=program_dir, platform_fp=platform_fp
         )
-        lint_ref = layer_image_ref(config, layer="lint", fingerprint=lint_fp)
+        lint_ref = layer_image_ref(assembled, layer="lint", fingerprint=lint_fp)
         steps.append(
             _presence_step(
                 step_id="image.lint",
@@ -273,4 +281,6 @@ def _build_image_layer_plan_steps_inner(
 def build_image_layer_plan_steps_for_runtime(
     runtime: RuntimePorts,
 ) -> tuple[PlanStep, ...]:
-    return build_image_layer_plan_steps(runtime.bootstrap.config, runtime.args)
+    return build_image_layer_plan_steps(
+        runtime.bootstrap, runtime.host_ctx, runtime.args
+    )

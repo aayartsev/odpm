@@ -3,7 +3,7 @@ import unittest
 from dev_project.host.cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
-from dev_project.config.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.config.git_repos import GitRepoCoordinator
 from dev_project.errors import ConfigError
 from dev_project.git.developing_repo_materializer import DevelopingRepoMaterializer
@@ -53,7 +53,11 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
         paths = MagicMock()
         return GitRepoCoordinator(config, paths=paths), config, paths
 
-    def test_materialize_git_repos_builds_developing_and_platform(self):
+    @patch("dev_project.symlinks.ensure_git_repo_symlink")
+    @patch("dev_project.symlinks.ensure_developing_repo_symlinks")
+    def test_materialize_git_repos_builds_developing_and_platform(
+        self, _dev_symlinks, _repo_symlink
+    ):
         coordinator, config, paths = self._coordinator()
 
         coordinator.materialize_git_repos()
@@ -66,7 +70,11 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
         )
         paths.apply_developing_project_docker_path.assert_called_once()
 
-    def test_materialize_git_repos_skips_build_date_when_requested(self):
+    @patch("dev_project.symlinks.ensure_git_repo_symlink")
+    @patch("dev_project.symlinks.ensure_developing_repo_symlinks")
+    def test_materialize_git_repos_skips_build_date_when_requested(
+        self, _dev_symlinks, _repo_symlink
+    ):
         coordinator, config, _paths = self._coordinator()
 
         coordinator.materialize_git_repos(skip_build_date=True)
@@ -74,8 +82,12 @@ class GitRepoCoordinatorMaterializeTests(unittest.TestCase):
         config.odoo_platform_project.build_project.assert_called_once()
         config.odoo_platform_project.apply_build_date.assert_not_called()
 
+    @patch("dev_project.symlinks.ensure_git_repo_symlink")
+    @patch("dev_project.symlinks.ensure_developing_repo_symlinks")
     def test_materialize_git_repos_skips_developing_rebuild_when_already_materialized(
         self,
+        _dev_symlinks,
+        _repo_symlink,
     ):
         coordinator, config, _paths = self._coordinator()
         config.arguments = OdpmCliArgs(branch="17.0")
@@ -114,12 +126,12 @@ class ConfigGitRepoDelegationTests(unittest.TestCase):
 
         mock_link = MagicMock()
         mock_link_cls.return_value = mock_link
-        config = Config.__new__(Config)
+        config = AssembledProject.__new__(AssembledProject)
         config.user_env = MagicMock(path_to_ssh_key="", odoo_projects_dir="/tmp/projects")
         ctx = ConfigBootstrapContext(config)
         config._git_repos = ctx.git_repos
 
-        result = config.handle_git_link(
+        result = config._git_repos.handle_git_link(
             "git@github.com:acme/demo.git",
             materialize=True,
         )

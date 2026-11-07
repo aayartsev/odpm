@@ -141,33 +141,33 @@ def build_ensure_extensions_sql() -> str:
 
 def ensure_app_role(bootstrap: BootstrapHandle) -> EnsureRoleResult:
     """Create or update cluster admin + application role; install template1 extensions."""
-    config = bootstrap.config
+    config = bootstrap
     admin_role = constants.POSTGRES_ADMIN_USER
     role = constants.POSTGRES_ODOO_USER
     password = constants.POSTGRES_ODOO_PASS
-    ready = probe_postgres_ready(config)
+    ready = probe_postgres_ready(bootstrap)
     if ready is None:
         raise OdpmError(
             _(
                 "PostgreSQL container {SERVICE} is not running; start it before ensuring the role."
-            ).format(SERVICE=postgres_service_name(config))
+            ).format(SERVICE=postgres_service_name(bootstrap))
         )
     if ready is False:
         raise OdpmError(
             _(
                 "PostgreSQL in {SERVICE} is not ready yet; wait for startup before ensuring the role."
-            ).format(SERVICE=postgres_service_name(config))
+            ).format(SERVICE=postgres_service_name(bootstrap))
         )
-    existed_before = probe_app_role_exists(config, role=role) is True
+    existed_before = probe_app_role_exists(bootstrap, role=role) is True
     roles_sql = build_ensure_cluster_roles_sql(admin_role, role, password)
-    if resolve_psql_admin_role(config) is None:
+    if resolve_psql_admin_role(bootstrap) is None:
         bootstrap_app_role_single_user(
-            config,
+            bootstrap,
             build_single_user_bootstrap_sql(role, password, admin_role=admin_role),
         )
-        wait_for_psql_admin_role(config)
+        wait_for_psql_admin_role(bootstrap)
     result = run_psql_as_admin(
-        config,
+        bootstrap,
         "-v",
         "ON_ERROR_STOP=1",
         "-c",
@@ -180,7 +180,7 @@ def ensure_app_role(bootstrap: BootstrapHandle) -> EnsureRoleResult:
             message = f"{message} {detail}"
         raise OdpmError(message)
     ext_result = run_psql_as_admin(
-        config,
+        bootstrap,
         "-v",
         "ON_ERROR_STOP=1",
         "-c",

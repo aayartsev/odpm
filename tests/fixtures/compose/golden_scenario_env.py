@@ -65,7 +65,7 @@ def make_golden_compose_env(scenario: str) -> CreateProjectEnvironment:
         supports_compose_up_yes=True,
         supports_pull_policy_never=False,
     )
-    env = CreateProjectEnvironment(BootstrapHandle(config=config))
+    env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
     if policy.include_odoo_volumes:
         env.mapped_folders = [
             MappedPath(local=GOLDEN_MAPPED_LOCAL, docker="/home/odoo/extra-addons")

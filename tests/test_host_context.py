@@ -10,7 +10,8 @@ from dev_project.host.context import HostProjectContext
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project import constants
 from dev_project.manifest.reader import ManifestView
-from dev_project.config.config import Config
+from dev_project.config.config import AssembledProject
+from dev_project.config.assembly import host_context_from_assembled
 
 
 class HostProjectContextTests(unittest.TestCase):
@@ -48,7 +49,7 @@ class HostProjectContextTests(unittest.TestCase):
             manifest_view=view,
             repo_odpm_json="/tmp/project/odpm.json",
         )
-        ctx = HostProjectContext.from_config(config)
+        ctx = host_context_from_assembled(config)
 
         self.assertIs(ctx.manifest_view, view)
         self.assertEqual(ctx.repo_odpm_json, "/tmp/project/odpm.json")
@@ -56,14 +57,14 @@ class HostProjectContextTests(unittest.TestCase):
     def test_from_config_without_bootstrap_leaves_manifest_fields_empty(self):
         config = self._make_config()
         config.bootstrap = None
-        ctx = HostProjectContext.from_config(config)
+        ctx = host_context_from_assembled(config)
 
         self.assertIsNone(ctx.manifest_view)
         self.assertEqual(ctx.repo_odpm_json, "")
 
     def test_from_config_copies_host_view_fields(self):
         config = self._make_config()
-        ctx = HostProjectContext.from_config(config)
+        ctx = host_context_from_assembled(config)
 
         self.assertEqual(ctx.project_dir, "/tmp/project")
         self.assertEqual(ctx.program_dir, "/opt/odpm")
@@ -78,7 +79,7 @@ class HostProjectContextTests(unittest.TestCase):
 
     def test_cli_flag_properties(self):
         config = self._make_config()
-        ctx = HostProjectContext.from_config(
+        ctx = host_context_from_assembled(
             config,
             arguments=OdpmCliArgs(no_git_update=True, update_lock=True),
         )
@@ -87,7 +88,7 @@ class HostProjectContextTests(unittest.TestCase):
 
     def test_sync_manifest_locks_property(self):
         config = self._make_config()
-        ctx = HostProjectContext.from_config(
+        ctx = host_context_from_assembled(
             config,
             arguments=OdpmCliArgs(update_lock=True, sync_manifest_locks=True),
         )
@@ -96,25 +97,23 @@ class HostProjectContextTests(unittest.TestCase):
     def test_from_config_uses_explicit_arguments_override(self):
         config = self._make_config()
         args = OdpmCliArgs(no_git_update=True, update_lock=False)
-        ctx = HostProjectContext.from_config(config, arguments=args)
+        ctx = host_context_from_assembled(config, arguments=args)
         self.assertIs(ctx.arguments, args)
         self.assertTrue(ctx.skip_git_update)
         self.assertFalse(ctx.update_lock)
 
     def test_config_host_context_property_delegates(self):
-
         config = self._make_config()
-        with patch.object(
-            HostProjectContext,
-            "from_config",
-            wraps=HostProjectContext.from_config,
-        ) as mock_from_config:
-            ctx = Config.host_context.fget(config)
-        mock_from_config.assert_called_once_with(config)
+        with patch(
+            "dev_project.config.config.host_context_from_assembled",
+            wraps=host_context_from_assembled,
+        ) as mock_from_assembled:
+            ctx = AssembledProject.host_context.fget(config)
+        mock_from_assembled.assert_called_once_with(config)
         self.assertEqual(ctx.project_dir, config.project_dir)
 
     def test_frozen_context_rejects_attribute_assignment(self):
-        ctx = HostProjectContext.from_config(self._make_config())
+        ctx = host_context_from_assembled(self._make_config())
         with self.assertRaises(FrozenInstanceError):
             ctx.project_dir = "/other"
 

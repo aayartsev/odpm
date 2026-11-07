@@ -80,17 +80,18 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
     from ..extensions.context import ExtensionHostContext  # noqa: PLC0415  # cycle
     from .fragments import collect_compose_services, collect_service_patches  # noqa: PLC0415  # cycle
 
-    config = env.bootstrap.config
-    policy = env.host_ctx.policy
+    host_ctx = env.host_ctx
+    bootstrap = env.bootstrap
+    policy = host_ctx.policy
     user_env = env.user_env
-    compose_service = config.runtime.compose_service
+    compose_service = bootstrap.runtime.compose_service
     if compose_service is None:
         raise ValueError(
-            "config.runtime.compose_service is required; run ComposeServiceBuilder.build() first"
+            "bootstrap.runtime.compose_service is required; run ComposeServiceBuilder.build() first"
         )
 
     odoo_image = _config_str(
-        config.docker_layout, policy.odoo_image_attr, "odoo:dev"
+        host_ctx.docker_layout, policy.odoo_image_attr, "odoo:dev"
     )
     compose_user = policy.runtime_unix_user()
 
@@ -107,7 +108,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
 
     postgres_service: dict[str, Any] = {
         "image": (
-            f"postgres:{_config_str(config.project_settings, 'postgres_version', '16')}"
+            f"postgres:{_config_str(host_ctx.project_settings, 'postgres_version', '16')}"
         ),
         "user": "root",
         "tty": True,
@@ -124,7 +125,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             ],
             "volumes": [
                 f"{LOGICAL_POSTGRES_VOLUME}:"
-                f"{postgres_container_mount_path(_config_str(config.project_settings, 'postgres_version', '16'))}"
+                f"{postgres_container_mount_path(_config_str(host_ctx.project_settings, 'postgres_version', '16'))}"
             ],
         }
     )
@@ -166,7 +167,8 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             "ports": odoo_ports,
         }
     )
-    capabilities = cached_docker_capabilities(config)
+    # Capabilities still take AssembledProject until campaign F.
+    capabilities = cached_docker_capabilities(bootstrap)
     if capabilities is not None and capabilities.supports_pull_policy_never:
         odoo_service["pull_policy"] = "never"
 
@@ -179,7 +181,11 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
             odoo_service["extra_hosts"] = ["host.docker.internal:host-gateway"]
 
 
-    ext = ExtensionHostContext.from_config(config)
+    ext = ExtensionHostContext.from_host(
+        host_ctx,
+        repo_odpm_json=host_ctx.repo_odpm_json,
+        manifest_view=host_ctx.manifest_view,
+    )
     base_services = {LOGICAL_DB: postgres_service, LOGICAL_ODOO: odoo_service}
     fragment_services = collect_compose_services(ext)
     service_patches = collect_service_patches(ext)
@@ -187,7 +193,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         merge_services(base_services, fragment_services),
         service_patches,
     )
-    gates = sidecar_gates_from_user_settings(env.host_ctx.user_settings)
+    gates = sidecar_gates_from_user_settings(host_ctx.user_settings)
     services, dropped = apply_sidecar_gates(services, gates)
     scrub_service_deps(services, dropped)
     port_offset = getattr(user_env, "port_offset", 0)
@@ -206,7 +212,7 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
                     "type": "none",
                     "o": "bind",
                     "device": _config_str(
-                        config,
+                        bootstrap,
                         "postgres_data_local_storage",
                         "/tmp/postgres-data",
                     ),

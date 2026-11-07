@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dev_project.host.ports import BootstrapHandle
+
 import fcntl
 import os
 import subprocess
@@ -35,7 +37,6 @@ from dev_project.git.worktree import (
 )
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.cli.parse_args import parse_cli_args
-from dev_project.host.ports import BootstrapHandle
 
 
 def _git(cwd: str, *args: str) -> str:
@@ -257,7 +258,7 @@ class WorktreeMaterializeTests(unittest.TestCase):
     def test_ensure_present_uses_worktree_paths(self) -> None:
         link = self._link("mr-1", commit=self.sha2)
         wt = materialize_link_as_worktree(link)
-        # Simulate a fresh Config after bootstrap: classic odoo_src_dir is wrong,
+        # Simulate a fresh AssembledProject after bootstrap: classic odoo_src_dir is wrong,
         # but the link is worktree-enabled and the worktree exists on disk.
         platform = HandleOdooProjectLink(
             "https://example.com/org/demo.git",
@@ -429,10 +430,10 @@ class ServiceSourcesWorktreeTests(unittest.TestCase):
             config.project_settings.odoo_version = "17.0"
             config.user_settings.clean_git_repos = False
             config.user_settings.update_git_repos = False
-            config.handle_git_link.return_value = project_link
+            config._git_repos.handle_git_link.return_value = project_link
 
             path = materialize_one_service_source(
-                config,
+                BootstrapHandle(_assembled=config),
                 "sidecar",
                 "https://example.com/org/sidecar.git",
             )
@@ -464,9 +465,9 @@ class ServiceSourcesWorktreeTests(unittest.TestCase):
             config.bootstrap.manifest_view.service_sources = {
                 "sidecar": "https://example.com/org/sidecar.git",
             }
-            config.handle_git_link.return_value = project_link
+            config._git_repos.handle_git_link.return_value = project_link
 
-            paths = collect_service_source_paths(BootstrapHandle(config=config))
+            paths = collect_service_source_paths(BootstrapHandle(_assembled=config))
             repo_key = repo_key_from_relative_path(
                 project_link.project_data.relative_path
             )

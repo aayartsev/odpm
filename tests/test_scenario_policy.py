@@ -10,7 +10,7 @@ from dev_project.host.cli.args import OdpmCliArgs
 
 from dev_project import constants
 from dev_project.bake_venv import VenvInstallSpec, write_ci_venv_install_spec
-from dev_project.config import Config
+from dev_project.config.config import AssembledProject
 from dev_project.project_env import CreateProjectEnvironment
 from dev_project.project_env.services import CiImageBuildService
 from dev_project.project_env.ci_image import CiImageBuilder
@@ -38,7 +38,7 @@ def normalize_project_requirements(
     python_version: str = "3.12",
     odoo_version: str = "17.0",
 ) -> list[str]:
-    """Same normalization path as Config after reading odpm.json."""
+    """Same normalization path as AssembledProject after reading odpm.json."""
     policy = ScenarioPolicy.from_scenario(scenario)
     return policy.normalize_requirements(
         requirements_txt,
@@ -186,7 +186,7 @@ class ScenarioPolicyTests(unittest.TestCase):
         config.runtime.container_run_mode = constants.RUN_MODE_ODOO
         apply_odpm_config_database_fields(config)
 
-        payload = json.loads(Config.config_to_json(config).decode("utf-8"))
+        payload = json.loads(AssembledProject.config_to_json(config).decode("utf-8"))
         self.assertEqual(payload["venv_mode"], constants.VENV_MODE_FRESH)
         self.assertEqual(payload["odpm_scenario"], constants.SERVER_SCENARIO)
         self.assertEqual(payload["run_mode"], constants.RUN_MODE_ODOO)
@@ -411,7 +411,7 @@ class ScenarioPolicyTests(unittest.TestCase):
 
 class CiVenvInstallSpecTests(unittest.TestCase):
     def test_build_ci_venv_install_spec_uses_normalized_requirements(self):
-        """CI bake reads config.project_settings.requirements_txt after Config normalization."""
+        """CI bake reads config.project_settings.requirements_txt after AssembledProject normalization."""
         config = MagicMock()
         config.project_settings.requirements_txt = normalize_project_requirements(
             constants.CI_SCENARIO,
@@ -424,7 +424,7 @@ class CiVenvInstallSpecTests(unittest.TestCase):
         config.compute_venv_lock_hash.return_value = "abc123"
 
         spec = CiImageBuildService(
-            CreateProjectEnvironment(BootstrapHandle(config=config))
+            CreateProjectEnvironment(BootstrapHandle(_assembled=config))
         ).build_ci_venv_install_spec()
 
         self.assertIn("requests==2.31.0", spec.extra_packages)
@@ -461,7 +461,7 @@ class WriteCiVenvInstallSpecTests(unittest.TestCase):
             config.docker_layout.docker_project_dir = "/home/odoo"
             config.docker_layout.docker_dev_project_dir = "/home/odoo/dev_project"
             env = MagicMock()
-            env.bootstrap = MagicMock(config=config)
+            env.bootstrap = MagicMock(_assembled=config)
             env.host_ctx = MagicMock()
             env.host_ctx.program_dir = config.program_dir
             env.host_ctx.docker_layout = config.docker_layout
@@ -522,7 +522,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_ci_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         command = config.runtime.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
@@ -533,7 +533,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_server_entrypoint_without_debugpy(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         command = config.runtime.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
@@ -546,7 +546,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         self, _mock_write_runtime_config
     ):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         command = config.runtime.compose_service.command
         self.assertIn(
             constants.RUN_ODOO_ENTRYPOINT,
@@ -558,7 +558,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     def test_start_command_includes_database_name(self, _mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.arguments = replace(config.arguments, d="my_project")
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         self.assertIn("-d", config.runtime.compose_service.command)
         self.assertIn("my_project", config.runtime.compose_service.command)
 
@@ -569,7 +569,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.project_settings.odoo_version = "19.0"
         config.arguments = replace(config.arguments, translate="ru_RU")
-        ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         command = config.runtime.compose_service.command
         self.assertIn("--load-language", command)
         self.assertIn("ru_RU", command)
@@ -578,29 +578,30 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     def test_export_po_files_uses_bootstrap_only_run_mode(self):
         config = self._make_config(constants.SERVER_SCENARIO)
         config.arguments = replace(config.arguments, export_po_files="ru_RU")
-        command = ComposeServiceBuilder(BootstrapHandle(config=config)).build_start_command()
+        command = ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build_start_command()
         self.assertEqual(command.run_mode, constants.RUN_MODE_BOOTSTRAP_ONLY)
         self.assertNotIn("exit", command.to_compose_service().command)
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_build_returns_compose_service(self, mock_write_runtime_config):
         config = self._make_config(constants.SERVER_SCENARIO)
-        service = ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        handle = BootstrapHandle(_assembled=config)
+        service = ComposeServiceBuilder(handle).build()
         self.assertIs(service, config.runtime.compose_service)
         self.assertTrue(service.include_runtime_config)
-        mock_write_runtime_config.assert_called_once_with(config)
+        mock_write_runtime_config.assert_called_once_with(handle)
 
     @patch("dev_project.compose.service_builder.persist_runtime_config")
     def test_ci_build_skips_host_runtime_config(self, mock_write_runtime_config):
         config = self._make_config(constants.CI_SCENARIO)
-        service = ComposeServiceBuilder(BootstrapHandle(config=config)).build()
+        service = ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build()
         self.assertIs(service, config.runtime.compose_service)
         self.assertFalse(service.include_runtime_config)
         mock_write_runtime_config.assert_not_called()
 
     def test_build_start_command_returns_structured_command(self):
         config = self._make_config(constants.CI_SCENARIO)
-        command = ComposeServiceBuilder(BootstrapHandle(config=config)).build_start_command()
+        command = ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build_start_command()
         self.assertTrue(command.odoo_bin[0].endswith("/odoo-bin"))
         service = command.to_compose_service()
         self.assertIn(constants.RUN_ODOO_ENTRYPOINT, service.command)
@@ -608,7 +609,7 @@ class ComposeServiceBuilderTests(unittest.TestCase):
     def test_start_precommit_uses_run_pre_commit_entrypoint(self):
         config = self._make_config(constants.DEVELOPER_SCENARIO)
         config.arguments = replace(config.arguments, start_precommit=True)
-        command = ComposeServiceBuilder(BootstrapHandle(config=config)).build_start_command()
+        command = ComposeServiceBuilder(BootstrapHandle(_assembled=config)).build_start_command()
 
         self.assertEqual(command.kind, "pre_commit")
         self.assertEqual(

@@ -11,7 +11,7 @@ from .errors import SystemCheckError
 from .translations import _
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .host.ports import BootstrapHandle
     from .subprocess_runner import CommandResult
 
 
@@ -113,16 +113,17 @@ def probe_compose_command_from_candidates(
 
 
 def ensure_config_docker_capabilities(
-    config: Config,
+    bootstrap: "BootstrapHandle",
     *,
-    run_checked: Callable[..., CommandResult] | None = None,
+    run_checked: Callable[..., "CommandResult"] | None = None,
 ) -> DockerCapabilities | None:
-    """Probe compose CLI once and cache on ``config`` when not already set."""
-    cached = cached_docker_capabilities(config)
+    """Probe compose CLI once and cache on the handle runtime when not already set."""
+    cached = cached_docker_capabilities(bootstrap)
     if cached is not None:
         return cached
-    compose_command = config.runtime.resolved_docker_compose_command(
-        config.docker_layout.docker_compose_command
+    layout_default = bootstrap.docker_layout.docker_compose_command
+    compose_command = bootstrap.runtime.resolved_docker_compose_command(
+        layout_default
     )
     if not isinstance(compose_command, str) or not compose_command.strip():
         return None
@@ -134,21 +135,23 @@ def ensure_config_docker_capabilities(
         probed = probe_docker_capabilities(compose_command, run_checked=run_checked)
     except FileNotFoundError:
         return None
-    config.runtime.docker_capabilities = probed
+    bootstrap.runtime.docker_capabilities = probed
     return probed
 
 
-def cached_docker_capabilities(config: Config) -> DockerCapabilities | None:
-    caps = config.runtime.docker_capabilities
+def cached_docker_capabilities(
+    bootstrap: "BootstrapHandle",
+) -> DockerCapabilities | None:
+    caps = bootstrap.runtime.docker_capabilities
     return caps if isinstance(caps, DockerCapabilities) else None
 
 
 def resolve_docker_capabilities(
-    config: Config,
+    bootstrap: "BootstrapHandle",
     *,
-    run_checked: Callable[..., CommandResult] | None = None,
+    run_checked: Callable[..., "CommandResult"] | None = None,
 ) -> DockerCapabilities:
-    cached = cached_docker_capabilities(config)
+    cached = cached_docker_capabilities(bootstrap)
     if cached is not None:
         return cached
     if run_checked is None:
@@ -157,8 +160,8 @@ def resolve_docker_capabilities(
         run_checked = default_run_checked
     try:
         probed = probe_docker_capabilities(
-            config.runtime.resolved_docker_compose_command(
-                config.docker_layout.docker_compose_command
+            bootstrap.runtime.resolved_docker_compose_command(
+                bootstrap.docker_layout.docker_compose_command
             ),
             run_checked=run_checked,
         )
@@ -166,5 +169,5 @@ def resolve_docker_capabilities(
         raise SystemCheckError(
             _("Cannot get docker-compose info, did you install it?")
         ) from exc
-    config.runtime.docker_capabilities = probed
+    bootstrap.runtime.docker_capabilities = probed
     return probed

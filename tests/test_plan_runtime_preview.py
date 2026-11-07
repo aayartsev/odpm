@@ -5,6 +5,7 @@ import unittest
 from dev_project.host.cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
+from dev_project.host.ports import BootstrapHandle
 from dev_project.plan.runtime_preview import (
     clear_runtime_config_preview_cache,
     normalize_runtime_config_text,
@@ -47,36 +48,38 @@ class PlanRuntimePreviewTests(unittest.TestCase):
         self.assertIn("\n", normalized)
 
     @patch(
-        "dev_project.plan.compose_preview.runtime_config_payload_from_config",
+        "dev_project.plan.compose_preview.runtime_config_payload_from_bootstrap",
         return_value={"arguments": {"branch": "dev"}, "schema_version": 1},
     )
     @patch("dev_project.plan.compose_preview.preview_compose_service")
     def test_preview_runtime_config_text_uses_compose_service_path(
         self, mock_preview, _mock_payload
     ):
-        config = MagicMock()
-        config.arguments = OdpmCliArgs(plan=True, branch="dev")
-        text = preview_runtime_config_text(config)
-        mock_preview.assert_called_once_with(config)
+        assembled = MagicMock()
+        assembled.arguments = OdpmCliArgs(plan=True, branch="dev")
+        bootstrap = BootstrapHandle(_assembled=assembled)
+        text = preview_runtime_config_text(bootstrap)
+        mock_preview.assert_called_once_with(bootstrap)
         self.assertIsNotNone(text)
         payload = json.loads(text or "{}")
         self.assertEqual(payload["arguments"]["branch"], "dev")
 
     @patch(
-        "dev_project.plan.compose_preview.runtime_config_payload_from_config",
+        "dev_project.plan.compose_preview.runtime_config_payload_from_bootstrap",
         return_value={"arguments": {"branch": "dev"}, "schema_version": 1},
     )
     @patch("dev_project.plan.compose_preview.preview_compose_service")
     def test_preview_runtime_config_text_is_cached_per_plan_build(
         self, mock_preview, _mock_payload
     ):
-        config = MagicMock()
-        config.arguments = OdpmCliArgs(branch="dev")
-        clear_runtime_config_preview_cache(config)
-        first = preview_runtime_config_text(config)
-        second = preview_runtime_config_text(config)
+        assembled = MagicMock()
+        assembled.arguments = OdpmCliArgs(branch="dev")
+        bootstrap = BootstrapHandle(_assembled=assembled)
+        clear_runtime_config_preview_cache(bootstrap)
+        first = preview_runtime_config_text(bootstrap)
+        second = preview_runtime_config_text(bootstrap)
         self.assertEqual(first, second)
-        mock_preview.assert_called_once_with(config)
+        mock_preview.assert_called_once_with(bootstrap)
 
 
 if __name__ == "__main__":

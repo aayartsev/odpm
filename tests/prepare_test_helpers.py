@@ -36,7 +36,7 @@ def stub_prepare_service_executions():
         patch(target) for target in _PREPARE_SERVICE_PATCH_TARGETS
     ] + [
         patch(
-            "dev_project.prepare.types.ensure_config_docker_capabilities",
+            "dev_project.docker_capabilities.ensure_config_docker_capabilities",
             return_value=_STUB_DOCKER_CAPABILITIES,
         )
     ]
