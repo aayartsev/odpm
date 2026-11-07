@@ -26,34 +26,39 @@ from .runtime_backend.compose import ComposeRuntimeBackend
 from .translations import _
 
 if TYPE_CHECKING:
-    from .config import Config
+    from .host.ports import RuntimePorts
     from .project_env import CreateProjectEnvironment
 
 _logger = get_module_logger(__name__)
 
 
 class RuntimeCoordinator:
-    def __init__(
-        self,
-        cli_args: OdpmCliArgs,
-        config: Config,
-        project_env: CreateProjectEnvironment,
-    ) -> None:
-        self.cli_args = cli_args
-        self.config = config
-        self.project_env = project_env
+    def __init__(self, runtime: RuntimePorts) -> None:
+        self.runtime = runtime
+
+    @property
+    def cli_args(self) -> OdpmCliArgs:
+        return self.runtime.args
+
+    @property
+    def project_env(self) -> CreateProjectEnvironment:
+        return self.runtime.project_env
 
     @property
     def host_ctx(self) -> HostProjectContext:
-        return HostProjectContext.from_config(self.config, arguments=self.cli_args)
+        # Fresh each access so compose argv sees runtime capability writes.
+        return HostProjectContext.from_config(
+            self.runtime.bootstrap.config,
+            arguments=self.runtime.args,
+        )
 
     @property
     def runtime_backend(self) -> ComposeRuntimeBackend:
-        # Fresh adapter each access so host_ctx mirrors current config/args.
+        config = self.runtime.bootstrap.config
         return get_runtime_backend(
             host_ctx=self.host_ctx,
-            config=self.config,
-            project_env=self.project_env,
+            config=config,
+            project_env=self.runtime.project_env,
         )
 
     def handle_build_image(self) -> bool:
@@ -111,10 +116,11 @@ class RuntimeCoordinator:
         if self.cli_args.skip_start:
             host_summaries.log_skip_start()
             return
-        adopt_database_baseline(self.config)
-        ensure_no_blocking_database_drift(self.config, self.cli_args)
+        config = self.runtime.bootstrap.config
+        adopt_database_baseline(config)
+        ensure_no_blocking_database_drift(config, self.cli_args)
 
-        manifest_view = self.config.bootstrap.manifest_view
+        manifest_view = config.bootstrap.manifest_view
         secrets_spec = (
             manifest_view.scenario_slice.secrets
             if manifest_view is not None and manifest_view.scenario_slice is not None
@@ -132,10 +138,10 @@ class RuntimeCoordinator:
             raise PipelineError(str(exc), exit_code=1) from exc
 
         run_lifecycle_hooks(
-            ExtensionHostContext.from_config(self.config),
+            ExtensionHostContext.from_config(config),
             "pre_up",
             cwd=self.host_ctx.project_dir,
-            env_resolver=self.config.env_resolver,
+            env_resolver=config.env_resolver,
         )
         try:
             execute_launch_steps(self)

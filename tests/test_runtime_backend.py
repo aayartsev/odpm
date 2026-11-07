@@ -14,6 +14,7 @@ from dev_project.prepare.runtime import (
 )
 from dev_project.runtime_backend import LAUNCH_STEPS, get_runtime_backend
 from dev_project.runtime_backend.compose import ComposeRuntimeBackend
+from dev_project.host.ports import BootstrapHandle, ports_from_config
 from dev_project.runtime_coordinator import RuntimeCoordinator
 
 
@@ -103,7 +104,12 @@ class LaunchExecuteTests(unittest.TestCase):
     def test_execute_launch_steps_calls_backend(
         self, mock_run, _mock_should, mock_base
     ) -> None:
-        coordinator = RuntimeCoordinator(OdpmCliArgs(), self._config(), MagicMock())
+        config = self._config()
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
+        coordinator = RuntimeCoordinator(
+            ports_from_config(config, project_env, OdpmCliArgs()).runtime
+        )
         from dev_project.runtime_backend import execute_launch_steps
 
         execute_launch_steps(coordinator)
@@ -117,8 +123,13 @@ class LaunchExecuteTests(unittest.TestCase):
     ) -> None:
         from dev_project.runtime_backend import execute_launch_steps
 
+        config = self._config()
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
         coordinator = RuntimeCoordinator(
-            OdpmCliArgs(skip_start=True), self._config(), MagicMock()
+            ports_from_config(
+                config, project_env, OdpmCliArgs(skip_start=True)
+            ).runtime
         )
         execute_launch_steps(coordinator)
         mock_base.return_value.ensure_base_image.assert_not_called()
@@ -133,8 +144,13 @@ class LaunchExecuteTests(unittest.TestCase):
     def test_start_containers_force_bypasses_skip_start(
         self, mock_run, _mock_should, mock_base
     ) -> None:
+        config = self._config()
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
         coordinator = RuntimeCoordinator(
-            OdpmCliArgs(skip_start=True), self._config(), MagicMock()
+            ports_from_config(
+                config, project_env, OdpmCliArgs(skip_start=True)
+            ).runtime
         )
         coordinator.start_containers()
         mock_base.return_value.ensure_base_image.assert_called_once()
@@ -150,7 +166,11 @@ class LaunchExecuteTests(unittest.TestCase):
         mock_launch.side_effect = KeyboardInterrupt()
         config = self._config()
         config.bootstrap.manifest_view = None
-        coordinator = RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
+        coordinator = RuntimeCoordinator(
+            ports_from_config(config, project_env, OdpmCliArgs()).runtime
+        )
         coordinator.handle_build_image = MagicMock(return_value=False)
         coordinator.write_debug_profile = MagicMock()
         coordinator.configure_ide = MagicMock()

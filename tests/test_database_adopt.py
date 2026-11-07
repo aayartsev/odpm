@@ -21,6 +21,7 @@ from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.database.state import save_last_run
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.runtime import HostRuntimeState
+from dev_project.host.ports import BootstrapHandle, ports_from_config
 from dev_project.runtime_coordinator import RuntimeCoordinator
 
 
@@ -207,7 +208,11 @@ class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
         config.runtime.docker_compose_command = "docker compose"
         config.docker_layout.odoo_image_name = "odoo-base:test"
         config.user_env.odoo_port = 8069
-        coordinator = RuntimeCoordinator(OdpmCliArgs(), config, MagicMock())
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
+        coordinator = RuntimeCoordinator(
+            ports_from_config(config, project_env, OdpmCliArgs()).runtime
+        )
         coordinator.run_after_prepare()
 
         mock_adopt.assert_called_once_with(config)

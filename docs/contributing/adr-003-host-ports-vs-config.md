@@ -8,7 +8,7 @@ Accepted (4.5 architecture track, slice C-14). **Amended** for 4.6 debt closure 
 
 `Config` remains the **bootstrap hub**: it loads `user_settings.json` / `odpm.json`, builds typed slices (`UserSettingsState`, `DockerLayoutState`, …), wires git coordinators, and runs materialize side effects (`generate_odoo_conf_docker_data`, `ComposeServiceBuilder`, git clone).
 
-After C-8/C-12/C-13, most **read-only** plan/prepare evaluation uses `HostProjectContext` and `PrepareContext` helpers instead of scattered `config.` access. Callers still received a bare `Config` from `OdpmPipeline.setup()` and passed it into `OdpmPlanner` / `ProjectMaterializer`.
+After C-8/C-12/C-13, most **read-only** plan/prepare evaluation uses `HostProjectContext` and `PrepareContext` helpers instead of scattered `config.` access. Pipeline thinning (first version) also removed the public bare `Config` from `OdpmPipeline`, `RuntimeCoordinator`, `SystemChecker`, and host `*/commands.py`: callers take `PipelinePorts` / `RuntimePorts` / `BootstrapHandle`.
 
 ## Decision
 
@@ -20,14 +20,14 @@ Introduce frozen **host ports** at the pipeline boundary:
 | `PlanPorts` | `host_ctx` + CLI args + bootstrap handle | plan diff/format, prepare evaluate, lock warnings |
 | `ComposePorts` | `host_ctx` + `CreateProjectEnvironment` + bootstrap | compose generator, plan compose preview |
 | `RuntimePorts` | `host_ctx` + args + project env + bootstrap | runtime plan steps, `RuntimeCoordinator` |
-| `PipelinePorts` | Bundle of the three; built once in `OdpmPipeline.setup()` | `OdpmPlanner`, `ProjectMaterializer`, `print_plan` |
+| `PipelinePorts` | Bundle of the three; built once in `OdpmPipeline.setup()` | `OdpmPlanner`, `ProjectMaterializer`, `print_plan`, host `database` / `manifest` / `modules` / `run` commands |
 
 Module: `dev_project/host/ports.py`.
 
 ### Rules
 
-1. **Pipeline entrypoints** (`OdpmPlanner.build`, `ProjectMaterializer.run`, `print_plan`) take `PipelinePorts`, not bare `Config`.
-2. **Plan/prepare/runtime evaluate** reads paths and policy via `host_ctx` (or port fields), not `config.project_dir` / `config.policy` shims.
+1. **Pipeline entrypoints** (`OdpmPlanner.build`, `ProjectMaterializer.run`, `print_plan`, host `run_*_command`) take `PipelinePorts`, not bare `Config`. `OdpmPipeline` has no public `.config` after `setup()` — only `ports` / `project_environment` / `system_checker`.
+2. **Plan/prepare/runtime evaluate** reads paths and policy via `host_ctx` (or port fields), not `config.project_dir` / `config.policy` shims. `RuntimeCoordinator` takes `RuntimePorts`; `SystemChecker` takes `BootstrapHandle`.
 3. **Materialize** (execute steps, `ComposeServiceBuilder`, git) uses `ports.bootstrap` — `config`, `git_repos`, `env_resolver`, `odoo_conf`, `pd_manager`, `new_lock_manager()`, `compute_venv_lock_hash()`. Plan/prepare **evaluate** must not read `ctx.config`; use `host_ctx`, `PrepareContext` helpers, or `ports.bootstrap` only where drift/compose builder still need raw `config`.
 4. **Manifest read model** (`manifest_view`, `repo_odpm_json`) is copied into `HostProjectContext` at port construction; evaluate paths use `host_ctx.manifest_view` / `ctx.manifest_view`, not `config.bootstrap.manifest_view`.
 5. **Tests** may call `ports_from_config(config, …)` when constructing ports without a full pipeline.
@@ -51,8 +51,8 @@ Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
 
 ## Consequences
 
-- `OdpmPipeline.ports` is set in `setup()`; plan and prepare orchestration no longer thread raw `Config` through public APIs.
-- `PrepareContext` holds `PipelinePorts`; `ctx.config` remains a property alias to `ctx.ports.bootstrap.config` for execute-only paths until D4+ thinning.
+- `OdpmPipeline.ports` is set in `setup()`; plan, prepare, runtime coordinator, system checks, and host tooling no longer expose raw `Config` on their public constructors.
+- `PrepareContext` holds `PipelinePorts`; execute-only helpers that still need a snapshot use `ports.bootstrap.config` (no `PrepareContext.config` alias).
 - `ExtensionHostContext.from_host()` builds plugin views from `HostProjectContext` without touching `Config`.
 - `ComposePreviewPort` on `PrepareContext.compose_preview` is the evaluate-time compose preview surface (bootstrap config for disk cache only).
 - Removing the `Config` class is **out of scope** for 4.5.0; target is ~50% fewer direct `config.` reads in plan/prepare/runtime vs 4.4.3 (D3 narrows bootstrap access further).

@@ -10,6 +10,7 @@ from dev_project import constants
 from dev_project.host.cli.args import OdpmCliArgs
 from tests.cli_test_helpers import cli_args
 from dev_project.check_system import SystemChecker
+from dev_project.host.ports import BootstrapHandle
 from dev_project.errors import (
     ConfigError,
     GitError,
@@ -62,7 +63,8 @@ class SystemCheckerDockerTests(unittest.TestCase):
         return config
 
     def _checker(self, config: MagicMock | None = None) -> SystemChecker:
-        return SystemChecker(config or self._config(), MagicMock())
+        cfg = config or self._config()
+        return SystemChecker(BootstrapHandle(config=cfg), MagicMock())
 
     @patch.object(SystemChecker, "check_file_system")
     @patch("dev_project.check_system.platform.system", return_value="Darwin")
@@ -86,7 +88,7 @@ class SystemCheckerDockerTests(unittest.TestCase):
     ):
         config = self._config()
         project_environment = MagicMock()
-        checker = SystemChecker(config, project_environment)
+        checker = SystemChecker(BootstrapHandle(config=config), project_environment)
         mock_run_or_raise.return_value = MagicMock(
             returncode=0,
             stdout="Server:\n Version 24.0",
@@ -111,7 +113,8 @@ class SystemCheckerExtraTests(unittest.TestCase):
         return config
 
     def _checker(self, config: MagicMock | None = None) -> SystemChecker:
-        return SystemChecker(config or self._config(), MagicMock())
+        cfg = config or self._config()
+        return SystemChecker(BootstrapHandle(config=cfg), MagicMock())
 
     @patch("dev_project.check_system.run_logged")
     @patch("dev_project.check_system.run_or_raise")
@@ -203,7 +206,7 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config._git_repos = MagicMock()
         project_environment = MagicMock()
 
-        SystemChecker(config, project_environment)
+        SystemChecker(BootstrapHandle(config=config), project_environment)
 
         config._git_repos.materialize_git_repos.assert_not_called()
         mock_logger.warning.assert_called_once()
@@ -226,7 +229,7 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config.odoo_platform_project = platform
         project_environment = MagicMock()
 
-        SystemChecker(config, project_environment)
+        SystemChecker(BootstrapHandle(config=config), project_environment)
 
         mock_logger.warning.assert_not_called()
 
@@ -247,7 +250,7 @@ class SystemCheckerExtraTests(unittest.TestCase):
         config._git_repos = MagicMock()
         project_environment = MagicMock()
 
-        SystemChecker(config, project_environment)
+        SystemChecker(BootstrapHandle(config=config), project_environment)
 
         config._git_repos.materialize_git_repos.assert_not_called()
         mock_logger.warning.assert_called_once()
@@ -259,7 +262,7 @@ class SystemCheckerExtraTests(unittest.TestCase):
     @patch("dev_project.check_system.os.path.exists", return_value=False)
     def test_check_file_system_raises_system_check_error(self, _mock_exists, _mock_mkdir):
         checker = SystemChecker.__new__(SystemChecker)
-        checker.config = self._config()
+        checker.bootstrap = BootstrapHandle(config=self._config())
         with self.assertRaises(SystemCheckError):
             checker.check_file_system()
 

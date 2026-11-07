@@ -6,6 +6,7 @@ import json
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
+from dev_project.host.ports import ports_from_config
 
 from dev_project import constants
 from dev_project.errors import ConfigError
@@ -54,7 +55,7 @@ class ManifestValidateCommandTests(unittest.TestCase):
             config.repo_odpm_json = manifest_path
 
             cli_args = parse_cli_args(["manifest", "validate"])
-            code = run_manifest_command(cli_args, config)
+            code = run_manifest_command(cli_args, ports_from_config(config))
             self.assertEqual(code, 0)
 
     def test_validate_v2_manifest_ok(self):
@@ -70,7 +71,7 @@ class ManifestValidateCommandTests(unittest.TestCase):
             config.repo_odpm_json = manifest_path
 
             cli_args = parse_cli_args(["manifest", "validate"])
-            code = run_manifest_command(cli_args, config)
+            code = run_manifest_command(cli_args, ports_from_config(config))
             self.assertEqual(code, 0)
 
     def test_validate_rejects_invalid_v2_service(self):
@@ -88,7 +89,7 @@ class ManifestValidateCommandTests(unittest.TestCase):
 
             cli_args = parse_cli_args(["manifest", "validate"])
             with self.assertRaises(ConfigError):
-                run_manifest_command(cli_args, config)
+                run_manifest_command(cli_args, ports_from_config(config))
 
 
 class ManifestMigrateCommandTests(unittest.TestCase):
@@ -118,7 +119,7 @@ class ManifestMigrateCommandTests(unittest.TestCase):
 
             cli_args = parse_cli_args(["manifest", "migrate"])
             with patch("builtins.print") as print_mock:
-                code = run_manifest_command(cli_args, config)
+                code = run_manifest_command(cli_args, ports_from_config(config))
 
             self.assertEqual(code, 0)
             print_mock.assert_called_once()
@@ -153,7 +154,7 @@ class ManifestMigrateCommandTests(unittest.TestCase):
             config.bootstrap.raw_user_settings = {}
 
             cli_args = parse_cli_args(["manifest", "migrate", "--write"])
-            code = run_manifest_command(cli_args, config)
+            code = run_manifest_command(cli_args, ports_from_config(config))
 
             self.assertEqual(code, 0)
             with open(manifest_path, encoding="utf-8") as handle:

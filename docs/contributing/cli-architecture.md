@@ -9,8 +9,8 @@
 3. При необходимости поля в [`OdpmCliArgs`](../../dev_project/host/cli/args.py).
 4. Mode-helper в [`dev_project/plan/cli.py`](../../dev_project/plan/cli.py) (`is_*_mode`).
 5. Маршрутизация в [`OdpmPipeline.run`](../../dev_project/odpm_pipeline.py):
-   - host tooling → early return + `*/commands.py`;
-   - стек / runtime → prepare + `RuntimeCoordinator` (как `up`).
+   - host tooling → ранний выход + `*/commands.py` с аргументом `PipelinePorts` (не голый `Config`);
+   - стек / runtime → prepare + `RuntimeCoordinator` от `RuntimePorts` (как `up`).
 6. Если команда prepare-only — добавить в allowlist [`cli_allows_ci_explicit_mode`](../../dev_project/system_check_policy.py) и ADR-017.
 7. Для стековых `database *` **не** класть логику в `database/commands.py` — выставлять legacy-поля флагов и идти в runtime path.
 8. Docs RU (+ EN, если зеркало есть), CHANGELOG, тесты parse/normalize + dispatch.

@@ -6,6 +6,7 @@ import json
 import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
+from dev_project.host.ports import ports_from_config
 
 from dev_project.database.schema import (
     DatabaseClusterFingerprint,
@@ -127,7 +128,7 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
                     command="database",
                     database_subcommand="status",
                 ),
-                config,
+                ports_from_config(config),
             )
         self.assertEqual(code, 0)
         mock_logger.info.assert_called_once()
@@ -153,7 +154,7 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
                     database_subcommand="status",
                     database_status_format="json",
                 ),
-                config,
+                ports_from_config(config),
             )
         self.assertEqual(code, 0)
         payload = json.loads(buffer.getvalue())
@@ -171,7 +172,7 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
                     command="database",
                     database_subcommand="ensure-role",
                 ),
-                config,
+                ports_from_config(config),
             )
         self.assertEqual(code, 0)
         mock_ensure.assert_called_once_with(config)

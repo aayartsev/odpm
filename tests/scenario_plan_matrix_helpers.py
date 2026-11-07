@@ -198,6 +198,6 @@ def run_matrix_manifest_cli(
         pipeline.setup(for_plan=True)
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):
-            exit_code = run_manifest_command(args, pipeline.config)
+            exit_code = run_manifest_command(args, pipeline.ports)
         return exit_code, buffer.getvalue()
 

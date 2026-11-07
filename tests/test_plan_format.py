@@ -188,10 +188,10 @@ class PlanStrictPipelineTests(unittest.TestCase):
                 OdpmCliArgs(plan=True, plan_strict=True, skip_start=True),
                 "/opt/odpm",
             )
-            pipeline.config = self._config(tmp)
+            config = self._config(tmp)
             pipeline.project_environment = MagicMock()
             pipeline.ports = ports_from_config(
-                pipeline.config,
+                config,
                 pipeline.project_environment,
                 pipeline.cli_args,
             )
@@ -206,10 +206,10 @@ class PlanStrictPipelineTests(unittest.TestCase):
     ):
 
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True, plan_strict=True), "/opt/odpm")
-        pipeline.config = MagicMock()
+        config = MagicMock()
         pipeline.project_environment = MagicMock()
         pipeline.ports = ports_from_config(
-            pipeline.config,
+            config,
             pipeline.project_environment,
             pipeline.cli_args,
         )

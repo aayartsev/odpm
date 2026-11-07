@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **Оркестратор без голого Config** — у `OdpmPipeline` больше нет публичного `.config`; координатор запуска берёт `RuntimePorts`, проверка системы — `BootstrapHandle`, host-команды `database` / `manifest` / `modules` / `run` — `PipelinePorts`. Поведение команд для пользователя не изменилось. Документация: ADR-003, `cli-architecture.md`, `config-zones.md`.
 - **Явные срезы Config и состояние запуска (срез E)** — `CreateProjectEnvironment` теперь получает `BootstrapHandle`; данные запуска находятся в `config.runtime`; автоматически созданные плоские свойства срезов и runtime-фасад удалены. `HostProjectContext.from_config` получает команду compose из runtime с запасным значением из Docker layout. Поведение команд для пользователя не изменилось. Документация: ADR-030, `config-zones.md`.
 - **Контекст подготовки без алиаса сырого Config (срез C)** — `PrepareContext.config` снят; хелперы и разбор расхождений БД идут через `ports.bootstrap`. Документация: ADR-030, `config-zones.md`.
 - **Сборщик compose / ссылки / исходники сервисов на BootstrapHandle (срез D)** — публичные конструкторы и materialize принимают ручку; для drift добавлен `detect_database_drift_for_handle`. Документация: ADR-030, `config-zones.md`.

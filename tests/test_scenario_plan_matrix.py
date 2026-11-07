@@ -701,7 +701,7 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
             OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
         )
         ctx = make_prepare_context(
-            pipeline.config,
+            pipeline.ports.bootstrap.config,
             pipeline.project_environment,
             pipeline.system_checker,
             OdpmCliArgs(skip_start=True, no_git_update=True),
@@ -733,7 +733,7 @@ class PlanMatrixComposeMarkersTests(_MatrixProjectTestCase):
             OdpmCliArgs(plan=True, skip_start=True, no_git_update=True),
         )
         ctx = make_prepare_context(
-            pipeline.config,
+            pipeline.ports.bootstrap.config,
             pipeline.project_environment,
             pipeline.system_checker,
             OdpmCliArgs(skip_start=True, no_git_update=True),

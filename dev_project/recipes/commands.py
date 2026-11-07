@@ -12,18 +12,16 @@ from .registry import format_recipe_list, get_recipe, list_recipes
 from .runner import resolve_params, run_recipe
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.cli.args import OdpmCliArgs
+    from ..host.ports import PipelinePorts
 
 _logger = get_module_logger(__name__)
 
 
-def run_recipes_command(cli_args: OdpmCliArgs, config: Config | None) -> int:
-    project_dir = ""
-    program_dir = ""
-    if config is not None:
-        project_dir = str(getattr(config, "project_dir", "") or "")
-        program_dir = str(getattr(config, "program_dir", "") or "")
+def run_recipes_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
+    host_ctx = ports.plan.host_ctx
+    project_dir = str(host_ctx.project_dir or "")
+    program_dir = str(host_ctx.program_dir or "")
 
     if cli_args.run_list:
         try:

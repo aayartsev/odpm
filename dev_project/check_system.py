@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 import json
 import os
 import platform
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from . import constants
 from .docker_capabilities import probe_compose_command_from_candidates
 from .translations import _
-from .config import Config
 from .errors import SubprocessError, SystemCheckError
+from .host.context import HostProjectContext
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
 from .project_env.services import BaseImageService
@@ -16,6 +18,9 @@ from .subprocess_runner import run_checked, run_logged, run_or_raise
 from .system_check_policy import SystemCheckPolicy
 import grp
 import pwd
+
+if TYPE_CHECKING:
+    from .host.ports import BootstrapHandle
 
 
 _logger = get_module_logger(__name__)
@@ -29,12 +34,14 @@ class ContainerData(NamedTuple):
 class SystemChecker(SystemCheckerProtocol):
     def __init__(
         self,
-        config: Config,
+        bootstrap: BootstrapHandle,
         project_environment: CreateProjectEnvironment,
     ) -> None:
-        self.config = config
+        self.bootstrap = bootstrap
         self.project_environment = project_environment
-        policy = SystemCheckPolicy.from_config(config)
+        policy = SystemCheckPolicy.from_host_context(
+            HostProjectContext.from_config(bootstrap.config)
+        )
         if policy.file_system_on_init:
             self.check_file_system()
 
@@ -92,7 +99,9 @@ class SystemChecker(SystemCheckerProtocol):
         BaseImageService(self.project_environment).ensure_base_image()
 
     def check_docker(self) -> None:
-        policy = SystemCheckPolicy.from_config(self.config)
+        policy = SystemCheckPolicy.from_host_context(
+            HostProjectContext.from_config(self.bootstrap.config)
+        )
         if not policy.skip_docker_daemon:
             self.check_docker_daemon()
         if not policy.skip_ensure_base_local:
@@ -106,7 +115,7 @@ class SystemChecker(SystemCheckerProtocol):
             effective_postgres_port,
         )
 
-        user_env = self.config.user_env
+        user_env = self.bootstrap.config.user_env
         ports_to_check = [
             effective_odoo_port(user_env),
             effective_debugger_port(user_env),
@@ -163,12 +172,13 @@ class SystemChecker(SystemCheckerProtocol):
             message = _('Cannot get docker-compose info, did you install it?')
             _logger.error(message)
             raise SystemCheckError(message)
-        self.config.runtime.docker_compose_command = capabilities.compose_command
-        self.config.runtime.no_log_prefix = capabilities.supports_no_log_prefix
-        self.config.runtime.docker_capabilities = capabilities
+        runtime = self.bootstrap.runtime
+        runtime.docker_compose_command = capabilities.compose_command
+        runtime.no_log_prefix = capabilities.supports_no_log_prefix
+        runtime.docker_capabilities = capabilities
 
     def _platform_git_repo_ready(self) -> bool:
-        odoo_src_dir = self.config.odoo_src_dir
+        odoo_src_dir = self.bootstrap.config.odoo_src_dir
         if not odoo_src_dir or not os.path.isdir(odoo_src_dir):
             return False
         if not os.path.exists(os.path.join(odoo_src_dir, ".git")):
@@ -183,26 +193,30 @@ class SystemChecker(SystemCheckerProtocol):
         return "true" in result.stdout
 
     def _ensure_platform_sources(self) -> None:
-        policy = self.config.policy
+        config = self.bootstrap.config
+        policy = config.policy
         if policy.is_ci():
             return
         if not (policy.is_developer() or policy.is_server()):
             return
-        platform = getattr(self.config, "odoo_platform_project", None)
+        platform = getattr(config, "odoo_platform_project", None)
         if (
             platform
             and getattr(platform, "link_type", None) == constants.GITLINK_TYPE_FILE
         ):
             return
         if not self._platform_git_repo_ready():
-            message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize_platform step).').format(odoo_src_dir=self.config.odoo_src_dir)
+            message = _('Platform git repository at {odoo_src_dir} is not ready yet; cloning will run during prepare (git.materialize_platform step).').format(odoo_src_dir=config.odoo_src_dir)
             _logger.warning(message)
 
     def check_file_system(self) -> None:
-        policy = SystemCheckPolicy.from_config(self.config)
-        dirs = [self.config.user_env.odoo_projects_dir]
+        config = self.bootstrap.config
+        policy = SystemCheckPolicy.from_host_context(
+            HostProjectContext.from_config(config)
+        )
+        dirs = [config.user_env.odoo_projects_dir]
         if not policy.relaxed_file_system:
-            dirs.insert(0, self.config.user_env.backups)
+            dirs.insert(0, config.user_env.backups)
         for dir_path in dirs:
             if not dir_path:
                 continue

@@ -27,13 +27,15 @@ from .status import (
 if TYPE_CHECKING:
     from ..config import Config
     from ..host.cli.args import OdpmCliArgs
+    from ..host.ports import PipelinePorts
 
 _logger = get_module_logger(__name__)
 
 REMOTE_DB_MASTER_PWD_ENV = "ODPM_REMOTE_DB_MASTER_PWD"
 
 
-def run_database_command(cli_args: OdpmCliArgs, config: Config) -> int:
+def run_database_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
+    config = ports.bootstrap.config
     subcommand = cli_args.database_subcommand
     if subcommand == "status":
         return _run_database_status(cli_args, config)

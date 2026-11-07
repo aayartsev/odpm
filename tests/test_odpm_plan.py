@@ -447,7 +447,6 @@ class OdpmPipelinePlanTests(unittest.TestCase):
     ):
 
         pipeline = OdpmPipeline(OdpmCliArgs(plan=True), "/opt/odpm")
-        pipeline.config = MagicMock()
         pipeline.ports = MagicMock()
         pipeline.ports.plan.host_ctx = MagicMock()
         pipeline.project_environment = MagicMock()

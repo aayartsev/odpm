@@ -20,6 +20,7 @@ from dev_project.extensions.registry import (
 from dev_project.extensions.reference.mailpit import MAILPIT_SERVICE_SPEC
 from dev_project.compose.fragments import render_compose_services_block
 from dev_project.prepare.execute import execute_prepare
+from dev_project.host.ports import BootstrapHandle, ports_from_config
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.host.cli.args import OdpmCliArgs
 from dev_project.host.runtime import HostRuntimeState
@@ -285,7 +286,13 @@ class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
         config.runtime.docker_compose_command = "docker compose"
         config.runtime.no_log_prefix = False
         config.docker_layout.odoo_image_name = "odoo:dev"
-        coordinator = RuntimeCoordinator(OdpmCliArgs(skip_start=False), config, MagicMock())
+        project_env = MagicMock()
+        project_env.bootstrap = BootstrapHandle(config=config)
+        coordinator = RuntimeCoordinator(
+            ports_from_config(
+                config, project_env, OdpmCliArgs(skip_start=False)
+            ).runtime
+        )
         coordinator.handle_build_image = MagicMock(return_value=False)
         coordinator.write_debug_profile = MagicMock()
         coordinator.configure_ide = MagicMock()

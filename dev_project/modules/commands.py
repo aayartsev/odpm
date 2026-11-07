@@ -18,11 +18,13 @@ from ..translations import _
 if TYPE_CHECKING:
     from ..config import Config
     from ..host.cli.args import OdpmCliArgs
+    from ..host.ports import PipelinePorts
 
 _logger = get_module_logger(__name__)
 
 
-def run_modules_command(cli_args: OdpmCliArgs, config: Config) -> int:
+def run_modules_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
+    config = ports.bootstrap.config
     subcommand = cli_args.modules_subcommand
     if subcommand == "diff":
         return _run_modules_diff(cli_args, config)

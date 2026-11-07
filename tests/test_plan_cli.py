@@ -21,7 +21,6 @@ from dev_project.odpm_pipeline import OdpmPipeline
 
 
 def _attach_pipeline_ports(pipeline, config, project_environment) -> None:
-    pipeline.config = config
     pipeline.project_environment = project_environment
     pipeline.ports = ports_from_config(
         config,

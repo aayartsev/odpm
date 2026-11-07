@@ -23,6 +23,7 @@ from dev_project.manifest.secrets_policy import (
 )
 from dev_project.prepare.execute import collect_prepare_warnings
 from dev_project.project_env.secrets import write_secrets_source
+from dev_project.host.ports import BootstrapHandle, ports_from_config
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.test_manifest_v2_reader import _minimal_v2
@@ -352,7 +353,13 @@ class RuntimeCoordinatorSecretsGuardTests(unittest.TestCase):
                     secrets={"required": True, "keys": ["api.key"]},
                 ),
             )
-            coordinator = RuntimeCoordinator(OdpmCliArgs(skip_start=False), config, MagicMock())
+            project_env = MagicMock()
+            project_env.bootstrap = BootstrapHandle(config=config)
+            coordinator = RuntimeCoordinator(
+                ports_from_config(
+                    config, project_env, OdpmCliArgs(skip_start=False)
+                ).runtime
+            )
             coordinator.handle_build_image = MagicMock(return_value=False)
             coordinator.write_debug_profile = MagicMock()
             coordinator.configure_ide = MagicMock()

@@ -15,6 +15,7 @@ from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
+from .host.context import HostProjectContext
 from .host.ports import BootstrapHandle, PipelinePorts
 from .project_materializer import ProjectMaterializer
 from .secrets_providers.session import SecretsFetchSession
@@ -36,7 +37,6 @@ class OdpmPipeline:
         self.program_dir = program_dir
         self.start_dir = start_dir or os.getcwd() or os.environ.get("PWD", "")
         self.pd_manager: ProjectDirManager | None = None
-        self.config: Config | None = None
         self.ports: PipelinePorts | None = None
         self.project_environment: CreateProjectEnvironment | None = None
         self.system_checker: SystemChecker | None = None
@@ -54,22 +54,24 @@ class OdpmPipeline:
         self.cli_args = self.pd_manager.arguments
         secrets_session = SecretsFetchSession()
         user_environment = CreateUserEnvironment(self.pd_manager)
-        self.config = Config(
+        config = Config(
             self.pd_manager,
             self.cli_args,
             self.program_dir,
             user_environment,
             secrets_fetch_session=secrets_session,
         )
-        bootstrap = BootstrapHandle(config=self.config)
+        bootstrap = BootstrapHandle(config=config)
         self.project_environment = CreateProjectEnvironment(bootstrap)
-        self.system_checker = SystemChecker(self.config, self.project_environment)
-        policy = SystemCheckPolicy.from_config(self.config)
+        self.system_checker = SystemChecker(bootstrap, self.project_environment)
+        policy = SystemCheckPolicy.from_host_context(
+            HostProjectContext.from_config(config)
+        )
         if policy.beginner_git:
             self.system_checker.check_git()
         self.project_environment.attach_system_checker(self.system_checker)
         self.ports = PipelinePorts.from_setup(
-            self.config,
+            config,
             self.project_environment,
             self.cli_args,
         )
@@ -109,11 +111,7 @@ class OdpmPipeline:
         return 0
 
     def _runtime(self) -> RuntimeCoordinator:
-        return RuntimeCoordinator(
-            self.cli_args,
-            self._config(),
-            self._project_environment(),
-        )
+        return RuntimeCoordinator(self._ports().runtime)
 
     def handle_build_image(self) -> bool:
         return self._runtime().handle_build_image()
@@ -121,10 +119,8 @@ class OdpmPipeline:
     def configure_vscode(self) -> None:
         self._runtime().configure_vscode()
 
-    def build_compose_up_argv(self, config: Config, *, force_recreate: bool | None = None) -> list[str]:
-        return RuntimeCoordinator(
-            self.cli_args, config, self._project_environment()
-        ).build_compose_up_argv(force_recreate=force_recreate)
+    def build_compose_up_argv(self, *, force_recreate: bool | None = None) -> list[str]:
+        return self._runtime().build_compose_up_argv(force_recreate=force_recreate)
 
     def start_containers(self) -> None:
         self._runtime().start_containers()
@@ -164,28 +160,28 @@ class OdpmPipeline:
             if for_database_host:
                 from .database.commands import run_database_command  # noqa: PLC0415  # optional
 
-                exit_code = run_database_command(self.cli_args, self._config())
+                exit_code = run_database_command(self.cli_args, self._ports())
                 if exit_code:
                     sys.exit(exit_code)
                 return
             if for_manifest:
                 from .manifest.commands import run_manifest_command  # noqa: PLC0415  # optional
 
-                exit_code = run_manifest_command(self.cli_args, self._config())
+                exit_code = run_manifest_command(self.cli_args, self._ports())
                 if exit_code:
                     sys.exit(exit_code)
                 return
             if for_modules:
                 from .modules.commands import run_modules_command  # noqa: PLC0415  # optional
 
-                exit_code = run_modules_command(self.cli_args, self._config())
+                exit_code = run_modules_command(self.cli_args, self._ports())
                 if exit_code:
                     sys.exit(exit_code)
                 return
             if for_run:
                 from .recipes.commands import run_recipes_command  # noqa: PLC0415  # optional
 
-                exit_code = run_recipes_command(self.cli_args, self._config())
+                exit_code = run_recipes_command(self.cli_args, self._ports())
                 if exit_code:
                     sys.exit(exit_code)
                 return
@@ -204,11 +200,10 @@ class OdpmPipeline:
             sys.exit(exc.exit_code)
 
     def _enforce_ci_explicit_mode(self) -> None:
-        if self.config is None:
+        ports = self.ports
+        if ports is None:
             return
-        config = self.config
-        policy = getattr(config, "policy", None)
-        scenario = getattr(policy, "scenario", None) if policy is not None else None
+        scenario = ports.plan.host_ctx.policy.scenario
         if scenario != constants.CI_SCENARIO:
             return
         if cli_allows_ci_explicit_mode(self.cli_args):
@@ -218,11 +213,6 @@ class OdpmPipeline:
             "(odpm up / bare compose up is not allowed)."
         )
         raise ConfigError(message)
-
-    def _config(self) -> Config:
-        if self.config is None:
-            raise RuntimeError("OdpmPipeline.setup() was not called")
-        return self.config
 
     def _project_environment(self) -> CreateProjectEnvironment:
         if self.project_environment is None:
