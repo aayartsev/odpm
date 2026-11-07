@@ -19,13 +19,14 @@ from dev_project.database.schema import (
     DatabaseOdooConfFingerprint,
 )
 from dev_project.host.cli.args import OdpmCliArgs
+from dev_project.host.context import HostProjectContext
 from dev_project.host.ports import BootstrapHandle
 from dev_project.database.drift import (
-    detect_database_drift_for_config,
+    detect_database_drift_for_handle,
     has_blocking_database_drift,
     meaningful_database_drifts,
 )
-from dev_project.plan.database_preview import collect_database_drift_warnings
+from dev_project.plan.database_preview import collect_database_drift_warnings_for_host
 from dev_project.prepare import build_plan, make_prepare_context
 from dev_project.prepare.steps_database import evaluate_database_drift
 from dev_project.prepare.steps_template import evaluate_template_odoo_conf
@@ -163,7 +164,10 @@ class PlanDatabaseDriftTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
             self._write_odoo_conf(project_dir, db_host="db")
-            warnings = collect_database_drift_warnings(config)
+            warnings = collect_database_drift_warnings_for_host(
+                HostProjectContext.from_config(config),
+                BootstrapHandle(config=config),
+            )
             self.assertTrue(
                 any("db_host" in warning.lower() or "db-dev" in warning for warning in warnings)
             )
@@ -177,7 +181,7 @@ class PlanDatabaseDriftTests(unittest.TestCase):
             os.makedirs(other_data, exist_ok=True)
             (Path(other_data) / "PG_VERSION").write_text("17\n", encoding="utf-8")
             config.postgres_data_local_storage = other_data
-            _current, drifts = detect_database_drift_for_config(config)
+            _current, drifts = detect_database_drift_for_handle(BootstrapHandle(config=config))
             meaningful = meaningful_database_drifts(drifts)
             self.assertTrue(has_blocking_database_drift(meaningful))
             self.assertTrue(any("data_path" in drift.kind for drift in meaningful))

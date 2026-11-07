@@ -21,6 +21,7 @@ from .state import collect_database_state, save_last_run
 
 if TYPE_CHECKING:
     from ..config import Config
+    from ..host.ports import BootstrapHandle
 
 _logger = get_module_logger(__name__)
 
@@ -43,8 +44,9 @@ _MSG_COMPOSE_UP_FAILED = _(
 )
 
 
-def needs_database_adoption(config: Config) -> bool:
+def needs_database_adoption(bootstrap: BootstrapHandle) -> bool:
     """True when the project has no last_run snapshot and uses host DB state."""
+    config = bootstrap.config
     if not config.policy.mount_runtime_config_from_host():
         return False
     return last_run_missing(config.project_dir)
@@ -89,11 +91,12 @@ def build_adoption_last_run(config: Config):
     return state_with_role.to_last_run()
 
 
-def adopt_database_baseline(config: Config) -> str | None:
+def adopt_database_baseline(bootstrap: BootstrapHandle) -> str | None:
     """Bootstrap database state for legacy projects; return last_run path or None."""
-    if not needs_database_adoption(config):
+    if not needs_database_adoption(bootstrap):
         return None
 
+    config = bootstrap.config
     _logger.info(_MSG_ADOPTING)
     service = postgres_service_name(config)
     if probe_postgres_ready(config) is not True:
@@ -103,7 +106,7 @@ def adopt_database_baseline(config: Config) -> str | None:
 
     role = constants.POSTGRES_ODOO_USER
     existed_before = probe_app_role_exists(config, role=role) is True
-    ensure_app_role(config)
+    ensure_app_role(bootstrap)
     if not existed_before:
         _logger.info(_MSG_ENSURED_ROLE.format(ROLE=role))
 

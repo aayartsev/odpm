@@ -67,6 +67,13 @@ Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
 | C-17 | Prepare evaluate uses `host_ctx` for git lock paths; execute uses `ports.bootstrap` for git/lock managers |
 | C-18 | This amendment |
 
+### Host API / project_env thinning (H1 + E1)
+
+| Slice | Outcome |
+|-------|---------|
+| H1 | Public database status / role / adopt / blocking-drift APIs and module-diff take `BootstrapHandle`; `detect_database_drift_for_config` removed; plan warnings use `collect_database_drift_warnings_for_host` only; `compute_module_diff_for_handle` replaces `*_for_config` |
+| E1 | `project_env` services (`ProjectTemplates`, `ProjectLinks`, `VolumeMapper`, image/IDE builders and related services) no longer expose a public `.config` property; raw snapshot remains `env.bootstrap.config` inside methods only |
+
 ## References
 
 - [ADR-001](adr-001-extensions-and-manifest-v2.md) — manifest vs manager version axes

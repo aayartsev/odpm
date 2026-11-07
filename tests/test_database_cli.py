@@ -6,7 +6,7 @@ import json
 import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
-from dev_project.host.ports import ports_from_config
+from dev_project.host.ports import BootstrapHandle, ports_from_config
 
 from dev_project.database.schema import (
     DatabaseClusterFingerprint,
@@ -101,7 +101,7 @@ class DatabaseStatusCollectTests(unittest.TestCase):
                 app_role_present=None,
             ),
         )
-        report = collect_database_status(MagicMock())
+        report = collect_database_status(BootstrapHandle(config=MagicMock()))
         self.assertFalse(report.app_role_present)
         kinds = {drift.kind for drift in report.drifts}
         self.assertIn("app_role_missing", kinds)
@@ -175,7 +175,8 @@ class DatabaseCommandHandlerTests(unittest.TestCase):
                 ports_from_config(config),
             )
         self.assertEqual(code, 0)
-        mock_ensure.assert_called_once_with(config)
+        mock_ensure.assert_called_once()
+        self.assertIs(mock_ensure.call_args.args[0].config, config)
         mock_logger.info.assert_called_once()
 
 

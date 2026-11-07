@@ -188,14 +188,9 @@ def database_drift_kinds(drifts: tuple[DatabaseDrift, ...]) -> frozenset[Databas
 
 
 def detect_database_drift_for_handle(bootstrap) -> tuple[DatabaseCurrentState, tuple[DatabaseDrift, ...]]:
-    """Same as :func:`detect_database_drift_for_config` via bootstrap handle."""
-
-    return detect_database_drift_for_config(bootstrap.config)
-
-
-def detect_database_drift_for_config(config) -> tuple[DatabaseCurrentState, tuple[DatabaseDrift, ...]]:
     """Collect current DB fingerprints and compare with on-disk last_run snapshot."""
 
+    config = bootstrap.config
     current = collect_database_state(config)
     last_run = load_last_run(config.project_dir)
     policy = getattr(config, "policy", None)

@@ -134,7 +134,8 @@ def resolve_diff_base(
     )
 
 
-def developing_repo_path(config) -> str:
+def developing_repo_path(bootstrap) -> str:
+    config = bootstrap.config
     developing = getattr(config, "developing_project", None)
     path = str(getattr(developing, "project_path", "") or "").strip()
     if not path or not os.path.isdir(path):
@@ -277,16 +278,17 @@ def format_module_diff(result: ModuleDiffResult, fmt: str) -> str:
     )
 
 
-def compute_module_diff_for_config(
-    config,
+def compute_module_diff_for_handle(
+    bootstrap,
     *,
     cli_diff_base: str | None,
     environ: dict[str, str] | None = None,
 ) -> ModuleDiffResult:
+    config = bootstrap.config
     project_dir = str(getattr(config, "project_dir", "") or "")
     if not project_dir:
         raise ConfigError(_("Project directory is not set."))
-    repo_path = developing_repo_path(config)
+    repo_path = developing_repo_path(bootstrap)
     base = resolve_diff_base(
         project_dir=project_dir,
         cli_diff_base=cli_diff_base,

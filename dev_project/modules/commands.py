@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from ..errors import ConfigError
 from ..git.module_diff import (
-    compute_module_diff_for_config,
+    compute_module_diff_for_handle,
     developing_repo_path,
     format_module_diff,
     git_rev_parse,
@@ -16,20 +16,19 @@ from ..logging import get_module_logger
 from ..translations import _
 
 if TYPE_CHECKING:
-    from ..config import Config
     from ..host.cli.args import OdpmCliArgs
-    from ..host.ports import PipelinePorts
+    from ..host.ports import BootstrapHandle, PipelinePorts
 
 _logger = get_module_logger(__name__)
 
 
 def run_modules_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
-    config = ports.bootstrap.config
+    bootstrap = ports.bootstrap
     subcommand = cli_args.modules_subcommand
     if subcommand == "diff":
-        return _run_modules_diff(cli_args, config)
+        return _run_modules_diff(cli_args, bootstrap)
     if subcommand == "record-applied":
-        return _run_modules_record_applied(config)
+        return _run_modules_record_applied(bootstrap)
     raise ConfigError(
         _(
             'modules subcommand required: use "odpm modules diff" or '
@@ -38,9 +37,9 @@ def run_modules_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
     )
 
 
-def _run_modules_diff(cli_args: OdpmCliArgs, config: Config) -> int:
-    result = compute_module_diff_for_config(
-        config,
+def _run_modules_diff(cli_args: OdpmCliArgs, bootstrap: BootstrapHandle) -> int:
+    result = compute_module_diff_for_handle(
+        bootstrap,
         cli_diff_base=cli_args.modules_diff_base,
     )
     text = format_module_diff(result, cli_args.modules_diff_format)
@@ -49,11 +48,11 @@ def _run_modules_diff(cli_args: OdpmCliArgs, config: Config) -> int:
     return 0
 
 
-def _run_modules_record_applied(config: Config) -> int:
-    project_dir = str(getattr(config, "project_dir", "") or "")
+def _run_modules_record_applied(bootstrap: BootstrapHandle) -> int:
+    project_dir = str(getattr(bootstrap.config, "project_dir", "") or "")
     if not project_dir:
         raise ConfigError(_("Project directory is not set."))
-    repo_path = developing_repo_path(config)
+    repo_path = developing_repo_path(bootstrap)
     head_sha = git_rev_parse(repo_path, "HEAD")
     path = write_last_applied(project_dir, head_sha)
     _logger.info(

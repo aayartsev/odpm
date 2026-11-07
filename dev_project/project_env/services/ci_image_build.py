@@ -10,15 +10,10 @@ from ...bake_venv import VenvInstallSpec
 if TYPE_CHECKING:
     from ..environment import CreateProjectEnvironment
 
-
 class CiImageBuildService:
     def __init__(self, env: CreateProjectEnvironment) -> None:
         self.env = env
         self._builder = CiImageBuilder(env)
-
-    @property
-    def config(self):
-        return self.env.bootstrap.config
 
     def prepare_ci_build_context(self) -> None:
         self._builder.prepare_ci_build_context()

@@ -136,8 +136,7 @@ class DatabaseResolveTests(unittest.TestCase):
                 resolve_database_drifts(
                     self._ctx(config, accept=("data_path",))
                 )
-            ensure_no_blocking_database_drift(
-                config, OdpmCliArgs(accept_database_drift=())
+            ensure_no_blocking_database_drift(BootstrapHandle(config=config), OdpmCliArgs(accept_database_drift=())
             )
             snapshot = load_last_run(project_dir)
             self.assertIsNotNone(snapshot)
@@ -160,8 +159,7 @@ class DatabaseResolveTests(unittest.TestCase):
                 return_value="b",
             ):
                 resolve_database_drifts(self._ctx(config))
-            ensure_no_blocking_database_drift(
-                config, OdpmCliArgs(accept_database_drift=())
+            ensure_no_blocking_database_drift(BootstrapHandle(config=config), OdpmCliArgs(accept_database_drift=())
             )
             snapshot = load_last_run(project_dir)
             self.assertIsNotNone(snapshot)
@@ -216,7 +214,8 @@ class DatabaseResolveTests(unittest.TestCase):
                 return_value="b",
             ):
                 resolve_database_drifts(ctx)
-            mock_ensure.assert_called_once_with(config)
+            mock_ensure.assert_called_once()
+            self.assertIs(mock_ensure.call_args.args[0].config, config)
 
     @patch("dev_project.database.status.probe_postgres_container_running", return_value=False)
     def test_interactive_abort_raises(self, _mock_running):

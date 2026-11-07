@@ -27,7 +27,7 @@ from .status import (
 if TYPE_CHECKING:
     from ..config import Config
     from ..host.cli.args import OdpmCliArgs
-    from ..host.ports import PipelinePorts
+    from ..host.ports import BootstrapHandle, PipelinePorts
 
 _logger = get_module_logger(__name__)
 
@@ -35,22 +35,21 @@ REMOTE_DB_MASTER_PWD_ENV = "ODPM_REMOTE_DB_MASTER_PWD"
 
 
 def run_database_command(cli_args: OdpmCliArgs, ports: PipelinePorts) -> int:
-    config = ports.bootstrap.config
     subcommand = cli_args.database_subcommand
     if subcommand == "status":
-        return _run_database_status(cli_args, config)
+        return _run_database_status(cli_args, ports.bootstrap)
     if subcommand == "ensure-role":
-        return _run_database_ensure_role(config)
+        return _run_database_ensure_role(ports.bootstrap)
     if subcommand == "pull":
-        return _run_database_pull(cli_args, config)
+        return _run_database_pull(cli_args, ports.bootstrap.config)
     raise ConfigError(
         _('database subcommand required: use "odpm database status", '
           '"odpm database ensure-role", or "odpm database pull".')
     )
 
 
-def _run_database_status(cli_args: OdpmCliArgs, config: Config) -> int:
-    report = collect_database_status(config)
+def _run_database_status(cli_args: OdpmCliArgs, bootstrap: BootstrapHandle) -> int:
+    report = collect_database_status(bootstrap)
     if cli_args.database_status_format == "json":
         print(format_database_status_json(report), end="", flush=True)
     else:
@@ -58,8 +57,8 @@ def _run_database_status(cli_args: OdpmCliArgs, config: Config) -> int:
     return 0
 
 
-def _run_database_ensure_role(config: Config) -> int:
-    result = ensure_app_role(config)
+def _run_database_ensure_role(bootstrap: BootstrapHandle) -> int:
+    result = ensure_app_role(bootstrap)
     if result.outcome == "created":
         _logger.info(
             _("Created PostgreSQL application role {ROLE}.").format(ROLE=result.role)

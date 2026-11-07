@@ -41,19 +41,19 @@ class NeedsDatabaseAdoptionTests(unittest.TestCase):
 
     def test_true_when_last_run_missing_on_developer_project(self):
         with tempfile.TemporaryDirectory() as project_dir:
-            self.assertTrue(needs_database_adoption(self._config(project_dir)))
+            self.assertTrue(needs_database_adoption(BootstrapHandle(config=self._config(project_dir))))
 
     def test_false_when_last_run_exists(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
 
             save_last_run(project_dir, build_adoption_last_run(config))
-            self.assertFalse(needs_database_adoption(config))
+            self.assertFalse(needs_database_adoption(BootstrapHandle(config=config)))
 
     def test_false_on_ci_scenario(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir, scenario=constants.CI_SCENARIO)
-            self.assertFalse(needs_database_adoption(config))
+            self.assertFalse(needs_database_adoption(BootstrapHandle(config=config)))
 
 
 class AdoptDatabaseBaselineTests(unittest.TestCase):
@@ -88,9 +88,10 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
                 project_dir, constants.ODPM_DATABASE_LAST_RUN_REL_PATH
             )
 
-            path = adopt_database_baseline(config)
+            path = adopt_database_baseline(BootstrapHandle(config=config))
 
-            mock_ensure.assert_called_once_with(config)
+            mock_ensure.assert_called_once()
+            self.assertIs(mock_ensure.call_args.args[0].config, config)
             mock_save.assert_called_once()
             self.assertIsNotNone(path)
             saved_snapshot = mock_save.call_args[0][1]
@@ -115,18 +116,19 @@ class AdoptDatabaseBaselineTests(unittest.TestCase):
             config = self._config(project_dir)
             mock_save.return_value = "path"
 
-            adopt_database_baseline(config)
+            adopt_database_baseline(BootstrapHandle(config=config))
 
             mock_start.assert_called_once_with(config)
             mock_wait.assert_called_once_with(config)
-            mock_ensure.assert_called_once_with(config)
+            mock_ensure.assert_called_once()
+            self.assertIs(mock_ensure.call_args.args[0].config, config)
 
     def test_skips_when_last_run_exists(self):
         with tempfile.TemporaryDirectory() as project_dir:
             config = self._config(project_dir)
 
             save_last_run(project_dir, build_adoption_last_run(config))
-            self.assertIsNone(adopt_database_baseline(config))
+            self.assertIsNone(adopt_database_baseline(BootstrapHandle(config=config)))
 
 
 class StartPostgresDetachedTests(unittest.TestCase):
@@ -215,8 +217,11 @@ class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
         )
         coordinator.run_after_prepare()
 
-        mock_adopt.assert_called_once_with(config)
-        mock_blocking.assert_called_once_with(config, coordinator.cli_args)
+        mock_adopt.assert_called_once()
+        self.assertIs(mock_adopt.call_args.args[0].config, config)
+        mock_blocking.assert_called_once()
+        self.assertIs(mock_blocking.call_args.args[0].config, config)
+        self.assertEqual(mock_blocking.call_args.args[1], coordinator.cli_args)
 
 
 if __name__ == "__main__":

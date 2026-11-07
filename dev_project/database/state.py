@@ -23,6 +23,7 @@ from .schema import (
 
 if TYPE_CHECKING:
     from ..config import Config
+    from ..host.ports import BootstrapHandle
 
 _PG_VERSION_FILE = "PG_VERSION"
 
@@ -161,21 +162,21 @@ def save_last_run(project_dir: str, snapshot: DatabaseLastRun) -> str:
 
 
 def save_current_database_baseline(
-    config: Config,
+    bootstrap: BootstrapHandle,
     *,
     assume_app_role_present: bool = False,
 ) -> str:
     """Persist current configuration fingerprints as the database baseline."""
     from .status import collect_database_status  # noqa: PLC0415  # cycle
 
-    report = collect_database_status(config)
+    report = collect_database_status(bootstrap)
     current = report.current
     if assume_app_role_present:
         current = replace(
             current,
             cluster=replace(current.cluster, app_role_present=True),
         )
-    return save_last_run(config.project_dir, current.to_last_run())
+    return save_last_run(bootstrap.config.project_dir, current.to_last_run())
 
 
 def write_last_run_to_path(path: str, snapshot: DatabaseLastRun) -> str:

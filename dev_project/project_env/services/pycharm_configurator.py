@@ -28,20 +28,15 @@ ODPM_PYCHARM_RUN_CONFIG_BASENAMES = frozenset(
     }
 )
 
-
 class PycharmConfigurator:
     def __init__(self, env: CreateProjectEnvironment) -> None:
         self.env = env
-
-    @property
-    def config(self):
-        return self.env.bootstrap.config
 
     def build_debugger_profile(self) -> DebuggerProfile:
         return DebuggerProfileBuilder(self.env).build()
 
     def get_run_dir_path(self) -> str:
-        run_dir = os.path.join(self.config.project_dir, ".run")
+        run_dir = os.path.join(self.env.bootstrap.config.project_dir, ".run")
         if not os.path.exists(run_dir):
             os.mkdir(run_dir)
         return run_dir
@@ -82,7 +77,7 @@ class PycharmConfigurator:
     def remove_stale_odpm_run_configs(self, profile: DebuggerProfile) -> None:
         """Remove odpm-managed .run XML for the inactive debugger backend."""
         active = self.run_config_basename(profile)
-        run_dir = os.path.join(self.config.project_dir, ".run")
+        run_dir = os.path.join(self.env.bootstrap.config.project_dir, ".run")
         if not os.path.isdir(run_dir):
             return
         for basename in ODPM_PYCHARM_RUN_CONFIG_BASENAMES:

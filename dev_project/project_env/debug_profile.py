@@ -21,14 +21,11 @@ if TYPE_CHECKING:
     from .environment import CreateProjectEnvironment
 from ..config.payload import ensure_runtime_dir_gitignore
 
-
 def _normalize_local_path(path: str) -> str:
     return os.path.realpath(path)
 
-
 def debug_profile_path(project_dir: str) -> str:
     return os.path.join(project_dir, constants.ODPM_DEBUG_PROFILE_REL_PATH)
-
 
 def write_debug_profile_to_path(env: CreateProjectEnvironment, path: str) -> str:
     profile = DebuggerProfileBuilder(env).build()
@@ -36,7 +33,6 @@ def write_debug_profile_to_path(env: CreateProjectEnvironment, path: str) -> str
     payload = json.dumps(profile.to_dict(), ensure_ascii=False, indent=4) + "\n"
     Path(path).write_text(payload, encoding="utf-8")
     return path
-
 
 def write_debug_profile(env: CreateProjectEnvironment) -> str:
 
@@ -47,7 +43,6 @@ def write_debug_profile(env: CreateProjectEnvironment) -> str:
 DEBUG_PROFILE_SCHEMA_VERSION = 2
 DEBUG_PROFILE_SCHEMA_VERSION_V1 = 1
 DEBUGGER_PROTOCOL_DEBUGPY = "debugpy"
-
 
 @dataclass(frozen=True)
 class DebuggerPathMapping:
@@ -64,7 +59,6 @@ class DebuggerPathMapping:
         if not local or not remote:
             raise ValueError("path mapping requires local and remote")
         return cls(local=local, remote=remote)
-
 
 @dataclass(frozen=True)
 class DebuggerConnection:
@@ -105,7 +99,6 @@ class DebuggerConnection:
             backend=backend,
             direction=direction,
         )
-
 
 @dataclass
 class DebuggerProfile:
@@ -158,14 +151,9 @@ class DebuggerProfile:
             for mapping in self.path_mappings
         ]
 
-
 class DebuggerProfileBuilder:
     def __init__(self, env: CreateProjectEnvironment) -> None:
         self.env = env
-
-    @property
-    def config(self):
-        return self.env.bootstrap.config
 
     def build(self) -> DebuggerProfile:
         from ..debugger.user_env import resolve_debugger_port  # noqa: PLC0415  # cycle-safe
@@ -225,12 +213,12 @@ class DebuggerProfileBuilder:
             seen_pairs.add(pair)
             candidates.append(pair)
 
-        for entry in self.config.docker_layout.symlinks_sources:
+        for entry in self.env.bootstrap.config.docker_layout.symlinks_sources:
             add(entry.link_path, entry.source_path)
 
         for scan_dir in (
-            self.config.project_dir,
-            self.config.docker_layout.dependencies_dir,
+            self.env.bootstrap.config.project_dir,
+            self.env.bootstrap.config.docker_layout.dependencies_dir,
         ):
             if not os.path.isdir(scan_dir):
                 continue

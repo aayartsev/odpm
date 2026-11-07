@@ -18,7 +18,7 @@ from .postgres_admin import (
 from .probe import probe_app_role_exists, probe_postgres_ready
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.ports import BootstrapHandle
 
 EnsureRoleOutcome = Literal["created", "updated"]
 
@@ -139,8 +139,9 @@ def build_ensure_extensions_sql() -> str:
     )
 
 
-def ensure_app_role(config: Config) -> EnsureRoleResult:
+def ensure_app_role(bootstrap: BootstrapHandle) -> EnsureRoleResult:
     """Create or update cluster admin + application role; install template1 extensions."""
+    config = bootstrap.config
     admin_role = constants.POSTGRES_ADMIN_USER
     role = constants.POSTGRES_ODOO_USER
     password = constants.POSTGRES_ODOO_PASS

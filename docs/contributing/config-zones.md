@@ -16,7 +16,8 @@
 | Оценка IDE после prepare | [`RuntimePorts`](../../dev_project/host/ports.py): `debug_profile_needs_update`, `vscode_settings_up_to_date`, `pycharm_run_config_*` |
 | Превью compose в плане | [`ComposePreviewPort`](../../dev_project/prepare/compose_preview_port.py) (`run_with_mutable_snapshot`, без выдачи сырого снимка наружу) |
 | Генератор `odoo.conf` | `bootstrap.odoo_conf` (на handle уже есть; прямые вызовы / следующие шаги — сюда, не в `config._odoo_conf`) |
-| Окружение проекта (`CreateProjectEnvironment`) | передавать `BootstrapHandle`; сырой снимок при необходимости доступен только внутри пакета как `env.bootstrap.config` |
+| Окружение проекта (`CreateProjectEnvironment`) | передавать `BootstrapHandle`; сервисы `project_env` без публичного `.config` — чтение через `env.host_ctx` / `env.bootstrap`, сырой снимок только внутри методов как `env.bootstrap.config` |
+| Host API БД / module-diff | `collect_database_status`, `ensure_app_role`, adopt / blocking-drift, `detect_database_drift_for_handle`, `compute_module_diff_for_handle` — от `BootstrapHandle` (не голый `Config`) |
 | Шаги `prepare/steps_*.py` и `prepare/runtime.py` | только handle / `RuntimePorts` / хелперы; сырой `bootstrap.config` / `ctx.config` запрещён |
 | Сырой `bootstrap.config` | хвосты внутри хелперов/API с `Config`, drift, сборка compose-сервиса — пока нет узкого accessor |
 

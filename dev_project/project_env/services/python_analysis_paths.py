@@ -8,16 +8,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..environment import CreateProjectEnvironment
 
-
 class PythonAnalysisPathsBuilder:
     """Build python.analysis.extraPaths mirroring host-side Odoo addon roots."""
 
     def __init__(self, env: CreateProjectEnvironment) -> None:
         self.env = env
-
-    @property
-    def config(self):
-        return self.env.bootstrap.config
 
     def build(self) -> list[str]:
         paths: list[str] = []
@@ -37,13 +32,13 @@ class PythonAnalysisPathsBuilder:
                 add_raw(site_packages)
                 break
 
-        add_raw(self.config.odoo_src_dir)
+        add_raw(self.env.bootstrap.config.odoo_src_dir)
 
-        developing = getattr(self.config, "developing_project", None)
+        developing = getattr(self.env.bootstrap.config, "developing_project", None)
         if developing is not None:
             add_raw(getattr(developing, "project_path", None))
 
-        for dependency in self.config.docker_layout.dependencies_projects or []:
+        for dependency in self.env.bootstrap.config.docker_layout.dependencies_projects or []:
             add_raw(getattr(dependency, "project_path", None))
 
         for catalog in self.env.host_ctx.addon_layout.catalogs_of_modules_data or []:
@@ -52,8 +47,8 @@ class PythonAnalysisPathsBuilder:
         return paths
 
     def _venv_site_packages_candidates(self) -> list[str]:
-        venv_dir = self.config.docker_layout.venv_dir
-        python_version = str(self.config.project_settings.python_version or "")
+        venv_dir = self.env.bootstrap.config.docker_layout.venv_dir
+        python_version = str(self.env.bootstrap.config.project_settings.python_version or "")
         if not venv_dir or not python_version:
             return []
         relative = os.path.join("lib", f"python{python_version}", "site-packages")
@@ -68,7 +63,7 @@ class PythonAnalysisPathsBuilder:
     def _workspace_extra_path(self, target_path: str) -> str | None:
         if not target_path or not os.path.isdir(target_path):
             return None
-        project_dir = self.config.project_dir
+        project_dir = self.env.bootstrap.config.project_dir
         if not project_dir:
             return os.path.abspath(target_path).replace("\\", "/")
 
@@ -108,12 +103,12 @@ class PythonAnalysisPathsBuilder:
             seen.add(pair)
             pairs.append(pair)
 
-        for entry in self.config.docker_layout.symlinks_sources or []:
+        for entry in self.env.bootstrap.config.docker_layout.symlinks_sources or []:
             add(entry.link_path, entry.source_path)
 
         for scan_dir in (
-            self.config.project_dir,
-            self.config.docker_layout.dependencies_dir,
+            self.env.bootstrap.config.project_dir,
+            self.env.bootstrap.config.docker_layout.dependencies_dir,
         ):
             if not scan_dir or not os.path.isdir(scan_dir):
                 continue

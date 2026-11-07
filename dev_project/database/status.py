@@ -17,14 +17,15 @@ from .schema import DatabaseCurrentState, DatabaseLastRun
 from .state import collect_database_state, load_last_run
 
 if TYPE_CHECKING:
-    from ..config import Config
+    from ..host.ports import BootstrapHandle
 from ..translations import _
 
 
 def enrich_database_state_with_probe(
-    config: Config, current: DatabaseCurrentState
+    bootstrap: BootstrapHandle, current: DatabaseCurrentState
 ) -> tuple[DatabaseCurrentState, bool | None]:
     """Return *current* with cluster.app_role_present set when probe succeeds."""
+    config = bootstrap.config
     container_running = probe_postgres_container_running(config)
     postgres_ready = probe_postgres_ready(config) if container_running else None
     app_role_present = None
@@ -57,12 +58,13 @@ class DatabaseStatusReport:
     published_host_port: int
 
 
-def collect_database_status(config: Config) -> DatabaseStatusReport:
+def collect_database_status(bootstrap: BootstrapHandle) -> DatabaseStatusReport:
     from ..host.ports import effective_postgres_port  # noqa: PLC0415  # cycle-safe
 
+    config = bootstrap.config
     current = collect_database_state(config)
     last_run = load_last_run(config.project_dir)
-    current, app_role_present = enrich_database_state_with_probe(config, current)
+    current, app_role_present = enrich_database_state_with_probe(bootstrap, current)
     container_running = probe_postgres_container_running(config)
     postgres_ready = probe_postgres_ready(config) if container_running else None
     drifts = detect_database_drift(current, last_run)

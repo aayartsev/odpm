@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Host database / module-diff APIs take BootstrapHandle; project_env without public `.config`** — status / role / adopt / blocking-drift and `compute_module_diff_for_handle` accept the handle; `detect_database_drift_for_config` removed. Eleven `project_env` services no longer expose `.config` (raw snapshot only via `env.bootstrap.config` inside methods). User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.
 - **Pipeline surface without bare Config** — `OdpmPipeline` no longer exposes `.config`; `RuntimeCoordinator` takes `RuntimePorts`, `SystemChecker` takes `BootstrapHandle`, and host `database` / `manifest` / `modules` / `run` commands take `PipelinePorts`. User-facing command behavior is unchanged. Docs: ADR-003, `cli-architecture.md`, `config-zones.md`.
 - **Explicit Config slices and runtime state (contributor seam E)** — `CreateProjectEnvironment` now receives `BootstrapHandle`; runtime data lives under `config.runtime`; generated flat slice properties and the runtime facade were removed. `HostProjectContext.from_config` resolves the compose command from runtime plus Docker layout. User-facing command behavior is unchanged. Docs: ADR-030, `config-zones.md`.
 - **PrepareContext no longer aliases raw Config (contributor seam C)** — `PrepareContext.config` removed; helpers and database drift resolution use `ports.bootstrap`. Docs: ADR-030, `config-zones.md`.

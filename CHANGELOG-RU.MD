@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **API БД / module-diff от BootstrapHandle; сервисы окружения проекта без публичного `.config`** — статус / роль / adopt / blocking-drift и `compute_module_diff_for_handle` принимают ручку; `detect_database_drift_for_config` удалён. У одиннадцати сервисов `project_env` нет публичного `.config` (сырой снимок только внутри методов через `env.bootstrap.config`). Поведение команд для пользователя не изменилось. Документация: ADR-003, `config-zones.md`.
 - **Оркестратор без голого Config** — у `OdpmPipeline` больше нет публичного `.config`; координатор запуска берёт `RuntimePorts`, проверка системы — `BootstrapHandle`, host-команды `database` / `manifest` / `modules` / `run` — `PipelinePorts`. Поведение команд для пользователя не изменилось. Документация: ADR-003, `cli-architecture.md`, `config-zones.md`.
 - **Явные срезы Config и состояние запуска (срез E)** — `CreateProjectEnvironment` теперь получает `BootstrapHandle`; данные запуска находятся в `config.runtime`; автоматически созданные плоские свойства срезов и runtime-фасад удалены. `HostProjectContext.from_config` получает команду compose из runtime с запасным значением из Docker layout. Поведение команд для пользователя не изменилось. Документация: ADR-030, `config-zones.md`.
 - **Контекст подготовки без алиаса сырого Config (срез C)** — `PrepareContext.config` снят; хелперы и разбор расхождений БД идут через `ports.bootstrap`. Документация: ADR-030, `config-zones.md`.

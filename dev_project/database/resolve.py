@@ -22,6 +22,7 @@ from .status import collect_database_status
 if TYPE_CHECKING:
     from ..config import Config
     from ..host.cli.args import OdpmCliArgs
+    from ..host.ports import BootstrapHandle
     from ..prepare.types import PrepareContext
 
 _logger = get_module_logger(__name__)
@@ -82,16 +83,16 @@ def accepted_drift_kinds(args: OdpmCliArgs) -> frozenset[str]:
     return frozenset(args.accept_database_drift)
 
 
-def pending_resolution_drifts(config: Config) -> tuple[DatabaseDrift, ...]:
-    report = collect_database_status(config)
+def pending_resolution_drifts(bootstrap: BootstrapHandle) -> tuple[DatabaseDrift, ...]:
+    report = collect_database_status(bootstrap)
     return drifts_requiring_resolution(report.drifts)
 
 
 def unresolved_blocking_drifts(
-    config: Config, args: OdpmCliArgs
+    bootstrap: BootstrapHandle, args: OdpmCliArgs
 ) -> tuple[DatabaseDrift, ...]:
     accepted = accepted_drift_kinds(args)
-    pending = pending_resolution_drifts(config)
+    pending = pending_resolution_drifts(bootstrap)
     return tuple(
         drift
         for drift in pending
@@ -99,8 +100,10 @@ def unresolved_blocking_drifts(
     )
 
 
-def ensure_no_blocking_database_drift(config: Config, args: OdpmCliArgs) -> None:
-    blocking = unresolved_blocking_drifts(config, args)
+def ensure_no_blocking_database_drift(
+    bootstrap: BootstrapHandle, args: OdpmCliArgs
+) -> None:
+    blocking = unresolved_blocking_drifts(bootstrap, args)
     if not blocking:
         return
     kinds = ", ".join(drift.kind for drift in blocking)
@@ -122,13 +125,13 @@ def _abort_resolution() -> None:
 
 
 def _accept_drift_baseline(
-    config: Config,
+    bootstrap: BootstrapHandle,
     drift: DatabaseDrift,
     *,
     assume_app_role_present: bool = False,
 ) -> None:
     path = save_current_database_baseline(
-        config, assume_app_role_present=assume_app_role_present
+        bootstrap, assume_app_role_present=assume_app_role_present
     )
     _logger.info(_MSG_BASELINE_UPDATED.format(PATH=path))
 
@@ -147,7 +150,7 @@ def _resolve_data_path(ctx: PrepareContext, drift: DatabaseDrift) -> None:
             )
         )
         _abort_resolution()
-    _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
+    _accept_drift_baseline(ctx.ports.bootstrap, drift)
 
 
 def _resolve_postgres_major(ctx: PrepareContext, drift: DatabaseDrift) -> None:
@@ -166,7 +169,7 @@ def _resolve_postgres_major(ctx: PrepareContext, drift: DatabaseDrift) -> None:
             )
         )
         _abort_resolution()
-    _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
+    _accept_drift_baseline(ctx.ports.bootstrap, drift)
 
 
 def _resolve_app_role_missing(ctx: PrepareContext, drift: DatabaseDrift) -> None:
@@ -174,11 +177,11 @@ def _resolve_app_role_missing(ctx: PrepareContext, drift: DatabaseDrift) -> None
     choice = _prompt_choice(prompt, frozenset({"a", "b"}))
     if choice == "a":
         _abort_resolution()
-    ensure_app_role(ctx.ports.bootstrap.config)
+    ensure_app_role(ctx.ports.bootstrap)
     _logger.info(
         _("PostgreSQL application role {ROLE} is ready.").format(ROLE=drift.current)
     )
-    _accept_drift_baseline(ctx.ports.bootstrap.config, drift, assume_app_role_present=True)
+    _accept_drift_baseline(ctx.ports.bootstrap, drift, assume_app_role_present=True)
 
 
 def _resolve_continue_or_abort(
@@ -188,7 +191,7 @@ def _resolve_continue_or_abort(
     choice = _prompt_choice(prompt, frozenset({"a", "c"}))
     if choice == "a":
         _abort_resolution()
-    _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
+    _accept_drift_baseline(ctx.ports.bootstrap, drift)
 
 
 def _resolve_interactive(ctx: PrepareContext, drift: DatabaseDrift) -> None:
@@ -215,15 +218,15 @@ def _non_interactive_error(pending: tuple[DatabaseDrift, ...]) -> str:
 def resolve_database_drifts(ctx: PrepareContext) -> None:
     accepted = accepted_drift_kinds(ctx.args)
     while True:
-        pending = pending_resolution_drifts(ctx.ports.bootstrap.config)
+        pending = pending_resolution_drifts(ctx.ports.bootstrap)
         if not pending:
             break
         drift = pending[0]
         if drift.kind in accepted:
             _logger.info(_MSG_ACCEPTED.format(KIND=drift.kind))
-            _accept_drift_baseline(ctx.ports.bootstrap.config, drift)
+            _accept_drift_baseline(ctx.ports.bootstrap, drift)
             continue
         if not stdin_is_interactive():
             raise PipelineError(_non_interactive_error(pending))
         _resolve_interactive(ctx, drift)
-    ensure_no_blocking_database_drift(ctx.ports.bootstrap.config, ctx.args)
+    ensure_no_blocking_database_drift(ctx.ports.bootstrap, ctx.args)

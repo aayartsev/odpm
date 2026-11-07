@@ -15,6 +15,7 @@ from dev_project.database.postgres_admin import (
     run_psql_as_admin,
 )
 from dev_project.errors import OdpmError
+from dev_project.host.ports import BootstrapHandle
 
 
 def _postgres_config() -> MagicMock:
@@ -116,7 +117,7 @@ class EnsureAppRoleAdminIntegrationTests(unittest.TestCase):
     ):
         mock_psql.return_value = MagicMock(returncode=0, stdout="", stderr="")
         config = _postgres_config()
-        result = ensure_role_mod.ensure_app_role(config)
+        result = ensure_role_mod.ensure_app_role(BootstrapHandle(config=config))
         mock_bootstrap.assert_called_once()
         self.assertEqual(mock_psql.call_count, 2)
         self.assertEqual(result.outcome, "created")

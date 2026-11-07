@@ -14,7 +14,7 @@ from dev_project.config.state import AddonLayoutState, BootstrapState, DockerLay
 from dev_project.config.transforms.env_substitution import EnvResolver
 from dev_project.database.drift import (
     detect_database_drift,
-    detect_database_drift_for_config,
+    detect_database_drift_for_handle,
 )
 from dev_project.database.schema import (
     DatabaseClusterFingerprint,
@@ -28,6 +28,7 @@ from dev_project.prepare.steps_template import evaluate_template_odoo_conf
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.test_manifest_v2_reader import _minimal_v2
 from tests.test_plan_database_drift import PlanDatabaseDriftTests
+from dev_project.host.ports import BootstrapHandle
 
 
 class CiManifestDbOverrideHelperTests(unittest.TestCase):
@@ -234,7 +235,7 @@ class CiManifestDbOverrideDriftTests(unittest.TestCase):
                     },
                 )
             )
-            _current, drifts = detect_database_drift_for_config(config)
+            _current, drifts = detect_database_drift_for_handle(BootstrapHandle(config=config))
             kinds = {d.kind for d in drifts}
             self.assertNotIn("db_host_mismatch", kinds)
 

@@ -116,10 +116,11 @@ class RuntimeCoordinator:
         if self.cli_args.skip_start:
             host_summaries.log_skip_start()
             return
-        config = self.runtime.bootstrap.config
-        adopt_database_baseline(config)
-        ensure_no_blocking_database_drift(config, self.cli_args)
+        bootstrap = self.runtime.bootstrap
+        adopt_database_baseline(bootstrap)
+        ensure_no_blocking_database_drift(bootstrap, self.cli_args)
 
+        config = bootstrap.config
         manifest_view = config.bootstrap.manifest_view
         secrets_spec = (
             manifest_view.scenario_slice.secrets
