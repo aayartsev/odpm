@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from ..manifest.reader import ManifestView
     from ..project_dir_manager import ProjectDirManager
 from ..project_env import CreateProjectEnvironment
+from ..secrets_providers.session import session_for_config
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,9 @@ class BootstrapHandle:
 
     def compute_venv_lock_hash(self) -> str:
         return self.config.compute_venv_lock_hash()
+
+    def secrets_session(self):
+        return session_for_config(self.config)
 
     @property
     def manifest_view(self) -> ManifestView | None:

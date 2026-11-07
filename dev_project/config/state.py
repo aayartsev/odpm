@@ -294,6 +294,7 @@ BOOTSTRAP_HANDLE_SURFACES: tuple[str, ...] = (
     "pd_manager",
     "new_lock_manager",
     "compute_venv_lock_hash",
+    "secrets_session",
 )
 
 CONFIG_PROPERTY_SHIMS: tuple[tuple[str, str, str], ...] = (

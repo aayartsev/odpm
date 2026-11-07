@@ -12,11 +12,14 @@
 |-------|--------|
 | Пути, политика, срезы настроек (чтение) | [`HostProjectContext`](../../dev_project/host/context.py) |
 | Оценка плана / шагов подготовки | порты (`PlanPorts` / `PrepareContext.host_ctx`) |
-| Выполнение шагов (git, lock, env, шаблон compose) | [`BootstrapHandle`](../../dev_project/host/ports.py): `git_repos`, `env_resolver`, `pd_manager`, … |
+| Выполнение шагов (git, lock, env, секреты, шаблон compose) | [`BootstrapHandle`](../../dev_project/host/ports.py) и хелперы [`PrepareContext`](../../dev_project/prepare/types.py): `git_repos`, `env_resolver`, `pd_manager`, `secrets_session`, … |
 | Генератор `odoo.conf` | `bootstrap.odoo_conf` (на handle уже есть; прямые вызовы / следующие шаги — сюда, не в `config._odoo_conf`) |
-| Сырой `bootstrap.config` | только пока нет метода на handle (drift, сборка compose-сервиса) |
+| Шаги `prepare/steps_*.py` | только handle и хелперы; сырой `bootstrap.config` / `ctx.config` в этих файлах запрещён |
+| Сырой `bootstrap.config` | хвосты вне шагов, пока нет узкого accessor: runtime, preview, drift, сборка compose-сервиса |
 
 Новые шаги и фичи **не** добавляют плоские свойства на `Config` «для удобства».
+
+Шаги в `dev_project/prepare/steps_*.py` (секреты, исходники, генерация compose) не читают сырой снимок. Нужное берут с `BootstrapHandle` (`secrets_session`) и с хелперов `PrepareContext` (`secrets_session`, materialize sources, `ensure_compose_docker_ready`, `rebuild_compose_template`). Запрет строк `bootstrap.config` и `ctx.config` в `steps_*.py` проверяет `tests/test_prepare_config_coupling.py`. Внутри хелпера вызов API, который ещё принимает `Config`, допустим; шаг этого не видит. `PrepareContext.config` остаётся для хвостов и шагами не используется.
 
 ## Зоны внутри сборки
 

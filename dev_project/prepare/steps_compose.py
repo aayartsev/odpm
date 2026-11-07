@@ -14,7 +14,6 @@ from ..compose.sidecar_gates import (
     sidecar_gates_from_user_settings,
 )
 from ..compose.validate import validate_compose_file
-from ..docker_capabilities import ensure_config_docker_capabilities
 from ..plan.core import PlanStep, project_template_needs_upgrade
 from ..plan.compose_preview import (
     compose_generate_needs_execute,
@@ -170,12 +169,7 @@ def exec_compose_service(ctx: PrepareContext) -> None:
 
 def exec_compose_generate(ctx: PrepareContext) -> None:
     policy = SystemCheckPolicy.from_host_context(ctx.host_ctx)
-    config = ctx.ports.bootstrap.config
-    if policy.skip_compose_cli_probe:
-        if not getattr(config, "docker_compose_command", None):
-            config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
-    else:
-        ensure_config_docker_capabilities(config)
+    ctx.ensure_compose_docker_ready(policy)
     ctx.compose_generator.generate_docker_compose_file()
 
 

@@ -95,6 +95,15 @@ class PipelinePortsTests(unittest.TestCase):
         self.assertIs(bootstrap.odoo_conf, config._odoo_conf)
         self.assertIs(bootstrap.pd_manager, config.pd_manager)
 
+    def test_bootstrap_handle_secrets_session(self):
+        from dev_project.secrets_providers.session import SecretsFetchSession, session_for_config
+
+        config = MagicMock()
+        bootstrap = BootstrapHandle(config=config)
+        session = bootstrap.secrets_session()
+        self.assertIsInstance(session, SecretsFetchSession)
+        self.assertIs(session, session_for_config(config))
+
     def test_bootstrap_handle_surfaces_inventory(self):
         self.assertEqual(
             BOOTSTRAP_HANDLE_SURFACES,
@@ -106,6 +115,7 @@ class PipelinePortsTests(unittest.TestCase):
                 "pd_manager",
                 "new_lock_manager",
                 "compute_venv_lock_hash",
+                "secrets_session",
             ),
         )
 

@@ -9,9 +9,7 @@ from ..plan.core import PlanStep
 from ..plan.l10n import plan_msg
 from ..plan.secrets_preview import secrets_needs_update, secrets_source_key_count
 from ..project_env.secrets import materialize_secrets
-from ..secrets_providers.fetch import ensure_secrets_source_for_config
 from ..secrets_providers.resolve import resolve_secrets_provider_name
-from ..secrets_providers.session import session_for_config
 from .helpers import make_plan_step
 from .types import PrepareContext
 
@@ -34,7 +32,7 @@ def _provider_name_for_ctx(ctx: PrepareContext) -> str:
 
 def evaluate_secrets_fetch(ctx: PrepareContext) -> PlanStep:
     provider_name = _provider_name_for_ctx(ctx)
-    session = session_for_config(ctx.ports.bootstrap.config)
+    session = ctx.secrets_session()
     description = plan_msg(
         "Fetch secrets via provider {NAME}"
     ).format(NAME=provider_name)
@@ -89,7 +87,7 @@ def exec_secrets_fetch(ctx: PrepareContext) -> None:
         raw = dict(view.source_raw)
     elif view is not None and getattr(view, "raw_normalized", None):
         raw = dict(view.raw_normalized)
-    ensure_secrets_source_for_config(ctx.ports.bootstrap.config, raw=raw, phase="prepare")
+    ctx.ensure_secrets_source(raw)
 
 
 def evaluate_secrets_materialize(ctx: PrepareContext) -> PlanStep:

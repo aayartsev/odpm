@@ -7,17 +7,29 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from .compose_preview_port import ComposePreviewPort
+from .. import constants
 from ..compose.generator import ComposeGenerator
 from ..compose.service_builder import ComposeServiceBuilder
 from ..database.drift import detect_database_drift_for_config
+from ..docker_capabilities import ensure_config_docker_capabilities
 from ..extensions.context import ExtensionHostContext
 from ..git.deps_lock_manager import DepsLockManager
+from ..git.service_sources import (
+    apply_materialized_service_sources,
+    collect_service_source_paths,
+    ensure_service_sources_present,
+    materialize_service_sources,
+    service_sources_need_materialize_for_view,
+)
+from ..git.worktree import git_worktree_requested
 from ..host.cli.args import OdpmCliArgs
 from ..host.context import HostProjectContext
 from ..host.ports import PipelinePorts
 from ..plan.core import PlanStep
 from ..project_env.links import ProjectLinks
 from ..project_env.templates import ProjectTemplates
+from ..secrets_providers.fetch import ensure_secrets_source_for_config
+from ..symlinks.manager import SymlinkManager
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -67,6 +79,35 @@ class PrepareContext:
     def env_resolver(self):
         return self.ports.bootstrap.env_resolver
 
+    def secrets_session(self):
+        return self.ports.bootstrap.secrets_session()
+
+    def ensure_secrets_source(self, raw, *, phase: str = "prepare"):
+        return ensure_secrets_source_for_config(self.config, raw=raw, phase=phase)
+
+    def service_sources_need_materialize(self) -> bool:
+        return service_sources_need_materialize_for_view(
+            manifest_view=self.manifest_view,
+            odoo_projects_dir=self.host_ctx.user_env.odoo_projects_dir,
+            use_worktree=git_worktree_requested(self.args),
+            project_dir=self.host_ctx.project_dir,
+            path_to_ssh_key=self.host_ctx.user_env.path_to_ssh_key,
+        )
+
+    def run_service_sources_materialize(
+        self, *, skip_git: bool, lock_entries: dict
+    ) -> None:
+        view = self.manifest_view
+        if view is None or not view.service_sources:
+            SymlinkManager(self.config).sync_service_source_project_links({})
+            return
+        if skip_git:
+            ensure_service_sources_present(self.config)
+            paths = collect_service_source_paths(self.config)
+        else:
+            paths = materialize_service_sources(self.config, lock_entries=lock_entries)
+        apply_materialized_service_sources(self.config, paths)
+
     def compute_venv_lock_hash(self) -> str:
         return self.ports.bootstrap.compute_venv_lock_hash()
 
@@ -75,6 +116,14 @@ class PrepareContext:
 
     def build_compose_service(self):
         return ComposeServiceBuilder(self.ports.bootstrap.config).build()
+
+    def ensure_compose_docker_ready(self, policy) -> None:
+        config = self.config
+        if policy.skip_compose_cli_probe:
+            if not getattr(config, "docker_compose_command", None):
+                config.docker_compose_command = constants.DEFAULT_DOCKER_COMPOSE_COMMAND
+        else:
+            ensure_config_docker_capabilities(config)
 
     def detect_database_drift(self):
         return detect_database_drift_for_config(self.ports.bootstrap.config)
