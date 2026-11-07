@@ -151,7 +151,12 @@ class OdpmPlannerTests(unittest.TestCase):
             self.assertEqual(deps.outcome, "run")
             self.assertEqual(ensure.outcome, "skip")
             self.assertEqual(self._step(plan, "compose.up").outcome, "run")
+            self.assertEqual(self._step(plan, "runtime.ensure_base").outcome, "run")
             step_ids = [step.id for step in plan.steps]
+            self.assertLess(
+                step_ids.index("runtime.ensure_base"),
+                step_ids.index("compose.up"),
+            )
             self.assertLess(
                 step_ids.index("git.materialize_developing"),
                 step_ids.index("git.materialize_platform"),
@@ -192,6 +197,9 @@ class OdpmPlannerTests(unittest.TestCase):
             )
             self.assertEqual(self._step(plan, "git.lock_collect").outcome, "update")
             self.assertFalse(any(step.id == "compose.up" for step in plan.steps))
+            self.assertFalse(
+                any(step.id == "runtime.ensure_base" for step in plan.steps)
+            )
 
     def test_plan_warns_on_update_lock_with_no_git_update(self):
         with tempfile.TemporaryDirectory() as tmp:

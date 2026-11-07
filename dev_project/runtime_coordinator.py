@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import shlex
 import sys
 from typing import TYPE_CHECKING
 
 from . import host_summaries
-from .compose.runtime import (
-    compose_project_cli_args,
-    should_force_recreate_compose_for_host,
-)
 from .database.adopt import adopt_database_baseline
 from .database.resolve import ensure_no_blocking_database_drift
 from .debugger.ide import ide_includes_pycharm, ide_includes_vscode
@@ -23,11 +18,11 @@ from .logging import get_module_logger
 from .manifest.secrets_policy import ensure_secrets_requirements_met
 from .project_env.debug_profile import write_debug_profile
 from .project_env.services import (
-    BaseImageService,
     PycharmConfigurator,
     VscodeConfigurator,
 )
-from .subprocess_runner import run_logged
+from .runtime_backend import execute_launch_steps, get_runtime_backend
+from .runtime_backend.compose import ComposeRuntimeBackend
 from .translations import _
 
 if TYPE_CHECKING:
@@ -51,6 +46,15 @@ class RuntimeCoordinator:
     @property
     def host_ctx(self) -> HostProjectContext:
         return HostProjectContext.from_config(self.config, arguments=self.cli_args)
+
+    @property
+    def runtime_backend(self) -> ComposeRuntimeBackend:
+        # Fresh adapter each access so host_ctx mirrors current config/args.
+        return get_runtime_backend(
+            host_ctx=self.host_ctx,
+            config=self.config,
+            project_env=self.project_env,
+        )
 
     def handle_build_image(self) -> bool:
         """Run CI image build. Returns True when the pipeline should stop."""
@@ -88,35 +92,13 @@ class RuntimeCoordinator:
     def build_compose_up_argv(
         self, *, force_recreate: bool | None = None
     ) -> list[str]:
-        if force_recreate is None:
-            force_recreate = should_force_recreate_compose_for_host(self.host_ctx)
-        argv = shlex.split(self.host_ctx.docker_compose_command)
-        argv.extend(compose_project_cli_args(self.host_ctx.user_env))
-        argv += ["up"]
-        if self.config.no_log_prefix:
-            argv.append("--no-log-prefix")
-        argv.append("--abort-on-container-exit")
-        if force_recreate:
-            argv.append("--force-recreate")
-        else:
-            host_summaries.log_compose_stack_healthy()
-        return argv
+        return self.runtime_backend.build_compose_up_argv(
+            force_recreate=force_recreate
+        )
 
     def start_containers(self) -> None:
-        BaseImageService(self.project_env).ensure_base_image()
-        from .host.ports import effective_odoo_port  # noqa: PLC0415  # cycle-safe
-
-        host_summaries.log_starting_containers(
-            odoo_port=effective_odoo_port(self.host_ctx.user_env),
-        )
-        returncode = run_logged(
-            self.build_compose_up_argv(),
-            cwd=self.host_ctx.project_dir,
-        )
-        if returncode != 0:
-            if self.host_ctx.policy.report_compose_failure_on_host():
-                host_summaries.log_compose_failed(returncode)
-            raise PipelineError("", exit_code=returncode)
+        """Thin facade for tests / pipeline: same registry as post-gate launch."""
+        execute_launch_steps(self, force=True)
 
     def run_after_prepare(self) -> None:
         if self.handle_build_image():
@@ -156,7 +138,7 @@ class RuntimeCoordinator:
             env_resolver=self.config.env_resolver,
         )
         try:
-            self.start_containers()
+            execute_launch_steps(self)
         except KeyboardInterrupt:
             host_summaries.log_control_c()
             sys.exit()

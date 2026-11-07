@@ -33,6 +33,7 @@ _STEP_GROUP_KEYS: dict[str, str] = {
     "git.lock_collect": "checkout_links",
     "git.lock_verify": "checkout_links",
     "project.update_links": "checkout_links",
+    "runtime.ensure_base": "runtime",
     "compose.up": "runtime",
     "ide.debug_profile": "ide",
     "image.base": "image_build",

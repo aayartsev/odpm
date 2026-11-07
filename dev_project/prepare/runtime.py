@@ -119,6 +119,19 @@ def evaluate_runtime_pycharm_settings(
     )
 
 
+def evaluate_runtime_ensure_base(runtime: RuntimePorts) -> PlanStep | None:
+    """Same visibility as ``compose.up`` — no separate base-image probe in plan."""
+    if not compose_up_would_run(runtime.args, runtime.host_ctx):
+        return None
+    return make_plan_step(
+        "runtime.ensure_base",
+        plan_msg("Ensure base Odoo image"),
+        "run",
+        True,
+        plan_msg("base image before compose up"),
+    )
+
+
 def evaluate_runtime_compose_up(runtime: RuntimePorts) -> PlanStep | None:
     if not compose_up_would_run(runtime.args, runtime.host_ctx):
         return None
@@ -140,6 +153,7 @@ def build_runtime_plan_steps(
     from ..plan.image_layers_preview import (  # noqa: PLC0415  # optional
         build_image_layer_plan_steps_for_runtime,
     )
+    from ..runtime_backend import build_launch_plan_steps  # noqa: PLC0415  # cycle-safe
 
     steps: list[PlanStep] = []
     steps.extend(build_image_layer_plan_steps_for_runtime(runtime))
@@ -148,11 +162,11 @@ def build_runtime_plan_steps(
         lambda: evaluate_runtime_debug_profile(runtime, project_env),
         lambda: evaluate_runtime_vscode_settings(runtime, project_env),
         lambda: evaluate_runtime_pycharm_settings(runtime, project_env),
-        lambda: evaluate_runtime_compose_up(runtime),
     ):
         step = evaluator()
         if step is not None:
             steps.append(step)
+    steps.extend(build_launch_plan_steps(runtime))
     return tuple(steps)
 
 

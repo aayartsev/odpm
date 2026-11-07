@@ -87,7 +87,7 @@ Deprecated synonyms: `--skip-start` → `odpm prepare`; `--build-image` → `odp
 
 ## Change plan (dry run)
 
-Shows which prepare steps would run **without** changing git, writing files, or `docker compose up`. The table groups steps with headers (git/sources, dependencies, folder map, templates, secrets, image build, …) — labels only; step ids are unchanged. Developing, platform, and dependency clones are separate rows; the folder map does not clone.
+Shows which prepare steps would run **without** changing git, writing files, or `docker compose up`. The table groups steps with headers (git/sources, dependencies, folder map, templates, secrets, image build, runtime, …) — labels only; step ids are unchanged. Developing, platform, and dependency clones are separate rows; the folder map does not clone. When the stack would start, the runtime group shows **`runtime.ensure_base`** (base image) and **`compose.up`**; with `--skip-start` / prepare-only they are absent. Runtime engine contract: [ADR-029](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-029-runtime-backend.md).
 
 ```bash
 odpm plan --skip-start

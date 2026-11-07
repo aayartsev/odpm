@@ -179,7 +179,7 @@ class BuildAdoptionLastRunTests(unittest.TestCase):
 
 class RuntimeCoordinatorAdoptionTests(unittest.TestCase):
     @patch("dev_project.project_env.services.docker_base_image.BaseImageService.ensure_base_image")
-    @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
+    @patch("dev_project.runtime_backend.compose.run_logged", return_value=0)
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.configure_ide")
     @patch("dev_project.runtime_coordinator.RuntimeCoordinator.write_debug_profile")
     @patch("dev_project.runtime_coordinator.ensure_no_blocking_database_drift")

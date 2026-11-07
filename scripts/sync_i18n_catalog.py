@@ -1118,6 +1118,9 @@ RU_MESSAGES: dict[str, str] = {
     "Planned changes:": (
         "Планируемые изменения:"
     ),
+    "Runtime engine method {METHOD!r} is not implemented for Compose": (
+        "Метод движка запуска {METHOD!r} не реализован для Compose"
+    ),
     "Running with sudo/root privileges is not permitted.": (
         "Запуск скрипта от root/sudo запрещен"
     ),

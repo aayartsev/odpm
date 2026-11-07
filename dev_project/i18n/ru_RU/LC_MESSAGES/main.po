@@ -314,6 +314,9 @@ msgstr "Прогресс загрузки: {PCT}% ({MIB:.1f} МиБ)."
 msgid "Download started …"
 msgstr "Загрузка началась …"
 
+msgid "Ensure base Odoo image"
+msgstr "Обеспечить базовый образ Odoo"
+
 msgid "Ensured PostgreSQL application role {ROLE} during baseline adoption."
 msgstr "Роль приложения PostgreSQL {ROLE} создана при принятии baseline."
 
@@ -860,6 +863,9 @@ msgstr "Выполнить lifecycle hooks manifest ({PHASE})"
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Запуск скрипта от root/sudo запрещен"
 
+msgid "Runtime engine method {METHOD!r} is not implemented for Compose"
+msgstr "Метод движка запуска {METHOD!r} не реализован для Compose"
+
 msgid "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy from .odpm/secrets.example.json or pass --secrets-file"
 msgstr "Для сценария {SCENARIO} нужен .odpm/secrets.json с ключами: {KEYS}; скопируйте из .odpm/secrets.example.json или передайте --secrets-file"
 
@@ -1141,6 +1147,9 @@ msgstr "применить закреплённые коммиты из {SOURCE}
 
 msgid "base ensure (ADR-019 stamp / rebuild if stale)"
 msgstr "ensure base (штамп ADR-019 / пересборка при устаревании)"
+
+msgid "base image before compose up"
+msgstr "базовый образ перед compose up"
 
 msgid "base image identity mismatch"
 msgstr "несовпадение идентичности базового образа"

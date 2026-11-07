@@ -315,6 +315,9 @@ msgstr "Download progress: {PCT}% ({MIB:.1f} MiB)."
 msgid "Download started …"
 msgstr "Download started …"
 
+msgid "Ensure base Odoo image"
+msgstr "Ensure base Odoo image"
+
 msgid "Ensured PostgreSQL application role {ROLE} during baseline adoption."
 msgstr "Ensured PostgreSQL application role {ROLE} during baseline adoption."
 
@@ -861,6 +864,9 @@ msgstr "Run manifest {PHASE} lifecycle hooks"
 msgid "Running with sudo/root privileges is not permitted."
 msgstr "Running with sudo/root privileges is not permitted."
 
+msgid "Runtime engine method {METHOD!r} is not implemented for Compose"
+msgstr "Runtime engine method {METHOD!r} is not implemented for Compose"
+
 msgid "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy from .odpm/secrets.example.json or pass --secrets-file"
 msgstr "Scenario {SCENARIO} requires .odpm/secrets.json with keys: {KEYS}; copy from .odpm/secrets.example.json or pass --secrets-file"
 
@@ -1142,6 +1148,9 @@ msgstr "apply pinned commits from {SOURCE}"
 
 msgid "base ensure (ADR-019 stamp / rebuild if stale)"
 msgstr "base ensure (ADR-019 stamp / rebuild if stale)"
+
+msgid "base image before compose up"
+msgstr "base image before compose up"
 
 msgid "base image identity mismatch"
 msgstr "base image identity mismatch"

@@ -141,6 +141,8 @@ PLAN_L10N_RU: dict[str, str] = {
         "Сгенерировать docker-compose.yml из шаблона проекта"
     ),
     "Run docker compose up": "Запустить docker compose up",
+    "Ensure base Odoo image": "Обеспечить базовый образ Odoo",
+    "base image before compose up": "базовый образ перед compose up",
     "Run manifest {PHASE} lifecycle hooks": (
         "Выполнить lifecycle hooks manifest ({PHASE})"
     ),

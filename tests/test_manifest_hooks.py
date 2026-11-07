@@ -251,11 +251,11 @@ class ExecutePrepareHooksIntegrationTests(unittest.TestCase):
 
 class RuntimeCoordinatorHooksIntegrationTests(unittest.TestCase):
     @patch(
-        "dev_project.runtime_coordinator.should_force_recreate_compose_for_host",
+        "dev_project.runtime_backend.compose.should_force_recreate_compose_for_host",
         return_value=False,
     )
-    @patch("dev_project.runtime_coordinator.BaseImageService")
-    @patch("dev_project.runtime_coordinator.run_logged", return_value=0)
+    @patch("dev_project.runtime_backend.compose.BaseImageService")
+    @patch("dev_project.runtime_backend.compose.run_logged", return_value=0)
     @patch("dev_project.runtime_coordinator.run_lifecycle_hooks")
     @patch("dev_project.runtime_coordinator.ensure_no_blocking_database_drift")
     @patch("dev_project.runtime_coordinator.adopt_database_baseline")

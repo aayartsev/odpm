@@ -121,6 +121,7 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
                     ),
                 )
                 self.assertFalse(plan_has_step(plan, "compose.up"))
+                self.assertFalse(plan_has_step(plan, "runtime.ensure_base"))
 
     def test_a3_no_git_update_git_steps(self) -> None:
         project_dir = self._provision(scenario=constants.DEVELOPER_SCENARIO)
@@ -145,6 +146,7 @@ class PlanMatrixCoreTests(_MatrixProjectTestCase):
         )
         self.assertEqual(plan_step(plan, "git.lock_collect").outcome, "update")
         self.assertFalse(plan_has_step(plan, "compose.up"))
+        self.assertFalse(plan_has_step(plan, "runtime.ensure_base"))
 
     def test_a10_database_drift_step_present(self) -> None:
         for scenario in SCENARIOS:
@@ -778,6 +780,7 @@ class PlanMatrixCliInProcessTests(_MatrixProjectTestCase):
                 payload = json.loads(output)
                 step_ids = {step["id"] for step in payload["steps"]}
                 self.assertNotIn("compose.up", step_ids)
+                self.assertNotIn("runtime.ensure_base", step_ids)
                 self.assertIn("database.drift", step_ids)
 
 

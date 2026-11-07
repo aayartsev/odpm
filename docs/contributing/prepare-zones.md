@@ -35,4 +35,5 @@
 
 - [ADR-027](adr-027-layered-ci-images.md) — слои CI-образа и сцепка ensure ↔ узкая подготовка
 - [ADR-028](adr-028-git-worktree-tenants.md) — рабочие деревья git по каталогу-тенанту
+- [Движок запуска стека](runtime-backend.md) / [ADR-029](adr-029-runtime-backend.md) — шаги после prepare (`runtime.ensure_base`, `compose.up`)
 - [cli-architecture.md](cli-architecture.md) — как добавлять команды

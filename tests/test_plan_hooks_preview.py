@@ -47,6 +47,24 @@ class PlanHookPreviewTests(unittest.TestCase):
         merged = insert_runtime_hook_steps(runtime, (hook,))
         self.assertEqual([step.id for step in merged], ["ide.debug_profile", "hooks.pre_up", "compose.up"])
 
+    def test_insert_runtime_places_pre_up_before_ensure_base(self) -> None:
+        runtime = [
+            make_plan_step("ide.debug_profile", "ide", "noop", False, "ok"),
+            make_plan_step("runtime.ensure_base", "base", "run", True, "image"),
+            make_plan_step("compose.up", "compose", "run", True, "up"),
+        ]
+        hook = make_plan_step("hooks.pre_up", "hooks", "run", True, "warmup")
+        merged = insert_runtime_hook_steps(runtime, (hook,))
+        self.assertEqual(
+            [step.id for step in merged],
+            [
+                "ide.debug_profile",
+                "hooks.pre_up",
+                "runtime.ensure_base",
+                "compose.up",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

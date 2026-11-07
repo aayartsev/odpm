@@ -80,9 +80,14 @@ def insert_runtime_hook_steps(
     if pre_up is None:
         return runtime_steps
     ordered = list(runtime_steps)
-    compose_index = next(
-        (index for index, step in enumerate(ordered) if step.id == "compose.up"),
+    # Match run_after_prepare: pre_up gates, then ensure_base → compose.up.
+    launch_index = next(
+        (
+            index
+            for index, step in enumerate(ordered)
+            if step.id in ("runtime.ensure_base", "compose.up")
+        ),
         len(ordered),
     )
-    ordered.insert(compose_index, pre_up)
+    ordered.insert(launch_index, pre_up)
     return ordered
