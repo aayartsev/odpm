@@ -5,6 +5,7 @@
 | Статья | О чём |
 |--------|--------|
 | [Зоны шагов подготовки](prepare-zones.md) | Карта git / зависимости / карта папок / сцепка `image … ensure` |
+| [Зоны Config](config-zones.md) | Сборщик снимка проекта vs порты / `HostProjectContext` ([ADR-030](adr-030-config-as-assembler.md)) |
 | [Движок запуска стека](runtime-backend.md) | Контракт Compose / план `runtime.ensure_base` + `compose.up` ([ADR-029](adr-029-runtime-backend.md)) |
 | [Непрерывная интеграция репозитория](ci.md) | GitHub Actions, compose-smoke, golden-path |
 | [Тесты и статический анализ](tests.md) | Unit-тесты, ruff; quirks macOS/sandbox — [ADR-023](adr-023-local-unit-parity.md) |

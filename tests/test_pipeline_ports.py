@@ -83,10 +83,30 @@ class PipelinePortsTests(unittest.TestCase):
 
         self.assertIsInstance(lock_manager, DepsLockManager)
 
+    def test_bootstrap_handle_exposes_env_odoo_conf_pd_manager(self):
+        config = MagicMock()
+        config.env_resolver = MagicMock(name="env_resolver")
+        config._odoo_conf = MagicMock(name="odoo_conf")
+        config.pd_manager = MagicMock(name="pd_manager")
+
+        bootstrap = BootstrapHandle(config=config)
+
+        self.assertIs(bootstrap.env_resolver, config.env_resolver)
+        self.assertIs(bootstrap.odoo_conf, config._odoo_conf)
+        self.assertIs(bootstrap.pd_manager, config.pd_manager)
+
     def test_bootstrap_handle_surfaces_inventory(self):
         self.assertEqual(
             BOOTSTRAP_HANDLE_SURFACES,
-            ("config", "git_repos", "new_lock_manager", "compute_venv_lock_hash"),
+            (
+                "config",
+                "git_repos",
+                "env_resolver",
+                "odoo_conf",
+                "pd_manager",
+                "new_lock_manager",
+                "compute_venv_lock_hash",
+            ),
         )
 
     def test_repo_odpm_json_shim_is_not_duplicated(self):

@@ -16,7 +16,7 @@ Introduce frozen **host ports** at the pipeline boundary:
 
 | Port | Role | Typical consumers |
 |------|------|-------------------|
-| `BootstrapHandle` | Mutable bootstrap hub: `config`, `git_repos`, lock manager factory, venv lock hash | execute steps, drift detection at bootstrap boundary |
+| `BootstrapHandle` | Mutable bootstrap hub: `config`, `git_repos`, `env_resolver`, `odoo_conf`, `pd_manager`, lock manager factory, venv lock hash (see also [ADR-030](adr-030-config-as-assembler.md)) | execute steps, drift detection at bootstrap boundary |
 | `PlanPorts` | `host_ctx` + CLI args + bootstrap handle | plan diff/format, prepare evaluate, lock warnings |
 | `ComposePorts` | `host_ctx` + `CreateProjectEnvironment` + bootstrap | compose generator, plan compose preview |
 | `RuntimePorts` | `host_ctx` + args + project env + bootstrap | runtime plan steps, `RuntimeCoordinator` |
@@ -28,7 +28,7 @@ Module: `dev_project/host/ports.py`.
 
 1. **Pipeline entrypoints** (`OdpmPlanner.build`, `ProjectMaterializer.run`, `print_plan`) take `PipelinePorts`, not bare `Config`.
 2. **Plan/prepare/runtime evaluate** reads paths and policy via `host_ctx` (or port fields), not `config.project_dir` / `config.policy` shims.
-3. **Materialize** (execute steps, `ComposeServiceBuilder`, git) uses `ports.bootstrap` — `config`, `git_repos`, `new_lock_manager()`, `compute_venv_lock_hash()`. Plan/prepare **evaluate** must not read `ctx.config`; use `host_ctx`, `PrepareContext` helpers, or `ports.bootstrap` only where drift/lock still needs bootstrap state.
+3. **Materialize** (execute steps, `ComposeServiceBuilder`, git) uses `ports.bootstrap` — `config`, `git_repos`, `env_resolver`, `odoo_conf`, `pd_manager`, `new_lock_manager()`, `compute_venv_lock_hash()`. Plan/prepare **evaluate** must not read `ctx.config`; use `host_ctx`, `PrepareContext` helpers, or `ports.bootstrap` only where drift/compose builder still need raw `config`.
 4. **Manifest read model** (`manifest_view`, `repo_odpm_json`) is copied into `HostProjectContext` at port construction; evaluate paths use `host_ctx.manifest_view` / `ctx.manifest_view`, not `config.bootstrap.manifest_view`.
 5. **Tests** may call `ports_from_config(config, …)` when constructing ports without a full pipeline.
 
@@ -44,6 +44,7 @@ Module: `dev_project/host/ports.py`.
 | `config.arguments` in plan/prepare | `PlanPorts.args` / `PrepareContext.args` |
 | `config.bootstrap.manifest_view` | `host_ctx.manifest_view` / `ctx.manifest_view` |
 | `config._git_repos` / `config.compute_venv_lock_hash()` | `ports.bootstrap.git_repos` / `ports.bootstrap.compute_venv_lock_hash()` |
+| `config.env_resolver` / `config._odoo_conf` / `config.pd_manager` | `ports.bootstrap.env_resolver` / `odoo_conf` / `pd_manager` |
 | Passing `Config` into planner/materializer | `PipelinePorts` |
 
 Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
@@ -69,3 +70,4 @@ Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
 ## References
 
 - [ADR-001](adr-001-extensions-and-manifest-v2.md) — manifest vs manager version axes
+- [ADR-030](adr-030-config-as-assembler.md) — Config as assembler; zone map in [config-zones.md](config-zones.md)

@@ -65,13 +65,13 @@ class PrepareContext:
 
     @property
     def env_resolver(self):
-        return self.ports.bootstrap.config.env_resolver
+        return self.ports.bootstrap.env_resolver
 
     def compute_venv_lock_hash(self) -> str:
         return self.ports.bootstrap.compute_venv_lock_hash()
 
     def rebuild_compose_template(self) -> None:
-        self.ports.bootstrap.config.pd_manager.rebuild_docker_compose_template()
+        self.ports.bootstrap.pd_manager.rebuild_docker_compose_template()
 
     def build_compose_service(self):
         return ComposeServiceBuilder(self.ports.bootstrap.config).build()

@@ -37,4 +37,5 @@
 
 - [ADR-029](adr-029-runtime-backend.md) — решение по контракту
 - [Зоны подготовки](prepare-zones.md) — шаги до запуска
+- [Зоны Config](config-zones.md) / [ADR-030](adr-030-config-as-assembler.md) — снимок проекта и порты
 - [ADR-027](adr-027-layered-ci-images.md) — слои CI-образа (соседние шаги `image.*`, не движок запуска)

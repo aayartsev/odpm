@@ -285,10 +285,13 @@ BOOTSTRAP_SHIM_FIELDS = tuple(
 
 # Deprecated Config top-level property shims (bind_slice_properties / runtime facade).
 # New plan/prepare/runtime code should use HostProjectContext slices or host ports
-# (see docs/contributing/adr-003-host-ports-vs-config.md).
+# (see docs/contributing/adr-003-host-ports-vs-config.md, adr-030-config-as-assembler.md).
 BOOTSTRAP_HANDLE_SURFACES: tuple[str, ...] = (
     "config",
     "git_repos",
+    "env_resolver",
+    "odoo_conf",
+    "pd_manager",
     "new_lock_manager",
     "compute_venv_lock_hash",
 )

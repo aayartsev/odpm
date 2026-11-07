@@ -11,8 +11,11 @@ from .context import HostProjectContext
 if TYPE_CHECKING:
     from ..config import Config
     from ..config.git_repos import GitRepoCoordinator
+    from ..config.odoo_conf import OdooConfBuilder
+    from ..config.transforms.env_substitution import EnvResolver
     from ..git.deps_lock_manager import DepsLockManager
     from ..manifest.reader import ManifestView
+    from ..project_dir_manager import ProjectDirManager
 from ..project_env import CreateProjectEnvironment
 
 
@@ -22,7 +25,7 @@ class BootstrapHandle:
 
     Plan and prepare *evaluate* must read :class:`HostProjectContext` and port
     slices. Execute may use ``config``, :meth:`git_repos`, and
-    :meth:`new_lock_manager`.
+    :meth:`new_lock_manager`, plus narrow accessors below (ADR-030).
     """
 
     config: Config
@@ -30,6 +33,18 @@ class BootstrapHandle:
     @property
     def git_repos(self) -> GitRepoCoordinator:
         return self.config._git_repos
+
+    @property
+    def env_resolver(self) -> EnvResolver:
+        return self.config.env_resolver
+
+    @property
+    def odoo_conf(self) -> OdooConfBuilder:
+        return self.config._odoo_conf
+
+    @property
+    def pd_manager(self) -> ProjectDirManager:
+        return self.config.pd_manager
 
     def new_lock_manager(self) -> DepsLockManager:
         from ..git.deps_lock_manager import DepsLockManager  # noqa: PLC0415  # cycle
