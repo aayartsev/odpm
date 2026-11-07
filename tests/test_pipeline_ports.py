@@ -109,6 +109,7 @@ class PipelinePortsTests(unittest.TestCase):
             BOOTSTRAP_HANDLE_SURFACES,
             (
                 "config",
+                "runtime",
                 "git_repos",
                 "env_resolver",
                 "odoo_conf",
