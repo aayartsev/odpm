@@ -141,6 +141,20 @@ class PlanConfigCouplingTests(unittest.TestCase):
             COMPOSE_EVALUATE_HELPERS,
             label="compose preview evaluate helpers",
         )
+        for name, source in _function_source_lines(
+            PLAN_DIR / "compose_preview.py",
+            frozenset({"compose_service_needs_update", "docker_compose_matches_preview"}),
+        ).items():
+            self.assertNotIn(
+                "runtime_cache_config",
+                source,
+                msg=f"{name} must not call runtime_cache_config",
+            )
+            self.assertNotIn(
+                "bootstrap.config",
+                source,
+                msg=f"{name} must not read bootstrap.config directly",
+            )
 
     def test_diff_helpers_do_not_reference_config(self):
         _assert_no_config_coupling(

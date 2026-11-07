@@ -116,6 +116,7 @@ class PipelinePortsTests(unittest.TestCase):
                 "new_lock_manager",
                 "compute_venv_lock_hash",
                 "secrets_session",
+                "clear_runtime_config_preview_cache",
             ),
         )
 

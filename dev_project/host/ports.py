@@ -58,6 +58,13 @@ class BootstrapHandle:
     def secrets_session(self):
         return session_for_config(self.config)
 
+    def clear_runtime_config_preview_cache(self) -> None:
+        from ..plan.runtime_preview import (  # noqa: PLC0415  # cycle
+            clear_runtime_config_preview_cache as _clear,
+        )
+
+        _clear(self.config)
+
     @property
     def manifest_view(self) -> ManifestView | None:
         return self.config.bootstrap.manifest_view
@@ -93,6 +100,38 @@ class RuntimePorts:
     args: OdpmCliArgs
     project_env: CreateProjectEnvironment
     bootstrap: BootstrapHandle
+
+    def debug_profile_needs_update(
+        self, project_env: CreateProjectEnvironment | None = None
+    ):
+        from ..plan.debug_profile_preview import (  # noqa: PLC0415  # cycle
+            debug_profile_needs_update as _needs,
+        )
+
+        return _needs(self.bootstrap.config, project_env)
+
+    def vscode_settings_up_to_date(self) -> bool:
+        from ..plan.compose_preview import (  # noqa: PLC0415  # cycle
+            vscode_settings_up_to_date as _up_to_date,
+        )
+
+        return _up_to_date(self.bootstrap.config)
+
+    def pycharm_run_config_up_to_date(
+        self, project_env: CreateProjectEnvironment | None = None
+    ) -> bool:
+        from ..plan.pycharm_preview import (  # noqa: PLC0415  # cycle
+            pycharm_run_config_up_to_date as _up_to_date,
+        )
+
+        return _up_to_date(self.bootstrap.config, project_env)
+
+    def pycharm_run_config_description(self) -> str:
+        from ..plan.pycharm_preview import (  # noqa: PLC0415  # cycle
+            pycharm_run_config_description as _description,
+        )
+
+        return _description(self.bootstrap.config)
 
 
 @dataclass(frozen=True)

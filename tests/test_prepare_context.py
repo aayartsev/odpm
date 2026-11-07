@@ -61,7 +61,14 @@ class PrepareContextServiceInjectionTests(unittest.TestCase):
         ctx = make_prepare_context(config, MagicMock(), MagicMock(), OdpmCliArgs())
 
         self.assertIs(ctx.compose_preview.bootstrap, ctx.ports.bootstrap)
-        self.assertIs(ctx.compose_preview.runtime_cache_config(), config)
+        seen: list[object] = []
+
+        def _capture(received):
+            seen.append(received)
+            return "ok"
+
+        self.assertEqual(ctx.compose_preview.run_with_mutable_snapshot(_capture), "ok")
+        self.assertEqual(seen, [ctx.ports.bootstrap.config])
 
 
 class PrepareStepServiceExecutionTests(unittest.TestCase):

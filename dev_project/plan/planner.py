@@ -11,8 +11,6 @@ from ..prepare import build_plan
 from .core import OdpmPlan
 from .diff import build_plan_diffs
 from .format import format_plan as format_plan_output
-from .runtime_preview import clear_runtime_config_preview_cache
-
 if TYPE_CHECKING:
     from ..config import Config
     from ..project_env import CreateProjectEnvironment
@@ -30,7 +28,7 @@ class OdpmPlanner:
             ports = ports_or_config
         else:
             ports = ports_from_config(ports_or_config, project_env, args)
-        clear_runtime_config_preview_cache(ports.bootstrap.config)
+        ports.bootstrap.clear_runtime_config_preview_cache()
         plan = build_plan(ports, project_env=project_env)
         diffs = build_plan_diffs(
             plan,

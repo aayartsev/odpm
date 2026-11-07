@@ -2,28 +2,36 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TypeVar
 
 from ..host.ports import BootstrapHandle
 from ..plan.compose_preview import (
+    compose_preview_mutable_snapshot,
     compose_start_command_changed,
     preview_compose_service,
     preview_runtime_config_text,
+    restore_compose_preview_mutable_snapshot,
 )
 
-if TYPE_CHECKING:
-    from ..config import Config
+_T = TypeVar("_T")
 
 
 @dataclass(frozen=True)
 class ComposePreviewPort:
-    """Read-only compose preview for prepare evaluate; uses bootstrap config only."""
+    """Compose preview for prepare evaluate; Config stays behind the handle."""
 
     bootstrap: BootstrapHandle
 
-    def runtime_cache_config(self) -> Config:
-        return self.bootstrap.config
+    def run_with_mutable_snapshot(self, fn: Callable[[object], _T]) -> _T:
+        """Run *fn(config)* with compose preview mutable fields restored after."""
+        config = self.bootstrap.config
+        snapshot = compose_preview_mutable_snapshot(config)
+        try:
+            return fn(config)
+        finally:
+            restore_compose_preview_mutable_snapshot(config, snapshot)
 
     def runtime_config_text(self) -> str | None:
         return preview_runtime_config_text(self.bootstrap.config)

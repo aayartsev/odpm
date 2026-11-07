@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 _RUNTIME_PREVIEW_CACHE_KEY = "_odpm_plan_runtime_preview_cache"
 
 
-def _compose_preview_mutable_snapshot(config: Config) -> tuple[object, object, object]:
+def compose_preview_mutable_snapshot(config: Config) -> tuple[object, object, object]:
+    """Capture compose-preview mutable fields on *config* for later restore."""
     return (
         getattr(config, "compose_service", None),
         getattr(config, "container_run_mode", None),
@@ -35,9 +36,10 @@ def _compose_preview_mutable_snapshot(config: Config) -> tuple[object, object, o
     )
 
 
-def _restore_compose_preview_mutable_snapshot(
+def restore_compose_preview_mutable_snapshot(
     config: Config, snapshot: tuple[object, object, object]
 ) -> None:
+    """Restore fields saved by :func:`compose_preview_mutable_snapshot`."""
     compose_service, container_run_mode, cache = snapshot
     config.compose_service = compose_service
     config.container_run_mode = container_run_mode
@@ -100,9 +102,7 @@ def compose_start_command_changed(config: Config) -> bool:
 
 
 def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
-    config = ctx.compose_preview.runtime_cache_config()
-    snapshot = _compose_preview_mutable_snapshot(config)
-    try:
+    def _evaluate(config: Config) -> tuple[bool, str]:
         host = ctx.host_ctx
         if runtime_config_stale_for_project(
             host.project_dir,
@@ -124,8 +124,8 @@ def compose_service_needs_update(ctx: PrepareContext) -> tuple[bool, str]:
             except (OSError, TypeError, ValueError, ConfigValidationError):
                 pass
         return False, "runtime config and start command unchanged"
-    finally:
-        _restore_compose_preview_mutable_snapshot(config, snapshot)
+
+    return ctx.compose_preview.run_with_mutable_snapshot(_evaluate)
 
 
 def _project_env_has_volume_map(ctx: PrepareContext) -> bool:
@@ -161,18 +161,18 @@ def docker_compose_matches_preview(ctx: PrepareContext) -> bool:
         return False
     if not _project_env_has_volume_map(ctx):
         return False
-    config = ctx.compose_preview.runtime_cache_config()
-    snapshot = _compose_preview_mutable_snapshot(config)
-    try:
+
+    def _evaluate(config: Config) -> str:
         from ..docker_capabilities import ensure_config_docker_capabilities  # noqa: PLC0415  # optional
 
         ensure_config_docker_capabilities(config)
         ctx.compose_preview.preview_compose_service()
-        preview = ctx.compose_generator.render_docker_compose_content()
+        return ctx.compose_generator.render_docker_compose_content()
+
+    try:
+        preview = ctx.compose_preview.run_with_mutable_snapshot(_evaluate)
     except (AttributeError, OSError, TypeError, ValueError, ConfigValidationError):
         return False
-    finally:
-        _restore_compose_preview_mutable_snapshot(config, snapshot)
     try:
         on_disk = Path(compose_path).read_text(encoding="utf-8")
     except OSError:

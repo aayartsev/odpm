@@ -5,14 +5,8 @@ from __future__ import annotations
 from ..debugger.ide import ide_includes_pycharm, ide_includes_vscode
 from ..host.ports import RuntimePorts
 from ..plan.core import PlanStep
-from ..plan.compose_preview import vscode_settings_up_to_date
 from ..plan.compose_runtime import compose_up_would_run, evaluate_compose_up_plan
-from ..plan.debug_profile_preview import debug_profile_needs_update
 from ..plan.l10n import plan_msg
-from ..plan.pycharm_preview import (
-    pycharm_run_config_description,
-    pycharm_run_config_up_to_date,
-)
 from ..project_env import CreateProjectEnvironment
 from .helpers import make_plan_step
 
@@ -45,8 +39,7 @@ def evaluate_runtime_debug_profile(
     if not runtime.host_ctx.policy.include_debugpy:
         return None
     description = plan_msg("Write .odpm/runtime/debug-profile.json")
-    config = runtime.bootstrap.config
-    needs_update, reason = debug_profile_needs_update(config, project_env)
+    needs_update, reason = runtime.debug_profile_needs_update(project_env)
     localized_reason = plan_msg(reason)
     if needs_update:
         return make_plan_step(
@@ -69,13 +62,13 @@ def evaluate_runtime_vscode_settings(
     runtime: RuntimePorts,
     project_env: CreateProjectEnvironment | None = None,
 ) -> PlanStep | None:
+    _ = project_env  # signature matches other IDE evaluators; VS Code check is path-only
     if runtime.host_ctx.policy.skip_ide_config:
         return None
     if not ide_includes_vscode(runtime.host_ctx.user_env.odpm_ide):
         return None
     description = plan_msg("Update VS Code launch and workspace settings")
-    config = runtime.bootstrap.config
-    if vscode_settings_up_to_date(config):
+    if runtime.vscode_settings_up_to_date():
         return make_plan_step(
             "vscode.settings",
             description,
@@ -100,9 +93,8 @@ def evaluate_runtime_pycharm_settings(
         return None
     if not ide_includes_pycharm(runtime.host_ctx.user_env.odpm_ide):
         return None
-    config = runtime.bootstrap.config
-    description = plan_msg(pycharm_run_config_description(config))
-    if pycharm_run_config_up_to_date(config, project_env):
+    description = plan_msg(runtime.pycharm_run_config_description())
+    if runtime.pycharm_run_config_up_to_date(project_env):
         return make_plan_step(
             "pycharm.settings",
             description,
