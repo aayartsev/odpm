@@ -74,6 +74,14 @@ Full shim inventory: `CONFIG_PROPERTY_SHIMS` in `dev_project/config/state.py`.
 | H1 | Public database status / role / adopt / blocking-drift APIs and module-diff take `BootstrapHandle`; `detect_database_drift_for_config` removed; plan warnings use `collect_database_drift_warnings_for_host` only; `compute_module_diff_for_handle` replaces `*_for_config` |
 | E1 | `project_env` services (`ProjectTemplates`, `ProjectLinks`, `VolumeMapper`, image/IDE builders and related services) no longer expose a public `.config` property; raw snapshot remains `env.bootstrap.config` inside methods only |
 
+### Env bootstrap thinning (M1–M3)
+
+| Slice | Outcome |
+|-------|---------|
+| M1 | `DependencyMaterializer` takes `BootstrapHandle` (no public `.config`); Links passes `env.bootstrap` |
+| M2 | `ProjectLinks` / `VolumeMapper` read paths and settings slices via `env.host_ctx`; git project objects and Config methods stay on `env.bootstrap.config`; `SymlinkManager(self.env.bootstrap, …)` |
+| M3 | `CiImageBuilder` / `CiImageBuildService` same read rule; `run_layered_build(..., host_ctx.arguments)`; bake mutations (`_env_resolver`, secrets, runtime write) keep a local snapshot |
+
 ## References
 
 - [ADR-001](adr-001-extensions-and-manifest-v2.md) — manifest vs manager version axes

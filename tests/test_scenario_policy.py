@@ -462,6 +462,9 @@ class WriteCiVenvInstallSpecTests(unittest.TestCase):
             config.docker_layout.docker_dev_project_dir = "/home/odoo/dev_project"
             env = MagicMock()
             env.bootstrap = MagicMock(config=config)
+            env.host_ctx = MagicMock()
+            env.host_ctx.program_dir = config.program_dir
+            env.host_ctx.docker_layout = config.docker_layout
             CiImageBuilder(env)._copy_dev_project_for_ci(context_dir)
 
             dest = os.path.join(context_dir, "dev_project")

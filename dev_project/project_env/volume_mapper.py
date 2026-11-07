@@ -25,53 +25,56 @@ class VolumeMapper:
         return self.env.user_env
 
     def build_base_folders(self) -> list[MappedPath]:
+        host_ctx = self.env.host_ctx
+        config = self.env.bootstrap.config
+        layout = host_ctx.docker_layout
         mapped_folders = [
             MappedPath(
-                local=self.env.bootstrap.config.odoo_src_dir,
-                docker=self.env.bootstrap.config.docker_layout.docker_odoo_dir,
+                local=config.odoo_src_dir,
+                docker=layout.docker_odoo_dir,
             ),
             MappedPath(
-                local=self.env.bootstrap.config.docker_layout.venv_dir,
-                docker=self.env.bootstrap.config.docker_layout.docker_venv_dir,
+                local=layout.venv_dir,
+                docker=layout.docker_venv_dir,
             ),
             MappedPath(
-                local=self.env.bootstrap.config.docker_layout.odoo_tests_dir,
-                docker=self.env.bootstrap.config.docker_layout.docker_temp_tests_dir,
+                local=layout.odoo_tests_dir,
+                docker=layout.docker_temp_tests_dir,
             ),
             MappedPath(
-                local=os.path.join(self.env.bootstrap.config.program_dir, constants.DEV_PROJECT_DIR),
-                docker=self.env.bootstrap.config.docker_layout.docker_dev_project_dir,
+                local=os.path.join(host_ctx.program_dir, constants.DEV_PROJECT_DIR),
+                docker=layout.docker_dev_project_dir,
             ),
             MappedPath(
                 local=self.user_env.backups,
-                docker=self.env.bootstrap.config.docker_layout.docker_backups_dir,
+                docker=layout.docker_backups_dir,
             ),
             MappedPath(
                 local=os.path.join(
-                    self.env.bootstrap.config.docker_layout.dir_for_odoo_container_home, ".local"
+                    layout.dir_for_odoo_container_home, ".local"
                 ),
                 docker=str(
                     pathlib.PurePosixPath(
-                        self.env.bootstrap.config.docker_layout.docker_project_dir, ".local"
+                        layout.docker_project_dir, ".local"
                     )
                 ),
             ),
             MappedPath(
                 local=os.path.join(
-                    self.env.bootstrap.config.docker_layout.dir_for_odoo_container_home, ".cache"
+                    layout.dir_for_odoo_container_home, ".cache"
                 ),
                 docker=str(
                     pathlib.PurePosixPath(
-                        self.env.bootstrap.config.docker_layout.docker_project_dir, ".cache"
+                        layout.docker_project_dir, ".cache"
                     )
                 ),
             ),
         ]
-        if self.env.bootstrap.config.developing_project.project_path:
+        if config.developing_project.project_path:
             mapped_folders.append(
                 MappedPath(
-                    local=self.env.bootstrap.config.developing_project.project_path,
-                    docker=self.env.bootstrap.config.docker_layout.docker_odoo_project_dir_path,
+                    local=config.developing_project.project_path,
+                    docker=layout.docker_odoo_project_dir_path,
                 ),
             )
         return mapped_folders
@@ -83,9 +86,12 @@ class VolumeMapper:
         materialize_deps: bool,
         skip_materialize: bool,
     ) -> None:
+        host_ctx = self.env.host_ctx
+        config = self.env.bootstrap.config
+        layout = host_ctx.docker_layout
         for dependency_string in resolution.urls:
             materialize = materialize_deps and not skip_materialize
-            dependency_project = self.env.bootstrap.config.handle_git_link(
+            dependency_project = config.handle_git_link(
                 dependency_string,
                 materialize=materialize,
             )
@@ -94,23 +100,23 @@ class VolumeMapper:
                     dependency_project.build_project()
             finally:
                 if dependency_project.project_path:
-                    self.env.bootstrap.config.ensure_git_repo_symlink(
+                    config.ensure_git_repo_symlink(
                         dependency_project.project_path,
                         scope="dependency",
                     )
             if not dependency_project.is_cloned:
                 continue
-            list_of_subprojects = self.env.bootstrap.config.check_project_for_subprojects(
+            list_of_subprojects = config.check_project_for_subprojects(
                 dependency_project.project_path
             )
             docker_dependency_project_path = str(
                 pathlib.PurePosixPath(
-                    self.env.bootstrap.config.docker_layout.docker_extra_addons,
+                    layout.docker_extra_addons,
                     dependency_project.inside_docker_path,
                 )
             )
-            self.env.bootstrap.config.docker_layout.dependencies_projects.append(dependency_project)
-            self.env.bootstrap.config.docker_layout.dependencies_dirs.append(
+            layout.dependencies_projects.append(dependency_project)
+            layout.dependencies_dirs.append(
                 dependency_project.project_path
             )
             docker_dir_with_addons = docker_dependency_project_path
@@ -122,11 +128,11 @@ class VolumeMapper:
                     pathlib.PurePosixPath(docker_dir_with_addons, os.pardir)
                 )
             if list_of_subprojects:
-                self.env.host_ctx.addon_layout.catalogs_of_modules_data.extend(
+                host_ctx.addon_layout.catalogs_of_modules_data.extend(
                     list_of_subprojects
                 )
                 for subproject in list_of_subprojects:
-                    self.env.bootstrap.config.docker_layout.docker_dirs_with_addons.append(
+                    layout.docker_dirs_with_addons.append(
                         str(
                             pathlib.PurePosixPath(
                                 docker_dir_with_addons, subproject.subproject_rel_path
@@ -134,7 +140,7 @@ class VolumeMapper:
                         )
                     )
             else:
-                self.env.bootstrap.config.docker_layout.docker_dirs_with_addons.append(
+                layout.docker_dirs_with_addons.append(
                     docker_dir_with_addons
                 )
             self.env.mapped_folders.append(
@@ -145,13 +151,15 @@ class VolumeMapper:
             )
 
     def map_pre_commit_files(self) -> None:
-        for pre_commit_file in self.env.bootstrap.config.user_settings.pre_commit_map_files:
+        host_ctx = self.env.host_ctx
+        config = self.env.bootstrap.config
+        for pre_commit_file in host_ctx.user_settings.pre_commit_map_files:
             real_file_place = os.path.join(
-                self.env.bootstrap.config.developing_project_dir_path, pre_commit_file
+                config.developing_project_dir_path, pre_commit_file
             )
             if os.path.exists(real_file_place):
                 full_path_pre_commit_file = os.path.join(
-                    self.env.bootstrap.config.project_dir, pre_commit_file
+                    host_ctx.project_dir, pre_commit_file
                 )
                 if not os.path.exists(full_path_pre_commit_file):
                     shutil.copy(real_file_place, full_path_pre_commit_file)
@@ -160,7 +168,7 @@ class VolumeMapper:
                         local=full_path_pre_commit_file,
                         docker=str(
                             pathlib.PurePosixPath(
-                                self.env.bootstrap.config.docker_layout.docker_odoo_project_dir_path,
+                                host_ctx.docker_layout.docker_odoo_project_dir_path,
                                 pre_commit_file,
                             )
                         ),
@@ -170,6 +178,6 @@ class VolumeMapper:
                 _logger.warning(
                     _('Pre-commit file {PRE_COMMIT_FILE} was not found at {ODOO_PROJECT_DIR_PATH}').format(
                         PRE_COMMIT_FILE=pre_commit_file,
-                        ODOO_PROJECT_DIR_PATH=self.env.bootstrap.config.developing_project_dir_path,
+                        ODOO_PROJECT_DIR_PATH=config.developing_project_dir_path,
                     )
                 )

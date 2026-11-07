@@ -360,6 +360,8 @@ class CiImageBuildServiceTests(unittest.TestCase):
         config.arguments = OdpmCliArgs()
         env = MagicMock()
         env.bootstrap = MagicMock(config=config)
+        env.host_ctx = MagicMock()
+        env.host_ctx.arguments = config.arguments
         env.mapped_folders = []
         return CiImageBuildService(env)
 
@@ -375,7 +377,7 @@ class CiImageBuildServiceTests(unittest.TestCase):
         with self.assertRaises(PipelineError) as ctx:
             service.build_ci_image()
         self.assertEqual(ctx.exception.exit_code, 2)
-        mock_layered.assert_called_once_with(service.env, service.env.bootstrap.config.arguments)
+        mock_layered.assert_called_once_with(service.env, service.env.host_ctx.arguments)
 
 
 if __name__ == "__main__":

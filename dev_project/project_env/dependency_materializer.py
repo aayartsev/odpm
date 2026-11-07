@@ -15,7 +15,7 @@ from ..git import HandleOdooProjectLink
 from ..logging import get_module_logger
 
 if TYPE_CHECKING:
-    from ..config.config import Config
+    from ..host.ports import BootstrapHandle
 
 _logger = get_module_logger(__name__)
 CheckoutFn = Callable[[HandleOdooProjectLink], None]
@@ -24,18 +24,19 @@ CheckoutFn = Callable[[HandleOdooProjectLink], None]
 class DependencyMaterializer:
     def __init__(
         self,
-        config: Config,
+        bootstrap: BootstrapHandle,
         *,
         checkout_fn: CheckoutFn,
     ) -> None:
-        self.config = config
+        self.bootstrap = bootstrap
         self._checkout_fn = checkout_fn
 
     def resolve(self) -> DependencyResolutionResult:
-        seed_urls = list(self.config.project_settings.dependencies)
+        config = self.bootstrap.config
+        seed_urls = list(config.project_settings.dependencies)
         if (
-            self.config.skip_git_update()
-            or not self.config.user_settings.use_oca_dependencies
+            config.skip_git_update()
+            or not config.user_settings.use_oca_dependencies
         ):
             return DependencyResolutionResult(
                 urls=seed_urls,
@@ -46,9 +47,9 @@ class DependencyMaterializer:
         # Full checkout belongs to ProjectLinks._should_checkout_developing
         # (explicit #branch/@commit, or CI/server lock pin) — not OCA discovery.
         initial_extra_urls: list[str] = []
-        if self.config.developing_project.project_path:
+        if config.developing_project.project_path:
             initial_extra_urls = read_oca_dependency_urls(
-                self.config.developing_project.project_path
+                config.developing_project.project_path
             )
 
         return resolve_dependencies(
@@ -58,8 +59,9 @@ class DependencyMaterializer:
         )
 
     def discover_extensions(self, dependency_string: str) -> DependencyDiscovery:
-        materialize = not self.config.skip_git_update()
-        project = self.config.handle_git_link(
+        config = self.bootstrap.config
+        materialize = not config.skip_git_update()
+        project = config.handle_git_link(
             dependency_string,
             materialize=materialize,
         )
@@ -77,7 +79,7 @@ class DependencyMaterializer:
             urls = read_oca_dependency_urls(project.project_path)
             nested = read_nested_odpm_fragment(
                 project.project_path,
-                resolver=self.config.env_resolver,
+                resolver=self.bootstrap.env_resolver,
             )
             if nested is None:
                 return DependencyDiscovery(urls=urls)
@@ -94,11 +96,12 @@ class DependencyMaterializer:
             )
         finally:
             if project.project_path:
-                self.config.ensure_git_repo_symlink(
+                config.ensure_git_repo_symlink(
                     project.project_path, scope="dependency"
                 )
 
     def apply_to_config(self, resolution: DependencyResolutionResult) -> None:
-        self.config.project_settings.dependencies = resolution.urls
+        config = self.bootstrap.config
+        config.project_settings.dependencies = resolution.urls
         if resolution.nested_fragments:
-            self.config.apply_nested_compatibility(resolution.nested_fragments)
+            config.apply_nested_compatibility(resolution.nested_fragments)

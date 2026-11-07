@@ -69,6 +69,11 @@ class IncrementalRepoSymlinksTests(unittest.TestCase):
 
             env = MagicMock()
             env.bootstrap = MagicMock(config=config)
+            env.host_ctx = MagicMock()
+            env.host_ctx.user_settings = config.user_settings
+            env.host_ctx.project_settings = config.project_settings
+            env.host_ctx.docker_layout = config.docker_layout
+            env.host_ctx.policy = getattr(config, "policy", MagicMock())
 
             with self.assertRaises(GitError):
                 ProjectLinks(env).checkout_project(dependency)

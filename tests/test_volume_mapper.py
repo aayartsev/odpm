@@ -38,10 +38,17 @@ class VolumeMapperTests(unittest.TestCase):
         env.bootstrap = MagicMock(config=config)
         env.user_env = user_env
         env.mapped_folders = []
+        host_ctx = MagicMock()
+        host_ctx.project_dir = config.project_dir
+        host_ctx.program_dir = config.program_dir
+        host_ctx.user_settings = config.user_settings
+        host_ctx.project_settings = config.project_settings
+        host_ctx.docker_layout = config.docker_layout
+        host_ctx.policy = getattr(config, "policy", MagicMock())
         layout = MagicMock()
         layout.catalogs_of_modules_data = []
-        env.host_ctx = MagicMock()
-        env.host_ctx.addon_layout = layout
+        host_ctx.addon_layout = layout
+        env.host_ctx = host_ctx
         return env
 
     def test_build_base_folders_includes_developing_project(self):
@@ -108,6 +115,7 @@ class VolumeMapperTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as project_dir:
             env = self._make_env()
             env.bootstrap.config.project_dir = project_dir
+            env.host_ctx.project_dir = project_dir
             env.bootstrap.config.developing_project_dir_path = project_dir
             env.bootstrap.config.docker_layout.docker_odoo_project_dir_path = "/docker/developing"
             env.bootstrap.config.user_settings.pre_commit_map_files = [".pre-commit-config.yaml"]

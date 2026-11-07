@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 from dev_project.dependency_resolver import DependencyResolutionResult, NestedOdpmFragment
 from dev_project.config.transforms.env_substitution import EnvResolver
+from dev_project.host.ports import BootstrapHandle
 from dev_project.project_env.dependency_materializer import DependencyMaterializer
 
 
@@ -18,7 +19,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
         checkout_fn = MagicMock()
 
         resolved = DependencyMaterializer(
-            config,
+            BootstrapHandle(config=config),
             checkout_fn=checkout_fn,
         ).resolve()
 
@@ -36,7 +37,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
         config.skip_git_update.return_value = False
         checkout_fn = MagicMock()
 
-        resolved = DependencyMaterializer(config, checkout_fn=checkout_fn).resolve()
+        resolved = DependencyMaterializer(BootstrapHandle(config=config), checkout_fn=checkout_fn).resolve()
 
         self.assertEqual(resolved.urls, config.project_settings.dependencies)
         checkout_fn.assert_not_called()
@@ -67,7 +68,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             checkout_fn = MagicMock()
 
             resolved = DependencyMaterializer(
-                config,
+                BootstrapHandle(config=config),
                 checkout_fn=checkout_fn,
             ).resolve()
 
@@ -87,7 +88,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             nested_fragments=[fragment],
         )
 
-        DependencyMaterializer(config, checkout_fn=MagicMock()).apply_to_config(
+        DependencyMaterializer(BootstrapHandle(config=config), checkout_fn=MagicMock()).apply_to_config(
             resolution
         )
 
@@ -101,7 +102,7 @@ class DependencyMaterializerResolveTests(unittest.TestCase):
             nested_fragments=[],
         )
 
-        DependencyMaterializer(config, checkout_fn=MagicMock()).apply_to_config(
+        DependencyMaterializer(BootstrapHandle(config=config), checkout_fn=MagicMock()).apply_to_config(
             resolution
         )
 
@@ -154,7 +155,7 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
             checkout_fn = MagicMock()
 
             result = DependencyMaterializer(
-                config,
+                BootstrapHandle(config=config),
                 checkout_fn=checkout_fn,
             ).resolve()
 
@@ -201,7 +202,7 @@ class DependencyMaterializerDiscoveryTests(unittest.TestCase):
             )
 
             result = DependencyMaterializer(
-                config,
+                BootstrapHandle(config=config),
                 checkout_fn=MagicMock(),
             ).resolve()
 
