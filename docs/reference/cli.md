@@ -72,7 +72,7 @@ odpm prepare --secrets-file ~/new-secrets.json
 | `odpm prepare --update-lock` | Записать `.odpm/deps.lock.json` и завершить работу |
 | `--no-git-update` | Не трогать git; lock **не читается**; каталоги должны уже существовать |
 | `--git-worktree` | Материализовать remote git как bare-зеркало + worktree на тенант под `ODOO_PROJECTS_DIR` (то же, что `ODPM_GIT_WORKTREE=1`; ADR-028) |
-| `odpm image <слой> ensure` | Обеспечить слой CI-образа: `base`, `platform`, `deps`, `app`, `lint` (ADR-027); **сначала** узкая подготовка (исходники + секреты), **затем** сборка слоя — сцепка намеренная, без режима «только сборка» |
+| `odpm image <слой> ensure` | Обеспечить слой CI-образа: `base`, `platform`, `deps`, `app`, `lint` (ADR-027); **сначала** узкая подготовка (исходники + секреты + Dockerfile/dockerignore), **затем** сборка слоя — сцепка намеренная, без режима «только сборка» |
 | `odpm image … --from REF` | Явный родитель для `deps` / `app` (иначе platform или deps) |
 | `odpm build` | Ярлык цепочки слоёв для сценария **`ci`**: base → platform → deps? → app (иначе ошибка) |
 | `--image-tag МЕТКА` | Имя и тег финального образа для `build` / `image app ensure` |

@@ -20,12 +20,15 @@ SOURCES_ONLY_STEP_IDS: frozenset[str] = frozenset(
     }
 )
 
-# ``odpm image … ensure`` needs sources plus secrets for optional app bake;
-# skip docker/compose/template steps.
+# ``odpm image … ensure`` needs sources + secrets for optional app bake, and
+# root Dockerfile/.dockerignore sync so kaniko/docker build see upgraded
+# ``.odpm`` templates (ADR-007). Still skip compose / odoo.conf / docker checks.
 IMAGE_ENSURE_STEP_IDS: frozenset[str] = SOURCES_ONLY_STEP_IDS | frozenset(
     {
         "secrets.fetch",
         "secrets.materialize",
+        "template.dockerfile",
+        "template.dockerignore",
     }
 )
 

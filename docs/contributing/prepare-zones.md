@@ -29,9 +29,9 @@
 
 ## Обеспечение слоя образа
 
-`odpm image … ensure` **намеренно** запускает узкую подготовку (исходники + секреты по [`IMAGE_ENSURE_STEP_IDS`](../../dev_project/prepare/sources_only.py)), затем сборку слоя. Это контракт [ADR-027](adr-027-layered-ci-images.md): образ без слепка исходников на диске не собирается. В `odpm plan` шаги подготовки и шаги слоёв (`image.*`) помечены разными группами («подготовка» / «сборка образа»).
+`odpm image … ensure` **намеренно** запускает узкую подготовку по [`IMAGE_ENSURE_STEP_IDS`](../../dev_project/prepare/sources_only.py) (исходники + секреты + синхронизация корневого `Dockerfile` / `.dockerignore` с шаблонами в `.odpm/`), затем сборку слоя. Это контракт [ADR-027](adr-027-layered-ci-images.md): образ без слепка исходников на диске не собирается; без `template.dockerfile` на общем томе в сборку мог уходить протухший корневой Dockerfile. В `odpm plan` шаги подготовки и шаги слоёв (`image.*`) помечены разными группами («подготовка» / «сборка образа»).
 
-Полный compose и шаблоны Dockerfile/odoo.conf в этот прогон **не** входят; для `options` в runtime config слоя app builder вызывает генерацию конфига отдельно (см. ADR-027).
+Полный compose, проверка Docker и `template.odoo_conf` в этот прогон **не** входят; для `options` в runtime config слоя app builder вызывает генерацию конфига отдельно (см. ADR-027).
 
 ## Связанные документы
 
