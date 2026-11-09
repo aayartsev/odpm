@@ -2463,7 +2463,7 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 </tr>
 <tr>
 <td><code>odpm image &lt;layer&gt; ensure</code></td>
-<td>Ensure a CI image layer: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>first</strong> scoped prepare (sources + secrets), <strong>then</strong> layer build — intentional coupling, no build-only mode</td>
+<td>Ensure a CI image layer: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>first</strong> scoped prepare (sources + secrets + Dockerfile/dockerignore), <strong>then</strong> layer build — intentional coupling, no build-only mode</td>
 </tr>
 <tr>
 <td><code>odpm image … --from REF</code></td>

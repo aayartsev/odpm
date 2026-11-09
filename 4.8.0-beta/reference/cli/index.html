@@ -2439,7 +2439,7 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 </tr>
 <tr>
 <td><code>odpm image &lt;слой&gt; ensure</code></td>
-<td>Обеспечить слой CI-образа: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>сначала</strong> узкая подготовка (исходники + секреты), <strong>затем</strong> сборка слоя — сцепка намеренная, без режима «только сборка»</td>
+<td>Обеспечить слой CI-образа: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>сначала</strong> узкая подготовка (исходники + секреты + Dockerfile/dockerignore), <strong>затем</strong> сборка слоя — сцепка намеренная, без режима «только сборка»</td>
 </tr>
 <tr>
 <td><code>odpm image … --from REF</code></td>
