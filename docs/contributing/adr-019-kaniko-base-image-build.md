@@ -21,6 +21,7 @@ ADR-016 added Kaniko for the **final** CI image but left base image on `docker b
 5. **Layered CI images (ADR-027):** `odpm image base ensure` is the explicit base stage; `odpm build` runs base → platform → optional deps → app (no monolithic final `dockerfile_ci` with in-app bake venv). Kaniko/docker backends unchanged.
 6. Platform/app Dockerfiles `FROM` resolved base / parent layer refs via the same builder factory.
 7. **Noninteractive apt in base templates:** `ENV DEBIAN_FRONTEND=noninteractive` plus `apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install …` in all `debian_*_dockerfile*` profiles. Needed for kaniko `direct`, where the executor may see host `/etc` (e.g. existing `sudo.conf`) and otherwise blocks on a conffile prompt without a TTY.
+8. **Host `statoverride` / `messagebus`:** kaniko `direct` can also expose host `/var/lib/dpkg/statoverride` (e.g. dbus → group `messagebus`). All base templates ensure that group exists before `apt-get install sudo`: `(getent group messagebus >/dev/null || groupadd -r messagebus)`.
 
 ## Consequences
 

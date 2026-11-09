@@ -10,6 +10,7 @@
 
 ### Исправлено
 
+- **Группа `messagebus` во всех base Dockerfile** — перед `apt-get install sudo` во всех `debian_*_dockerfile*` (не только ci/debian 13) создаётся группа `messagebus`, если её нет: иначе kaniko `direct` падает на host `statoverride` (`unknown system group 'messagebus'`). Документация: ADR-019. Тесты: `test_dockerfile_profiles`.
 - **`image … ensure` синхронизирует корневой Dockerfile** — в узкий prepare (`IMAGE_ENSURE_STEP_IDS`) добавлены `template.dockerfile` и `template.dockerignore`, иначе layers/kaniko не вызывали регенерацию и собирали протухший корень при уже обновлённом `.odpm/`. `template.odoo_conf` по-прежнему вне списка. Документация: ADR-027, `prepare-zones.md`. Тесты: `test_cli_image`.
 - **Корневой Dockerfile после смены шаблона в `.odpm/`** — шаг `template.dockerfile` снова генерирует корень, если файл на диске не совпадает с отрендеренным шаблоном (раньше при живых маркерах и совпавшем `base_image_identity` оставался noop — типично на общем PVC после апгрейда odpm). Документация: ADR-007. Тесты: `test_project_env_modules`.
 - **Noninteractive apt в base Dockerfile** — во всех шаблонах `debian_*_dockerfile*` добавлены `DEBIAN_FRONTEND=noninteractive` и `force-confdef`/`force-confold` для `apt-get`, чтобы kaniko `direct` не зависал на вопросе conffile (типично `/etc/sudo.conf` с хоста) без TTY. Документация: ADR-016, ADR-019. Тесты: `test_dockerfile_profiles`.

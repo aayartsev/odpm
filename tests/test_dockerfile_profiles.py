@@ -105,6 +105,10 @@ class DockerfileProfileResolutionTests(unittest.TestCase):
                 self.assertIn("ENV DEBIAN_FRONTEND=noninteractive", text)
                 self.assertIn('Dpkg::Options::="--force-confold"', text)
                 self.assertIn('Dpkg::Options::="--force-confdef"', text)
+                self.assertIn(
+                    "getent group messagebus >/dev/null || groupadd -r messagebus",
+                    text,
+                )
                 self.assertNotRegex(
                     text,
                     r"apt-get install -y (?!-o)",
