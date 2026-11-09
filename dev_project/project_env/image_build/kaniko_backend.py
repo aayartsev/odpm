@@ -163,10 +163,26 @@ class KanikoImageBuildBackend:
         )
         raise PipelineError(message)
 
+    @staticmethod
+    def dockerfile_basename(dockerfile: str) -> str:
+        """Return a Dockerfile *file* name for ``--dockerfile=…/NAME``.
+
+        Empty strings, bare ``.``, and directory paths must not produce
+        ``--dockerfile=<workspace>/`` or ``…/.`` (Kaniko then fails).
+        """
+        raw = (dockerfile or "").strip()
+        name = os.path.basename(raw.rstrip(os.sep)) if raw else ""
+        if not name or name in (".", "..") or raw.endswith(("/", "\\")):
+            return constants.DOCKERFILE
+        # Directory path without trailing slash: basename is the dir name.
+        if raw and os.path.isdir(raw) and not os.path.isfile(raw):
+            return constants.DOCKERFILE
+        return name
+
     def kaniko_flags(self, spec: ImageBuildSpec, *, workspace: str) -> list[str]:
-        dockerfile_name = os.path.basename(spec.dockerfile)
+        dockerfile_name = self.dockerfile_basename(spec.dockerfile)
         flags = [
-            f"--dockerfile={workspace}/{dockerfile_name}",
+            f"--dockerfile={workspace.rstrip('/')}/{dockerfile_name}",
             f"--context=dir://{workspace}",
             f"--custom-platform={spec.platform}",
         ]

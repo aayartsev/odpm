@@ -134,6 +134,36 @@ class DockerImageBuildBackendTests(unittest.TestCase):
 
 
 class KanikoImageBuildBackendTests(unittest.TestCase):
+    def test_dockerfile_basename_rejects_empty_and_dir(self):
+        self.assertEqual(
+            KanikoImageBuildBackend.dockerfile_basename(""),
+            constants.DOCKERFILE,
+        )
+        self.assertEqual(
+            KanikoImageBuildBackend.dockerfile_basename("."),
+            constants.DOCKERFILE,
+        )
+        self.assertEqual(
+            KanikoImageBuildBackend.dockerfile_basename("/hosts/mr-1/"),
+            constants.DOCKERFILE,
+        )
+        self.assertEqual(
+            KanikoImageBuildBackend.dockerfile_basename(
+                "/tmp/ctx/Dockerfile.platform"
+            ),
+            "Dockerfile.platform",
+        )
+
+    def test_kaniko_flags_empty_dockerfile_uses_default_name(self):
+        backend = KanikoImageBuildBackend(environ={}, home_dir="/home/ci")
+        flags = backend.kaniko_flags(
+            _spec(dockerfile="", context_dir="/hosts/mr-1"),
+            workspace="/hosts/mr-1",
+        )
+        self.assertIn("--dockerfile=/hosts/mr-1/Dockerfile", flags)
+        self.assertNotIn("--dockerfile=/hosts/mr-1/", flags)
+        self.assertNotIn("--dockerfile=/hosts/mr-1/.", flags)
+
     def test_docker_run_no_push_argv(self):
         backend = KanikoImageBuildBackend(environ={}, home_dir="/home/ci")
         argv = backend.build_argv(_spec())
@@ -146,6 +176,7 @@ class KanikoImageBuildBackendTests(unittest.TestCase):
             argv,
         )
         self.assertNotIn("--destination=registry/app:19", argv)
+        self.assertIn("--dockerfile=/workspace/Dockerfile.ci", argv)
 
     def test_docker_run_push_mounts_docker_config(self):
         with tempfile.TemporaryDirectory() as home:

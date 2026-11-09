@@ -218,6 +218,19 @@ class BaseImageBuilderTests(unittest.TestCase):
         self.assertEqual(spec.tag, builder.resolve_base_image_ref())
         self.assertFalse(spec.push)
         self.assertEqual(spec.context_dir, "/tmp/project")
+        self.assertEqual(spec.dockerfile, "/tmp/project/Dockerfile")
+
+    @patch("dev_project.project_env.base_image.get_ci_image_build_backend")
+    def test_build_base_image_empty_dockerfile_defaults_to_file(self, mock_factory):
+        backend = MagicMock()
+        mock_factory.return_value = backend
+        builder = self._builder()
+        builder.env.bootstrap.dockerfile_path = ""
+        builder.build_base_image()
+        spec = backend.build.call_args.args[0]
+        self.assertEqual(spec.dockerfile, "/tmp/project/Dockerfile")
+        self.assertFalse(spec.dockerfile.endswith("/"))
+        self.assertNotEqual(os.path.basename(spec.dockerfile), ".")
 
     def test_kaniko_requires_registry(self):
         builder = self._builder(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 from .. import constants
@@ -97,9 +98,18 @@ class BaseImageBuilder:
         )
         image_ref = self.resolve_base_image_ref()
         push = builder_name == constants.CI_IMAGE_BUILDER_KANIKO
+        dockerfile = (self.env.bootstrap.dockerfile_path or "").strip()
+        if (
+            not dockerfile
+            or dockerfile in (".", "..")
+            or dockerfile.endswith(("/", os.sep))
+            or (os.path.isdir(dockerfile) and not os.path.isfile(dockerfile))
+        ):
+            dockerfile = os.path.join(host_ctx.project_dir, constants.DOCKERFILE)
+        self.env.bootstrap.dockerfile_path = dockerfile
         spec = ImageBuildSpec(
             context_dir=host_ctx.project_dir,
-            dockerfile=self.env.bootstrap.dockerfile_path,
+            dockerfile=dockerfile,
             tag=image_ref,
             platform=f"linux/{host_ctx.project_settings.arch}",
             push=push,
