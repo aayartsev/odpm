@@ -19,7 +19,6 @@ from dev_project.database.schema import (
     DatabaseOdooConfFingerprint,
 )
 from dev_project.host.cli.args import OdpmCliArgs
-from dev_project.host.context import HostProjectContext
 from dev_project.host.ports import BootstrapHandle
 from dev_project.database.drift import (
     detect_database_drift_for_handle,

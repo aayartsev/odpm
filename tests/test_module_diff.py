@@ -11,7 +11,6 @@ import unittest
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from dev_project.host.ports import BootstrapHandle
 
 from dev_project import constants
 from dev_project.errors import ConfigError

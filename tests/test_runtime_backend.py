@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 from dev_project.errors import PipelineError
 from dev_project.host.cli.args import OdpmCliArgs
-from dev_project.host.context import HostProjectContext
 from dev_project.prepare.runtime import (
     evaluate_runtime_compose_up,
     evaluate_runtime_ensure_base,

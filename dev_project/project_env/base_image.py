@@ -23,7 +23,6 @@ from .image_build.resolve import resolve_base_image_registry
 
 if TYPE_CHECKING:
     from .environment import CreateProjectEnvironment
-from ..config.paths import ConfigPaths
 
 _logger = get_module_logger(__name__)
 
@@ -65,7 +64,6 @@ class BaseImageBuilder:
         )
 
     def resolve_base_image_ref(self) -> str:
-        host_ctx = self.env.host_ctx
         environ = self._builder_environ()
         builder_name = self._builder_name()
         registry = resolve_base_image_registry(environ)

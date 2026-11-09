@@ -8,7 +8,6 @@ from dev_project import constants
 from dev_project.errors import ConfigError, PipelineError
 from dev_project.host.ports import BootstrapHandle
 from dev_project.odpm_pipeline import OdpmPipeline
-from dev_project.host.context import HostProjectContext
 from dev_project.runtime_coordinator import RuntimeCoordinator
 from dev_project.scenario_policy import ScenarioPolicy
 from tests.prepare_test_helpers import stub_prepare_service_executions

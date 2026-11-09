@@ -31,7 +31,6 @@ class ComposeServiceBuilder:
         if host_ctx is not None:
             self.host_ctx = host_ctx
         else:
-            from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
             self.host_ctx = bootstrap.host_context()
         self.args = self.host_ctx.arguments

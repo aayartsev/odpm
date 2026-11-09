@@ -27,7 +27,6 @@ from ..host.ports import PipelinePorts
 from ..plan.core import PlanStep
 from ..project_env.links import ProjectLinks
 from ..project_env.templates import ProjectTemplates
-from ..secrets_providers.fetch import ensure_secrets_source_for_config
 from ..symlinks.manager import SymlinkManager
 
 if TYPE_CHECKING:

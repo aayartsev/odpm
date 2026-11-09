@@ -131,7 +131,6 @@ class SystemCheckPolicy:
 
     @classmethod
     def from_bootstrap(cls, bootstrap) -> SystemCheckPolicy:
-        from .host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
         return cls.from_host_context(
             bootstrap.host_context()

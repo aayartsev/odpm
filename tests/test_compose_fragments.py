@@ -27,7 +27,6 @@ from dev_project.extensions.registry import (
     reset_extension_registry_state,
 )
 from dev_project.host.cli.args import OdpmCliArgs
-from dev_project.host.context import HostProjectContext
 from dev_project.manifest.reader import ManifestView
 from dev_project.prepare.steps_compose import evaluate_compose_fragments, exec_compose_fragments
 from dev_project.host.ports import BootstrapHandle

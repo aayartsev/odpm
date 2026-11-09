@@ -28,7 +28,6 @@ from tests.test_manifest_v2_reader import _minimal_v2
 from dev_project.config.config import AssembledProject
 from dev_project import constants
 from dev_project.host.cli.args import OdpmCliArgs
-from dev_project.host.context import HostProjectContext
 from dev_project.host.ports import BootstrapHandle
 from dev_project.prepare.types import PrepareContext
 from dev_project.scenario_policy import ScenarioPolicy

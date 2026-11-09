@@ -6,7 +6,6 @@ from dataclasses import FrozenInstanceError
 from dev_project.host.cli.args import OdpmCliArgs
 from unittest.mock import MagicMock, patch
 
-from dev_project.host.context import HostProjectContext
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project import constants
 from dev_project.manifest.reader import ManifestView

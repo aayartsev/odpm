@@ -43,7 +43,6 @@ SERVICE_SOURCES_DIR = constants.SERVICE_SOURCES_DIR
 
 def service_source_target_dir(bootstrap: BootstrapHandle, name: str) -> str:
     """Absolute clone directory for a named service source (classic layout)."""
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     host = bootstrap.host_context()
     return os.path.abspath(
@@ -56,7 +55,6 @@ def service_source_target_dir(bootstrap: BootstrapHandle, name: str) -> str:
 
 
 def _service_source_worktree_dir(bootstrap: BootstrapHandle, project_link) -> str:
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     host = bootstrap.host_context()
     tenant = tenant_id_from_project_dir(host.project_dir)
@@ -103,7 +101,6 @@ def materialize_one_service_source(
     *,
     lock_entry: LockEntry | None = None,
 ) -> str:
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     host = bootstrap.host_context()
     link = git_link.strip()
@@ -239,7 +236,6 @@ def _clone_service_source_repo(
 
 def collect_service_source_paths(bootstrap: BootstrapHandle) -> dict[str, str]:
     """Resolve current on-disk paths for effective ``service_sources``."""
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     host = bootstrap.host_context()
     view = bootstrap.manifest_view
@@ -320,7 +316,6 @@ def service_sources_need_materialize_for_view(
 
 
 def service_sources_need_materialize(bootstrap: BootstrapHandle) -> bool:
-    from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
     host = bootstrap.host_context()
     view = bootstrap.manifest_view

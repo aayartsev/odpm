@@ -23,7 +23,6 @@ from dev_project.config.state import UserSettingsState, user_settings_from_raw
 from dev_project.errors import ConfigError
 from dev_project.extensions.context import ExtensionHostContext
 from dev_project.host.cli.args import OdpmCliArgs
-from dev_project.host.context import HostProjectContext
 from dev_project.host.ports import BootstrapHandle
 from dev_project.manifest.reader import ManifestView
 from dev_project.plan.fragments_preview import build_compose_fragment_service_plan_steps

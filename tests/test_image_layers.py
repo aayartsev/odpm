@@ -556,7 +556,6 @@ class PushPolicyTests(unittest.TestCase):
     def test_want_push_ignores_registry_env_alone(self):
         from dev_project.image_layers.ensure import _want_push
 
-        config = MagicMock()
         args = OdpmCliArgs(image_push=False)
         with (
             patch.dict(
@@ -578,7 +577,6 @@ class PushPolicyTests(unittest.TestCase):
     def test_want_push_true_when_flag_set(self):
         from dev_project.image_layers.ensure import _want_push
 
-        config = MagicMock()
         args = OdpmCliArgs(image_push=True)
         with (
             patch(

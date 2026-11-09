@@ -9,7 +9,6 @@ from . import constants
 from .docker_capabilities import probe_compose_command_from_candidates
 from .translations import _
 from .errors import SubprocessError, SystemCheckError
-from .host.context import HostProjectContext
 from .logging import get_module_logger
 from .project_env import CreateProjectEnvironment
 from .project_env.services import BaseImageService

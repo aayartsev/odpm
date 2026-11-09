@@ -14,7 +14,6 @@ from .host.user_env import CreateUserEnvironment
 from .logging import get_module_logger
 from .project_dir_manager import ProjectDirManager
 from .host.cli.args import OdpmCliArgs
-from .host.context import HostProjectContext
 from .host.ports import BootstrapHandle, PipelinePorts
 from .project_materializer import ProjectMaterializer
 from .secrets_providers.session import SecretsFetchSession

@@ -16,7 +16,7 @@ from ..database.schema import (
 from ..database.state import collect_database_state
 
 if TYPE_CHECKING:
-    from ..host.ports import BootstrapHandle
+    pass
 
 
 @dataclass(frozen=True)

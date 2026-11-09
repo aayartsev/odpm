@@ -94,7 +94,6 @@ class AssembledProject:
 
     @property
     def host_context(self) -> HostProjectContext:
-        from ..host.context import HostProjectContext  # noqa: PLC0415  # cycle
 
         return host_context_from_assembled(self)
 

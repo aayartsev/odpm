@@ -141,7 +141,6 @@ def build_ensure_extensions_sql() -> str:
 
 def ensure_app_role(bootstrap: BootstrapHandle) -> EnsureRoleResult:
     """Create or update cluster admin + application role; install template1 extensions."""
-    config = bootstrap
     admin_role = constants.POSTGRES_ADMIN_USER
     role = constants.POSTGRES_ODOO_USER
     password = constants.POSTGRES_ODOO_PASS
