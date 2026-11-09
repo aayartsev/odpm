@@ -20,6 +20,7 @@ ADR-016 added Kaniko for the **final** CI image but left base image on `docker b
    - **Stamp ≠ registry presence:** a matching local stamp skips rebuild even if the image was deleted from the registry. Stamp is gitignored (machine-local). If final `FROM` fails on pull, delete `.odpm/base_image_identity.json` (or force a Dockerfile/identity change) and rebuild.
 5. **Layered CI images (ADR-027):** `odpm image base ensure` is the explicit base stage; `odpm build` runs base → platform → optional deps → app (no monolithic final `dockerfile_ci` with in-app bake venv). Kaniko/docker backends unchanged.
 6. Platform/app Dockerfiles `FROM` resolved base / parent layer refs via the same builder factory.
+7. **Noninteractive apt in base templates:** `ENV DEBIAN_FRONTEND=noninteractive` plus `apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install …` in all `debian_*_dockerfile*` profiles. Needed for kaniko `direct`, where the executor may see host `/etc` (e.g. existing `sudo.conf`) and otherwise blocks on a conffile prompt without a TTY.
 
 ## Consequences
 

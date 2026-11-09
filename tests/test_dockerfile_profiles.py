@@ -94,6 +94,26 @@ class DockerfileProfileResolutionTests(unittest.TestCase):
         self.assertIn("chromium", template)
         self.assertIn(".vscode-server", template)
 
+    def test_all_debian_templates_use_noninteractive_apt(self):
+        """Kaniko direct shares host /etc; apt must not prompt on conffiles."""
+        templates_dir = PROJECT_ROOT / "dev_project" / "templates"
+        templates = sorted(templates_dir.glob("debian_*dockerfile*"))
+        self.assertGreaterEqual(len(templates), 9)
+        for path in templates:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(template=path.name):
+                self.assertIn("ENV DEBIAN_FRONTEND=noninteractive", text)
+                self.assertIn('Dpkg::Options::="--force-confold"', text)
+                self.assertIn('Dpkg::Options::="--force-confdef"', text)
+                self.assertNotRegex(
+                    text,
+                    r"apt-get install -y (?!-o)",
+                )
+                self.assertNotRegex(
+                    text,
+                    r"apt-get -y install (?!-o)",
+                )
+
 
 class ScenarioPolicyProfileTests(unittest.TestCase):
     def test_developer_uses_full_profile(self):

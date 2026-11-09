@@ -10,6 +10,7 @@
 
 ### Исправлено
 
+- **Noninteractive apt в base Dockerfile** — во всех шаблонах `debian_*_dockerfile*` добавлены `DEBIAN_FRONTEND=noninteractive` и `force-confdef`/`force-confold` для `apt-get`, чтобы kaniko `direct` не зависал на вопросе conffile (типично `/etc/sudo.conf` с хоста) без TTY. Документация: ADR-016, ADR-019. Тесты: `test_dockerfile_profiles`.
 - **Застрявшая регистрация worktree на общем томе** — если каталог `worktrees/<tenant>/…` пропал, а в bare запись ещё есть (`missing but already registered`), `odpm prepare` / materialize делает `git worktree prune` и при необходимости повторный `worktree add --force`, вместо падения. Документация: ADR-028. Тесты: `test_git_worktree`.
 
 ### Изменено

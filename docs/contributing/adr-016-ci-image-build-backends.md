@@ -19,7 +19,8 @@ Accepted (4.7).
    - docker: `docker push <tag>` после build;
    - kaniko: `--destination=<tag>` при push; иначе `--no-push --tar-path=…/odpm-ci-image.tar`.
 5. **Kaniko и base image:** base собирается тем же `ImageBuildBackend`; при `kaniko` base **всегда** пушится в `ODPM_BASE_IMAGE_REGISTRY` (обязателен). См. [ADR-019](adr-019-kaniko-base-image-build.md).
-6. **Вне скоупа:** Buildah/podman, генерация K8s Job YAML, CLI `--build-base-image`.
+6. **Noninteractive apt в base Dockerfile:** шаблоны `debian_*_dockerfile*` задают `ENV DEBIAN_FRONTEND=noninteractive` и `apt-get … -o Dpkg::Options::=--force-confdef/old`, чтобы при kaniko `direct` (общий `/etc` с хостом) dpkg не спрашивал conffile без TTY. См. ADR-019.
+7. **Вне скоупа:** Buildah/podman, генерация K8s Job YAML, CLI `--build-base-image`.
 
 ### ImageBuildSpec
 

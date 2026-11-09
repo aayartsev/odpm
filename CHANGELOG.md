@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Noninteractive apt in base Dockerfiles** — all `debian_*_dockerfile*` templates set `DEBIAN_FRONTEND=noninteractive` and `force-confdef`/`force-confold` on `apt-get`, so kaniko `direct` does not hang on a conffile prompt (e.g. host `/etc/sudo.conf`) without a TTY. Docs: ADR-016, ADR-019. Tests: `test_dockerfile_profiles`.
 - **Stale worktree registration on a shared volume** — if `worktrees/<tenant>/…` vanished but the bare still lists it (`missing but already registered`), materialize runs `git worktree prune` and retries `worktree add --force` once instead of failing. Docs: ADR-028. Tests: `test_git_worktree`.
 
 ### Changed
