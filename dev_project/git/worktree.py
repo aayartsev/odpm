@@ -133,51 +133,143 @@ def head_sha(link: HandleOdooProjectLink, cwd: str) -> Optional[str]:
     return _rev_parse(link, cwd, "HEAD")
 
 
+def _branch_refspec(branch: str) -> str:
+    return f"+refs/heads/{branch}:refs/heads/{branch}"
+
+
+def _fetch_mirror_target(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    odoo_version: Optional[str] = None,
+) -> None:
+    """Fetch only the target commit/branch tip into ``mirror`` (depth 1).
+
+    Never syncs all heads/tags. On commit fetch failure raises ``GitError``
+    without falling back to a wide fetch.
+    """
+    depth = str(constants.PLATFORM_GIT_CLONE_DEPTH)
+
+    if link.commit_explicit and link.commit:
+        result = _run_git(
+            link,
+            ["fetch", "--depth", depth, "origin", link.commit],
+            cwd=mirror,
+            capture=False,
+        )
+        if result.returncode != 0:
+            raise GitError(
+                _(
+                    "Commit {COMMIT} was not fetched into bare mirror {PATH} "
+                    "(exit {CODE})"
+                ).format(
+                    COMMIT=link.commit,
+                    PATH=mirror,
+                    CODE=result.returncode,
+                )
+            )
+        return
+
+    if link.branch_explicit and link.branch and not link.commit_explicit:
+        result = _run_git(
+            link,
+            [
+                "fetch",
+                "--depth",
+                depth,
+                "origin",
+                _branch_refspec(link.branch),
+            ],
+            cwd=mirror,
+            capture=False,
+        )
+        if result.returncode != 0:
+            raise GitError(
+                f"git fetch failed for bare mirror {mirror!r} "
+                f"branch {link.branch!r} (exit {result.returncode})"
+            )
+        return
+
+    version = (odoo_version or "").strip()
+    if version:
+        result = _run_git(
+            link,
+            [
+                "fetch",
+                "--depth",
+                depth,
+                "origin",
+                _branch_refspec(version),
+            ],
+            cwd=mirror,
+            capture=False,
+        )
+        if result.returncode != 0:
+            raise GitError(
+                f"git fetch failed for bare mirror {mirror!r} "
+                f"branch {version!r} (exit {result.returncode})"
+            )
+        return
+
+    # Tip: default remote refspec, then HEAD — never all-heads/tags.
+    result = _run_git(
+        link,
+        ["fetch", "--depth", depth, "origin"],
+        cwd=mirror,
+        capture=False,
+    )
+    if result.returncode == 0:
+        return
+    result = _run_git(
+        link,
+        ["fetch", "--depth", depth, "origin", "HEAD"],
+        cwd=mirror,
+        capture=False,
+    )
+    if result.returncode != 0:
+        raise GitError(
+            f"git fetch failed for bare mirror {mirror!r} (exit {result.returncode})"
+        )
+
+
 def ensure_bare_mirror(
     link: HandleOdooProjectLink,
     *,
     mirror: str,
     skip_fetch: bool = False,
+    odoo_version: Optional[str] = None,
 ) -> None:
-    """Clone ``--bare`` if missing; otherwise fetch (unless ``skip_fetch``)."""
+    """Clone ``--bare --depth 1`` if missing; narrow-fetch unless ``skip_fetch``."""
     url = link.gitlink or link.project_link
     parent = os.path.dirname(mirror)
     os.makedirs(parent, exist_ok=True)
     if not os.path.isdir(mirror):
-        clone_args = ["clone", "--bare"]
-        if link.system_type == "platform":
-            clone_args.extend(
-                ["--depth", str(constants.PLATFORM_GIT_CLONE_DEPTH)]
+        if skip_fetch:
+            # Caller should have raised ConfigError before clone; keep defensive.
+            raise ConfigError(
+                _(
+                    "--no-git-update requires an existing bare mirror at {PATH}"
+                ).format(PATH=mirror)
             )
-            if link.branch_explicit and not link.commit_explicit:
-                clone_args.extend(["-b", link.branch])
+        clone_args = [
+            "clone",
+            "--bare",
+            "--depth",
+            str(constants.PLATFORM_GIT_CLONE_DEPTH),
+        ]
+        if link.branch_explicit and not link.commit_explicit:
+            clone_args.extend(["-b", link.branch])
         clone_args.extend([url, mirror])
         returncode = run_logged(_git_cmd(link, clone_args), cwd=parent)
         if returncode != 0:
             raise GitError(
                 f"git clone --bare failed for {url!r} (exit code {returncode})"
             )
+        _fetch_mirror_target(link, mirror=mirror, odoo_version=odoo_version)
         return
     if skip_fetch:
         return
-    result = _run_git(
-        link,
-        ["fetch", "--tags", "origin", "+refs/heads/*:refs/heads/*"],
-        cwd=mirror,
-        capture=False,
-    )
-    if result.returncode != 0:
-        # Fallback for remotes that reject the refspec form above.
-        result = _run_git(
-            link,
-            ["fetch", "--tags", "--prune", "origin"],
-            cwd=mirror,
-            capture=False,
-        )
-    if result.returncode != 0:
-        raise GitError(
-            f"git fetch failed for bare mirror {mirror!r} (exit {result.returncode})"
-        )
+    _fetch_mirror_target(link, mirror=mirror, odoo_version=odoo_version)
 
 
 def resolve_target_sha(
@@ -361,7 +453,12 @@ def materialize_link_as_worktree(
                     "--no-git-update requires an existing bare mirror at {PATH}"
                 ).format(PATH=mirror)
             )
-        ensure_bare_mirror(link, mirror=mirror, skip_fetch=not allow_update)
+        ensure_bare_mirror(
+            link,
+            mirror=mirror,
+            skip_fetch=not allow_update,
+            odoo_version=odoo_version,
+        )
         sha = resolve_target_sha(link, mirror=mirror, odoo_version=odoo_version)
         ensure_worktree_at_sha(
             link,

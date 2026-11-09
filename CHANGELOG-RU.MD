@@ -10,6 +10,8 @@
 
 ### Изменено
 
+- **Узкий fetch bare-зеркала в режиме worktree** — при `ODPM_GIT_WORKTREE` / `--git-worktree` общее зеркало под `ODOO_PROJECTS_DIR/mirrors/` тянет только нужный commit или кончик ветки (глубина 1), без синхронизации всех веток и тегов. Углубление истории по-прежнему только для `odoo_build_date`. Флаги команд и выбор SHA для worktree не менялись. Документация: ADR-028, `project-layout.md`. Тесты: `test_git_worktree`.
+
 - **Уход от Config, кампания H: AssembledProject вместо публичного Config** — класс сборщика переименован в `AssembledProject`; пакет больше не реэкспортирует `Config`; фасады git/symlink/nested/odoo.conf-docker только на ручке; гейт `tests/test_no_public_config.py`. Поведение команд для пользователя не изменилось. Документация: ADR-003, ADR-030, `config-zones.md`.
 - **Уход от Config, кампания G: ручка без публичного `.config`** — снимок только как приватное `_assembled`; сборка портов и `host_ctx` — фабрики в `config/assembly.py`; с `host/` сняты `ports_from_config` и `HostProjectContext.from_config`; у `config.state` нет runtime-импорта `host`. Поведение команд для пользователя не изменилось. Документация: ADR-003, ADR-030, `config-zones.md`.
 - **Уход от Config, кампания F: image/git/manifest/capabilities/runtime без голого Config** — слои образа, исходники сервисов, менеджер lock, host-команды manifest, `SystemCheckPolicy.from_bootstrap`, возможности Docker и Compose runtime backend берут ручку / `host_ctx`. Поведение команд для пользователя не изменилось. Документация: ADR-003, `config-zones.md`.

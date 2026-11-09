@@ -185,6 +185,9 @@ msgstr "Клонировать или обновить git-репозитори�
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Собрать разрешённые git-коммиты и записать .odpm/deps.lock.json"
 
+msgid "Commit {COMMIT} was not fetched into bare mirror {PATH} (exit {CODE})"
+msgstr "Коммит {COMMIT} не получен в bare-зеркало {PATH} (код выхода {CODE})"
+
 msgid "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})"
 msgstr "Ссылка на compose-сервис {NAME} не может быть раскрыта (нужна для поля manifest {FIELD})"
 

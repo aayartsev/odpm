@@ -41,7 +41,7 @@ An **odpm project directory** (e.g. `odoo_demo_project-19/`) is the **working en
 ## Where platform and module sources live
 
 - Repositories cloned via HTTPS/SSH — in **`ODOO_PROJECTS_DIR`** (set in `.env`).
-- With `ODPM_GIT_WORKTREE=1` / `--git-worktree`: bare mirrors in `mirrors/<repo-key>.git`, worktrees in `worktrees/<tenant>/<repo-key>/` (`tenant` = basename of the odpm project directory). Project symlinks point at the worktree. Existing full clones beside them are left alone. Details: [ADR-028](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md).
+- With `ODPM_GIT_WORKTREE=1` / `--git-worktree`: bare mirrors in `mirrors/<repo-key>.git`, worktrees in `worktrees/<tenant>/<repo-key>/` (`tenant` = basename of the odpm project directory). The mirror fetches only the needed commit or branch tip (depth 1), not all heads and tags. Project symlinks point at the worktree. Existing full clones beside them are left alone. Details: [ADR-028](https://github.com/aayartsev/odpm/blob/4.8.0-dev/docs/contributing/adr-028-git-worktree-tenants.md).
 - Projects via **`file://`** links — at the given absolute path, without clone or version switching (even when worktree mode is on).
 
 With `create_module_links` enabled, **symbolic links** may appear in the root for editor navigation — see [debugging](../operations/vscode-debug.md).

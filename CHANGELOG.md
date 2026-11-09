@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Narrow bare-mirror fetch in worktree mode** — with `ODPM_GIT_WORKTREE` / `--git-worktree`, shared mirrors under `ODOO_PROJECTS_DIR/mirrors/` fetch only the target commit or branch tip at depth 1 (no all-heads / tags sync). History deepen still runs only for `odoo_build_date`. Command flags and worktree SHA resolution are unchanged. Docs: ADR-028, `project-layout.md`. Tests: `test_git_worktree`.
+
 - **Config retire H: AssembledProject replaces public Config** — assembler class renamed to `AssembledProject`; package no longer re-exports `Config`; git/symlink/nested/odoo.conf-docker facades live on `BootstrapHandle` only; CI gate `tests/test_no_public_config.py`. User-facing command behavior is unchanged. Docs: ADR-003, ADR-030, `config-zones.md`.
 - **Config retire G: BootstrapHandle without public `.config`** — snapshot is private `_assembled`; `ports_from_assembled` / `host_context_from_assembled` live in `config/assembly.py`; `ports_from_config` and `HostProjectContext.from_config` removed from `host/`; `config.state` no longer imports `host` at runtime. User-facing command behavior is unchanged. Docs: ADR-003, ADR-030, `config-zones.md`.
 - **Config retire F: image/git/manifest/capabilities/runtime without bare Config** — image layers, service sources, `DepsLockManager`, manifest host commands, `SystemCheckPolicy.from_bootstrap`, docker capabilities, and Compose runtime backend take the handle / `host_ctx`. User-facing command behavior is unchanged. Docs: ADR-003, `config-zones.md`.

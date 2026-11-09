@@ -186,6 +186,9 @@ msgstr "Clone or update the developing project git repo"
 msgid "Collect resolved git commits and write .odpm/deps.lock.json"
 msgstr "Collect resolved git commits and write .odpm/deps.lock.json"
 
+msgid "Commit {COMMIT} was not fetched into bare mirror {PATH} (exit {CODE})"
+msgstr "Commit {COMMIT} was not fetched into bare mirror {PATH} (exit {CODE})"
+
 msgid "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})"
 msgstr "Compose service reference {NAME} cannot be resolved (required for manifest field {FIELD})"
 

@@ -37,6 +37,11 @@ RU_MESSAGES: dict[str, str] = {
     "--no-git-update requires an existing bare mirror at {PATH}": (
         "--no-git-update требует существующее bare-зеркало в {PATH}"
     ),
+    "Commit {COMMIT} was not fetched into bare mirror {PATH} "
+    "(exit {CODE})": (
+        "Коммит {COMMIT} не получен в bare-зеркало {PATH} "
+        "(код выхода {CODE})"
+    ),
     "--no-git-update requires an existing worktree at {PATH}": (
         "--no-git-update требует существующее worktree в {PATH}"
     ),

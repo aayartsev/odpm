@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest import mock
 
 from dev_project.config.git_repos import GitRepoCoordinator
-from dev_project.errors import ConfigError
+from dev_project.errors import ConfigError, GitError
 from dev_project.git.build_date import BuildDateResolver
 from dev_project.git.checkout import CheckoutService
 from dev_project.git.link import HandleOdooProjectLink
@@ -24,8 +24,10 @@ from dev_project.git.service_sources import (
     materialize_one_service_source,
 )
 from dev_project.git.worktree import (
+    _fetch_mirror_target,
     bind_link_to_worktree_layout,
     configure_link_worktree_context,
+    ensure_bare_mirror,
     git_worktree_requested,
     head_sha,
     materialize_link_as_worktree,
@@ -475,6 +477,165 @@ class ServiceSourcesWorktreeTests(unittest.TestCase):
                 paths["sidecar"],
                 worktree_path(projects, "mr-7", repo_key),
             )
+
+
+class NarrowMirrorFetchArgvTests(unittest.TestCase):
+    """Assert narrow fetch argv: no all-heads / --tags (ADR-028 amendment)."""
+
+    def _link(self, **kwargs) -> HandleOdooProjectLink:
+        link = HandleOdooProjectLink(
+            "https://example.com/org/demo.git",
+            "",
+            "/tmp/projects",
+            system_type="standart",
+        )
+        link.gitlink = "https://example.com/org/demo.git"
+        link.commit_explicit = False
+        link.branch_explicit = False
+        link.commit = ""
+        link.branch = ""
+        for key, value in kwargs.items():
+            setattr(link, key, value)
+        return link
+
+    def _capture_fetch_args(self, link, *, odoo_version=None):
+        seen: list[list[str]] = []
+
+        def fake_run_git(lnk, args, *, cwd, capture=True, check=False):
+            seen.append(list(args))
+            return mock.MagicMock(returncode=0, stdout="", stderr="")
+
+        with mock.patch(
+            "dev_project.git.worktree._run_git", side_effect=fake_run_git
+        ):
+            _fetch_mirror_target(
+                link, mirror="/mirrors/demo.git", odoo_version=odoo_version
+            )
+        return seen
+
+    def test_tip_fetch_has_no_wide_refspec(self) -> None:
+        link = self._link()
+        seen = self._capture_fetch_args(link)
+        self.assertEqual(seen, [["fetch", "--depth", "1", "origin"]])
+        joined = " ".join(seen[0])
+        self.assertNotIn("+refs/heads/*", joined)
+        self.assertNotIn("--tags", joined)
+
+    def test_tip_falls_back_to_head(self) -> None:
+        link = self._link()
+        seen: list[list[str]] = []
+        calls = {"n": 0}
+
+        def fake_run_git(lnk, args, *, cwd, capture=True, check=False):
+            seen.append(list(args))
+            calls["n"] += 1
+            code = 1 if calls["n"] == 1 else 0
+            return mock.MagicMock(returncode=code, stdout="", stderr="")
+
+        with mock.patch(
+            "dev_project.git.worktree._run_git", side_effect=fake_run_git
+        ):
+            _fetch_mirror_target(link, mirror="/mirrors/demo.git")
+        self.assertEqual(
+            seen,
+            [
+                ["fetch", "--depth", "1", "origin"],
+                ["fetch", "--depth", "1", "origin", "HEAD"],
+            ],
+        )
+
+    def test_commit_fetch_includes_sha(self) -> None:
+        sha = "abc123def456"
+        link = self._link(commit=sha, commit_explicit=True)
+        seen = self._capture_fetch_args(link)
+        self.assertEqual(seen, [["fetch", "--depth", "1", "origin", sha]])
+
+    def test_commit_fetch_failure_raises_without_wide_fallback(self) -> None:
+        link = self._link(commit="deadbeef", commit_explicit=True)
+        seen: list[list[str]] = []
+
+        def fake_run_git(lnk, args, *, cwd, capture=True, check=False):
+            seen.append(list(args))
+            return mock.MagicMock(returncode=1, stdout="", stderr="")
+
+        with mock.patch(
+            "dev_project.git.worktree._run_git", side_effect=fake_run_git
+        ):
+            with self.assertRaises(GitError):
+                _fetch_mirror_target(link, mirror="/mirrors/demo.git")
+        self.assertEqual(len(seen), 1)
+        self.assertNotIn("+refs/heads/*", " ".join(seen[0]))
+
+    def test_branch_fetch_refspec(self) -> None:
+        link = self._link(branch="19.0", branch_explicit=True)
+        seen = self._capture_fetch_args(link)
+        self.assertEqual(
+            seen,
+            [
+                [
+                    "fetch",
+                    "--depth",
+                    "1",
+                    "origin",
+                    "+refs/heads/19.0:refs/heads/19.0",
+                ]
+            ],
+        )
+
+    def test_odoo_version_fetch_refspec(self) -> None:
+        link = self._link()
+        seen = self._capture_fetch_args(link, odoo_version="18.0")
+        self.assertEqual(
+            seen,
+            [
+                [
+                    "fetch",
+                    "--depth",
+                    "1",
+                    "origin",
+                    "+refs/heads/18.0:refs/heads/18.0",
+                ]
+            ],
+        )
+
+    def test_skip_fetch_does_not_call_narrow(self) -> None:
+        link = self._link(commit="abc", commit_explicit=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            mirror = os.path.join(tmp, "demo.git")
+            os.makedirs(mirror)
+            with mock.patch(
+                "dev_project.git.worktree._fetch_mirror_target"
+            ) as narrow:
+                ensure_bare_mirror(link, mirror=mirror, skip_fetch=True)
+                narrow.assert_not_called()
+
+    def test_first_clone_non_platform_uses_depth(self) -> None:
+        link = self._link()
+        with tempfile.TemporaryDirectory() as tmp:
+            mirror = os.path.join(tmp, "mirrors", "demo.git")
+            parent = os.path.dirname(mirror)
+            os.makedirs(parent)
+            clone_cmds: list[list[str]] = []
+
+            def fake_run_logged(cmd, cwd=None):
+                clone_cmds.append(list(cmd))
+                os.makedirs(mirror)
+                return 0
+
+            with mock.patch(
+                "dev_project.git.worktree.run_logged", side_effect=fake_run_logged
+            ):
+                with mock.patch(
+                    "dev_project.git.worktree._fetch_mirror_target"
+                ) as narrow:
+                    ensure_bare_mirror(
+                        link, mirror=mirror, skip_fetch=False, odoo_version=None
+                    )
+                    narrow.assert_called_once()
+            self.assertTrue(clone_cmds)
+            self.assertIn("--depth", clone_cmds[0])
+            self.assertIn("1", clone_cmds[0])
+            self.assertIn("--bare", clone_cmds[0])
 
 
 if __name__ == "__main__":
