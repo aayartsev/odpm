@@ -37,6 +37,26 @@ RU_MESSAGES: dict[str, str] = {
     "--no-git-update requires an existing bare mirror at {PATH}": (
         "--no-git-update требует существующее bare-зеркало в {PATH}"
     ),
+    "--no-git-update requires an existing bare mirror at {PATH} "
+    "or a matching classic clone to seed from": (
+        "--no-git-update требует существующее bare-зеркало в {PATH} "
+        "или подходящий classic-клон для посева"
+    ),
+    "--no-git-update: commit {COMMIT} not found in "
+    "bare mirror or classic clone": (
+        "--no-git-update: коммит {COMMIT} не найден в "
+        "bare-зеркале или classic-клоне"
+    ),
+    "--no-git-update: commit {COMMIT} not found in "
+    "bare mirror {PATH}": (
+        "--no-git-update: коммит {COMMIT} не найден в "
+        "bare-зеркале {PATH}"
+    ),
+    "--no-git-update: cannot resolve odoo_build_date from "
+    "local bare/classic history: {ERROR}": (
+        "--no-git-update: не удалось разрешить odoo_build_date из "
+        "локальной истории bare/classic: {ERROR}"
+    ),
     "Commit {COMMIT} was not fetched into bare mirror {PATH} "
     "(exit {CODE})": (
         "Коммит {COMMIT} не получен в bare-зеркало {PATH} "

@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **Посев bare с classic; дата платформы до worktree** — при `ODPM_GIT_WORKTREE` / `--git-worktree` подходящий обычный clone под `ODOO_PROJECTS_DIR` может засеять `mirrors/` без сети к origin; `odoo_build_date` платформы резолвится в bare до первого worktree тенанта (без промежуточного tip). `--no-git-update` по-прежнему без origin, но посев с диска разрешён. Те же id шагов prepare. Документация: ADR-028, `prepare-zones.md`, `project-layout.md`. Тесты: `test_git_worktree`.
 - **Узкий fetch bare-зеркала в режиме worktree** — при `ODPM_GIT_WORKTREE` / `--git-worktree` общее зеркало под `ODOO_PROJECTS_DIR/mirrors/` тянет только нужный commit или кончик ветки (глубина 1), без синхронизации всех веток и тегов. Углубление истории по-прежнему только для `odoo_build_date`. Флаги команд и выбор SHA для worktree не менялись. Документация: ADR-028, `project-layout.md`. Тесты: `test_git_worktree`.
 
 - **Уход от Config, кампания H: AssembledProject вместо публичного Config** — класс сборщика переименован в `AssembledProject`; пакет больше не реэкспортирует `Config`; фасады git/symlink/nested/odoo.conf-docker только на ручке; гейт `tests/test_no_public_config.py`. Поведение команд для пользователя не изменилось. Документация: ADR-003, ADR-030, `config-zones.md`.

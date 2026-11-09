@@ -10,6 +10,7 @@ from ..git.worktree import (
     configure_link_worktree_context,
     git_worktree_requested,
     is_git_work_tree,
+    materialize_platform_worktree,
     tenant_id_from_project_dir,
 )
 from ..logging import get_module_logger
@@ -135,11 +136,28 @@ class GitRepoCoordinator:
             ensure_developing_repo_symlinks(BootstrapHandle(_assembled=self.config))
 
     def materialize_platform(self, *, skip_build_date: bool = False) -> None:
-        self._maybe_enable_worktree(self.config.odoo_platform_project)
+        link = self.config.odoo_platform_project
+        self._maybe_enable_worktree(link)
         try:
-            self.config.odoo_platform_project.build_project()
-            if not skip_build_date:
-                self.apply_odoo_build_date_to_platform()
+            if getattr(link, "worktree_mode", False) is True:
+                odoo_version = str(self.config.project_settings.odoo_version)
+                apply_build_date_fn = None
+                if not skip_build_date:
+                    build_date = self.config.project_settings.odoo_build_date
+
+                    def _apply_build_date() -> None:
+                        link.apply_build_date(build_date, odoo_version)
+
+                    apply_build_date_fn = _apply_build_date
+                materialize_platform_worktree(
+                    link,
+                    odoo_version=odoo_version,
+                    apply_build_date_fn=apply_build_date_fn,
+                )
+            else:
+                link.build_project()
+                if not skip_build_date:
+                    self.apply_odoo_build_date_to_platform()
         finally:
             platform_path = self.config.odoo_platform_project.project_path
             self.config.odoo_src_dir = platform_path

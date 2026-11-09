@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Seed bare from classic; platform build-date before worktree** — with `ODPM_GIT_WORKTREE` / `--git-worktree`, a matching classic clone under `ODOO_PROJECTS_DIR` can seed `mirrors/` without origin traffic; platform `odoo_build_date` resolves in the bare before the first tenant worktree (no tip worktree first). `--no-git-update` still blocks origin but allows disk seed. Same prepare step ids. Docs: ADR-028, `prepare-zones.md`, `project-layout.md`. Tests: `test_git_worktree`.
 - **Narrow bare-mirror fetch in worktree mode** — with `ODPM_GIT_WORKTREE` / `--git-worktree`, shared mirrors under `ODOO_PROJECTS_DIR/mirrors/` fetch only the target commit or branch tip at depth 1 (no all-heads / tags sync). History deepen still runs only for `odoo_build_date`. Command flags and worktree SHA resolution are unchanged. Docs: ADR-028, `project-layout.md`. Tests: `test_git_worktree`.
 
 - **Config retire H: AssembledProject replaces public Config** — assembler class renamed to `AssembledProject`; package no longer re-exports `Config`; git/symlink/nested/odoo.conf-docker facades live on `BootstrapHandle` only; CI gate `tests/test_no_public_config.py`. User-facing command behavior is unchanged. Docs: ADR-003, ADR-030, `config-zones.md`.

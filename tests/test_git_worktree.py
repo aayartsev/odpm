@@ -26,11 +26,14 @@ from dev_project.git.service_sources import (
 from dev_project.git.worktree import (
     _fetch_mirror_target,
     bind_link_to_worktree_layout,
+    classic_clone_path,
     configure_link_worktree_context,
     ensure_bare_mirror,
+    ensure_bare_store,
     git_worktree_requested,
     head_sha,
     materialize_link_as_worktree,
+    materialize_platform_worktree,
     mirror_path,
     repo_file_lock,
     repo_key_from_relative_path,
@@ -636,6 +639,155 @@ class NarrowMirrorFetchArgvTests(unittest.TestCase):
             self.assertIn("--depth", clone_cmds[0])
             self.assertIn("1", clone_cmds[0])
             self.assertIn("--bare", clone_cmds[0])
+
+
+class SeedBareFromClassicTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.root = self._tmpdir.name
+        self.projects = os.path.join(self.root, "projects")
+        os.makedirs(self.projects)
+        self.classic = os.path.join(self.projects, "example.com", "org", "demo")
+        self.sha1, self.sha2 = _init_remote_repo(self.classic)
+        _git(self.classic, "remote", "add", "origin", "https://example.com/org/demo.git")
+
+    def tearDown(self) -> None:
+        self._tmpdir.cleanup()
+
+    def _link(self, *, skip: bool = False) -> HandleOdooProjectLink:
+        link = HandleOdooProjectLink(
+            "https://example.com/org/demo.git",
+            "",
+            self.projects,
+            system_type="standart",
+        )
+        link.gitlink = "https://example.com/org/demo.git"
+        configure_link_worktree_context(
+            link, tenant="mr-1", skip_git_update=skip
+        )
+        return link
+
+    def test_classic_clone_path_detected(self) -> None:
+        link = self._link()
+        self.assertEqual(classic_clone_path(link), self.classic)
+
+    def test_seed_bare_without_origin_network(self) -> None:
+        link = self._link(skip=True)
+        link.commit = self.sha2
+        link.commit_explicit = True
+        mirror = mirror_path(
+            self.projects,
+            repo_key_from_relative_path(link.project_data.relative_path),
+        )
+        ensure_bare_store(
+            link,
+            mirror=mirror,
+            skip_network=True,
+            fetch_target=True,
+        )
+        self.assertTrue(os.path.isdir(mirror))
+        origin = _git(mirror, "remote", "get-url", "origin")
+        self.assertEqual(
+            origin.rstrip("/").rstrip(".git"),
+            "https://example.com/org/demo",
+        )
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{self.sha2}^{{commit}}"],
+            cwd=mirror,
+            check=True,
+            capture_output=True,
+        )
+
+    def test_seed_then_worktree_leaves_classic(self) -> None:
+        link = self._link(skip=False)
+        link.commit = self.sha2
+        link.commit_explicit = True
+        path = materialize_link_as_worktree(link)
+        self.assertEqual(head_sha(link, path), self.sha2)
+        self.assertTrue((Path(self.classic) / "README").is_file())
+        self.assertTrue(
+            os.path.isdir(
+                mirror_path(
+                    self.projects,
+                    repo_key_from_relative_path(link.project_data.relative_path),
+                )
+            )
+        )
+
+    def test_skip_without_bare_or_classic_raises(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            projects = os.path.join(tmp, "projects")
+            os.makedirs(projects)
+            link = HandleOdooProjectLink(
+                "https://example.com/org/missing.git",
+                "",
+                projects,
+                system_type="standart",
+            )
+            link.gitlink = "https://example.com/org/missing.git"
+            configure_link_worktree_context(
+                link, tenant="mr-1", skip_git_update=True
+            )
+            mirror = mirror_path(
+                projects,
+                repo_key_from_relative_path(link.project_data.relative_path),
+            )
+            with self.assertRaises(ConfigError):
+                ensure_bare_store(
+                    link, mirror=mirror, skip_network=True, fetch_target=True
+                )
+
+    def test_platform_worktree_applies_date_before_add(self) -> None:
+        link = self._link()
+        link.commit = ""
+        link.commit_explicit = False
+        worktree_adds: list[str] = []
+        resolved = {"n": 0}
+        order: list[str] = []
+
+        def fake_apply() -> None:
+            order.append("apply_date")
+            link.commit = self.sha1
+            link.commit_explicit = True
+            resolved["n"] += 1
+
+        def track_run(lnk, args, *, cwd, capture=True, check=False):
+            if args and args[0] == "worktree" and "add" in args:
+                order.append("worktree_add")
+                worktree_adds.append(args[-1])
+                wt = args[args.index("--detach") + 1]
+                os.makedirs(wt, exist_ok=True)
+                (Path(wt) / ".git").write_text("gitdir: fake\n", encoding="utf-8")
+                return mock.MagicMock(returncode=0, stdout="", stderr="")
+            if args[:2] == ["rev-parse", "--verify"]:
+                ref = args[2]
+                if ref == self.sha1 or (
+                    link.commit_explicit and ref == link.commit
+                ):
+                    return mock.MagicMock(
+                        returncode=0, stdout=self.sha1 + "\n", stderr=""
+                    )
+                return mock.MagicMock(returncode=1, stdout="", stderr="")
+            return mock.MagicMock(returncode=0, stdout="", stderr="")
+
+        with mock.patch(
+            "dev_project.git.worktree.ensure_bare_store"
+        ) as bare:
+            bare.side_effect = lambda *a, **k: order.append("bare")
+            with mock.patch(
+                "dev_project.git.worktree._run_git", side_effect=track_run
+            ):
+                with mock.patch(
+                    "dev_project.git.worktree.is_git_work_tree", return_value=False
+                ):
+                    materialize_platform_worktree(
+                        link,
+                        odoo_version="19.0",
+                        apply_build_date_fn=fake_apply,
+                    )
+        self.assertEqual(resolved["n"], 1)
+        self.assertEqual(worktree_adds, [self.sha1])
+        self.assertEqual(order, ["bare", "apply_date", "worktree_add"])
 
 
 if __name__ == "__main__":

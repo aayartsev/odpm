@@ -14,11 +14,23 @@ msgstr "(нет)"
 msgid "--no-git-update requires an existing bare mirror at {PATH}"
 msgstr "--no-git-update требует существующее bare-зеркало в {PATH}"
 
+msgid "--no-git-update requires an existing bare mirror at {PATH} or a matching classic clone to seed from"
+msgstr "--no-git-update требует существующее bare-зеркало в {PATH} или подходящий classic-клон для посева"
+
 msgid "--no-git-update requires an existing worktree at {PATH}"
 msgstr "--no-git-update требует существующее worktree в {PATH}"
 
 msgid "--no-git-update requires existing service_sources directories: {PATHS}"
 msgstr "--no-git-update требует существующие каталоги service_sources: {PATHS}"
+
+msgid "--no-git-update: cannot resolve odoo_build_date from local bare/classic history: {ERROR}"
+msgstr "--no-git-update: не удалось разрешить odoo_build_date из локальной истории bare/classic: {ERROR}"
+
+msgid "--no-git-update: commit {COMMIT} not found in bare mirror or classic clone"
+msgstr "--no-git-update: коммит {COMMIT} не найден в bare-зеркале или classic-клоне"
+
+msgid "--no-git-update: commit {COMMIT} not found in bare mirror {PATH}"
+msgstr "--no-git-update: коммит {COMMIT} не найден в bare-зеркале {PATH}"
 
 msgid "--no-git-update: worktree at {PATH} is on {HAVE}, expected {WANT}; refuse to recreate"
 msgstr "--no-git-update: worktree в {PATH} на коммите {HAVE}, ожидался {WANT}; пересоздание запрещено"

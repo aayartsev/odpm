@@ -137,6 +137,105 @@ def _branch_refspec(branch: str) -> str:
     return f"+refs/heads/{branch}:refs/heads/{branch}"
 
 
+def classic_clone_path(link: HandleOdooProjectLink) -> Optional[str]:
+    """Path to a sibling classic working tree under ``ODOO_PROJECTS_DIR``, if any."""
+    relative = ""
+    project_data = getattr(link, "project_data", None)
+    if project_data is not None:
+        relative = getattr(project_data, "relative_path", "") or ""
+    relative = (relative or "").strip().lstrip("/")
+    if not relative:
+        return None
+    path = os.path.join(link.start_dir_to_clone, relative)
+    if is_git_work_tree(path):
+        return path
+    return None
+
+
+def _normalize_git_url(url: str) -> str:
+    return (url or "").strip().rstrip(".git").rstrip("/")
+
+
+def classic_remote_matches(link: HandleOdooProjectLink, classic_path: str) -> bool:
+    """True when classic ``origin`` matches the link URL (same rules as check_repo_url)."""
+    expected = _normalize_git_url(link.gitlink or link.project_link or "")
+    if not expected:
+        return False
+    result = _run_git(link, ["remote", "get-url", "origin"], cwd=classic_path)
+    if result.returncode != 0:
+        return False
+    actual = _normalize_git_url((result.stdout or "").strip())
+    return actual == expected
+
+
+def _set_mirror_origin_url(link: HandleOdooProjectLink, mirror: str) -> None:
+    url = link.gitlink or link.project_link
+    if not url:
+        return
+    result = _run_git(
+        link, ["remote", "get-url", "origin"], cwd=mirror, capture=True
+    )
+    if result.returncode != 0:
+        _run_git(
+            link,
+            ["remote", "add", "origin", url],
+            cwd=mirror,
+            capture=False,
+            check=True,
+        )
+        return
+    _run_git(
+        link,
+        ["remote", "set-url", "origin", url],
+        cwd=mirror,
+        capture=False,
+        check=True,
+    )
+
+
+def _seed_bare_from_classic(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    classic_path: str,
+) -> None:
+    """Create bare mirror from a local classic clone; set origin to the link URL."""
+    parent = os.path.dirname(mirror)
+    os.makedirs(parent, exist_ok=True)
+    returncode = run_logged(
+        _git_cmd(link, ["clone", "--bare", classic_path, mirror]),
+        cwd=parent,
+    )
+    if returncode != 0:
+        raise GitError(
+            f"git clone --bare from classic {classic_path!r} failed "
+            f"(exit code {returncode})"
+        )
+    _set_mirror_origin_url(link, mirror)
+    _logger.info(
+        "Seeded bare mirror from classic clone path=%s mirror=%s",
+        classic_path,
+        mirror,
+    )
+
+
+def _fetch_ref_from_classic(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    classic_path: str,
+    ref: str,
+) -> bool:
+    """Fetch ``ref`` from classic into bare. Returns True on success."""
+    result = _run_git(
+        link,
+        ["fetch", classic_path, ref],
+        cwd=mirror,
+        capture=False,
+    )
+    return result.returncode == 0
+
+
 def _fetch_mirror_target(
     link: HandleOdooProjectLink,
     *,
@@ -232,6 +331,153 @@ def _fetch_mirror_target(
         )
 
 
+def _matching_classic(link: HandleOdooProjectLink) -> Optional[str]:
+    classic = classic_clone_path(link)
+    if classic and classic_remote_matches(link, classic):
+        return classic
+    return None
+
+
+def _clone_bare_from_network(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    odoo_version: Optional[str],
+) -> None:
+    url = link.gitlink or link.project_link
+    parent = os.path.dirname(mirror)
+    clone_args = [
+        "clone",
+        "--bare",
+        "--depth",
+        str(constants.PLATFORM_GIT_CLONE_DEPTH),
+    ]
+    if link.branch_explicit and not link.commit_explicit:
+        clone_args.extend(["-b", link.branch])
+    elif (odoo_version or "").strip() and not link.commit_explicit:
+        clone_args.extend(["-b", str(odoo_version).strip()])
+    clone_args.extend([url, mirror])
+    returncode = run_logged(_git_cmd(link, clone_args), cwd=parent)
+    if returncode != 0:
+        raise GitError(
+            f"git clone --bare failed for {url!r} (exit code {returncode})"
+        )
+
+
+def _require_commit_locally(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    classic: Optional[str],
+) -> None:
+    """Ensure explicit commit is in bare; may fetch from classic only."""
+    if not (link.commit_explicit and link.commit):
+        return
+    if _rev_parse(link, mirror, link.commit):
+        return
+    if classic and _fetch_ref_from_classic(
+        link, mirror=mirror, classic_path=classic, ref=link.commit
+    ):
+        return
+    if classic:
+        raise ConfigError(
+            _(
+                "--no-git-update: commit {COMMIT} not found in "
+                "bare mirror or classic clone"
+            ).format(COMMIT=link.commit)
+        )
+    raise ConfigError(
+        _(
+            "--no-git-update: commit {COMMIT} not found in "
+            "bare mirror {PATH}"
+        ).format(COMMIT=link.commit, PATH=mirror)
+    )
+
+
+def _refresh_target_from_disk_or_origin(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    classic: Optional[str],
+    skip_network: bool,
+    odoo_version: Optional[str],
+) -> None:
+    if link.commit_explicit and link.commit and _rev_parse(link, mirror, link.commit):
+        return
+    if link.commit_explicit and link.commit and classic:
+        _fetch_ref_from_classic(
+            link, mirror=mirror, classic_path=classic, ref=link.commit
+        )
+        if _rev_parse(link, mirror, link.commit):
+            return
+        if skip_network:
+            _require_commit_locally(link, mirror=mirror, classic=classic)
+            return
+    if skip_network:
+        _require_commit_locally(link, mirror=mirror, classic=classic)
+        return
+    _fetch_mirror_target(link, mirror=mirror, odoo_version=odoo_version)
+
+
+def ensure_bare_store(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    skip_network: bool = False,
+    odoo_version: Optional[str] = None,
+    fetch_target: bool = True,
+) -> None:
+    """Ensure bare exists (seed from classic or network); optionally narrow-fetch.
+
+    ``skip_network`` forbids origin traffic but allows seeding / fetch from a
+    matching classic clone on disk.
+    """
+    parent = os.path.dirname(mirror)
+    os.makedirs(parent, exist_ok=True)
+    classic = _matching_classic(link)
+
+    if not os.path.isdir(mirror):
+        if classic:
+            _seed_bare_from_classic(link, mirror=mirror, classic_path=classic)
+        elif skip_network:
+            raise ConfigError(
+                _(
+                    "--no-git-update requires an existing bare mirror at {PATH} "
+                    "or a matching classic clone to seed from"
+                ).format(PATH=mirror)
+            )
+        else:
+            _clone_bare_from_network(
+                link, mirror=mirror, odoo_version=odoo_version
+            )
+        if fetch_target:
+            _refresh_target_from_disk_or_origin(
+                link,
+                mirror=mirror,
+                classic=classic,
+                skip_network=skip_network,
+                odoo_version=odoo_version,
+            )
+        return
+
+    if skip_network:
+        # Empty placeholder dirs (tests / partial setup): same as prior early return.
+        if not os.path.isdir(os.path.join(mirror, "objects")):
+            return
+        if fetch_target:
+            _require_commit_locally(link, mirror=mirror, classic=classic)
+        return
+
+    if fetch_target:
+        _refresh_target_from_disk_or_origin(
+            link,
+            mirror=mirror,
+            classic=classic,
+            skip_network=False,
+            odoo_version=odoo_version,
+        )
+
+
 def ensure_bare_mirror(
     link: HandleOdooProjectLink,
     *,
@@ -239,37 +485,14 @@ def ensure_bare_mirror(
     skip_fetch: bool = False,
     odoo_version: Optional[str] = None,
 ) -> None:
-    """Clone ``--bare --depth 1`` if missing; narrow-fetch unless ``skip_fetch``."""
-    url = link.gitlink or link.project_link
-    parent = os.path.dirname(mirror)
-    os.makedirs(parent, exist_ok=True)
-    if not os.path.isdir(mirror):
-        if skip_fetch:
-            # Caller should have raised ConfigError before clone; keep defensive.
-            raise ConfigError(
-                _(
-                    "--no-git-update requires an existing bare mirror at {PATH}"
-                ).format(PATH=mirror)
-            )
-        clone_args = [
-            "clone",
-            "--bare",
-            "--depth",
-            str(constants.PLATFORM_GIT_CLONE_DEPTH),
-        ]
-        if link.branch_explicit and not link.commit_explicit:
-            clone_args.extend(["-b", link.branch])
-        clone_args.extend([url, mirror])
-        returncode = run_logged(_git_cmd(link, clone_args), cwd=parent)
-        if returncode != 0:
-            raise GitError(
-                f"git clone --bare failed for {url!r} (exit code {returncode})"
-            )
-        _fetch_mirror_target(link, mirror=mirror, odoo_version=odoo_version)
-        return
-    if skip_fetch:
-        return
-    _fetch_mirror_target(link, mirror=mirror, odoo_version=odoo_version)
+    """Clone/seed bare if missing; narrow-fetch unless ``skip_fetch``."""
+    ensure_bare_store(
+        link,
+        mirror=mirror,
+        skip_network=skip_fetch,
+        odoo_version=odoo_version,
+        fetch_target=True,
+    )
 
 
 def resolve_target_sha(
@@ -430,6 +653,46 @@ def bind_link_to_worktree_layout(link: HandleOdooProjectLink) -> str | None:
     return wt
 
 
+def _materialize_link_as_worktree_locked(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    wt_path: str,
+    odoo_version: Optional[str] = None,
+    fetch_target: bool = True,
+) -> str:
+    """Bare + worktree under an already-held repo lock."""
+    allow_update = not bool(getattr(link, "worktree_skip_update", False))
+    ensure_bare_store(
+        link,
+        mirror=mirror,
+        skip_network=not allow_update,
+        odoo_version=odoo_version,
+        fetch_target=fetch_target,
+    )
+    link.worktree_mirror = mirror
+    sha = resolve_target_sha(link, mirror=mirror, odoo_version=odoo_version)
+    ensure_worktree_at_sha(
+        link,
+        mirror=mirror,
+        wt_path=wt_path,
+        sha=sha,
+        allow_update=allow_update,
+    )
+    link.project_path = wt_path
+    link.dir_to_clone = os.path.dirname(wt_path)
+    link.is_cloned = True
+    repo_key = repo_key_from_relative_path(link.project_data.relative_path)
+    _logger.info(
+        "Worktree ready tenant=%s repo=%s sha=%s path=%s",
+        getattr(link, "worktree_tenant", ""),
+        repo_key,
+        sha[:12],
+        wt_path,
+    )
+    return wt_path
+
+
 def materialize_link_as_worktree(
     link: HandleOdooProjectLink,
     *,
@@ -444,21 +707,61 @@ def materialize_link_as_worktree(
     mirror = mirror_path(root, repo_key)
     wt = worktree_path(root, tenant, repo_key)
     lock = mirror + ".lock"
+
+    with repo_file_lock(lock):
+        return _materialize_link_as_worktree_locked(
+            link,
+            mirror=mirror,
+            wt_path=wt,
+            odoo_version=odoo_version,
+            fetch_target=True,
+        )
+
+
+def materialize_platform_worktree(
+    link: HandleOdooProjectLink,
+    *,
+    odoo_version: str,
+    apply_build_date_fn=None,
+) -> str:
+    """Platform: bare (+seed) → optional ``apply_build_date_fn`` → one worktree.
+
+    ``apply_build_date_fn`` is a zero-arg callable (already bound to date/version).
+    One mirror lock — no tip worktree before the date resolves.
+    """
+    tenant = getattr(link, "worktree_tenant", None)
+    if not tenant:
+        raise ConfigError(_("worktree_tenant is not set on git link"))
+    repo_key = repo_key_from_relative_path(link.project_data.relative_path)
+    root = link.start_dir_to_clone
+    mirror = mirror_path(root, repo_key)
+    wt = worktree_path(root, tenant, repo_key)
+    lock = mirror + ".lock"
     allow_update = not bool(getattr(link, "worktree_skip_update", False))
 
     with repo_file_lock(lock):
-        if not allow_update and not os.path.isdir(mirror):
-            raise ConfigError(
-                _(
-                    "--no-git-update requires an existing bare mirror at {PATH}"
-                ).format(PATH=mirror)
-            )
-        ensure_bare_mirror(
+        ensure_bare_store(
             link,
             mirror=mirror,
-            skip_fetch=not allow_update,
+            skip_network=not allow_update,
             odoo_version=odoo_version,
+            fetch_target=True,
         )
+        link.worktree_mirror = mirror
+        link.project_path = wt
+        link.dir_to_clone = os.path.dirname(wt)
+        if apply_build_date_fn is not None:
+            try:
+                apply_build_date_fn()
+            except (GitError, RuntimeError, ValueError) as error:
+                if not allow_update:
+                    raise ConfigError(
+                        _(
+                            "--no-git-update: cannot resolve odoo_build_date from "
+                            "local bare/classic history: {ERROR}"
+                        ).format(ERROR=error)
+                    ) from error
+                raise
         sha = resolve_target_sha(link, mirror=mirror, odoo_version=odoo_version)
         ensure_worktree_at_sha(
             link,
@@ -467,19 +770,18 @@ def materialize_link_as_worktree(
             sha=sha,
             allow_update=allow_update,
         )
-
-    link.project_path = wt
-    link.dir_to_clone = os.path.dirname(wt)
-    link.is_cloned = True
-    link.worktree_mirror = mirror
-    _logger.info(
-        "Worktree ready tenant=%s repo=%s sha=%s path=%s",
-        tenant,
-        repo_key,
-        sha[:12],
-        wt,
-    )
-    return wt
+        link.project_path = wt
+        link.dir_to_clone = os.path.dirname(wt)
+        link.is_cloned = True
+        link.worktree_mirror = mirror
+        _logger.info(
+            "Worktree ready tenant=%s repo=%s sha=%s path=%s",
+            tenant,
+            repo_key,
+            sha[:12],
+            wt,
+        )
+        return wt
 
 
 def sync_worktree_to_resolved_ref(

@@ -17,6 +17,8 @@
 
 В таблице `odpm plan` те же зоны показаны заголовками групп (только подписи; id и порядок реестра не меняются).
 
+Флаг `--git-worktree` / `ODPM_GIT_WORKTREE` меняет **способ** наполнения исходников внутри `git.materialize_*` и `sources.materialize` (bare → SHA → worktree), не набор и не порядок id шагов (ADR-028).
+
 ## Порядок клонов (инвариант)
 
 1. Проект разработки (`git.materialize_developing`)

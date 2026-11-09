@@ -23,21 +23,23 @@ Sharing one platform worktree by commit SHA across tenants is a later optimizati
 
 4. **`service_sources`:** in worktree mode, remote sources use the same `mirrors/` + `worktrees/<tenant>/…` layout (not `service-sources/<name>`). Project symlinks still point at the worktree path. Classic `service-sources/<name>` remains when the mode is off.
 
-5. **No migration of old clones.** Worktree mode only writes under `mirrors/` and `worktrees/`. Existing working copies beside them are left alone.
+5. **No migration of old clones.** Worktree mode only writes under `mirrors/` and `worktrees/`. Existing working copies beside them are left alone (may be read as a seed source).
 
-6. **Materialize:** under a file lock per mirror — narrow-fetch bare → `git worktree add` (reuse if the path is already on the same SHA) → project symlinks to the worktree. If the path exists on another SHA and `--no-git-update` is **not** set — `worktree remove` + add. Do not `git checkout` inside a shared working tree.
+6. **Materialize (inside existing prepare steps):** no new prepare step ids. Per repository, under a file lock: fill bare → final SHA → one `git worktree add` (reuse if already on that SHA). Project symlinks point at the worktree. Do not `git checkout` inside a shared working tree. Flag changes *how* `git.materialize_*` / `sources.materialize` fill disk, not the registry order.
 
-7. **Narrow bare fetch (amendment):** do **not** sync all heads/tags into the mirror. First `clone --bare --depth 1` (with `-b` when a branch is explicit and commit is not); then fetch only the target: explicit commit → that SHA; else explicit branch → that branch tip; else `odoo_version` as branch name; else tip (`fetch origin`, then `origin HEAD`). Depth stays 1. A failed commit fetch raises `GitError` with no wide fallback. Choosing the worktree SHA (`resolve_target_sha`) is unchanged.
+7. **Seed from classic (amendment):** if bare is missing and `{ODOO_PROJECTS_DIR}/{repo-key}/` is a git tree whose `origin` matches the link URL, create the bare with `git clone --bare` from that path and set `origin` to the link URL (no origin network for the seed itself). If bare exists but lacks a needed object, `git fetch` from the classic path. Never `clone --bare` over an existing mirror.
 
-8. **`odoo_build_date` / deepen:** resolve and deepen history in the **bare** mirror (the only place that widens history beyond depth 1), then point the tenant worktree at the found SHA.
+8. **Narrow bare fetch:** do **not** sync all heads/tags. Prefer seed; else `clone --bare --depth 1` (with `-b` when branch/`odoo_version` applies and commit is not explicit); then fetch only the target commit/branch/tip. Depth stays 1 until build-date deepen. Failed commit fetch raises `GitError` with no wide fallback.
 
-9. **`file://` and local trees:** always classic behaviour even when the flag is on.
+9. **`odoo_build_date` / deepen:** for platform in worktree mode — set `worktree_mirror` on the bare **before** resolve; run `apply_build_date` (shallow-since / deepen) in the bare **before** the first worktree add. Tip after depth 1 is not the final slice. Deepen only inside the build-date resolver.
 
-10. **`--no-git-update`:** no fetch when the bare mirror already exists; reuse when the worktree exists on the expected SHA; otherwise `ConfigError` (no remove/recreate; no clone of a missing mirror).
+10. **`file://` and local trees:** always classic behaviour even when the flag is on.
 
-11. **One filesystem:** bare and worktrees must share a filesystem (cluster: one volume). Cleanup of tenant worktrees is manual in this version (`git worktree remove` / delete under `worktrees/<tenant>/`); no odpm prune command yet.
+11. **`--no-git-update`:** origin network forbidden; disk seed / fetch from matching classic allowed when objects exist locally; reuse worktree on expected SHA; otherwise `ConfigError` (including unresolved build date from local history only).
 
-12. **Out of scope here:** share-by-SHA across tenants; thin plan/ensure without an Odoo tree; meta-image/PVC packaging; auto-migration of full clones; tenant id override env; narrow fetch on the classic (non-worktree) clone path.
+12. **One filesystem:** bare and worktrees must share a filesystem (cluster: one volume). Cleanup of tenant worktrees is manual in this version (`git worktree remove` / delete under `worktrees/<tenant>/`); no odpm prune command yet.
+
+13. **Out of scope here:** share-by-SHA across tenants; thin plan/ensure without an Odoo tree; meta-image/PVC packaging; auto-migration/deletion of classic clones; tenant id override env; narrow fetch on the classic (non-worktree) path; separate prepare steps only for worktree.
 
 ## Consequences
 
