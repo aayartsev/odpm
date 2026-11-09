@@ -1311,6 +1311,9 @@ msgstr "docker-compose.yml present; full preview needs volume map"
 msgid "dockerfile template stale"
 msgstr "dockerfile template stale"
 
+msgid "dockerfile out of sync with .odpm template"
+msgstr "dockerfile out of sync with .odpm template"
+
 msgid "dockerfile template up to date"
 msgstr "dockerfile template up to date"
 

@@ -209,6 +209,9 @@ PLAN_L10N_RU: dict[str, str] = {
     ),
     "deps.lock.json": "deps.lock.json",
     "dockerfile template stale": "шаблон Dockerfile устарел",
+    "dockerfile out of sync with .odpm template": (
+        "корневой Dockerfile не совпадает с шаблоном в .odpm"
+    ),
     "dockerfile template up to date": "шаблон Dockerfile актуален",
     "dockerignore template stale": "шаблон dockerignore устарел",
     "dockerignore template up to date": "шаблон dockerignore актуален",

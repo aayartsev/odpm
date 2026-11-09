@@ -15,6 +15,7 @@ from ..plan.core import (
 )
 from ..plan.l10n import plan_msg
 from ..project_env.base_image_identity import base_image_identity_matches_host
+from ..project_env.templates import dockerfile_on_disk_needs_regeneration
 from .helpers import make_plan_step
 from .types import PrepareContext
 
@@ -40,6 +41,14 @@ def evaluate_template_dockerfile(ctx: PrepareContext) -> PlanStep:
             "update",
             True,
             plan_msg("dockerfile template stale"),
+        )
+    if dockerfile_on_disk_needs_regeneration(ctx.host_ctx):
+        return make_plan_step(
+            "template.dockerfile",
+            description,
+            "update",
+            True,
+            plan_msg("dockerfile out of sync with .odpm template"),
         )
     return make_plan_step(
         "template.dockerfile",

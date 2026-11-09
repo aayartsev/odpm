@@ -44,11 +44,13 @@ When the scenario default profile is wrong for a project (e.g. `ci` needs wkhtml
 
 `ProjectDirManager.ensure_project_template()` upgrades `.odpm/*_dockerfile_*` when program template **sha256** differs from the project copy (in addition to marker checks).
 
+`template.dockerfile` must also regenerate the project-root `Dockerfile` when that root file no longer matches the rendered `.odpm` template (content drift after a template sha upgrade). Marker-only / `base_image_identity` checks alone are not enough: identity hashes the **root** Dockerfile, so a refreshed `.odpm` copy can leave prepare as noop and leave kaniko/`docker build` on a stale root file.
+
 ## Consequences
 
 - Debian 12/13 ship `*_full`, `*_medium`, `*_ci` templates; Debian 11 may use a legacy single template. Other base-image distros are not supported.
 - First run after upgrade may rebuild base image once (expected).
-- `odpm plan` step `template.dockerfile` reports identity mismatch when profile or Dockerfile hash changes.
+- `odpm plan` step `template.dockerfile` reports identity mismatch when profile or Dockerfile hash changes, and updates when root Dockerfile is out of sync with the `.odpm` template.
 - Changing `ODPM_BASE_IMAGE_PROFILE` rebuilds the base image (tag and identity include the profile).
 
 ## Related

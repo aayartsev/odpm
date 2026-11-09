@@ -17,6 +17,14 @@ from dev_project.project_env.services import (
     VscodeConfigurator,
 )
 from dev_project.project_dir_manager import ProjectDirManager
+from dev_project.project_env.base_image_identity import (
+    expected_base_image_identity,
+    write_base_image_identity,
+)
+from dev_project.project_env.templates import (
+    dockerfile_on_disk_needs_regeneration,
+)
+from dev_project.prepare.steps_template import evaluate_template_dockerfile
 from dev_project.scenario_policy import ScenarioPolicy
 from dev_project.errors import SubprocessError
 
@@ -151,6 +159,94 @@ class ProjectTemplatesTests(unittest.TestCase):
             )
             self.assertIn(f"ARG USER_UID={constants.CONTAINER_USER_UID}", dockerfile)
             self.assertIn(f"ARG USER_NAME={constants.CONTAINER_USER}", dockerfile)
+
+    def _host_for_dockerfile(
+        self, project_dir: str, template_path: str, policy: ScenarioPolicy
+    ) -> MagicMock:
+        host = MagicMock()
+        host.project_dir = project_dir
+        host.docker_layout.project_dockerfile_template_path = template_path
+        host.policy = policy
+        host.project_settings.arch = "amd64"
+        host.project_settings.python_version = "3.12"
+        host.project_settings.distro_name = "debian"
+        host.project_settings.distro_version = "13"
+        host.project_settings.distro_version_codename = constants.DISTRO_INFO[
+            "debian"
+        ]["13"]
+        return host
+
+    def test_dockerfile_needs_regen_when_odpm_template_content_changes(self):
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            manager.rebuild_dockerfile_template(
+                docker_template_filename="debian_13_dockerfile_full"
+            )
+            template_path = os.path.join(
+                project_dir, ".odpm", "debian_13_dockerfile_full"
+            )
+            policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+            host = self._host_for_dockerfile(project_dir, template_path, policy)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.docker_layout.project_dockerfile_template_path = template_path
+            config.policy = policy
+            config.project_settings = host.project_settings
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
+            env._host_ctx = host
+            env._templates.generate_dockerfile()
+            self.assertFalse(dockerfile_on_disk_needs_regeneration(host))
+
+            Path(template_path).write_text(
+                Path(template_path).read_text(encoding="utf-8")
+                + "\n# odpm-template-bump\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(dockerfile_on_disk_needs_regeneration(host))
+
+    def test_evaluate_template_dockerfile_updates_when_root_out_of_sync(self):
+        """Stale root Dockerfile + matching identity + live markers → update."""
+        with tempfile.TemporaryDirectory() as project_dir:
+            manager = self._make_manager(project_dir)
+            manager.rebuild_dockerfile_template(
+                docker_template_filename="debian_13_dockerfile_full"
+            )
+            template_path = os.path.join(
+                project_dir, ".odpm", "debian_13_dockerfile_full"
+            )
+            policy = ScenarioPolicy.from_scenario(constants.CI_SCENARIO)
+            host = self._host_for_dockerfile(project_dir, template_path, policy)
+            config = MagicMock()
+            config.project_dir = project_dir
+            config.docker_layout.project_dockerfile_template_path = template_path
+            config.docker_layout.dockerfile_template_name = (
+                "debian_13_dockerfile_full"
+            )
+            config.policy = policy
+            config.project_settings = host.project_settings
+            env = CreateProjectEnvironment(BootstrapHandle(_assembled=config))
+            env._host_ctx = host
+            env._templates.generate_dockerfile()
+            write_base_image_identity(
+                project_dir, expected_base_image_identity(host)
+            )
+
+            Path(template_path).write_text(
+                Path(template_path).read_text(encoding="utf-8")
+                + "\n# force-conf-style bump\n",
+                encoding="utf-8",
+            )
+            # Markers still present; identity still matches old root Dockerfile.
+            self.assertIn(
+                "{PYTHON_VERSION}",
+                Path(template_path).read_text(encoding="utf-8"),
+            )
+
+            ctx = MagicMock()
+            ctx.host_ctx = host
+            step = evaluate_template_dockerfile(ctx)
+            self.assertEqual(step.outcome, "update")
+            self.assertTrue(step.reason)
 
 
 class BaseImageBuilderTests(unittest.TestCase):

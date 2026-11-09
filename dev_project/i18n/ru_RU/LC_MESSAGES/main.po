@@ -1310,6 +1310,9 @@ msgstr "docker-compose.yml присутствует; полный preview тре
 msgid "dockerfile template stale"
 msgstr "шаблон Dockerfile устарел"
 
+msgid "dockerfile out of sync with .odpm template"
+msgstr "корневой Dockerfile не совпадает с шаблоном в .odpm"
+
 msgid "dockerfile template up to date"
 msgstr "шаблон Dockerfile актуален"
 
