@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Stale worktree registration on a shared volume** — if `worktrees/<tenant>/…` vanished but the bare still lists it (`missing but already registered`), materialize runs `git worktree prune` and retries `worktree add --force` once instead of failing. Docs: ADR-028. Tests: `test_git_worktree`.
+
 ### Changed
 
 - **Seed bare from classic; platform build-date before worktree** — with `ODPM_GIT_WORKTREE` / `--git-worktree`, a matching classic clone under `ODOO_PROJECTS_DIR` can seed `mirrors/` without origin traffic; platform `odoo_build_date` resolves in the bare before the first tenant worktree (no tip worktree first). `--no-git-update` still blocks origin but allows disk seed. Same prepare step ids. Docs: ADR-028, `prepare-zones.md`, `project-layout.md`. Tests: `test_git_worktree`.

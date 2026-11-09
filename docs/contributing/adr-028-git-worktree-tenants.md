@@ -37,7 +37,7 @@ Sharing one platform worktree by commit SHA across tenants is a later optimizati
 
 11. **`--no-git-update`:** origin network forbidden; disk seed / fetch from matching classic allowed when objects exist locally; reuse worktree on expected SHA; otherwise `ConfigError` (including unresolved build date from local history only).
 
-12. **One filesystem:** bare and worktrees must share a filesystem (cluster: one volume). Cleanup of tenant worktrees is manual in this version (`git worktree remove` / delete under `worktrees/<tenant>/`); no odpm prune command yet.
+12. **One filesystem:** bare and worktrees must share a filesystem (cluster: one volume). Cleanup of tenant worktrees is manual in this version (`git worktree remove` / delete under `worktrees/<tenant>/`); no odpm prune command yet. **Self-heal on materialize:** if the checkout directory is gone but the bare still lists it (“missing but already registered”), `ensure_worktree_at_sha` runs `git worktree prune` (and retries `add --force` once) before failing — common after shared PVC / interrupted jobs.
 
 13. **Out of scope here:** share-by-SHA across tenants; thin plan/ensure without an Odoo tree; meta-image/PVC packaging; auto-migration/deletion of classic clones; tenant id override env; narrow fetch on the classic (non-worktree) path; separate prepare steps only for worktree.
 

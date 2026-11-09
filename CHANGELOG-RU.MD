@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+### Исправлено
+
+- **Застрявшая регистрация worktree на общем томе** — если каталог `worktrees/<tenant>/…` пропал, а в bare запись ещё есть (`missing but already registered`), `odpm prepare` / materialize делает `git worktree prune` и при необходимости повторный `worktree add --force`, вместо падения. Документация: ADR-028. Тесты: `test_git_worktree`.
+
 ### Изменено
 
 - **Посев bare с classic; дата платформы до worktree** — при `ODPM_GIT_WORKTREE` / `--git-worktree` подходящий обычный clone под `ODOO_PROJECTS_DIR` может засеять `mirrors/` без сети к origin; `odoo_build_date` платформы резолвится в bare до первого worktree тенанта (без промежуточного tip). `--no-git-update` по-прежнему без origin, но посев с диска разрешён. Те же id шагов prepare. Документация: ADR-028, `prepare-zones.md`, `project-layout.md`. Тесты: `test_git_worktree`.

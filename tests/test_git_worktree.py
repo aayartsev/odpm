@@ -6,6 +6,7 @@ from dev_project.host.ports import BootstrapHandle
 
 import fcntl
 import os
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -185,6 +186,17 @@ class WorktreeMaterializeTests(unittest.TestCase):
         materialize_link_as_worktree(link)
         self.assertEqual(head_sha(link, path), self.sha2)
         self.assertEqual((Path(path) / "README").read_text(encoding="utf-8"), "two\n")
+
+    def test_recreate_after_missing_but_registered_worktree(self) -> None:
+        """PVC/job left bare registration after the checkout dir vanished."""
+        link = self._link("mr-1", commit=self.sha2)
+        path = materialize_link_as_worktree(link)
+        shutil.rmtree(path)
+        self.assertFalse(os.path.exists(path))
+        path2 = materialize_link_as_worktree(link)
+        self.assertEqual(path2, path)
+        self.assertEqual(head_sha(link, path2), self.sha2)
+        self.assertEqual((Path(path2) / "README").read_text(encoding="utf-8"), "two\n")
 
     def test_no_git_update_missing_raises(self) -> None:
         link = self._link("mr-1", commit=self.sha2)

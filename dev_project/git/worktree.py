@@ -525,6 +525,20 @@ def resolve_target_sha(
     raise GitError(f"Could not resolve a target commit in bare mirror {mirror}")
 
 
+def _prune_worktrees(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+) -> None:
+    """Drop bare admin entries whose checkout directories no longer exist."""
+    _run_git(
+        link,
+        ["worktree", "prune"],
+        cwd=mirror,
+        capture=False,
+    )
+
+
 def _remove_worktree(
     link: HandleOdooProjectLink,
     *,
@@ -540,12 +554,10 @@ def _remove_worktree(
         )
         if result.returncode != 0 and os.path.exists(wt_path):
             shutil.rmtree(wt_path, ignore_errors=True)
-            _run_git(
-                link,
-                ["worktree", "prune"],
-                cwd=mirror,
-                capture=False,
-            )
+            _prune_worktrees(link, mirror=mirror)
+    else:
+        # Path gone (shared PVC / partial cleanup) but may still be registered.
+        _prune_worktrees(link, mirror=mirror)
 
 
 def ensure_worktree_at_sha(
@@ -583,12 +595,16 @@ def ensure_worktree_at_sha(
                 ).format(PATH=wt_path)
             )
         shutil.rmtree(wt_path)
+        _prune_worktrees(link, mirror=mirror)
     elif not allow_update:
         raise ConfigError(
             _(
                 "--no-git-update requires an existing worktree at {PATH}"
             ).format(PATH=wt_path)
         )
+    else:
+        # Checkout missing: clear stale "already registered" entries first.
+        _prune_worktrees(link, mirror=mirror)
 
     os.makedirs(os.path.dirname(wt_path), exist_ok=True)
     result = _run_git(
@@ -597,6 +613,15 @@ def ensure_worktree_at_sha(
         cwd=mirror,
         capture=False,
     )
+    if result.returncode != 0:
+        # Belt-and-suspenders for "missing but already registered".
+        _prune_worktrees(link, mirror=mirror)
+        result = _run_git(
+            link,
+            ["worktree", "add", "--force", "--detach", wt_path, sha],
+            cwd=mirror,
+            capture=False,
+        )
     if result.returncode != 0:
         raise GitError(
             f"git worktree add failed for {wt_path!r} at {sha[:12]} "
