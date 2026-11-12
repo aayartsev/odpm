@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **`build_spec_from_config` uses ContainerConfig fields** — fresh venv recreate inside the container no longer reads host `docker_layout` / `project_settings` (AttributeError that broke golden-path compose up). Tests: `test_bake_venv`.
 - **`messagebus` group in all base Dockerfiles** — before `apt-get install sudo`, every `debian_*_dockerfile*` ensures `messagebus` exists (`getent`/`groupadd`), so kaniko `direct` does not fail on a host `statoverride` (`unknown system group 'messagebus'`). Docs: ADR-019. Tests: `test_dockerfile_profiles`.
 - **`image … ensure` syncs root Dockerfile** — scoped prepare (`IMAGE_ENSURE_STEP_IDS`) now includes `template.dockerfile` and `template.dockerignore`, so layers/kaniko regenerate a stale project-root Dockerfile after `.odpm/` template upgrades. `template.odoo_conf` stays excluded. Docs: ADR-027, `prepare-zones.md`. Tests: `test_cli_image`.
 - **Root Dockerfile after `.odpm/` template upgrade** — `template.dockerfile` regenerates the project-root Dockerfile when it no longer matches the rendered `.odpm` template (previously noop when markers still matched and `base_image_identity` matched the stale root — common on a shared PVC after an odpm upgrade). Docs: ADR-007. Tests: `test_project_env_modules`.

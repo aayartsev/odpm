@@ -11,6 +11,7 @@ from dev_project.bake_venv import (
     _make_pip_runner,
     activate_venv,
     apply_venv_env,
+    build_spec_from_config,
     create_venv,
     install_fresh,
     install_odoo_requirement_packages,
@@ -23,8 +24,10 @@ from dev_project.bake_venv import (
     run_pip_command,
 )
 from dev_project import constants
+from dev_project.container_config import ContainerConfig
 from dev_project.inside_docker_app.exceptions import VenvError
 from dev_project import bake_venv
+from tests.container_config_helpers import minimal_container_config_dict
 
 
 def _spec(**overrides) -> VenvInstallSpec:
@@ -343,6 +346,27 @@ class InstallOdooRequirementGeventOverrideTests(unittest.TestCase):
         self.assertTrue(req_cmds)
         req_path = req_cmds[0][req_cmds[0].index("-r") + 1]
         self.assertNotEqual(req_path, str(src))
+
+
+class BuildSpecFromContainerConfigTests(unittest.TestCase):
+    def test_reads_flat_container_config_fields(self):
+        config = ContainerConfig.from_dict(
+            minimal_container_config_dict(
+                docker_odoo_dir="/home/odoo/odoo",
+                docker_venv_dir="/home/odoo/.venv",
+                docker_project_dir="/home/odoo/project",
+                requirements_txt=["pre-commit"],
+                python_version="3.12",
+            )
+        )
+        spec = build_spec_from_config(config)
+        self.assertEqual(spec.project_dir, "/home/odoo/project")
+        self.assertEqual(spec.venv_dir, "/home/odoo/.venv")
+        self.assertEqual(
+            spec.odoo_requirements_path, "/home/odoo/odoo/requirements.txt"
+        )
+        self.assertEqual(spec.extra_packages, ["pre-commit"])
+        self.assertEqual(spec.python_version, "3.12")
 
 
 if __name__ == "__main__":

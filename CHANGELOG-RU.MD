@@ -16,6 +16,7 @@
 
 ### Исправлено
 
+- **`build_spec_from_config` читает поля ContainerConfig** — пересоздание fresh venv в контейнере больше не обращается к хостовым `docker_layout` / `project_settings` (AttributeError ломал golden-path compose up). Тесты: `test_bake_venv`.
 - **Группа `messagebus` во всех base Dockerfile** — перед `apt-get install sudo` во всех `debian_*_dockerfile*` (не только ci/debian 13) создаётся группа `messagebus`, если её нет: иначе kaniko `direct` падает на host `statoverride` (`unknown system group 'messagebus'`). Документация: ADR-019. Тесты: `test_dockerfile_profiles`.
 - **`image … ensure` синхронизирует корневой Dockerfile** — в узкий prepare (`IMAGE_ENSURE_STEP_IDS`) добавлены `template.dockerfile` и `template.dockerignore`, иначе layers/kaniko не вызывали регенерацию и собирали протухший корень при уже обновлённом `.odpm/`. `template.odoo_conf` по-прежнему вне списка. Документация: ADR-027, `prepare-zones.md`. Тесты: `test_cli_image`.
 - **Корневой Dockerfile после смены шаблона в `.odpm/`** — шаг `template.dockerfile` снова генерирует корень, если файл на диске не совпадает с отрендеренным шаблоном (раньше при живых маркерах и совпавшем `base_image_identity` оставался noop — типично на общем PVC после апгрейда odpm). Документация: ADR-007. Тесты: `test_project_env_modules`.

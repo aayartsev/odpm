@@ -501,18 +501,17 @@ def install_fresh(
 
 
 def build_spec_from_config(config: ContainerConfig) -> VenvInstallSpec:
+    """Build install spec from flat container runtime config (not host AssembledProject)."""
     odoo_requirements_path = os.path.join(
-        config.docker_layout.docker_odoo_dir, "requirements.txt"
+        config.docker_odoo_dir, "requirements.txt"
     )
     return VenvInstallSpec(
-        project_dir=config.docker_layout.docker_project_dir,
-        venv_dir=config.docker_layout.docker_venv_dir,
+        project_dir=config.docker_project_dir,
+        venv_dir=config.docker_venv_dir,
         odoo_requirements_path=odoo_requirements_path,
-        extra_packages=list(config.project_settings.requirements_txt),
-        python_version=config.project_settings.python_version,
-        bootstrap_packages=get_venv_bootstrap_packages(
-            config.project_settings.python_version
-        ),
+        extra_packages=list(config.requirements_txt),
+        python_version=config.python_version,
+        bootstrap_packages=get_venv_bootstrap_packages(config.python_version),
     )
 
 
