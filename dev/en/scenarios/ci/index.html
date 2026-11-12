@@ -2108,7 +2108,7 @@
 <tbody>
 <tr>
 <td><strong>Image</strong></td>
-<td>Layered build (ADR-027): <code>odpm prepare --stop-after sources</code> → miss analysis → <code>odpm image &lt;layer&gt; ensure</code> or shortcut <code>odpm build</code> (base → platform → deps? → app). Available <strong>only</strong> in this scenario. Backend: <code>docker</code> / <code>kaniko</code> — <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
+<td>Layered build (ADR-027): <code>odpm prepare --stop-after sources</code> → miss analysis → <code>odpm image &lt;layer&gt; ensure</code> or shortcut <code>odpm build</code> (base → platform → venv → deps? → app). Available <strong>only</strong> in this scenario. Backend: <code>docker</code> / <code>kaniko</code> — <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
 </tr>
 <tr>
 <td><strong>Layer families</strong></td>
@@ -2120,7 +2120,7 @@
 </tr>
 <tr>
 <td><strong>Python environment</strong></td>
-<td>Bake venv in the <strong>platform</strong> layer, not in app.</td>
+<td>Bake <code>.venv</code> in the <strong>venv</strong> layer (<code>odpm image venv ensure</code>), not in platform or app.</td>
 </tr>
 <tr>
 <td><strong>Debugger</strong></td>
@@ -2152,6 +2152,7 @@
   → odpm plan                      # fingerprints / layer hit-miss
   → odpm image base ensure
   → odpm image platform ensure
+  → odpm image venv ensure         # bake .venv FROM platform
   → odpm image deps ensure         # noop when no dependencies
   → odpm image app ensure --image-tag registry/project:tag [--image-push]
   # or shortcut:
@@ -2177,6 +2178,7 @@
 odpm<span class="w"> </span>prepare<span class="w"> </span>--stop-after<span class="w"> </span>sources
 odpm<span class="w"> </span>plan
 odpm<span class="w"> </span>image<span class="w"> </span>platform<span class="w"> </span>ensure
+odpm<span class="w"> </span>image<span class="w"> </span>venv<span class="w"> </span>ensure
 odpm<span class="w"> </span>image<span class="w"> </span>app<span class="w"> </span>ensure<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 <span class="c1"># optional: odpm prepare --secrets-file /secure/ephemeral.json</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">ODPM_BAKE_SECRETS</span><span class="o">=</span><span class="m">1</span><span class="w">   </span><span class="c1"># bake module secrets into app layer when secrets.json exists</span>
