@@ -2105,7 +2105,7 @@
 <tbody>
 <tr>
 <td><strong>Образ</strong></td>
-<td>Слоистая сборка (ADR-027): <code>odpm prepare --stop-after sources</code> → анализ miss → <code>odpm image &lt;слой&gt; ensure</code> или ярлык <code>odpm build</code> (base → platform → deps? → app). Доступно <strong>только</strong> в этом сценарии. Бэкенд: <code>docker</code> / <code>kaniko</code> — <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
+<td>Слоистая сборка (ADR-027): <code>odpm prepare --stop-after sources</code> → анализ miss → <code>odpm image &lt;слой&gt; ensure</code> или ярлык <code>odpm build</code> (base → platform → venv → deps? → app). Доступно <strong>только</strong> в этом сценарии. Бэкенд: <code>docker</code> / <code>kaniko</code> — <a href="https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md">ADR-016</a>.</td>
 </tr>
 <tr>
 <td><strong>Семейства слоёв</strong></td>
@@ -2117,7 +2117,7 @@
 </tr>
 <tr>
 <td><strong>Окружение Python</strong></td>
-<td>Bake venv в слое <strong>platform</strong>, не в app.</td>
+<td>Bake <code>.venv</code> в слое <strong>venv</strong> (<code>odpm image venv ensure</code>), не в platform и не в app.</td>
 </tr>
 <tr>
 <td><strong>Отладчик</strong></td>
@@ -2145,6 +2145,7 @@
   → odpm plan                      # отпечатки / hit-miss слоёв
   → odpm image base ensure
   → odpm image platform ensure
+  → odpm image venv ensure         # bake .venv FROM platform
   → odpm image deps ensure         # noop, если нет dependencies
   → odpm image app ensure --image-tag реестр/проект:метка [--image-push]
   # либо ярлык:
@@ -2178,6 +2179,7 @@
 odpm<span class="w"> </span>prepare<span class="w"> </span>--stop-after<span class="w"> </span>sources
 odpm<span class="w"> </span>plan
 odpm<span class="w"> </span>image<span class="w"> </span>platform<span class="w"> </span>ensure
+odpm<span class="w"> </span>image<span class="w"> </span>venv<span class="w"> </span>ensure
 odpm<span class="w"> </span>image<span class="w"> </span>app<span class="w"> </span>ensure<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0<span class="w"> </span>--image-push
 <span class="c1"># ярлык всей цепочки без lint:</span>
 odpm<span class="w"> </span>build<span class="w"> </span>--image-tag<span class="w"> </span>myregistry/client-odoo:19.0

@@ -2295,7 +2295,7 @@
 </tr>
 <tr>
 <td><code>odpm image …</code></td>
-<td>Один слой: <code>base</code> / <code>platform</code> / <code>deps</code> / <code>app</code> / <code>lint</code> + <code>ensure</code></td>
+<td>Один слой: <code>base</code> / <code>platform</code> / <code>venv</code> / <code>deps</code> / <code>app</code> / <code>lint</code> + <code>ensure</code></td>
 </tr>
 <tr>
 <td><code>odpm plan</code></td>
@@ -2439,15 +2439,15 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 </tr>
 <tr>
 <td><code>odpm image &lt;слой&gt; ensure</code></td>
-<td>Обеспечить слой CI-образа: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>сначала</strong> узкая подготовка (исходники + секреты + Dockerfile/dockerignore), <strong>затем</strong> сборка слоя — сцепка намеренная, без режима «только сборка»</td>
+<td>Обеспечить слой CI-образа: <code>base</code>, <code>platform</code>, <code>venv</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>сначала</strong> узкая подготовка (исходники + секреты + Dockerfile/dockerignore), <strong>затем</strong> сборка слоя — сцепка намеренная, без режима «только сборка»</td>
 </tr>
 <tr>
 <td><code>odpm image … --from REF</code></td>
-<td>Явный родитель для <code>deps</code> / <code>app</code> (иначе platform или deps)</td>
+<td>Явный родитель для <code>deps</code> / <code>app</code> (иначе venv или deps)</td>
 </tr>
 <tr>
 <td><code>odpm build</code></td>
-<td>Ярлык цепочки слоёв для сценария <strong><code>ci</code></strong>: base → platform → deps? → app (иначе ошибка)</td>
+<td>Ярлык цепочки слоёв для сценария <strong><code>ci</code></strong>: base → platform → venv → deps? → app (иначе ошибка)</td>
 </tr>
 <tr>
 <td><code>--image-tag МЕТКА</code></td>

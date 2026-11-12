@@ -2003,10 +2003,10 @@
 <td style="text-align: center;">строго</td>
 </tr>
 <tr>
-<td>Сборка образа <code>odpm build</code></td>
+<td>Сборка образа <code>odpm build</code> / <code>odpm image … ensure</code> (base, platform, venv, deps, app, lint)</td>
 <td style="text-align: center;"><strong>нет</strong></td>
 <td style="text-align: center;"><strong>нет</strong></td>
-<td style="text-align: center;"><strong>да</strong></td>
+<td style="text-align: center;"><strong>да</strong> (цепочка base→platform→venv→deps?→app)</td>
 </tr>
 <tr>
 <td>Бэкенд <code>--image-builder</code> / env <code>ODPM_CI_IMAGE_BUILDER</code> (<code>docker</code>, <code>kaniko</code>)</td>

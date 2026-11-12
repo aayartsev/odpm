@@ -2319,7 +2319,7 @@
 </tr>
 <tr>
 <td><code>odpm image …</code></td>
-<td>One layer: <code>base</code> / <code>platform</code> / <code>deps</code> / <code>app</code> / <code>lint</code> + <code>ensure</code></td>
+<td>One layer: <code>base</code> / <code>platform</code> / <code>venv</code> / <code>deps</code> / <code>app</code> / <code>lint</code> + <code>ensure</code></td>
 </tr>
 <tr>
 <td><code>odpm plan</code></td>
@@ -2463,15 +2463,15 @@ odpm<span class="w"> </span>prepare<span class="w"> </span>--secrets-file<span c
 </tr>
 <tr>
 <td><code>odpm image &lt;layer&gt; ensure</code></td>
-<td>Ensure a CI image layer: <code>base</code>, <code>platform</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>first</strong> scoped prepare (sources + secrets + Dockerfile/dockerignore), <strong>then</strong> layer build — intentional coupling, no build-only mode</td>
+<td>Ensure a CI image layer: <code>base</code>, <code>platform</code>, <code>venv</code>, <code>deps</code>, <code>app</code>, <code>lint</code> (ADR-027); <strong>first</strong> scoped prepare (sources + secrets + Dockerfile/dockerignore), <strong>then</strong> layer build — intentional coupling, no build-only mode</td>
 </tr>
 <tr>
 <td><code>odpm image … --from REF</code></td>
-<td>Explicit parent for <code>deps</code> / <code>app</code> (else platform or deps)</td>
+<td>Explicit parent for <code>deps</code> / <code>app</code> (else venv or deps)</td>
 </tr>
 <tr>
 <td><code>odpm build</code></td>
-<td>Layered shortcut for <strong><code>ci</code></strong>: base → platform → deps? → app (error otherwise)</td>
+<td>Layered shortcut for <strong><code>ci</code></strong>: base → platform → venv → deps? → app (error otherwise)</td>
 </tr>
 <tr>
 <td><code>--image-tag TAG</code></td>
