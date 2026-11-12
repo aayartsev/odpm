@@ -38,6 +38,7 @@ _STEP_GROUP_KEYS: dict[str, str] = {
     "ide.debug_profile": "ide",
     "image.base": "image_build",
     "image.platform": "image_build",
+    "image.venv": "image_build",
     "image.deps": "image_build",
     "image.app": "image_build",
     "image.lint": "image_build",

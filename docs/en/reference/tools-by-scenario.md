@@ -19,7 +19,7 @@ A single odpm utility provides a **set of commands**; in different scenarios (`O
 | Run pre-commit in container | yes | no | no |
 | Change plan `odpm plan` | yes | yes | yes |
 | Lock update `odpm prepare --update-lock` | coordinator | read | strict |
-| Image build `odpm build` | **no** | **no** | **yes** |
+| Image build `odpm build` / `odpm image … ensure` (base, platform, venv, deps, app, lint) | **no** | **no** | **yes** (base→platform→venv→deps?→app) |
 | Backend `--image-builder` / env `ODPM_CI_IMAGE_BUILDER` (`docker`, `kaniko`) | **no** | **no** | **yes** |
 | Publish `--image-push` / env `ODPM_CI_IMAGE_PUSH` | **no** | **no** | **yes** |
 | Prepare without git `--no-git-update` | yes | yes | yes |

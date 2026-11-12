@@ -7,8 +7,8 @@ PLAN_L10N_RU: dict[str, str] = {
     "Apply pinned commits from {SOURCE} before checkout": (
         "Применить закреплённые коммиты из {SOURCE} перед checkout"
     ),
-    "Build layered CI image (base → platform → deps? → app; ADR-027)": (
-        "Собрать слоистый CI-образ (base → platform → deps? → app; ADR-027)"
+    "Build layered CI image (base → platform → venv → deps? → app; ADR-027)": (
+        "Собрать слоистый CI-образ (base → platform → venv → deps? → app; ADR-027)"
     ),
     "base ensure (ADR-019 stamp / rebuild if stale)": (
         "ensure base (штамп ADR-019 / пересборка при устаревании)"
@@ -19,6 +19,7 @@ PLAN_L10N_RU: dict[str, str] = {
     "image lint ensure": "ensure слоя lint",
     "image layer analysis": "анализ слоёв образа",
     "image platform ensure": "ensure слоя platform",
+    "image venv ensure": "ensure слоя venv",
     "layered build shortcut (odpm build)": (
         "ярлык слоистой сборки (odpm build)"
     ),

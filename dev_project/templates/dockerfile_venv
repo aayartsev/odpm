@@ -1,0 +1,13 @@
+# Venv layer: bake virtualenv FROM platform (odoo + dev_project already present).
+ARG PLATFORM_IMAGE
+FROM ${PLATFORM_IMAGE}
+
+ARG CONTAINER_USER=odoo
+
+WORKDIR /home/odoo
+
+COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} ci/venv_install.json ci/venv_install.json
+
+USER ${CONTAINER_USER}
+
+RUN python3 -m dev_project.bake_venv --config ci/venv_install.json

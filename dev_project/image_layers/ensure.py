@@ -24,6 +24,7 @@ from .fingerprint import (
     compute_deps_fingerprint,
     compute_lint_fingerprint,
     compute_platform_fingerprint,
+    compute_venv_fingerprint,
     layer_image_ref,
 )
 from .prune import prune_stale_layer_cache_tags, prune_stale_requested
@@ -196,30 +197,22 @@ def _developing_git_sha(bootstrap: BootstrapHandle) -> str:
 def _copy_deps_extra_addons(
     project_env: CreateProjectEnvironment,
     *,
-    full_ctx: Path,
     dest_addons: Path,
 ) -> int:
-    """Copy dependency trees into deps context, excluding developing."""
+    """Copy dependency trees into deps context from mapped.local (no developing)."""
     bootstrap = project_env.bootstrap
     host_ctx = project_env.host_ctx
     developing = developing_project_path(bootstrap)
-    src_root = full_ctx / "extra-addons"
-    if not src_root.is_dir():
-        return 0
     dest_addons.mkdir(parents=True, exist_ok=True)
     copied = 0
-    # Prefer mapped_folders so we skip by absolute developing path.
     mapped = list(getattr(project_env, "mapped_folders", None) or [])
     docker_extra = str(host_ctx.docker_layout.docker_extra_addons or "")
-    used_mapped = False
     for item in mapped:
         local = getattr(item, "local", None)
         docker = str(getattr(item, "docker", "") or "")
         if not local or not docker_extra:
             continue
-        if docker != docker_extra and not docker.startswith(f"{docker_extra}/"):
-            continue
-        if docker == docker_extra:
+        if docker == docker_extra or not docker.startswith(f"{docker_extra}/"):
             continue
         local_path = Path(str(local)).resolve()
         if developing is not None and local_path == developing:
@@ -232,28 +225,6 @@ def _copy_deps_extra_addons(
         if local_path.is_dir():
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(local_path, dest, dirs_exist_ok=True)
-            copied += 1
-            used_mapped = True
-    if used_mapped:
-        return copied
-    # Fallback: copy context children, skipping only path-identical developing
-    # (never basename-only — avoids dropping OCA trees with the same folder name).
-    for child in sorted(src_root.iterdir()):
-        if developing is not None:
-            try:
-                if child.resolve() == developing:
-                    _logger.info(
-                        "image deps ensure: skipping developing path %s",
-                        child,
-                    )
-                    continue
-            except OSError:
-                pass
-        if child.is_dir():
-            shutil.copytree(child, dest_addons / child.name, dirs_exist_ok=True)
-            copied += 1
-        elif child.is_file():
-            shutil.copy2(child, dest_addons / child.name)
             copied += 1
     return copied
 
@@ -361,21 +332,17 @@ def ensure_platform(
     base_ref = ensure_base(project_env, force=False)
     from ..project_env.ci_image import CiImageBuilder
 
-    builder = CiImageBuilder(project_env)
-    builder.prepare_ci_build_context()
-    full_ctx = Path(host_ctx.docker_layout.ci_build_context_dir)
     context_dir = Path(host_ctx.project_dir) / ".odpm" / "platform-build-context"
-    if context_dir.exists():
-        shutil.rmtree(context_dir)
-    context_dir.mkdir(parents=True)
-    for name in ("odoo", "dev_project", "ci"):
-        src = full_ctx / name
-        if not src.exists():
-            raise PipelineError(
-                _("platform context missing {PATH}").format(PATH=src),
-                exit_code=1,
-            )
-        shutil.copytree(src, context_dir / name, dirs_exist_ok=True)
+    CiImageBuilder(project_env).prepare_platform_build_context(str(context_dir))
+    if not (context_dir / "odoo").exists() or not (
+        context_dir / "dev_project"
+    ).exists():
+        raise PipelineError(
+            _(
+                "platform context missing odoo/ or dev_project/ under {PATH}"
+            ).format(PATH=context_dir),
+            exit_code=1,
+        )
     dockerfile = context_dir / "Dockerfile.platform"
     _copy_template(program_dir, "dockerfile_platform", dockerfile)
     text = _rewrite_from_line(
@@ -403,6 +370,58 @@ def ensure_platform(
     return ref
 
 
+def ensure_venv(
+    project_env: CreateProjectEnvironment,
+    args: OdpmCliArgs,
+    *,
+    platform_ref: str | None = None,
+    force: bool | None = None,
+) -> str:
+    bootstrap = project_env.bootstrap
+    host_ctx = project_env.host_ctx
+    program_dir = _program_dir(host_ctx)
+    parent = platform_ref or args.image_from
+    if not parent:
+        parent = ensure_platform(project_env, args, force=False)
+    fp = compute_venv_fingerprint(
+        bootstrap, program_dir=program_dir, platform_ref=parent
+    )
+    ref = layer_image_ref(bootstrap, layer="venv", fingerprint=fp)
+    remote = _remote_target(args, host_ctx)
+    if image_ref_exists(
+        ref, remote=remote, force=_force_this_layer(force)
+    ):
+        _logger.info("image venv ensure: skip (exists) %s", ref)
+        _maybe_prune_stale(args, ref, remote=remote)
+        return ref
+
+    _logger.info("image venv ensure: miss — building %s", ref)
+    from ..project_env.ci_image import CiImageBuilder
+
+    context_dir = Path(host_ctx.project_dir) / ".odpm" / "venv-build-context"
+    CiImageBuilder(project_env).prepare_venv_build_context(str(context_dir))
+    dockerfile = context_dir / "Dockerfile.venv"
+    _copy_template(program_dir, "dockerfile_venv", dockerfile)
+    text = _rewrite_from_line(
+        dockerfile.read_text(encoding="utf-8"),
+        arg_name="PLATFORM_IMAGE",
+        image_ref=parent,
+    )
+    dockerfile.write_text(text, encoding="utf-8")
+    push = _want_push(args, host_ctx)
+    _build_image(
+        host_ctx=host_ctx,
+        args=args,
+        context_dir=context_dir,
+        dockerfile=dockerfile,
+        tag=ref,
+        push=push,
+    )
+    _logger.info("image venv ensure: done %s", ref)
+    _maybe_prune_stale(args, ref, remote=remote)
+    return ref
+
+
 def ensure_deps(
     project_env: CreateProjectEnvironment,
     args: OdpmCliArgs,
@@ -410,13 +429,14 @@ def ensure_deps(
     platform_ref: str | None = None,
     force: bool | None = None,
 ) -> str | None:
+    """Ensure deps layer. ``platform_ref`` is the parent image (venv in ADR-027)."""
     bootstrap = project_env.bootstrap
     host_ctx = project_env.host_ctx
     program_dir = _program_dir(host_ctx)
     parent = platform_ref or args.image_from
     if not parent:
         # Parent ensure never inherits FORCE for this layer.
-        parent = ensure_platform(project_env, args, force=False)
+        parent = ensure_venv(project_env, args, force=False)
     fp = compute_deps_fingerprint(
         host_ctx, program_dir=program_dir, platform_ref=parent
     )
@@ -433,18 +453,12 @@ def ensure_deps(
         return ref
 
     _logger.info("image deps ensure: miss — building %s", ref)
-    from ..project_env.ci_image import CiImageBuilder
-
-    builder = CiImageBuilder(project_env)
-    builder.prepare_ci_build_context()
-    full_ctx = Path(host_ctx.docker_layout.ci_build_context_dir)
     context_dir = Path(host_ctx.project_dir) / ".odpm" / "deps-build-context"
     if context_dir.exists():
         shutil.rmtree(context_dir)
     context_dir.mkdir(parents=True)
     copied = _copy_deps_extra_addons(
         project_env,
-        full_ctx=full_ctx,
         dest_addons=context_dir / "extra-addons",
     )
     if copied == 0:
@@ -494,7 +508,7 @@ def ensure_app(
     parent = parent_ref or args.image_from
     if not parent:
         deps_ref = ensure_deps(project_env, args, force=False)
-        parent = deps_ref or ensure_platform(project_env, args, force=False)
+        parent = deps_ref or ensure_venv(project_env, args, force=False)
 
     push = _want_push(args, host_ctx)
     publish_tag = args.image_tag or host_ctx.docker_layout.odoo_ci_image_name
@@ -530,22 +544,16 @@ def ensure_app(
     )
     from ..project_env.ci_image import CiImageBuilder
 
-    builder = CiImageBuilder(project_env)
-    builder.prepare_ci_build_context()
-    # Drop odoo/.venv from context for thin app (already in parent).
-    full_ctx = Path(host_ctx.docker_layout.ci_build_context_dir)
-    for drop in ("odoo", ".venv"):
-        target = full_ctx / drop
-        if target.exists():
-            shutil.rmtree(target)
-    dockerfile = full_ctx / "Dockerfile.app"
+    context_dir = Path(host_ctx.project_dir) / ".odpm" / "app-build-context"
+    CiImageBuilder(project_env).prepare_app_build_context(str(context_dir))
+    dockerfile = context_dir / "Dockerfile.app"
     _copy_template(program_dir, "dockerfile_app", dockerfile)
     text = _rewrite_from_line(
         dockerfile.read_text(encoding="utf-8"),
         arg_name="PLATFORM_IMAGE",
         image_ref=parent,
     )
-    secrets_src = full_ctx / "runtime" / "secrets.json"
+    secrets_src = context_dir / "runtime" / "secrets.json"
     if secrets_src.is_file():
         text = text.replace(
             "# Optional secrets — enabled when secrets file is present in context:\n"
@@ -558,13 +566,13 @@ def ensure_app(
         )
     dockerfile.write_text(text, encoding="utf-8")
     _copy_template(
-        program_dir, "dockerignore_app", full_ctx / ".dockerignore"
+        program_dir, "dockerignore_app", context_dir / ".dockerignore"
     )
     # Push only when explicitly requested; registry env alone is for presence.
     _build_image(
         host_ctx=host_ctx,
         args=args,
-        context_dir=full_ctx,
+        context_dir=context_dir,
         dockerfile=dockerfile,
         tag=cache_ref,
         push=push,
@@ -704,6 +712,8 @@ def ensure_image_layer(
         return ensure_base(project_env, force=force)
     if layer == cli_params.IMAGE_PLATFORM_LAYER:
         return ensure_platform(project_env, args, force=force)
+    if layer == cli_params.IMAGE_VENV_LAYER:
+        return ensure_venv(project_env, args, force=force)
     if layer == cli_params.IMAGE_DEPS_LAYER:
         return ensure_deps(project_env, args, force=force)
     if layer == cli_params.IMAGE_APP_LAYER:
@@ -719,19 +729,22 @@ def run_layered_build(
     project_env: CreateProjectEnvironment,
     args: OdpmCliArgs,
 ) -> str:
-    """Shortcut used by ``odpm build``: base → platform → deps? → app.
+    """Shortcut used by ``odpm build``: base → platform → venv → deps? → app.
 
     ``ODPM_IMAGE_FORCE_REBUILD`` forces only the **app** layer here so parents
     are not rebuilt «along with» the final image (ADR-027).
     """
     ensure_base(project_env, force=False)
     platform_ref = ensure_platform(project_env, args, force=False)
-    deps_ref = ensure_deps(
+    venv_ref = ensure_venv(
         project_env, args, platform_ref=platform_ref, force=False
+    )
+    deps_ref = ensure_deps(
+        project_env, args, platform_ref=venv_ref, force=False
     )
     return ensure_app(
         project_env,
         args,
-        parent_ref=deps_ref or platform_ref,
+        parent_ref=deps_ref or venv_ref,
         force=force_rebuild_requested(),
     )

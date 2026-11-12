@@ -10,6 +10,7 @@ from ..image_layers.fingerprint import (
     compute_deps_fingerprint,
     compute_lint_fingerprint,
     compute_platform_fingerprint,
+    compute_venv_fingerprint,
     layer_image_ref,
 )
 from ..image_layers.registry import image_ref_exists
@@ -44,6 +45,7 @@ def _layer_description(layer: str) -> str:
     mapping = {
         "base": plan_msg("image base ensure"),
         "platform": plan_msg("image platform ensure"),
+        "venv": plan_msg("image venv ensure"),
         "deps": plan_msg("image deps ensure"),
         "app": plan_msg("image app ensure"),
         "lint": plan_msg("image lint ensure"),
@@ -166,8 +168,22 @@ def _build_image_layer_plan_steps_inner(
         )
     )
 
-    deps_fp = compute_deps_fingerprint(
+    venv_fp = compute_venv_fingerprint(
         assembled, program_dir=program_dir, platform_ref=platform_ref
+    )
+    venv_ref = layer_image_ref(assembled, layer="venv", fingerprint=venv_fp)
+    steps.append(
+        _presence_step(
+            step_id="image.venv",
+            layer="venv",
+            ref=venv_ref,
+            remote=remote,
+            required=True,
+        )
+    )
+
+    deps_fp = compute_deps_fingerprint(
+        assembled, program_dir=program_dir, platform_ref=venv_ref
     )
     if deps_fp is None:
         steps.append(
@@ -180,7 +196,7 @@ def _build_image_layer_plan_steps_inner(
                 noop_reason="no dependencies — layer not required",
             )
         )
-        parent_ref = platform_ref
+        parent_ref = venv_ref
     else:
         deps_ref = layer_image_ref(assembled, layer="deps", fingerprint=deps_fp)
         steps.append(

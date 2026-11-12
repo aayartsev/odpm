@@ -71,11 +71,6 @@ def _lock_sha_map(config: Any) -> dict[str, str]:
 
 def compute_platform_fingerprint(config: Any, *, program_dir: str) -> str:
     df = _template_path(program_dir, "dockerfile_platform")
-    extras = sorted(
-        r.strip()
-        for r in (config.project_settings.requirements_txt or [])
-        if r.strip()
-    )
     locks = _lock_sha_map(config)
     platform_sha = locks.get("platform", "")
     payload = {
@@ -83,7 +78,6 @@ def compute_platform_fingerprint(config: Any, *, program_dir: str) -> str:
         "odoo_version": str(config.project_settings.odoo_version),
         "build_date": str(config.project_settings.odoo_build_date or ""),
         "profile": _profile(config),
-        "extras": extras,
         "platform_git_sha": platform_sha,
         "dockerfile_platform": _sha8(df.read_bytes()) if df.is_file() else "missing",
         "python": str(config.project_settings.python_version),
@@ -92,7 +86,34 @@ def compute_platform_fingerprint(config: Any, *, program_dir: str) -> str:
             f"{config.project_settings.distro_version}"
         ),
         "arch": str(config.project_settings.arch),
-        "venv_mode": str(getattr(config.policy, "venv_mode", "baked")),
+    }
+    return _sha8(json.dumps(payload, sort_keys=True, separators=(",", ":")))
+
+
+def compute_venv_fingerprint(
+    config: Any, *, program_dir: str, platform_ref: str
+) -> str:
+    df = _template_path(program_dir, "dockerfile_venv")
+    extras = sorted(
+        r.strip()
+        for r in (config.project_settings.requirements_txt or [])
+        if r.strip()
+    )
+    lock_hash = ""
+    compute = getattr(config, "compute_venv_lock_hash", None)
+    if callable(compute):
+        lock_hash = str(compute() or "")
+    else:
+        bootstrap = getattr(config, "bootstrap", None)
+        nested = getattr(bootstrap, "compute_venv_lock_hash", None) if bootstrap else None
+        if callable(nested):
+            lock_hash = str(nested() or "")
+    payload = {
+        "schema": FINGERPRINT_SCHEMA_VERSION,
+        "platform_ref": platform_ref,
+        "venv_lock_hash": lock_hash,
+        "extras": extras,
+        "dockerfile_venv": _sha8(df.read_bytes()) if df.is_file() else "missing",
     }
     return _sha8(json.dumps(payload, sort_keys=True, separators=(",", ":")))
 
@@ -190,6 +211,7 @@ __all__ = [
     "compute_deps_fingerprint",
     "compute_lint_fingerprint",
     "compute_platform_fingerprint",
+    "compute_venv_fingerprint",
     "family_for_profile",
     "layer_image_ref",
 ]

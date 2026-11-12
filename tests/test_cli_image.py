@@ -31,6 +31,14 @@ class ImageCliParseTests(unittest.TestCase):
         self.assertTrue(is_image_mode(args))
         self.assertFalse(args.image_prune_stale)
 
+    def test_parse_image_venv_ensure(self):
+        args = parse_cli_args(["image", "venv", "ensure", "--image-prune-stale"])
+        self.assertEqual(args.command, params.IMAGE_SUBCOMMAND)
+        self.assertEqual(args.image_layer, params.IMAGE_VENV_LAYER)
+        self.assertTrue(args.image_ensure)
+        self.assertTrue(args.image_prune_stale)
+        self.assertTrue(is_image_mode(args))
+
     def test_parse_image_app_ensure_prune_stale(self):
         args = parse_cli_args(
             ["image", "app", "ensure", "--image-prune-stale"]

@@ -14,10 +14,10 @@ odpm **does not replace** GitHub Actions, GitLab CI, or orchestrators — it pro
 
 | Area | How it works |
 |------|--------------|
-| **Image** | Layered build (ADR-027): `odpm prepare --stop-after sources` → miss analysis → `odpm image <layer> ensure` or shortcut `odpm build` (base → platform → deps? → app). Available **only** in this scenario. Backend: `docker` / `kaniko` — [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
+| **Image** | Layered build (ADR-027): `odpm prepare --stop-after sources` → miss analysis → `odpm image <layer> ensure` or shortcut `odpm build` (base → platform → venv → deps? → app). Available **only** in this scenario. Backend: `docker` / `kaniko` — [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
 | **Layer families** | Registry tags: **dev** ↔ base profile `full` (browser); **runtime** ↔ `medium` (wkhtml, no browser). Set via `ODPM_BASE_IMAGE_PROFILE`. Scenario `ci` and profile `ci` are **not** renamed. |
 | **Sources** | Host snapshot first (`--stop-after sources`); final image has no host mount. |
-| **Python environment** | Bake venv in the **platform** layer, not in app. |
+| **Python environment** | Bake `.venv` in the **venv** layer (`odpm image venv ensure`), not in platform or app. |
 | **Debugger** | None. |
 | **Module secrets** | Host mount **disabled**. Optional bake into image: `ODPM_BAKE_SECRETS=1` with `--build-image` — see [local secrets](../operations/secrets.md), [ADR-002](https://github.com/aayartsev/odpm/blob/4.4-dev/docs/contributing/adr-002-ci-secrets-bake.md). |
 | **Version pinning** | Strict check of `.odpm/deps.lock.json`; version incompatibilities in nested manifests — **error**. |
@@ -34,6 +34,7 @@ git push → build machine
   → odpm plan                      # fingerprints / layer hit-miss
   → odpm image base ensure
   → odpm image platform ensure
+  → odpm image venv ensure         # bake .venv FROM platform
   → odpm image deps ensure         # noop when no dependencies
   → odpm image app ensure --image-tag registry/project:tag [--image-push]
   # or shortcut:
@@ -67,6 +68,7 @@ export ODPM_BASE_IMAGE_PROFILE=full   # family dev
 odpm prepare --stop-after sources
 odpm plan
 odpm image platform ensure
+odpm image venv ensure
 odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
 # optional: odpm prepare --secrets-file /secure/ephemeral.json
 export ODPM_BAKE_SECRETS=1   # bake module secrets into app layer when secrets.json exists

@@ -12,7 +12,7 @@
 | `odpm prepare` | Только файлы / lock, **без** контейнеров (вместо `--skip-start`) |
 | `odpm init URL` | Инициализация проекта (вместо `--init`) |
 | `odpm build` | Сборка финального CI-образа слоями (вместо `--build-image`) |
-| `odpm image …` | Один слой: `base` / `platform` / `deps` / `app` / `lint` + `ensure` |
+| `odpm image …` | Один слой: `base` / `platform` / `venv` / `deps` / `app` / `lint` + `ensure` |
 | `odpm plan` | Пробный прогон шагов |
 | `odpm database …` | Host: `status` / `ensure-role` / `pull`. Стек: `backup` / `restore` / `drop` / `list` |
 | `odpm modules …` | Diff / record-applied |
@@ -72,9 +72,9 @@ odpm prepare --secrets-file ~/new-secrets.json
 | `odpm prepare --update-lock` | Записать `.odpm/deps.lock.json` и завершить работу |
 | `--no-git-update` | Не трогать git; lock **не читается**; каталоги должны уже существовать |
 | `--git-worktree` | Материализовать remote git как bare-зеркало + worktree на тенант под `ODOO_PROJECTS_DIR` (то же, что `ODPM_GIT_WORKTREE=1`; ADR-028) |
-| `odpm image <слой> ensure` | Обеспечить слой CI-образа: `base`, `platform`, `deps`, `app`, `lint` (ADR-027); **сначала** узкая подготовка (исходники + секреты + Dockerfile/dockerignore), **затем** сборка слоя — сцепка намеренная, без режима «только сборка» |
-| `odpm image … --from REF` | Явный родитель для `deps` / `app` (иначе platform или deps) |
-| `odpm build` | Ярлык цепочки слоёв для сценария **`ci`**: base → platform → deps? → app (иначе ошибка) |
+| `odpm image <слой> ensure` | Обеспечить слой CI-образа: `base`, `platform`, `venv`, `deps`, `app`, `lint` (ADR-027); **сначала** узкая подготовка (исходники + секреты + Dockerfile/dockerignore), **затем** сборка слоя — сцепка намеренная, без режима «только сборка» |
+| `odpm image … --from REF` | Явный родитель для `deps` / `app` (иначе venv или deps) |
+| `odpm build` | Ярлык цепочки слоёв для сценария **`ci`**: base → platform → venv → deps? → app (иначе ошибка) |
 | `--image-tag МЕТКА` | Имя и тег финального образа для `build` / `image app ensure` |
 | `--image-builder {docker,kaniko}` | Бэкенд сборки CI-образа (по умолчанию `docker`) |
 | `--image-push` | После сборки опубликовать образ (alias publish-тега после kaniko — через `crane copy`) |

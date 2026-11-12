@@ -24,7 +24,7 @@ def evaluate_runtime_ci_build_image(runtime: RuntimePorts) -> PlanStep | None:
     return make_plan_step(
         "ci.build_image",
         plan_msg(
-            "Build layered CI image (base → platform → deps? → app; ADR-027)"
+            "Build layered CI image (base → platform → venv → deps? → app; ADR-027)"
         ),
         "run",
         True,

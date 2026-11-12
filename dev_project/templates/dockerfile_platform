@@ -1,4 +1,4 @@
-# Platform layer: Odoo sources + baked venv (no secrets, no extra-addons).
+# Platform layer: Odoo sources + dev_project (venv bake is a separate layer).
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
@@ -9,5 +9,3 @@ WORKDIR /home/odoo
 COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} . .
 
 USER ${CONTAINER_USER}
-
-RUN python3 -m dev_project.bake_venv --config ci/venv_install.json

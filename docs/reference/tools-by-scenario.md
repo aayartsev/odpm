@@ -17,7 +17,7 @@
 | Запуск pre-commit в контейнере | да | нет | нет |
 | План изменений `odpm plan` | да | да | да |
 | Обновление фиксации `odpm prepare --update-lock` | координатор | чтение | строго |
-| Сборка образа `odpm build` | **нет** | **нет** | **да** |
+| Сборка образа `odpm build` / `odpm image … ensure` (base, platform, venv, deps, app, lint) | **нет** | **нет** | **да** (цепочка base→platform→venv→deps?→app) |
 | Бэкенд `--image-builder` / env `ODPM_CI_IMAGE_BUILDER` (`docker`, `kaniko`) | **нет** | **нет** | **да** |
 | Публикация `--image-push` / env `ODPM_CI_IMAGE_PUSH` | **нет** | **нет** | **да** |
 | Подготовка без git `--no-git-update` | да | да | да |

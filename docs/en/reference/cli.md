@@ -12,7 +12,7 @@ The **`odpm`** command (or `python3 …/odpm.py`) accepts **subcommands** and fl
 | `odpm prepare` | Files / lock only, **no** containers (replaces `--skip-start`) |
 | `odpm init URL` | Project init (replaces `--init`) |
 | `odpm build` | Final CI image via layered stages (replaces `--build-image`) |
-| `odpm image …` | One layer: `base` / `platform` / `deps` / `app` / `lint` + `ensure` |
+| `odpm image …` | One layer: `base` / `platform` / `venv` / `deps` / `app` / `lint` + `ensure` |
 | `odpm plan` | Dry-run of prepare steps |
 | `odpm database …` | Host: `status` / `ensure-role` / `pull`. Stack: `backup` / `restore` / `drop` / `list` |
 | `odpm modules …` | Diff / record-applied |
@@ -72,9 +72,9 @@ odpm prepare --secrets-file ~/new-secrets.json
 | `odpm prepare --update-lock` | Write `.odpm/deps.lock.json` and exit |
 | `--no-git-update` | Do not touch git; lock is **not read**; directories must already exist |
 | `--git-worktree` | Materialize remote git as bare mirrors + per-tenant worktrees under `ODOO_PROJECTS_DIR` (same as `ODPM_GIT_WORKTREE=1`; ADR-028) |
-| `odpm image <layer> ensure` | Ensure a CI image layer: `base`, `platform`, `deps`, `app`, `lint` (ADR-027); **first** scoped prepare (sources + secrets + Dockerfile/dockerignore), **then** layer build — intentional coupling, no build-only mode |
-| `odpm image … --from REF` | Explicit parent for `deps` / `app` (else platform or deps) |
-| `odpm build` | Layered shortcut for **`ci`**: base → platform → deps? → app (error otherwise) |
+| `odpm image <layer> ensure` | Ensure a CI image layer: `base`, `platform`, `venv`, `deps`, `app`, `lint` (ADR-027); **first** scoped prepare (sources + secrets + Dockerfile/dockerignore), **then** layer build — intentional coupling, no build-only mode |
+| `odpm image … --from REF` | Explicit parent for `deps` / `app` (else venv or deps) |
+| `odpm build` | Layered shortcut for **`ci`**: base → platform → venv → deps? → app (error otherwise) |
 | `--image-tag TAG` | Final image name/tag for `build` / `image app ensure` |
 | `--image-builder {docker,kaniko}` | CI image build backend (default `docker`) |
 | `--image-push` | After build, publish the image (publish-tag alias after kaniko via `crane copy`) |

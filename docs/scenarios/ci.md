@@ -12,10 +12,10 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
 
 | Область | Как устроено |
 |---------|--------------|
-| **Образ** | Слоистая сборка (ADR-027): `odpm prepare --stop-after sources` → анализ miss → `odpm image <слой> ensure` или ярлык `odpm build` (base → platform → deps? → app). Доступно **только** в этом сценарии. Бэкенд: `docker` / `kaniko` — [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
+| **Образ** | Слоистая сборка (ADR-027): `odpm prepare --stop-after sources` → анализ miss → `odpm image <слой> ensure` или ярлык `odpm build` (base → platform → venv → deps? → app). Доступно **только** в этом сценарии. Бэкенд: `docker` / `kaniko` — [ADR-016](https://github.com/aayartsev/odpm/blob/4.7.0-dev/docs/contributing/adr-016-ci-image-build-backends.md). |
 | **Семейства слоёв** | Теги registry: **dev** ↔ профиль base `full` (браузер); **runtime** ↔ `medium` (wkhtml, без браузера). Задаётся `ODPM_BASE_IMAGE_PROFILE`. Сценарий `ci` и профиль `ci` **не** переименовываются. |
 | **Исходники** | Сначала слепок на хосте (`--stop-after sources`); в финальном образе — без mount с хоста. |
-| **Окружение Python** | Bake venv в слое **platform**, не в app. |
+| **Окружение Python** | Bake `.venv` в слое **venv** (`odpm image venv ensure`), не в platform и не в app. |
 | **Отладчик** | Нет. |
 | **Секреты модулей** | Mount `.odpm/secrets.json` с хоста **отключён**. Секреты приложения в CI-образ этим механизмом не попадают — см. [локальные секреты](../operations/secrets.md) (TD-FEAT-09). |
 | **Фиксация версий** | Строгая проверка `.odpm/deps.lock.json`; несовместимости версий во вложенных описаниях — **ошибка**. |
@@ -31,6 +31,7 @@ odpm **не заменяет** GitHub Actions, GitLab CI или оркестра
   → odpm plan                      # отпечатки / hit-miss слоёв
   → odpm image base ensure
   → odpm image platform ensure
+  → odpm image venv ensure         # bake .venv FROM platform
   → odpm image deps ensure         # noop, если нет dependencies
   → odpm image app ensure --image-tag реестр/проект:метка [--image-push]
   # либо ярлык:
@@ -72,6 +73,7 @@ export ODPM_BASE_IMAGE_PROFILE=full   # семейство dev
 odpm prepare --stop-after sources
 odpm plan
 odpm image platform ensure
+odpm image venv ensure
 odpm image app ensure --image-tag myregistry/client-odoo:19.0 --image-push
 # ярлык всей цепочки без lint:
 odpm build --image-tag myregistry/client-odoo:19.0

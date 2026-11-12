@@ -20,7 +20,7 @@ def register_image_subparser(
         ),
         description=(
             "Idempotent layered CI image stages (ADR-027): "
-            "base, platform, deps, app, lint. "
+            "base, platform, venv, deps, app, lint. "
             "Families in registry tags: dev (profile full) and runtime (profile medium)."
         ),
     )
@@ -32,6 +32,7 @@ def register_image_subparser(
     for layer in (
         params.IMAGE_BASE_LAYER,
         params.IMAGE_PLATFORM_LAYER,
+        params.IMAGE_VENV_LAYER,
         params.IMAGE_DEPS_LAYER,
         params.IMAGE_APP_LAYER,
         params.IMAGE_LINT_LAYER,

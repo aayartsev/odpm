@@ -20,6 +20,7 @@ BUILD_SUBCOMMAND = "build"
 IMAGE_SUBCOMMAND = "image"
 IMAGE_BASE_LAYER = "base"
 IMAGE_PLATFORM_LAYER = "platform"
+IMAGE_VENV_LAYER = "venv"
 IMAGE_DEPS_LAYER = "deps"
 IMAGE_APP_LAYER = "app"
 IMAGE_LINT_LAYER = "lint"
@@ -27,6 +28,7 @@ IMAGE_LAYERS = frozenset(
     {
         IMAGE_BASE_LAYER,
         IMAGE_PLATFORM_LAYER,
+        IMAGE_VENV_LAYER,
         IMAGE_DEPS_LAYER,
         IMAGE_APP_LAYER,
         IMAGE_LINT_LAYER,

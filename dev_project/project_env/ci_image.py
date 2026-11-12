@@ -68,6 +68,11 @@ class CiImageBuilder:
         ignored.update(name for name in names if name.endswith(".md"))
         return ignored
 
+    def _reset_build_context_dir(self, dest: str) -> None:
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+        os.makedirs(dest)
+
     def _copy_dev_project_for_ci(self, context_dir: str) -> None:
         dev_project_dir = os.path.join(
             self.env.host_ctx.program_dir, constants.DEV_PROJECT_DIR
@@ -85,6 +90,54 @@ class CiImageBuilder:
             dirs_exist_ok=True,
             ignore=self._ci_dev_project_copytree_ignore,
         )
+
+    def _copy_odoo_trees_for_ci(self, context_dir: str) -> int:
+        """Copy mapped Odoo source tree(s) into *context_dir*. Returns count."""
+        docker_odoo = self.env.host_ctx.docker_layout.docker_odoo_dir
+        copied = 0
+        for mapped in self.env.mapped_folders:
+            docker_path = mapped.docker
+            if docker_path != docker_odoo and not docker_path.startswith(
+                f"{docker_odoo}/"
+            ):
+                continue
+            if not os.path.isdir(mapped.local):
+                continue
+            rel_path = self._docker_path_to_context_rel(mapped.docker)
+            dest_dir = os.path.join(context_dir, rel_path)
+            parent_dir = os.path.dirname(dest_dir)
+            if parent_dir:
+                os.makedirs(parent_dir, exist_ok=True)
+            shutil.copytree(
+                mapped.local,
+                dest_dir,
+                dirs_exist_ok=True,
+                ignore=self._ci_copytree_ignore,
+            )
+            copied += 1
+        return copied
+
+    def _copy_developing_for_app(self, context_dir: str) -> bool:
+        """Copy developing checkout under ``extra-addons/…`` in *context_dir*."""
+        developing = self.env.bootstrap.developing_project
+        local = getattr(developing, "project_path", None) if developing else None
+        if not local or not os.path.isdir(str(local)):
+            return False
+        docker_path = self.env.host_ctx.docker_layout.docker_odoo_project_dir_path
+        if not docker_path:
+            return False
+        rel_path = self._docker_path_to_context_rel(docker_path)
+        dest_dir = os.path.join(context_dir, rel_path)
+        parent_dir = os.path.dirname(dest_dir)
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
+        shutil.copytree(
+            str(local),
+            dest_dir,
+            dirs_exist_ok=True,
+            ignore=self._ci_copytree_ignore,
+        )
+        return True
 
     def _build_ci_venv_install_spec(self) -> VenvInstallSpec:
         extra_packages = [
@@ -175,13 +228,61 @@ class CiImageBuilder:
         with open(template_path) as reader:
             return reader.read()
 
+    def prepare_platform_build_context(self, dest: str) -> None:
+        """Thin platform context: Odoo sources + ``dev_project/`` only."""
+        self._reset_build_context_dir(dest)
+        copied = self._copy_odoo_trees_for_ci(dest)
+        self._copy_dev_project_for_ci(dest)
+        _logger.info(
+            "prepare_platform_build_context: %s (%s odoo tree(s), %s)",
+            dest,
+            copied,
+            constants.DEV_PROJECT_DIR,
+        )
+
+    def prepare_venv_build_context(self, dest: str) -> None:
+        """Thin venv context: only ``ci/venv_install.json`` (docker paths)."""
+        self._reset_build_context_dir(dest)
+        self._write_ci_venv_spec(dest)
+        _logger.info(
+            "prepare_venv_build_context: %s (%s)",
+            dest,
+            constants.CI_VENV_INSTALL_JSON,
+        )
+
+    def prepare_app_build_context(self, dest: str) -> None:
+        """Thin app context: developing + odoo.conf + runtime (+ secrets)."""
+        self._ensure_odoo_config_data_for_bake()
+        self._reset_build_context_dir(dest)
+        copied_dev = self._copy_developing_for_app(dest)
+        write_odoo_config_data_to_file(
+            self.env.host_ctx.docker_layout.odoo_config_data,
+            os.path.join(dest, constants.ODOO_CONF_NAME),
+        )
+        self._write_ci_runtime_config(dest)
+        baked_secrets = self._write_ci_secrets_runtime(dest)
+        _logger.info(
+            "prepare_app_build_context: %s (developing=%s, %s, %s%s)",
+            dest,
+            copied_dev,
+            constants.ODOO_CONF_NAME,
+            constants.CI_RUNTIME_CONFIG_CONTEXT_REL_PATH,
+            (
+                f", {constants.CI_SECRETS_RUNTIME_CONTEXT_REL_PATH}"
+                if baked_secrets
+                else ""
+            ),
+        )
+
     def prepare_ci_build_context(self) -> None:
+        """Full context for smoke tests (secrets / dockerignore).
+
+        Layer ``ensure_*`` helpers use thin ``prepare_*_build_context`` instead.
+        """
         self._ensure_odoo_config_data_for_bake()
 
         context_dir = self.env.host_ctx.docker_layout.ci_build_context_dir
-        if os.path.exists(context_dir):
-            shutil.rmtree(context_dir)
-        os.makedirs(context_dir)
+        self._reset_build_context_dir(context_dir)
 
         copied = 0
         for mapped in self.env.mapped_folders:

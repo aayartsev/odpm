@@ -9,6 +9,7 @@ from .fingerprint import (
     compute_deps_fingerprint,
     compute_lint_fingerprint,
     compute_platform_fingerprint,
+    compute_venv_fingerprint,
     family_for_profile,
     layer_image_ref,
 )
@@ -19,6 +20,7 @@ __all__ = [
     "compute_deps_fingerprint",
     "compute_lint_fingerprint",
     "compute_platform_fingerprint",
+    "compute_venv_fingerprint",
     "ensure_image_layer",
     "family_for_profile",
     "layer_image_ref",

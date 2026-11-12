@@ -27,6 +27,7 @@ from dev_project.image_layers.fingerprint import (
     compute_deps_fingerprint,
     compute_lint_fingerprint,
     compute_platform_fingerprint,
+    compute_venv_fingerprint,
     layer_image_ref,
 )
 from dev_project.image_layers.registry import (
@@ -85,6 +86,47 @@ class FingerprintTests(unittest.TestCase):
         self.assertIn("-dev-", ref_full)
         self.assertIn("-runtime-", ref_medium)
         self.assertNotEqual(ref_full, ref_medium)
+
+    def test_platform_fingerprint_ignores_requirements_extras(self):
+        program_dir = str(Path(__file__).resolve().parents[1])
+        cfg_a = self._config()
+        cfg_b = self._config()
+        cfg_b.project_settings.requirements_txt = ["other-extra"]
+        with patch(
+            "dev_project.image_layers.fingerprint._lock_sha_map",
+            return_value={"platform": "abc123"},
+        ):
+            self.assertEqual(
+                compute_platform_fingerprint(cfg_a, program_dir=program_dir),
+                compute_platform_fingerprint(cfg_b, program_dir=program_dir),
+            )
+
+    def test_venv_fingerprint_changes_with_extras_and_lock(self):
+        program_dir = str(Path(__file__).resolve().parents[1])
+        cfg = self._config()
+        cfg.compute_venv_lock_hash = MagicMock(return_value="lock-a")
+        with patch(
+            "dev_project.image_layers.fingerprint._lock_sha_map",
+            return_value={"platform": "abc"},
+        ):
+            fp1 = compute_venv_fingerprint(
+                cfg, program_dir=program_dir, platform_ref="reg:plat"
+            )
+            cfg.project_settings.requirements_txt = ["zzz"]
+            fp2 = compute_venv_fingerprint(
+                cfg, program_dir=program_dir, platform_ref="reg:plat"
+            )
+            cfg.project_settings.requirements_txt = ["foo", "bar"]
+            cfg.compute_venv_lock_hash = MagicMock(return_value="lock-b")
+            fp3 = compute_venv_fingerprint(
+                cfg, program_dir=program_dir, platform_ref="reg:plat"
+            )
+            fp4 = compute_venv_fingerprint(
+                cfg, program_dir=program_dir, platform_ref="reg:plat-other"
+            )
+        self.assertNotEqual(fp1, fp2)
+        self.assertNotEqual(fp1, fp3)
+        self.assertNotEqual(fp1, fp4)
 
     def test_deps_fingerprint_none_without_dependencies(self):
         program_dir = str(Path(__file__).resolve().parents[1])
@@ -362,43 +404,26 @@ class DepsExcludeDevelopingTests(unittest.TestCase):
                 ),
             ]
             dest = root / "deps" / "extra-addons"
-            copied = _copy_deps_extra_addons(
-                env, full_ctx=ctx, dest_addons=dest
-            )
+            copied = _copy_deps_extra_addons(env, dest_addons=dest)
             self.assertEqual(copied, 1)
             self.assertTrue((dest / "oca_web").is_dir())
             self.assertFalse((dest / "my_app").exists())
 
-    def test_copy_deps_fallback_keeps_same_basename_dependency(self):
-        """Basename-only skip must not drop an OCA tree named like developing."""
+    def test_copy_deps_without_mapped_folders_copies_nothing(self):
+        """Deps context uses mapped.local only — empty mapped → no trees."""
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            developing = root / "elsewhere" / "web"
-            developing.mkdir(parents=True)
-            ctx_addons = root / "ctx" / "extra-addons"
-            ctx_addons.mkdir(parents=True)
-            oca_web = ctx_addons / "web"
-            oca_web.mkdir()
-            (oca_web / "module").mkdir()
-
+            dest = root / "deps" / "extra-addons"
             config = MagicMock()
             config.docker_layout.docker_extra_addons = "/home/odoo/extra-addons"
-            developing_link = MagicMock()
-            developing_link.project_path = str(developing)
-            config.developing_project = developing_link
+            config.developing_project = None
             config.bootstrap = MagicMock()
-            config.bootstrap.developing_project = developing_link
-
+            config.bootstrap.developing_project = None
             env = MagicMock()
             env.bootstrap = BootstrapHandle(_assembled=config)
-            env.host_ctx = MagicMock()
+            env.host_ctx = MagicMock(docker_layout=config.docker_layout)
             env.mapped_folders = []
-            dest = root / "deps" / "extra-addons"
-            copied = _copy_deps_extra_addons(
-                env, full_ctx=root / "ctx", dest_addons=dest
-            )
-            self.assertEqual(copied, 1)
-            self.assertTrue((dest / "web" / "module").is_dir())
+            self.assertEqual(_copy_deps_extra_addons(env, dest_addons=dest), 0)
 
     def test_developing_project_path_resolves(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -418,12 +443,16 @@ class ForceRebuildScopeTests(unittest.TestCase):
     @patch("dev_project.image_layers.ensure.ensure_app")
     @patch("dev_project.image_layers.ensure.ensure_deps", return_value=None)
     @patch(
+        "dev_project.image_layers.ensure.ensure_venv",
+        return_value="reg:venv",
+    )
+    @patch(
         "dev_project.image_layers.ensure.ensure_platform",
         return_value="reg:platform",
     )
     @patch("dev_project.image_layers.ensure.ensure_base", return_value="reg:base")
     def test_layered_build_forces_only_app(
-        self, mock_base, mock_platform, mock_deps, mock_app
+        self, mock_base, mock_platform, mock_venv, mock_deps, mock_app
     ):
         env = MagicMock()
         args = OdpmCliArgs()
@@ -431,10 +460,14 @@ class ForceRebuildScopeTests(unittest.TestCase):
         run_layered_build(env, args)
         mock_base.assert_called_once_with(env, force=False)
         mock_platform.assert_called_once_with(env, args, force=False)
-        mock_deps.assert_called_once_with(
+        mock_venv.assert_called_once_with(
             env, args, platform_ref="reg:platform", force=False
         )
+        mock_deps.assert_called_once_with(
+            env, args, platform_ref="reg:venv", force=False
+        )
         mock_app.assert_called_once()
+        self.assertEqual(mock_app.call_args.kwargs.get("parent_ref"), "reg:venv")
         self.assertTrue(mock_app.call_args.kwargs.get("force"))
 
     def test_ensure_base_force_rebuilds(self):
@@ -622,36 +655,37 @@ class DepsMissingTreesTests(unittest.TestCase):
         return_value=False,
     )
     @patch("dev_project.image_layers.ensure._copy_deps_extra_addons", return_value=0)
-    @patch.object(
-        __import__(
-            "dev_project.project_env.ci_image", fromlist=["CiImageBuilder"]
-        ).CiImageBuilder,
-        "prepare_ci_build_context",
-    )
     def test_deps_raises_when_no_trees_after_filter(
-        self, _prepare, _copy, _exists, _fp
+        self, _copy, _exists, _fp
     ):
-        config = MagicMock()
-        config.program_dir = str(Path(__file__).resolve().parents[1])
-        config.project_dir = "/tmp/proj"
-        config.project_name = "demo"
-        config.project_settings.odoo_version = "19.0"
-        config.project_settings.odoo_build_date = "2026-01-01"
-        config.project_settings.arch = "amd64"
-        config.docker_layout.ci_build_context_dir = "/tmp/proj/.odpm/ci-build-context"
-        config.policy = MagicMock()
-        config.policy.base_image_profile = "full"
-        config.arguments = OdpmCliArgs()
-        env = MagicMock()
-        env.bootstrap = MagicMock(_assembled=config)
-        with self.assertRaises(ConfigError) as ctx:
-            ensure_deps(
-                env,
-                OdpmCliArgs(),
-                platform_ref="reg:platform",
-                force=False,
+        with tempfile.TemporaryDirectory() as tmp:
+            config = MagicMock()
+            config.program_dir = str(Path(__file__).resolve().parents[1])
+            config.project_dir = tmp
+            config.project_name = "demo"
+            config.project_settings.odoo_version = "19.0"
+            config.project_settings.odoo_build_date = "2026-01-01"
+            config.project_settings.arch = "amd64"
+            config.policy = MagicMock()
+            config.policy.base_image_profile = "full"
+            config.arguments = OdpmCliArgs()
+            env = MagicMock()
+            env.bootstrap = MagicMock(_assembled=config)
+            env.host_ctx = MagicMock(
+                program_dir=config.program_dir,
+                project_dir=tmp,
+                project_settings=config.project_settings,
+                policy=config.policy,
+                docker_layout=config.docker_layout,
             )
-        self.assertIn("dependencies", str(ctx.exception).lower())
+            with self.assertRaises(ConfigError) as ctx:
+                ensure_deps(
+                    env,
+                    OdpmCliArgs(),
+                    platform_ref="reg:venv",
+                    force=False,
+                )
+            self.assertIn("dependencies", str(ctx.exception).lower())
 
 
 class SourcesOnlyIdsTests(unittest.TestCase):
@@ -899,16 +933,18 @@ class PruneCacheTagTests(unittest.TestCase):
         keep = "reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01"
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp)
-            ctx = project / ".odpm" / "ci-build-context"
-            for name in ("odoo", "dev_project", "ci"):
-                (ctx / name).mkdir(parents=True)
+
+            def _prepare_platform(dest: str) -> None:
+                root = Path(dest)
+                (root / "odoo").mkdir(parents=True)
+                (root / "dev_project").mkdir(parents=True)
+
             config = MagicMock()
             config.program_dir = program_dir
             config.project_dir = str(project)
             config.project_name = "demo"
             config.project_settings.odoo_version = "19.0"
             config.project_settings.odoo_build_date = "2026-01-01"
-            config.docker_layout.ci_build_context_dir = str(ctx)
             config.policy = MagicMock()
             config.policy.base_image_profile = "full"
             env = MagicMock()
@@ -944,7 +980,8 @@ class PruneCacheTagTests(unittest.TestCase):
                     side_effect=lambda text, **_k: text,
                 ),
                 patch(
-                    "dev_project.project_env.ci_image.CiImageBuilder.prepare_ci_build_context",
+                    "dev_project.project_env.ci_image.CiImageBuilder.prepare_platform_build_context",
+                    side_effect=_prepare_platform,
                 ),
             ):
                 def _copy_side_effect(_program_dir, _key, dest):
@@ -964,16 +1001,16 @@ class PruneCacheTagTests(unittest.TestCase):
     @patch(
         "dev_project.image_layers.ensure.prune_stale_layer_cache_tags"
     )
-    def test_ensure_app_passes_prune_flag_to_nested_platform(
+    def test_ensure_app_passes_prune_flag_to_nested_venv(
         self, mock_prune
     ):
-        """Nested ensure_platform gets the same args; hit-path prune is covered
+        """Nested ensure_venv gets the same args; hit-path prune is covered
         by test_ensure_platform_hit_prunes_when_enabled."""
         from dev_project.image_layers.ensure import ensure_app
 
         program_dir = str(Path(__file__).resolve().parents[1])
-        plat_ref = (
-            "reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01"
+        venv_ref = (
+            "reg/proj:cache-venv-dev-19.0-2026-01-01-v-venvfp01"
         )
         app_ref = "reg/proj:cache-app-dev-19.0-2026-01-01-v-appfp001"
         with tempfile.TemporaryDirectory() as tmp:
@@ -995,9 +1032,9 @@ class PruneCacheTagTests(unittest.TestCase):
                     return_value=None,
                 ),
                 patch(
-                    "dev_project.image_layers.ensure.ensure_platform",
-                    return_value=plat_ref,
-                ) as mock_plat,
+                    "dev_project.image_layers.ensure.ensure_venv",
+                    return_value=venv_ref,
+                ) as mock_venv,
                 patch(
                     "dev_project.image_layers.ensure._developing_git_sha",
                     return_value="deadbeef",
@@ -1027,8 +1064,67 @@ class PruneCacheTagTests(unittest.TestCase):
                 ),
             ):
                 ensure_app(env, OdpmCliArgs(image_prune_stale=True))
-        self.assertTrue(mock_plat.call_args.args[1].image_prune_stale)
+        self.assertTrue(mock_venv.call_args.args[1].image_prune_stale)
         mock_prune.assert_called_once_with(app_ref, remote=False)
+
+
+class ThinLayerContextTests(unittest.TestCase):
+    def test_platform_context_has_odoo_and_dev_project_only(self):
+        from dev_project.project_env.ci_image import CiImageBuilder
+
+        program_dir = str(Path(__file__).resolve().parents[1])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            odoo = root / "odoo_src"
+            odoo.mkdir()
+            (odoo / "odoo-bin").write_text("x\n", encoding="utf-8")
+            dest = root / "platform-ctx"
+            env = MagicMock()
+            env.host_ctx = MagicMock()
+            env.host_ctx.program_dir = program_dir
+            env.host_ctx.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+            env.host_ctx.docker_layout.docker_project_dir = "/home/odoo"
+            env.host_ctx.docker_layout.docker_dev_project_dir = (
+                "/home/odoo/dev_project"
+            )
+            env.host_ctx.docker_layout.docker_extra_addons = (
+                "/home/odoo/extra-addons"
+            )
+            env.mapped_folders = [
+                MappedPath(local=str(odoo), docker="/home/odoo/odoo"),
+                MappedPath(
+                    local=str(root / "app"),
+                    docker="/home/odoo/extra-addons/app",
+                ),
+            ]
+            (root / "app").mkdir()
+            CiImageBuilder(env).prepare_platform_build_context(str(dest))
+            self.assertTrue((dest / "odoo" / "odoo-bin").is_file())
+            self.assertTrue((dest / "dev_project").is_dir())
+            self.assertFalse((dest / "ci").exists())
+            self.assertFalse((dest / "extra-addons").exists())
+
+    def test_venv_context_only_install_json_with_docker_paths(self):
+        from dev_project import constants
+        from dev_project.project_env.ci_image import CiImageBuilder
+
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp) / "venv-ctx"
+            env = MagicMock()
+            env.host_ctx.docker_layout.docker_project_dir = "/home/odoo"
+            env.host_ctx.docker_layout.docker_venv_dir = "/home/odoo/.venv"
+            env.host_ctx.docker_layout.docker_odoo_dir = "/home/odoo/odoo"
+            env.host_ctx.project_settings.requirements_txt = ["pkg"]
+            env.host_ctx.project_settings.python_version = "3.12"
+            env.bootstrap.compute_venv_lock_hash.return_value = "lockhash"
+            CiImageBuilder(env).prepare_venv_build_context(str(dest))
+            spec = dest / constants.CI_VENV_INSTALL_JSON
+            self.assertTrue(spec.is_file())
+            text = spec.read_text(encoding="utf-8")
+            self.assertIn("/home/odoo", text)
+            self.assertNotIn(str(tmp), text)
+            self.assertFalse((dest / "odoo").exists())
+            self.assertFalse((dest / "dev_project").exists())
 
 
 if __name__ == "__main__":

@@ -767,8 +767,8 @@ RU_MESSAGES: dict[str, str] = {
     "missing layered image template {NAME}": (
         "отсутствует шаблон слоистого образа {NAME}"
     ),
-    "platform context missing {PATH}": (
-        "в контексте platform отсутствует {PATH}"
+    "platform context missing odoo/ or dev_project/ under {PATH}": (
+        "в контексте platform нет odoo/ или dev_project/ в {PATH}"
     ),
     "unknown image layer {LAYER}": (
         "неизвестный слой образа {LAYER}"

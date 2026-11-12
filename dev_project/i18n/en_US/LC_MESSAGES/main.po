@@ -132,8 +132,8 @@ msgstr "Build compose start command and write .odpm/runtime/config.json when sta
 msgid "Build docker volume mapping for Odoo, venv, and addons (no dependency clone or OCA discovery)"
 msgstr "Build docker volume mapping for Odoo, venv, and addons (no dependency clone or OCA discovery)"
 
-msgid "Build layered CI image (base → platform → deps? → app; ADR-027)"
-msgstr "Build layered CI image (base → platform → deps? → app; ADR-027)"
+msgid "Build layered CI image (base → platform → venv → deps? → app; ADR-027)"
+msgstr "Build layered CI image (base → platform → venv → deps? → app; ADR-027)"
 
 msgid "CI kaniko direct prepare-only; Docker daemon check skipped"
 msgstr "CI kaniko direct prepare-only; Docker daemon check skipped"
@@ -1308,11 +1308,11 @@ msgstr "docker-compose.yml missing"
 msgid "docker-compose.yml present; full preview needs volume map"
 msgstr "docker-compose.yml present; full preview needs volume map"
 
-msgid "dockerfile template stale"
-msgstr "dockerfile template stale"
-
 msgid "dockerfile out of sync with .odpm template"
 msgstr "dockerfile out of sync with .odpm template"
+
+msgid "dockerfile template stale"
+msgstr "dockerfile template stale"
 
 msgid "dockerfile template up to date"
 msgstr "dockerfile template up to date"
@@ -1376,6 +1376,9 @@ msgstr "image lint ensure requires .pre-commit-config.yaml in the project root a
 
 msgid "image platform ensure"
 msgstr "image platform ensure"
+
+msgid "image venv ensure"
+msgstr "image venv ensure"
 
 msgid "import --secrets-file"
 msgstr "import --secrets-file"
@@ -1515,8 +1518,8 @@ msgstr "only used with --update-lock"
 msgid "patch keys: {KEYS}"
 msgstr "patch keys: {KEYS}"
 
-msgid "platform context missing {PATH}"
-msgstr "platform context missing {PATH}"
+msgid "platform context missing odoo/ or dev_project/ under {PATH}"
+msgstr "platform context missing odoo/ or dev_project/ under {PATH}"
 
 msgid "plugins: {PLUGIN_LIST}"
 msgstr "plugins: {PLUGIN_LIST}"

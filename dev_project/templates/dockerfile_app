@@ -1,4 +1,4 @@
-# Thin app layer: FROM platform or deps (odoo + .venv already present).
+# Thin app layer: FROM venv or deps (odoo + .venv already present).
 ARG PLATFORM_IMAGE
 FROM ${PLATFORM_IMAGE}
 

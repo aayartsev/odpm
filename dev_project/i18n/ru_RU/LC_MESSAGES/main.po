@@ -131,8 +131,8 @@ msgstr "Собрать команду запуска compose и записать
 msgid "Build docker volume mapping for Odoo, venv, and addons (no dependency clone or OCA discovery)"
 msgstr "Построить маппинг docker-томов для Odoo, venv и аддонов (без клона зависимостей и без обхода OCA)"
 
-msgid "Build layered CI image (base → platform → deps? → app; ADR-027)"
-msgstr "Собрать слоистый CI-образ (base → platform → deps? → app; ADR-027)"
+msgid "Build layered CI image (base → platform → venv → deps? → app; ADR-027)"
+msgstr "Собрать слоистый CI-образ (base → platform → venv → deps? → app; ADR-027)"
 
 msgid "CI kaniko direct prepare-only; Docker daemon check skipped"
 msgstr "CI kaniko direct prepare-only; проверка Docker daemon пропущена"
@@ -1307,11 +1307,11 @@ msgstr "отсутствует docker-compose.yml"
 msgid "docker-compose.yml present; full preview needs volume map"
 msgstr "docker-compose.yml присутствует; полный preview требует volume map"
 
-msgid "dockerfile template stale"
-msgstr "шаблон Dockerfile устарел"
-
 msgid "dockerfile out of sync with .odpm template"
 msgstr "корневой Dockerfile не совпадает с шаблоном в .odpm"
+
+msgid "dockerfile template stale"
+msgstr "шаблон Dockerfile устарел"
 
 msgid "dockerfile template up to date"
 msgstr "шаблон Dockerfile актуален"
@@ -1375,6 +1375,9 @@ msgstr "image lint ensure требует .pre-commit-config.yaml в корне �
 
 msgid "image platform ensure"
 msgstr "ensure слоя platform"
+
+msgid "image venv ensure"
+msgstr "ensure слоя venv"
 
 msgid "import --secrets-file"
 msgstr "импорт --secrets-file"
@@ -1514,8 +1517,8 @@ msgstr "используется только с --update-lock"
 msgid "patch keys: {KEYS}"
 msgstr "ключи patch: {KEYS}"
 
-msgid "platform context missing {PATH}"
-msgstr "в контексте platform отсутствует {PATH}"
+msgid "platform context missing odoo/ or dev_project/ under {PATH}"
+msgstr "в контексте platform нет odoo/ или dev_project/ в {PATH}"
 
 msgid "plugins: {PLUGIN_LIST}"
 msgstr "плагины: {PLUGIN_LIST}"

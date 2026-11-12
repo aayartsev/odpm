@@ -83,8 +83,14 @@ import dev_project.inside_docker_app.container_bootstrap
 
 
 class CiDockerfileTests(unittest.TestCase):
-    def test_dockerfile_platform_uses_module_invocation(self):
+    def test_dockerfile_platform_has_no_bake_venv(self):
         content = DOCKERFILE_PLATFORM.read_text(encoding="utf-8")
+        self.assertNotIn("bake_venv", content)
+
+    def test_dockerfile_venv_uses_module_invocation(self):
+        content = (
+            PROJECT_ROOT / "dev_project" / "templates" / "dockerfile_venv"
+        ).read_text(encoding="utf-8")
         self.assertIn("python3 -m dev_project.bake_venv", content)
         self.assertIn("ci/venv_install.json", content)
         self.assertNotIn("bake.bake_venv", content)
