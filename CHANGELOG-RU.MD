@@ -10,6 +10,7 @@
 
 ### Изменено
 
+- **Этапные логи при miss слоя** — после `miss — building` в логе видны фазы: родительский base (для platform), сброс/копирование контекста, старт и конец сборки с длительностью в секундах — длинное копирование на NFS не выглядит как зависание. Hit без лишнего шума. Документация: `scenarios/ci.md`. Тесты: `test_image_layers`.
 - **Ломающее: отдельный слой CI `venv` и тонкие контексты сборки (ADR-027)** — цепочка `base → platform → venv → [deps] → app` (`lint` по-прежнему от platform). В platform больше нет `bake_venv`; нужен `odpm image venv ensure` (или `odpm build`). Смена pip/lock даёт miss слоя `venv` без пересборки дерева Odoo. При miss в контекст копируются только нужные деревья (`.odpm/*-build-context`). Старые теги `cache-platform-*` с запечённым venv внутри не годятся как родитель deps/app. Документация: ADR-027, `scenarios/ci.md`, `cli.md`. Тесты: `test_image_layers`, `test_cli_image`, `test_bake_venv_e2e`.
 
 ### Исправлено

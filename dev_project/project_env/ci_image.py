@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import pathlib
 import shutil
+import time
 from typing import TYPE_CHECKING
 
 from .. import constants
@@ -68,10 +69,19 @@ class CiImageBuilder:
         ignored.update(name for name in names if name.endswith(".md"))
         return ignored
 
+    @staticmethod
+    def _elapsed_s(started: float) -> int:
+        return int(time.monotonic() - started)
+
     def _reset_build_context_dir(self, dest: str) -> None:
+        _logger.info("resetting build context %s", dest)
+        started = time.monotonic()
         if os.path.exists(dest):
             shutil.rmtree(dest)
         os.makedirs(dest)
+        _logger.info(
+            "reset done (%s s) %s", self._elapsed_s(started), dest
+        )
 
     def _copy_dev_project_for_ci(self, context_dir: str) -> None:
         dev_project_dir = os.path.join(
@@ -84,11 +94,20 @@ class CiImageBuilder:
         parent_dir = os.path.dirname(dest_dir)
         if parent_dir:
             os.makedirs(parent_dir, exist_ok=True)
+        _logger.info(
+            "copying dev_project from %s → %s",
+            dev_project_dir,
+            dest_dir,
+        )
+        started = time.monotonic()
         shutil.copytree(
             dev_project_dir,
             dest_dir,
             dirs_exist_ok=True,
             ignore=self._ci_dev_project_copytree_ignore,
+        )
+        _logger.info(
+            "dev_project copy done (%s s)", self._elapsed_s(started)
         )
 
     def _copy_odoo_trees_for_ci(self, context_dir: str) -> int:
@@ -108,11 +127,18 @@ class CiImageBuilder:
             parent_dir = os.path.dirname(dest_dir)
             if parent_dir:
                 os.makedirs(parent_dir, exist_ok=True)
+            _logger.info(
+                "copying odoo from %s → %s", mapped.local, dest_dir
+            )
+            started = time.monotonic()
             shutil.copytree(
                 mapped.local,
                 dest_dir,
                 dirs_exist_ok=True,
                 ignore=self._ci_copytree_ignore,
+            )
+            _logger.info(
+                "odoo copy done (%s s)", self._elapsed_s(started)
             )
             copied += 1
         return copied
@@ -131,11 +157,18 @@ class CiImageBuilder:
         parent_dir = os.path.dirname(dest_dir)
         if parent_dir:
             os.makedirs(parent_dir, exist_ok=True)
+        _logger.info(
+            "copying developing from %s → %s", local, dest_dir
+        )
+        started = time.monotonic()
         shutil.copytree(
             str(local),
             dest_dir,
             dirs_exist_ok=True,
             ignore=self._ci_copytree_ignore,
+        )
+        _logger.info(
+            "developing copy done (%s s)", self._elapsed_s(started)
         )
         return True
 
@@ -230,28 +263,33 @@ class CiImageBuilder:
 
     def prepare_platform_build_context(self, dest: str) -> None:
         """Thin platform context: Odoo sources + ``dev_project/`` only."""
+        started = time.monotonic()
         self._reset_build_context_dir(dest)
         copied = self._copy_odoo_trees_for_ci(dest)
         self._copy_dev_project_for_ci(dest)
         _logger.info(
-            "prepare_platform_build_context: %s (%s odoo tree(s), %s)",
+            "prepare_platform_build_context: %s (%s odoo tree(s), %s, %s s)",
             dest,
             copied,
             constants.DEV_PROJECT_DIR,
+            self._elapsed_s(started),
         )
 
     def prepare_venv_build_context(self, dest: str) -> None:
         """Thin venv context: only ``ci/venv_install.json`` (docker paths)."""
+        started = time.monotonic()
         self._reset_build_context_dir(dest)
         self._write_ci_venv_spec(dest)
         _logger.info(
-            "prepare_venv_build_context: %s (%s)",
+            "prepare_venv_build_context: %s (%s, %s s)",
             dest,
             constants.CI_VENV_INSTALL_JSON,
+            self._elapsed_s(started),
         )
 
     def prepare_app_build_context(self, dest: str) -> None:
         """Thin app context: developing + odoo.conf + runtime (+ secrets)."""
+        started = time.monotonic()
         self._ensure_odoo_config_data_for_bake()
         self._reset_build_context_dir(dest)
         copied_dev = self._copy_developing_for_app(dest)
@@ -262,7 +300,7 @@ class CiImageBuilder:
         self._write_ci_runtime_config(dest)
         baked_secrets = self._write_ci_secrets_runtime(dest)
         _logger.info(
-            "prepare_app_build_context: %s (developing=%s, %s, %s%s)",
+            "prepare_app_build_context: %s (developing=%s, %s, %s%s, %s s)",
             dest,
             copied_dev,
             constants.ODOO_CONF_NAME,
@@ -272,6 +310,7 @@ class CiImageBuilder:
                 if baked_secrets
                 else ""
             ),
+            self._elapsed_s(started),
         )
 
     def prepare_ci_build_context(self) -> None:

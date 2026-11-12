@@ -1098,7 +1098,15 @@ class ThinLayerContextTests(unittest.TestCase):
                 ),
             ]
             (root / "app").mkdir()
-            CiImageBuilder(env).prepare_platform_build_context(str(dest))
+            with self.assertLogs(
+                "dev_project.project_env.ci_image", level="INFO"
+            ) as logs:
+                CiImageBuilder(env).prepare_platform_build_context(str(dest))
+            joined = "\n".join(logs.output)
+            self.assertIn("copying odoo from", joined)
+            self.assertIn("odoo copy done", joined)
+            self.assertIn("prepare_platform_build_context:", joined)
+            self.assertRegex(joined, r"\d+ s")
             self.assertTrue((dest / "odoo" / "odoo-bin").is_file())
             self.assertTrue((dest / "dev_project").is_dir())
             self.assertFalse((dest / "ci").exists())
@@ -1125,6 +1133,140 @@ class ThinLayerContextTests(unittest.TestCase):
             self.assertNotIn(str(tmp), text)
             self.assertFalse((dest / "odoo").exists())
             self.assertFalse((dest / "dev_project").exists())
+
+
+class EnsureProgressLogTests(unittest.TestCase):
+    def test_ensure_platform_miss_logs_prep_and_start(self):
+        from dev_project.image_layers.ensure import ensure_platform
+
+        program_dir = str(Path(__file__).resolve().parents[1])
+        keep = "reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01"
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+
+            def _prepare_platform(dest: str) -> None:
+                root = Path(dest)
+                (root / "odoo").mkdir(parents=True)
+                (root / "dev_project").mkdir(parents=True)
+
+            config = MagicMock()
+            config.program_dir = program_dir
+            config.project_dir = str(project)
+            config.project_name = "demo"
+            config.project_settings.odoo_version = "19.0"
+            config.project_settings.odoo_build_date = "2026-01-01"
+            config.policy = MagicMock()
+            config.policy.base_image_profile = "full"
+            env = MagicMock()
+            env.bootstrap = BootstrapHandle(_assembled=config)
+            env.host_ctx = MagicMock(
+                program_dir=program_dir,
+                project_dir=str(project),
+                project_settings=config.project_settings,
+                policy=config.policy,
+                user_env=MagicMock(),
+                docker_layout=config.docker_layout,
+                manifest_view=None,
+            )
+
+            def _copy_side_effect(_program_dir, _key, dest):
+                Path(dest).parent.mkdir(parents=True, exist_ok=True)
+                Path(dest).write_text("FROM scratch\n", encoding="utf-8")
+
+            with (
+                patch(
+                    "dev_project.image_layers.ensure.image_ref_exists",
+                    return_value=False,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.ensure_base",
+                    return_value="base:ref",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._build_image",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.compute_platform_fingerprint",
+                    return_value="platfp01",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.layer_image_ref",
+                    return_value=keep,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._remote_target",
+                    return_value=False,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._want_push",
+                    return_value=False,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._rewrite_from_line",
+                    side_effect=lambda text, **_k: text,
+                ),
+                patch(
+                    "dev_project.project_env.ci_image.CiImageBuilder.prepare_platform_build_context",
+                    side_effect=_prepare_platform,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._copy_template",
+                    side_effect=_copy_side_effect,
+                ),
+                self.assertLogs(
+                    "dev_project.image_layers.ensure", level="INFO"
+                ) as logs,
+            ):
+                ensure_platform(env, OdpmCliArgs())
+            joined = "\n".join(logs.output)
+            self.assertIn("preparing build context under", joined)
+            self.assertIn("starting image build", joined)
+            self.assertIn("ensuring parent base", joined)
+
+    def test_ensure_platform_hit_skips_prep_logs(self):
+        from dev_project.image_layers.ensure import ensure_platform
+
+        program_dir = str(Path(__file__).resolve().parents[1])
+        with tempfile.TemporaryDirectory() as tmp:
+            env = MagicMock()
+            env.bootstrap = MagicMock(_assembled=MagicMock())
+            env.bootstrap._assembled.program_dir = program_dir
+            env.bootstrap._assembled.project_dir = tmp
+            env.bootstrap._assembled.project_name = "demo"
+            env.bootstrap._assembled.project_settings.odoo_version = "19.0"
+            env.bootstrap._assembled.project_settings.odoo_build_date = (
+                "2026-01-01"
+            )
+            env.bootstrap._assembled.policy = MagicMock()
+            env.bootstrap._assembled.policy.base_image_profile = "full"
+            with (
+                patch(
+                    "dev_project.image_layers.ensure.image_ref_exists",
+                    return_value=True,
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.compute_platform_fingerprint",
+                    return_value="platfp01",
+                ),
+                patch(
+                    "dev_project.image_layers.ensure.layer_image_ref",
+                    return_value=(
+                        "reg/proj:cache-platform-dev-19.0-2026-01-01-v-platfp01"
+                    ),
+                ),
+                patch(
+                    "dev_project.image_layers.ensure._remote_target",
+                    return_value=False,
+                ),
+                self.assertLogs(
+                    "dev_project.image_layers.ensure", level="INFO"
+                ) as logs,
+            ):
+                ensure_platform(env, OdpmCliArgs())
+            joined = "\n".join(logs.output)
+            self.assertIn("skip (exists)", joined)
+            self.assertNotIn("preparing build context", joined)
+            self.assertNotIn("starting image build", joined)
 
 
 if __name__ == "__main__":

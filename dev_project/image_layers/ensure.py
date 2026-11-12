@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -110,6 +111,10 @@ def _docker_push_or_raise(ref: str) -> None:
     _logger.info("pushed local image %s", ref)
 
 
+def _elapsed_s(started: float) -> int:
+    return int(time.monotonic() - started)
+
+
 def _build_image(
     *,
     host_ctx: HostProjectContext,
@@ -121,6 +126,13 @@ def _build_image(
 ) -> None:
     environ = environ_from_host_context(host_ctx)
     builder_name = resolve_ci_image_builder(args, environ=environ)
+    _logger.info(
+        "image build: backend=%s context=%s tag=%s",
+        builder_name,
+        context_dir,
+        tag,
+    )
+    started = time.monotonic()
     spec = ImageBuildSpec(
         context_dir=str(context_dir),
         dockerfile=str(dockerfile),
@@ -130,6 +142,12 @@ def _build_image(
         project_dir=host_ctx.project_dir,
     )
     get_ci_image_build_backend(builder_name).build(spec)
+    _logger.info(
+        "image build finished in %s s (backend=%s tag=%s)",
+        _elapsed_s(started),
+        builder_name,
+        tag,
+    )
 
 
 def _copy_template(program_dir: str, name: str, dest: Path) -> None:
@@ -329,10 +347,21 @@ def ensure_platform(
 
     _logger.info("image platform ensure: miss — building %s", ref)
     # Parent base ensure never inherits FORCE for this layer.
+    _logger.info("image platform ensure: ensuring parent base")
+    base_started = time.monotonic()
     base_ref = ensure_base(project_env, force=False)
+    _logger.info(
+        "image platform ensure: parent base ready (%s s) %s",
+        _elapsed_s(base_started),
+        base_ref,
+    )
     from ..project_env.ci_image import CiImageBuilder
 
     context_dir = Path(host_ctx.project_dir) / ".odpm" / "platform-build-context"
+    _logger.info(
+        "image platform ensure: preparing build context under %s",
+        context_dir,
+    )
     CiImageBuilder(project_env).prepare_platform_build_context(str(context_dir))
     if not (context_dir / "odoo").exists() or not (
         context_dir / "dev_project"
@@ -357,6 +386,7 @@ def ensure_platform(
         context_dir / ".dockerignore",
     )
     push = _want_push(args, host_ctx)
+    _logger.info("image platform ensure: starting image build")
     _build_image(
         host_ctx=host_ctx,
         args=args,
@@ -399,6 +429,9 @@ def ensure_venv(
     from ..project_env.ci_image import CiImageBuilder
 
     context_dir = Path(host_ctx.project_dir) / ".odpm" / "venv-build-context"
+    _logger.info(
+        "image venv ensure: preparing build context under %s", context_dir
+    )
     CiImageBuilder(project_env).prepare_venv_build_context(str(context_dir))
     dockerfile = context_dir / "Dockerfile.venv"
     _copy_template(program_dir, "dockerfile_venv", dockerfile)
@@ -409,6 +442,7 @@ def ensure_venv(
     )
     dockerfile.write_text(text, encoding="utf-8")
     push = _want_push(args, host_ctx)
+    _logger.info("image venv ensure: starting image build")
     _build_image(
         host_ctx=host_ctx,
         args=args,
@@ -454,12 +488,27 @@ def ensure_deps(
 
     _logger.info("image deps ensure: miss — building %s", ref)
     context_dir = Path(host_ctx.project_dir) / ".odpm" / "deps-build-context"
+    _logger.info(
+        "image deps ensure: preparing build context under %s", context_dir
+    )
+    _logger.info("image deps ensure: resetting build context %s", context_dir)
+    reset_started = time.monotonic()
     if context_dir.exists():
         shutil.rmtree(context_dir)
     context_dir.mkdir(parents=True)
+    _logger.info(
+        "image deps ensure: reset done (%s s)", _elapsed_s(reset_started)
+    )
+    _logger.info("image deps ensure: copying dependency trees")
+    copy_started = time.monotonic()
     copied = _copy_deps_extra_addons(
         project_env,
         dest_addons=context_dir / "extra-addons",
+    )
+    _logger.info(
+        "image deps ensure: dependency copy done (%s s, %s tree(s))",
+        _elapsed_s(copy_started),
+        copied,
     )
     if copied == 0:
         raise ConfigError(
@@ -481,6 +530,7 @@ def ensure_deps(
         program_dir, "dockerignore_deps", context_dir / ".dockerignore"
     )
     push = _want_push(args, host_ctx)
+    _logger.info("image deps ensure: starting image build")
     _build_image(
         host_ctx=host_ctx,
         args=args,
@@ -545,6 +595,9 @@ def ensure_app(
     from ..project_env.ci_image import CiImageBuilder
 
     context_dir = Path(host_ctx.project_dir) / ".odpm" / "app-build-context"
+    _logger.info(
+        "image app ensure: preparing build context under %s", context_dir
+    )
     CiImageBuilder(project_env).prepare_app_build_context(str(context_dir))
     dockerfile = context_dir / "Dockerfile.app"
     _copy_template(program_dir, "dockerfile_app", dockerfile)
@@ -569,6 +622,7 @@ def ensure_app(
         program_dir, "dockerignore_app", context_dir / ".dockerignore"
     )
     # Push only when explicitly requested; registry env alone is for presence.
+    _logger.info("image app ensure: starting image build")
     _build_image(
         host_ctx=host_ctx,
         args=args,
@@ -664,9 +718,19 @@ def ensure_lint(
 
     _logger.info("image lint ensure: miss — building %s", ref)
     context_dir = Path(host_ctx.project_dir) / ".odpm" / "lint-build-context"
+    _logger.info(
+        "image lint ensure: preparing build context under %s", context_dir
+    )
+    _logger.info("image lint ensure: resetting build context %s", context_dir)
+    reset_started = time.monotonic()
     if context_dir.exists():
         shutil.rmtree(context_dir)
     context_dir.mkdir(parents=True)
+    _logger.info(
+        "image lint ensure: reset done (%s s)", _elapsed_s(reset_started)
+    )
+    _logger.info("image lint ensure: copying lint context files")
+    copy_started = time.monotonic()
     shutil.copy2(pre_commit, context_dir / ".pre-commit-config.yaml")
     hooks = Path(host_ctx.project_dir) / ".pre-commit-hooks.yaml"
     has_hooks = hooks.is_file()
@@ -675,6 +739,10 @@ def ensure_lint(
     bake_dest_dir = context_dir / "dev_project"
     bake_dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(bake_src, bake_dest_dir / "bake_pre_commit.py")
+    _logger.info(
+        "image lint ensure: lint context copy done (%s s)",
+        _elapsed_s(copy_started),
+    )
     dockerfile = context_dir / "Dockerfile.lint"
     _copy_template(program_dir, "dockerfile_lint", dockerfile)
     text = _rewrite_from_line(
@@ -688,6 +756,7 @@ def ensure_lint(
         program_dir, "dockerignore_lint", context_dir / ".dockerignore"
     )
     push = _want_push(args, host_ctx)
+    _logger.info("image lint ensure: starting image build")
     _build_image(
         host_ctx=host_ctx,
         args=args,

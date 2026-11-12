@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Layer ensure progress logs on miss** — after `miss — building`, INFO lines mark parent base (platform), context reset/copy, and image build start/finish with elapsed seconds so slow NFS copies are not mistaken for a hang. Hit paths stay quiet. Docs: `scenarios/ci.md`. Tests: `test_image_layers`.
 - **Breaking: separate CI `venv` layer + thin build contexts (ADR-027)** — stack is `base → platform → venv → [deps] → app` (`lint` still `FROM` platform). Platform no longer runs `bake_venv`; use `odpm image venv ensure` (or `odpm build`). Pip/lock changes miss `venv` without rebuilding the Odoo tree. Each miss copies only the trees that layer needs under `.odpm/*-build-context`. Old `cache-platform-*` tags that baked venv inside platform are not valid parents for deps/app. Docs: ADR-027, `scenarios/ci.md`, `cli.md`. Tests: `test_image_layers`, `test_cli_image`, `test_bake_venv_e2e`.
 
 ### Fixed
