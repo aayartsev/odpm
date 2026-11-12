@@ -31,6 +31,7 @@ from ..symlinks.manager import SymlinkManager
 
 if TYPE_CHECKING:
     from ..config.git_repos import GitRepoCoordinator
+    from ..image_layers.source_plan import SourcePlanResult
     from ..manifest.reader import ManifestView
     from ..project_env import CreateProjectEnvironment
     from ..protocols import SystemCheckerProtocol
@@ -47,6 +48,7 @@ class PrepareContext:
     args: OdpmCliArgs
     host_ctx: HostProjectContext
     lock_manager: DepsLockManager | None = None
+    source_plan: "SourcePlanResult | None" = None
 
     @property
     def compose_preview(self) -> ComposePreviewPort:

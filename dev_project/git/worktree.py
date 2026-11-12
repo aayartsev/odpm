@@ -10,6 +10,7 @@ import fcntl
 import os
 import re
 import shutil
+import subprocess
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Iterator, Optional
 
@@ -493,6 +494,52 @@ def ensure_bare_mirror(
         odoo_version=odoo_version,
         fetch_target=True,
     )
+
+
+def show_blob_at_ref(
+    link: HandleOdooProjectLink,
+    *,
+    mirror: str,
+    ref: str,
+    path: str,
+) -> bytes:
+    """Return raw file bytes from ``ref:path`` in a bare (or any) git dir."""
+    cmd = _git_cmd(link, ["show", f"{ref}:{path}"])
+    completed = subprocess.run(
+        cmd,
+        cwd=mirror,
+        check=False,
+        capture_output=True,
+    )
+    if completed.returncode != 0:
+        err = (completed.stderr or b"").decode("utf-8", errors="replace").strip()
+        raise GitError(
+            f"git show {ref}:{path} failed in {mirror!r}: {err or completed.returncode}"
+        )
+    return completed.stdout
+
+
+def ensure_platform_bare_pin(
+    link: HandleOdooProjectLink,
+    *,
+    odoo_version: str,
+    skip_network: bool = False,
+) -> str:
+    """Ensure platform bare + fetch pin; return mirror path. No worktree."""
+    repo_key = repo_key_from_relative_path(link.project_data.relative_path)
+    root = link.start_dir_to_clone
+    mirror = mirror_path(root, repo_key)
+    lock = mirror + ".lock"
+    with repo_file_lock(lock):
+        ensure_bare_store(
+            link,
+            mirror=mirror,
+            skip_network=skip_network,
+            odoo_version=odoo_version,
+            fetch_target=True,
+        )
+        link.worktree_mirror = mirror
+    return mirror
 
 
 def resolve_target_sha(

@@ -19,12 +19,16 @@
 
 Флаг `--git-worktree` / `ODPM_GIT_WORKTREE` меняет **способ** наполнения исходников внутри `git.materialize_*` и `sources.materialize` (bare → SHA → worktree), не набор и не порядок id шагов (ADR-028).
 
+## Проверка исходников на изменения в сценарии `ci`
+
+На `prepare --stop-after sources` и prepare внутри `image … ensure` odpm сравнивает блоки входов слоёв (отпечаток + наличие образа) и **может не** создавать дерево Odoo / deps при hit (ADR-027 §12, `sources_change_check`). Перед анализом — узкий ensure **bare** platform + fetch pin (hash `requirements.txt` через `git show`, без worktree). При hit platform: `git.materialize_platform` → noop; `git.checkout` без platform; `project.update_links` без ссылок в `odoo_src/.../addons`; `project.map_folders` не требует живого дерева Odoo. Полный путь: `ODPM_FORCE_FULL_SOURCES=1` или fail-soft при сбое анализа/presence. Вне `ci` — полное materialize как раньше.
+
 ## Порядок клонов (инвариант)
 
 1. Проект разработки (`git.materialize_developing`)
-2. Платформа Odoo (`git.materialize_platform`)
+2. Платформа Odoo (`git.materialize_platform`) — при sources change check в `ci` может быть noop при hit слоя
 3. … служебные исходники и хуки …
-4. Зависимости (`git.materialize_dependencies`)
+4. Зависимости (`git.materialize_dependencies`) — при sources change check в `ci` может быть noop при hit / отсутствии deps
 5. Карта папок (`project.map_folders`) — только тома/пути по уже разрешённому списку (без клона; прямой вызов без шага зависимостей берёт seed-URL из манифеста)
 
 ## Обеспечение слоя образа

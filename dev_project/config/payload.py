@@ -54,6 +54,11 @@ def compute_extras_stamp(requirements_txt: list[str]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def hash_requirements_bytes(data: bytes) -> str:
+    """SHA-256 of requirements.txt contents."""
+    return hashlib.sha256(data).hexdigest()
+
+
 def compute_odoo_requirements_hash(odoo_dir: str) -> str:
     """SHA-256 of ``{odoo_dir}/requirements.txt`` (empty when missing)."""
     if not odoo_dir or not isinstance(odoo_dir, str):
@@ -61,8 +66,30 @@ def compute_odoo_requirements_hash(odoo_dir: str) -> str:
     requirements_path = os.path.join(odoo_dir, "requirements.txt")
     if not os.path.isfile(requirements_path):
         return ""
-    return hashlib.sha256(Path(requirements_path).read_bytes()).hexdigest()
+    return hash_requirements_bytes(Path(requirements_path).read_bytes())
 
+
+def resolve_odoo_requirements_hash(config: AssembledProject) -> str:
+    """Override, host tree, then docker path (layout or flat attr)."""
+    override = getattr(config, "odoo_requirements_hash_override", None)
+    if isinstance(override, str) and override:
+        return override
+    host_dir = getattr(config, "odoo_src_dir", None)
+    if isinstance(host_dir, str) and host_dir:
+        hashed = compute_odoo_requirements_hash(host_dir)
+        if hashed:
+            return hashed
+    docker_dir = ""
+    layout = getattr(config, "docker_layout", None)
+    if layout is not None:
+        raw = getattr(layout, "docker_odoo_dir", None)
+        if isinstance(raw, str):
+            docker_dir = raw
+    if not docker_dir:
+        flat = getattr(config, "docker_odoo_dir", None)
+        if isinstance(flat, str):
+            docker_dir = flat
+    return compute_odoo_requirements_hash(docker_dir)
 
 def compute_venv_lock_hash(config: AssembledProject) -> str:
 
@@ -88,9 +115,7 @@ def compute_venv_lock_hash(config: AssembledProject) -> str:
         elif key == "odoo_version":
             payload[key] = str(config.project_settings.odoo_version)
         elif key == "odoo_requirements_hash":
-            payload[key] = compute_odoo_requirements_hash(
-                config.docker_layout.docker_odoo_dir
-            )
+            payload[key] = resolve_odoo_requirements_hash(config)
         else:
             payload[key] = ""
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))

@@ -132,9 +132,10 @@ class SymlinkManager:
         for catalog_of_modules in self.host_ctx.addon_layout.catalogs_of_modules_data:
             list_of_all_modules.extend(catalog_of_modules.list_of_modules)
 
-        if list_of_all_modules:
+        odoo_src = self.bootstrap.odoo_src_dir
+        if list_of_all_modules and odoo_src and os.path.isdir(odoo_src):
             odoo_src_addons_dir = os.path.join(
-                self.bootstrap.odoo_src_dir,
+                odoo_src,
                 self.host_ctx.project_settings.platform_name,
                 "addons",
             )

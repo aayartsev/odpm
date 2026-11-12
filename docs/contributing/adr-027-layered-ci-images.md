@@ -32,6 +32,18 @@ Accepted (4.8-dev track).
 
 11. **Templates:** `dev_project/templates/dockerfile_{platform,venv,deps,app,lint}` + matching `dockerignore_*` (no separate `dockerignore_venv` when the context is only the install JSON). Deps/app Dockerfiles keep ARG name `PLATFORM_IMAGE` (value is the venv or deps parent ref).
 
+12. **Sources change check by input blocks (scenario `ci` only):** on `prepare --stop-after sources` and prepare inside `image … ensure`, odpm compares each layer’s fingerprint + registry/local presence **before** creating the Odoo worktree/classic tree for that layer. Modules: `dev_project/prepare/sources_change_check.py`, `dev_project/image_layers/source_plan.py`.
+
+    | Block | When tree/materialize is skipped |
+    |-------|----------------------------------|
+    | platform | image hit → no `git.materialize_platform` / no Odoo checkout |
+    | venv | hash `requirements.txt` from disk **or** `git show <pin>:requirements.txt` on a **bare** store (always bare for hash, classic or worktree); miss rebuilds `FROM` platform image — no Odoo tree required |
+    | deps | hit or no deps → no `git.materialize_dependencies` |
+    | app | developing SHA (`rev-parse`, or `ODPM_DEVELOPING_GIT_SHA` / `CI_COMMIT_SHA` for early plan) |
+    | lint | pre-commit files in developing; miss does **not** require platform tree |
+
+    Order: lock → materialize developing → ensure platform bare+pin → analyse blocks → conditional platform tree → conditional deps → sources tail. Tail without Odoo tree: `git.checkout` skips platform; `project.map_folders` does not require a live Odoo path; `project.update_links` skips module links into `odoo_src/.../addons`. Fail-soft: if presence/analysis fails (e.g. no `crane` for remote) → WARN + full materialize. Escape hatch: `ODPM_FORCE_FULL_SOURCES=1`. Outside scenario `ci` → full materialize as before.
+
 ## Consequences
 
 - Breaking for consumers of monolithic `Dockerfile.ci` layout and for pipelines that treated platform as the baked-venv parent; documented in CHANGELOG.

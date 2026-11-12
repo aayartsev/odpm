@@ -1617,6 +1617,24 @@ msgstr "skipped with --no-git-update"
 msgid "skipped with --update-lock"
 msgstr "skipped with --update-lock"
 
+msgid "sources change check: checkout without platform tree"
+msgstr "sources change check: checkout without platform tree"
+
+msgid "sources change check: deps layer hit or unused — skip deps trees"
+msgstr "sources change check: deps layer hit or unused — skip deps trees"
+
+msgid "sources change check: platform layer hit — skip Odoo tree"
+msgstr "sources change check: platform layer hit — skip Odoo tree"
+
+msgid "sources change check: refresh project links; skip Odoo addons links without tree"
+msgstr "sources change check: refresh project links; skip Odoo addons links without tree"
+
+msgid "sources change check: refresh volume mapping without requiring Odoo tree"
+msgstr "sources change check: refresh volume mapping without requiring Odoo tree"
+
+msgid "sources change check: verify lock without platform tree checkout"
+msgstr "sources change check: verify lock without platform tree checkout"
+
 msgid "start compose stack (--force-recreate unknown without docker probe)"
 msgstr "start compose stack (--force-recreate unknown without docker probe)"
 

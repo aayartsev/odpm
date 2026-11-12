@@ -30,7 +30,7 @@ class VolumeMapper:
         layout = host_ctx.docker_layout
         mapped_folders = [
             MappedPath(
-                local=bootstrap.odoo_src_dir,
+                local=bootstrap.odoo_src_dir or "",
                 docker=layout.docker_odoo_dir,
             ),
             MappedPath(

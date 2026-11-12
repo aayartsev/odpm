@@ -189,6 +189,10 @@ def developing_project_path(bootstrap: BootstrapHandle) -> Path | None:
 
 
 def _developing_git_sha(bootstrap: BootstrapHandle) -> str:
+    for key in ("ODPM_DEVELOPING_GIT_SHA", "CI_COMMIT_SHA"):
+        value = os.environ.get(key, "").strip()
+        if value:
+            return value
     root = developing_project_path(bootstrap)
     if root is None or not (root / ".git").exists():
         raise ConfigError(

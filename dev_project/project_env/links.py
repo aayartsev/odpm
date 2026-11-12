@@ -94,9 +94,13 @@ class ProjectLinks:
             return True
         return bool(developing.branch_explicit or developing.commit_explicit)
 
-    def checkout_dependencies(self, lock_manager=None) -> None:
+    def checkout_dependencies(
+        self, lock_manager=None, *, skip_platform: bool = False
+    ) -> None:
         bootstrap = self.env.bootstrap
-        list_for_checkout = [bootstrap.odoo_platform_project]
+        list_for_checkout = []
+        if not skip_platform:
+            list_for_checkout.append(bootstrap.odoo_platform_project)
         if self._should_checkout_developing(lock_manager):
             list_for_checkout.append(bootstrap.developing_project)
         list_for_checkout.extend(self.env.host_ctx.docker_layout.dependencies_projects)

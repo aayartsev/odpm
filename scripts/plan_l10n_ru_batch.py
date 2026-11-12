@@ -68,6 +68,27 @@ PLAN_L10N_RU: dict[str, str] = {
     "clone or update developing project": "клонировать или обновить проект разработки",
     "clone or update Odoo platform": "клонировать или обновить платформу Odoo",
     "clone or update dependency repos": "клонировать или обновить репозитории зависимостей",
+    "sources change check: platform layer hit — skip Odoo tree": (
+        "проверка исходников на изменения: слой platform есть — без дерева Odoo"
+    ),
+    "sources change check: deps layer hit or unused — skip deps trees": (
+        "проверка исходников на изменения: слой deps есть или не нужен — "
+        "без деревьев зависимостей"
+    ),
+    "sources change check: checkout without platform tree": (
+        "проверка исходников на изменения: checkout без дерева platform"
+    ),
+    "sources change check: verify lock without platform tree checkout": (
+        "проверка исходников на изменения: проверка lock без checkout дерева platform"
+    ),
+    "sources change check: refresh volume mapping without requiring Odoo tree": (
+        "проверка исходников на изменения: обновить маппинг томов без обязательного "
+        "дерева Odoo"
+    ),
+    "sources change check: refresh project links; skip Odoo addons links without tree": (
+        "проверка исходников на изменения: обновить ссылки проекта; без ссылок в "
+        "addons Odoo если нет дерева"
+    ),
     "materialize developing project before writing deps.lock": (
         "материализовать проект разработки перед записью deps.lock"
     ),

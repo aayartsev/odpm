@@ -163,10 +163,12 @@ class DepsLockManager:
         platform: HandleOdooProjectLink,
         developing: HandleOdooProjectLink,
         dependencies: list[HandleOdooProjectLink],
+        skip_platform: bool = False,
     ) -> None:
         if not self._apply_mode or self._lock is None:
             return
-        self._verify_entry(platform, self._lock.platform, label="platform")
+        if not skip_platform:
+            self._verify_entry(platform, self._lock.platform, label="platform")
         if (
             self._lock.developing is not None
             and is_remote_git_link(developing)
@@ -253,12 +255,13 @@ class DepsLockManager:
     def collect_and_save_from_config(self) -> None:
         self.collect_and_save(developing=self._bootstrap.developing_project)
 
-    def verify_pinned_checkout(self) -> None:
+    def verify_pinned_checkout(self, *, skip_platform: bool = False) -> None:
         self._warn_manifest_deps_lock_divergence()
         self.verify_after_checkout(
             platform=self._bootstrap.odoo_platform_project,
             developing=self._bootstrap.developing_project,
             dependencies=self._bootstrap.docker_layout.dependencies_projects,
+            skip_platform=skip_platform,
         )
         self.verify_service_sources()
 

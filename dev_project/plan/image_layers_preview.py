@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ..host.cli import params as cli_params
@@ -14,6 +16,8 @@ from ..image_layers.fingerprint import (
     layer_image_ref,
 )
 from ..image_layers.registry import image_ref_exists
+from ..image_layers.source_plan import developing_git_sha_for_plan
+from ..project_env.image_build.resolve import resolve_ci_image_push
 from ..system_check_policy import environ_from_host_context
 from .core import PlanStep
 from .l10n import plan_msg
@@ -29,12 +33,8 @@ def _remote_for_plan(
     host_ctx: HostProjectContext,
     args: OdpmCliArgs,
 ) -> bool:
-    from ..project_env.image_build.resolve import resolve_ci_image_push
-
     environ = environ_from_host_context(host_ctx)
     push = resolve_ci_image_push(args, environ=environ)
-    import os
-
     registry = os.environ.get("ODPM_BASE_IMAGE_REGISTRY") or os.environ.get(
         "CI_REGISTRY_IMAGE", ""
     )
@@ -211,10 +211,7 @@ def _build_image_layer_plan_steps_inner(
         parent_ref = deps_ref
 
     try:
-        from ..image_layers.ensure import _developing_git_sha  # noqa: PLC0415
-        import os
-
-        developing_sha = _developing_git_sha(bootstrap)
+        developing_sha = developing_git_sha_for_plan(bootstrap)
         secrets_baked = os.environ.get("ODPM_BAKE_SECRETS", "").strip() in {
             "1",
             "true",
@@ -262,8 +259,6 @@ def _build_image_layer_plan_steps_inner(
                 + f" ({exc})",
             )
         )
-
-    from pathlib import Path
 
     if (Path(host_ctx.project_dir) / ".pre-commit-config.yaml").is_file():
         lint_fp = compute_lint_fingerprint(

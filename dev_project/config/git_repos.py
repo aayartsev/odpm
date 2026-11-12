@@ -8,6 +8,7 @@ from ..git import HandleOdooProjectLink
 from ..git.worktree import (
     bind_link_to_worktree_layout,
     configure_link_worktree_context,
+    ensure_platform_bare_pin,
     git_worktree_requested,
     is_git_work_tree,
     materialize_platform_worktree,
@@ -134,6 +135,22 @@ class GitRepoCoordinator:
             from ..symlinks import ensure_developing_repo_symlinks  # noqa: PLC0415
 
             ensure_developing_repo_symlinks(BootstrapHandle(_assembled=self.config))
+
+    def ensure_platform_bare_pin(self) -> str:
+        """Bare store + fetch platform pin for requirements hash; no worktree."""
+        link = self.config.odoo_platform_project
+        if not self._is_real_git_link(link):
+            raise ConfigError("platform git link is required for bare pin ensure")
+        skip = False
+        skip_fn = getattr(self.config, "skip_git_update", None)
+        if callable(skip_fn):
+            skip = bool(skip_fn())
+        odoo_version = str(self.config.project_settings.odoo_version)
+        return ensure_platform_bare_pin(
+            link,
+            odoo_version=odoo_version,
+            skip_network=skip,
+        )
 
     def materialize_platform(self, *, skip_build_date: bool = False) -> None:
         link = self.config.odoo_platform_project

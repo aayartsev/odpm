@@ -12,6 +12,7 @@ from .helpers import (
     skip_git,
     update_lock,
 )
+from .sources_change_check import get_or_build_source_plan, sources_change_check_eligible
 from .types import PrepareContext
 
 
@@ -111,28 +112,78 @@ def evaluate_git_materialize_developing(ctx: PrepareContext) -> PlanStep:
 
 
 def evaluate_git_materialize_platform(ctx: PrepareContext) -> PlanStep:
-    return _evaluate_git_materialize_part(
-        ctx,
-        step_id="git.materialize_platform",
-        description=plan_msg(
-            "Clone or update the Odoo platform git repo (and build date when unlocked)"
-        ),
-        reason_default=plan_msg("clone or update Odoo platform"),
-        reason_update_lock=plan_msg(
-            "materialize Odoo platform before writing deps.lock"
-        ),
+    description = plan_msg(
+        "Clone or update the Odoo platform git repo (and build date when unlocked)"
+    )
+    if skip_git(ctx):
+        return make_plan_step(
+            "git.materialize_platform",
+            description,
+            "skip",
+            False,
+            plan_msg("skipped with --no-git-update"),
+        )
+    if update_lock(ctx):
+        return make_plan_step(
+            "git.materialize_platform",
+            description,
+            "run",
+            True,
+            plan_msg("materialize Odoo platform before writing deps.lock"),
+        )
+    if sources_change_check_eligible(ctx) or getattr(ctx, "source_plan", None) is not None:
+        plan = get_or_build_source_plan(ctx)
+        if plan.sources_change_check_active and not plan.need_platform_tree:
+            return make_plan_step(
+                "git.materialize_platform",
+                description,
+                "noop",
+                False,
+                plan_msg("sources change check: platform layer hit — skip Odoo tree"),
+            )
+    return make_plan_step(
+        "git.materialize_platform",
+        description,
+        "run",
+        True,
+        plan_msg("clone or update Odoo platform"),
     )
 
 
 def evaluate_git_materialize_dependencies(ctx: PrepareContext) -> PlanStep:
-    return _evaluate_git_materialize_part(
-        ctx,
-        step_id="git.materialize_dependencies",
-        description=plan_msg("Clone or update dependency git repos"),
-        reason_default=plan_msg("clone or update dependency repos"),
-        reason_update_lock=plan_msg(
-            "materialize dependency repos before writing deps.lock"
-        ),
+    description = plan_msg("Clone or update dependency git repos")
+    if skip_git(ctx):
+        return make_plan_step(
+            "git.materialize_dependencies",
+            description,
+            "skip",
+            False,
+            plan_msg("skipped with --no-git-update"),
+        )
+    if update_lock(ctx):
+        return make_plan_step(
+            "git.materialize_dependencies",
+            description,
+            "run",
+            True,
+            plan_msg("materialize dependency repos before writing deps.lock"),
+        )
+    if sources_change_check_eligible(ctx) or getattr(ctx, "source_plan", None) is not None:
+        plan = get_or_build_source_plan(ctx)
+        if plan.sources_change_check_active and not plan.need_deps_trees:
+            return make_plan_step(
+                "git.materialize_dependencies",
+                description,
+                "noop",
+                False,
+                plan_msg("sources change check: deps layer hit or unused — skip deps trees"),
+            )
+    return make_plan_step(
+        "git.materialize_dependencies",
+        description,
+        "run",
+        True,
+        plan_msg("clone or update dependency repos"),
     )
 
 
@@ -177,6 +228,16 @@ def evaluate_git_checkout(ctx: PrepareContext) -> PlanStep:
             False,
             plan_msg("skipped with --no-git-update"),
         )
+    if sources_change_check_eligible(ctx) or getattr(ctx, "source_plan", None) is not None:
+        plan = get_or_build_source_plan(ctx)
+        if plan.sources_change_check_active and not plan.need_platform_tree:
+            return make_plan_step(
+                "git.checkout",
+                description,
+                "run",
+                True,
+                plan_msg("sources change check: checkout without platform tree"),
+            )
     return make_plan_step(
         "git.checkout",
         description,
@@ -216,12 +277,19 @@ def evaluate_git_lock_verify(ctx: PrepareContext) -> PlanStep:
             False,
             plan_msg("lock verify not applicable"),
         )
+    reason = plan_msg("verify checked-out commits match {SOURCE}", SOURCE=source)
+    if sources_change_check_eligible(ctx) or getattr(ctx, "source_plan", None) is not None:
+        plan = get_or_build_source_plan(ctx)
+        if plan.sources_change_check_active and not plan.need_platform_tree:
+            reason = plan_msg(
+                "sources change check: verify lock without platform tree checkout"
+            )
     return make_plan_step(
         "git.lock_verify",
         description,
         "run",
         ctx.host_ctx.policy.is_ci(),
-        plan_msg("verify checked-out commits match {SOURCE}", SOURCE=source),
+        reason,
     )
 
 
@@ -257,7 +325,14 @@ def exec_lock_apply(ctx: PrepareContext) -> None:
 
 def exec_git_checkout(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
-    ctx.links.checkout_dependencies(lock_manager=ctx.lock_manager)
+    skip_platform = False
+    plan = getattr(ctx, "source_plan", None)
+    if plan is not None and plan.sources_change_check_active and not plan.need_platform_tree:
+        skip_platform = True
+    ctx.links.checkout_dependencies(
+        lock_manager=ctx.lock_manager,
+        skip_platform=skip_platform,
+    )
 
 
 def exec_lock_collect(ctx: PrepareContext) -> None:
@@ -269,4 +344,8 @@ def exec_lock_verify(ctx: PrepareContext) -> None:
     assert ctx.lock_manager is not None
     if not ctx.lock_manager.apply_mode:
         return
-    ctx.lock_manager.verify_pinned_checkout()
+    skip_platform = False
+    plan = getattr(ctx, "source_plan", None)
+    if plan is not None and plan.sources_change_check_active and not plan.need_platform_tree:
+        skip_platform = True
+    ctx.lock_manager.verify_pinned_checkout(skip_platform=skip_platform)
