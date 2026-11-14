@@ -364,12 +364,43 @@ def parse_odoo_requirements(requirements_path: str) -> list[str]:
     return packages
 
 
+def _uv_find_links_args() -> list[str]:
+    """Prefer local wheels when present (uv cannot extract some old sdists)."""
+    args: list[str] = []
+    seen: set[str] = set()
+    candidates: list[str] = []
+    env_links = (os.environ.get("UV_FIND_LINKS") or "").strip()
+    if env_links:
+        candidates.extend(part for part in env_links.split(":") if part.strip())
+    home_wheels = os.path.join(os.path.expanduser("~"), ".cache", "wheels")
+    candidates.append(home_wheels)
+    for path in candidates:
+        path = os.path.abspath(path)
+        if path in seen:
+            continue
+        seen.add(path)
+        if not os.path.isdir(path):
+            continue
+        try:
+            has_wheel = any(name.endswith(".whl") for name in os.listdir(path))
+        except OSError:
+            continue
+        if has_wheel:
+            args.extend(["--find-links", path])
+    return args
+
+
 def _make_pip_runner(spec: VenvInstallSpec, use_uv: bool) -> PipRunner:
     venv_python = venv_python_path(spec.venv_dir)
     if use_uv:
         return PipRunner(
             base_cmd=["uv"],
-            pip_extra_args=[*UV_PIP_INSTALL_OPTIONS, "--python", venv_python],
+            pip_extra_args=[
+                *UV_PIP_INSTALL_OPTIONS,
+                *_uv_find_links_args(),
+                "--python",
+                venv_python,
+            ],
             cwd=spec.project_dir,
         )
     return PipRunner(

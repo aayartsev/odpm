@@ -97,10 +97,32 @@ class PipRunnerTests(unittest.TestCase):
 
     def test_make_pip_runner_uv_targets_venv_python(self):
         spec = _spec(venv_dir="/home/odoo/.venv")
-        runner = _make_pip_runner(spec, use_uv=True)
+        with patch.dict(os.environ, {"UV_FIND_LINKS": ""}, clear=False):
+            with patch(
+                "dev_project.bake_venv._uv_find_links_args", return_value=[]
+            ):
+                runner = _make_pip_runner(spec, use_uv=True)
         self.assertEqual(
             runner.pip_extra_args,
             ["--link-mode=copy", "--python", "/home/odoo/.venv/bin/python3"],
+        )
+
+    def test_make_pip_runner_uv_adds_find_links(self):
+        spec = _spec(venv_dir="/home/odoo/.venv")
+        with patch(
+            "dev_project.bake_venv._uv_find_links_args",
+            return_value=["--find-links", "/tmp/wheels"],
+        ):
+            runner = _make_pip_runner(spec, use_uv=True)
+        self.assertEqual(
+            runner.pip_extra_args,
+            [
+                "--link-mode=copy",
+                "--find-links",
+                "/tmp/wheels",
+                "--python",
+                "/home/odoo/.venv/bin/python3",
+            ],
         )
 
     def test_make_pip_runner_pip_targets_venv_python(self):

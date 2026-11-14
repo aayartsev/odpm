@@ -143,6 +143,12 @@ def build_compose_document(env: CreateProjectEnvironment) -> dict[str, Any]:
         odoo_environment.append(
             f"{constants.ODPM_SECRETS_PATH_ENV}={constants.ODPM_SECRETS_CONTAINER_PATH}"
         )
+    # Local wheels for packages whose PyPI sdist is an ancient non-ustar tar
+    # (e.g. PyPDF2==1.26.0) that uv cannot extract. Populate
+    # {project}/.cache/wheels/*.whl (host: data/odoo/home/<user>/.cache/wheels).
+    odoo_environment.append(
+        f"UV_FIND_LINKS={_compose_working_dir(compose_service)}/.cache/wheels"
+    )
 
     odoo_ports = [
         f"{_resolve_port(user_env, 'odoo_port', constants.ODOO_DEFAULT_PORT)}:{constants.ODOO_DOCKER_PORT}",
