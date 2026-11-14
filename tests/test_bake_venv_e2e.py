@@ -103,6 +103,14 @@ class CiDockerfileTests(unittest.TestCase):
         self.assertNotIn("bake_venv", app)
         self.assertIn("runtime/config.json", app)
 
+    def test_dockerfile_app_has_no_run_mkdir_odpm(self):
+        app = (
+            PROJECT_ROOT / "dev_project" / "templates" / "dockerfile_app"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("RUN mkdir", app)
+        self.assertIn("/run/odpm/config.json", app)
+        self.assertNotIn("USER root", app)
+
 
 if __name__ == "__main__":
     unittest.main()

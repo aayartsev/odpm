@@ -30,7 +30,7 @@ Accepted (4.8-dev track).
 
 10. **`odpm build`:** only layered path (base → platform → venv → deps? → app). Monolithic final `dockerfile_ci` bake-in-app path removed. Old `cache-platform-*` tags that baked venv inside platform are **not** compatible as parents of deps/app after this change — one warm-up of the new chain is required.
 
-11. **Templates:** `dev_project/templates/dockerfile_{platform,venv,deps,app,lint}` + matching `dockerignore_*` (no separate `dockerignore_venv` when the context is only the install JSON). Deps/app Dockerfiles keep ARG name `PLATFORM_IMAGE` (value is the venv or deps parent ref).
+11. **Templates:** `dev_project/templates/dockerfile_{platform,venv,deps,app,lint}` + matching `dockerignore_*` (no separate `dockerignore_venv` when the context is only the install JSON). Deps/app Dockerfiles keep ARG name `PLATFORM_IMAGE` (value is the venv or deps parent ref). The **app** template does **not** use `RUN mkdir /run/odpm` (avoids expensive full-filesystem snapshots on every app miss with kaniko); `/run/odpm` appears via `COPY … /run/odpm/config.json` with `--chown` on the file. Runtime only reads those files. Monolithic `dockerfile_ci` may still mkdir; layered path does not.
 
 12. **Sources change check by input blocks (scenario `ci` only):** on `prepare --stop-after sources` and prepare inside `image … ensure`, odpm compares each layer’s fingerprint + registry/local presence **before** creating the Odoo worktree/classic tree for that layer. Modules: `dev_project/prepare/sources_change_check.py`, `dev_project/image_layers/source_plan.py`.
 
