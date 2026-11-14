@@ -23,7 +23,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - ODPM_CONFIG_PATH=/run/odpm/config.json
-      - UV_FIND_LINKS=/home/odoo/.cache/wheels
     command:
       - python3
       - -m

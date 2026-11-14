@@ -20,7 +20,6 @@ services:
     working_dir: /home/odoo
     environment:
       - PYTHONUNBUFFERED=1
-      - UV_FIND_LINKS=/home/odoo/.cache/wheels
     command:
       - python3
       - -m
