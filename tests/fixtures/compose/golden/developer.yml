@@ -22,6 +22,7 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONWARNINGS=ignore::DeprecationWarning:docutils
       - ODPM_CONFIG_PATH=/run/odpm/config.json
+      - UV_FIND_LINKS=/home/odoo/.cache/wheels
     command:
       - python3
       - -m
