@@ -52,11 +52,14 @@ class ProjectLinks:
                     )
 
     def map_folders(self) -> None:
-        """Build docker volume mapping; never clones or walks OCA discovery.
+        """Build docker volume mapping; does not walk OCA discovery.
 
         Prepare runs :meth:`materialize_dependencies` first (full resolve + clone).
-        Standalone callers (plan compose preview, tests) map seed ``dependencies``
-        URLs already on ``config`` — no git clone side effects.
+        Mapping creates fresh git-link objects, so we probe the local tree via
+        ``build_project`` when the link is not yet marked cloned
+        (``skip_materialize=True``) — same path as mounting after OCA discovery
+        without a second clone pass. Standalone callers (plan compose preview)
+        map seed ``dependencies`` URLs already on config the same way.
         """
         mapper = VolumeMapper(self.env)
         self.env.mapped_folders = mapper.build_base_folders()
@@ -68,10 +71,13 @@ class ProjectLinks:
             self._dependency_resolution = resolution
         else:
             resolution = self._dependency_resolution
+        # Probe existing clones: handle_git_link always returns is_cloned=False
+        # until build_project runs. materialize_deps=False skipped mounts for
+        # repos already on disk after git.materialize_dependencies (7b5a0fc1).
         mapper.append_dependency_mounts(
             resolution,
-            materialize_deps=False,
-            skip_materialize=False,
+            materialize_deps=True,
+            skip_materialize=True,
         )
         mapper.map_pre_commit_files()
 

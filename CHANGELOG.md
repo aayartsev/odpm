@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Git dependency mounts after prepare-zone split** — `project.map_folders` again probes the local clone (`build_project` with `skip_materialize`) before adding the volume and `addons_path` entry. After `7b5a0fc1`, fresh links stayed `is_cloned=False`, so already-cloned seed URLs (including `use_oca_dependencies: false`) dropped out of `docker-compose.yml`. Docs: `prepare-zones.md`. Tests: `test_project_env_links`, `test_volume_mapper`.
 - **`build_spec_from_config` uses ContainerConfig fields** — fresh venv recreate inside the container no longer reads host `docker_layout` / `project_settings` (AttributeError that broke golden-path compose up). Tests: `test_bake_venv`.
 - **`messagebus` group in all base Dockerfiles** — before `apt-get install sudo`, every `debian_*_dockerfile*` ensures `messagebus` exists (`getent`/`groupadd`), so kaniko `direct` does not fail on a host `statoverride` (`unknown system group 'messagebus'`). Docs: ADR-019. Tests: `test_dockerfile_profiles`.
 - **`image … ensure` syncs root Dockerfile** — scoped prepare (`IMAGE_ENSURE_STEP_IDS`) now includes `template.dockerfile` and `template.dockerignore`, so layers/kaniko regenerate a stale project-root Dockerfile after `.odpm/` template upgrades. `template.odoo_conf` stays excluded. Docs: ADR-027, `prepare-zones.md`. Tests: `test_cli_image`.

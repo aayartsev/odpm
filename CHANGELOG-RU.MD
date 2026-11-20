@@ -17,6 +17,7 @@
 
 ### Исправлено
 
+- **Монтаж git-зависимостей после разделения зон prepare** — `project.map_folders` снова проверяет локальный клон (`build_project` при `skip_materialize`) перед добавлением тома и пути в `addons_path`. После `7b5a0fc1` свежий link всегда имел `is_cloned=False`, и уже склонированные seed-URL (в т.ч. при `use_oca_dependencies: false`) выпадали из `docker-compose.yml`. Документация: `prepare-zones.md`. Тесты: `test_project_env_links`, `test_volume_mapper`.
 - **`uv` + древний sdist `PyPDF2==1.26.0`** — Odoo 17 на Python ≤3.10 тянет sdist без ustar-магии; `uv` падает с `Invalid tar file` / нулями в начале архива (при этом `curl`/`pip` тот же файл ставят нормально). `bake_venv` добавляет `--find-links` на `{home}/.cache/wheels` (и пути из `UV_FIND_LINKS`, если заданы вручную), только если каталог существует и в нём есть `.whl` — в compose переменную не пишем: иначе `uv` падает, когда каталога ещё нет. Нужен wheel (например `pip wheel` из того же tarball). Тесты: `test_bake_venv`.
 - **`build_spec_from_config` читает поля ContainerConfig** — пересоздание fresh venv в контейнере больше не обращается к хостовым `docker_layout` / `project_settings` (AttributeError ломал golden-path compose up). Тесты: `test_bake_venv`.
 - **Группа `messagebus` во всех base Dockerfile** — перед `apt-get install sudo` во всех `debian_*_dockerfile*` (не только ci/debian 13) создаётся группа `messagebus`, если её нет: иначе kaniko `direct` падает на host `statoverride` (`unknown system group 'messagebus'`). Документация: ADR-019. Тесты: `test_dockerfile_profiles`.

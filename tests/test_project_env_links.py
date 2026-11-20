@@ -418,6 +418,7 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
             inside_docker_path="dep",
         )
         dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
+        dependency.build_project = MagicMock()
         config.handle_git_link = MagicMock(return_value=dependency)
         config._git_repos.handle_git_link = config.handle_git_link
         env = MagicMock()
@@ -438,7 +439,75 @@ class ProjectLinksNestedOdpmDiscoveryTests(unittest.TestCase):
         links.map_folders()
 
         config.handle_git_link.assert_called_once_with(url, materialize=False)
+        dependency.build_project.assert_not_called()
         links._resolve_dependencies.assert_called_once()
+        self.assertTrue(
+            any(folder.local == "/tmp/dep" for folder in env.mapped_folders),
+            msg="already-cloned dependency must be mounted after map_folders",
+        )
+        self.assertIn("/docker/addons/dep", config.docker_layout.docker_dirs_with_addons)
+
+    def test_map_folders_probes_disk_clone_when_link_not_marked_cloned(self):
+        """Regression 7b5a0fc1: fresh links start is_cloned=False even if repo exists."""
+        url = "https://github.com/OCA/queue.git"
+        config = MagicMock()
+        config.user_settings.use_oca_dependencies = False
+        config.skip_git_update.return_value = False
+        config.project_settings.dependencies = [url]
+        config.developing_project = MagicMock(project_path="")
+        config.user_settings.pre_commit_map_files = []
+        config.odoo_src_dir = "/tmp/odoo"
+        config.docker_layout.venv_dir = "/tmp/venv"
+        config.docker_layout.odoo_tests_dir = "/tmp/tests"
+        config.program_dir = "/tmp/program"
+        config.docker_layout.docker_odoo_dir = "/docker/odoo"
+        config.docker_layout.docker_venv_dir = "/docker/venv"
+        config.docker_layout.docker_temp_tests_dir = "/docker/tests"
+        config.docker_layout.docker_dev_project_dir = "/docker/dev_project"
+        config.docker_layout.docker_backups_dir = "/docker/backups"
+        config.docker_layout.docker_project_dir = "/docker/project"
+        config.docker_layout.dir_for_odoo_container_home = "/tmp/home"
+        config.docker_layout.docker_odoo_project_dir_path = "/docker/project"
+        config.developing_project_dir_path = "/tmp/developing"
+        config.docker_layout.docker_extra_addons = "/docker/extra-addons"
+        config.docker_layout.dependencies_projects = []
+        config.docker_layout.dependencies_dirs = []
+        config.docker_layout.docker_dirs_with_addons = []
+        config.check_project_for_subprojects = MagicMock(return_value=[])
+        config.apply_nested_compatibility = MagicMock()
+        dependency = MagicMock(
+            is_cloned=False,
+            project_path="/tmp/OCA/queue",
+            inside_docker_path="queue",
+        )
+        dependency.project_data.project_type = constants.TYPE_PROJECT_PROJECT
+        dependency.build_project = MagicMock(
+            side_effect=lambda: setattr(dependency, "is_cloned", True)
+        )
+        config.handle_git_link = MagicMock(return_value=dependency)
+        config._git_repos.handle_git_link = config.handle_git_link
+        env = MagicMock()
+        env.bootstrap = MagicMock(_assembled=config)
+        _wire_host_ctx_from_config(env)
+        env.mapped_folders = []
+        _wire_host_ctx_from_config(env)
+        links = ProjectLinks(env)
+        links._dependency_resolution = DependencyResolutionResult(
+            urls=[url],
+            nested_fragments=[],
+        )
+
+        links.map_folders()
+
+        config.handle_git_link.assert_called_once_with(url, materialize=False)
+        dependency.build_project.assert_called_once()
+        self.assertTrue(
+            any(folder.local == "/tmp/OCA/queue" for folder in env.mapped_folders)
+        )
+        self.assertIn(
+            "/docker/extra-addons/queue",
+            config.docker_layout.docker_dirs_with_addons,
+        )
 
     def test_materialize_dependencies_applies_nested_compatibility(self):
         url = "https://github.com/acme/A.git"

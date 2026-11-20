@@ -9,7 +9,7 @@
 | Git и исходники | `git.lock_load`, `git.ensure_present`, `git.materialize_developing`, `git.materialize_platform`, `sources.materialize` | Загрузка фиксации версий; проверка деревьев при `--no-git-update`; клон проекта разработки, затем платформы Odoo; служебные исходники |
 | Скрипты после клонирования | `hooks.post_clone` | Хуки манифеста после клонов платформы/проекта |
 | Зависимости | `git.materialize_dependencies` | Разрешение графа и клон/обновление репозиториев зависимостей |
-| Карта проекта | `project.map_folders` | Карта путей и томов Docker **без** клона и без обхода OCA; в `prepare` ей предшествует `git.materialize_dependencies` |
+| Карта проекта | `project.map_folders` | Карта путей и томов Docker **без** обхода OCA и без шага materialize; для seed-URL проверяет локальный клон перед монтированием. В `prepare` ей предшествует `git.materialize_dependencies` |
 | Фиксация версий (пины) | `git.lock_apply` | Применить пины из lock/манифеста до checkout |
 | Шаблоны и compose | `template.*`, `docker.*`, `database.drift`, `compose.*` (кроме runtime `compose.up`) | Dockerfile, odoo.conf, фрагменты, генерация и проверка compose |
 | Секреты | `secrets.fetch`, `secrets.materialize` | Подтянуть и записать секреты на диск |
@@ -29,7 +29,7 @@
 2. Платформа Odoo (`git.materialize_platform`) — при sources change check в `ci` может быть noop при hit слоя
 3. … служебные исходники и хуки …
 4. Зависимости (`git.materialize_dependencies`) — при sources change check в `ci` может быть noop при hit / отсутствии deps
-5. Карта папок (`project.map_folders`) — только тома/пути по уже разрешённому списку (без клона; прямой вызов без шага зависимостей берёт seed-URL из манифеста)
+5. Карта папок (`project.map_folders`) — тома/пути по уже разрешённому списку (probe локального клона, без обхода OCA; прямой вызов без шага зависимостей берёт seed-URL из манифеста)
 
 ## Обеспечение слоя образа
 
